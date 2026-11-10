@@ -1,4 +1,4 @@
-// render/props/tumbleweed.ts - a TUMBLEWEED seen from above (?desertjunk=1; cones/coneStep.ts
+// render/props/tumbleweed.ts - a TUMBLEWEED seen from above (cones/coneStep.ts
 // blowTumbleweed blows it): a loose ball of dry brush, tan with darker stems through it, turning
 // as it rolls and hopping - its shadow left behind on the ground, down-right as every other
 // prop's, further the higher the hop.

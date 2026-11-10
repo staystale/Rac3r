@@ -1,4 +1,4 @@
-// world/levels/thruston-venue.ts - THRUSTON AS THE REAL VENUE (?thrustonvenue=1, world/venue.ts):
+// world/levels/thruston-venue.ts - THRUSTON AS THE REAL VENUE (world/venue.ts; passed 11-10):
 // Thruxton Circuit (Hampshire) from OpenStreetMap (venues/thruston.ts) at 1/2 of real length with
 // the 13 m road: the airfield's old perimeter road with the Club chicane and the Complex (Campbell,
 // Cobb, Segrave), the airfield still inside it. Checked against Wikipedia (3.793 km, 12 turns; the

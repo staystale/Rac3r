@@ -81,7 +81,7 @@ function moveFlat(obj: Loose, dt: number) {
 }
 
 /**
- * A TUMBLEWEED's breeze (?desertjunk=1): snagged until a car comes in time to cross before it, then
+ * A TUMBLEWEED's breeze: snagged until a car comes in time to cross before it, then
  * easing to its breeze as it gusts, hopping the low barriers (MEASURED, _desertjunkshot.mjs: on
  * the dual carriageway all 5 seen stopped at the central reservation), and rolling (rollDist:
  * render/props/tumbleweed.ts hops and turns it by it).

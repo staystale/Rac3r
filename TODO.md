@@ -216,8 +216,9 @@ CARS: talk to the owner once the tracks are done (trucks, a Dakar car / truck).
    THRUSTON VENUE BUILT 11-08 behind ?thrustonvenue=1 (levels/thruston-venue.ts, OSM data in
    venues/thruston.ts; the venue helper): 1892 m (real 3793, OSM 3771), the airfield inside (OSM
    runways, taxiways, apron as zones; the hangars), the tunnel under the start straight, the pits,
-   the grandstands at Club, the viewing banks (the BARC visitor guide), the skid pan. UNDER TEST;
-   the old thruston.ts and its traced-map credit go on pass.
+   the grandstands at Club, the viewing banks (the BARC visitor guide), the skid pan. PASSED +
+   DEFAULT 11-10 (owner: "the 4 things waiting all approved"): the old thruston.ts and its
+   traced-map credit gone.
    ROUND 2 (owner 11-08: "lost some features the original had", "aeroplanes and stuff around the
    edges"): six light aircraft on the grass aircraft stands (OSM parking positions; the old level's
    colours, a Cessna's 11 m span at 1/2), the race trucks on the Main Apron (the paddock), the
@@ -226,13 +227,18 @@ CARS: talk to the owner once the tracks are done (trucks, a Dakar car / truck).
    the venue helper): the 2.5-mile tri-oval (2016 m) and the road course (2883 m) one venue, the real
    banking (31 / 18 / 3 deg, camber sections with a fixed side), the SAFER wall, Lake Lloyd (scenery
    water), the turn 1 and turn 4 tunnels, the frontstretch stands, rolling start, a mown skull in the
-   tri-oval grass. UNDER TEST; the old Naffcar Speedway stays as the classic.
+   tri-oval grass. PASSED + DEFAULT 11-10 (owner: "all approved"); the old Naffcar Speedway stays
+   as the classic.
+   (Owner 11-10 on the rallycross stages: "keep the originals they are great / no rebuild for
+   them" - the rebuilt Knobhill rallycross below is gone, the old level stays; Knobhill Circuit
+   stays behind ?knobhillvenue=1.)
    KNOBHILL VENUE BUILT 11-09 behind ?knobhillvenue=1 (levels/knobhill-venue.ts, OSM data in
    venues/knobhill.ts; the venue helper): the rallycross as the Knobhill level (686 m, OSM 1384 real:
    the real gravel through the infield from Leslie's to Hislop's, 40 % loose; the real joker round
    Taylor's hairpin, the lap cutting up the escape road) and the International circuit as
    Knobhill Circuit (988 m, real 2039). Venue system: a loose race piece's dirt sector, spec.joker.
-   UNDER TEST; the old knobhill.ts goes on pass.
+   Knobhill Circuit PASSED + DEFAULT 11-10 (owner: "all approved"); the old knobhill.ts STAYS as
+   the rallycross (owner 11-10: "keep the originals").
    SLIDDEN HILL VENUE (built 11-09 behind ?sliddenhillvenue=1) REVERTED 11-09 (owner: "Looks messed
    up revert to what we had before and leave the tracks as the are now"): the old slidden-hill.ts
    stays. NO MORE CONVERSIONS of the old levels (owner 11-09 on the ovals: "don't touch ovals
@@ -426,7 +432,8 @@ CARS: talk to the owner once the tracks are done (trucks, a Dakar car / truck).
    m/s from 15 m, three runs of 30): of the cars that reached a skull all but one broke it (the
    rest never came within 2 m - the rough ground threw them), a tyre went on 6 of 47 broken (13 %);
    _desertjunk.mjs switch off: skulls 0.95 a km as before; worldhash (and the highway) SAME, simhash
-   SAME. UNDER TEST.
+   SAME. PASSED + DEFAULT 11-10 (owner: "they can straight pass no need for me to test"): the
+   junk, the tumbleweed and the loose skulls always; the skull prop and its drawer gone.
 6. SMALL: Brands Snatch Indy's garage barrier on a lane (barriercheck); the highway AI dodging (owner
    "let's leave it for now").
 - WATCH: an AI F1 field spins more since the real aero passed (12 races: incidents 56 -> 92, spins
@@ -655,6 +662,8 @@ Then, to work through when it fits (owner 11-07, not ordered):
 - SIDE DRAFTING ("especially for naffcar"): the wake (physics/wake.ts) beside a car, not only
   behind it. With it the Naffcar extras from the roadmap (docs/specs/roadmap-2026-10-03.md G):
   active AIR BRAKES / cowl flaps, aero parts as upgrades; and DIEATONA (below).
+  ROOF FLAPS (physics/roofflaps.ts: two plates up on the Naffcar's roof when it travels
+  backwards fast, their drag) PASSED + DEFAULT 11-10 (owner: "the 4 things waiting all approved").
 
 ## Where we are (2026-11-04)
 

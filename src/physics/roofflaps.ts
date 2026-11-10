@@ -7,9 +7,7 @@
 // within ROOF_SHUT or under ROOF_SLOW. Our aero has no lift going backwards (physics/loads.ts
 // keeps the downforce whichever way the car travels - nothing takes off), so what they do here is:
 // their DRAG, along the way it travels (two flaps of ~0.125 m^2 standing square, Cd 1.2).
-// car.flaps 0..1 (up in OPEN_S, down in SHUT_S) for render/cars.ts. The Naffcar; behind
-// ?roofflaps=1.
-import { FIX } from '../core/fixes.ts';
+// car.flaps 0..1 (up in OPEN_S, down in SHUT_S) for render/cars.ts. The Naffcar (passed 11-10).
 import { dragOf } from '../realcars.ts';
 
 const ROOF_CARS = new Set(['naffcar']);
@@ -28,10 +26,10 @@ interface FlapCar {
 /**
  * Whether a car has roof flaps.
  * @param car the car
- * @returns true for a stock car (the switch on)
+ * @returns true for a stock car
  */
-export const hasRoofFlaps = (car: { spec: { id?: string } }) => FIX.roofflaps
-  && ROOF_CARS.has(String(car.spec.id || '').split('#')[0]);
+export const hasRoofFlaps = (car: { spec: { id?: string } }) =>
+  ROOF_CARS.has(String(car.spec.id || '').split('#')[0]);
 
 /**
  * One step of a car's roof flaps: up when it travels backwards fast, down as it comes round or

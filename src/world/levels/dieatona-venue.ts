@@ -1,4 +1,4 @@
-// world/levels/dieatona-venue.ts - DIEATONA AS THE REAL VENUE (?dieatona=1, world/venue.ts): the
+// world/levels/dieatona-venue.ts - DIEATONA AS THE REAL VENUE (world/venue.ts; passed 11-10): the
 // Daytona International Speedway parody from OpenStreetMap (venues/dieatona.ts) at 1/2 of real
 // length with the 13 m road, two layouts of one venue sharing its scenery: the 2.5-mile tri-oval
 // and the road course the 24-hour race runs (the infield, the oval's banking from turn 1 and the Le

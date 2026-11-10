@@ -19,7 +19,6 @@ import { gorgeAt, rimOf, layGround, roomAt } from './gorge.ts';
 import type { Point, Prop } from '../world/types.ts';
 import type { DressCtx, HwPose } from './hwtypes.ts';
 import type { LevelObj } from '../cones/coneTypes.ts';
-import { FIX } from '../core/fixes.ts';
 
 const FLARE_M = 80, FLARE_OUT = 30;
 // (owner 11-09, passed: "a tiny bit more breathing room off the road between rocky walls or
@@ -209,27 +208,23 @@ function junk(ctx: DressCtx, i: number, side: number, from: number, seed: number
   const { rand, pointAt } = ctx;
   if (i % 10 === 0 && rand() < 0.08) place(ctx, i, side * (from + 4 + rand() * 35),
     { kind: 'wreck', rot: pointAt(i, 0).rot + (rand() - 0.5) * 2.4, flip: rand() < 0.25, seed });
-  if (rand() < 0.012) skull(ctx, i, side * (from + 1 + rand() * 12), rand() * Math.PI * 2, seed);
-  // (?desertjunk=1: its rolls only with it on - the valley as before without)
-  if (FIX.desertjunk) moreJunk(ctx, i, side, from, seed);
+  if (rand() < 0.012) skull(ctx, i, side * (from + 1 + rand() * 12), rand() * Math.PI * 2);
+  moreJunk(ctx, i, side, from, seed);
 }
 
 /**
- * A cattle skull at point i if clear there: with ?desertjunk=1 a loose object (owner 11-10: "cow
- * skulls should be collidable objects with a puncture risk"; cones/coneConsts.ts DEBRIS), else a
- * prop.
+ * A cattle skull at point i if clear there, a loose object (owner 11-10: "cow skulls should be
+ * collidable objects with a puncture risk"; cones/coneConsts.ts DEBRIS).
  * @param ctx the dress context
  * @param i road point
  * @param off m off the centre line (signed)
  * @param rot its turn
- * @param seed its look's seed
  */
-function skull(ctx: DressCtx, i: number, off: number, rot: number, seed: number) {
-  if (FIX.desertjunk) addLoose(ctx, i, off, { kind: 'skull', rot }, 2);
-  else place(ctx, i, off, { kind: 'skull', rot, seed });
+function skull(ctx: DressCtx, i: number, off: number, rot: number) {
+  addLoose(ctx, i, off, { kind: 'skull', rot }, 2);
 }
 
-// the desert's breeze (?desertjunk=1): across the road one way or the other, BREEZE_M of road at
+// the desert's breeze: across the road one way or the other, BREEZE_M of road at
 // a time, BREEZE_MIN-BREEZE_MAX m/s, a little down the road with it
 const BREEZE_M = 4000, BREEZE_MIN = 3.5, BREEZE_MAX = 6;
 // the desert's oil drums: rust, faded blue, olive, a red gone brown
@@ -280,7 +275,7 @@ function heap(ctx: DressCtx, i: number, off: number, count: number, kinds: strin
 }
 
 /**
- * The rest of the desert's junk (?desertjunk=1; owner 11-09: "Burned-out cars, Crates and oil
+ * The rest of the desert's junk (passed 11-10; owner 11-09: "Burned-out cars, Crates and oil
  * drums, Tumbleweed, Old tyres and a shack"): a dump of crates and oil drums, old tyres lying or in
  * a pile, now and then a tin shack with junk round it, and tumbleweed - mostly on the side the
  * breeze comes from, snagged until a car comes (cones/coneStep.ts blowTumbleweed).
@@ -310,12 +305,12 @@ function moreJunk(ctx: DressCtx, i: number, side: number, from: number, seed: nu
   // (owner 11-10, "I jsut didn't see them": MEASURED, tools/scratch/_junkseen.mjs, 0.9-1.5 skulls
   // and 0.9-1.5 tumbleweed on screen a km, 2-6 m off its edge - three times the tumbleweed, nearer
   // the road, and as many skulls again by the verge)
-  if (rand() < 0.03) skull(ctx, i, side * (from + 0.5 + rand() * 5), rand() * Math.PI * 2, seed);
+  if (rand() < 0.03) skull(ctx, i, side * (from + 0.5 + rand() * 5), rand() * Math.PI * 2);
   tumbleweed(ctx, i, side, side * (from + 2 + rand() * 16), [0.07, 0.012]);
 }
 
 /**
- * Now and then a TUMBLEWEED at point i (?desertjunk=1), snagged until a car comes: mostly on the
+ * Now and then a TUMBLEWEED at point i, snagged until a car comes: mostly on the
  * side the breeze comes from, to blow across the road.
  * @param ctx the dress context
  * @param i road point
@@ -474,8 +469,8 @@ function sideProps(ctx: DressCtx, i: number, side: number, kind: string) {
   else if (cut) { if (i % 4 === 0) desertProps(ctx, i, side, halfWidth + rimOf(cut) + 3); }
   else if (gap !== null) {
     rimProps(ctx, i, side, gap);
-    // (?desertjunk=1: down the canyons too, from the foot of the wall)
-    if (FIX.desertjunk) tumbleweed(ctx, i, side, side * (ctx.halfWidth + gap * 0.6), [0.04, 0]);
+    // (tumbleweed down the canyons too, from the foot of the wall)
+    tumbleweed(ctx, i, side, side * (ctx.halfWidth + gap * 0.6), [0.04, 0]);
   }
 }
 

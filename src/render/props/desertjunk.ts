@@ -58,7 +58,7 @@ export function drawWreck(propCtx: PropCtx, prop: Prop, ppm: number) {
 }
 
 /**
- * A tin shack (?desertjunk=1): its shadow, the corrugated roof in faded tin and rust, its ridge,
+ * A tin shack: its shadow, the corrugated roof in faded tin and rust, its ridge,
  * a sheet gone and patched with planks, a lean-to off the back.
  * @param propCtx the view and painter helpers
  * @param prop the shack
@@ -86,17 +86,7 @@ export function drawShack(propCtx: PropCtx, prop: Prop, ppm: number) {
 }
 
 /**
- * A cattle skull: its shadow, the long face, the eye holes, the horns curving out.
- * @param propCtx the view and painter helpers
- * @param prop the skull
- * @param ppm pixels per metre
- */
-export function drawSkull(propCtx: PropCtx, prop: Prop, ppm: number) {
-  paintSkull(propCtx.view.ctx, prop.rot || 0, ppm);
-}
-
-/**
- * A loose cattle skull (?desertjunk=1: cones/coneConsts.ts DEBRIS), or the bone shards a hit left
+ * A loose cattle skull (cones/coneConsts.ts DEBRIS), or the bone shards a hit left
  * (a few bleached chips and a horn scattered flat), in its own turned frame.
  * @param ctx the canvas, at the object
  * @param cone the object (its kind, its angle, its home spot for its look)

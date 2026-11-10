@@ -1,6 +1,7 @@
-// world/levels/rallycross-venue.ts - A VENUE'S RALLYCROSS LAYOUT AS A LEVEL (Knobhill, Slidden
-// Hill): the venue's level (world/venue.ts) with the joker rule, the rallycross dressing - hay
-// bales round the corners where no wall stands and both sides of the loose stretches lined, bales
+// world/levels/rallycross-venue.ts - A VENUE'S RALLYCROSS LAYOUT AS A LEVEL (for a NEW rallycross
+// venue from the map; the old stages stay as they are - owner 11-10: "keep the originals"): the
+// venue's level (world/venue.ts) with the joker rule, the rallycross dressing - hay bales round the
+// corners where no wall stands and both sides of the loose stretches lined, bales
 // between the joker and the lap where they run apart - and the rallycross bushes.
 import { tidyLoose, venueBuild, venueLevel } from "../venue.ts";
 import { venueJoker } from "../venuejoker.ts";

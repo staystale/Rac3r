@@ -6,7 +6,7 @@
 //               (GAS_PUMPS) under the canopy (GAS_CANOPY; its posts GAS_POSTS solid)
 
 export const WRECK_M: [number, number] = [4.2, 1.8];
-// shack       a tin shack (?desertjunk=1), SHACK_M long and wide, its lean-to off the back of it
+// shack       a tin shack, SHACK_M long and wide, its lean-to off the back of it
 export const SHACK_M: [number, number] = [5.2, 3.6];
 export const GAS_SHOP: [number, number, number, number] = [0, 13, 14, 7];
 export const GAS_PUMPS: [number, number, number, number][] = [[-4, -1, 1.2, 2.2],

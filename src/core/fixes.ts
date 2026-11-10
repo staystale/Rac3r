@@ -15,7 +15,8 @@
 // oncoming, oultonrails, cadwallop, malarkey, medians, twoway, clearance, passcare, gantry,
 // anglesleazy, goodwoody, croughed, jerseyover, shoulder, laybys, farlaybys, barrierends,
 // hwpick, desertroom, spa, offaim passed 11-09; nordschlep, worldcat, hwfinish,
-// roundit, monza, spaforest, holdoncoming, lemans, suzuka, fences passed 11-10.)
+// roundit, monza, spaforest, holdoncoming, lemans, suzuka, fences, desertjunk, knobhillvenue,
+// dieatona, thrustonvenue, roofflaps passed 11-10.)
 import { envValue } from './debug.ts';
 
 /**
@@ -46,20 +47,4 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
-  // ?desertjunk=1: Deaf Valley's roadside junk - dumps of crates and oil drums, old tyres lying
-  // and in piles, a tin shack now and then with junk round it, and TUMBLEWEED that a gust takes
-  // across the road as you come (owner 11-09: "Burned-out cars, Crates and oil drums,
-  // Tumbleweed, Old tyres and a shack"; highway/canyon.ts junk, cones/coneStep.ts blowTumbleweed)
-  desertjunk: atLoad('desertjunk'),
-  // ?dieatona=1: Dieatona (the Daytona parody) as a new venue at 1/2 of real length, the oval and
-  // the road course (world/levels/dieatona-venue.ts; owner 11-08)
-  dieatona: atLoad('dieatona'),
-  // a stock car's roof flaps pop up when it travels backwards fast (physics/roofflaps.ts)
-  roofflaps: atLoad('roofflaps'),
-  // ?thrustonvenue=1: Thruston as the real venue (Thruxton) at 1/2 of real length
-  // (world/levels/thruston-venue.ts; owner 11-08)
-  thrustonvenue: atLoad('thrustonvenue'),
-  // ?knobhillvenue=1: Knobhill as the real venue (Knockhill) at 1/2 of real length, the
-  // rallycross (the Knobhill level) and the circuit (world/levels/knobhill-venue.ts; owner 11-09)
-  knobhillvenue: atLoad('knobhillvenue'),
 };

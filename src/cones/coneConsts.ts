@@ -172,16 +172,16 @@ export const DEBRIS: Record<string, DebrisKind> = {
   // of spiny pulp (physics/punctures.ts: their spines)
   cactus:   { mass: 150, r: 0.5, breaks: 1, into: 'pulp' },
   barrelcactus: { mass: 20, r: 0.35, breaks: 1, into: 'pulp' },
-  // TUMBLEWEED (?desertjunk=1): a dry ball of brush, bursting at the first hit into twigs
+  // TUMBLEWEED: a dry ball of brush, bursting at the first hit into twigs
   tumbleweed: { mass: 4, r: 0.7, breaks: 1, into: 'twigs' },
-  // a CATTLE SKULL (?desertjunk=1; owner 11-10: "cow skulls should be collidable objects with a
+  // a CATTLE SKULL (owner 11-10: "cow skulls should be collidable objects with a
   // puncture risk"): knocked, breaking at the first hit into bone shards (physics/punctures.ts:
   // its horns, the shards)
   skull: { mass: 8, r: 0.4, breaks: 1, into: 'bones' },
 };
 export const BROKEN = new Set(['splinters', 'cardboard', 'sand', 'fluff', 'pulp', 'twigs',
   'bones']);
-// a TUMBLEWEED (?desertjunk=1) lies snagged until a car comes, then a gust takes it: it eases to
+// a TUMBLEWEED lies snagged until a car comes, then a gust takes it: it eases to
 // its breeze (Loose.wind) at TUMBLE_EASE /s, the breeze rising and falling by TUMBLE_GUST of
 // itself, and rolls on across the desert, never at rest. It goes in time to be on the road
 // TUMBLE_AHEAD_M before the car: the car that far off and as far again as it comes in the

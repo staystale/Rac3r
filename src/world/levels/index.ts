@@ -1,5 +1,5 @@
 import { FLOOR } from "../bounds.ts";
-import type { Barrier, Level } from "../types.ts";
+import type { Level } from "../types.ts";
 import { SURFACES } from "../surfaces.ts";
 import { alongTrack, solidsFromProps } from "../barriers.ts";
 import { BOWLING_ALLEY_LEVEL, ROUGH_PATCH_LEVEL } from "./lab-extension.ts";
@@ -15,10 +15,6 @@ import {
 } from "./grass-track.ts";
 import { SO_SUBTRACK, SO_ZONES, SO_PROPS, SO_PAINT, SO_BOARDS } from "./stock-car.ts";
 import { NC_SUBTRACK, NC_ZONES, NC_PROPS, NC_PAINT, NC_BOARDS } from "./naffcar.ts";
-import {
-  TH_SUBTRACK, TH_ZONES, TH_BUMPS, TH_PAINT, TH_PROPS, TH_CONES, TH_STAND, TH_PIT,
-  TH_LANES,
-} from "./thruston.ts";
 import {
   SH_SUBTRACK, SH_BUMPS, SH_START, SH_JOKER, SH_PADDOCK, SH_JOKER_RULE, SH_PROPS, SH_ARMCO,
 } from "./slidden-hill.ts";
@@ -47,7 +43,6 @@ import { OP_LEVELS } from "./oultonpork-venue.ts";
 import { DT_LEVELS } from "./dieatona-venue.ts";
 import { TH_VENUE_LEVEL } from "./thruston-venue.ts";
 import { KH_VENUE_LEVELS } from "./knobhill-venue.ts";
-import { FIX } from "../../core/fixes.ts";
 import { LAB_PAINT, LAB_BOARDS } from "../barriers.ts";
 import { courseCones, slalom, outerTyreWall } from "../tyrewall.ts";
 import { LAB_BUMPS, LAB_PANELS } from "./sandbox.ts";
@@ -55,7 +50,6 @@ import { KH_LEVEL } from "./knobhill.ts";
 import { rxDress, jokerBales } from "./kit.ts";
 import { LAB_BUSHES, RALLY_BUSHES, TEST_TRACK_BUSHES } from "./bushes.ts";
 import { SH_TYREWALL, SH_STARTWALL } from "./slidden-hill.ts";
-import { TH_ARMCO } from "./thruston.ts";
 // =============================================================================================
 // THE LEVELS. `base` is what you are on where no zone covers you; `zones` are first-hit-wins.
 
@@ -117,8 +111,9 @@ export const LEVELS: Level[] = [
     bushes: TEST_TRACK_BUSHES,
     spawn: { x: -62, y: -96.48, heading: 0.0109 },
   },
-  // ?knobhillvenue=1: the real venue (knobhill-venue.ts), its rallycross and its circuit
-  ...(FIX.knobhillvenue ? KH_VENUE_LEVELS : [KH_LEVEL]),
+  // the rallycross as it was (owner 11-10: "keep the originals"), the real venue's circuit beside
+  // it (knobhill-venue.ts; passed 11-10)
+  KH_LEVEL, ...KH_VENUE_LEVELS,
   BH_GP_LEVEL,
   BH_INDY_LEVEL,
   {
@@ -231,50 +226,8 @@ export const LEVELS: Level[] = [
   ...SUZUKA_LEVELS,
   // Oulton Pork, a new venue (oultonpork-venue.ts), its International, Island and Frosters
   ...OP_LEVELS,
-  // ?thrustonvenue=1: the real venue (thruston-venue.ts), built on first use
-  FIX.thrustonvenue ? TH_VENUE_LEVEL : {
-    id: 'thruston', name: 'Thruston',
-    base: SURFACES.grass,
-    subtrack: TH_SUBTRACK,
-    // a smooth, fast airfield surface: a gentle crown, up to 3 deg of camber in the corners
-    // (Thruxton is FLAT; bumps above)
-    camber: { maxDeg: 3, refR: 70, crown: 0.02, edge: 6, sections: [] },
-    zones: TH_ZONES,
-    bumps: TH_BUMPS,
-    paint: TH_PAINT,
-    boards: [],
-    props: TH_PROPS,
-    seams: false,
-    cones: TH_CONES,
-    // on the grid 15 m BEHIND the line (photographed: at distance 0 the car sat on the
-    // chequers)
-    spawn: (() => {
-      const pose = onTrack(TH_SUBTRACK, TH_SUBTRACK.totalDist - 15, 0, {});
-      return { x: pose.x, y: pose.y, heading: pose.rot };
-    })(),
-    // the grandstand is solid: an invisible 'building' barrier along its track-side face
-    // (obstacles are axis-aligned only)
-    barriers: [
-      {
-        kind: 'building',
-        pts: alongTrack(TH_SUBTRACK, TH_STAND.d0, TH_STAND.d1, TH_STAND.off + 4.2),
-      },
-      { kind: 'building', pts: alongTrack(TH_SUBTRACK, 1093, 1119, -22.6, 2) },
-      // pit wall between the track and the lane, only where the lane has fully separated
-      { kind: 'pitwall', pts: alongTrack(TH_SUBTRACK, 1201, 25, 10, 2) },
-      // the yellow line
-      { kind: 'line', pts: alongTrack(TH_SUBTRACK, 1206, 20, TH_PIT.off - 1.5, 2) },
-      // (the garages: solid all round from their drawn outline, world/load.ts garagePass)
-      // ARMCO on the OUTSIDE of the right-handers (an inside offset of a tight corner
-      // self-intersects)
-      ...TH_ARMCO.map(([begin, end]): Barrier =>
-        ({ kind: 'armco', pts: alongTrack(TH_SUBTRACK, begin, end, -16, 2) })),
-      // catch fence behind the Armco at Church, where the spectators stand
-      { kind: 'fence', pts: alongTrack(TH_SUBTRACK, 780, 875, -22, 2) },
-    ],
-    lanes: TH_LANES,
-    solids: solidsFromProps(TH_PROPS),
-  },
+  // Thruston, the real venue (thruston-venue.ts; passed 11-10), built on first use
+  TH_VENUE_LEVEL,
   {
     id: 'grass-track', name: 'Grass Track',
     base: SURFACES.grass,
@@ -344,8 +297,8 @@ export const LEVELS: Level[] = [
       { x: -14, y: 64, w: 4.4, h: 3.6 }, // Marshal tower / official box
     ],
   },
-  // ?dieatona=1: Dieatona's oval and road course (dieatona-venue.ts), built on first use
-  ...(FIX.dieatona ? DT_LEVELS : []),
+  // Dieatona's oval and road course (dieatona-venue.ts; passed 11-10), built on first use
+  ...DT_LEVELS,
   {
     id: 'naffcar', name: 'Naffcar Speedway',
     rollingStart: true,   // races start ROLLING (user: the ovals)

@@ -1,20 +1,16 @@
-// world/levels/knobhill-venue.ts - KNOBHILL AS THE REAL VENUE (?knobhillvenue=1, world/venue.ts):
+// world/levels/knobhill-venue.ts - KNOBHILL CIRCUIT AS THE REAL VENUE (world/venue.ts; passed):
 // Knockhill (Fife) from OpenStreetMap (venues/knobhill.ts) at 1/2 of real length with the 13 m
-// road, two layouts of one venue sharing its scenery. Checked against Wikipedia (the International
+// road: its circuit (owner 11-10 on the rallycross stages: "keep the originals they are great / no
+// rebuild for them" - the rallycross stays the old Knobhill level, knobhill.ts; the rebuilt one,
+// with the real joker round the hairpin, is gone). Checked against Wikipedia (the International
 // layout 2.039 km, 10 m wide, 37 m of climb: the crest by the start its highest point, the foot
 // of the hill after Butcher's its lowest), the circuit's own map (the rallycross "1 mile, asphalt
 // and gravel dust"), British Rallycross reports and aerial photographs. North up, as the old level
 // sat: the start straight along the top, the lap clockwise.
 //   THE CIRCUIT: the International layout - Duffus Dip, Leslie's, McIntyre's, Butcher's, the
 //     chicane, Clark's, Hislop's, the Railway Straight and Taylor's hairpin (OSM 2037 m).
-//   THE RALLYCROSS (the level the old Knobhill was, category rx): over the crest and down Duffus
-//     Dip, off Leslie's onto the gravel through the infield to Hislop's (OSM 562 m of 1384: 41 %
-//     loose, the old level's 39 %), up the Railway Straight and "cutting up the escape road" to the
-//     start straight. The JOKER is the real one: "run along the bottom straight and around the
-//     hairpin" instead (British Rallycross, Knockhill).
 import { KNOBHILL_VENUE } from "./venues/knobhill.ts";
 import { venueLap, venueLevel } from "../venue.ts";
-import { rallycrossLevel } from "./rallycross-venue.ts";
 import type { VenueSpec } from "../venue.ts";
 import type { Level } from "../types.ts";
 
@@ -41,17 +37,13 @@ export const KNOBHILL_SPEC: VenueSpec = {
     { at: [-420, -330], label: 'KNOBHILL' },
     { at: [395, -40], label: 'KUM TYRES' },
   ],
-  // the rallycross joker: the circuit's hairpin, which the rallycross lap cuts out
-  joker: { layout: 'rx', loop: 'circuit', near: [-385, -300] },
   seed: 1974,
 };
 
-// the two layouts of the one venue, each built on first use (world/load.ts buildLevel)
+// the circuit, built on first use (world/load.ts buildLevel)
 const circuitLevel = (): Level =>
   venueLevel(KNOBHILL_SPEC, 'circuit', 'knobhill-circuit', 'Knobhill Circuit');
 export const KH_VENUE_LEVELS: Level[] = [
-  ({ id: 'knobhill', name: 'Knobhill', venue: 'Knobhill', _lap: () => venueLap(KNOBHILL_SPEC, 'rx'),
-    _build: () => rallycrossLevel(KNOBHILL_SPEC, 'rx', 'knobhill', 'Knobhill') } as Level),
   ({ id: 'knobhill-circuit', name: 'Knobhill Circuit', venue: 'Knobhill',
     _lap: () => venueLap(KNOBHILL_SPEC, 'circuit'), _build: circuitLevel } as Level),
 ];
