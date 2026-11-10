@@ -17,6 +17,8 @@ import type { Barrier, Lane, Paint, Point, Prop, Subtrack } from "./types.ts";
 // wall's distance past the road's edge
 export const PIT_W = 9, EDGE_TO_WALL = 3;
 const PIT_WALL_GAP = 0.6, PIT_MERGE_M = 30;
+// m along the road either side of a spot the lane's nearest point is read over (pitWall)
+const LANE_READ_M = 3;
 // m the pit wall's ends keep off a road beside them
 const WALL_ROAD_M = 1;
 // m either side of a point the road's bend is measured over, and the share of the bend's radius
@@ -193,14 +195,44 @@ function bendRadius(sub: Subtrack, dist: number): number {
 function pitWall(site: Site, beside: Beside[], lanePts: Point[]): Barrier {
   const sides = beside.reduce((sum, spot) => sum + spot.side, 0), trim = 6;
   const out = Math.sign(sides || 1), road = beside[0].sub, from = beside[0].dist + trim;
-  const pts = alongTrack(road, from, beside[beside.length - 1].dist - trim,
+  const until = beside[beside.length - 1].dist - trim;
+  const pts = alongTrack(road, from, until,
     (along) => out * (HALF_ROAD + wallGap(road, from + along)), 2);
   const onRoad = ([x, y]: Point) => site.lanes.some((lane) =>
     distToLine(lane.pts, x, y) < lane.width / 2 + WALL_ROAD_M)
     || distToLine(lanePts, x, y) < PIT_W / 2;
-  while (pts.length > 2 && onRoad(pts[0])) pts.shift();
-  while (pts.length > 2 && onRoad(pts[pts.length - 1])) pts.pop();
-  return { kind: 'pitwall', pts };
+  let first = 0, last = pts.length - 1;
+  while (last - first > 1 && onRoad(pts[first])) first++;
+  while (last - first > 1 && onRoad(pts[last])) last--;
+  // what is left kept PIT_WALL_GAP short of the lane, in toward the road if need be (never nearer
+  // than EDGE_TO_WALL past its edge): the lane's clearance and the wall read wallGap at different
+  // spots, and a bend near PIT_BEND_R flickers it (MEASURED, barriercheck: Thruston's wall stood in
+  // the pit lane by the line, Dieatona's on the tri-oval's)
+  const laneOff = laneOffsets(road, lanePts);
+  const kept = alongTrack(road, from, until, (along) => out * Math.max(HALF_ROAD + EDGE_TO_WALL,
+    Math.min(HALF_ROAD + wallGap(road, from + along),
+      laneOff(from + along) - PIT_W / 2 - PIT_WALL_GAP)), 2);
+  return { kind: 'pitwall', pts: kept.slice(first, last + 1) };
+}
+
+/**
+ * The lane's centre off the road by distance along it: the nearest of its points within
+ * LANE_READ_M (along the lap, through its start).
+ * @param road the road
+ * @param lanePts the lane
+ * @returns m from the road's centre at a distance along it (Infinity where it does not run)
+ */
+function laneOffsets(road: Subtrack, lanePts: Point[]): (dist: number) => number {
+  const total = road.totalDist, spots = lanePts.map(([x, y]) => querySubtrack(road, x, y))
+    .filter((hit) => Number.isFinite(hit.dist));
+  return (dist: number) => {
+    let least = Infinity;
+    for (const hit of spots) {
+      const apart = Math.abs((((hit.trackDist - dist) % total) + total * 1.5) % total - total / 2);
+      if (apart < LANE_READ_M) least = Math.min(least, hit.dist);
+    }
+    return least;
+  };
 }
 
 /**
