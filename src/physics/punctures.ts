@@ -27,8 +27,8 @@ const BIG_HIT_CHANCE: Record<string, number> = {
   // a flat panel medium, steel arms and springs sharp, the engine hard, a mirror soft
   bonnet: MEDIUM, boot: MEDIUM, spoiler: SHARP, mirror: SOFT, wishbone: SHARP, strut: SHARP,
   engine: HARD,
-  // a cactus's spines (Deaf Valley)
-  cactus: SHARP, barrelcactus: SHARP,
+  // a cactus's spines, a cattle skull's horns (Deaf Valley)
+  cactus: SHARP, barrelcactus: SHARP, skull: SHARP,
 };
 // anything not in the table counts as hard
 const UNKNOWN = HARD;
@@ -43,11 +43,15 @@ const DEBRIS_CHANCE: Record<string, number> = {
   // (owner 11-09: "cactus should be destructible but high puncture chance"): a saguaro's spines
   // half the time, a barrel cactus's (a tyre rolls right over it) more
   cactus: 0.5, barrelcactus: 0.6,
+  // (owner 11-10: "cow skulls should be collidable objects with a puncture risk"): a skull's horn
+  // tips as a pallet's nails and splinters
+  skull: 0.15,
 };
-// driving over a broken pallet's nails, a snapped cactus's spines: the chance a second on them
-const NAILS_CHANCE = 0.03, SPINES_CHANCE = 0.15;
+// driving over a broken pallet's nails, a snapped cactus's spines, a broken skull's bone shards:
+// the chance a second on them
+const NAILS_CHANCE = 0.03, SPINES_CHANCE = 0.15, BONES_CHANCE = 0.05;
 /** What has a go at a tyre driven over it, once a second (cones/coneCar.ts drivenOver). */
-export const PRICKLY = new Set(['splinters', 'pulp']);
+export const PRICKLY = new Set(['splinters', 'pulp', 'bones']);
 
 // what a car hitting it meets as METAL ON METAL (sparks fly from a big hit: render/particles.ts)
 const METAL = new Set(['car', 'banger', 'truck', 'caravan', 'armco', 'catchfence', 'fence',
@@ -95,10 +99,11 @@ export function takeHitFactor(car: HitNoter): number {
 
 /**
  * The chance running into this debris, or a second on pallet nails, punctures a tyre.
- * @param kind the object's kind ('splinters': the nails; 'pulp': a snapped cactus's spines)
+ * @param kind the object's kind ('splinters': the nails; 'pulp': a snapped cactus's spines;
+ * 'bones': a broken skull's shards)
  * @returns the chance
  */
 export function debrisChance(kind: string): number {
   return kind === 'splinters' ? NAILS_CHANCE : kind === 'pulp' ? SPINES_CHANCE
-    : DEBRIS_CHANCE[kind] ?? 0;
+    : kind === 'bones' ? BONES_CHANCE : DEBRIS_CHANCE[kind] ?? 0;
 }

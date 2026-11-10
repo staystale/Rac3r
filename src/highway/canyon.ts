@@ -209,10 +209,24 @@ function junk(ctx: DressCtx, i: number, side: number, from: number, seed: number
   const { rand, pointAt } = ctx;
   if (i % 10 === 0 && rand() < 0.08) place(ctx, i, side * (from + 4 + rand() * 35),
     { kind: 'wreck', rot: pointAt(i, 0).rot + (rand() - 0.5) * 2.4, flip: rand() < 0.25, seed });
-  if (rand() < 0.012) place(ctx, i, side * (from + 1 + rand() * 12), { kind: 'skull',
-    rot: rand() * Math.PI * 2, seed });
+  if (rand() < 0.012) skull(ctx, i, side * (from + 1 + rand() * 12), rand() * Math.PI * 2, seed);
   // (?desertjunk=1: its rolls only with it on - the valley as before without)
   if (FIX.desertjunk) moreJunk(ctx, i, side, from, seed);
+}
+
+/**
+ * A cattle skull at point i if clear there: with ?desertjunk=1 a loose object (owner 11-10: "cow
+ * skulls should be collidable objects with a puncture risk"; cones/coneConsts.ts DEBRIS), else a
+ * prop.
+ * @param ctx the dress context
+ * @param i road point
+ * @param off m off the centre line (signed)
+ * @param rot its turn
+ * @param seed its look's seed
+ */
+function skull(ctx: DressCtx, i: number, off: number, rot: number, seed: number) {
+  if (FIX.desertjunk) addLoose(ctx, i, off, { kind: 'skull', rot }, 2);
+  else place(ctx, i, off, { kind: 'skull', rot, seed });
 }
 
 // the desert's breeze (?desertjunk=1): across the road one way or the other, BREEZE_M of road at
@@ -296,8 +310,7 @@ function moreJunk(ctx: DressCtx, i: number, side: number, from: number, seed: nu
   // (owner 11-10, "I jsut didn't see them": MEASURED, tools/scratch/_junkseen.mjs, 0.9-1.5 skulls
   // and 0.9-1.5 tumbleweed on screen a km, 2-6 m off its edge - three times the tumbleweed, nearer
   // the road, and as many skulls again by the verge)
-  if (rand() < 0.03) place(ctx, i, side * (from + 0.5 + rand() * 5), { kind: 'skull',
-    rot: rand() * Math.PI * 2, seed });
+  if (rand() < 0.03) skull(ctx, i, side * (from + 0.5 + rand() * 5), rand() * Math.PI * 2, seed);
   tumbleweed(ctx, i, side, side * (from + 2 + rand() * 16), [0.07, 0.012]);
 }
 

@@ -418,7 +418,15 @@ CARS: talk to the owner once the tracks are done (trucks, a Dakar car / truck).
    ahead of the car that comes (its lead: m to the road's middle over the breeze across it), and
    a skull by the verge as often again: 4.6-5.0 skulls and 5.2-6.1 tumbleweed on screen a km,
    3.3-4.6 a km on the road ahead. 52 fps (51 before). A skull is ~5 CSS px wide at speed (the
-   ground's speckles' size); the owner keeps its look. UNDER TEST.
+   ground's speckles' size); the owner keeps its look. Owner 11-10: "Ok Death Valley is better"
+   and "cow skulls should be collidable objects with a puncture risk": with the switch the skulls
+   are loose objects (cones/coneConsts.ts DEBRIS skull, 8 kg), knocked and broken at the first
+   hit into bone shards; a hit has a pallet's chance at a tyre (15 %: its horns), a second on the
+   shards 5 % (pallet nails 3, cactus spines 15). MEASURED (tools/scratch/_skullhit.mjs, at 20
+   m/s from 15 m, three runs of 30): of the cars that reached a skull all but one broke it (the
+   rest never came within 2 m - the rough ground threw them), a tyre went on 6 of 47 broken (13 %);
+   _desertjunk.mjs switch off: skulls 0.95 a km as before; worldhash (and the highway) SAME, simhash
+   SAME. UNDER TEST.
 6. SMALL: Brands Snatch Indy's garage barrier on a lane (barriercheck); the highway AI dodging (owner
    "let's leave it for now").
 - WATCH: an AI F1 field spins more since the real aero passed (12 races: incidents 56 -> 92, spins

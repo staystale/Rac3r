@@ -4,6 +4,7 @@ import type { RenderCone, View } from "./types.ts";
 import { drawLooseCactus } from "./props/desert.ts";
 import { drawWoodPiece } from "./props/woodfence.ts";
 import { drawTumbleweed } from "./props/tumbleweed.ts";
+import { drawLooseSkull } from "./props/desertjunk.ts";
 
 /**
  * The loose props of the outdoors drawn by their own modules: Deaf Valley's cacti (they snap when
@@ -18,7 +19,7 @@ export function drawLooseProp(ctx: CanvasRenderingContext2D,
     cone: { kind: string; ang?: number; hx?: number; hy?: number; rollDist?: number },
     ppm: number): boolean {
   return drawLooseCactus(ctx, cone, ppm) || drawWoodPiece(ctx, cone, ppm)
-    || drawTumbleweed(ctx, cone, ppm);
+    || drawTumbleweed(ctx, cone, ppm) || drawLooseSkull(ctx, cone, ppm);
 }
 
 // what the prop drawers read of the objects context

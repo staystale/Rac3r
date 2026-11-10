@@ -92,12 +92,57 @@ export function drawShack(propCtx: PropCtx, prop: Prop, ppm: number) {
  * @param ppm pixels per metre
  */
 export function drawSkull(propCtx: PropCtx, prop: Prop, ppm: number) {
-  const ctx = propCtx.view.ctx, rect = (x: number, y: number, wide: number, high: number,
-    col: string) => {
+  paintSkull(propCtx.view.ctx, prop.rot || 0, ppm);
+}
+
+/**
+ * A loose cattle skull (?desertjunk=1: cones/coneConsts.ts DEBRIS), or the bone shards a hit left
+ * (a few bleached chips and a horn scattered flat), in its own turned frame.
+ * @param ctx the canvas, at the object
+ * @param cone the object (its kind, its angle, its home spot for its look)
+ * @param ppm pixels per metre
+ * @returns true for a skull or its bones
+ */
+export function drawLooseSkull(ctx: CanvasRenderingContext2D,
+    cone: { kind: string; ang?: number; hx?: number; hy?: number }, ppm: number): boolean {
+  if (cone.kind === 'skull') paintSkull(ctx, cone.ang || 0, ppm);
+  else if (cone.kind === 'bones') paintBones(ctx, Math.abs(Math.round((cone.hx || 0) * 7
+    + (cone.hy || 0) * 13)) % 997 + 1, ppm);
+  else return false;
+  return true;
+}
+
+/**
+ * A skull's broken bits: bleached chips, a horn, scattered flat round the spot.
+ * @param ctx the canvas
+ * @param seed its look
+ * @param ppm pixels per metre
+ */
+function paintBones(ctx: CanvasRenderingContext2D, seed: number, ppm: number) {
+  let state = seed;
+  const rand = () => (state = (state * 16807) % 2147483647) / 2147483647;
+  for (let bit = 0; bit < 8; bit++) {
+    const angle = rand() * 6.283, radius = Math.sqrt(rand()) * 0.9, horn = bit === 0,
+      wide = (horn ? 0.3 : 0.08 + rand() * 0.12) * ppm, high = (horn ? 0.07 : 0.06 + rand() * 0.08)
+      * ppm;
+    ctx.fillStyle = bit % 3 === 2 ? BONE_DARK : BONE;
+    ctx.fillRect(Math.cos(angle) * radius * ppm - wide / 2, Math.sin(angle) * radius * ppm
+      - high / 2, Math.max(1, wide), Math.max(1, high));
+  }
+}
+
+/**
+ * A cattle skull in its turned frame: its shadow, the long face, the eye holes, the horns.
+ * @param ctx the canvas, at the skull and turned with it
+ * @param rot its turn (the shadow falls down-right on the screen whatever it)
+ * @param ppm pixels per metre
+ */
+function paintSkull(ctx: CanvasRenderingContext2D, rot: number, ppm: number) {
+  const rect = (x: number, y: number, wide: number, high: number, col: string) => {
     ctx.fillStyle = col;
     ctx.fillRect(x * ppm, y * ppm, Math.max(1, wide * ppm), Math.max(1, high * ppm));
   };
-  const [shX, shY] = shadowShift(prop, 0.12);
+  const [shX, shY] = shadowShift({ rot } as Prop, 0.12);
   rect(-0.15 + shX, -0.2 + shY, 0.3, 0.55, SHADOW);
   rect(-0.15, -0.2, 0.3, 0.55, BONE);
   rect(-0.1, -0.05, 0.07, 0.07, '#3a3128');
