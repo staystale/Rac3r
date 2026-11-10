@@ -18,7 +18,8 @@
 // [way ids] makes a motor raceway a dirt track (Daytona's flat track), not a race road piece; a race
 // piece with a loose surface (OSM unpaved, gravel ...) is written with surface 'dirt'; "race": [way
 // ids] makes a raceway the map gives no sport a race piece; "skip": [way ids] leaves a raceway out
-// (a driving-experience track or a motocross course beside the venue); "rails": [way ids] reads
+// (a driving-experience track or a motocross course beside the venue) - or any other way (Yas
+// Marina's U-shaped grandstand, traced again in "extra"); "rails": [way ids] reads
 // those barrier lines as rails (a mapper who drew the circuit's barriers as walls or fences: Croft,
 // Spa); "posts": [way ids] leaves out marshal posts mapped as buildings by name only (Spa's P1 ..
 // P19: the venue places its own); "trim": { "<way id>": [first, last] } keeps only those nodes of a
@@ -196,7 +197,8 @@ const LOOSE = /unpaved|gravel|dirt|ground|compacted/;
 const dirtIds = new Set((config.dirt || []).map(String));
 // "race": [way ids] - raceways the map gives no sport that are race road (a link traced from Bing)
 const raceIds = new Set((config.race || []).map(String));
-// "skip": [way ids] - raceways that are not the venue's (driving-experience tracks, motocross)
+// "skip": [way ids] - raceways that are not the venue's (driving-experience tracks, motocross), or
+// any other way left out (traced again in "extra", or a fan zone named as a grandstand)
 const skipIds = new Set((config.skip || []).map(String));
 // "rails": [way ids] - the circuit's barriers mapped as barrier=wall or fence, read as rails
 const railIds = new Set((config.rails || []).map(String));
@@ -311,6 +313,7 @@ for (const way of ways) {
   const tags = way.tags || {}, pts = way.geometry.map(toGame);
   if (!pts.some(inClip) || !pts.some(inReach)) continue;
   if (roadRaceIds.has(String(way.id))) continue;   // a race piece
+  if (tags.highway !== 'raceway' && skipIds.has(String(way.id))) continue;
   const line = (tolerance) => cleanLine(pts, tolerance);
   if (tags.highway === 'raceway' && /Pit Lane/i.test(tags.name || ''))
     out.pitLanes.push({ name: config.names?.[way.id] || tags.name, pts: line(0.25) });

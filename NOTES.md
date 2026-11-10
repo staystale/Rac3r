@@ -55,7 +55,8 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   Park, Mallory Park = Malarkey Park, Anglesey = Anglesleazy, Goodwood = Goodwoody, Croft =
   Croughed (owner 11-09), Spa-Francorchamps = Spa-Frankenchumps (owner's brief 11-09), Le Mans =
   Le Manky (its Mulsanne straight, the Hunaudieres, = the Mulsanity; owner's brief 11-09), Suzuka =
-  Snoozuka (the brief 11-09, confirmed by the owner 11-10).
+  Snoozuka (the brief 11-09, confirmed by the owner 11-10), Yas Marina = Yass Marina (the brief
+  11-10, the name approved).
 - No keys, tokens, tunnel URLs or process IDs in the repo. No itch.io push until the owner says so.
 - The foreman may push to `main` once the change is proven (routine below).
 - Keep the test server and the tunnel running.
@@ -573,6 +574,36 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   every prop twice. A per-frame or per-tile loop over the whole level is fine at 3 km and 500
   props; the long laps and the forest are where it shows. Tested exact by
   tools/scratch/_kerbcheck.mjs and _propgridcheck.mjs, and renderhash.
+- A PIT LANE THAT RUNS ON (11-10, Yass Marina's pit exit tunnel under the first corner): a venue's
+  pit lane was eased into the track at BOTH ends (its merges), but Yas Marina's runs on round the
+  first corner's outside into a tunnel, and its exit lane comes up inside the corner. Now
+  VenueSpec.pitHeld names the ends that do not merge (world/venuepit.ts: held at full clearance,
+  the pit wall run on to them), finish.roads lays the two pit roads to the tunnel's mouths and
+  VenueSpec.pitTunnel stands its portals (venuecross.ts pitTunnelPortals; world/crossings.ts
+  pairs them as one crossing). MEASURED with tools/scratch/_pitdrive.mjs (a car down the whole
+  pit path by pure pursuit, the game's world clamp): first the eased lane folded at the pit
+  entry's corner and the car hit the pit wall; then a pit road still turning at a portal met the
+  cut's walls - an 8 m straight run in and out of each mouth and the tunnel turned 40 deg to the
+  track (a pit road beside it turns in less) gave a clean run, on the crossing from 327 to 383 m
+  of 565. _pittunnelshots.mjs drives it in the live game.
+- A U-SHAPED GRANDSTAND IS SLICED ACROSS ITS HAIRPIN (11-10, Yass Marina): osmvenue.mjs slices a
+  long stand along its length, each slice its own box - Yas Marina's North Grandstand is one way
+  wrapped round the old hairpin, so each slice's box spanned both legs and the hairpin between,
+  one standing across the new hairpin's two legs (propcheck FAIL; moving it only put it on the
+  next slice). The config's "skip" now leaves out any way (not only a raceway), and the stand is
+  traced again in "extra" from its own nodes as its three parts (two legs and the north end).
+  Likewise the "Grandstand Oasis" fan zones, read as stands by their names, skipped.
+- A STREET CIRCUIT'S MAPPED FENCES ARE ON ITS WALLS (11-10, Yass Marina): OSM draws Yas Marina's
+  debris fences on top of the concrete walls as barrier=fence and few of the walls, so the mixed
+  fences (world/venuefences.ts) made it 91 % chain link (tools/scratch/_fencemix.mjs). Following
+  only OSM's walls, with the aerial photographs' line 10 real m off each side as Snoozuka's: Armco
+  73 %, catch fence 27 % (at the grandstands), wood 0, open run-off 5.3 % of the sides.
+- A BIG WATER IS HUNDREDS OF THOUSANDS OF CELLS (11-10, Yass Marina's marina): the ground painter
+  keeps a merged cover as one object per 0.5 m cell and filters every one on each tile it paints
+  (render/ground/covers.ts filterCellsInView). The marina, 370 covers over 48 600 m2, is ~194 000
+  cells (Snoozuka's ponds 38 000, Spa's 90): MEASURED JS heap 67-71 MB with 10 AI against Spa's
+  55-59, covers.ts 6.6 % of the CPU x4 profile (Spa: not in its top 25), work p95 35 ms against
+  Spa's 27. Proposed, not done: the cells filed by tile (as render/propgrid.ts files props).
 - A RESET ON A TWO-WAY ROAD NEVER TAKES "THE NEAREST EDGE" (11-09, owner: "reset still can leave me
   on the opposite carriage way !"): the circuits' reset puts the car on the edge it left by, and a
   car thrown over the Jersey barrier left by the oncoming side's. Every endless-road reset - the R

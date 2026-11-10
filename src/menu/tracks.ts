@@ -29,7 +29,7 @@ export const KIND: Record<string, string> = { lab: 'TEST GROUND', 'test-track': 
   goodwoody: 'UK CIRCUIT', croughed: 'UK CIRCUIT', 'croughed-club': 'UK CIRCUIT · CLUB',
   spa: 'WORLD CIRCUIT · GP', monza: 'WORLD CIRCUIT · GP',
   nordschlep: 'WORLD CIRCUIT · NORDSCHLEP', lemans: 'WORLD CIRCUIT · 24 MINUTES',
-  suzuka: 'WORLD CIRCUIT · GP',
+  suzuka: 'WORLD CIRCUIT · GP', yasmarina: 'WORLD CIRCUIT · GP',
   'brands-snatch-indy': 'UK CIRCUIT · INDY', snotterton: 'UK CIRCUIT · 300',
   'snotterton-200': 'UK CIRCUIT · 200', 'snotterton-100': 'UK CIRCUIT · 100',
   'sweaty-lamb': 'RALLY STAGE',

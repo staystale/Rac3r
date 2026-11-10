@@ -52,7 +52,11 @@ export function pitLane(site: Site, name: string): { lane: Lane; wall: Barrier |
   if (!data) throw new Error(`venue ${spec.id}: no pit lane ${name}`);
   const dense = resample(placeAll(site, data.pts), 2);
   const need = HALF_ROAD + EDGE_TO_WALL + PIT_WALL_GAP + PIT_W / 2;
-  let beside = besideSpots(site, dense);
+  const held = spec.pitHeld?.[name];
+  // m from a merging end (a held end does not merge: VenueSpec.pitHeld)
+  const fromMerge = (i: number) => (held === 'start' ? dense.length - 1 - i
+    : held === 'end' ? i : Math.min(i, dense.length - 1 - i));
+  let beside = besideSpots(site, dense, fromMerge);
   // the lane in the track's own measure - distance along it, offset beside it - held out to its
   // clearance and eased there, then laid back beside the track (held out point by point along
   // the track's normals it bunched and jogged on a bend's inside)
@@ -70,11 +74,11 @@ export function pitLane(site: Site, name: string): { lane: Lane; wall: Barrier |
     beside = beside.filter((spot) => spot.at >= from && spot.at < until);
   }
   const eased = easedLane(sub, dense, lost,
-    (along) => HALF_ROAD + wallGap(sub, along) + PIT_WALL_GAP + PIT_W / 2);
+    (along) => HALF_ROAD + wallGap(sub, along) + PIT_WALL_GAP + PIT_W / 2, fromMerge);
   // (where a stretch was laid as mapped, the joints eased: spec.pitCuts)
   const lanePts = spec.pitCuts ? smoothLine(eased, CUT_EASE_REACH, CUT_EASE_PASSES) : eased;
   return { lane: { pts: lanePts, width: PIT_W, surface: SURFACES.concrete },
-    wall: beside.length > 8 ? pitWall(site, beside, lanePts) : null };
+    wall: beside.length > 8 ? pitWall(site, beside, lanePts, held) : null };
 }
 
 /** A pit lane point beside a race road: the road, the distance along it, the side, its index. */
@@ -84,12 +88,13 @@ interface Beside { sub: Subtrack; dist: number; side: number; at: number }
  * The points of a pit lane beside a race road (its merges at the two ends left out).
  * @param site the venue's builders' state
  * @param dense the lane, resampled
+ * @param fromMerge points from the nearer end that merges into the road
  * @returns the spots beside the road
  */
-function besideSpots(site: Site, dense: Point[]): Beside[] {
+function besideSpots(site: Site, dense: Point[], fromMerge: (i: number) => number): Beside[] {
   const beside: Beside[] = [];
   dense.forEach(([x, y], i) => {
-    if (Math.min(i, dense.length - 1 - i) * 2 < PIT_MERGE_M) return;
+    if (fromMerge(i) * 2 < PIT_MERGE_M) return;
     const { sub, hit } = nearestLoop(site.loops, x, y);
     // (a stretch of lane beyond the road's lookup has no side: the tri-oval's chord)
     if (!Number.isFinite(hit.dist)) return;
@@ -105,10 +110,11 @@ function besideSpots(site: Site, dense: Point[]): Beside[] {
  * @param dense the lane, resampled
  * @param lost true for each point laid as mapped
  * @param need m the lane's centre keeps from the road's at a distance along it
+ * @param fromMerge points from the nearer end that merges into the road
  * @returns the lane's points
  */
 function easedLane(sub: Subtrack, dense: Point[], lost: boolean[],
-  need: (along: number) => number): Point[] {
+  need: (along: number) => number, fromMerge: (i: number) => number): Point[] {
   const total = sub.totalDist, measured: Point[] = [];
   let sideSum = 0;
   for (const [i, [x, y]] of dense.entries()) {
@@ -131,7 +137,7 @@ function easedLane(sub: Subtrack, dense: Point[], lost: boolean[],
   // jump in it was a kink where the merge ended), eased in and out (a straight ramp left a corner
   // where it topped out)
   const clearance = (i: number, along: number) => {
-    const frac = Math.min(1, Math.min(i, dense.length - 1 - i) * 2 / PIT_MERGE_M);
+    const frac = Math.min(1, fromMerge(i) * 2 / PIT_MERGE_M);
     return need(along) * frac * frac * (3 - 2 * frac);
   };
   const eased: Point[] = dense.slice();
@@ -186,16 +192,19 @@ function bendRadius(sub: Subtrack, dist: number): number {
  * The pit wall: parallel to the road, EDGE_TO_WALL past its edge (wallGap: further by a bend),
  * along the stretch the lane runs beside it - its ends off any road beside them (a closed race
  * piece meets the straight by the lane's end) and off the lane itself (a long merge runs in under
- * the wall's end).
+ * the wall's end) - but at a held end (VenueSpec.pitHeld: the lane runs on away from the road, no
+ * merge under it) it runs on to the lane's end.
  * @param site the venue's builders' state
  * @param beside the lane's spots beside the road
  * @param lanePts the lane
+ * @param held the lane's end that does not merge, if one
  * @returns the wall
  */
-function pitWall(site: Site, beside: Beside[], lanePts: Point[]): Barrier {
+function pitWall(site: Site, beside: Beside[], lanePts: Point[], held?: 'start' | 'end'): Barrier {
   const sides = beside.reduce((sum, spot) => sum + spot.side, 0), trim = 6;
-  const out = Math.sign(sides || 1), road = beside[0].sub, from = beside[0].dist + trim;
-  const until = beside[beside.length - 1].dist - trim;
+  const out = Math.sign(sides || 1), road = beside[0].sub;
+  const from = beside[0].dist + (held === 'start' ? 0 : trim);
+  const until = beside[beside.length - 1].dist - (held === 'end' ? 0 : trim);
   const pts = alongTrack(road, from, until,
     (along) => out * (HALF_ROAD + wallGap(road, from + along)), 2);
   const onRoad = ([x, y]: Point) => site.lanes.some((lane) =>

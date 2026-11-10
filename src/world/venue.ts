@@ -14,7 +14,7 @@ import { onTrack, querySubtrack } from "./tyrewall.ts";
 import { solidsFromProps } from "./barriers.ts";
 import { venueCrossings } from "./crossings.ts";
 import { markUnder } from "./trackunder.ts";
-import { underParapets, underPortals, underSpans } from "./venuecross.ts";
+import { pitTunnelPortals, underParapets, underPortals, underSpans } from "./venuecross.ts";
 import { CIRCUIT_BUSHES } from "./levels/bushes.ts";
 import { buildVenueScenery } from "./venuescenery.ts";
 import { VENUE_ROAD_M, distToLine, kerbOut, lineLength, pointAlong } from "./venuegeo.ts";
@@ -79,6 +79,9 @@ export interface VenueSpec {
   // stands inside a bend further off than the bend's radius it is laid as mapped (the road's
   // measure folds)
   pitCuts?: boolean;
+  // a pit lane end that does not merge into the track: held at the lane's full clearance (Yass
+  // Marina's pit lane runs on into its exit tunnel, its exit lane comes out of it)
+  pitHeld?: Record<string, 'start' | 'end'>;
   hills: Bump[];   // the hills (r and d / h in real m: scaled with the map)
   // spectator earth banks; a catch fence in front of each unless fenced is false (the sources show
   // its viewers behind the circuit's rail, no fence)
@@ -139,6 +142,9 @@ export interface VenueSpec {
   // a figure of eight (Snoozuka): the piece whose stretch runs under the road where the layout's
   // loop crosses itself, in a cut and under the road over it (world/venuecross.ts)
   crossover?: { under: string };
+  // a pit lane's tunnel under the track: its two open ends, game m (Yass Marina's pit exit, under
+  // the first corner; world/venuecross.ts pitTunnelPortals)
+  pitTunnel?: { a: Point; b: Point };
   seed: number;
 }
 
@@ -553,7 +559,7 @@ export function venueLevel(spec: VenueSpec, layout: string, levelId: string,
   const jokerLanes = [joker, startLane].filter((lane): lane is Lane => !!lane);
   const scenery = buildVenueScenery(build, sub, [...jokerLanes, ...closed.lanes]);
   // a figure of eight's underpass portals, first (world/crossings.ts pairs the portals in order)
-  const props = [...underPortals(sub), ...scenery.props];
+  const props = [...underPortals(sub), ...pitTunnelPortals(spec.pitTunnel), ...scenery.props];
   // on the grid near the start lane's dead end, facing along it; else 15 m before the line
   const start = startLane ? laneSpawn(startLane) : onTrack(sub, sub.totalDist - 15, 0, {});
   return {

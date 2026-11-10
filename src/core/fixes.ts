@@ -47,4 +47,8 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
+  // ?yasmarina=1: Yass Marina, the Yas Marina Circuit (Abu Dhabi) at 1/2 of real length - the
+  // 2021 GP layout, the pit exit in its tunnel under the track, the W hotel's bridge over it, the
+  // marina; a world championship circuit (owner 11-10; world/levels/yasmarina-venue.ts)
+  yasmarina: atLoad('yasmarina'),
 };

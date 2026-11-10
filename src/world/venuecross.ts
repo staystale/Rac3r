@@ -185,3 +185,28 @@ export function underParapets(sub: Subtrack): Barrier[] {
   }
   return barriers;
 }
+
+// m (game): a pit tunnel's portal (shorter than a road tunnel's: room by the first corner) and its
+// cut's width over the pit lane's (venuepit.ts PIT_W 9)
+const PIT_PORTAL_M = 7, PIT_TUNNEL_W = 10.2;
+
+/**
+ * A pit lane's tunnel under the track (VenueSpec.pitTunnel: Yass Marina's pit exit): its two
+ * portals, each at one open end with its ramp running down toward the other (world/crossings.ts
+ * venueCrossings makes the pair one crossing).
+ * @param tunnel the open ends, game m (none: no pit tunnel)
+ * @param tunnel.a the end the pit lane goes in by
+ * @param tunnel.b the end the exit comes out of
+ * @returns the portals
+ */
+export function pitTunnelPortals(tunnel?: { a: Point; b: Point }): Prop[] {
+  if (!tunnel) return [];
+  const { a, b } = tunnel, head = Math.atan2(b[1] - a[1], b[0] - a[0]);
+  const dirX = Math.cos(head), dirY = Math.sin(head), half = PIT_PORTAL_M / 2;
+  return [
+    { kind: 'tunnel', x: a[0] + dirX * half, y: a[1] + dirY * half, rot: head, w: PIT_PORTAL_M,
+      h: PIT_TUNNEL_W } as Prop,
+    { kind: 'tunnel', x: b[0] - dirX * half, y: b[1] - dirY * half, rot: head + Math.PI,
+      w: PIT_PORTAL_M, h: PIT_TUNNEL_W } as Prop,
+  ];
+}

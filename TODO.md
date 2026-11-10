@@ -374,6 +374,28 @@ CARS: talk to the owner once the tracks are done (trucks, a Dakar car / truck).
    background (menu/thumbfiles.ts) and paints only a level without one; the per-version saved cache
    (thumbcache.ts, the bundle fingerprint) gone. After: the tap 0.8-1.0 s (CPU x4 5.1), the menu up
    2.5-5.7 s as before (3.0-5.1); menucheck passes both sizes; tools/thumbcheck.mjs in the suite.
+   YASS MARINA BUILT 11-10 behind ?yasmarina=1 (the name approved 11-10; levels/yasmarina-venue.ts,
+   OSM data in venues/yasmarina.ts; the venue helper): the Yas Marina Circuit's 2021 GP lap as a
+   FULL venue, 2632 m (real 5281, OSM 5303) - the pit lane with its EXIT IN A TUNNEL under the
+   first corner, drivable (the lane runs on round the corner's outside, down a cut, under the
+   track and up inside it to rejoin; NOTES: A PIT LANE THAT RUNS ON), the W hotel's bridge over the
+   track (a footbridge: its stair towers 14.5 m off the centre, no solid on the road), the marina's
+   water, barriers both sides all round (a line 10 real m off each side from the aerial
+   photographs, with OSM's walls: Armco 73 %, catch fence 27 %, wood 0, open run-off 5.3 % of the
+   sides), grandstands with catch fences (the North Grandstand round the hairpin as its three
+   parts), boards (PIRRELLY, FIRESTONED, GOOD YEAH, YASS MARINA), SRTM heights as 3 hills (a flat
+   island; credited). OSM maps no gravel traps beside the lap (asphalt run-off). MEASURED: build
+   3.7-4.0 s (node), the AI line 0.24-0.29 s on its first car, JS heap 67-71 MB with 10 AI (Spa
+   55-59), CPU x4 work median 11.4-12.8 ms, p95 34.9-35.1 (Spa 14.5-23.5 / 26.9-42.7, its second
+   round slow throughout), three 20-car starts (seeds 7 / 8 / 9): barrier hits 2 / 2 / 0 (at the
+   first corner, 1-4 m/s), hard car hits 3 / 5 / 1; a lap 126 s for the scripted driver; the pit
+   lane end to end at 30 km/h touching nothing (tools/scratch/_pitdrive.mjs). Left as the map has
+   them (venueaudit notes): a road carried off at the map's reach ends 30 m short of the level's
+   bounds (venueroads.ts carryOff takes the bounds before venueBounds adds its margin), a spur
+   joined along its road, a footpath tunnel's road beside the pit exit, 8-9 m between the pit wall
+   and the Armco where the pit roads leave the track. The marina's water costs heap and tile paints
+   (NOTES: A BIG WATER IS HUNDREDS OF THOUSANDS OF CELLS) - proposed: the cover cells filed by
+   tile.
 3. ROLLING LOOK - smoother than the dice flip on the same physics; mockup first.
 4. SIDE DRAFTING (Naffcar first) PASSED + DEFAULT 11-08 (owner: "Pass"): physics/wake.ts part 5 - a nose
    alongside a car's rear quarter, up to +20 % drag on it and -6 % on the car alongside, gone by 1.2 m
