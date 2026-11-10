@@ -240,6 +240,16 @@ function addFieldLooks(SURFACE_ART: Record<string, SurfaceArt | null>) {
       (layer, idx): ArtLayer => [layer[0], cols[idx] || layer[1], ...layer.slice(2) as number[]]
     ),
   });
+  // (?rocklook=1) Deaf Valley's red rock as ground: its stones, grain and faint strata
+  SURFACE_ART.redrock = {
+    base: '#a8643f',
+    layers: [
+      ['ripples', 'rgba(112,58,36,0.34)', 0.9, 0.12, 4.2, 0.10],
+      ['stones', '#c98456', 0.75, 0.05, 0.11],
+      ['stones', '#84492f', 0.85, 0.05, 0.10],
+      ['grain', '#93533a', 0.55, 0.07],
+    ],
+  };
   // long grass, ripe gold
   SURFACE_ART.wheat = recolour('grassLong', '#bf9f4e', ['#dcc074', '#9c7f38']);
   // long grass, yellow flower over green

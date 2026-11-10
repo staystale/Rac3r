@@ -16,7 +16,10 @@ import { keepOut } from './cuts.ts';
 import { stretchAt, stationSideOf } from './desertplan.ts';
 import { SURFACES } from '../world/surfaces.ts';
 import { gorgeAt, rimOf, layGround, roomAt } from './gorge.ts';
-import type { Point, Prop } from '../world/types.ts';
+import type { Level, Patch, Point, Prop, Surface, Zone } from '../world/types.ts';
+import { blendPatch, tri, BLEND_W } from '../world/blend.ts';
+import { indexNewBushes } from '../world/load.ts';
+import { FIX } from '../core/fixes.ts';
 import type { DressCtx, HwPose } from './hwtypes.ts';
 import type { LevelObj } from '../cones/coneTypes.ts';
 
@@ -119,11 +122,50 @@ function layRockWalls(ctx: DressCtx) {
           };
         face.push(spot(near));
         back.push(spot(from + deep));
+        // (?rocklook=1: the band as ground in the rock's look, under the wall's face)
+        if (FIX.rocklook && j % ROCK_STEP === 0) rockGround(ctx, j, side, near, from + deep);
         strata[0].push(spot(from + deep * (0.32 + 0.06 * Math.sin(dist / 23 + side))));
         strata[1].push(spot(from + deep * (0.66 + 0.06 * Math.sin(dist / 31 - side))));
       }
       flush();
     }
+}
+
+// (?rocklook=1) road points between the rock's ground pieces, and each piece's length along the
+// road, m (the sand floors' own: highway/gorge.ts laySand)
+const ROCK_STEP = 3, ROCK_PIECE_M = ROCK_STEP * 4 + 4;
+// (?rocklook=1) its back's blend: m between squares along it, the chance of each
+const ROCK_SPECKLE_M = 1.2, ROCK_BLEND = 0.6;
+
+/**
+ * A piece of the rock's ground (?rocklook=1): the band behind a wall's face at road point i, as a
+ * zone drawn in the red rock look (render/ground/art.ts redrock; it drives as the level's ground,
+ * never reached - the wall stands in front of it).
+ * @param ctx the dress context
+ * @param i road point
+ * @param side -1 / +1
+ * @param near m off the centre line of the face
+ * @param back m off the centre line of the band's back
+ */
+function rockGround(ctx: DressCtx, i: number, side: number, near: number, back: number) {
+  const { level, road, pointAt, rand } = ctx, mid = pointAt(i, side * (near + back) / 2),
+    zone = { x: mid.x, y: mid.y, w: ROCK_PIECE_M, h: back - near + 1, rot: mid.rot,
+      surface: level.base, art: 'redrock', _s: road[i].s } as Zone;
+  level.zones.push(zone);
+  // its back blended as the ground's patches are (highway/gorge.ts speckle): squares of rock out
+  // over the ground and of the ground in over the rock, most at the edge
+  const cos = Math.cos(zone.rot || 0), sin = Math.sin(zone.rot || 0), edge = side * zone.h / 2,
+    added: Patch[] = [];
+  for (let along = -zone.w / 2 + 0.5; along < zone.w / 2; along += ROCK_SPECKLE_M)
+    for (const sign of [1, -1]) {
+      if (rand() > ROCK_BLEND) continue;
+      const deep = edge + side * sign * (0.3 + tri(rand) * BLEND_W * 1.3),
+        x = zone.x + along * cos - deep * sin, y = zone.y + along * sin + deep * cos;
+      added.push({ ...blendPatch(rand, x, y, level.base as Surface), streamed: true, _s: zone._s,
+        ...(sign > 0 ? { art: 'redrock' } : {}) });
+    }
+  level._streamed = [...(level._streamed || []), ...added];
+  indexNewBushes(level as Level, added);
 }
 
 /**

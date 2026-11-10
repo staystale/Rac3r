@@ -47,4 +47,11 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
+  // ?rocklook=1 (a MOCKUP for the owner): Deaf Valley's rock walls given the ground's terrain
+  // look - the band behind each face laid as ground in a red rock look (render/ground/art.ts
+  // redrock), the wall still the wall, drawing only its face's shadow, its lip and its strata
+  // (owner 11-10:
+  // "Can we give everything the terrain look like the canyon ... I think the rock would benefit -
+  // although it should still be a wall", "show me a mock up and I can approve")
+  rocklook: atLoad('rocklook'),
 };

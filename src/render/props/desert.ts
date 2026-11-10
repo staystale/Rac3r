@@ -3,6 +3,7 @@
 // lines, the cliff's shadow over the verge, a pale lip along the face) and the CACTUS (a loose
 // object: a saguaro, its round top and arms seen from above, a long shadow - it stands tall; a
 // small barrel cactus, a round green dome with pale spines; the pulp a hit leaves).
+import { FIX } from '../../core/fixes.ts';
 import type { Barrier, Point } from '../../world/types.ts';
 import type { PropCtx } from './types.ts';
 
@@ -31,12 +32,13 @@ function trace(propCtx: PropCtx, pts: Point[], close = false) {
  */
 export function drawRockWall(propCtx: PropCtx, barrier: Barrier, ppm: number) {
   const ctx = propCtx.view.ctx;
-  if (barrier.band) {
+  // (?rocklook=1: the band is ground in the rock's look - highway/canyon.ts rockGround)
+  if (barrier.band && !FIX.rocklook) {
     trace(propCtx, barrier.band, true);
     ctx.fillStyle = ROCK;
     ctx.fill();
   }
-  ctx.strokeStyle = STRATA;
+  ctx.strokeStyle = FIX.rocklook ? 'rgba(120,62,40,0.55)' : STRATA;
   ctx.lineWidth = Math.max(1, 0.6 * ppm);
   for (const line of barrier.strata || []) {
     trace(propCtx, line);

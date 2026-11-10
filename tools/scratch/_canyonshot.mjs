@@ -14,7 +14,7 @@ try {
   const page = await browser.newPage({ viewport: { width, height } });
   const errors = []; page.on('pageerror', (err) => errors.push(err.message));
   await gotoGame(page, `${server.url}/?pc=1&guide=0&menu=0&rules=0&noaudio=1&autopilot=1`
-    + (process.env.ZOOM ? `&zoom=${process.env.ZOOM}` : ''));
+    + (process.env.ZOOM ? `&zoom=${process.env.ZOOM}` : '') + (process.env.Q || ''));
   await page.mouse.click(width / 2, height / 2);
   await page.waitForTimeout(800);
   await page.evaluate(() => window.__game.launch('highway', 'hatch-rwd', { ai: 0, road: 'canyon' }));
@@ -42,7 +42,7 @@ try {
         cacti: loose.filter((obj) => /cactus/.test(obj.kind)).length,
         fps: game.fps ? Math.round(game.fps) : undefined };
     });
-    await page.screenshot({ path: `tools/scratch/_canyon-${target}-${width}x${height}.png` });
+    await page.screenshot({ path: `tools/scratch/_canyon${process.env.TAG || ""}-${target}-${width}x${height}.png` });
     console.log(target, JSON.stringify(res));
   }
   console.log('worst offset', worst.toFixed(1), 'at', Math.round(worstAt));
