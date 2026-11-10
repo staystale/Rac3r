@@ -279,8 +279,38 @@ function mergedCovers(list: Cover[]): MergedCover[] {
   return out;
 }
 
+// CELLS FILED BY PLACE (owner 11-10: "Yes"): a merged cover's cells, and its rim's, filed by
+// FILE_M square once, so a tile paint looks only at the squares it touches (same cells, same
+// order). MEASURED (the venue helper, Yass Marina): the marina is ~194 000 cells, all filtered on
+// every tile painted - covers.ts 6.6 % of the CPU x4 profile, the p95 34.9-35.1 ms (Spa 26.9-42.7).
+const FILE_M = 16;
+/** A list of cells filed by FILE_M square: each square's cell indices, ascending. */
+type CellFile = Map<number, number[]>;
+const files = new WeakMap<MergedCell[], CellFile>();
+const fileKey = (fileX: number, fileY: number) => fileX * 65537 + fileY;
+
 /**
- * Keeps the cells that touch the visible rectangle.
+ * The cells of a list filed by FILE_M square (built once per list).
+ * @param cells the cells
+ * @returns square -> cell indices
+ */
+function fileOf(cells: MergedCell[]): CellFile {
+  let file = files.get(cells);
+  if (file) return file;
+  file = new Map();
+  cells.forEach((cell, i) => {
+    const key = fileKey(Math.floor(cell.x / FILE_M), Math.floor(cell.y / FILE_M));
+    let list = file!.get(key);
+    if (!list) file!.set(key, (list = []));
+    list.push(i);
+  });
+  files.set(cells, file);
+  return file;
+}
+
+/**
+ * Keeps the cells that touch the visible rectangle, in their order: those filed in the squares
+ * it touches, tested.
  *
  * @param cells the cells to test
  * @param cellSize the cell size in metres
@@ -288,11 +318,22 @@ function mergedCovers(list: Cover[]): MergedCover[] {
  * @returns the cells in view
  */
 function filterCellsInView(cells: MergedCell[], cellSize: number, viewRect: ViewRect) {
-  const { vx0, vx1, vy0, vy1 } = viewRect;
-  return cells.filter(
-    (cell) => cell.x + cellSize >= vx0 && cell.x <= vx1 &&
-      cell.y + cellSize >= vy0 && cell.y <= vy1
-  );
+  const { vx0, vx1, vy0, vy1 } = viewRect, file = fileOf(cells), near: number[] = [];
+  for (let fileX = Math.floor((vx0 - cellSize) / FILE_M); fileX <= Math.floor(vx1 / FILE_M);
+    fileX++)
+    for (let fileY = Math.floor((vy0 - cellSize) / FILE_M); fileY <= Math.floor(vy1 / FILE_M);
+      fileY++) {
+      const list = file.get(fileKey(fileX, fileY));
+      if (list) for (const i of list) near.push(i);
+    }
+  near.sort((first, second) => first - second);
+  const out: MergedCell[] = [];
+  for (const i of near) {
+    const cell = cells[i];
+    if (cell.x + cellSize >= vx0 && cell.x <= vx1 && cell.y + cellSize >= vy0 && cell.y <= vy1)
+      out.push(cell);
+  }
+  return out;
 }
 
 /**
