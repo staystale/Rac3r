@@ -25,10 +25,11 @@ const OFF_ROAD_M = 2;
  * Steering off the racing line (owner 11-09, passed: "it's better"): a car told to be latT off
  * its line HERE keeps that place across the road - at the front axle the target is the same
  * distance from the road's middle, and the heading it steers to is the road's (the line's less the
- * line's own slope across the road), blended in over OFF_ROAD_M. MEASURED, tools/scratch/_hairpintrace.mjs (a 4-car start
- * at Spa): the pole car aimed 3.2-3.8 m right of the middle and drifted from 1.7 to 8.0 m - off the
- * road on La Source's inside - steered by the line's heading where the line swings across the road
- * for the hairpin; alone, on the line, it took it cleanly.
+ * line's own slope across the road), blended in over OFF_ROAD_M. MEASURED,
+ * tools/scratch/_hairpintrace.mjs (a 4-car start at Spa): the pole car aimed 3.2-3.8 m right of the
+ * middle and drifted from 1.7 to 8.0 m - off the road on La Source's inside - steered by the line's
+ * heading where the line swings across the road for the hairpin; alone, on the line, it took it
+ * cleanly.
  * @param path the path (its points' off: the racing line's; a branch has none - unchanged)
  * @param where the car's point, the front axle's, the look point and the one after it
  * @param where.nearIdx the car's point
