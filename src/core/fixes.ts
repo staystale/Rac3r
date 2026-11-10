@@ -85,4 +85,9 @@ export const FIX = {
   // damage diagram on; the device's earlier choices start afresh once (new keys), then are kept
   // (hud/minimap.ts, hud.ts, hud/layout.ts)
   hudon: atLoad('hudon'),
+  // ?bathurst=1: Bathworst, the Mount Panorama Circuit (Bathurst, New South Wales) at 1/2 of
+  // real length - the public road up the mountain and down again, its walls hard by the road,
+  // the pits on the start straight; a world championship circuit (owner 11-10;
+  // world/levels/bathurst-venue.ts)
+  bathurst: atLoad('bathurst'),
 };

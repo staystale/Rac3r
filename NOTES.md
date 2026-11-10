@@ -612,6 +612,38 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   cells (Snoozuka's ponds 38 000, Spa's 90): MEASURED JS heap 67-71 MB with 10 AI against Spa's
   55-59, covers.ts 6.6 % of the CPU x4 profile (Spa: not in its top 25), work p95 35 ms against
   Spa's 27. Proposed, not done: the cells filed by tile (as render/propgrid.ts files props).
+- A WALL AT THE REAL ROAD'S EDGE LANDS ON THE GAME'S ROAD (11-10, Bathworst): Mount Panorama's
+  concrete walls stand at the edge of an 8-9 m road, 4-5 real m off the centreline - at 1/2 scale,
+  pushed out for the game's 13 m road (realRoadM), 5.75 m off: inside the 6.5 m half width. The edge
+  looks for a followed rail from 0.5 m past the road's edge out (venueedge.ts railBeside), so it saw
+  none there - open run-off, a wooden fence set back 15 m over Skyline. Where a mapped wall or fence
+  stands within 10 real m of the centreline, a line 10 real m off that side is followed instead
+  (railsSeen; 20 runs, 72 % of the sides): Armco 91 -> 94 %, wood 3 -> 1 %.
+- A VENUE'S OWN RUN-OFF (11-10, Bathworst: "concrete walls right at the edge and little run-off"):
+  the edge's barrier stood RUNOFF_M (5 m) past the road's edge wherever no trap, tyre wall or old
+  piece set it; VenueSpec.runoffM gives a venue its own (world/venueedge.ts RimLines.runoff; no
+  other venue gives one). Not below the edge's ROAD_CLEAR_M (2.5 m): MEASURED at 2 m the rim's
+  points failed the road clearance and 80 % of the sides went open (barriers gone, marshal posts
+  hit). At 3 m, a 300 s 20-car race (tools/scratch/_startcrash.mjs, seed 11, ~2 laps): barrier hits
+  19, hard car hits 26, off the road 30 - at 5 m 20 / 24 / 27; Spa 8 / 17 / 32, Snoozuka 37 / 40 /
+  58 (its portals' hits left out: the node tool has no crossings). The walls hard by the road
+  catch a car off it sooner; the field does not pile up.
+- A PIT WALL ROUND A TIGHT CORNER FOLDS BACK (11-10, Bathworst: its pit lane runs round the inside
+  of Murray's Corner and Hell Corner): the wall's line, offset inside a corner tighter than its
+  offset, stepped back on itself (venueaudit "barrier folds back" x6). world/venuepit.ts unfold
+  drops a point whose step turns back more than a right angle; every other venue's wall the same
+  (worldhash SAME).
+- A WALKING TRAIL'S BRIDGES ARE NOT OVER THE TRACK (11-10, Bathworst): the Mount Panorama
+  Boardwalk runs beside the road, mapped with bridge=yes over drains by the walls and
+  bridge=boardwalk along Skyline and the Esses; any bridge deck within 10.5 m of the centreline
+  is a crossing (venuescenery.ts), so they stood 70 m footbridges along the track. The aerial
+  photographs show none over the road: skipped in the config ("skip" leaves out any way).
+- THE HILLS' FIT CAN SHARPEN A CREST (11-10, Bathworst): 40 cos^2 hills fitted to SRTM with 200 m
+  ones among them made Skyline's crest 240 real m in radius against SRTM's 480 (and a 340 m game
+  crest on Mountain Straight that SRTM does not have); without the 200 m hills: rms 1.2 -> 1.4 m on
+  the lap, Skyline 380-430 m. tools/scratch/_crestmap.mjs lists every crest sharper than a radius
+  with the speed that makes a car weightless there (v^2 = g R) against what the careful driver and
+  a flat-out driver carry; tools/crestcheck.mjs the airtime by stretch.
 - A RESET ON A TWO-WAY ROAD NEVER TAKES "THE NEAREST EDGE" (11-09, owner: "reset still can leave me
   on the opposite carriage way !"): the circuits' reset puts the car on the edge it left by, and a
   car thrown over the Jersey barrier left by the oncoming side's. Every endless-road reset - the R

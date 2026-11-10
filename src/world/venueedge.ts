@@ -92,10 +92,10 @@ export { inZones, outlineZone, trapZones } from "./venuetraps.ts";
 export interface Rim { sub: Subtrack; left: Float32Array; right: Float32Array }
 
 /**
- * How far out the Armco stands on one side at each rim sample: RUNOFF_M past the edge, behind
- * the trap found there, at a real tyre wall's mapped line (WALL_RUNOFF_M past the edge at least)
- * or PIECE_BACK_M past an unraced road piece beside it (an old line beside a chicane lies inside
- * the edge), eased over RIM_EASE samples each side.
+ * How far out the Armco stands on one side at each rim sample: RUNOFF_M past the edge (or the
+ * venue's own run-off, spec.runoffM), behind the trap found there, at a real tyre wall's mapped
+ * line (WALL_RUNOFF_M past the edge at least) or PIECE_BACK_M past an unraced road piece beside
+ * it (an old line beside a chicane lies inside the edge), eased over RIM_EASE samples each side.
  * @param sub the road
  * @param side +1 the left normal, -1 the right
  * @param traps the trap zones
@@ -109,7 +109,7 @@ function rimSide(sub: Subtrack, side: number, traps: Zone[], lines: RimLines): F
     const centre = centreAt(sub, i * RIM_STEP_M), trapOut = trapDepth(centre, side, traps);
     const pieceOut = pieceDepth(centre, side, lines.pieces);
     const mid = mids[i] = midline(sub, centre, side);
-    raw[i] = Number.isFinite(mid) ? mid : Math.min(Math.max(HALF_ROAD + RUNOFF_M,
+    raw[i] = Number.isFinite(mid) ? mid : Math.min(Math.max(HALF_ROAD + (lines.runoff ?? RUNOFF_M),
       trapOut ? trapOut + TRAP_BACK_M : 0, wallDepth(centre, side, lines.walls),
       pieceOut ? pieceOut + PIECE_BACK_M : 0), insideReach(sub, i * RIM_STEP_M, side));
   }
@@ -286,6 +286,7 @@ function railBeside(centre: TrackPoint, side: number, rails: WallLine[]): WallLi
 export interface RimLines {
   walls: WallLine[];   // the real tyre walls (spec.tyreWalls)
   pieces: { pts: Point[]; width: number }[];   // the road pieces no layout races
+  runoff?: number;   // m past the edge where nothing else sets it (spec.runoffM; RUNOFF_M)
 }
 
 /**

@@ -40,10 +40,12 @@ import { NERD_LEVELS } from "./nordschlep-venue.ts";
 import { LEMANS_LEVELS } from "./lemans-venue.ts";
 import { SUZUKA_LEVELS } from "./suzuka-venue.ts";
 import { YASMARINA_LEVELS } from "./yasmarina-venue.ts";
+import { BATHURST_LEVELS } from "./bathurst-venue.ts";
 import { OP_LEVELS } from "./oultonpork-venue.ts";
 import { DT_LEVELS } from "./dieatona-venue.ts";
 import { TH_VENUE_LEVEL } from "./thruston-venue.ts";
 import { KH_VENUE_LEVELS } from "./knobhill-venue.ts";
+import { FIX } from "../../core/fixes.ts";
 import { LAB_PAINT, LAB_BOARDS } from "../barriers.ts";
 import { courseCones, slalom, outerTyreWall } from "../tyrewall.ts";
 import { LAB_BUMPS, LAB_PANELS } from "./sandbox.ts";
@@ -227,6 +229,8 @@ export const LEVELS: Level[] = [
   ...SUZUKA_LEVELS,
   // Yass Marina, the Yas Marina Circuit with its pit exit tunnel (yasmarina-venue.ts; passed 11-10)
   ...YASMARINA_LEVELS,
+  // ?bathurst=1: Bathworst, the Mount Panorama Circuit (bathurst-venue.ts)
+  ...(FIX.bathurst ? BATHURST_LEVELS : []),
   // Oulton Pork, a new venue (oultonpork-venue.ts), its International, Island and Frosters
   ...OP_LEVELS,
   // Thruston, the real venue (thruston-venue.ts; passed 11-10), built on first use

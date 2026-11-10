@@ -102,6 +102,10 @@ export interface VenueSpec {
     drop?: Point[];
     roads?: { pts: Point[]; width?: number }[];
   };
+  // m (game) past the road's edge the edge's barrier stands where no trap, tyre wall or unraced
+  // piece sets it (world/venueedge.ts RUNOFF_M when not given): Bathworst's walls stand hard by
+  // the road
+  runoffM?: number;
   // the real tyre walls where the run-off is grass, no trap (real m, each a line along the wall):
   // Armco there with the two tyre rows in front, as behind a trap (world/venueedge.ts)
   tyreWalls?: Point[][];

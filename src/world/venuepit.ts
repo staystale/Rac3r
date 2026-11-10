@@ -221,7 +221,26 @@ function pitWall(site: Site, beside: Beside[], lanePts: Point[], held?: 'start' 
   const kept = alongTrack(road, from, until, (along) => out * Math.max(HALF_ROAD + EDGE_TO_WALL,
     Math.min(HALF_ROAD + wallGap(road, from + along),
       laneOff(from + along) - PIT_W / 2 - PIT_WALL_GAP)), 2);
-  return { kind: 'pitwall', pts: kept.slice(first, last + 1) };
+  return { kind: 'pitwall', pts: unfold(kept.slice(first, last + 1)) };
+}
+
+/**
+ * A line with its fold-backs left out: a point whose step turns back on the one before it (more
+ * than a right angle - a wall offset inside a corner tighter than its offset: Bathworst's pit wall
+ * round the inside of Murray's Corner and Hell Corner) dropped, until no step does.
+ * @param pts the line
+ * @returns the line unfolded
+ */
+function unfold(pts: Point[]): Point[] {
+  const out = pts.slice();
+  for (let idx = 2; idx < out.length;) {
+    const [backX, backY] = out[idx - 2], [midX, midY] = out[idx - 1], [nextX, nextY] = out[idx];
+    if ((midX - backX) * (nextX - midX) + (midY - backY) * (nextY - midY) < 0) {
+      out.splice(idx - 1, 1);
+      idx = Math.max(2, idx - 1);
+    } else idx++;
+  }
+  return out;
 }
 
 /**

@@ -694,7 +694,8 @@ function venueSite(build: VenueBuild, closed: Lane[]):
     const mid = pointAlong(lane.pts, lineLength(lane.pts) / 2);
     return !!mid && !loops.some((loop) => querySubtrack(loop, mid.x, mid.y).dist < HALF_ROAD);
   });
-  const site: Site = { build, loops, rims: buildRims(loops, traps, { walls: lines.walls, pieces }),
+  const site: Site = { build, loops, rims: buildRims(loops, traps,
+    { walls: lines.walls, pieces, runoff: spec.runoffM }),
     place, rnd: parkMiller(spec.seed), lanes: [...closed], buildings: [], portals: [],
     armco: new Set(), pitPts: [] };
   return { site, traps, lines };

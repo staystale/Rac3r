@@ -31,7 +31,8 @@ const CREDITS: { heading: string; items: Credit[] }[] = [
         who: 'Produced using Copernicus data and information funded by the European Union'
           + ' - EU-DEM layers', licence: 'Copernicus data policy',
         link: 'https://land.copernicus.eu/en/data-policy' },
-      { what: 'Circuit venues outside Europe (Snoozuka, Yass Marina): the heights of the ground',
+      { what: 'Circuit venues outside Europe (Snoozuka, Yass Marina, Bathworst): the heights of'
+        + ' the ground',
         who: 'Shuttle Radar Topography Mission (SRTM) data courtesy of NASA and the U.S. Geological'
           + ' Survey', licence: 'public domain',
         link: 'https://www.usgs.gov/centers/eros/science/usgs-eros-archive-digital-elevation-'

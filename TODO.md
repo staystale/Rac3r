@@ -515,6 +515,30 @@ ROUND 5, LOADING AND SPEED:
    ... give them both a bit more space"): the pit tunnel's way in 4 m further out, its way out 2 m -
    the Armco 2.2 m off the way in (was 0.5 into it), 3.4 m off its road (0.3); the pit lane driven
    end to end at 30 km/h, crossingcheck / barriercheck / propcheck all OK.
+   BATHWORST BUILT 11-10 behind ?bathurst=1 (the name approved 11-10; levels/bathurst-venue.ts, OSM
+   data in venues/bathurst.ts; the venue helper): the Mount Panorama Circuit as a FULL venue, 3107
+   m (real 6213, OSM 6204) - a public road raced ("roadRace", as Le Manky's): Pit Straight, Hell
+   Corner, UP Mountain Straight, Griffins Bend, The Cutting, Reid Park, Sulman Park, McPhillamy
+   Park, Skyline, DOWN the Esses, The Dipper, Forrest's Elbow, Conrod Straight, The Chase, Murray's
+   Corner. SRTM heights as 40 hills (rms 1.4 m on the lap): 698 m on Pit Straight to 875 m over
+   Skyline, 87.7 m in the game (the same slopes: The Cutting 12-17 %, the Esses' drop 20 %). The
+   pit lane and pits inside Pit Straight (mapped as two service roads, traced again as the pit
+   lane; laid as mapped round Hell Corner: pitCuts), the grid by the pit straight's footbridge,
+   OSM's walls and fences followed with the walls hard by the road (runoffM 3; NOTES: A WALL AT THE
+   REAL ROAD'S EDGE, A VENUE'S OWN RUN-OFF), OSM's sand as traps, its grandstands with catch
+   fences, the footbridges over Pit Straight and Conrod, boards (DUNFLOP, PIRRELLY, BATHWORST, GOOD
+   YEAH, FIRESTONED); listed under WORLD CIRCUITS ('WORLD CIRCUIT · MOUNTAIN'). MEASURED: the edge
+   (tools/scratch/_fencemix.mjs) Armco 94 %, catch fence 5 %, wood 1 %, open run-off 2.1 % of the
+   sides (OSM maps concrete walls nearly all round; mixFences keeps a wall Armco); the crests: the
+   careful driver leaves the ground in 1 of the 19 cars (the drift S13, 0.08 s at 211 km/h on
+   Mountain Straight; crestcheck); the sharpest crests Skyline 111 m and The Cutting 97 m (game
+   radius: weightless at 119 / 111 km/h; the careful driver 61-75 / 63-87 km/h); build 2.3-3.2 s
+   (node), the AI line 0.27-0.35 s on its first car, JS heap 52-55 MB with 10 AI (Spa 56-60), CPU
+   x4 work median 12.5-15.4 ms, p95 25.8-32.2 (Spa 14.8-17.7 / 27.7-33.1); three 20-car starts
+   (seeds 7 / 8 / 9): barrier hits 0 / 1 / 2, hard car hits 1 / 8 / 7; a 300 s 20-car race (~2
+   laps): barrier hits 16, hard car hits 22, off the road 28 (Spa 8 / 17 / 32); a lap 137 s for the
+   scripted driver. venueaudit notes: two roads ending a few m short of what they meet (a paddock's
+   corner, the map's edge), a road beside another for 26 m, two crossings with no junction.
 3. ROLLING LOOK - smoother than the dice flip on the same physics; mockup first.
 4. SIDE DRAFTING (Naffcar first) PASSED + DEFAULT 11-08 (owner: "Pass"): physics/wake.ts part 5 - a nose
    alongside a car's rear quarter, up to +20 % drag on it and -6 % on the car alongside, gone by 1.2 m
