@@ -1,14 +1,15 @@
 // render/props/desert.ts - DEAF VALLEY's desert (highway/canyon.ts; owner 11-08: "canyon ... Cactus
-// too?"): the canyon's ROCK WALL (the red rock behind its face in flat pixel-art tones, two strata
-// lines, the cliff's shadow over the verge, a pale lip along the face) and the CACTUS (a loose
+// too?"): the canyon's ROCK WALL (the red rock behind its face is ground in the rock's
+// terrain look, highway/canyon.ts rockGround; here its two strata lines, the cliff's shadow over
+// the verge, a pale lip along the face) and the CACTUS (a loose
 // object: a saguaro, its round top and arms seen from above, a long shadow - it stands tall; a
 // small barrel cactus, a round green dome with pale spines; the pulp a hit leaves).
-import { FIX } from '../../core/fixes.ts';
 import type { Barrier, Point } from '../../world/types.ts';
 import type { PropCtx } from './types.ts';
 
 const SPINE = '#e8e2c4';
-const ROCK = '#a8643f', STRATA = '#8c4f33', SHADOW = 'rgba(58,30,20,0.55)', LIP = '#d49a6c';
+// (the strata soft over the rock's textured ground)
+const STRATA = 'rgba(120,62,40,0.55)', SHADOW = 'rgba(58,30,20,0.55)', LIP = '#d49a6c';
 
 /**
  * Trace a world polyline (or polygon) on the screen.
@@ -25,20 +26,15 @@ function trace(propCtx: PropCtx, pts: Point[], close = false) {
 }
 
 /**
- * A canyon's rock wall: the rock band, its strata, the cliff's shadow on the verge, the lip.
+ * A canyon's rock wall over its band of rock ground: its strata, the cliff's shadow on the verge,
+ * the lip.
  * @param propCtx the view and painter helpers
  * @param barrier the wall (its band and strata)
  * @param ppm pixels per metre
  */
 export function drawRockWall(propCtx: PropCtx, barrier: Barrier, ppm: number) {
   const ctx = propCtx.view.ctx;
-  // (?rocklook=1: the band is ground in the rock's look - highway/canyon.ts rockGround)
-  if (barrier.band && !FIX.rocklook) {
-    trace(propCtx, barrier.band, true);
-    ctx.fillStyle = ROCK;
-    ctx.fill();
-  }
-  ctx.strokeStyle = FIX.rocklook ? 'rgba(120,62,40,0.55)' : STRATA;
+  ctx.strokeStyle = STRATA;
   ctx.lineWidth = Math.max(1, 0.6 * ppm);
   for (const line of barrier.strata || []) {
     trace(propCtx, line);

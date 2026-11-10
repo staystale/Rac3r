@@ -484,6 +484,12 @@ CARS: talk to the owner once the tracks are done (trucks, a Dakar car / truck).
    _desertjunk.mjs switch off: skulls 0.95 a km as before; worldhash (and the highway) SAME, simhash
    SAME. PASSED + DEFAULT 11-10 (owner: "they can straight pass no need for me to test"): the
    junk, the tumbleweed and the loose skulls always; the skull prop and its drawer gone.
+   THE ROCK'S TERRAIN LOOK (owner 11-10: "Can we give everything the terrain look like the canyon ...
+   the rock would benefit - although it should still be a wall"; mockup "pass"): the band behind
+   each rock wall's face laid as ground in a red rock look (render/ground/art.ts redrock: stones,
+   grain, faint strata streaks; highway/canyon.ts rockGround), its back blended into the desert as
+   the patches are; the wall still the wall (its face's shadow, lip, soft strata; the flat fill
+   gone). PASSED + DEFAULT 11-10.
 6. SMALL: Brands Snatch Indy's garage barrier on a lane (barriercheck); the highway AI dodging (owner
    "let's leave it for now").
 - WATCH: an AI F1 field spins more since the real aero passed (12 races: incidents 56 -> 92, spins

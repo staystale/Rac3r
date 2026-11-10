@@ -19,7 +19,6 @@ import { gorgeAt, rimOf, layGround, roomAt } from './gorge.ts';
 import type { Level, Patch, Point, Prop, Surface, Zone } from '../world/types.ts';
 import { blendPatch, tri, BLEND_W } from '../world/blend.ts';
 import { indexNewBushes } from '../world/load.ts';
-import { FIX } from '../core/fixes.ts';
 import type { DressCtx, HwPose } from './hwtypes.ts';
 import type { LevelObj } from '../cones/coneTypes.ts';
 
@@ -122,8 +121,8 @@ function layRockWalls(ctx: DressCtx) {
           };
         face.push(spot(near));
         back.push(spot(from + deep));
-        // (?rocklook=1: the band as ground in the rock's look, under the wall's face)
-        if (FIX.rocklook && j % ROCK_STEP === 0) rockGround(ctx, j, side, near, from + deep);
+        // (the band as ground in the rock's look, under the wall's face)
+        if (j % ROCK_STEP === 0) rockGround(ctx, j, side, near, from + deep);
         strata[0].push(spot(from + deep * (0.32 + 0.06 * Math.sin(dist / 23 + side))));
         strata[1].push(spot(from + deep * (0.66 + 0.06 * Math.sin(dist / 31 - side))));
       }
@@ -131,14 +130,16 @@ function layRockWalls(ctx: DressCtx) {
     }
 }
 
-// (?rocklook=1) road points between the rock's ground pieces, and each piece's length along the
+// the rock's TERRAIN LOOK (owner 11-10: "Can we give everything the terrain look like the canyon
+// ... I think the rock would benefit - although it should still be a wall"; the mockup passed):
+// road points between the rock's ground pieces, and each piece's length along the
 // road, m (the sand floors' own: highway/gorge.ts laySand)
 const ROCK_STEP = 3, ROCK_PIECE_M = ROCK_STEP * 4 + 4;
-// (?rocklook=1) its back's blend: m between squares along it, the chance of each
+// its back's blend: m between squares along it, the chance of each
 const ROCK_SPECKLE_M = 1.2, ROCK_BLEND = 0.6;
 
 /**
- * A piece of the rock's ground (?rocklook=1): the band behind a wall's face at road point i, as a
+ * A piece of the rock's ground: the band behind a wall's face at road point i, as a
  * zone drawn in the red rock look (render/ground/art.ts redrock; it drives as the level's ground,
  * never reached - the wall stands in front of it).
  * @param ctx the dress context

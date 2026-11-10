@@ -12,14 +12,6 @@ export interface TestEntry {
 }
 
 export const TEST_LIST: TestEntry[] = [
-  {
-    id: 'rocklook',
-    added: '2026-11-10',
-    name: 'Deaf Valley mockup: the rock walls in the terrain look (textured, blended at the back)',
-    where: 'Test link + &rocklook=1: Highway to Hull > DEAF VALLEY > any road, a canyon stretch',
-    try: 'Look at the red rock beside the road in a canyon; drive into the wall - still a wall.',
-    wrong: 'The rock flat or patchy, gaps along the face, the wall not stopping you, lag.',
-  },
   // (approved late, deleted: fields, grassedge, catchthem, slipsdual, fps - TODO.md 1c; dirtroad,
   // animals, labext, labsplit, zoomhold, gpupaint, minimap, zoomspring, grassgrip, hwmap,
   // cracktufts, sharpcars, sharpmarks, jokerfix, groundlookup, exacttiles, hudmenu, tyreoff,

@@ -240,7 +240,7 @@ function addFieldLooks(SURFACE_ART: Record<string, SurfaceArt | null>) {
       (layer, idx): ArtLayer => [layer[0], cols[idx] || layer[1], ...layer.slice(2) as number[]]
     ),
   });
-  // (?rocklook=1) Deaf Valley's red rock as ground: its stones, grain and faint strata
+  // Deaf Valley's red rock as ground (highway/canyon.ts rockGround): stones, grain, faint strata
   SURFACE_ART.redrock = {
     base: '#a8643f',
     layers: [
