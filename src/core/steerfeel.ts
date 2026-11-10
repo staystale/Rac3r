@@ -13,7 +13,6 @@
 //          user can increase that - current size should be minimum") the stick's reach at rest,
 //          today's the least, up to SIZE_GROW more of itself at full; THROW grows it from there.
 // Touch only: the keyboard's left / right are all-or-nothing.
-import { FIX } from './fixes.ts';
 
 const KEY = 'rac3r.steer';
 const CURVE_POW_MAX = 2.6;
@@ -65,7 +64,7 @@ export function setSteerFeel(key: keyof typeof STEER_FEEL, value: number): void 
  * @returns px of thumb for full lock
  */
 export function stickReach(basePx: number, speed: number): number {
-  const size = FIX.sticksize ? 1 + STEER_FEEL.size * SIZE_GROW : 1;
+  const size = 1 + STEER_FEEL.size * SIZE_GROW;
   return basePx * size * (1 + STEER_FEEL.throw * THROW_GROW
     * Math.min(1, Math.abs(speed) / THROW_V));
 }

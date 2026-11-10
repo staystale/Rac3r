@@ -72,7 +72,9 @@ CARS: talk to the owner once the tracks are done (trucks, a Dakar car / truck).
 
 ## THE OWNER'S LIST (11-10: "Add this to the todo and work thru it logically") - in this order
 
-ROUND 1, QUICK FIXES (each behind its own switch, one test link) - BUILT 11-10, UNDER TEST:
+ROUND 1, QUICK FIXES (each behind its own switch, one test link) - BUILT 11-10; owner "1-7 pass"
+(11-10): 1-5 the default (switches deleted); 6 passed on the old version - its fix, 6b and 6c
+under one more look:
 1. Goodwoody renamed BAD WOOD ("Rename goodwoody to bad wood"). ?badwood=1 (the id stays).
 2. The HUD on by itself where the difficulty allows it ("Hud should be on automatically if it can
    be on for that difficulty level"). ?hudon=1: the minimap, progress bar, track temperature
@@ -181,6 +183,9 @@ ROUND 5, LOADING AND SPEED:
 14. If a wait cannot be avoided: a loading bar of our cars driving right to left into a traffic jam
     / a wall, crashing and stacking.
 15. A performance pass once the list is recorded and its simple parts fixed.
+    Owner 11-10: "loading is only if we need it hopefully our performance pass will solve this and
+    frame rate dropping below 60 on some tracks with large grids" - so the performance pass FIRST
+    (the load times and the big-grid frame rate), the loading bar (14) only if a wait is left.
 
 ## NEXT - ORDER AGREED 11-07 (owner: "ok let's do 1. first and proceed in this order")
 

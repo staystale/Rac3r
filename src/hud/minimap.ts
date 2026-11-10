@@ -16,7 +16,6 @@
 // the window.
 
 import { LEVEL } from '../world/state.ts';
-import { FIX } from '../core/fixes.ts';
 import { MARGIN } from './widgets.ts';
 import { jokerLane } from '../world/joker.ts';
 import { inTrackUnderpass } from '../world/trackunder.ts';
@@ -42,9 +41,10 @@ const OPACITY = 0.85;
 // DIFFICULTY MODES (menu/setup.ts DIFF: MOBILE, GAME, REALISH, RICH, REAL): the default per mode,
 // and the one mode where it is locked off. REALISH counts as easy (owner, 2026-10-16: it is the
 // default difficulty)
-const DEFAULT_ON = FIX.hudon ? [true, true, true, true, true] : [true, true, true, false, false];
-// (?hudon=1: the choices kept under new keys - the device's earlier ones start afresh once)
-const KEY_V = FIX.hudon ? 'v2.' : '';
+// (owner 11-10: "Hud should be on automatically if it can be on for that difficulty level") on in
+// every mode; the choices kept under new keys - the device's earlier ones started afresh once
+const DEFAULT_ON = [true, true, true, true, true];
+const KEY_V = 'v2.';
 const LOCKED_MODE = 4;
 const MINIMAP_KEY = 'rac3r.minimap.', PROGRESS_KEY = 'rac3r.progress.';
 

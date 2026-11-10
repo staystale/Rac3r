@@ -8,7 +8,6 @@
 // there yet.
 import { LEVEL } from "../world/state.ts";
 import { bushAt, wearEpoch } from "../world/wear.ts";
-import { FIX } from "../core/fixes.ts";
 import { TEX_PPM } from "./textures.ts";
 import { SHADE_CELL_M, sampleHeights, shadeLevels, shadeTint } from "./tilesShade.ts";
 import { wrapTexels } from "./glpaint.ts";
@@ -143,8 +142,8 @@ function computeChunk(webgl: WebGL2RenderingContext, grid: ShadeGrid, chunkX: nu
   for (let index = 0; index < levels.length; index++) {
     const centreX = minX + ((index % cells) + 0.5) * cell,
       centreY = minY + (Math.floor(index / cells) + 0.5) * cell;
-    // (?bushflat=1: a bush's cells unshaded - it sits on top of the shaded ground)
-    const level = FIX.bushflat && bushAt(centreX, centreY) ? 0 : levels[index],
+    // (a bush's cells unshaded - it sits on top of the shaded ground; owner 11-10, passed)
+    const level = bushAt(centreX, centreY) ? 0 : levels[index],
       strength = Math.abs(level), offset = index * 4;
     const tint = level === 0 ? null : shadeTint(level, centreX, centreY);
     pixels[offset] = tint ? Math.round(tint[0] * strength) : 0;
