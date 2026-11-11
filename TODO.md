@@ -222,6 +222,12 @@ ROUND 3, THE OTHER HIGHWAYS:
        twisty, countryside twisty - on / off both ways, the walls hold, none on from the side, a
        car beneath stays on the ground: all OK; Brands' 3 still OK. In the game (_bridgeshot.mjs):
        up the ramp, over, off the far end at 108 km/h; photos day, both sizes, both sceneries.
+    LIGHTS ON A DECK (owner 11-11, photos of a car on a bridge at night - its beam cut off at the
+       deck's edge, no glow): the night layer put the dark back over every deck after EVERY car's
+       light, the car on it too. Now the ground's cars' first, the dark over the decks, then the
+       decks' cars' beams and glows (render/light.ts paintUnderDecks, isOnLevel). The plain game
+       (a fix). Photographed (tools/scratch/_decknight.mjs, Brands, night 0.9): before the beam from
+       the deck's edge and no tail glow; now from the lamps, the tail red; a car beneath still dark.
     R2 exits lead up to them (a junction); R3 real traffic over them; R4 rail bridges drivable, the
        train can hit you; R5 road tunnels under the motorway.
 ROUND 4, POLICE ON THE HIGHWAYS (a design to agree first): waiting in lay-bys and petrol stations,

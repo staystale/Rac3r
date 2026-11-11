@@ -4,7 +4,7 @@
 // rubbed out of it (destination-out, with pictures drawn once: no gradient is made per frame),
 // then the glows' colour is laid in as a tint; then it is laid over the screen canvas once, under
 // the HUD. The cost is one extra full-screen image a frame.
-import { isUnderground } from "../world/crossinggeo.ts";
+import { crossingOf, isUnderground } from "../world/crossinggeo.ts";
 import { DAYLIGHT } from '../world/daylight.ts';
 import { lampHeads, activeLamps, lampsLit } from '../world/lamps.ts';
 import { hazardsOn, indicatorBlinkOn, lampLevel } from './cars.ts';
@@ -195,13 +195,33 @@ function paintGlows(painter: GlowPainter, game: RenderGame) {
  * @param painter the canvas and the mapping
  * @param game the game drawn
  */
-function paintCarGlows(painter: GlowPainter, game: RenderGame) {
+function paintCarGlows(painter: GlowPainter, game: RenderGame, level: CarLevel = 'all') {
   const isBlinkOn = indicatorBlinkOn();
   painter.strength = GLOW_STRENGTH * DAYLIGHT.darkness;
-  if (painter.sparks) openSparks(painter, painter.sparks);
-  if (game.traffic) for (const car of game.traffic.cars) drawCarGlows(painter, car, isBlinkOn);
-  for (const rival of game.ai || []) drawCarGlows(painter, rival.car, isBlinkOn);
-  drawCarGlows(painter, game.car, isBlinkOn);
+  // (the sparks are on the ground: drawn with the ground's cars, or with every car)
+  if (painter.sparks && level !== 'deck') openSparks(painter, painter.sparks);
+  const each = (car: RenderCar) => {
+    if (isOnLevel(car, level)) drawCarGlows(painter, car, isBlinkOn);
+  };
+  if (game.traffic) for (const car of game.traffic.cars) each(car);
+  for (const rival of game.ai || []) each(rival.car);
+  each(game.car);
+}
+
+/** Which cars a pass lights: every car, those on the ground (or in a tunnel), those on a deck. */
+type CarLevel = 'all' | 'ground' | 'deck';
+
+/**
+ * Whether a car is in a pass's cars: a car up on a bridge's deck lights it after the dark is put
+ * back over the decks (paintUnderDecks), a car below never does.
+ * @param car the car
+ * @param level the pass's cars
+ * @returns true when it is
+ */
+function isOnLevel(car: RenderCar, level: CarLevel): boolean {
+  if (level === 'all') return true;
+  const isOnDeck = crossingOf(car)?.kind === 'bridge';
+  return level === 'deck' ? isOnDeck : !isOnDeck;
 }
 
 /**
@@ -400,9 +420,9 @@ function makeMapGlows(pools: PoolPainter, sparks: SparkLight[]) {
   };
   // the cars' glows and the lamp heads' apart, for the decks' order (paintUnderDecks)
   const parts = {
-    rubCars: (game: RenderGame) => paintCarGlows(out, game),
+    rubCars: (game: RenderGame, level: CarLevel) => paintCarGlows(out, game, level),
     rubHeads: () => lampsLit() && drawHeadGlows(out),
-    tintCars: (game: RenderGame) => paintCarGlows(tint, game),
+    tintCars: (game: RenderGame, level: CarLevel) => paintCarGlows(tint, game, level),
     tintHeads: () => lampsLit() && drawHeadGlows(tint),
   };
   return { paint, parts };
@@ -441,11 +461,13 @@ function drawBeams(painter: PoolPainter, beam: HTMLCanvasElement, car: RenderCar
  * @param painter the light map and the mapping
  * @param beam the beam picture
  * @param game the game drawn
+ * @param level which cars: every car, the ground's or the decks'
  */
-function drawFieldBeams(painter: PoolPainter, beam: HTMLCanvasElement, game: RenderGame) {
+function drawFieldBeams(painter: PoolPainter, beam: HTMLCanvasElement, game: RenderGame,
+  level: CarLevel = 'all') {
   const each = (car: RenderCar) => {
     // a car in a tunnel lights nothing up here (world/crossings.ts)
-    if (isUnderground(car)) return;
+    if (isUnderground(car) || !isOnLevel(car, level)) return;
     drawBeams(painter, beam, car);
     drawReverseBeams(painter, beam, car);
   };
@@ -510,21 +532,23 @@ interface DeckPainter {
   pools: PoolPainter;
   mapGlows: ReturnType<typeof makeMapGlows>;
   darkFill: string;
-  drawAllBeams: (game: RenderGame) => void;
+  drawAllBeams: (game: RenderGame, level?: CarLevel) => void;
 }
 
 /**
  * The light map with a deck on it (the decks' path traced, the map dark, in the rub-out blend):
- * the cars' beams and glows rubbed out, the dark put back over the decks (cleared, then filled),
- * then the lamps' pools and heads (they hang above), then the tints - the cars' kept off the
- * decks. Leaves it in source-over, alpha 1.
+ * the ground's cars' beams and glows rubbed out, the dark put back over the decks (cleared, then
+ * filled), then the lamps' pools and heads (they hang above) and the beams and glows of the cars up
+ * on a deck (they light it), then the tints - the ground's cars' kept off the decks. Leaves it in
+ * source-over, alpha 1.
  * @param painter the light map's parts
  * @param game the game drawn
  */
 function paintUnderDecks(painter: DeckPainter, game: RenderGame) {
   const { pools, mapGlows } = painter, lightCtx = pools.lightCtx, canvas = lightCtx.canvas;
-  painter.drawAllBeams(game);
-  mapGlows.parts.rubCars(game);
+  // (the cars below: their light reaches the decks' edges, never their tops)
+  painter.drawAllBeams(game, 'ground');
+  mapGlows.parts.rubCars(game, 'ground');
   lightCtx.globalAlpha = 1;
   lightCtx.fillStyle = '#000';
   lightCtx.fill();
@@ -535,6 +559,9 @@ function paintUnderDecks(painter: DeckPainter, game: RenderGame) {
   drawPools(pools, false);
   drawEventGlows(pools, false, game);
   mapGlows.parts.rubHeads();
+  // (a car up on a deck lights the deck it is on, and on past its edges)
+  painter.drawAllBeams(game, 'deck');
+  mapGlows.parts.rubCars(game, 'deck');
   lightCtx.globalCompositeOperation = 'source-over';
   drawPools(pools, true);
   drawEventGlows(pools, true, game);
@@ -543,8 +570,9 @@ function paintUnderDecks(painter: DeckPainter, game: RenderGame) {
   lightCtx.rect(0, 0, canvas.width, canvas.height);
   traceDecks(lightCtx, pools);
   lightCtx.clip('evenodd');
-  mapGlows.parts.tintCars(game);
+  mapGlows.parts.tintCars(game, 'ground');
   lightCtx.restore();
+  mapGlows.parts.tintCars(game, 'deck');
   mapGlows.parts.tintHeads();
   lightCtx.globalAlpha = 1;
 }
@@ -570,7 +598,8 @@ export function createNight(parts: NightParts) {
 
   const pools: PoolPainter = { lightCtx, pool, tint, artX, artY, artPerMetre, isNear };
   const mapGlows = makeMapGlows(pools, parts.sparks);
-  const drawAllBeams = (game: RenderGame) => drawFieldBeams(pools, beam, game);
+  const drawAllBeams = (game: RenderGame, level?: CarLevel) => drawFieldBeams(pools, beam, game,
+    level);
 
   function paintLightMap(game: RenderGame) {
     const { pcanvas } = parts;

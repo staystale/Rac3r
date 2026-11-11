@@ -13,6 +13,14 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'decklights',
+    added: '2026-11-11',
+    name: 'A car on a bridge lights the deck it is on at night (beams, tail and brake glows)',
+    where: 'Brands Snatch (or any venue / &drivebridges=1 highway bridge), START HOUR night',
+    try: 'Stop on a bridge, LIGHTS on: the beam from the car over the deck; then drive under it.',
+    wrong: 'A beam starting at the deck edge, a dark car on a deck, light on a deck from below.',
+  },
+  {
     id: 'drivebridges',
     added: '2026-11-11',
     name: 'Highway road bridges you can drive over (the venue bridge); sand concrete in the desert',
