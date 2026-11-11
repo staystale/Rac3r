@@ -5,7 +5,7 @@
 // (world/crossings.ts, Crossing.track) between two portals, its cut walls the barriers there, the
 // road over it on the ground with its own edge across the top. The stretch is marked under
 // (world/trackunder.ts): a lookup for a car on the ground never takes it for the road below.
-import { HALF_ROAD, VENUE_ROAD_M, centreAt } from './venuegeo.ts';
+import { HALF_ROAD, VENUE_ROAD_M, centreAt, centreBetween } from './venuegeo.ts';
 import { querySubtrack } from './tyrewall.ts';
 import { PORTAL_LINTEL_M } from './crossinggeo.ts';
 import { underSpan, underground } from './trackunder.ts';
@@ -131,15 +131,95 @@ export function overCap(sub: Subtrack, dist: number): number {
 }
 
 /**
+ * The stretch of a layout's loop under the ground (VenueSpec.tunnel: Moanaco's tunnel under the
+ * shore's hotels): the mapped tunnel is its covered part, between the portals' lintels - each
+ * portal's open cut runs on before it.
+ * @param sub the loop
+ * @param piece the piece mapped as the tunnel, at game scale (none: the venue has no tunnel)
+ * @returns the stretch (no road over it)
+ */
+export function tunnelSpans(sub: Subtrack, piece: Point[] | undefined):
+  NonNullable<Subtrack['under']> {
+  if (!piece) return [];
+  const ends = [piece[0], piece[piece.length - 1]].map(([x, y]) => querySubtrack(sub, x, y)
+    .trackDist);
+  const cut = PORTAL_LEN_M - PORTAL_LINTEL_M;
+  return [{ d0: Math.min(...ends) - cut, d1: Math.max(...ends) + cut, cut }];
+}
+
+// m along the road between a bent tunnel's path points (its walls follow them)
+const PATH_STEP_M = 2;
+
+/**
+ * A race-road tunnel's two portals where its road bends under the ground (a span with no road
+ * over it): each on the road at its end, turned along it, the first carrying the road's centre
+ * through the tunnel (Prop.path: world/crossings.ts lays the walls along it).
+ * @param sub the loop
+ * @param span the stretch under the ground
+ * @param span.d0 m along where it starts (the first portal's open end)
+ * @param span.d1 m along where it ends
+ * @returns the two portals
+ */
+function roadPortals(sub: Subtrack, span: { d0: number; d1: number }): Prop[] {
+  const path: Point[] = [];
+  const count = Math.max(2, Math.round((span.d1 - span.d0) / PATH_STEP_M));
+  for (let i = 0; i <= count; i++) {
+    const centre = centreBetween(sub, span.d0 + (span.d1 - span.d0) * i / count);
+    path.push([centre.x, centre.y]);
+  }
+  const portal = (dist: number, back: boolean): Prop => {
+    const centre = centreBetween(sub, dist), head = Math.atan2(-centre.nx, centre.ny);
+    return { kind: 'tunnel', x: centre.x, y: centre.y, rot: head + (back ? Math.PI : 0),
+      w: PORTAL_LEN_M, h: VENUE_ROAD_M + CUT_SPARE_M, track: true } as Prop;
+  };
+  return [{ ...portal(span.d0 + PORTAL_LEN_M / 2, false), path },
+    portal(span.d1 - PORTAL_LEN_M / 2, true)];
+}
+
+// m (game): the buildings over a race-road tunnel - each block's length along the road at most,
+// the gap between two (a bend's inside brings them together: none overlaps the next), the width
+// (past the edge's barriers either side: the ground over the tunnel is not reached from the track)
+// and their roof
+const COVER_LEN_M = 18, COVER_GAP_M = 1.4, COVER_W_M = 26, COVER_ROOF = '#6e6e66';
+
+/**
+ * The buildings over each race-road tunnel with no road over it (VenueSpec.tunnel: the hotels on
+ * Moanaco's shore): a row of flat-roofed blocks along its underground stretch, from one lintel to
+ * the other, turned along the road beneath - solid on the ground, not in the tunnel.
+ * @param sub the loop
+ * @returns the blocks
+ */
+export function tunnelCover(sub: Subtrack): Prop[] {
+  const props: Prop[] = [];
+  for (const span of sub.under || []) {
+    if (span.over !== undefined) continue;
+    const from = span.d0 + PORTAL_LEN_M, upTo = span.d1 - PORTAL_LEN_M;
+    const count = Math.max(1, Math.ceil((upTo - from) / COVER_LEN_M));
+    const each = (upTo - from) / count;
+    for (let i = 0; i < count; i++) {
+      const centre = centreBetween(sub, from + each * (i + 0.5));
+      props.push({ kind: 'block', x: centre.x, y: centre.y, rot: Math.atan2(-centre.nx, centre.ny),
+        w: each - COVER_GAP_M, h: COVER_W_M, roof: COVER_ROOF });
+    }
+  }
+  return props;
+}
+
+/**
  * The two portals of each underpass (kind 'tunnel', laid in pairs facing each other: world/
  * crossings.ts venueCrossings makes the pair one crossing): on the road under, each with its ramp
- * running down toward the crossing, as wide as the race road and a little more.
+ * running down toward the crossing, as wide as the race road and a little more - a tunnel with no
+ * road over it (VenueSpec.tunnel) each on its road's bend (roadPortals).
  * @param sub the loop
  * @returns the portals
  */
 export function underPortals(sub: Subtrack): Prop[] {
   const props: Prop[] = [];
   for (const span of sub.under || []) {
+    if (span.over === undefined) {
+      props.push(...roadPortals(sub, span));
+      continue;
+    }
     const first = centreAt(sub, span.d0), last = centreAt(sub, span.d1);
     const head = Math.atan2(last.y - first.y, last.x - first.x);
     const dirX = Math.cos(head), dirY = Math.sin(head), mid = (span.d1 - span.d0) / 2;
@@ -155,13 +235,18 @@ export function underPortals(sub: Subtrack): Prop[] {
 
 /**
  * Whether a distance along is on a crossover: under (the cut) or over it (the bridge, its
- * parapets laid by underParapets) - the edge stands neither there.
+ * parapets laid by underParapets) - the edge stands neither there; a tunnel with no road over it,
+ * under the ground.
  * @param sub the loop
  * @param dist m along
  * @returns true when it is
  */
 export function crossoverAt(sub: Subtrack, dist: number): boolean {
-  return !!underSpan(sub, dist) || overCap(sub, dist) < Infinity;
+  // (a tunnel with no road over it: only its underground stretch - the edge runs on past its
+  // portals' walls to the lintels, the buildings over it beyond)
+  const span = underSpan(sub, dist);
+  if (span && span.over === undefined) return underground(sub, dist);
+  return !!span || overCap(sub, dist) < Infinity;
 }
 
 /**

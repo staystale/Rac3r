@@ -15,7 +15,7 @@ const CAT_OF: Record<string, string> = { 'test-track': 'circuits', thruston: 'ci
   'anglesleazy-club': 'circuits', goodwoody: 'circuits', croughed: 'circuits',
   'croughed-club': 'circuits', spa: 'circuits', monza: 'circuits', nordschlep: 'circuits',
   lemans: 'circuits', suzuka: 'circuits', yasmarina: 'circuits',
-  bathurst: 'circuits',
+  bathurst: 'circuits', moanaco: 'circuits',
   'sweaty-lamb': 'rally', killder: 'rally', knobhill: 'rx', 'slidden-hill': 'rx',
   'grass-track': 'ovals', dieatona: 'ovals', 'dieatona-road': 'ovals', 'stock-car': 'ovals',
   naffcar: 'ovals',
@@ -36,7 +36,7 @@ export const catOf = (level: { id: string; gen?: unknown; endless?: boolean }): 
 // by kind (lit, rained on and raced as one)
 const LISTED_UNDER: Record<string, string> = { 'test-track': 'test', spa: 'world', monza: 'world',
   nordschlep: 'world', lemans: 'world', suzuka: 'world', yasmarina: 'world',
-  bathurst: 'world' };
+  bathurst: 'world', moanaco: 'world' };
 
 /**
  * The category a level is listed under in the menu (menu/tracks.ts).

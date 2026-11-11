@@ -106,4 +106,9 @@ export const FIX = {
   // the pits on the start straight; a world championship circuit (owner 11-10;
   // world/levels/bathurst-venue.ts)
   bathurst: atLoad('bathurst'),
+  // ?moanacovenue=1: Moanaco, the Circuit de Monaco at 1/2 of real length - the streets of Monte
+  // Carlo between their walls, the harbour, the casino, the hairpin and THE TUNNEL under the
+  // shore's hotels (a drivable underpass of the race road); a world championship circuit (the
+  // owner's list 11-09; world/levels/moanaco-venue.ts)
+  moanacovenue: atLoad('moanacovenue'),
 };

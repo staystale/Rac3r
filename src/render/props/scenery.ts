@@ -487,3 +487,40 @@ export function drawBoard(propCtx: PropCtx, prop: Prop, ppm: number) {
   view.ctx.textBaseline = 'middle';
   view.ctx.fillText(prop.label || 'SPONSOR', 0, 0);
 }
+
+// a yacht's colours: the river boat's hull, rail and accent (render/props/bridges.ts) and its
+// white superstructure
+const YACHT_HULL = '#e9e4d8', YACHT_RAIL = '#6a7077', YACHT_TOP = '#f6f4ee';
+const YACHT_ACCENT = '#c8302c';
+
+/**
+ * Draws a moored YACHT (a venue's harbour: Moanaco's), bow along +x, w m long, h m in the beam:
+ * a stepped bow, the hull with its rail, two decks of superstructure stepping back, their dark
+ * window bands, a small accent on the mast - pixel squares as the river boat.
+ * @param propCtx the view and painter helpers
+ * @param prop the yacht (w length, h beam)
+ * @param ppm pixels per metre
+ */
+export function drawYacht(propCtx: PropCtx, prop: Prop, ppm: number) {
+  const { view } = propCtx;
+  const paint = (x: number, y: number, width: number, height: number, col: string) => {
+    view.ctx.fillStyle = col;
+    view.ctx.fillRect(x * ppm, y * ppm, width * ppm, height * ppm);
+  };
+  const len = prop.w || 20, beam = prop.h || 5, half = len / 2, side = beam / 2;
+  view.ctx.fillStyle = 'rgba(10,12,16,0.30)';
+  view.ctx.fillRect((-half + 0.8) * ppm, (-side + 1) * ppm, len * 0.85 * ppm, beam * ppm);
+  // the hull, its bow in three steps narrowing toward +x
+  paint(-half, -side, len * 0.78, beam, YACHT_HULL);
+  paint(half - len * 0.22, -side * 0.8, len * 0.1, beam * 0.8, YACHT_HULL);
+  paint(half - len * 0.12, -side * 0.55, len * 0.08, beam * 0.55, YACHT_HULL);
+  paint(half - len * 0.04, -side * 0.25, len * 0.04, beam * 0.25, YACHT_HULL);
+  paint(-half, -side, len * 0.78, beam * 0.08, YACHT_RAIL);
+  paint(-half, side - beam * 0.08, len * 0.78, beam * 0.08, YACHT_RAIL);
+  // the superstructure: two decks stepping back from the bow, each with its window band
+  paint(-half + len * 0.12, -side * 0.62, len * 0.55, beam * 0.62, YACHT_TOP);
+  paint(-half + len * 0.12, -side * 0.62, len * 0.55, beam * 0.1, YACHT_RAIL);
+  paint(-half + len * 0.2, -side * 0.38, len * 0.3, beam * 0.38, YACHT_HULL);
+  paint(-half + len * 0.2, -side * 0.38, len * 0.3, beam * 0.08, YACHT_RAIL);
+  paint(-half + len * 0.33, -beam * 0.06, beam * 0.12, beam * 0.12, YACHT_ACCENT);
+}

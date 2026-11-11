@@ -14,6 +14,7 @@ import {
   DECK_ROAD_HI, DECK_ROAD_LO, PORTAL_LINTEL_M, VENUE_DECK, acrossOf, alongOf, crossingOf, rampsOf,
 } from "./crossinggeo.ts";
 import { LEVEL } from "./state.ts";
+import { lineLength } from "./venuegeo.ts";
 import { fenceClamp, obstacleClamp } from "./obstacles.ts";
 import { steepClamp, landingClamp } from "../physics/steepground.ts";
 import type { Barrier, CarBody, Crossing, Point, Prop } from "./types.ts";
@@ -70,7 +71,10 @@ function stepLevel(car: CarBody): void {
   }
   for (let i = 0; i < list.length; i++) {
     const way = list[i], across = acrossOf(way, car.x, car.y);
-    if (across <= way.minAcross || across >= way.maxAcross) continue;
+    // (a bent tunnel: on only through its mouth, not anywhere across the bend's span)
+    const isOutside = way.mouth !== undefined ? Math.abs(across) >= way.mouth
+      : across <= way.minAcross || across >= way.maxAcross;
+    if (isOutside) continue;
     if (isBetweenEnds(way, car.x, car.y) && !isBetweenEnds(way, fromX, fromY)) car.crossing = i;
   }
 }
@@ -126,12 +130,62 @@ export function bridgeCrossing(prop: Prop): Crossing {
 }
 
 /**
+ * A line offset to one side along its own normals (a bent tunnel's wall).
+ * @param path the line
+ * @param offset m to its left (+ along (-dirY, dirX))
+ * @returns the points
+ */
+function offsetPath(path: Point[], offset: number): Point[] {
+  return path.map(([x, y], i) => {
+    const [fromX, fromY] = path[Math.max(0, i - 1)], [toX, toY] = path[Math.min(path.length - 1,
+      i + 1)];
+    const len = Math.hypot(toX - fromX, toY - fromY) || 1;
+    return [x - (toY - fromY) / len * offset, y + (toX - fromX) / len * offset] as Point;
+  });
+}
+
+/**
+ * A race-road tunnel whose road bends under the ground (Moanaco's): the way runs straight from the
+ * road's centre at one end to the other's (its dip and deck by that line), but its walls follow
+ * the road (first.path) - its across bounds span the whole bend, a car comes on only through a
+ * mouth, and the underground stretch hidden is the one between the walls from lintel to lintel.
+ * @param first the first portal (its path the road's centre end to end)
+ * @param second the portal at the other end
+ * @returns the crossing
+ */
+function bentTunnel(first: Prop, second: Prop): Crossing {
+  const path = first.path!, half = first.h! / 2, start = path[0], end = path[path.length - 1];
+  const length = Math.hypot(end[0] - start[0], end[1] - start[1]) || 1;
+  const dirX = (end[0] - start[0]) / length, dirY = (end[1] - start[1]) / length;
+  const left = offsetPath(path, half), right = offsetPath(path, -half);
+  const walls: Barrier[] = [offsetPath(path, half + WALL_HALF_M),
+    offsetPath(path, -half - WALL_HALF_M)].map((pts) => ({ kind: 'wall', pts }));
+  prepBarriers({ barriers: walls });
+  const acrosses = [...left, ...right].map(([x, y]) => (y - start[1]) * dirX
+    - (x - start[0]) * dirY);
+  // the mouths: the road's half width measured along the end line (the road meets it askew)
+  const skew = (portal: Prop) => Math.abs(Math.cos((portal.rot || 0) - Math.atan2(dirY, dirX)));
+  const mouth = half / Math.max(0.5, Math.min(skew(first), skew(second)));
+  // the open cuts, road m from each end to its lintel (path points PATH_STEP apart along the road)
+  const step = lineLength(path) / (path.length - 1), cutPts = Math.round((first.w!
+    - PORTAL_LINTEL_M) / step);
+  const along = ([x, y]: Point) => (x - start[0]) * dirX + (y - start[1]) * dirY;
+  const cut = Math.min(along(path[cutPts]), length - along(path[path.length - 1 - cutPts]));
+  const inner = (pts: Point[]) => pts.slice(cutPts, pts.length - cutPts);
+  return { kind: 'tunnel', ax: start[0], ay: start[1], dirX, dirY, length,
+    minAcross: Math.min(...acrosses), maxAcross: Math.max(...acrosses), cut,
+    rise: -Math.min(RISE_MAX_M, RISE_SHARE * length), walls, track: true, mouth,
+    hidden: [...inner(left), ...inner(right).reverse()] };
+}
+
+/**
  * A tunnel's crossing: from one portal's open end to the other's, between the portals' walls.
  * @param first a portal (rot down its ramp toward the track, w its length, h its width)
  * @param second the portal on the track's other side
  * @returns the crossing
  */
 function tunnelCrossing(first: Prop, second: Prop): Crossing {
+  if (first.path) return bentTunnel(first, second);
   const openEnd = (portal: Prop): Point => [
     portal.x - Math.cos(portal.rot || 0) * portal.w! / 2,
     portal.y - Math.sin(portal.rot || 0) * portal.w! / 2];
@@ -152,8 +206,9 @@ export function venueCrossings(props: Prop[]): Crossing[] {
   const portals = props.filter((prop) => prop.kind === 'tunnel');
   const tunnels: Crossing[] = [];
   for (let i = 0; i + 1 < portals.length; i++) {
-    // a tunnel's two portals face each other across the track
-    if (Math.cos((portals[i].rot || 0) - (portals[i + 1].rot || 0)) > -0.99) continue;
+    // a tunnel's two portals face each other across the track (a bent tunnel's: its path)
+    const isFacing = Math.cos((portals[i].rot || 0) - (portals[i + 1].rot || 0)) <= -0.99;
+    if (!isFacing && !portals[i].path) continue;
     tunnels.push(tunnelCrossing(portals[i], portals[i + 1]));
     i++;
   }

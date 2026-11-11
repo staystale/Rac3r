@@ -107,6 +107,14 @@ export const TEST_LIST: TestEntry[] = [
     try: 'A lap, then VS AI: up Mountain Straight, over Skyline, down the Esses, Conrod.',
     wrong: 'Cars flying off the crests, piling up on the walls, a wall across the road.',
   },
+  {
+    id: 'moanacovenue',
+    added: '2026-11-11',
+    name: 'Moanaco: the Circuit de Monaco at 1/2 (1.6 km), streets, harbour and THE TUNNEL',
+    where: 'Test link + &moanacovenue=1: TEST MODE > WORLD CIRCUITS',
+    try: 'A lap, then VS AI: Casino Square, the hairpin, the tunnel, the pool, the pits.',
+    wrong: 'A car seen in the tunnel or stuck on its walls, a way off the streets, a yacht on it.',
+  },
   // (approved 11-10, deleted: badwood, hudon, resethazard, sticksize, bushflat)
   // (approved late, deleted: fields, grassedge, catchthem, slipsdual, fps - TODO.md 1c; dirtroad,
   // animals, labext, labsplit, zoomhold, gpupaint, minimap, zoomspring, grassgrip, hwmap,

@@ -14,7 +14,8 @@ import { onTrack, querySubtrack } from "./tyrewall.ts";
 import { solidsFromProps } from "./barriers.ts";
 import { venueCrossings } from "./crossings.ts";
 import { markUnder } from "./trackunder.ts";
-import { pitTunnelPortals, underParapets, underPortals, underSpans } from "./venuecross.ts";
+import { pitTunnelPortals, tunnelSpans, underParapets, underPortals, underSpans }
+  from "./venuecross.ts";
 import { CIRCUIT_BUSHES } from "./levels/bushes.ts";
 import { buildVenueScenery } from "./venuescenery.ts";
 import { VENUE_ROAD_M, distToLine, kerbOut, lineLength, pointAlong } from "./venuegeo.ts";
@@ -122,8 +123,8 @@ export interface VenueSpec {
   // run-off (world/venuefences.ts)
   mixFences?: boolean;
   // landmarks the map does not carry (a prop kind at its real spot, size m across, scaled with the
-  // map): where the sources show them
-  landmarks?: { at: Point; kind: string; size: number }[];
+  // map): where the sources show them - a long one len m along, turned rot (Moanaco's yachts)
+  landmarks?: { at: Point; kind: string; size: number; len?: number; rot?: number }[];
   // light aircraft parked on the airfield's grass stands (data.aero stands), one a colour
   planes?: string[];
   // an oval's: races start rolling; each layout's banking (world/terrain.ts camberTable: sections
@@ -146,6 +147,10 @@ export interface VenueSpec {
   // a figure of eight (Snoozuka): the piece whose stretch runs under the road where the layout's
   // loop crosses itself, in a cut and under the road over it (world/venuecross.ts)
   crossover?: { under: string };
+  // the race road's own tunnel under the ground, no road over it: the piece mapped as the tunnel
+  // (Moanaco's under the shore's hotels; world/venuecross.ts tunnelSpans) - a drivable underpass
+  // of the race road whose walls follow its bend
+  tunnel?: { under: string };
   // a pit lane's tunnel under the track: its two open ends, game m (Yass Marina's pit exit, under
   // the first corner; world/venuecross.ts pitTunnelPortals)
   pitTunnel?: { a: Point; b: Point };
@@ -363,7 +368,9 @@ export function venueBuild(rawSpec: VenueSpec): VenueBuild {
     pts: piece.pts.map(([x, y]) => [ROUND(x * scale), ROUND(y * scale)] as Point) }));
   // a figure of eight: the stretch that runs under the road over it (world/trackunder.ts)
   const under = spec.crossover && pieces.find((piece) => piece.name === spec.crossover!.under);
-  for (const loop of Object.values(loops)) markUnder(loop, underSpans(loop, under?.pts));
+  const tunnel = spec.tunnel && pieces.find((piece) => piece.name === spec.tunnel!.under);
+  for (const loop of Object.values(loops))
+    markUnder(loop, [...underSpans(loop, under?.pts), ...tunnelSpans(loop, tunnel?.pts)]);
   const build = { spec, scale, loops, pieces };
   builds.set(rawSpec, build);
   return build;
