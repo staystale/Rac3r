@@ -247,7 +247,19 @@ ROUND 3, THE OTHER HIGHWAYS:
        -> 1.4-3.9, 0-4 -> 4-6 a road, the longest gap 3.9 km; the countryside unchanged (1.0-3.6,
        4-6); crossingcheck all OK, nothing on a slip.
        PASSED 11-11 (owner: "Ok pass", with 12b): the default, switch deleted.
-    R2 exits lead up to them (a junction); R3 real traffic over them; R4 rail bridges drivable, the
+    R2 JUNCTIONS - BUILT 11-11 behind ?junctions=1 (owner: "Roundabouts", "A few", past them EXIT
+       TAKEN as now; highway/junctions.ts, ringgeo.ts, extras.ts buildJunction): about one road
+       bridge in four (a roll owed to the next that fits) is a dumbbell junction - an off-slip 120 m
+       before it up to a roundabout on its road past the left ramp (12 m of straight between them),
+       an on-slip down 120 m after, a second roundabout past the far ramp; laid back over the road
+       just dressed (the road ahead is not built), its ground cleared of lamps, props (by their
+       size: a butte) and litter (game/sim.ts culls what was streamed). Not on the walled road
+       (its wall is built). Off the motorway on a lane, or 16 m out, the wrong-way check rests.
+       MEASURED (tools/scratch/_junctions.mjs, 12 km, every road): 0-3 a road (none on the walled),
+       nothing on a slip or ring, no ring over the motorway; _junctiondrive.mjs (off-slip, round,
+       over, round, back, on-slip) on 11 junctions over both sceneries and seeds: all 38 points, 0
+       resets. Photos countryside and Deaf Valley.
+ R3 real traffic over them; R4 rail bridges drivable, the
        train can hit you; R5 road tunnels under the motorway.
 ROUND 4, POLICE ON THE HIGHWAYS (a design to agree first): waiting in lay-bys and petrol stations,
     cruising as traffic either side; they chase you / try to crash into you after: speeding past a

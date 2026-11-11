@@ -2,6 +2,7 @@
 // secret side road, approaches, river covers). Split out of highway.ts.
 import { SURFACES } from "../world/surfaces.ts";
 import { DECK_ROAD_HI, DECK_ROAD_LO } from "../world/crossinggeo.ts";
+import { RING_R, ringCentre } from "./ringgeo.ts";
 import { adoptRoadCovers } from "../world/puddles.ts";
 import { STEP } from "./presets.ts";
 import { ease } from "./road.ts";
@@ -190,12 +191,21 @@ export function approaches(level: HwLevel, bridge: Bridge, dist: number) {
   // line up with it - world/crossinggeo.ts)
   const shift = bridge.look === 'venue' ? (DECK_ROAD_LO + DECK_ROAD_HI) / 2 : 0;
   [-1, 1].forEach((sign, sideIdx) => {
-    const pts: Point[] = [];
+    // (?junctions=1: a junction bridge's road parts round its roundabout - to its ring's near
+    // side, on from its far side: highway/ringgeo.ts)
+    const ringAt = bridge.rings ? Math.hypot(ringCentre(bridge, sign)[0] - bridge.x,
+      ringCentre(bridge, sign)[1] - bridge.y) : Infinity;
+    const pts: Point[] = [], toRing: Point[] = [];
     for (let along = 0; along <= APP_LEN + 1e-6; along += APP_STEP) {
-      const offset = sign * (half + 3 + along);
-      pts.push([bridge.x + axisX * offset - axisY * shift, bridge.y + axisY * offset
-        + axisX * shift]);
+      const out = half + 3 + along, offset = sign * out;
+      const spot: Point = [bridge.x + axisX * offset - axisY * shift, bridge.y + axisY * offset
+        + axisX * shift];
+      if (out <= ringAt - RING_R) toRing.push(spot);
+      else if (out >= ringAt + RING_R) pts.push(spot);
     }
+    if (toRing.length > 1 && pts.length) {
+      level.lanes.push({ pts: toRing, width, surface, _s: dist });
+    } else pts.unshift(...toRing);
     const lane: Lane = { pts, width: width, surface, _s: dist };
     level.lanes.push(lane);
     addCut(level, {

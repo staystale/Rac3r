@@ -85,6 +85,8 @@ export interface HwState {
   desert?: boolean;
   /** the drivable bridge in each LEVEL.crossings slot (highway/bridgeways.ts) */
   wayOwners?: (Prop | null)[];
+  /** (?junctions=1) a junction rolled and not yet built (none fitted): the next bridge that fits */
+  junctionOwed?: boolean;
   rnd: () => number; grnd: () => number; lrnd: () => number; xrnd: () => number;
   frnd: () => number;   // the random streams: dressing, road shape, loose, extras, fields
   geo: HwGeo;
@@ -99,6 +101,9 @@ export interface HwState {
   fieldId: number;
   fieldNext: Record<number, number> | null;   // the next field's road distance, by side (-1 / 1)
   goneFields?: Set<number>;   // fields cleared (their animals leave: main.ts game.cones.cull)
+  /** (?junctions=1) a junction's ground laid back over the road: the game's loose objects on it go
+   * (game/sim.ts streamHighwayLitter) */
+  clearedGround?: KeepRect[];
   keep: KeepRect[]; cuts: HwCut[];
   covers: Cover[]; coversDirty: boolean;   // the rivers' water (synced into level.covers)
   side: SideRoad | null;   // the secret side road being built

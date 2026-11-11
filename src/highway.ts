@@ -18,6 +18,7 @@
 // continuous across every join — straight -> sweeper -> S-bend -> straight, no kinks, no sudden
 // steering. LANES are config (HW_PRESETS): a UK motorway, a wide interstate, a skinny dual
 // carriageway — the same generator for later flavour levels.
+import { FIX } from "./core/fixes.ts";
 import { bayOut, bayBehind } from "./highway/laybys.ts";
 import { pruneHedges, resetHedges } from "./highway/hedges.ts";
 import { readSettings } from "./core/settings.ts";
@@ -265,13 +266,17 @@ export function speedCamera(level: HwLevel, car: HwCar) {
  * @param loc where the car is on the road (locate)
  * @param car the car (vx, vy)
  * @param dt step seconds
+ * @param isOffRoadLane off the motorway on a lane, or far enough out for the off-road countdown
+ *   (its way not the motorway's)
  * @returns whether the car must be reset for going the wrong way
  */
-function checkWrongWay(state: HwState, loc: RoadLoc, car: HwCar, dt: number) {
+function checkWrongWay(state: HwState, loc: RoadLoc, car: HwCar, dt: number,
+  isOffRoadLane = false) {
   // (a car over a bridge goes across the road, not back along it)
-  const vAlong = (car.crossing ?? -1) >= 0 ? 0 : car.vx * loc.dx + car.vy * loc.dy;
+  const vAlong = (car.crossing ?? -1) >= 0 || isOffRoadLane ? 0 : car.vx * loc.dx + car.vy
+    * loc.dy;
   state.backT = vAlong < -BACK_V ? state.backT + dt : 0;
-  return state.backT > BACK_T || loc.s < state.best - BACK_M;
+  return state.backT > BACK_T || (!isOffRoadLane && loc.s < state.best - BACK_M);
 }
 
 /**
@@ -349,8 +354,12 @@ export function highwayGuard(level: HwLevel, car: HwCar, dt: number) {
   const state = stateOf(level),
     loc = state.q;
   if (!loc) return null;
-  if (checkWrongWay(state, loc, car, dt)) return 'WRONG WAY — RESET';
   const { out, onLane } = measureOffRoad(level, state, loc, car);
+  // (on a lane off the motorway - a slip, a junction's roundabout: ?junctions=1 - its way is
+  // not the motorway's; and OFF_NEAR m out the off-road countdown is the guard: round a junction's
+  // ring a car falls 25-30 m back of its furthest, BACK_M)
+  if (checkWrongWay(state, loc, car, dt, FIX.junctions && (onLane || out > OFF_NEAR)))
+    return 'WRONG WAY — RESET';
   stepOffCountdown(state, out, onLane, dt);
   if (out > OFF_HARD || state.offT > OFF_T) {
     const exitTaken = state.tookExit;

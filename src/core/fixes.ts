@@ -54,4 +54,8 @@ export const FIX = {
   // shore's hotels (a drivable underpass of the race road); a world championship circuit (the
   // owner's list 11-09; world/levels/moanaco-venue.ts)
   moanacovenue: atLoad('moanacovenue'),
+  // ?junctions=1: now and then a road bridge over the endless road is a junction - an off-slip up
+  // to a roundabout on its road, an on-slip down after it, a roundabout past each ramp (owner
+  // 11-11: exits leading up to the bridges, "Roundabouts", "A few"; highway/junctions.ts)
+  junctions: atLoad('junctions'),
 };

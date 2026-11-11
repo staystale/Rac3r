@@ -12,6 +12,14 @@ export interface TestEntry {
 }
 
 export const TEST_LIST: TestEntry[] = [
+  {
+    id: 'junctions',
+    added: '2026-11-11',
+    name: 'Motorway junctions: an exit up to a roundabout at a bridge, over it, back down',
+    where: 'Test link + &junctions=1: Highway to Hull, MOTORWAY / INTERSTATE (one every ~5-10 km)',
+    try: 'Take the exit: round the roundabout, over the bridge, round the far one, back, down.',
+    wrong: 'A reset on the junction, something on its roads, a ring over the motorway, stuck.',
+  },
   // (approved 11-11, deleted: decklights, drivebridges, desertroads, hwstations, medianlamps,
   // desertmore, vergereset, trafficeven, speeders, breakdowns, bathurst)
   {

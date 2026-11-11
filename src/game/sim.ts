@@ -5,6 +5,7 @@ import { realScale } from '../carreal.ts';
 import { hwLevel, hwFlow } from './state.ts';
 import { step, reset, assertFinite, PHYSICS_STEP_SECONDS } from '../vehicle.ts';
 import { stepHighway, highwayGuard, highwayRespawn, speedCamera } from '../highway.ts';
+import { blocked } from '../highway/cuts.ts';
 import { carContacts } from '../contact.ts';
 import { hit, hitRoll, repair, applyBurst, stepDamage } from '../damage.ts';
 import { rolling, tripCheck, stepRoll } from '../roll.ts';
@@ -269,7 +270,15 @@ export function streamHighwayLitter() {
     game.cones.cull((cone) => cone.field == null || !gone.has(cone.field));
     gone.clear();
   }
+  // (?junctions=1: a junction laid back over road already streamed in takes its litter)
+  if (hwData.clearedGround && hwData.clearedGround.length) {
+    const ground = hwData.clearedGround;
+    game.cones.cull((cone) => !blocked(ground, cone.x, cone.y, CLEARED_M));
+    ground.length = 0;
+  }
 }
+// m a loose object keeps off a junction's ground (its body)
+const CLEARED_M = 1.5;
 
 /**
  * The highway speed camera: a catch is a HUD card plus a fine on the session; the fastest and
