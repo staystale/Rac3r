@@ -11,9 +11,14 @@ import { FIX } from '../core/fixes.ts';
 import { laybysOn } from './laybys.ts';
 import { layServices, newServices, servicesDue as yardDue, servicesOut } from './stations.ts';
 import { SIDE_OUT } from './cuts.ts';
+import { stretchAt } from './desertplan.ts';
 
 // (?hwstations=1) a SERVICES (highway/stations.ts): m between them, the least and the most; the
 // first one's road distance; m the side road runs beside the motorway past it
+// (?desertroads=1) Deaf Valley: open ground (no rock wall, no gorge) this far back and ahead of an
+// extra, m - the signs before it, a long slip's bend, the services' side road and yard after it;
+// and the step the check walks, m
+const OPEN_BACK_M = 100, OPEN_AHEAD_M = 560, OPEN_STEP_M = 20;
 const SERVICES_EVERY = [4000, 5000], SERVICES_FIRST_M = 1200, SERVICES_RUN_M = 220;
 // m: the tightest bend a services goes on (the side road and its yard follow the road's bends; a
 // slip's 900 m - MEASURED, _svcprobe: on the motorway's first seed none was straight enough from
@@ -171,11 +176,14 @@ function buildSlip(level: HwLevel, i: number, dist: number, pointAt: (i: number,
     rand = state.xrnd,
     walled = !!level._cfg.walls;
   state.nextSlip = dist + SLIP_EVERY[0] + rand() * (SLIP_EVERY[1] - SLIP_EVERY[0]);
-  const roll = rand(), type = roll < 0.25 ? 'side' : roll < 0.75 ? 'long' : 'short';
+  // (Deaf Valley: no side road - it would run on past the open ground)
+  const roll = rand(), type = roll < 0.25 && !state.desert ? 'side' : roll < 0.75 ? 'long'
+    : 'short';
   // keep a bridge (and its approaches) clear of the slip; after a side road the next bridge waits
   // for its end (sideStep)
   if (dist > state.nextBridge! - 450) state.nextBridge = dist + 450;
-  const label = SLIP_NAMES[(Math.floor(dist / 1000) + state.seed) % SLIP_NAMES.length];
+  const names = state.desert ? DESERT_SLIP_NAMES : SLIP_NAMES,
+    label = names[(Math.floor(dist / 1000) + state.seed) % names.length];
   addSlipSigns(level, i, pointAt, mark, label);
   if (type === "side") {
     state.side = {
@@ -276,7 +284,8 @@ function buildBridge(level: HwLevel, i: number, dist: number, pointAt: (i: numbe
   // no slip under a bridge's approach
   if (dist > state.nextSlip! - 400) state.nextSlip = dist + 400;
   const roll = rand(),
-    kind = roll < 0.38 ? "road" : roll < 0.62 ? "rail" : roll < 0.82 ? "foot" : "river";
+    kind = roll < 0.38 || (state.desert && roll >= 0.82) ? 'road' : roll < 0.62 ? 'rail'
+      : roll < 0.82 ? 'foot' : 'river';
   // walled: the wall stands wallGap off the edge - the span and the parapets clear it
   const wallOff = walled ? level._cfg.wallGap! : 0,
     centre = pointAt(i, 0),
@@ -328,7 +337,7 @@ function buildBridge(level: HwLevel, i: number, dist: number, pointAt: (i: numbe
  * @returns true when the slip should be built
  */
 function slipDue(state: HwState, road: HwPoint[], i: number, dist: number) {
-  return (
+  return isOpenGround(state, dist) && (
     dist >= state.nextSlip! &&
     !state.side &&
     i > 20 &&
@@ -346,8 +355,8 @@ function slipDue(state: HwState, road: HwPoint[], i: number, dist: number) {
  */
 function servicesDue(level: HwLevel, i: number, dist: number) {
   const state = level._hw, road = state.pts;
-  if (!FIX.hwstations || level._cfg.theme === 'canyon' || (laybysOn(level) && !level._cfg.walls))
-    return false;
+  if (!FIX.hwstations || (level._cfg.theme === 'canyon' && !FIX.desertroads)
+    || (laybysOn(level) && !level._cfg.walls) || !isOpenGround(state, dist)) return false;
   state.nextServices ??= SERVICES_FIRST_M;
   return dist >= state.nextServices && !state.side && i > 20 && i < road.length - 50
     && gentleAt(road, i, 15, 38);
@@ -381,6 +390,22 @@ function buildServices(level: HwLevel, i: number, dist: number, pointAt: (i: num
 }
 
 /**
+ * Whether the ground round an extra is open: always off Deaf Valley; there (?desertroads=1) only
+ * desert or dunes from OPEN_BACK_M before to OPEN_AHEAD_M after - no rock wall, no gorge.
+ * @param state the highway state
+ * @param dist road distance, m
+ * @returns true when an extra can be built here
+ */
+function isOpenGround(state: HwState, dist: number) {
+  if (!state.desert) return true;
+  const last = dist + OPEN_AHEAD_M;
+  for (let along = Math.max(0, dist - OPEN_BACK_M); along <= last; along += OPEN_STEP_M) {
+    const kind = stretchAt(along, state.seed).kind;
+    if (kind !== 'desert' && kind !== 'dunes') return false;
+  }
+  return true;
+}
+/**
  * Whether a bridge is due here: not while the side road runs beside the motorway.
  * @param state the highway state
  * @param road the road points
@@ -389,7 +414,7 @@ function buildServices(level: HwLevel, i: number, dist: number, pointAt: (i: num
  * @returns true when the bridge should be built
  */
 function bridgeDue(state: HwState, road: HwPoint[], i: number, dist: number) {
-  return (
+  return isOpenGround(state, dist) && (
     dist >= state.nextBridge! && !state.side && i < road.length - 20 && straightAt(road, i, 12)
   );
 }
@@ -442,6 +467,9 @@ export function extras(level: HwLevel, i: number, dist: number, pointAt: (i: num
       level.props.push(mark({ kind: "solarfarm", x: pos.x, y: pos.y, rot: pos.rot + Math.PI / 2 }));
   }
 }
+// (?desertroads=1) Deaf Valley's exits: its real places as the game names them, and a joke or two
+const DESERT_SLIP_NAMES = ['SADWATER', 'FURNACE CREAK', 'STOVEPIPE HELLS', 'ZABRISKIE POINTLESS',
+  "DEVIL'S GOLF CORSE", 'LAST CHANCE (REALLY)', 'NOTHING FOR 200 MI', 'HULL (STILL NOT)'];
 const SLIP_NAMES = [
   "GOOLE",
   "SCUNTHORPE",

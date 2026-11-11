@@ -81,6 +81,8 @@ export interface SideRoad {
 /** The state the highway keeps on its level (highway.ts rebuild). */
 export interface HwState {
   seed: number;
+  /** (?desertroads=1) Deaf Valley's extras: only on open ground, no rivers or side roads */
+  desert?: boolean;
   rnd: () => number; grnd: () => number; lrnd: () => number; xrnd: () => number;
   frnd: () => number;   // the random streams: dressing, road shape, loose, extras, fields
   geo: HwGeo;

@@ -13,6 +13,14 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'desertroads',
+    added: '2026-11-11',
+    name: 'Deaf Valley motorways as the others: exits, bridges, services, reservation lamps',
+    where: 'Test link + &desertroads=1 (with hwstations, medianlamps): DEAF VALLEY > MOTORWAY',
+    try: 'Drive 8 km: FURNACE CREAK etc exits, bridges, WELCOME BRAKE services; lamps at night.',
+    wrong: 'An exit or yard through a rock wall or by a gorge, junk on a slip, a river bridge.',
+  },
+  {
     id: 'hwstations',
     added: '2026-11-11',
     name: 'Petrol stations on the other roads; motorway services with their own slip road',

@@ -178,6 +178,17 @@ ROUND 3, THE OTHER HIGHWAYS:
     with a central reservation a twin-arm column every 68 m in its middle (on the barrier where
     there is one), an arm and head over each carriageway - each side a pool every 68 m as before,
     half the posts; the verges dark. Motorway: 27 lamps loaded, all twin; photos day and night.
+12b. Deaf Valley's motorways (owner 11-11: "No lamppost of Death Valley motorways exits ?", then
+    "it should be built similarly"): they had no lamps, slips, bridges or services (dress.ts dressed
+    the theme on its own). BUILT 11-11 behind ?desertroads=1 (highway/dress.ts layDesertExtras,
+    extras.ts isOpenGround): a road with a central reservation there gets the motorway's slips,
+    bridges and services (with ?hwstations=1) only where the ground is open - desert or dunes from
+    100 m before to 560 m after, never a canyon wall or a gorge; no rivers, no side roads; the exits
+    named SADWATER, FURNACE CREAK, STOVEPIPE HELLS, ZABRISKIE POINTLESS, DEVIL'S GOLF CORSE, LAST
+    CHANCE (REALLY), NOTHING FOR 200 MI, HULL (STILL NOT) (names to approve); the reservation's
+    twin columns with ?medianlamps=1. MEASURED (tools/scratch/_desertroads.mjs, motorway 10 km):
+    services at 3.1 / 7.9 km, an exit at 7.4, bridges 4.6 (rail), 6.8 (foot), 8.4 / 10.9 (road),
+    170 lamps; nothing on a slip's tarmac, no lane in a rock (0). Photos day and night.
 ROUND 4, POLICE ON THE HIGHWAYS (a design to agree first): waiting in lay-bys and petrol stations,
     cruising as traffic either side; they chase you / try to crash into you after: speeding past a
     speed camera nearby (that raises the chance they come; otherwise random), crashing, flashing

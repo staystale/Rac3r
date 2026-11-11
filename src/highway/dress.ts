@@ -308,6 +308,26 @@ function layWalls(ctx: DressCtx) {
 }
 
 /**
+ * (?desertroads=1) Deaf Valley's motorway extras for the dress window: the side road's offsets,
+ * then the slips, bridges and services where the ground is open (highway/extras.ts).
+ * @param ctx the dress context
+ */
+function layDesertExtras(ctx: DressCtx) {
+  const { level, state, road, firstIdx, endIdx, pointAt } = ctx;
+  state.desert = true;
+  for (let i = firstIdx; i < endIdx; i++) {
+    const dist = road[i].s,
+      mark = ((obj: { _s?: number }) => {
+        obj._s = dist;
+        return obj;
+      }) as unknown as Stamp;
+    sideStep(level, i, pointAt);
+    extras(level, i, dist, pointAt, mark);
+  }
+  sideFlush(level, false);
+}
+
+/**
  * Scenery for road points [firstIdx, endIdx): placed in WORLD coordinates (stays put when the
  * window moves); loose objects go into `loose`.
  * @param level the highway level
@@ -322,7 +342,13 @@ export function dress(level: HwLevel, firstIdx: number, endIdx: number, loose: L
   layLaybys(ctx);
   // a themed road dresses its own way (Deaf Valley: highway/canyon.ts)
   if (level._cfg.theme === 'canyon') {
+    // (?desertroads=1: a road with a central reservation gets the motorway's slips, bridges and
+    // services first - the scenery below keeps off them)
+    const motorway = FIX.desertroads && level._cfg.oncoming === 'carriageway';
+    if (motorway) layDesertExtras(ctx);
     dressCanyon(ctx);
+    // (the reservation's columns only: a verge post would stand in a canyon wall)
+    if (motorway && FIX.medianlamps) layRoadLamps(ctx);
     // (?desertmore=1: the shared litter, its slider and its amount - in the desert's kinds)
     if (FIX.desertmore) layLooseRoadside(ctx);
     // (any road there - a twin carriageway's central reservation, the walled road's walls)
