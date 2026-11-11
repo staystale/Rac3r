@@ -41,6 +41,7 @@ export type GameCar = Car & DamageCar & DamageState & {
   brakeLight?: number; handbrakeOn?: number; rainLight?: boolean;   // the lamps
   num?: number;
   _slot?: number;   // its grid slot (a stage: relative to yours)
+  _origin?: number;   // a split start's car: its own line, road m (its laps count from it)
   _lastQ?: number;   // its distance round the track last step
   _lastOn?: { dist: number; off: number };   // where it was last on the road
   _cut?: CutRun | null;   // a track cut in progress

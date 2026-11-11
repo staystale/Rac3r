@@ -13,6 +13,17 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'stadiums2',
+    added: '2026-11-11',
+    name: 'ROC stadiums reworked: the real start, softer corners, tyres, boards and flags',
+    where: 'Test link + &wobbly=1&stadeprance=1: TEST MODE > RALLYCROSS, either stadium, VS AI',
+    try: 'VS AI (1 rival, 1 lap by default): you and the rival side by side on the two lanes, each'
+      + ' timed over one full lap from your own line; the results give both times and the winner.'
+      + ' Drive every corner and both ways through the crossover.',
+    wrong: 'The rival not alongside at the lights, a lap ending early or late, a barrier over a'
+      + ' portal or across the underpass, a gap in the fence, a tyre or board on the road.',
+  },
+  {
     id: 'stadeprance',
     added: '2026-11-11',
     name: 'Stade de Prance: the Race of Champions track in Paris, two lanes and a crossover',

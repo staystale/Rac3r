@@ -269,7 +269,9 @@ export function buildFlow() {
       ...game.ai.map((entry) => ({ car: entry.car }))], total: LEVEL.subtrack!.totalDist, laps: 1,
         stage: { finish: LEVEL.stage.finish } });
   }
-  const laps = shared.raceLaps || (LEVEL.joker && shared.race.on ? LEVEL.joker.laps || 5 : 3);
+  // (a split start's: 1, the Race of Champions' one timed lap)
+  const laps = shared.raceLaps || (LEVEL.joker && shared.race.on ? LEVEL.joker.laps || 5
+    : LEVEL.splitStart ? 1 : 3);
   shared.race.laps = laps;
   return createRaceFlow({ cars: [{ car: game.car, player: true },
     ...game.ai.map((entry) => ({ car: entry.car }))], total: LEVEL.subtrack!.totalDist, laps,

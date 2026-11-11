@@ -680,11 +680,32 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   side by side need 20 m centre to centre (a barrier between: 2.5 m off each road's edge), so a
   half-size Wembley (its pitch ~140 x 100 m) holds none; the ROC path is laid at its real ~800 m in
   a bowl ~210 x 170 m (VenueSpec share 1). Every ROC stadium's data comes from ONE generator,
-  tools/scratch/_rocdata.mjs <id> (a config per stadium: the lane box, the crossover's place,
-  which pieces are gravel, the bowl's shape).
+  tools/scratch/_rocdata.mjs <id> (a config per stadium: the outer lane's corners - each its own
+  radius, sides leaning, a kink or a double apex (owner 11-11: "each corner should feel unique")
+  - the inner lane the same lines 20 m in, the crossover's place, which sides are gravel, the
+  bowl's shape; it writes the barriers' lines as data.rails, each hairpin's tyre rows as
+  data.tyres, the flags as landmarks).
   Where four arms meet at a crossover the edge ends short of the portals: two abutment walls and
   tidyEdge 'fences' seal it (_moseal.mjs: 0 escapes). An abutment's end lying along another
   barrier is trimmed (world/venuetidy.ts trimDoubledEnds), so no Armco is drawn twice.
+- THE ROC START (owner 11-11: "cars on separate track halves and timed, 1 full lap; optional laps
+  still in test and optional AI quantity"): Level.splitStart - you on the start line's half, the
+  rival alongside on the other lane (the path's other half: game/grid.ts splitLineDist), each
+  car's laps counted from its own line (GameCar._origin), so a lap is the whole path for both and
+  the race is on time; TEST MODE's setup defaults to 1 rival, 1 lap, both still selectable.
+  MEASURED (tools/scratch/_rocrace.mjs, Wobbly): the two cars 20.1 m apart at the lights, each
+  through one 772 m lap, the results 44.59 s / 46.24 s.
+- A CROSSOVER'S UNDERPASS FOLLOWS ITS ROAD (11-11, owner: "tunnels and edges still seem
+  misaligned"): its portals turned along the road at each end and its walls along the road's own
+  path (world/venuecross.ts roadPortals: Moanaco's bent-tunnel crossing) - laid on the chord of a
+  stadium's S, a portal's side wall stood 0.9 m on the road at its start. The bridge's parapet is
+  left out where it runs along a portal's walls (the roads' X), so no Armco runs over a cut.
+- A STADIUM'S BOWL NEEDS ROOM AT THE HAIRPINS (11-11, Stade de Prance): the catch fence stands
+  10 m past the edge where the stands watch; an ellipse round a long lane box came within 25 m of
+  the hairpins' outside, the fence had no room and left 16 escapes. The bowl is a superellipse
+  (power 2.5) 12 / 8 m further out: 0 escapes. A spec's tyre wall there (VenueSpec.tyreWalls)
+  pushes the rim out 6 m more, so a stadium's hairpins have tyre rows (data.tyres) instead. A board
+  needs its face 1.5 m clear of every prop: a flag row 18 m out blocked every catch-fence board.
 - A STAND BESIDE A ROAD WATCHES ITS FAR SIDE TOO (11-11, Moanaco): the edge marks 30 m round a
   stand's corners as watched, so a stand by the swimming pool turned 26 m of the road's other side
   (beside the pit lane) to catch fence - a run shorter than MIN_RUN_PTS, dropped: a 19 m gap. The

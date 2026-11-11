@@ -7,7 +7,7 @@
 // (world/trackunder.ts): a lookup for a car on the ground never takes it for the road below.
 import { HALF_ROAD, VENUE_ROAD_M, centreAt, centreBetween } from './venuegeo.ts';
 import { querySubtrack } from './tyrewall.ts';
-import { PORTAL_LINTEL_M } from './crossinggeo.ts';
+import { PORTAL_LINTEL_M, PORTAL_WALL_M } from './crossinggeo.ts';
 import { underSpan, underground } from './trackunder.ts';
 import type { Barrier, Point, Prop, Subtrack } from './types.ts';
 export { underSpan, underground };
@@ -151,17 +151,20 @@ export function tunnelSpans(sub: Subtrack, piece: Point[] | undefined):
 const PATH_STEP_M = 2;
 
 /**
- * A race-road tunnel's two portals where its road bends under the ground (a span with no road
- * over it): each on the road at its end, turned along it, the first carrying the road's centre
- * through the tunnel (Prop.path: world/crossings.ts lays the walls along it).
+ * The two portals of a stretch of the race road under the ground (a race-road tunnel's, a
+ * crossover's underpass): each on the road at its end, turned along it, the first carrying the
+ * road's centre through (Prop.path: world/crossings.ts lays the walls along it) - so a portal's
+ * walls meet its road square where the road bends under (a crossover's S).
  * @param sub the loop
  * @param span the stretch under the ground
  * @param span.d0 m along where it starts (the first portal's open end)
  * @param span.d1 m along where it ends
  * @param span.cut m in from each end its open cut runs
+ * @param covered a tunnel's slatted cover over it (none under a crossover's bridge)
  * @returns the two portals
  */
-function roadPortals(sub: Subtrack, span: { d0: number; d1: number; cut?: number }): Prop[] {
+function roadPortals(sub: Subtrack, span: { d0: number; d1: number; cut?: number },
+  covered: boolean): Prop[] {
   const path: Point[] = [];
   const count = Math.max(2, Math.round((span.d1 - span.d0) / PATH_STEP_M));
   for (let i = 0; i <= count; i++) {
@@ -173,9 +176,10 @@ function roadPortals(sub: Subtrack, span: { d0: number; d1: number; cut?: number
     return { kind: 'tunnel', x: centre.x, y: centre.y, rot: head + (back ? Math.PI : 0),
       w: PORTAL_LEN_M, h: VENUE_ROAD_M + CUT_SPARE_M, track: true } as Prop;
   };
-  // (and the slats' outlines: a car below is hidden under each, seen between)
-  const slats = tunnelSlats(sub, span).map(slatCorners);
-  return [{ ...portal(span.d0 + PORTAL_LEN_M / 2, false), path, slats },
+  // (and the slats' outlines: a car below is hidden under each, seen between; under a bridge the
+  // whole stretch between the lintels)
+  const slats = covered ? { slats: tunnelSlats(sub, span).map(slatCorners) } : {};
+  return [{ ...portal(span.d0 + PORTAL_LEN_M / 2, false), path, ...slats },
     portal(span.d1 - PORTAL_LEN_M / 2, true)];
 }
 
@@ -232,30 +236,16 @@ export function tunnelCover(sub: Subtrack): Prop[] {
 }
 
 /**
- * The two portals of each underpass (kind 'tunnel', laid in pairs facing each other: world/
- * crossings.ts venueCrossings makes the pair one crossing): on the road under, each with its ramp
- * running down toward the crossing, as wide as the race road and a little more - a tunnel with no
- * road over it (VenueSpec.tunnel) each on its road's bend (roadPortals).
+ * The two portals of each underpass (kind 'tunnel', laid in pairs: world/crossings.ts
+ * venueCrossings makes the pair one crossing): on the road under, each turned along the road at
+ * its end with its ramp running down toward the crossing, as wide as the race road and a little
+ * more, the crossing's walls along the road between (roadPortals) - a crossover's under its
+ * bridge, a tunnel with no road over it (VenueSpec.tunnel) under its slats.
  * @param sub the loop
  * @returns the portals
  */
 export function underPortals(sub: Subtrack): Prop[] {
-  const props: Prop[] = [];
-  for (const span of sub.under || []) {
-    if (span.over === undefined) {
-      props.push(...roadPortals(sub, span));
-      continue;
-    }
-    const first = centreAt(sub, span.d0), last = centreAt(sub, span.d1);
-    const head = Math.atan2(last.y - first.y, last.x - first.x);
-    const dirX = Math.cos(head), dirY = Math.sin(head), mid = (span.d1 - span.d0) / 2;
-    const centre = centreAt(sub, (span.d0 + span.d1) / 2), out = mid - PORTAL_LEN_M / 2;
-    for (const side of [-1, 1])
-      props.push({ kind: 'tunnel', x: centre.x + dirX * side * out, y: centre.y + dirY * side * out,
-        rot: head + (side > 0 ? Math.PI : 0), w: PORTAL_LEN_M, h: VENUE_ROAD_M + CUT_SPARE_M,
-        track: true } as Prop);
-  }
-  return props;
+  return (sub.under || []).flatMap((span) => roadPortals(sub, span, span.over === undefined));
 }
 
 
@@ -275,14 +265,34 @@ export function crossoverAt(sub: Subtrack, dist: number): boolean {
   return !!span || overCap(sub, dist) < Infinity;
 }
 
+// m a parapet's end keeps off an underpass portal's walls (it stops at their outer face)
+const PARAPET_CLEAR_M = 0.5;
+
+/**
+ * Whether a point lies on an underpass portal's footprint (its cut and side walls, and a margin).
+ * @param portal the portal (w its length along its road, h its width between the walls)
+ * @param point the point
+ * @returns true when it does
+ */
+function onPortal(portal: Prop, [x, y]: Point): boolean {
+  const cosR = Math.cos(portal.rot || 0), sinR = Math.sin(portal.rot || 0);
+  const along = (x - portal.x) * cosR + (y - portal.y) * sinR;
+  const across = -(x - portal.x) * sinR + (y - portal.y) * cosR;
+  return Math.abs(along) <= portal.w! / 2 + PARAPET_CLEAR_M
+    && Math.abs(across) <= portal.h! / 2 + PORTAL_WALL_M + PARAPET_CLEAR_M;
+}
+
 /**
  * The bridge's two parapets over each crossover: Armco along the road over it, PARAPET_M past its
- * edges, the bridge's length and its approaches (the venue's edge stands neither side there).
+ * edges, the bridge's length and its approaches (the venue's edge stands neither side there) -
+ * the stretch that runs along a portal's side wall (the roads' X, where they part slowly) left
+ * out, so the Armco stops at the portal's walls each side and never runs over its cut.
  * @param sub the loop
  * @returns the barriers
  */
 export function underParapets(sub: Subtrack): Barrier[] {
-  const barriers: Barrier[] = [];
+  const barriers: Barrier[] = [], portals = underPortals(sub);
+  const onAny = (point: Point) => portals.some((portal) => onPortal(portal, point));
   for (const span of sub.under || []) {
     if (span.over === undefined || !span.overHalf) continue;
     for (const side of [1, -1]) {
@@ -291,7 +301,16 @@ export function underParapets(sub: Subtrack): Barrier[] {
         const centre = centreAt(sub, span.over + along), off = side * (HALF_ROAD + PARAPET_M);
         pts.push([centre.x + centre.nx * off, centre.y + centre.ny * off]);
       }
-      barriers.push({ kind: 'armco', pts });
+      // (in runs: the stretch along a portal's footprint left out)
+      let run: Point[] = [];
+      for (const point of [...pts, null]) {
+        if (point && !onAny(point)) {
+          run.push(point);
+          continue;
+        }
+        if (run.length >= 2) barriers.push({ kind: 'armco', pts: run });
+        run = [];
+      }
     }
   }
   return barriers;

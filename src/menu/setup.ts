@@ -432,11 +432,13 @@ export function showSetup(menu: Menu, level: Level, kept: Partial<SetupState> = 
     traffic: menu.profile.traffic ?? 0.6,   // endless: traffic density
     litter: menu.profile.litter ?? 1,   // endless: roadside litter density
     opponents: 0,   // VS AI opponents (0 = solo)
-    aiN: 5,   // how many opponents VS AI picks
+    // how many opponents VS AI picks (a split start's: one rival, the Race of Champions' duel)
+    aiN: level.splitStart ? 1 : 5,
     diff: 2,   // AI difficulty index into DIFF
     aiCars: 'class',   // AI cars: class or same
     rxRace: false,   // the RX race (joker level) rather than practice
-    laps: level.joker ? level.joker.laps || 5 : 3,   // laps of a race
+    // laps of a race (a split start's: one timed lap)
+    laps: level.joker ? level.joker.laps || 5 : level.splitStart ? 1 : 3,
     ...kept,
     ui: {},   // the opponent / difficulty widgets paintSetupOpponents updates
     paint: () => {},   // repaints the setup rows (wrapped by the laps row)

@@ -271,7 +271,11 @@ const sub = L.LEVEL.subtrack;
 ways.forEach((way, index) => {
   // (a bent tunnel's road is the track itself: no road over it)
   if (way.hidden) return;
+  // (the road over it, or beside it - never the way's own road: a crossover's underpass runs along
+  // the way, its S at most ~0.6 rad off it, the road over crosses it)
+  const wayHead = Math.atan2(way.dirY, way.dirX);
   const hitAt = sub.pts.reduce((best, point) => {
+    if (way.track && Math.abs(Math.cos(point.heading - wayHead)) > 0.9) return best;
     const along = alongOf(way, point.x, point.y), across = acrossOf(way, point.x, point.y);
     const score = Math.abs(across - (way.minAcross + way.maxAcross) / 2)
       + Math.max(0, -along, along - way.length);

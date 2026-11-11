@@ -326,9 +326,9 @@ function venueBuildings(site: Site, pits: Lane[]): Prop[] {
         : { ...prop, roof: ROOFS[i % ROOFS.length] });
   });
   for (const mark of site.build.spec.landmarks || []) {
-    const [x, y] = site.place(mark.at), size = mark.size * site.build.scale;
+    const [x, y] = site.place(mark.at), size = mark.size * site.build.scale, { rot, col } = mark;
     props.push({ kind: mark.kind, x, y, size, w: (mark.len || mark.size) * site.build.scale,
-      h: size, ...(mark.rot === undefined ? {} : { rot: mark.rot }) });
+      h: size, ...(rot === undefined ? {} : { rot }), ...(col ? { col } : {}) });
   }
   return props;
 }
