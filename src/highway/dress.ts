@@ -249,7 +249,8 @@ function layArmco(ctx: DressCtx) {
         if (pts.length > 2) level.barriers.push({ kind: "armco", pts, _s: road[runNow.a].s });
         pts = [];
       };
-      for (let j = Math.max(0, run.a - 8); j < Math.min(road.length, i + 8); j += 2) {
+      // (as the walls: never past the points dressed)
+      for (let j = Math.max(0, run.a - 8); j < Math.min(road.length, endIdx, i + 8); j += 2) {
         if (runNow.side < 0 && road[j].gapL) {
           flush();
           continue;
@@ -285,8 +286,12 @@ function layWalls(ctx: DressCtx) {
           pts = [];
         };
         // (beside the SECRET SIDE ROAD the left wall swings out with it, to its far edge - it
-        // starts and ends at the normal line)
-        for (let j = startIdx; j <= Math.min(road.length - 1, startIdx + 30); j++) {
+        // starts and ends at the normal line; never past the last point dressed - ?roadparity=1
+        // dresses behind the road's end, and the road past it has no side road marked yet: the
+        // next stretch's first piece starts on that last point. MEASURED _serviceswall.mjs, a
+        // wall across every services' way in)
+        const lastIdx = Math.min(road.length - 1, endIdx - 1, startIdx + 30);
+        for (let j = startIdx; j <= lastIdx; j++) {
           const sideOffset = side < 0 && road[j].sideOff;
           if (!sideOffset && side < 0 && road[j].gapL) {
             flush();
