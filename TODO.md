@@ -259,7 +259,19 @@ ROUND 3, THE OTHER HIGHWAYS:
        nothing on a slip or ring, no ring over the motorway; _junctiondrive.mjs (off-slip, round,
        over, round, back, on-slip) on 11 junctions over both sceneries and seeds: all 38 points, 0
        resets. Photos countryside and Deaf Valley.
- R3 real traffic over them; R4 rail bridges drivable, the
+    PARITY - BUILT 11-11 behind ?roadparity=1 (owner: "Walled levels should work the similar as
+       possible to other highway levels", Deaf Valley "both types should work the same just have
+       a asthetic difference"): the road dressed 80 points (320 m) behind its newest (highway.ts
+       dressLag), so a junction is laid AHEAD where it falls due, before the walls, rock and lamps
+       there; junctions on the walled road (the wall open at the slips); Deaf Valley's exits,
+       services, bridges and junctions by the countryside's rules - only a gorge on their side keeps
+       them off - the rock walls open where they pass (canyon.ts isWallOpen: gapL / gapR / sideOff).
+       MEASURED (_hwextras.mjs, 10 km, 2 seeds): Deaf Valley exits 1-4 (countryside 1-3), services
+       2-3 (3), bridges 5-6 (3-6); _junctions.mjs: junctions on every road incl. Deaf Valley's
+       walled, nothing on them; _junctiondrive.mjs (a careful driver: 6 m/s on rings and ramps -
+       faster, the desert's sand beside the bridge road slides you into a ramp wall): 11 of 11 all
+       38 points, 0 resets. Switch off: identical to the plain game.
+    R3 real traffic over them; R4 rail bridges drivable, the
        train can hit you; R5 road tunnels under the motorway.
 ROUND 4, POLICE ON THE HIGHWAYS (a design to agree first): waiting in lay-bys and petrol stations,
     cruising as traffic either side; they chase you / try to crash into you after: speeding past a

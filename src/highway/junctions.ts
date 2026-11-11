@@ -7,6 +7,7 @@
 // guard's EXIT TAKEN past them, as a slip road's). All of it is lanes on the ground (tarmac, as
 // the slips): the drivable deck is the bridge's own crossing.
 import { SURFACES } from '../world/surfaces.ts';
+import { FIX } from '../core/fixes.ts';
 import { blocked, keepOut } from './cuts.ts';
 import { RING_LANE_M, RING_OUTER_M, RING_R, ringCentre } from './ringgeo.ts';
 import type { Lane, Point, Prop } from '../world/types.ts';
@@ -126,10 +127,14 @@ export function layJunction(level: HwLevel, fromIdx: number, bridge: Prop, bridg
   layRing(level, far, dist);
   // the left verge open where the slips leave and join (the Armco and the walled road's wall
   // break there: highway/dress.ts)
-  for (let j = Math.max(0, fromIdx - 4); j < Math.min(road.length, fromIdx + 12); j++)
-    road[j].gapL = 1;
-  for (let j = Math.max(0, toIdx - 12); j < Math.min(road.length, toIdx + 4); j++)
-    road[j].gapL = 1;
+  // (?roadparity=1: Deaf Valley's rock walls open along all of it, both sides - its rings stand
+  // where the rock's band would, canyon.ts; MEASURED _junctiondrive.mjs: with the right wall open
+  // only at the bridge a car on the far ring met the rock)
+  const isOpenAlong = FIX.roadparity && !!state.desert;
+  for (let j = Math.max(0, fromIdx - 4); j < Math.min(road.length, toIdx + 4); j++) {
+    if (isOpenAlong || j < fromIdx + 12 || j >= toIdx - 12) road[j].gapL = 1;
+    if (isOpenAlong) road[j].gapR = 1;
+  }
   clearJunctionGround(level, state.keep.filter((rect) => rect._s === dist
     || rect._s === road[bridgeIdx].s));
 }

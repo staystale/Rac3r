@@ -37,6 +37,7 @@ import { syncCovers, SIDE_W_HALF } from "./highway/cuts.ts";
 import { dress } from "./highway/dress.ts";
 import { desertGround, REACH, resetStreamed, pruneStreamed } from "./highway/gorge.ts";
 import type { HwState, HwLevel, HwCar, HwCfg, HwPoint } from './highway/hwtypes.ts';
+import { FIX } from './core/fixes.ts';
 import { syncBridgeways } from './highway/bridgeways.ts';
 import type { RoadLoc } from './highway/road.ts';
 import type { Level } from './world/types.ts';
@@ -90,6 +91,14 @@ function rebuild(level: HwLevel) {
   // the road bridges' crossings, in step with the props loaded
   syncBridgeways(level);
 }
+// (?roadparity=1) road points the dressing keeps behind the road's newest (320 m: a junction's
+// off-slip to on-slip, 2 x 30 points, laid ahead from where it falls due, and its margin)
+const DRESS_LAG_POINTS = 80;
+/**
+ * How far behind the road's newest point it is dressed.
+ * @returns road points
+ */
+const dressLag = (): number => (FIX.roadparity ? DRESS_LAG_POINTS : 0);
 // first window (also RESTART: the same seed builds the same motorway, so cached ground tiles stay
 // right)
 export function resetHighway(level: HwLevel) {
@@ -150,8 +159,11 @@ export function resetHighway(level: HwLevel) {
   // every restart)
   level.cones.length = 0;
   growTo(level, AHEAD + 300);
-  dress(level, 0, state.pts.length, level.cones);
-  state.dressed = state.pts.length;
+  // (?roadparity=1: dressed DRESS_LAG points behind the newest - the road ahead of a junction
+  // is there to lay it on)
+  const dressTo = Math.max(1, state.pts.length - dressLag());
+  dress(level, 0, dressTo, level.cones);
+  state.dressed = dressTo;
   syncCovers(level);
   rebuild(level);
   // the ploughed fields dry in blocks (world/levelmud.ts)
@@ -186,8 +198,9 @@ export function stepHighway(level: HwLevel, car: HwCar) {
   // (game.cones.spawn / cull — the live objects belong to the game, not the level)
   growTo(level, state.s + 300);
   meterEvent('slide');
-  dress(level, state.dressed, road.length, state.looseNew!);
-  state.dressed = road.length;
+  const dressTo = Math.max(state.dressed, road.length - dressLag());
+  dress(level, state.dressed, dressTo, state.looseNew!);
+  state.dressed = dressTo;
   let cut = 0;
   while (cut < road.length && road[cut].s < loc.s - BEHIND) cut++;
   const moved = road[cut].s - road[0].s;

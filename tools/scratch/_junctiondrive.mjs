@@ -83,10 +83,12 @@ for (let time = 0; time < 120 && target < route.length; time += PHYSICS_STEP_SEC
   let err = Math.atan2(aimY - car.y, aimX - car.x) - car.heading;
   err = Math.atan2(Math.sin(err), Math.cos(err));
   const speed = Math.hypot(car.vx, car.vy);
+  // (the slips at 8 m/s; the rings and ramps at a careful 6)
+  const wanted = /slip/.test(route[target].leg) ? 8 : 6;
   clampWorld(car, PHYSICS_STEP_SECONDS);
   L.applyGround(car, PHYSICS_STEP_SECONDS);
-  step(car, { steer: Math.max(-1, Math.min(1, err * 2.5)), throttle: speed < 8 ? 0.5 : 0,
-    brake: speed > 10 ? 0.3 : 0, handbrake: 0 }, PHYSICS_STEP_SECONDS);
+  step(car, { steer: Math.max(-1, Math.min(1, err * 2.5)), throttle: speed < wanted ? 0.5 : 0,
+    brake: speed > wanted + 2 ? 0.3 : 0, handbrake: 0 }, PHYSICS_STEP_SECONDS);
   hw.stepHighway(level, car, L.querySubtrack(level.subtrack, car.x, car.y).trackDist);
   const why = hw.highwayGuard(level, car, PHYSICS_STEP_SECONDS);
   if (why && !resets.length && process.env.WHY) { const q = level._hw.q; console.log('FIRST', why, 'leg', route[target].leg, 'off', q.off.toFixed(1), 'hw', level._hw.geo.hw, 's', q.s.toFixed(0), 'best', level._hw.best?.toFixed(0), 'backT', level._hw.backT?.toFixed(2), 'surface', L.zoneSurfaceAt(car.x, car.y).id, 'crossing', car.crossing, 'v', Math.hypot(car.vx,car.vy).toFixed(1)); }

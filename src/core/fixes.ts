@@ -47,5 +47,14 @@ export function dialAtLoad(name: string): number {
   return raw == null || !Number.isFinite(value) ? 0 : Math.min(1, Math.max(0, value));
 }
 
-/** The switches under test, all off on the plain link (none at the moment). */
-export const FIX = {};
+/** The switches under test, all off on the plain link. */
+export const FIX = {
+  // ?roadparity=1: every endless road built alike, only its look apart (owner 11-11: "Walled
+  // levels should work the similar as possible to other highway levels", Deaf Valley "both types
+  // should work the same just have a asthetic difference"): the road dressed DRESS_LAG behind its
+  // newest point, so a junction is laid ahead before the walls, rock and lamps there; junctions
+  // on the walled road (its wall open at the slips); Deaf Valley's exits, services, bridges and
+  // junctions by the countryside's rules, the rock walls opened where they pass - only a gorge
+  // keeps them off (highway.ts, extras.ts, junctions.ts, canyon.ts)
+  roadparity: atLoad('roadparity'),
+};

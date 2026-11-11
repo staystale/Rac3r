@@ -11,6 +11,7 @@
 // puncture).
 // Everything is a function of road distance (and the road's own seed), so the stretches each
 // dress call lays join exactly.
+import { FIX } from "../core/fixes.ts";
 import { bayOut } from './laybys.ts';
 import { keepOut } from './cuts.ts';
 import { stretchAt, stationSideOf } from './desertplan.ts';
@@ -19,7 +20,7 @@ import { gorgeAt, rimOf, layGround, roomAt } from './gorge.ts';
 import type { Level, Patch, Point, Prop, Surface, Zone } from '../world/types.ts';
 import { blendPatch, tri, BLEND_W } from '../world/blend.ts';
 import { indexNewBushes } from '../world/load.ts';
-import type { DressCtx, HwPose } from './hwtypes.ts';
+import type { DressCtx, HwPoint, HwPose } from './hwtypes.ts';
 import type { LevelObj } from '../cones/coneTypes.ts';
 
 const FLARE_M = 80, FLARE_OUT = 30;
@@ -113,7 +114,7 @@ function layRockWalls(ctx: DressCtx) {
       };
       for (let j = startIdx; j <= Math.min(endIdx, road.length - 1, startIdx + PIECE); j++) {
         const dist = road[j].s, gap = wallGapAt(dist, side, ctx.state.seed);
-        if (gap === null) { flush(); continue; }
+        if (gap === null || isWallOpen(road[j], side)) { flush(); continue; }
         // (the rock as it stands; a lay-by's notch cuts its face back, never past its back -
         // the strata cut off at the face)
         const from = roomAt(ctx, j, side, halfWidth + gap, 2.5),
@@ -143,6 +144,19 @@ const ROCK_SPECKLE_M = 1.2, ROCK_BLEND = 0.6;
 // the face points either side of a piece's own that its length covers (4 m apart: 8 m of its
 // 16 m half each way), and how far its back runs past the band's, m
 const ROCK_REACH = 2, BACK_OVER_M = 0.5;
+
+/**
+ * (?roadparity=1) Whether the rock wall is open at a road point on a side: where a slip leaves or
+ * a junction stands (gapL), the services' side road runs (sideOff) - the left - or a bridge's
+ * approach crosses (gapL / gapR).
+ * @param point the road point
+ * @param side -1 the left, +1 the right
+ * @returns true where no wall stands
+ */
+function isWallOpen(point: HwPoint, side: number): boolean {
+  if (!FIX.roadparity) return false;
+  return side < 0 ? !!(point.gapL || point.sideOff) : !!point.gapR;
+}
 
 /**
  * A piece of the rock's ground: the band behind a wall's face at road point i, as a

@@ -12,6 +12,14 @@ export interface TestEntry {
 }
 
 export const TEST_LIST: TestEntry[] = [
+  {
+    id: 'roadparity',
+    added: '2026-11-11',
+    name: 'Every highway alike: junctions on the walled road, Deaf Valley exits as the countryside',
+    where: 'Test link + &roadparity=1: Highway to Hull, WALLED and DEAF VALLEY roads (and others)',
+    try: 'Drive 10 km: exits, services, junctions as often as the countryside; take a junction.',
+    wrong: 'A slip into rock or a wall, a junction where a wall stands, things popping in ahead.',
+  },
   // (approved 11-11, deleted: junctions, moanacovenue, decklights, drivebridges, desertroads,
   // hwstations, medianlamps,
   // desertmore, vergereset, trafficeven, speeders, breakdowns, bathurst)

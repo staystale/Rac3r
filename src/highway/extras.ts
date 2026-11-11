@@ -11,6 +11,8 @@ import { laybysOn } from './laybys.ts';
 import { layServices, newServices, servicesDue as yardDue, servicesOut } from './stations.ts';
 import { SIDE_OUT } from './cuts.ts';
 import { stretchAt } from './desertplan.ts';
+import { gorgeAt } from './gorge.ts';
+import { FIX } from '../core/fixes.ts';
 import { JUNCTION_SHARE, LEAD_POINTS, layJunction } from './junctions.ts';
 
 // a SERVICES (highway/stations.ts): m between them, the least and the most; the
@@ -26,6 +28,9 @@ const OPEN_BACK_M = 100, OPEN_AHEAD_M = 560, OPEN_STEP_M = 20;
 // (MEASURED, tools/scratch/_hwextras.mjs: with the exits' window the first came at 4.6-9.3 km, on
 // one seed none in 10 km)
 const BRIDGE_OPEN_M = 60;
+// (?roadparity=1) road points either side of a bridge where Deaf Valley's rock walls open for its
+// approaches (4 m apart: a 7 m road and its verges)
+const BRIDGE_GAP_POINTS = 4;
 // and the least bend radius under one, m: the desert's roads wind more (the countryside's 900);
 // over the 96 m checked a 500 m bend moves 2.3 m, inside the span's 6 m to spare
 const DESERT_BRIDGE_RADIUS_M = 500;
@@ -211,8 +216,8 @@ function buildSlip(level: HwLevel, i: number, dist: number, pointAt: (i: number,
     sideStep(level, i, pointAt);
     return;
   }
-  // a gap in the left wall (walled preset) where it leaves
-  if (walled)
+  // a gap in the left wall (walled preset; ?roadparity=1 a Deaf Valley rock wall) where it leaves
+  if (walled || (FIX.roadparity && state.desert))
     for (let j = Math.max(0, i - 4); j < Math.min(road.length, i + 28); j++) road[j].gapL = 1;
   const len = type === 'long' ? SLIP_LONG[0] + rand() * (SLIP_LONG[1] - SLIP_LONG[0]) : SLIP_LEN;
   // degrees off the motorway at the end: a long one bends away, off screen
@@ -349,6 +354,7 @@ function buildBridge(level: HwLevel, i: number, dist: number, pointAt: (i: numbe
   bridge.phase = rand() * 1000;
   if (kind === 'rail') bridge.trainEvery = 14 + rand() * 16;
   level.props.push(bridge);
+  openRockAt(state, i);
   if (kind === 'river') {
     // the motorway's own parapets over it (lab walls); on the walled preset its wall is already
     // there
@@ -356,6 +362,21 @@ function buildBridge(level: HwLevel, i: number, dist: number, pointAt: (i: numbe
     river(level, bridge, dist);
   } else approaches(level, bridge, dist);
   return bridge;
+}
+
+/**
+ * (?roadparity=1) Opens Deaf Valley's rock walls both sides where a bridge's approaches cross
+ * (canyon.ts isWallOpen).
+ * @param state the highway state
+ * @param i the bridge's road point
+ */
+function openRockAt(state: HwState, i: number) {
+  if (!FIX.roadparity || !state.desert) return;
+  const last = Math.min(state.pts.length - 1, i + BRIDGE_GAP_POINTS);
+  for (let j = Math.max(0, i - BRIDGE_GAP_POINTS); j <= last; j++) {
+    state.pts[j].gapL = 1;
+    state.pts[j].gapR = 1;
+  }
 }
 
 /**
@@ -378,16 +399,15 @@ function roadBridgeLook(kind: string, isDesert: boolean, isJunction: boolean) {
  * MEASURED _junctions.mjs - else the winding roads had none in 12 km) and fits.
  * @param level the highway level
  * @param i road point index
- * @param dist road distance at i, m
  * @param pointAt road point at (index, offset)
  * @param mark stamps a prop with its road distance
  * @returns true when one was built
  */
-function tryJunction(level: HwLevel, i: number, dist: number, pointAt: (i: number,
-  off: number) => HwPose, mark: Stamp) {
+function tryJunction(level: HwLevel, i: number, pointAt: (i: number, off: number) => HwPose,
+  mark: Stamp) {
   const state = level._hw;
   if (!state.junctionOwed && state.xrnd() < JUNCTION_SHARE) state.junctionOwed = true;
-  if (!state.junctionOwed || !junctionFits(level, i, dist)) return false;
+  if (!state.junctionOwed || !junctionFits(level, i)) return false;
   state.junctionOwed = false;
   buildJunction(level, i, pointAt, mark);
   return true;
@@ -398,19 +418,29 @@ function tryJunction(level: HwLevel, i: number, dist: number, pointAt: (i: numbe
  * road point i: the road gentle from before the off-slip to here, no wall (the walled road's is
  * built), no roadside station in the way, open ground in Deaf Valley.
  * @param level the highway level
- * @param i the road point the on-slip would join at
- * @param dist road distance at i, m
+ * @param i the road point the junction falls due at
  * @returns true when one can be built
  */
-function junctionFits(level: HwLevel, i: number, dist: number) {
-  const state = level._hw, road = state.pts, span = 2 * LEAD_POINTS, from = i - span;
-  if (from < 4 || level._cfg.walls || state.side) return false;
-  if (!straightAt(road, i, span + 4, 12, JUNCTION_RADIUS_M)) return false;
-  const fromS = road[from].s;
+function junctionFits(level: HwLevel, i: number) {
+  const state = level._hw, road = state.pts, span = 2 * LEAD_POINTS, from = junctionFrom(i);
+  // (laid back over the road just dressed, the walled road's wall is built there; laid ahead -
+  // ?roadparity=1 - the road ahead must be there)
+  if (from < 4 || from + span + 4 >= road.length || state.side) return false;
+  if (level._cfg.walls && !FIX.roadparity) return false;
+  if (!straightAt(road, from + span, span + 4, 12, JUNCTION_RADIUS_M)) return false;
+  const fromS = road[from].s, toS = road[from + span].s;
   if (level.props.some((prop) => STATION_KINDS.has(prop.kind) && prop._s != null
-    && prop._s > fromS - 60 && prop._s < dist + 60)) return false;
-  return isOpenGround(state, fromS, OPEN_BACK_M, span * STEP + BRIDGE_OPEN_M);
+    && prop._s > fromS - 60 && prop._s < toS + 60)) return false;
+  return isOpenGround(state, fromS, OPEN_BACK_M, span * STEP + BRIDGE_OPEN_M)
+    && isOpenGround(state, road[from + LEAD_POINTS].s, BRIDGE_OPEN_M, BRIDGE_OPEN_M, [1]);
 }
+/**
+ * The road point a junction falling due at i leaves at: back over the road just dressed, or
+ * (?roadparity=1, the road ahead there) i itself.
+ * @param i the road point the junction falls due at
+ * @returns its off-slip's road point
+ */
+const junctionFrom = (i: number): number => (FIX.roadparity ? i : i - 2 * LEAD_POINTS);
 // what stands in a lay-by or a services' yard (a junction keeps off them)
 const STATION_KINDS = new Set(['gasstation', 'canopy', 'services', 'servicehall', 'station']);
 
@@ -425,13 +455,13 @@ const STATION_KINDS = new Set(['gasstation', 'canopy', 'services', 'servicehall'
  */
 function buildJunction(level: HwLevel, i: number, pointAt: (i: number, off: number) => HwPose,
   mark: Stamp) {
-  const state = level._hw, road = state.pts, bridgeIdx = i - LEAD_POINTS;
-  const fromIdx = bridgeIdx - LEAD_POINTS, names = state.desert ? DESERT_SLIP_NAMES : SLIP_NAMES;
+  const state = level._hw, road = state.pts, fromIdx = junctionFrom(i);
+  const bridgeIdx = fromIdx + LEAD_POINTS, names = state.desert ? DESERT_SLIP_NAMES : SLIP_NAMES;
   addSlipSigns(level, fromIdx, pointAt, mark, names[(Math.floor(road[fromIdx].s / 1000)
     + state.seed) % names.length]);
   const bridge = buildBridge(level, bridgeIdx, road[bridgeIdx].s, pointAt, mark, true);
   layJunction(level, fromIdx, bridge, bridgeIdx, pointAt);
-  state.nextSlip = Math.max(state.nextSlip!, road[i].s + 700);
+  state.nextSlip = Math.max(state.nextSlip!, road[bridgeIdx + LEAD_POINTS].s + 700);
 }
 /**
  * Whether an off-slip is due here: 60 m of straight before and 150 m after, side road not running.
@@ -500,12 +530,20 @@ function buildServices(level: HwLevel, i: number, dist: number, pointAt: (i: num
  * @param dist road distance, m
  * @param back m before it that must be open (an exit's signs)
  * @param ahead m after it (a long slip's bend, the services' side road and yard)
+ * @param sides the road's sides it reaches (-1 the left: a slip; both: a bridge's approaches)
  * @returns true when an extra can be built here
  */
-function isOpenGround(state: HwState, dist: number, back = OPEN_BACK_M, ahead = OPEN_AHEAD_M) {
+function isOpenGround(state: HwState, dist: number, back = OPEN_BACK_M, ahead = OPEN_AHEAD_M,
+  sides: number[] = [-1]) {
   if (!state.desert) return true;
   const last = dist + ahead;
   for (let along = Math.max(0, dist - back); along <= last; along += OPEN_STEP_M) {
+    // (?roadparity=1: only a gorge on its side keeps it off - the rock walls open where it passes,
+    // canyon.ts)
+    if (FIX.roadparity) {
+      if (sides.some((side) => gorgeAt(along, side, state.seed))) return false;
+      continue;
+    }
     const kind = stretchAt(along, state.seed).kind;
     if (kind !== 'desert' && kind !== 'dunes') return false;
   }
@@ -520,7 +558,7 @@ function isOpenGround(state: HwState, dist: number, back = OPEN_BACK_M, ahead = 
  * @returns true when the bridge should be built
  */
 function bridgeDue(state: HwState, road: HwPoint[], i: number, dist: number) {
-  return isOpenGround(state, dist, BRIDGE_OPEN_M, BRIDGE_OPEN_M) && (
+  return isOpenGround(state, dist, BRIDGE_OPEN_M, BRIDGE_OPEN_M, [-1, 1]) && (
     dist >= state.nextBridge! && !state.side && i < road.length - 20
     && straightAt(road, i, 12, 12, state.desert ? DESERT_BRIDGE_RADIUS_M : undefined)
   );
@@ -564,8 +602,7 @@ export function extras(level: HwLevel, i: number, dist: number, pointAt: (i: num
   // beside the motorway.
   // (a few of the bridges a junction - laid back over the road just dressed, its
   // on-slip joining here: the road ahead is not built yet)
-  if (bridgeDue(state, road, i, dist) && tryJunction(level, i, dist, pointAt,
-    mark)) return;
+  if (bridgeDue(state, road, i, dist) && tryJunction(level, i, pointAt, mark)) return;
   if (bridgeDue(state, road, i, dist)) {
     buildBridge(level, i, dist, pointAt, mark);
     return;

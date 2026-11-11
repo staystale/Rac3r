@@ -44,6 +44,7 @@ export interface HwPoint {
   x: number; y: number; s: number; curv: number;
   sideOff?: number;   // the secret side road runs this far off it here
   gapL?: number;   // 1 where the side road opens the left verge (the guard lets you through)
+  gapR?: number;   // 1 where a bridge's approach opens the right (Deaf Valley's rock, roadparity)
   sideOut?: number;   // m a services' yard reaches past the side road's far edge
 }
 
