@@ -15,7 +15,6 @@ import { bayOut } from './laybys.ts';
 import { keepOut } from './cuts.ts';
 import { stretchAt, stationSideOf } from './desertplan.ts';
 import { SURFACES } from '../world/surfaces.ts';
-import { FIX } from '../core/fixes.ts';
 import { gorgeAt, rimOf, layGround, roomAt } from './gorge.ts';
 import type { Level, Patch, Point, Prop, Surface, Zone } from '../world/types.ts';
 import { blendPatch, tri, BLEND_W } from '../world/blend.ts';
@@ -266,13 +265,13 @@ function desertProps(ctx: DressCtx, i: number, side: number, from: number) {
   if (rand() < 0.05) place(ctx, i, side * (from + rand() * 40), { kind: 'rock',
     s: 1.5 + rand() * 2.5, pal: 'red', seed });
   if (i % 6 === 0 && rand() < 0.1) formation(ctx, i, side, from, seed);
-  // (?desertmore=1: cactus patches, and singles spread further out)
-  if (FIX.desertmore) moreCactus(ctx, i, side, from);
+  // (cactus patches, and singles spread further out)
+  moreCactus(ctx, i, side, from);
   junk(ctx, i, side, from, seed);
 }
 
 /**
- * More of the desert's cactus (?desertmore=1; owner 11-10: "cactus should be in patches too and
+ * More of the desert's cactus (owner 11-10: "cactus should be in patches too and
  * more single ones spread out"): now and then a PATCH - PATCH_MIN..PATCH_MAX saguaros and barrel
  * cacti round a spot - and a single saguaro further out.
  * @param ctx the dress context
@@ -302,8 +301,8 @@ function moreCactus(ctx: DressCtx, i: number, side: number, from: number) {
  * @param seed its look's seed
  */
 function junk(ctx: DressCtx, i: number, side: number, from: number, seed: number) {
-  const { rand, pointAt } = ctx, more = FIX.desertmore ? litterOf(ctx) : 1;
-  // (?desertmore=1: the wrecks and skulls by the LITTER slider too)
+  const { rand, pointAt } = ctx, more = litterOf(ctx);
+  // (the wrecks and skulls by the LITTER slider too)
   if (i % 10 === 0 && rand() < 0.08 * more) place(ctx, i, side * (from + 4 + rand() * 35),
     { kind: 'wreck', rot: pointAt(i, 0).rot + (rand() - 0.5) * 2.4, flip: rand() < 0.25, seed });
   if (rand() < 0.012 * more) skull(ctx, i, side * (from + 1 + rand() * 12), rand() * Math.PI * 2);
@@ -322,7 +321,7 @@ function skull(ctx: DressCtx, i: number, off: number, rot: number) {
   addLoose(ctx, i, off, { kind: 'skull', rot }, 2);
 }
 
-// (?desertmore=1) the share of its old reach out from the road the desert's junk keeps
+// the share of its first reach out from the road (moreJunk's numbers) the desert's junk keeps
 const NEAR_SHARE = 0.6;
 /**
  * The setup's LITTER slider on a highway level (0 none .. 3 a scrapyard; 1 as tested).
@@ -332,19 +331,18 @@ const NEAR_SHARE = 0.6;
 const litterOf = (ctx: DressCtx): number => (ctx.level as { litter?: number }).litter ?? 1;
 
 /**
- * A cactus's chance, by the LITTER slider too with ?desertmore=1 (owner 11-10: "The slider should
+ * A cactus's chance, by the LITTER slider too (owner 11-10: "The slider should
  * affect the amount of junk cactus / cow skulls and barrels and stuff"): OFF none, 3x three times.
  * @param ctx the dress context
  * @param prob its chance at 1x
  * @returns the chance
  */
-const cactusOdds = (ctx: DressCtx, prob: number): number => (FIX.desertmore
-  ? Math.min(0.95, prob * litterOf(ctx)) : prob);
-// (?desertmore=1) a cactus patch's chance at a road point (each side, every other point), its
+const cactusOdds = (ctx: DressCtx, prob: number): number => Math.min(0.95, prob * litterOf(ctx));
+// a cactus patch's chance at a road point (each side, every other point), its
 // plants, its reach either way, m; a far single saguaro's chance
 const PATCH_CHANCE = 0.018, PATCH_MIN = 4, PATCH_MAX = 9, PATCH_R = 5, FAR_CHANCE = 0.12;
 
-// (?desertmore=1) a barrel cactus's chance at a canyon wall's foot, each side, every other point
+// a barrel cactus's chance at a canyon wall's foot, each side, every other point
 const FOOT_CHANCE = 0.25;
 
 // the desert's breeze: across the road one way or the other, BREEZE_M of road at
@@ -377,19 +375,15 @@ function addLoose(ctx: DressCtx, i: number, off: number, obj: Omit<LevelObj, 'x'
   const spot = Math.max(0, Math.min(ctx.road.length - 1, i)), pos: HwPose = ctx.pointAt(spot, off);
   if (ctx.loose && ctx.clear(pos.x, pos.y, room))
     ctx.loose.push({ ...obj, x: pos.x, y: pos.y, _s: ctx.road[spot].s,
-      ...(FIX.desertmore && (obj.kind === 'tyre' || obj.kind === 'tyrestack') ? { bare: true }
-        : {}) } as LevelObj);
+      ...(obj.kind === 'tyre' || obj.kind === 'tyrestack' ? { bare: true } : {}) } as LevelObj);
 }
 
-// (?desertmore=1) the desert's junk heaps without the crates - the countryside's (owner 11-10:
-// "Cow skulls cactus and barrels burnt out cars should only be for Death Valley ... tyres no wheel
-// inside")
-const DUMP = (): string[] => (FIX.desertmore ? ['barrel'] : ['crate', 'barrel', 'barrel']);
-const SHACK_JUNK = (): string[] => (FIX.desertmore ? ['barrel', 'tyre'] : ['barrel', 'tyre',
-  'crate']);
+// the desert's junk heaps without the crates - the countryside's (owner 11-10: "Cow skulls cactus
+// and barrels burnt out cars should only be for Death Valley ... tyres no wheel inside")
+const DUMP = ['barrel'], SHACK_JUNK = ['barrel', 'tyre'];
 
 /**
- * A heap of junk round a spot: crates and oil drums, old tyres.
+ * A heap of junk round a spot: oil drums, old tyres.
  * @param ctx the dress context
  * @param i road point
  * @param off m off the centre line (signed)
@@ -408,7 +402,7 @@ function heap(ctx: DressCtx, i: number, off: number, count: number, kinds: strin
 
 /**
  * The rest of the desert's junk (passed 11-10; owner 11-09: "Burned-out cars, Crates and oil
- * drums, Tumbleweed, Old tyres and a shack"): a dump of crates and oil drums, old tyres lying or in
+ * drums, Tumbleweed, Old tyres and a shack"): a dump of oil drums, old tyres lying or in
  * a pile, now and then a tin shack with junk round it, and tumbleweed - mostly on the side the
  * breeze comes from, snagged until a car comes (cones/coneStep.ts blowTumbleweed).
  * @param ctx the dress context
@@ -419,11 +413,10 @@ function heap(ctx: DressCtx, i: number, off: number, count: number, kinds: strin
  */
 function moreJunk(ctx: DressCtx, i: number, side: number, from: number, seed: number) {
   const { rand, pointAt } = ctx;
-  // (?desertmore=1: the setup's LITTER slider as every endless road's - highway/litter.ts - and
-  // nearer the road)
-  const more = FIX.desertmore ? litterOf(ctx) : 1, near = FIX.desertmore ? NEAR_SHARE : 1;
+  // (the setup's LITTER slider as every endless road's - highway/litter.ts - and nearer the road)
+  const more = litterOf(ctx), near = NEAR_SHARE;
   if (rand() < 0.002 * more) heap(ctx, i, side * (from + 3 + rand() * 30 * near), 2
-    + Math.floor(rand() * 4), DUMP());
+    + Math.floor(rand() * 4), DUMP);
   if (rand() < 0.003 * more) heap(ctx, i, side * (from + 1 + rand() * 20 * near), 1
     + Math.floor(rand() * 3), ['tyre']);
   if (rand() < 0.0012 * more) {
@@ -435,7 +428,7 @@ function moreJunk(ctx: DressCtx, i: number, side: number, from: number, seed: nu
     const off = side * (from + 14 + rand() * 30 * near);
     place(ctx, i, off, { kind: 'shack', rot: pointAt(i, 0).rot + (rand() - 0.5) * 0.5, s: 5,
       seed });
-    heap(ctx, i + 2, off - side * 4, 2 + Math.floor(rand() * 3), SHACK_JUNK());
+    heap(ctx, i + 2, off - side * 4, 2 + Math.floor(rand() * 3), SHACK_JUNK);
   }
   // (owner 11-10, "I jsut didn't see them": MEASURED, tools/scratch/_junkseen.mjs, 0.9-1.5 skulls
   // and 0.9-1.5 tumbleweed on screen a km, 2-6 m off its edge - three times the tumbleweed, nearer
@@ -477,9 +470,9 @@ function dunesProps(ctx: DressCtx, i: number, side: number, from: number) {
   // (11-09, "in the sand dunes": three times the barrel cacti, saguaros too)
   if (rand() < cactusOdds(ctx, 0.12)) cactus(ctx, i, side * (from + rand() * 30), false);
   if (rand() < cactusOdds(ctx, 0.06)) cactus(ctx, i, side * (from + 4 + rand() * 30), true);
-  // (?desertmore=1: the open desert's patches and far singles too - MEASURED, _desertmix.mjs:
-  // junk outnumbered the cacti there)
-  if (FIX.desertmore) moreCactus(ctx, i, side, from);
+  // (the open desert's patches and far singles too - MEASURED, _desertmix.mjs: junk outnumbered
+  // the cacti there)
+  moreCactus(ctx, i, side, from);
   if (i % 4 === 0) junk(ctx, i, side, from, seed);
 }
 
@@ -607,9 +600,9 @@ function sideProps(ctx: DressCtx, i: number, side: number, kind: string) {
   else if (cut) { if (i % 4 === 0) desertProps(ctx, i, side, halfWidth + rimOf(cut) + 3); }
   else if (gap !== null) {
     rimProps(ctx, i, side, gap);
-    // (?desertmore=1: a barrel cactus now and then at the wall's foot - the canyon floor had
-    // fewer cacti than junk)
-    if (FIX.desertmore && ctx.rand() < cactusOdds(ctx, FOOT_CHANCE))
+    // (a barrel cactus now and then at the wall's foot - the canyon floor had fewer cacti than
+    // junk)
+    if (ctx.rand() < cactusOdds(ctx, FOOT_CHANCE))
       cactus(ctx, i, side * (ctx.halfWidth + gap * (0.5 + ctx.rand() * 0.4)), false);
     // (tumbleweed down the canyons too, from the foot of the wall)
     tumbleweed(ctx, i, side, side * (ctx.halfWidth + gap * 0.6), [0.04, 0]);

@@ -37,7 +37,6 @@ import { syncCovers, SIDE_W_HALF } from "./highway/cuts.ts";
 import { dress } from "./highway/dress.ts";
 import { desertGround, REACH, resetStreamed, pruneStreamed } from "./highway/gorge.ts";
 import type { HwState, HwLevel, HwCar, HwCfg, HwPoint } from './highway/hwtypes.ts';
-import { FIX } from './core/fixes.ts';
 import { syncBridgeways } from './highway/bridgeways.ts';
 import type { RoadLoc } from './highway/road.ts';
 import type { Level } from './world/types.ts';
@@ -88,15 +87,15 @@ function rebuild(level: HwLevel) {
   const propSolids = solidsFromProps(level.props);
   level.solids.length = 0;
   level.solids.push(...propSolids);
-  // (?drivebridges=1) the road bridges' crossings, in step with the props loaded
-  if (FIX.drivebridges) syncBridgeways(level);
+  // the road bridges' crossings, in step with the props loaded
+  syncBridgeways(level);
 }
 // first window (also RESTART: the same seed builds the same motorway, so cached ground tiles stay
 // right)
 export function resetHighway(level: HwLevel) {
   const rand = rng(level.seed);
-  // (?drivebridges=1: a fresh road's bridges take fresh slots - highway/bridgeways.ts)
-  if (FIX.drivebridges) level.crossings = [];
+  // (a fresh road's bridges take fresh slots - highway/bridgeways.ts)
+  level.crossings = [];
   level._hw = {
     seed: level.seed,
     rnd: rand,
@@ -269,23 +268,22 @@ export function speedCamera(level: HwLevel, car: HwCar) {
  * @returns whether the car must be reset for going the wrong way
  */
 function checkWrongWay(state: HwState, loc: RoadLoc, car: HwCar, dt: number) {
-  // (a car over a bridge goes across the road, not back along it: ?drivebridges=1)
+  // (a car over a bridge goes across the road, not back along it)
   const vAlong = (car.crossing ?? -1) >= 0 ? 0 : car.vx * loc.dx + car.vy * loc.dy;
   state.backT = vAlong < -BACK_V ? state.backT + dt : 0;
   return state.backT > BACK_T || loc.s < state.best - BACK_M;
 }
 
 /**
- * Whether a spot left of the road is on the secret side road (?hwstations=1: or a services' yard
- * past its far edge).
+ * Whether a spot left of the road is on the secret side road (or a services' yard past its far
+ * edge).
  * @param point the road point there
  * @param left m to the left of the road's line
  * @returns on it
  */
 function onSideRoad(point: HwPoint, left: number): boolean {
   const across = left - (point.sideOff || 0);
-  return across > -(SIDE_W_HALF + 1) && across < SIDE_W_HALF + 1 + (FIX.hwstations
-    ? point.sideOut || 0 : 0);
+  return across > -(SIDE_W_HALF + 1) && across < SIDE_W_HALF + 1 + (point.sideOut || 0);
 }
 
 /**
@@ -301,10 +299,10 @@ function measureOffRoad(level: HwLevel, state: HwState, loc: RoadLoc, car: HwCar
   // the far-out reset ends it, as "EXIT TAKEN" (requirement: slip roads you can take)
   const pointHere = state.pts[loc.i],
     side = pointHere && pointHere.sideOff && loc.off < 0 && onSideRoad(pointHere, -loc.off);
-  // (?hwstations=1: a lay-by's tarmac too - a station's forecourt)
-  const out = side ? 0 : Math.abs(loc.off) - state.geo.hw - (FIX.hwstations ? bayOut(level, loc.s,
-    loc.off < 0 ? -1 : 1) : 0);
-  // (a bridge's deck as a lane: ?drivebridges=1 - world/crossings.ts)
+  // (a lay-by's tarmac too - a station's forecourt)
+  const out = side ? 0 : Math.abs(loc.off) - state.geo.hw - bayOut(level, loc.s,
+    loc.off < 0 ? -1 : 1);
+  // (a bridge's deck as a lane - world/crossings.ts)
   const onLane = out > OFF_SOFT && ((car.crossing ?? -1) >= 0
     || zoneSurfaceAt(car.x, car.y).id === 'tarmac');
   return { out, onLane };

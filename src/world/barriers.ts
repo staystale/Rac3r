@@ -324,7 +324,7 @@ function addFormationSolids(out: Solid[], prop: Prop): boolean {
     for (const [x, y, wid, len] of [GAS_SHOP, ...GAS_PUMPS]) pushPropBox(out, prop, x, y, wid, len);
   else if (prop.kind === 'canopy')
     for (const [x, y] of GAS_POSTS) pushPropBox(out, prop, x, y, 0.4, 0.4);
-  // (?hwstations=1: a motorway services hall - highway/stations.ts)
+  // (a motorway services hall - highway/stations.ts)
   else if (prop.kind === 'services') pushPropBox(out, prop, ...SERVICES_HALL);
   else return false;
   return true;

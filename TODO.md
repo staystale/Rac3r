@@ -74,7 +74,7 @@ CARS: talk to the owner once the tracks are done (trucks, a Dakar car / truck).
 
 ROUND 1, QUICK FIXES (each behind its own switch, one test link) - BUILT 11-10; owner "1-7 pass"
 (11-10): 1-5 the default (switches deleted); 6 passed on the old version - its fix, 6b and 6c
-under one more look:
+under one more look (PASSED 11-11, the default):
 1. Goodwoody renamed BAD WOOD ("Rename goodwoody to bad wood"). ?badwood=1 (the id stays).
 2. The HUD on by itself where the difficulty allows it ("Hud should be on automatically if it can
    be on for that difficulty level"). ?hudon=1: the minimap, progress bar, track temperature
@@ -104,6 +104,7 @@ under one more look:
    one pulling away out of sight past 400 m is put back where you will meet it; a quicker driver
    keeps its speed through lane changes. At ~74 km/h on the motorway 16 came past in 120 s. A
    single carriageway's traffic still queues behind you (it does not use the other lane).
+   PASSED 11-11 (owner: "Ok pass"): the default, switch deleted.
    6b. SPEEDERS (owner 11-10: "can we make a small % of the traffic speed and get in the way ect",
    "They can jsut adopt the racing ai I guess"): BUILT 11-10 behind ?speeders=1 (ai/
    trafficSpeeder.ts): 1 in 15 of your way's cars, the racing AI at its wheel near a real car, held
@@ -111,11 +112,13 @@ under one more look:
    side, tailgating. Owner: "speeders can crash ... check they do dodge too" - on the motorway the
    ones seen passed clean; on the twisty two-way road the two seen both crashed (the road's own
    wrecks the same with or without them: 5 / 4 / 6 in 120 s).
+   PASSED 11-11 (owner: "Ok pass"): the default, switch deleted.
    6c. BREAKDOWNS ("pull into hard shoulders if they have an issue ect haha"): BUILT 11-10 behind
    ?breakdowns=1 (ai/trafficBreak.ts): a nearside car now and then indicates, slows, pulls onto the
    hard shoulder (the verge where a reset would find room, on a road without one) and stops,
    hazards on; 1 in 25 put back ahead already stopped there; it waits for you. Motorway, 6.2 km:
    3 seen (2 pulling over, 1 stopped).
+   PASSED 11-11 (owner: "Ok pass"): the default, switch deleted.
 7. Still traffic goes after a while, and after a bad crash it waits ~10 s then is removed ("so it
    doesn't block roads"). Built behind ?trafficclear=1 (a still wreck gone even in view after
    10 s, any other still car after 15 s) - DROPPED 11-10 before the test (owner: "let's roll back
@@ -134,6 +137,7 @@ ROUND 2, DEAF VALLEY:
    to 150 m), else a lay-by within 150 m; Deaf Valley's lay-bys every 160-260 m (was 250-400).
    30 resets: 26 off the road, 3 half on, 1 in a lay-by; median 4 m back, most 41. Along the high
    road's gorge Armco there is no verge: a lay-by or the lane's edge there.
+   PASSED 11-11 (owner: "Ok pass"): the default, switch deleted.
 10. The junk: "not seeing much road side junk ... never seen a cow skull" (a skull is ~5 CSS px at
     speed: its size?); cactus in patches too, and more single ones spread out.
     BUILT 11-10 behind ?desertmore=1 (owner, on the way: "Junk levels should be controlled by the
@@ -166,6 +170,7 @@ ROUND 2, DEAF VALLEY:
     _rockoverhang.mjs, 5 km): corners past the face, off the rock, by > 0.5 m - twisty and motorway
     many, worst 5.0 m -> none; within 0.15 m for 95 % (was 3.0 m). The plain link (the look is the
     default).
+    PASSED 11-11 (owner: "Ok pass"): the default, switch deleted.
 ROUND 3, THE OTHER HIGHWAYS:
 11. Petrol stations on the other highway levels, reset spots too. BUILT 11-11 behind ?hwstations=1
     (highway/stations.ts, laybys.ts, extras.ts): on the dual carriageway (our side) and the single
@@ -178,6 +183,7 @@ ROUND 3, THE OTHER HIGHWAYS:
     as road. MEASURED (tools/scratch/_stations.mjs): dual 5 stations in 8.9 km, single lane 3 in
     4 km, motorway services at 1.4 / 5.8 / 10.3 km, walled 1.4 / 6.4 / 10.9; nothing standing on a
     lot; photos driving and still (STILL=1).
+    PASSED 11-11 (owner: "Ok pass"): the default, switch deleted.
 12. Lamps on the central reservation. Owner 11-10: services with their own slip road on the
     motorways "yeah", the names "perfect" (SHALL, SMELL, ESS-NO, GULP, TAXACO; WELCOME BRAKE,
     ROADTHIEF, EXTORTION), the reservation's lamps "Instead" of the verge ones. BUILT 11-10 behind
@@ -185,6 +191,7 @@ ROUND 3, THE OTHER HIGHWAYS:
     with a central reservation a twin-arm column every 68 m in its middle (on the barrier where
     there is one), an arm and head over each carriageway - each side a pool every 68 m as before,
     half the posts; the verges dark. Motorway: 27 lamps loaded, all twin; photos day and night.
+    PASSED 11-11 (owner: "Ok pass"): the default, switch deleted.
 12b. Deaf Valley's motorways (owner 11-11: "No lamppost of Death Valley motorways exits ?", then
     "it should be built similarly"): they had no lamps, slips, bridges or services (dress.ts dressed
     the theme on its own). BUILT 11-11 behind ?desertroads=1 (highway/dress.ts layDesertExtras,
@@ -207,6 +214,7 @@ ROUND 3, THE OTHER HIGHWAYS:
     there, as the countryside's have them (lamps still only in a reservation). MEASURED
     (_desertroads.mjs, 10 km): twisty 2 exits, 2 road bridges, 3 LAST GASP stations; the first
     stations come at ~2.8 km and the first bridge at 4.5-6.5 km (only on open ground).
+    PASSED 11-11 (owner: "Ok pass"): the default, switch deleted.
 12c. THE HIGHWAY'S BRIDGES AND TUNNELS WORK (owner 11-11: "Those bridges look trash make sure they
     work too like all bridges and tunnels should"; chose: exits lead up to them, real traffic over
     them, rail bridges drivable, road tunnels too), in rounds:
@@ -222,12 +230,14 @@ ROUND 3, THE OTHER HIGHWAYS:
        twisty, countryside twisty - on / off both ways, the walls hold, none on from the side, a
        car beneath stays on the ground: all OK; Brands' 3 still OK. In the game (_bridgeshot.mjs):
        up the ramp, over, off the far end at 108 km/h; photos day, both sizes, both sceneries.
+       PASSED 11-11 (owner: "Ok pass"): the default, switch deleted.
     LIGHTS ON A DECK (owner 11-11, photos of a car on a bridge at night - its beam cut off at the
        deck's edge, no glow): the night layer put the dark back over every deck after EVERY car's
        light, the car on it too. Now the ground's cars' first, the dark over the decks, then the
        decks' cars' beams and glows (render/light.ts paintUnderDecks, isOnLevel). The plain game
        (a fix). Photographed (tools/scratch/_decknight.mjs, Brands, night 0.9): before the beam from
        the deck's edge and no tail glow; now from the lamps, the tail red; a car beneath still dark.
+       PASSED 11-11 (owner: "Ok pass"): its test entry deleted.
     DEAF VALLEY'S BRIDGES TOO RARE (owner 11-11: "Didn't see a single bridge on Death Valley dual
        carriage way after 5km"): a bridge waited for the exits' 660 m of open ground and the
        countryside's 900 m bend radius. Now 60 m of open ground either side and a 500 m radius
@@ -235,6 +245,7 @@ ROUND 3, THE OTHER HIGHWAYS:
        _hwextras.mjs, every road, 2 seeds, 10 km): Deaf Valley first bridge 4.6-9.3 km (twice none)
        -> 1.4-3.9, 0-4 -> 4-6 a road, the longest gap 3.9 km; the countryside unchanged (1.0-3.6,
        4-6); crossingcheck all OK, nothing on a slip.
+       PASSED 11-11 (owner: "Ok pass", with 12b): the default, switch deleted.
     R2 exits lead up to them (a junction); R3 real traffic over them; R4 rail bridges drivable, the
        train can hit you; R5 road tunnels under the motorway.
 ROUND 4, POLICE ON THE HIGHWAYS (a design to agree first): waiting in lay-bys and petrol stations,
@@ -628,6 +639,7 @@ ROUND 5, LOADING AND SPEED:
    ... give them both a bit more space"): the pit tunnel's way in 4 m further out, its way out 2 m -
    the Armco 2.2 m off the way in (was 0.5 into it), 3.4 m off its road (0.3); the pit lane driven
    end to end at 30 km/h, crossingcheck / barriercheck / propcheck all OK.
+   BATHWORST PASSED 11-11 (owner: "Ok pass"): the default, switch deleted.
    BATHWORST BUILT 11-10 behind ?bathurst=1 (the name approved 11-10; levels/bathurst-venue.ts, OSM
    data in venues/bathurst.ts; the venue helper): the Mount Panorama Circuit as a FULL venue, 3107
    m (real 6213, OSM 6204) - a public road raced ("roadRace", as Le Manky's): Pit Straight, Hell

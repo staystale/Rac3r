@@ -76,7 +76,7 @@ export interface Cone {
   idx?: number;
   field?: number;   // highway/fields.ts: a field's animals go when the field is cleared
   wind?: [number, number];   // a tumbleweed's breeze, m/s (highway/canyon.ts)
-  bare?: boolean;   // (?desertmore=1) a tyre with no wheel in it, Deaf Valley's (litter.ts)
+  bare?: boolean;   // a tyre with no wheel in it, Deaf Valley's (litter.ts)
   lead?: number;   // and the s that breeze takes it to the road's middle
 }
 
@@ -156,7 +156,7 @@ export interface Prop {
   label?: string;
   col?: string;
   flip?: boolean;   // highway/canyon.ts: a wreck on its roof
-  twin?: boolean;   // a street light with two arms, the second the other way (?medianlamps=1)
+  twin?: boolean;   // a street light with two arms, the second the other way
   s?: number;
   seed?: number;
   brand?: string;

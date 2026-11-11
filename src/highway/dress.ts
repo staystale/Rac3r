@@ -1,6 +1,5 @@
 // highway dress: the per-window dressing (trees, gantries, armco, walls, litter) and the
 // NOX / NOF node-tool switches. Split out of highway.ts.
-import { FIX } from "../core/fixes.ts";
 import { layLaybys, bayOut } from "./laybys.ts";
 import { envValue } from "../core/debug.ts";
 import { STEP, SIGNS } from "./presets.ts";
@@ -308,7 +307,7 @@ function layWalls(ctx: DressCtx) {
 }
 
 /**
- * (?desertroads=1) Deaf Valley's motorway extras for the dress window: the side road's offsets,
+ * Deaf Valley's motorway extras for the dress window: the side road's offsets,
  * then the slips, bridges and services where the ground is open (highway/extras.ts).
  * @param ctx the dress context
  */
@@ -342,16 +341,15 @@ export function dress(level: HwLevel, firstIdx: number, endIdx: number, loose: L
   layLaybys(ctx);
   // a themed road dresses its own way (Deaf Valley: highway/canyon.ts)
   if (level._cfg.theme === 'canyon') {
-    // (?desertroads=1: every road there gets the other roads' slips, bridges and services first,
-    // as those roads have them - the scenery below keeps off them)
-    if (FIX.desertroads) layDesertExtras(ctx);
+    // (every road there gets the other roads' slips, bridges and services first, as those roads
+    // have them - the scenery below keeps off them)
+    layDesertExtras(ctx);
     dressCanyon(ctx);
     // (the reservation's columns only - a verge post would stand in a canyon wall: a road with a
     // central reservation)
-    if (FIX.desertroads && FIX.medianlamps && level._cfg.oncoming === 'carriageway')
-      layRoadLamps(ctx);
-    // (?desertmore=1: the shared litter, its slider and its amount - in the desert's kinds)
-    if (FIX.desertmore) layLooseRoadside(ctx);
+    if (level._cfg.oncoming === 'carriageway') layRoadLamps(ctx);
+    // (the shared litter, its slider and its amount - in the desert's kinds)
+    layLooseRoadside(ctx);
     // (any road there - a twin carriageway's central reservation, the walled road's walls)
     layWalls(ctx);
     layMedian(ctx);

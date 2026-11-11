@@ -36,7 +36,7 @@ export interface Lamp {
   headY: number;
   rot: number;      // the arm's direction (a pylon: the way it faces), radians
   armM: number;     // how far out the light hangs: a street light's arm (a pylon: 0), m
-  twin: boolean;    // (?medianlamps=1) a second arm the other way, its head at twinX, twinY
+  twin: boolean;    // a second arm the other way, its head at twinX, twinY
   twinX: number;
   twinY: number;
   poolM: number;    // the pool's radius, m
@@ -88,8 +88,7 @@ export function placeHead(lamp: Lamp): void {
 }
 
 /**
- * Where a lamp's light hangs: its head, and a twin-arm street light's second head
- * (?medianlamps=1).
+ * Where a lamp's light hangs: its head, and a twin-arm street light's second head.
  * @param lamp the lamp
  * @returns the heads, m
  */

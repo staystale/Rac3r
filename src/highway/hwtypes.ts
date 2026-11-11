@@ -44,7 +44,7 @@ export interface HwPoint {
   x: number; y: number; s: number; curv: number;
   sideOff?: number;   // the secret side road runs this far off it here
   gapL?: number;   // 1 where the side road opens the left verge (the guard lets you through)
-  sideOut?: number;   // (?hwstations=1) m a services' yard reaches past the side road's far edge
+  sideOut?: number;   // m a services' yard reaches past the side road's far edge
 }
 
 /** A road element still to be laid: its length, curvature, the ramp in and out, the hold. */
@@ -72,7 +72,7 @@ export interface SideRoad {
   s0: number; run: number;   // where it leaves the road; how long it runs beside it
   pts: Point[]; mpts: Point[];   // this piece's centre line; the part off the motorway's tarmac
   sPiece: number;   // the road distance this piece is dropped behind with
-  // (?hwstations=1) a services on its run (highway/stations.ts): lays its yard when due, and
+  // a services on its run (highway/stations.ts): lays its yard when due, and
   // gives the m its yard reaches past the side road's far edge at a point
   extra?: (i: number, along: number, off: number, pointAt: (i: number, off: number) => HwPose)
     => number;
@@ -81,9 +81,9 @@ export interface SideRoad {
 /** The state the highway keeps on its level (highway.ts rebuild). */
 export interface HwState {
   seed: number;
-  /** (?desertroads=1) Deaf Valley's extras: only on open ground, no rivers or side roads */
+  /** Deaf Valley's extras: only on open ground, no rivers or side roads */
   desert?: boolean;
-  /** (?drivebridges=1) the drivable bridge in each LEVEL.crossings slot (highway/bridgeways.ts) */
+  /** the drivable bridge in each LEVEL.crossings slot (highway/bridgeways.ts) */
   wayOwners?: (Prop | null)[];
   rnd: () => number; grnd: () => number; lrnd: () => number; xrnd: () => number;
   frnd: () => number;   // the random streams: dressing, road shape, loose, extras, fields
@@ -103,7 +103,7 @@ export interface HwState {
   covers: Cover[]; coversDirty: boolean;   // the rivers' water (synced into level.covers)
   side: SideRoad | null;   // the secret side road being built
   nextSlip?: number; nextBridge?: number;   // the road distance of the next slip / bridge
-  nextServices?: number; servicesN?: number;   // (?hwstations=1) the next services, how many so far
+  nextServices?: number; servicesN?: number;   // the next services, how many so far
   gantryDue?: boolean; villageNext?: number;
   looseCut?: number | null; looseNew?: LevelObj[];   // the loose objects dropped / added
   tookExit?: boolean;   // the player left by a slip

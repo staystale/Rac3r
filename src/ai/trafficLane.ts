@@ -66,8 +66,8 @@ function slowIn(slot: TrafficCar, env: DriveEnv, laneNo: number) {
 }
 
 /**
- * Blocked by a slower car: overtake on the right, else rarely on the left (?speeders=1: a speeder
- * either side).
+ * Blocked by a slower car: overtake on the right, else rarely on the left (a speeder either
+ * side).
  */
 function overtakeLane(ctx: TrafficCtx, slot: TrafficCar, env: DriveEnv) {
   if (laneClear(slot, env, slot.lane + 1)) return slot.lane + 1;

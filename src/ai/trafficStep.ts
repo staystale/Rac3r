@@ -1,6 +1,5 @@
 // ai/trafficStep.ts: one physics step of the highway traffic: everyone in road coordinates,
 // recycling the cars that are out of view, the physics / kinematic choice, and driving each car.
-import { FIX } from "../core/fixes.ts";
 import { roadFrame, roadSpan } from "../highway.ts";
 import { rolling } from "../roll.ts";
 import type { AiCar, TrafficCar, TrafficEnt } from "./types.ts";
@@ -66,7 +65,7 @@ function collectEnts(ctx: TrafficCtx, args: StepArgs) {
  */
 function leaving(slot: TrafficCar, relS: number, seen: boolean,
   span: { s0: number; s1: number }, youV: number) {
-  // (?breakdowns=1: one stopped at the roadside ahead waits there for you)
+  // (one stopped at the roadside ahead waits there for you)
   const waits = !!slot.broke && relS > 0;
   return {
     away: !seen && ((relS < -RECYCLE_BEHIND && !catchingUp(slot, youV)) || relS > RECYCLE_AHEAD
@@ -75,12 +74,12 @@ function leaving(slot: TrafficCar, relS: number, seen: boolean,
   };
 }
 
-// (?trafficeven=1, ?speeders=1) m/s faster than you a car of your way behind you must be going to
+// m/s faster than you a car of your way behind you must be going to
 // count as catching you up
 const CATCH_MS = 1;
 
 /**
- * (?trafficeven=1, ?speeders=1) Whether a car of your way behind you is catching you up - kept,
+ * Whether a car of your way behind you is catching you up - kept,
  * out of sight, until it comes past (MEASURED, tools/scratch/_trafficsides.mjs, you held at 90
  * km/h for 90 s: with every one out of sight behind put back at once, the faster drivers put back
  * behind went again the next step - 0 cars overtook you on a two-way road, 1 on the motorway).
@@ -88,15 +87,15 @@ const CATCH_MS = 1;
  * @param youV your speed along the road, m/s
  * @returns catching you up
  */
-const catchingUp = (slot: TrafficCar, youV: number) => (FIX.trafficeven || FIX.speeders)
-  && dirOf(slot) > 0 && slot.vAl > youV + CATCH_MS;
+const catchingUp = (slot: TrafficCar, youV: number) => dirOf(slot) > 0
+  && slot.vAl > youV + CATCH_MS;
 
-// (?trafficeven=1, ?speeders=1) m ahead of you past which a car of your way pulling away (out of
+// m ahead of you past which a car of your way pulling away (out of
 // sight) is put back: past where one is put back ahead (ai/trafficSpawn.ts OWN_AHEAD, to 300 m)
 const PULL_AWAY_M = 400;
 
 /**
- * (?trafficeven=1, ?speeders=1) Whether a car of your way is out ahead past PULL_AWAY_M pulling
+ * Whether a car of your way is out ahead past PULL_AWAY_M pulling
  * away from you - you will not see it again, so it is put back where you will (MEASURED, tools/
  * scratch/_trafficsides.mjs, you at ~100 km/h on the motorway for 120 s: kept until 520 m ahead,
  * the quicker drivers that came past were rarely dealt again - 2 of 11 at the end, 1 came past).
@@ -105,34 +104,30 @@ const PULL_AWAY_M = 400;
  * @param youV your speed along the road, m/s
  * @returns pulling away
  */
-const pullingAway = (slot: TrafficCar, relS: number, youV: number) => (FIX.trafficeven
-  || FIX.speeders) && dirOf(slot) > 0 && relS > PULL_AWAY_M && slot.vAl > youV + CATCH_MS;
+const pullingAway = (slot: TrafficCar, relS: number, youV: number) => dirOf(slot) > 0
+  && relS > PULL_AWAY_M && slot.vAl > youV + CATCH_MS;
 
-// (?trafficeven=1, ?speeders=1) m/s faster than you a car put back behind you goes at the least
+// m/s faster than you a car put back behind you goes at the least
 // (it comes past)
 const PASS_MS = 3;
 
 /**
- * Where a recycled car comes back: the other way's always ahead; yours from behind if it had
- * pulled away ahead, else ahead - or (?trafficeven=1, ?speeders=1) dealt its driver (ai/
+ * Where a recycled car comes back: the other way's always ahead; yours dealt its driver (ai/
  * trafficKinds.ts), from behind when it is faster than you, else ahead.
  * @param ctx the traffic
  * @param dir its way (+1 yours)
- * @param relS its road distance from you, m
  * @param youV your speed along the road, m/s
  * @returns ahead / behind, and its driver
  */
-function putBack(ctx: TrafficCtx, dir: number, relS: number, youV: number) {
-  if (dir > 0 && (FIX.trafficeven || FIX.speeders)) {
-    const kind = dealKind(ctx, dir);
-    return { from: kindSpeed(kind) > youV + CATCH_MS ? 'behind' : 'ahead', kind };
-  }
-  return { from: relS > 0 && dir > 0 ? 'behind' : 'ahead', kind: 'cruise' as Kind };
+function putBack(ctx: TrafficCtx, dir: number, youV: number) {
+  if (dir < 0) return { from: 'ahead', kind: 'cruise' as Kind };
+  const kind = dealKind(ctx, dir);
+  return { from: kindSpeed(kind) > youV + CATCH_MS ? 'behind' : 'ahead', kind };
 }
 
 /**
- * A car just put back made its driver (ai/trafficKinds.ts), or (?breakdowns=1, cruising, ahead)
- * now and then one stopped at the roadside; its road entry (the last) follows it.
+ * A car just put back made its driver (ai/trafficKinds.ts), or (cruising, ahead) now and then
+ * one stopped at the roadside; its road entry (the last) follows it.
  * @param ctx the traffic
  * @param slot the car
  * @param back how it comes back (putBack)
@@ -142,8 +137,7 @@ function dealPutBack(ctx: TrafficCtx, slot: TrafficCar,
   back: { from: string; kind: Kind }, ents: TrafficEnt[], youV = 0) {
   applyKind(ctx, slot, back.kind);
   // (one put back behind you comes past)
-  if (back.from === 'behind' && dirOf(slot) > 0 && (FIX.trafficeven || FIX.speeders)
-    && slot.vWant < youV + PASS_MS) {
+  if (back.from === 'behind' && dirOf(slot) > 0 && slot.vWant < youV + PASS_MS) {
     slot.vWant = youV + PASS_MS;
     slot.quick = true;
     setSpeed(slot, slot.vWant);
@@ -188,9 +182,9 @@ function recycle(ctx: TrafficCtx, ents: TrafficEnt[], playerS: number, vis: VisF
     if (!away && !forced) continue;
     if (forced && seen) ctx.visHits++;
     drop(slot);
-    // (the other way's traffic always comes from ahead; ?trafficeven=1, ?speeders=1: yours dealt
-    // its driver, from behind when it is faster than you; ?breakdowns=1: one stopped ahead)
-    const back = putBack(ctx, dir, relS, youV);
+    // (the other way's traffic always comes from ahead; yours dealt its driver, from behind when
+    // it is faster than you; now and then one stopped ahead)
+    const back = putBack(ctx, dir, youV);
     const place = spot(ctx, ents, playerS, back.from, vis, dir);
     if (place) {
       join(slot, place, dir);
@@ -246,7 +240,7 @@ function driveEnvs(ctx: TrafficCtx, dt: number, ents: TrafficEnt[]): [DriveEnv, 
 }
 
 /**
- * Your speed along the road (the cars behind catching you up stay - ?trafficeven=1).
+ * Your speed along the road (the cars behind catching you up stay).
  * @param ents everyone on the road
  * @param player your car
  * @returns m/s

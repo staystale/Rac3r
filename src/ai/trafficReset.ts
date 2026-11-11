@@ -23,7 +23,7 @@ function spreadCars(ctx: TrafficCtx, spawn: { s: number; off: number }, want: nu
     if ((mine && dist < spawn.s + 40) || Math.abs(dist - spawn.s) < 14
       || !roomAt(ctx, ents, dist, lane, 26, 26, dir)) continue;
     const slot = fresh(ctx, {} as TrafficCar, dist, lane, cruise(ctx, lane, laneCount), dir);
-    // (?trafficeven=1, ?speeders=1: your way's dealt its driver - ai/trafficKinds.ts)
+    // (your way's dealt its driver - ai/trafficKinds.ts)
     applyKind(ctx, slot, dealKind(ctx, dir));
     ctx.list.push(slot);
     ents.push({ s: dist, off: slot.off });

@@ -245,7 +245,7 @@ export interface RenderCone {
   hy: number;
   tipped?: boolean;
   paint?: string;
-  bare?: boolean;   // (?desertmore=1) a tyre with no wheel in it, Deaf Valley's (litter.ts)
+  bare?: boolean;   // a tyre with no wheel in it, Deaf Valley's (litter.ts)
   num?: string;
   trim?: string;   // a crashed car's part: its trim colour (world/debris.ts)
   // the car it came off and which part (render/carparts.ts cuts it from its sprite)

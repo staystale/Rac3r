@@ -1,15 +1,13 @@
-// highway/vergeback.ts - WHERE A RESET PUTS YOU on a road with no hard shoulder (?vergereset=1;
-// owner 11-10 on Deaf Valley: resets "seem to sometimes set on a road ? Is that intentional or an
-// issue ?", "it seems like there isn't many lay-bys and it's quite hard to make progress", "More
-// reset spaces ... just off the road / half on half off is fine in some areas if there isn't much
-// room"). Was: the last lay-by behind, however far, and with none left in the road's window the
-// shoulder's offset - inside the lane's edge; and back to the same lay-by again and again
-// (MEASURED, tools/scratch/_vergespots.mjs: a reset every 6 s, all 20 to the lay-by 87 m back).
-// Now: a lay-by
+// highway/vergeback.ts - WHERE A RESET PUTS YOU on a road with no hard shoulder (owner 11-10 on
+// Deaf Valley: resets "seem to sometimes set on a road ? Is that intentional or an issue ?", "it
+// seems like there isn't many lay-bys and it's quite hard to make progress", "More reset spaces
+// ... just off the road / half on half off is fine in some areas if there isn't much room"). Was:
+// the last lay-by behind, however far, and with none left in the road's window the shoulder's
+// offset - inside the lane's edge; and back to the same lay-by again and again (MEASURED,
+// tools/scratch/_vergespots.mjs: a reset every 6 s, all 20 to the lay-by 87 m back). Now: a lay-by
 // just behind (BAY_NEAR_M); else the verge where you are - the car clear off the road where the
 // ground has room (no barrier, no rock, no drop), half on / half off where it has not, a
 // VERGE_STEP_M further back each try; else a lay-by within BAY_FAR_M; the road last.
-import { FIX } from '../core/fixes.ts';
 import { roadPose } from '../highway.ts';
 import { bayBehind, laybysOn } from './laybys.ts';
 import { isFarFrom } from '../world/barriers.ts';
@@ -57,7 +55,7 @@ export function vergeRoom(level: HwLevel, dist: number, off: number): boolean {
 }
 
 /**
- * The reset spot on a road with no hard shoulder (?vergereset=1), or null to keep the old rule:
+ * The reset spot on a road with no hard shoulder (null on a road with one, the caller's rule):
  * a lay-by within BAY_NEAR_M behind (one free), else the verge off the road or half on, else a
  * lay-by within BAY_FAR_M.
  * @param level the highway level
@@ -68,7 +66,7 @@ export function vergeRoom(level: HwLevel, dist: number, off: number): boolean {
  */
 export function vergeBack(level: HwLevel, dist: number, floor: number,
   free?: (at: number) => boolean): { s: number; off: number } | null {
-  if (!FIX.vergereset || !laybysOn(level)) return null;
+  if (!laybysOn(level)) return null;
   const near = bayBehind(level, dist, free, Math.max(floor, dist - BAY_NEAR_M));
   if (near) return near;
   const half = level._hw.geo.hw;

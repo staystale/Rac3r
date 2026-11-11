@@ -23,7 +23,7 @@ const DEBRIS_PICK = [
 const DEBRIS_COL = ['#2f5d3a', '#2b56b5', '#c8302c', '#3a3f47', '#d6a21e', '#2f6fb0'];
 /** Adds a loose object tagged with its road distance, and returns it. */
 type AddLoose = (obj: LevelObj, dist: number) => LevelObj;
-// THE DESERT'S LITTER (Deaf Valley with ?desertmore=1; owner 11-10: "Junk levels should be
+// THE DESERT'S LITTER (Deaf Valley's; owner 11-10: "Junk levels should be
 // controlled by the slider in test menu and should be consistent across levels", "Obviously
 // split by asthetic still", then "Cow skulls cactus and barrels burnt out cars should only be for
 // Death Valley themed levels - tyres no wheel inside / And tarps barrels pallets tyres (with wheel

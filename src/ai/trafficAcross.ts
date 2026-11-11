@@ -46,7 +46,7 @@ export function crossLanes(ctx: TrafficCtx, slot: TrafficCar, env: DriveEnv) {
       slot.lane = slot.laneT;
       slot.ind = 0;
       slot.keepLeftT = 0;
-      // (a quicker driver, a speeder keeps its own: ?trafficeven=1, ?speeders=1)
+      // (a quicker driver, a speeder keeps its own)
       if (!slot.quick) slot.vWant = cruise(ctx, slot.lane, env.laneCount);
     }
   }

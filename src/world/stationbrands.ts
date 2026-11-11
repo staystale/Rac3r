@@ -1,5 +1,5 @@
 // world/stationbrands.ts - the PETROL BRANDS of the endless roads' stations and the names of the
-// MOTORWAY SERVICES (?hwstations=1; owner 11-10, the names: "Names are perfect"): each brand's
+// MOTORWAY SERVICES (owner 11-10, the names: "Names are perfect"): each brand's
 // colours - the canopy's band, the pumps, the shop's front - and the services hall's size in its
 // own frame (m; +y away from the road), shared by what is drawn (render/props/desertjunk.ts) and
 // what is solid (world/barriers.ts). Deaf Valley's LAST GASP keeps its own (no brand).

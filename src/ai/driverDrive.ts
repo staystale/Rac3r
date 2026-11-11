@@ -16,7 +16,7 @@ import { SWERVE_RATE } from "./dodge.ts";
 import type { Drv, AiPath } from "./driverCtx.ts";
 
 /**
- * The most a driver drives at (?speeders=1: a speeder's, ai/trafficSpeeder.ts), m/s.
+ * The most a driver drives at (a speeder's, ai/trafficSpeeder.ts), m/s.
  * @param ctx the drive context
  * @returns the cap, or Infinity
  */
@@ -128,7 +128,7 @@ export function drive(drv: Drv, car: AiCar, dt = 1 / 120, ctx: DriveCtx = {}) {
   const others = ctx.cars || [];
   const push = battleStep(drv, car, others);
   // ---- JOKER: decide once per lap ~220 m before the branch; take it at the switch point (and a
-  // speeder's most: ?speeders=1)
+  // speeder's most)
   const jCap = Math.min(jokerStep(drv, car, ctx, path, nearIdx, lap, laps), capOf(ctx));
 
   // ---- MISTAKES (requirement: genuine subtle driving errors that lead to crashes and / or slower

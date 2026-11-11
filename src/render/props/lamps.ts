@@ -68,7 +68,7 @@ function drawStanding(ctx: CanvasRenderingContext2D, lamp: Lamp, ppm: number, li
   ctx.strokeStyle = POLE;
   if (Math.hypot(topX, topY) > 1) stroke(ctx, 0, 0, topX, topY, ARM_WIDE_M * 1.4 * ppm);
   stroke(ctx, topX, topY, topX + armX, topY + armY, ARM_WIDE_M * ppm);
-  // (?medianlamps=1: a twin-arm column's second arm and head, the other way)
+  // (a twin-arm column's second arm and head, the other way)
   if (lamp.twin) {
     stroke(ctx, topX, topY, topX - armX, topY - armY, ARM_WIDE_M * ppm);
     ctx.save();

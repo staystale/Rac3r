@@ -34,7 +34,7 @@ function speedTarget(slot: TrafficCar, lead: TrafficEnt | null, gap: number) {
   if (lead) {
     // (the lead's speed this car's way)
     const leadV = dir * lead.v;
-    // (?speeders=1: a speeder tailgates)
+    // (a speeder tailgates)
     const wantGap = GAP0 + (slot.racer ? SPEEDER_HEADWAY : HEADWAY) * Math.max(0, slot.vAl);
     vTarget = Math.min(vTarget, Math.max(0, leadV + (gap - wantGap) * 0.4));
     if (gap < 2.5) vTarget = 0;
@@ -52,8 +52,7 @@ export function driveOne(ctx: TrafficCtx, slot: TrafficCar, env: DriveEnv) {
   const car = slot.car;
   car._p = { x: car.x, y: car.y, h: car.heading };
   const speed = Math.hypot(car.vx, car.vy);
-  // (?breakdowns=1: a car with an issue pulls over and stops; ?speeders=1: a speeder near a real
-  // car is the racing driver's)
+  // (a car with an issue pulls over and stops; a speeder near a real car is the racing driver's)
   mayBreak(ctx, slot, env);
   if (slot.broke) {
     driveBroken(ctx, slot, env, speed);

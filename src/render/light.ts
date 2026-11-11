@@ -234,7 +234,7 @@ function drawHeadGlows(painter: GlowPainter) {
   for (const lamp of activeLamps()) {
     if (lamp.kind !== 'street' || lamp.down || lamp.shown <= 0) continue;
     painter.ctx.globalAlpha = painter.strength * lamp.shown;
-    // (a twin-arm street light's two heads: ?medianlamps=1)
+    // (a twin-arm street light's two heads)
     for (const [headX, headY] of lampHeads(lamp))
       painter.ctx.drawImage(painter.headGlow, painter.mapX(headX) - size / 2,
         painter.mapY(headY) - size / 2, size, size);

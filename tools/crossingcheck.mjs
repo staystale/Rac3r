@@ -5,13 +5,12 @@
 // be stopped by the walls, never come on), and one is driven along the track under each crossing
 // (it must stay on the ground).
 // CROSSINGS=1 node tools/crossingcheck.mjs <level>        (built 11-08)
-// node tools/crossingcheck.mjs highway [road] [scenery]  - the endless road (?drivebridges=1): the
-//   autopilot drives on until a drivable bridge has loaded, then each loaded one is checked
+// node tools/crossingcheck.mjs highway [road] [scenery]  - the endless road: the autopilot drives
+//   on until a drivable bridge has loaded, then each loaded one is checked
 import { makeCar, step, reset, PHYSICS_STEP_SECONDS } from '../src/vehicle.ts';
 import * as L from '../src/lab.ts';
 import { clampWorld } from '../src/world/crossings.ts';
 import { alongOf, acrossOf } from '../src/world/crossinggeo.ts';
-import { FIX } from '../src/core/fixes.ts';
 import * as highway from '../src/highway.ts';
 import { createAutoDriver } from '../src/ai/autodrive.ts';
 import { solidClamp } from '../src/world/barriers.ts';
@@ -28,9 +27,6 @@ const ways = L.LEVEL.crossings || [];
  * @param scenery its scenery
  */
 function loadHighwayBridges(road, scenery) {
-  FIX.drivebridges = true;
-  // (Deaf Valley's need its roads' extras)
-  FIX.desertroads = true;
   highway.addHighwayLevel();
   L.setLevel('highway');
   const level = L.LEVEL;

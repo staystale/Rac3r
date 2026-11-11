@@ -19,7 +19,7 @@ export interface Loose {
   mass: number; r: number;
   col?: string; tape?: string | number; idx?: number; field?: number;   // the level's tags
   paint?: string; num?: string;
-  bare?: boolean;   // (?desertmore=1) a tyre with no wheel in it, Deaf Valley's (litter.ts)
+  bare?: boolean;   // a tyre with no wheel in it, Deaf Valley's (litter.ts)
   hitCount: number;
   rollDist: number; flipPhase: number; flipSpeed: number; wobblePhase: number; wobbleAmp: number;
   _s?: number;   // the road distance it belongs to (streamed levels drop it with that stretch)

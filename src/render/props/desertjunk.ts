@@ -160,7 +160,7 @@ export function drawGasStation(propCtx: PropCtx, prop: Prop, ppm: number) {
     ctx.fillRect(x * ppm, y * ppm, wide * ppm, high * ppm);
   };
   const [x, y, wide, deep] = GAS_SHOP, [shX, shY] = shadowShift(prop, 1.2);
-  // (?hwstations=1: a brand's colours - world/stationbrands.ts; none: LAST GASP's)
+  // (a brand's colours - world/stationbrands.ts; none: LAST GASP's)
   const brand = brandOf(prop.brand);
   rect(x - wide / 2 + shX, y - deep / 2 + shY, wide, deep, SHADOW);
   rect(x - wide / 2, y - deep / 2, wide, deep, '#b9b4a8');
@@ -195,7 +195,7 @@ export function drawCanopy(propCtx: PropCtx, prop: Prop, ppm: number) {
 }
 
 /**
- * (?hwstations=1) A motorway SERVICES hall (highway/stations.ts): its shadow, the long flat roof
+ * A motorway SERVICES hall (highway/stations.ts): its shadow, the long flat roof
  * with its plant, the brand's band along the front (toward the road) and the services' name on
  * the roof.
  * @param propCtx the view and painter helpers

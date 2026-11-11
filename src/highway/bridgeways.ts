@@ -1,4 +1,4 @@
-// highway/bridgeways.ts - THE ENDLESS ROAD'S DRIVABLE BRIDGES (?drivebridges=1): the venue system's
+// highway/bridgeways.ts - THE ENDLESS ROAD'S DRIVABLE BRIDGES: the venue system's
 // crossings (world/crossings.ts) for the road bridges over the motorway, kept as the road streams.
 // A car's crossing is an index into LEVEL.crossings, and its deck's wear is filed by that index
 // (world/deckwear.ts), so a bridge keeps its slot while it is loaded; a slot whose bridge was

@@ -1,4 +1,4 @@
-// highway/stations.ts - PETROL STATIONS ON THE OTHER ROADS (?hwstations=1; owner 11-10: "petrol
+// highway/stations.ts - PETROL STATIONS ON THE OTHER ROADS (owner 11-10: "petrol
 // stations on other highway levels (also reset spots)", services with their own slip road on the
 // motorways "yeah", the names "perfect"). On a road with lay-bys (the dual carriageway on our
 // side, the single lane either side; not Deaf Valley, which has its own) now and then a lay-by is

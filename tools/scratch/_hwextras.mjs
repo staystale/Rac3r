@@ -1,10 +1,8 @@
 // _hwextras.mjs - EVERY ENDLESS ROAD'S BRIDGES, EXITS AND STATIONS (owner 11-11: "Check all highway
-// levels work as asked"): each road type in each scenery, on each seed, driven KM headless with the
-// switches under test on; for each, the first bridge / exit / services / roadside station and how
-// many of each, and the longest stretch with no bridge, km.
+// levels work as asked"): each road type in each scenery, on each seed, driven KM headless; for
+// each, the first bridge / exit / services / roadside station and how many of each, and the
+// longest stretch with no bridge, km.
 // [ROADS=a,b] [SCENERIES=countryside,canyon] [SEEDS=4242,7] node tools/scratch/_hwextras.mjs [km]
-import { FIX } from '../../src/core/fixes.ts';
-Object.assign(FIX, { desertroads: true, hwstations: true, drivebridges: true, desertmore: true });
 const { makeCar, reset, step, PHYSICS_STEP_SECONDS } = await import('../../src/vehicle.ts');
 const L = await import('../../src/lab.ts');
 const hw = await import('../../src/highway.ts');

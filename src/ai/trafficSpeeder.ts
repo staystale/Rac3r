@@ -1,4 +1,4 @@
-// ai/trafficSpeeder.ts - SPEEDERS (?speeders=1; owner 11-10: "can we make a small % of the traffic
+// ai/trafficSpeeder.ts - SPEEDERS (owner 11-10: "can we make a small % of the traffic
 // speed and get in the way ect", "They can jsut adopt the racing ai I guess"): now and then one of
 // your way's cars put back is a speeder - the one AI driver (ai/circuit.ts, as it races the
 // highway) at its wheel, held at SPEEDER_KMH, weaving through the traffic and cutting in as a

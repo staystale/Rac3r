@@ -106,7 +106,7 @@ export interface DriveCtx {
   lap?: number;   // main.ts, circuit driver: the current lap, 1-based
   laps?: number;   // main.ts, circuit driver: the race length
   obstacles?: LooseObstacle[];   // main.ts, circuit driver: loose objects near the car
-  vMax?: number;   // (?speeders=1) the most it drives at, m/s (ai/trafficSpeeder.ts)
+  vMax?: number;   // the most it drives at, m/s (ai/trafficSpeeder.ts)
 }
 
 // A loose object on the road (a cone, a tyre) the circuit driver steers round.
@@ -361,22 +361,22 @@ export interface TrafficCar {
   phys: boolean;
   // -1: it drives the other way (the other carriageway or lane); none / 1: our way
   dir?: number;
-  // (?trafficeven=1, ?speeders=1) a faster driver: its cruise kept when it is handed a lane
+  // a faster driver: its cruise kept when it is handed a lane
   quick?: boolean;
-  // (?speeders=1) a speeder: the racing driver at its wheel (ai/trafficSpeeder.ts)
+  // a speeder: the racing driver at its wheel (ai/trafficSpeeder.ts)
   racer?: TrafficRacer | null;
-  // (?breakdowns=1) a car with an issue, pulling over or stopped (ai/trafficBreak.ts)
+  // a car with an issue, pulling over or stopped (ai/trafficBreak.ts)
   broke?: TrafficBroke | null;
 }
 
-/** (?speeders=1) The racing driver at a speeder's wheel (ai/circuit.ts createAIDriver). */
+/** The racing driver at a speeder's wheel (ai/circuit.ts createAIDriver). */
 export interface TrafficRacer {
   drive: (car: AiCar, dt?: number, ctx?: DriveCtx | (() => DriveCtx)) => DriveInput;
   relocate: () => void;
 }
 
 /**
- * (?breakdowns=1) A car with an issue: where it stops (m off the road's line), the speed it holds
+ * A car with an issue: where it stops (m off the road's line), the speed it holds
  * now (m/s), the offset it steers for now, and whether it has stopped.
  */
 export interface TrafficBroke { stopOff: number; v: number; off: number; stopped: boolean }

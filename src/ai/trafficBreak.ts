@@ -1,11 +1,10 @@
-// ai/trafficBreak.ts - BREAKDOWNS (?breakdowns=1; owner 11-10: "And pull into hard shoulders if
-// they have an issue ect haha"): now and then one of your way's cars in the nearside lane has an
+// ai/trafficBreak.ts - BREAKDOWNS (owner 11-10: "And pull into hard shoulders if they have an
+// issue ect haha"): now and then one of your way's cars in the nearside lane has an
 // issue - it indicates left, slows and drifts onto the HARD SHOULDER (on a road without one, the
 // verge, where a reset would find room: highway/vergeback.ts vergeRoom) and stops there, its
 // hazards on; and now and then a car put back ahead is one already stopped there. It waits there
 // for you (standing still ahead does not send it away) and goes once you have passed it, out of
 // sight.
-import { FIX } from '../core/fixes.ts';
 import { roadPose } from '../highway.ts';
 import { vergeRoom } from '../highway/vergeback.ts';
 import { reset } from '../vehicle.ts';
@@ -62,13 +61,13 @@ const roadsideFree = (ents: TrafficEnt[], dist: number, off: number) => !ents.so
  * @param dt the step, s
  * @returns it may
  */
-const mayHaveIssue = (ctx: TrafficCtx, slot: TrafficCar, dt: number) => FIX.breakdowns
-  && !slot.broke && !slot.racer && !slot.wreck && (slot.dir ?? 1) > 0 && slot.lane === 0
+const mayHaveIssue = (ctx: TrafficCtx, slot: TrafficCar, dt: number) => !slot.broke
+  && !slot.racer && !slot.wreck && (slot.dir ?? 1) > 0 && slot.lane === 0
   && slot.laneT === 0 && ctx.rnd() < BREAK_PER_S * dt;
 
 /**
- * (?breakdowns=1) Now and then a nearside car has an issue: with room to stop all along the next
- * LOOK_M, it starts pulling over.
+ * Now and then a nearside car has an issue: with room to stop all along the next LOOK_M, it
+ * starts pulling over.
  * @param ctx the traffic
  * @param slot the car
  * @param env the step's road
@@ -84,7 +83,7 @@ export function mayBreak(ctx: TrafficCtx, slot: TrafficCar, env: DriveEnv) {
 }
 
 /**
- * (?breakdowns=1) A car just put back ahead, now and then made one already stopped at the
+ * A car just put back ahead, now and then made one already stopped at the
  * roadside there, its hazards on.
  * @param ctx the traffic
  * @param slot the car
@@ -92,7 +91,7 @@ export function mayBreak(ctx: TrafficCtx, slot: TrafficCar, env: DriveEnv) {
  * @returns made one
  */
 export function mayPlaceBroken(ctx: TrafficCtx, slot: TrafficCar, ents: TrafficEnt[]) {
-  if (!FIX.breakdowns || ctx.rnd() >= BROKEN_SHARE) return false;
+  if (ctx.rnd() >= BROKEN_SHARE) return false;
   const stopOff = stopOffAt(ctx, slot.s);
   if (stopOff == null || !roadsideFree(ents, slot.s, stopOff)) return false;
   const pose = roadPose(ctx.level!, slot.s, stopOff);

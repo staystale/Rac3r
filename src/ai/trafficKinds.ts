@@ -1,13 +1,12 @@
-// ai/trafficKinds.ts - THE DRIVER each of your way's cars is as it joins the road (?trafficeven=1,
-// ?speeders=1; owner 11-10: "can cars on my side come up behind me still", "I want them too like a
-// real road", "can we make a small % of the traffic speed and get in the way"): most cruise (ai/
-// trafficSpawn.ts cruise, 90-110 km/h), FAST_SHARE are quicker drivers at FAST_KMH and
-// (?speeders=1) SPEEDER_SHARE speeders (ai/trafficSpeeder.ts). Where one is put back is where a
-// real road's would come into sight: one faster than you from behind (it comes past), one slower
-// ahead (you catch it up) - MEASURED, tools/scratch/_trafficsides.mjs, you at ~100 km/h for 120 s:
-// dealt only as a car you passed was put back, and kept behind only while catching you up, no one
-// came past at the traffic's own speed (you passed no one, so no one was put back).
-import { FIX } from '../core/fixes.ts';
+// ai/trafficKinds.ts - THE DRIVER each of your way's cars is as it joins the road (owner 11-10:
+// "can cars on my side come up behind me still", "I want them too like a real road", "can we make
+// a small % of the traffic speed and get in the way"): most cruise (ai/trafficSpawn.ts cruise,
+// 90-110 km/h), FAST_SHARE are quicker drivers at FAST_KMH and SPEEDER_SHARE speeders (ai/
+// trafficSpeeder.ts). Where one is put back is where a real road's would come into sight: one
+// faster than you from behind (it comes past), one slower ahead (you catch it up) - MEASURED,
+// tools/scratch/_trafficsides.mjs, you at ~100 km/h for 120 s: dealt only as a car you passed was
+// put back, and kept behind only while catching you up, no one came past at the traffic's own
+// speed (you passed no one, so no one was put back).
 import type { TrafficCtx } from './trafficCtx.ts';
 import { setSpeed } from './trafficSpawn.ts';
 import { SPEEDER_KMH, SPEEDER_SHARE, makeSpeeder } from './trafficSpeeder.ts';
@@ -22,16 +21,15 @@ const CRUISE_KMH = 100;
 export type Kind = 'cruise' | 'fast' | 'speeder';
 
 /**
- * The driver a car joining the road is: the other way's and (with neither switch) every one
- * cruise.
+ * The driver a car joining the road is: the other way's every one cruise.
  * @param ctx the traffic
  * @param dir its way (+1 yours)
  * @returns its kind
  */
 export function dealKind(ctx: TrafficCtx, dir: number): Kind {
   if (dir < 0) return 'cruise';
-  if (FIX.speeders && ctx.rnd() < SPEEDER_SHARE) return 'speeder';
-  if (FIX.trafficeven && ctx.rnd() < FAST_SHARE) return 'fast';
+  if (ctx.rnd() < SPEEDER_SHARE) return 'speeder';
+  if (ctx.rnd() < FAST_SHARE) return 'fast';
   return 'cruise';
 }
 

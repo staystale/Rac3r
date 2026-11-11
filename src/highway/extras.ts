@@ -7,18 +7,17 @@ import { blocked, keepOut, addCut, sideStep, approaches, river, SLIP_EVERY, BRID
   SLIP_DEG, SLIP_W, PIER, SLIP_LONG, SIDE_RUN } from "./cuts.ts";
 import type { Prop, Point, Lane } from '../world/types.ts';
 import type { HwPoint, HwPose, HwState, HwLevel, Stamp, Bridge } from './hwtypes.ts';
-import { FIX } from '../core/fixes.ts';
 import { laybysOn } from './laybys.ts';
 import { layServices, newServices, servicesDue as yardDue, servicesOut } from './stations.ts';
 import { SIDE_OUT } from './cuts.ts';
 import { stretchAt } from './desertplan.ts';
 
-// (?hwstations=1) a SERVICES (highway/stations.ts): m between them, the least and the most; the
+// a SERVICES (highway/stations.ts): m between them, the least and the most; the
 // first one's road distance; m the side road runs beside the motorway past it
-// (?drivebridges=1) a drivable road bridge's ramps up from its approach roads, m (the venues'
+// a drivable road bridge's ramps up from its approach roads, m (the venues'
 // longest: a 2.5 m rise over the crossing stays gentle - world/crossings.ts RISE_SHARE)
 const RAMP_M = 14;
-// (?desertroads=1) Deaf Valley: open ground (no rock wall, no gorge) this far back and ahead of an
+// Deaf Valley: open ground (no rock wall, no gorge) this far back and ahead of an
 // extra, m - the signs before it, a long slip's bend, the services' side road and yard after it;
 // and the step the check walks, m
 const OPEN_BACK_M = 100, OPEN_AHEAD_M = 560, OPEN_STEP_M = 20;
@@ -323,9 +322,9 @@ function buildBridge(level: HwLevel, i: number, dist: number, pointAt: (i: numbe
     roadHw: halfWidth + 1.2 + wallOff,
     // (Deaf Valley: sun-bleached road bridges, timber rail trestles - render/props/bridges.ts)
     ...(state.desert ? { look: 'desert' } : {}),
-    // (?drivebridges=1: a road bridge the venues' drivable one - world/crossings.ts - its ramps
+    // (a road bridge the venues' drivable one - world/crossings.ts - its ramps
     // up from its approaches; Deaf Valley's in sand concrete)
-    ...(FIX.drivebridges && kind === 'road' ? { look: 'venue', rampL: [RAMP_M, RAMP_M],
+    ...(kind === 'road' ? { look: 'venue', rampL: [RAMP_M, RAMP_M],
       ...(state.desert ? { pal: 'desert' } : {}) } : {}),
   }) as Bridge;
   // CHEEKY EXTRAS, rare (each ~1 in 6 of its bridge type)
@@ -372,8 +371,8 @@ function slipDue(state: HwState, road: HwPoint[], i: number, dist: number) {
   );
 }
 /**
- * (?hwstations=1) Whether a SERVICES is due here: a road with a hard shoulder or walls (not Deaf
- * Valley), its distance reached, 60 m of gentle road before and 150 m after, no side road running.
+ * Whether a SERVICES is due here: a road with a hard shoulder or walls, its distance reached, 60 m
+ * of gentle road before and 150 m after, open ground (Deaf Valley), no side road running.
  * @param level the highway level
  * @param i road point index
  * @param dist road distance at i
@@ -381,15 +380,14 @@ function slipDue(state: HwState, road: HwPoint[], i: number, dist: number) {
  */
 function servicesDue(level: HwLevel, i: number, dist: number) {
   const state = level._hw, road = state.pts;
-  if (!FIX.hwstations || (level._cfg.theme === 'canyon' && !FIX.desertroads)
-    || (laybysOn(level) && !level._cfg.walls) || !isOpenGround(state, dist)) return false;
+  if ((laybysOn(level) && !level._cfg.walls) || !isOpenGround(state, dist)) return false;
   state.nextServices ??= SERVICES_FIRST_M;
   return dist >= state.nextServices && !state.side && i > 20 && i < road.length - 50
     && gentleAt(road, i, 15, 38);
 }
 
 /**
- * (?hwstations=1) A SERVICES: the slip's signs with its name, then the side road (highway/cuts.ts
+ * A SERVICES: the slip's signs with its name, then the side road (highway/cuts.ts
  * sideStep) running SERVICES_RUN_M beside the motorway, its yard laid part way along it
  * (highway/stations.ts layServices); the next slip and bridge kept clear of it.
  * @param level the highway level
@@ -416,7 +414,7 @@ function buildServices(level: HwLevel, i: number, dist: number, pointAt: (i: num
 }
 
 /**
- * Whether the ground round an extra is open: always off Deaf Valley; there (?desertroads=1) only
+ * Whether the ground round an extra is open: always off Deaf Valley; there only
  * desert or dunes from `back` m before to `ahead` m after - no rock wall, no gorge.
  * @param state the highway state
  * @param dist road distance, m
@@ -471,7 +469,7 @@ export function extras(level: HwLevel, i: number, dist: number, pointAt: (i: num
     state.nextSlip = 900 + rand() * 900;
     state.nextBridge = 500 + rand() * 500;
   }
-  // (?hwstations=1) a SERVICES: the side road, signed with its name, past its yard
+  // a SERVICES: the side road, signed with its name, past its yard
   if (servicesDue(level, i, dist)) {
     buildServices(level, i, dist, pointAt, mark);
     return;
@@ -496,7 +494,7 @@ export function extras(level: HwLevel, i: number, dist: number, pointAt: (i: num
       level.props.push(mark({ kind: "solarfarm", x: pos.x, y: pos.y, rot: pos.rot + Math.PI / 2 }));
   }
 }
-// (?desertroads=1) Deaf Valley's exits: its real places as the game names them, and a joke or two
+// Deaf Valley's exits: its real places as the game names them, and a joke or two
 const DESERT_SLIP_NAMES = ['SADWATER', 'FURNACE CREAK', 'STOVEPIPE HELLS', 'ZABRISKIE POINTLESS',
   "DEVIL'S GOLF CORSE", 'LAST CHANCE (REALLY)', 'NOTHING FOR 200 MI', 'HULL (STILL NOT)'];
 const SLIP_NAMES = [

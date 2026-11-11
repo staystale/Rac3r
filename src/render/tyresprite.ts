@@ -1,5 +1,5 @@
 // render/tyresprite.ts - the pixel sprites of a loose TYRE: on its tread, lying flat, a stack, and
-// (?desertmore=1) a bare one with no wheel in it. Split out of render/objects.ts.
+// a bare one with no wheel in it. Split out of render/objects.ts.
 import { SPRITE_PPM } from "./shared.ts";
 import type { RenderCone } from "./types.ts";
 
@@ -24,7 +24,7 @@ export function pdisc(ctx: CanvasRenderingContext2D, size: number, radius: numbe
 }
 
 /**
- * A BARE TYRE lying flat or a stack of them (?desertmore=1, Deaf Valley's; owner 11-10: "tyres no
+ * A BARE TYRE lying flat or a stack of them (Deaf Valley's; owner 11-10: "tyres no
  * wheel inside"): the rubber ring, its tread edge darker, the ground through the middle - no rim.
  * @param make the sprite cache
  * @param stack a stack of them

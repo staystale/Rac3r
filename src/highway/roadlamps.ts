@@ -4,8 +4,8 @@
 // Laid with the rest of the scenery as the road grows (highway/dress.ts) and dropped behind with
 // it (highway.ts keeps level.lamps by road distance); world/lamps.ts makes each entry a lamp
 // (solid, knockable, lit from dusk) and keeps it, damage and all, while it is loaded. A spot
-// that is not clear (a slip road, a bridge, a river, a gantry leg, a sign) is left dark.
-import { FIX } from '../core/fixes.ts';
+// that is not clear (a slip road, a bridge, a river, a gantry leg, a sign) is left dark. A road
+// with a central reservation has its lights in it instead: twin-arm columns (layReservationLamps).
 import { solidsFromProps } from '../world/barriers.ts';
 import { blocked } from './cuts.ts';
 import { STEP } from './presets.ts';
@@ -15,7 +15,7 @@ import type { Prop } from '../world/types.ts';
 // the gap from one street light to the next, m (the sides alternate: each side every 68 m); the
 // circuits' start-straight spacing
 const LAMP_GAP_M = 34;
-// (?medianlamps=1) the gap from one twin-arm column in the central reservation to the next, m:
+// the gap from one twin-arm column in the central reservation to the next, m:
 // an arm over each carriageway, so each side keeps a light every 68 m
 const TWIN_GAP_M = 2 * LAMP_GAP_M;
 // how far out from the road edge a post stands, m (as on the circuits)
@@ -81,7 +81,7 @@ function isClearOfScenery(props: Prop[], dist: number, x: number, y: number): bo
  */
 export function layRoadLamps(ctx: DressContext): void {
   const { level, state, road, firstIdx, endIdx, pointAt, halfWidth } = ctx;
-  if (FIX.medianlamps && level._cfg?.oncoming === 'carriageway') {
+  if (level._cfg?.oncoming === 'carriageway') {
     layReservationLamps(ctx);
     return;
   }
@@ -103,7 +103,7 @@ export function layRoadLamps(ctx: DressContext): void {
 }
 
 /**
- * (?medianlamps=1) Lays the street lights of a road with a central reservation for road points
+ * Lays the street lights of a road with a central reservation for road points
  * [firstIdx, endIdx): a twin-arm column in the reservation's middle each time the road passes a
  * multiple of TWIN_GAP_M, an arm over each carriageway (the same spots on every build of the
  * seed); left dark where a keep-out area or a scenery solid (a bridge's pier, a gantry leg) is.
