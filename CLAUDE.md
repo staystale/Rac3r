@@ -5,7 +5,7 @@ Run: `node serve.mjs`, open http://localhost:8080. Debug flags: `?dev=1`, `?seed
 
 Where things live:
 - `NOTES.md` - the standing notes: owner rules, decisions, measured lessons, the routine. Read first.
-- `TODO.md` - the live queue.
+- `TODO.md` - the live queue (open work only); `TODO-DONE.md` - the finished work, with its numbers.
 - `ENGINE.md` - as-built reference. Search it; do not read it end to end.
 - `BRIEF.md`, `PLAN.md`, `SPECS-*.md` - design intent.
 - `src/testlist.ts` - the in-game list of features awaiting a phone test.

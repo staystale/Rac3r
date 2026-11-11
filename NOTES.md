@@ -135,7 +135,7 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   through faster, cracks spread a few metres). 10-25: reversing lights on every car (white
   lamps at the tail in reverse; at night a glow and a short dim beam; owner: "slightly bright"
   -> beam 0.25, glow 0.7 of a brake light's).
-- Event lighting (10-25, owner "all pass", picks in TODO F): backlit boards (faint halo), marshal
+- Event lighting (10-25, owner "all pass", picks in TODO-DONE F): backlit boards (faint halo), marshal
   beacons, multi-coloured festoons on stands and rally fairy lights (following the road edge),
   the start gantry's light bar and start lights, pit lamps, caravan light spill (no windows:
   top-down), floodlights in tyre rings at the tightest corners, village street lights on
@@ -240,7 +240,7 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   wonk + flicker, hard hit = out by degrees, fallen = debris, mangled per hit); pools below a
   lamp; lamps and AI / traffic headlights follow the light level; the player's LIGHTS stay
   manual and do not switch anyone else's (10-18). The night
-  layer cost nothing measurable on the phone (L1 passed). Full list in `TODO.md` LIGHTING.
+  layer cost nothing measurable on the phone (L1 passed). Full list in `TODO-DONE.md` F. LIGHTING.
 - Time of day (10-18): ONE global game clock that holds for the story (runs while playing,
   saved); 1 game day = 1 real hour; a season = 7 game days; UK-like days with moon phases;
   a start-hour slider in TEST MODE only; the race behind the menu follows the global time and
@@ -448,7 +448,7 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
 - A FORMATION KEEPS STATION ON THE POLE'S SPEED, not the pace (11-04): from a standstill a
   stronger engine at the same throttle ran 4.5 m into the next slot.
 - The loose-object STEP-ROUND is for small round things: a long ground patch (oil, glass) is not one
-  obstacle, nor one per cell - every way tried put the field on the oil more (TODO 11-04).
+  obstacle, nor one per cell - every way tried put the field on the oil more (TODO-DONE 11-04).
 - A ZONE'S EDGE IS BLENDED ~6 M EACH WAY (world/blend.ts), and an outlined zone's along its BOX, not
   its outline (11-08): Dieatona's skull as zones (2 m eyes) drew as a pale blob. A small pattern
   on the ground is authored PATCHES (crisp squares: VenueSpec.mown), not zones.
