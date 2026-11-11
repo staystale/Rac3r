@@ -5,7 +5,7 @@
 // says at each: the car's level (crossing), its race progress and its distance along the lap.
 // node tools/scratch/_motunnelshots.mjs [query] (env VIEW, ZOOM, SHOTS, SHOT_S, KMH; CHECK_PORT)
 import { startServer, launchBrowser, gotoGame } from '../lib/browser.mjs';
-const [query = 'moanacovenue=1'] = process.argv.slice(2);
+const [query = ''] = process.argv.slice(2);
 const ZOOM = +(process.env.ZOOM || 0.6), SHOTS = +(process.env.SHOTS || 12);
 const SHOT_S = +(process.env.SHOT_S || 0.9), KMH = +(process.env.KMH || 70);
 const server = await startServer();

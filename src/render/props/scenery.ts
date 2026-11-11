@@ -524,3 +524,28 @@ export function drawYacht(propCtx: PropCtx, prop: Prop, ppm: number) {
   paint(-half + len * 0.2, -side * 0.38, len * 0.3, beam * 0.08, YACHT_RAIL);
   paint(-half + len * 0.33, -beam * 0.06, beam * 0.12, beam * 0.12, YACHT_ACCENT);
 }
+
+// a tunnel cover's slat: the stone beam, its lit top edge and its dark joint lines
+const SLAT_STONE = '#8f8a80', SLAT_TOP = '#a9a49a', SLAT_JOINT = '#3b4047';
+
+/**
+ * Draws a SLAT of a tunnel's cover (world/venuecross.ts tunnelCover: Moanaco's tunnel, in thin
+ * sections with gaps): a stone beam across the road below, w m along it, h m across, its shadow
+ * falling into the gap after it (the road below seen dim between the slats).
+ * @param propCtx the view and painter helpers
+ * @param prop the slat (w, h)
+ * @param ppm pixels per metre
+ */
+export function drawSlat(propCtx: PropCtx, prop: Prop, ppm: number) {
+  const { view } = propCtx;
+  const halfW = prop.w! / 2, halfH = prop.h! / 2;
+  view.ctx.fillStyle = 'rgba(10,12,16,0.45)';
+  view.ctx.fillRect(-halfW * ppm, -halfH * ppm, (prop.w! + 1.2) * ppm, prop.h! * ppm);
+  view.ctx.fillStyle = SLAT_JOINT;
+  view.ctx.fillRect(-halfW * ppm, -halfH * ppm, prop.w! * ppm, prop.h! * ppm);
+  view.ctx.fillStyle = SLAT_STONE;
+  view.ctx.fillRect((-halfW + 0.2) * ppm, (-halfH + 0.2) * ppm, (prop.w! - 0.4) * ppm,
+    (prop.h! - 0.4) * ppm);
+  view.ctx.fillStyle = SLAT_TOP;
+  view.ctx.fillRect((-halfW + 0.2) * ppm, (-halfH + 0.2) * ppm, 0.5 * ppm, (prop.h! - 0.4) * ppm);
+}

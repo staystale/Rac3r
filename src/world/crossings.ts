@@ -148,7 +148,7 @@ function offsetPath(path: Point[], offset: number): Point[] {
  * A race-road tunnel whose road bends under the ground (Moanaco's): the way runs straight from the
  * road's centre at one end to the other's (its dip and deck by that line), but its walls follow
  * the road (first.path) - its across bounds span the whole bend, a car comes on only through a
- * mouth, and the underground stretch hidden is the one between the walls from lintel to lintel.
+ * mouth, and what is hidden is what lies under the cover's slats (first.slats: seen between).
  * @param first the first portal (its path the road's centre end to end)
  * @param second the portal at the other end
  * @returns the crossing
@@ -171,11 +171,10 @@ function bentTunnel(first: Prop, second: Prop): Crossing {
     - PORTAL_LINTEL_M) / step);
   const along = ([x, y]: Point) => (x - start[0]) * dirX + (y - start[1]) * dirY;
   const cut = Math.min(along(path[cutPts]), length - along(path[path.length - 1 - cutPts]));
-  const inner = (pts: Point[]) => pts.slice(cutPts, pts.length - cutPts);
   return { kind: 'tunnel', ax: start[0], ay: start[1], dirX, dirY, length,
     minAcross: Math.min(...acrosses), maxAcross: Math.max(...acrosses), cut,
     rise: -Math.min(RISE_MAX_M, RISE_SHARE * length), walls, track: true, mouth,
-    hidden: [...inner(left), ...inner(right).reverse()] };
+    hidden: first.slats || [] };
 }
 
 /**

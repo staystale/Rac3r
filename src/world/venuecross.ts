@@ -158,9 +158,10 @@ const PATH_STEP_M = 2;
  * @param span the stretch under the ground
  * @param span.d0 m along where it starts (the first portal's open end)
  * @param span.d1 m along where it ends
+ * @param span.cut m in from each end its open cut runs
  * @returns the two portals
  */
-function roadPortals(sub: Subtrack, span: { d0: number; d1: number }): Prop[] {
+function roadPortals(sub: Subtrack, span: { d0: number; d1: number; cut?: number }): Prop[] {
   const path: Point[] = [];
   const count = Math.max(2, Math.round((span.d1 - span.d0) / PATH_STEP_M));
   for (let i = 0; i <= count; i++) {
@@ -172,37 +173,62 @@ function roadPortals(sub: Subtrack, span: { d0: number; d1: number }): Prop[] {
     return { kind: 'tunnel', x: centre.x, y: centre.y, rot: head + (back ? Math.PI : 0),
       w: PORTAL_LEN_M, h: VENUE_ROAD_M + CUT_SPARE_M, track: true } as Prop;
   };
-  return [{ ...portal(span.d0 + PORTAL_LEN_M / 2, false), path },
+  // (and the slats' outlines: a car below is hidden under each, seen between)
+  const slats = tunnelSlats(sub, span).map(slatCorners);
+  return [{ ...portal(span.d0 + PORTAL_LEN_M / 2, false), path, slats },
     portal(span.d1 - PORTAL_LEN_M / 2, true)];
 }
 
-// m (game): the buildings over a race-road tunnel - each block's length along the road at most,
-// the gap between two (a bend's inside brings them together: none overlaps the next), the width
-// (past the edge's barriers either side: the ground over the tunnel is not reached from the track)
-// and their roof
-const COVER_LEN_M = 18, COVER_GAP_M = 1.4, COVER_W_M = 26, COVER_ROOF = '#6e6e66';
+// m (game): THE TUNNEL'S COVER IN SLATS (owner 11-11: "in thin sections with gaps so you can see
+// through but vision is obscured"): each slat's length along the road, the gap between two (a car
+// is glimpsed through it; narrower than a car, so none drives down into one), its width (past the
+// edge's barriers either side: the ground over the tunnel is not reached from the track)
+const SLAT_M = 3.2, SLAT_GAP_M = 1.4, SLAT_W_M = 26;
+
+/** One slat of a tunnel's cover: its middle, turn along the road, length and width (game m). */
+interface Slat { x: number; y: number; rot: number; w: number; h: number }
 
 /**
- * The buildings over each race-road tunnel with no road over it (VenueSpec.tunnel: the hotels on
- * Moanaco's shore): a row of flat-roofed blocks along its underground stretch, from one lintel to
- * the other, turned along the road beneath - solid on the ground, not in the tunnel.
+ * The slats over a race-road tunnel's underground stretch (from one portal's lintel to the
+ * other's), turned along the road beneath, the first and last at the lintels.
  * @param sub the loop
- * @returns the blocks
+ * @param span the stretch under the ground
+ * @param span.d0 m along where it starts
+ * @param span.d1 m along where it ends
+ * @param span.cut m in from each end its open cut runs
+ * @returns the slats
+ */
+function tunnelSlats(sub: Subtrack, span: { d0: number; d1: number; cut?: number }): Slat[] {
+  const from = span.d0 + (span.cut || 0), upTo = span.d1 - (span.cut || 0);
+  const count = Math.max(1, Math.round((upTo - from + SLAT_GAP_M) / (SLAT_M + SLAT_GAP_M)));
+  const pitch = count > 1 ? (upTo - from - SLAT_M) / (count - 1) : 0, slats: Slat[] = [];
+  for (let i = 0; i < count; i++) {
+    const centre = centreBetween(sub, from + SLAT_M / 2 + pitch * i);
+    slats.push({ x: centre.x, y: centre.y, rot: Math.atan2(-centre.nx, centre.ny), w: SLAT_M,
+      h: SLAT_W_M });
+  }
+  return slats;
+}
+
+/**
+ * A slat's corners (the stretch of the tunnel it hides: world/crossings.ts Crossing.hidden).
+ * @param slat the slat
+ * @returns its four corners
+ */
+const slatCorners = (slat: Slat): Point[] => [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(
+  ([along, across]): Point => [
+    slat.x + Math.cos(slat.rot) * along * slat.w / 2 - Math.sin(slat.rot) * across * slat.h / 2,
+    slat.y + Math.sin(slat.rot) * along * slat.w / 2 + Math.cos(slat.rot) * across * slat.h / 2]);
+
+/**
+ * The cover over each race-road tunnel with no road over it (VenueSpec.tunnel: Moanaco's): its
+ * slats - solid on the ground, not in the tunnel; between them a car below is seen.
+ * @param sub the loop
+ * @returns the slat props
  */
 export function tunnelCover(sub: Subtrack): Prop[] {
-  const props: Prop[] = [];
-  for (const span of sub.under || []) {
-    if (span.over !== undefined) continue;
-    const from = span.d0 + PORTAL_LEN_M, upTo = span.d1 - PORTAL_LEN_M;
-    const count = Math.max(1, Math.ceil((upTo - from) / COVER_LEN_M));
-    const each = (upTo - from) / count;
-    for (let i = 0; i < count; i++) {
-      const centre = centreBetween(sub, from + each * (i + 0.5));
-      props.push({ kind: 'block', x: centre.x, y: centre.y, rot: Math.atan2(-centre.nx, centre.ny),
-        w: each - COVER_GAP_M, h: COVER_W_M, roof: COVER_ROOF });
-    }
-  }
-  return props;
+  return (sub.under || []).filter((span) => span.over === undefined)
+    .flatMap((span) => tunnelSlats(sub, span)).map((slat) => ({ kind: 'slat', ...slat }));
 }
 
 /**

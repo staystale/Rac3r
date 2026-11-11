@@ -194,18 +194,22 @@ function drawSharpCar(ctx: ScreenCtx, car: RenderCar, sharp: SharpScale) {
 const UNDERGROUND_MARGIN_M = 0.6;
 
 /**
- * Traces a bent tunnel's underground stretch (world points) as the path's next shape.
+ * Traces a bent tunnel's hidden stretches - under its cover's slats (world points) - as the path's
+ * next shapes.
  * @param ctx the renderer context
- * @param hidden the stretch's outline
+ * @param hidden the outlines
  * @param sharp the frame's sharp-car scale
  */
-function traceHidden(ctx: ScreenCtx, hidden: [number, number][], sharp: SharpScale) {
-  hidden.forEach(([x, y], i) => {
-    const screenX = ctx.toScreenX(x) * sharp.devPerCss + sharp.subX;
-    const screenY = ctx.toScreenY(y) * sharp.devPerCss + sharp.subY;
-    if (i) ctx.mainCtx.lineTo(screenX, screenY);
-    else ctx.mainCtx.moveTo(screenX, screenY);
-  });
+function traceHidden(ctx: ScreenCtx, hidden: [number, number][][], sharp: SharpScale) {
+  for (const outline of hidden) {
+    outline.forEach(([x, y], i) => {
+      const screenX = ctx.toScreenX(x) * sharp.devPerCss + sharp.subX;
+      const screenY = ctx.toScreenY(y) * sharp.devPerCss + sharp.subY;
+      if (i) ctx.mainCtx.lineTo(screenX, screenY);
+      else ctx.mainCtx.moveTo(screenX, screenY);
+    });
+    ctx.mainCtx.closePath();
+  }
 }
 
 /**

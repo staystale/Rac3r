@@ -640,9 +640,11 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   road's own underpass (trackunder.ts, as Snoozuka's) with no road over it - its portals on the
   road at each end (venuecross.ts roadPortals, the first carrying the road's centre as
   Prop.path), the crossing's walls along the road (crossings.ts bentTunnel), a car on only through
-  a mouth (Crossing.mouth, not anywhere across the bend's span), the hidden stretch the walls'
-  outline lintel to lintel (Crossing.hidden, render/screen.ts), the edge on past the portals to the
-  lintels, a row of blocks over it (tunnelCover). Every other venue's crossings, edges and props
+  a mouth (Crossing.mouth, not anywhere across the bend's span), the edge on past the portals to
+  the lintels. ITS COVER IN SLATS (owner 11-11: "in thin sections with gaps so you can see through
+  but vision is obscured"): 3.2 m stone slats 1.4 m apart, lintel to lintel (tunnelCover, solid on
+  the ground), the car hidden under each (Crossing.hidden: the slats' outlines, render/screen.ts)
+  and seen between, the road below drawn (trackunder.ts underRoadOver ghosts only a crossover's). Every other venue's crossings, edges and props
   the same (worldhash). crossingcheck drives a bent tunnel along its road (checkBent).
 - A PIT LANE BETWEEN TWO ROADS 16-18 REAL M APART HAS NO ROOM AT 1/2 (11-11, Moanaco: the pit lane
   up from Rascasse beside the Rascasse approach): the lane is held 14.6 m off the road it runs
@@ -661,9 +663,19 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   lap (tools/scratch/_mostreettrees.mjs) laid as tree rows - beyond the walls (a venue's trees keep
   6 m past the run-off's rim), its car parks left out (mown grass with parked cars). A concrete
   pit lane did not show on the concrete town: VenueSpec.pitSurface (Moanaco's tarmac, as the
-  real one). Every other venue: grass and a concrete pit lane, as before (worldhash). Armco on a
-  pale base (render/props/fence.ts PALE_BASES: concrete) gets a dark rim, else its bright face sank
-  into the concrete; every other base draws it as before (renderhash Brands / Castle Kum SAME).
+  real one). Every other venue: grass and a concrete pit lane, as before (worldhash). The Armco is the
+  game's own on every base (owner 11-11: "use our original Armco / fences": a dark rim tried on
+  the concrete, taken out).
+- A STREET VENUE'S BARRIERS TIDIED (owner 11-11: "messy and cheap"): VenueSpec.tidyEdge
+  (world/venuetidy.ts, Moanaco's) cuts a barrier's loop at its crossing, drops a run's fold back
+  along itself (a rim up one side of a narrow U and down the other: the Armco doubled inside
+  Portier) and a short run doubling another, and joins two ends under 7 m apart where the join
+  keeps off the road and the lanes (the pool's chicane: the tyre wall that sealed it, messy, out).
+- A HARBOUR'S SLICES MASKED THE GPU FIELD A HUNDRED TIMES (11-11, Moanaco: "it takes ages to
+  load"): at a race's start every scenery water cover marks its ground dirty, each as the square
+  of its length - 340 long turned slices over one harbour, overlapping: MEASURED 21.7 s from
+  launch to the first frame (Yass Marina 5.0, Brands 1.5). world/puddles.ts mergedAreas marks one
+  box round them where that is smaller: 3.3 s, the same pixels (renderhash).
 - A STAND BESIDE A ROAD WATCHES ITS FAR SIDE TOO (11-11, Moanaco): the edge marks 30 m round a
   stand's corners as watched, so a stand by the swimming pool turned 26 m of the road's other side
   (beside the pit lane) to catch fence - a run shorter than MIN_RUN_PTS, dropped: a 19 m gap. The

@@ -57,6 +57,19 @@ export function underground(sub: Subtrack, dist: number): boolean {
 }
 
 /**
+ * Whether a distance along lies under the ground of a crossover - under the road over it, not
+ * drawn there (that road shows whole); a tunnel with no road over it has its road drawn (seen
+ * between its cover's slats: world/venuecross.ts tunnelCover).
+ * @param sub the road
+ * @param dist m along
+ * @returns true when it does
+ */
+export function underRoadOver(sub: Subtrack, dist: number): boolean {
+  return (sub.under || []).some((span) => span.over !== undefined
+    && dist >= span.d0 + (span.cut || 0) && dist <= span.d1 - (span.cut || 0));
+}
+
+/**
  * A distance along moved back out of a stretch under the track (a reset never lands in its cut).
  * @param sub the road
  * @param dist m along

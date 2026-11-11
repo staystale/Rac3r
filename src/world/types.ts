@@ -197,6 +197,8 @@ export interface Prop {
   // a race-road tunnel's first portal where its road bends under the ground: the road's centre
   // through it, end to end (world/crossings.ts lays the tunnel's walls along it)
   path?: Point[];
+  // and the outlines of the slats of its cover (world/venuecross.ts tunnelCover)
+  slats?: Point[][];
   quiet?: boolean;   // a road bridge with no traffic over it (Brands Snatch's)
   look?: string;   // a prop drawn in another look ('venue': a venue's road bridge)
   trainEvery?: number;   // highway.ts rail bridges
@@ -290,10 +292,11 @@ export interface Crossing {
   // the race road's own underpass (a figure of eight: world/trackunder.ts)
   track?: boolean;
   // a tunnel whose road bends under the ground (Prop.path): m either side of its line a car comes
-  // on by at an end (its mouth; min / maxAcross span the whole bend), and the underground stretch
-  // between its walls from one lintel to the other (world points: what is in it is hidden)
+  // on by at an end (its mouth; min / maxAcross span the whole bend), and the stretches under its
+  // cover's slats, lintel to lintel (outlines in world points: what is in them is hidden, what is
+  // between them seen)
   mouth?: number;
-  hidden?: Point[];
+  hidden?: Point[][];
 }
 
 // One wheel's contact point in the world, metres.

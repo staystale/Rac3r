@@ -16,6 +16,7 @@ import { venueCrossings } from "./crossings.ts";
 import { markUnder } from "./trackunder.ts";
 import { pitTunnelPortals, tunnelSpans, underParapets, underPortals, underSpans }
   from "./venuecross.ts";
+import { tidyBarriers } from "./venuetidy.ts";
 import { CIRCUIT_BUSHES } from "./levels/bushes.ts";
 import { buildVenueScenery } from "./venuescenery.ts";
 import { VENUE_ROAD_M, distToLine, kerbOut, lineLength, pointAlong } from "./venuegeo.ts";
@@ -159,6 +160,9 @@ export interface VenueSpec {
   // the ground off the road where it is not grass (a street circuit's pavements: Moanaco's
   // concrete, its parks laid as grass pads); grass when not given
   base?: keyof typeof SURFACES;
+  // a street circuit's barriers tidied: loops cut out, stubs dropped, near ends joined
+  // (world/venuetidy.ts; Moanaco's)
+  tidyEdge?: boolean;
   // the pit lane's surface where the venue's ground is concrete too (Moanaco's: tarmac); concrete
   // when not given
   pitSurface?: keyof typeof SURFACES;
@@ -597,7 +601,9 @@ export function venueLevel(spec: VenueSpec, layout: string, levelId: string,
     scenery.barriers, sub, scenery.covers),
     bushes: CIRCUIT_BUSHES,
     lanes: [...jokerLanes, ...scenery.lanes, ...closed.lanes],
-    barriers: [...scenery.barriers, ...underParapets(sub)],
+    barriers: spec.tidyEdge ? tidyBarriers([...scenery.barriers, ...underParapets(sub)], sub,
+      [...jokerLanes, ...scenery.lanes, ...closed.lanes])
+      : [...scenery.barriers, ...underParapets(sub)],
     props, solids: solidsFromProps(props), crossings: venueCrossings(props),
     paint: [{ kind: 'chequered', x: sub.pts[0].x, y: sub.pts[0].y, len: 1.6, wid: VENUE_ROAD_M,
       rot: sub.pts[0].heading }, ...scenery.paint],
