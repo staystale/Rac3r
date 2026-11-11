@@ -68,6 +68,7 @@ export interface ConeCar {
   x: number; y: number; vx: number; vy: number; heading: number; yawRate: number;
   spec: { len: number; wid: number; mass: number; lf: number; lr: number; trackWidth?: number;
     rideH?: number };   // rideH: its ground clearance, m (cars.ts)
+  crossing?: number;   // the bridge / tunnel it is on (world/crossings.ts), -1 on the ground
   streamers?: Streamer[] | null;   // (null: reset)
   burstTyre?: number; burstSlow?: boolean;   // damage.ts applyBurst: a tyre to burst, slowly
   wheelOff?: boolean[];

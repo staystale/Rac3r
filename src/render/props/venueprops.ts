@@ -3,7 +3,7 @@
 // mouth, a lintel over it) and a PARKED CAR in the car parks. Drawn in the props' frame: x along
 // the prop's rot, metres times ppm.
 import { COL } from '../../world/colours.ts';
-import { PORTAL_LINTEL_M, PORTAL_WALL_M, VENUE_DECK } from '../../world/crossinggeo.ts';
+import { PORTAL_LINTEL_M, PORTAL_WALL_M, VENUE_DECK, rampsOf } from '../../world/crossinggeo.ts';
 import type { Prop } from '../../world/types.ts';
 import type { PropCtx } from './types.ts';
 
@@ -60,10 +60,28 @@ export function drawParkedCar(propCtx: PropCtx, prop: Prop, ppm: number) {
 }
 
 // a venue road bridge (world/crossinggeo.ts VENUE_DECK: the solids and the drivable deck read
-// them): m of the road on the deck, the edge beams, the footway; how far each ramp runs out
-// beyond its end, in how many steps down, and its retaining walls' thickness
+// them): m of the road on the deck, the edge beams, the footway; a ramp's steps down, and its
+// retaining walls' thickness
 const DECK_ROAD_M = VENUE_DECK.road, BEAM_M = VENUE_DECK.beam, FOOTWAY_M = VENUE_DECK.footway,
-  RAMP_M = 9, RAMP_STEPS = 12, RAMP_WALL_M = VENUE_DECK.rampWall;
+  RAMP_STEPS = 12, RAMP_WALL_M = VENUE_DECK.rampWall;
+/** A drivable bridge's concrete: walls and abutments, their lit tops, the deck, its two beams'
+ * edges, the footway. */
+interface Concrete { wall: string; wallTop: string; deck: string; lit: string; shade: string;
+  footway: string }
+// the venues' grey; Deaf Valley's sun-bleached sand (pal 'desert': owner 11-11, its bridges "to
+// match the Death Valley asthetic")
+const CONCRETE: Record<string, Concrete> = {
+  plain: { wall: '#a9a7a0', wallTop: '#c9c6bd', deck: '#b5b2aa', lit: '#d8d5cd',
+    shade: '#7c7a74', footway: '#c4c1b9' },
+  desert: { wall: '#b39d7e', wallTop: '#d3c2a2', deck: '#c2ad8c', lit: '#e2d4b6',
+    shade: '#8a7458', footway: '#cdb998' },
+};
+/**
+ * A bridge's concrete.
+ * @param prop the bridge
+ * @returns its colours
+ */
+const concreteOf = (prop: Prop): Concrete => CONCRETE[prop.pal === 'desert' ? 'desert' : 'plain'];
 // m: an abutment's depth along the road and its wing walls' reach out past the deck
 const ABUTMENT_M = VENUE_DECK.abutment, WING_M = VENUE_DECK.wing;
 
@@ -74,13 +92,14 @@ const ABUTMENT_M = VENUE_DECK.abutment, WING_M = VENUE_DECK.wing;
  * @param top the deck's -y edge, m
  * @param deck the deck's width, m
  * @param road the road's -y edge, m
+ * @param look its concrete
  */
 function drawAbutments(paint: (x: number, y: number, width: number, height: number,
-  col: string) => void, half: number, top: number, deck: number, road: number) {
+  col: string) => void, half: number, top: number, deck: number, road: number, look: Concrete) {
   for (const end of [-1, 1]) {
     const x = end < 0 ? -half - ABUTMENT_M : half;
-    paint(x, top - WING_M * 0.5, ABUTMENT_M, deck + WING_M, '#a9a7a0');
-    paint(x, top - WING_M * 0.5, ABUTMENT_M, 0.3, '#c9c6bd');
+    paint(x, top - WING_M * 0.5, ABUTMENT_M, deck + WING_M, look.wall);
+    paint(x, top - WING_M * 0.5, ABUTMENT_M, 0.3, look.wallTop);
     paint(x, road, ABUTMENT_M, DECK_ROAD_M, COL.tarmac);
   }
 }
@@ -107,14 +126,14 @@ export function drawVenueBridge(propCtx: PropCtx, prop: Prop, ppm: number, part:
     ctx.fillStyle = col;
     ctx.fillRect(x * ppm, y * ppm, width * ppm, height * ppm);
   };
-  const road = top + BEAM_M + FOOTWAY_M, [rampNeg, rampPos] = prop.appL || [RAMP_M, RAMP_M];
+  const road = top + BEAM_M + FOOTWAY_M, [rampNeg, rampPos] = rampsOf(prop);
   const lines = (from: number, till: number) => {
     for (const lineY of [road + 0.35, road + DECK_ROAD_M - 0.5])
       paint(from, lineY, till - from, 0.15, 'rgba(245,245,240,0.75)');
   };
   if (part === 'base') {
     drawRamps(ctx, paint, prop, ppm, half, road);
-    drawAbutments(paint, half, top, deck, road);
+    drawAbutments(paint, half, top, deck, road, concreteOf(prop));
     // the edge lines up both ramps and over the abutments, to the deck's ends
     lines(-half - ABUTMENT_M - rampNeg, -half);
     lines(half, half + ABUTMENT_M + rampPos);
@@ -124,10 +143,11 @@ export function drawVenueBridge(propCtx: PropCtx, prop: Prop, ppm: number, part:
   ctx.fillStyle = 'rgba(10,12,16,0.38)';
   ctx.fillRect((-half + 1.2) * ppm, (top + 1.8) * ppm, 2 * half * ppm, deck * ppm);
   // the deck: edge beams, the road with its edge lines, the footway, the joints at its ends
-  paint(-half, top, 2 * half, deck, '#b5b2aa');
-  paint(-half, top, 2 * half, 0.25, '#d8d5cd');
-  paint(-half, top + deck - 0.25, 2 * half, 0.25, '#7c7a74');
-  paint(-half, top + BEAM_M, 2 * half, FOOTWAY_M, '#c4c1b9');
+  const look = concreteOf(prop);
+  paint(-half, top, 2 * half, deck, look.deck);
+  paint(-half, top, 2 * half, 0.25, look.lit);
+  paint(-half, top + deck - 0.25, 2 * half, 0.25, look.shade);
+  paint(-half, top + BEAM_M, 2 * half, FOOTWAY_M, look.footway);
   paint(-half, road, 2 * half, DECK_ROAD_M, COL.tarmac);
   // the edge lines over the deck
   lines(-half, half);
@@ -150,7 +170,7 @@ function drawRamps(ctx: CanvasRenderingContext2D, paint: Paint, prop: Prop, ppm:
   const steps = RAMP_STEPS;
   for (const end of [-1, 1]) {
     // each end's ramp as long as its approach needs (world/venuescenery.ts sets appL)
-    const ramp = (prop.appL && prop.appL[end < 0 ? 0 : 1]) ?? RAMP_M;
+    const ramp = rampsOf(prop)[end < 0 ? 0 : 1];
     const from = end < 0 ? -half - ABUTMENT_M - ramp : half + ABUTMENT_M;
     paint(from, road, ramp, DECK_ROAD_M, COL.tarmac);
     for (let step = 0; step < steps; step++) {
@@ -160,7 +180,7 @@ function drawRamps(ctx: CanvasRenderingContext2D, paint: Paint, prop: Prop, ppm:
       // (the shadow also shortens toward the ground: an even slope)
       const reach = 0.6 * (1 - step / steps) + 0.1;
       for (const wallY of [road - RAMP_WALL_M, road + DECK_ROAD_M]) {
-        paint(near, wallY, ramp / steps, RAMP_WALL_M, '#a9a7a0');
+        paint(near, wallY, ramp / steps, RAMP_WALL_M, concreteOf(prop).wall);
         ctx.fillStyle = `rgba(10,12,16,${shade.toFixed(2)})`;
         ctx.fillRect(near * ppm, (wallY + RAMP_WALL_M) * ppm, (ramp / steps) * ppm, reach * ppm);
       }

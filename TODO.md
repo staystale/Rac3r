@@ -207,6 +207,23 @@ ROUND 3, THE OTHER HIGHWAYS:
     there, as the countryside's have them (lamps still only in a reservation). MEASURED
     (_desertroads.mjs, 10 km): twisty 2 exits, 2 road bridges, 3 LAST GASP stations; the first
     stations come at ~2.8 km and the first bridge at 4.5-6.5 km (only on open ground).
+12c. THE HIGHWAY'S BRIDGES AND TUNNELS WORK (owner 11-11: "Those bridges look trash make sure they
+    work too like all bridges and tunnels should"; chose: exits lead up to them, real traffic over
+    them, rail bridges drivable, road tunnels too), in rounds:
+    R1 road bridges drivable - BUILT 11-11 behind ?drivebridges=1 (highway/bridgeways.ts, extras.ts,
+       cuts.ts): the venue bridge (world/crossings.ts, render/props/venueprops.ts - ramps, deck,
+       walls, its look; Deaf Valley's in sand concrete, CONCRETE pal 'desert'); its approach roads
+       lined up with the deck's road; the crossings in slots kept as the road streams (a dropped
+       bridge's slot goes to the next). A car on a deck counts as on a lane (no BACK TO THE ROAD)
+       and not as going the wrong way; loose objects (litter, cones) meet only cars on the ground
+       (cones/coneStep.ts - a car on a deck stopped on the verge's litter below it). The painted
+       cars over road bridges are gone with it (R3 brings real ones). MEASURED (tools/crossingcheck
+       .mjs highway [road] [scenery]): countryside motorway 2 bridges, Deaf Valley motorway and
+       twisty, countryside twisty - on / off both ways, the walls hold, none on from the side, a
+       car beneath stays on the ground: all OK; Brands' 3 still OK. In the game (_bridgeshot.mjs):
+       up the ramp, over, off the far end at 108 km/h; photos day, both sizes, both sceneries.
+    R2 exits lead up to them (a junction); R3 real traffic over them; R4 rail bridges drivable, the
+       train can hit you; R5 road tunnels under the motorway.
 ROUND 4, POLICE ON THE HIGHWAYS (a design to agree first): waiting in lay-bys and petrol stations,
     cruising as traffic either side; they chase you / try to crash into you after: speeding past a
     speed camera nearby (that raises the chance they come; otherwise random), crashing, flashing

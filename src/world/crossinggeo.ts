@@ -19,6 +19,16 @@ export const VENUE_DECK = { road: 7, beam: 0.7, footway: 1.4, abutment: 1.6, win
 export const DECK_ROAD_LO = -(VENUE_DECK.road + 2 * VENUE_DECK.beam + VENUE_DECK.footway) / 2
   + VENUE_DECK.beam + VENUE_DECK.footway;
 export const DECK_ROAD_HI = DECK_ROAD_LO + VENUE_DECK.road;
+/**
+ * A drivable bridge's ramp lengths, m: a venue's appL (its ramps are its approaches), a highway
+ * bridge's rampL (its approaches run on past them).
+ * @param prop the bridge
+ * @param prop.appL its approaches' lengths
+ * @param prop.rampL its ramps' lengths, when they differ
+ * @returns [the -x end's, the +x end's]
+ */
+export const rampsOf = (prop: { appL?: number[]; rampL?: number[] }): number[] =>
+  prop.rampL || prop.appL || [9, 9];
 // a tunnel portal, m: its side walls' thickness, the lintel's depth over the mouth
 export const PORTAL_WALL_M = 0.6, PORTAL_LINTEL_M = 1;
 

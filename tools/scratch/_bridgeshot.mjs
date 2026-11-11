@@ -1,29 +1,88 @@
-// _bridgeshot.mjs - phone shots of Brands Snatch's bridges (?bhbridges=1): the car parked just
-// before each, the camera on it. node tools/scratch/_bridgeshot.mjs <level>
-import { startServer, launchBrowser } from '../lib/browser.mjs';
-const level = process.argv[2] || 'brands-snatch';
-const srv = await startServer();
+// _bridgeshot.mjs - THE ENDLESS ROAD'S DRIVABLE BRIDGES (?drivebridges=1) in the real game: the
+// autopilot drives the road (ROAD, SCENERY) until a drivable bridge has loaded ahead, a photo as it
+// passes under it, then the car is set on the bridge's approach and driven over by its own physics
+// (the autopilot off), a photo on the deck and one past it; the crossing the car was on at each.
+// [ROAD=motorway] [SCENERY=countryside] [VIEW=390x844] [Q=] node tools/scratch/_bridgeshot.mjs
+import { startServer, launchBrowser, gotoGame } from '../lib/browser.mjs';
+const [width, height] = (process.env.VIEW || '390x844').split('x').map(Number);
+const ROAD = process.env.ROAD || 'motorway', SCENERY = process.env.SCENERY || 'countryside';
+const tag = `${SCENERY}-${ROAD}-${width}x${height}`;
+const server = await startServer();
 const browser = await launchBrowser();
 try {
-  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
-  const page = await ctx.newPage(); const errs = [];
-  page.on('pageerror', (e) => errs.push(e.message));
-  await page.goto(srv.url + `/?touch=1&guide=0&menu=0&rules=0&level=${level}${process.env.Q || ""}`);
-  await page.waitForFunction(() => window.__game && window.__game.launch, null, { timeout: 60000 });
-  await page.evaluate((lv) => window.__game.launch(lv, 'hatch-fwd', { ai: 0 }), level);
-  await page.waitForTimeout(1500); await page.mouse.click(195, 422); await page.waitForTimeout(800);
-  const n = await page.evaluate(() => window.__game.level.props.filter((p) => p.kind === 'footbridge' || p.kind === 'bridge').length);
-  for (let i = 0; i < n; i++) {
-    const kind = await page.evaluate((k) => {
-      const game = window.__game, b = game.level.props.filter((p) => p.kind === 'footbridge' || p.kind === 'bridge')[k];
-      const head = b.rot - Math.PI / 2;
-      Object.assign(game.car, { x: b.x - Math.cos(head) * 14, y: b.y - Math.sin(head) * 14, heading: head, vx: 0, vy: 0, yawRate: 0 });
-      game.input.update = () => ({ steer: 0, throttle: 0, brake: 1, handbrake: 0, reverse: 0, shiftUp: false, shiftDown: false });
-      return b.kind + (b.label ? ' ' + b.label : '');
-    }, i);
-    await page.waitForTimeout(1800);
-    await page.screenshot({ path: `tools/scratch/_bridge-${level}-${i}.png` });
-    console.log(i, kind);
+  const page = await browser.newPage({ viewport: { width, height } });
+  const errors = [];
+  page.on('pageerror', (err) => errors.push(err.message));
+  await gotoGame(page, `${server.url}/?pc=1&guide=0&menu=0&rules=0&noaudio=1&autopilot=1`
+    + `&drivebridges=1&desertroads=1${process.env.Q || ''}`);
+  await page.mouse.click(width / 2, height / 2);
+  await page.waitForTimeout(800);
+  await page.evaluate(([road, scenery]) => window.__game.launch('highway', 'hatch-rwd',
+    { ai: 0, road, scenery, traffic: 0 }), [ROAD, SCENERY]);
+  // drive on until a drivable bridge is within 260 m ahead (still ahead once photographed)
+  let way = null;
+  for (let waited = 0; waited < 240 && !way; waited += 0.5) {
+    way = await page.evaluate(() => {
+      const game = window.__game, car = game.car;
+      for (const [index, item] of (game.level.crossings || []).entries()) {
+        if (!item.length) continue;
+        const midX = item.ax + item.dirX * item.length / 2, midY = item.ay + item.dirY
+          * item.length / 2, gap = Math.hypot(midX - car.x, midY - car.y);
+        const ahead = (midX - car.x) * car.vx + (midY - car.y) * car.vy > 0;
+        if (gap < 260 && ahead) return { index, ...item, walls: undefined };
+      }
+      return null;
+    });
+    if (!way) await page.waitForTimeout(500);
   }
-  console.log(errs.join('; ') || 'no errors');
-} finally { await browser.close(); srv.stop(); }
+  if (!way) throw new Error('no drivable bridge reached');
+  await page.waitForTimeout(400);
+  await page.screenshot({ path: `tools/scratch/_bridge-under-${tag}.png` });
+  // on its approach, 20 m out from end A, heading along it at 8 m/s; the autopilot off
+  const result = await page.evaluate((item) => {
+    const game = window.__game, car = game.car, mid = (item.minAcross + item.maxAcross) / 2;
+    game.setAutopilot(false);
+    car.x = item.ax - item.dirX * 20 - item.dirY * mid;
+    car.y = item.ay - item.dirY * 20 + item.dirX * mid;
+    car.heading = Math.atan2(item.dirY, item.dirX);
+    car.vx = item.dirX * 8;
+    car.vy = item.dirY * 8;
+    car.crossing = -1;
+    // (straight: no turn left from the autopilot)
+    car.yawRate = 0;
+    car.delta = 0;
+    car.crossX = car.x;
+    car.crossY = car.y;
+    return { x: car.x, y: car.y };
+  }, way);
+  // the throttle held (W) the whole way over
+  await page.keyboard.down('KeyW');
+  // (PROBE=1: the car each 100 ms - along / across the way, speed, what it hit)
+  if (process.env.PROBE) for (let tick = 0; tick < 60; tick++) {
+    const row = await page.evaluate((item) => {
+      const car = window.__game.car, along = (car.x - item.ax) * item.dirX + (car.y - item.ay)
+        * item.dirY, across = (car.y - item.ay) * item.dirX - (car.x - item.ax) * item.dirY;
+      const hit = car._hitKind || '';
+      car._hitKind = null;
+      return `${along.toFixed(1)} ${across.toFixed(2)} ${(Math.hypot(car.vx, car.vy) * 3.6)
+        .toFixed(0)} km/h on ${car.crossing} ${hit}`;
+    }, way);
+    console.log(row);
+    await page.waitForTimeout(100);
+  }
+  const seen = [];
+  for (const wait of [2600, 3200]) {
+    await page.waitForTimeout(wait);
+    seen.push(await page.evaluate(() => {
+      const car = window.__game.car;
+      return { crossing: car.crossing, kmh: Math.round(Math.hypot(car.vx, car.vy) * 3.6) };
+    }));
+    await page.screenshot({ path: `tools/scratch/_bridge-${seen.length === 1 ? 'deck' : 'past'}-${tag}.png` });
+  }
+  console.log(`${tag}: bridge ${way.index} ${way.length.toFixed(1)} m, set at`
+    + ` ${JSON.stringify(result)}; on the deck ${JSON.stringify(seen[0])}, past it`
+    + ` ${JSON.stringify(seen[1])}; errors ${errors.length ? errors.join(' | ') : 'none'}`);
+} finally {
+  await browser.close();
+  server.stop();
+}

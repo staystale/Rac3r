@@ -83,6 +83,8 @@ export interface HwState {
   seed: number;
   /** (?desertroads=1) Deaf Valley's extras: only on open ground, no rivers or side roads */
   desert?: boolean;
+  /** (?drivebridges=1) the drivable bridge in each LEVEL.crossings slot (highway/bridgeways.ts) */
+  wayOwners?: (Prop | null)[];
   rnd: () => number; grnd: () => number; lrnd: () => number; xrnd: () => number;
   frnd: () => number;   // the random streams: dressing, road shape, loose, extras, fields
   geo: HwGeo;
@@ -127,7 +129,7 @@ export type Bridge = Prop & {
 export interface Stamp { (obj: Prop): Prop; (obj: Bump): Bump }
 
 /** The player's car as the highway reads it. */
-export interface HwCar { x: number; y: number; vx: number; vy: number }
+export interface HwCar { x: number; y: number; vx: number; vy: number; crossing?: number }
 
 /** The dressing context of one stretch of road (dress.ts makeDressContext). */
 export interface DressCtx {

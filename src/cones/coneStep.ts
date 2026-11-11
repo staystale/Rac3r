@@ -207,6 +207,9 @@ function hitRestingObjects(ctx: ConesCtx, cars: ConeCar[], newTyres: Loose[]) {
   }
 }
 
+// the cars stepCones meets objects with this step (reused)
+const GROUND_CARS: ConeCar[] = [];
+
 /**
  * step(car | [cars], dt): objects integrate ONCE per step, then are tested against every car.
  * @param ctx the cones context
@@ -215,8 +218,12 @@ function hitRestingObjects(ctx: ConesCtx, cars: ConeCar[], newTyres: Loose[]) {
  */
 export function stepCones(ctx: ConesCtx, carOrCars: ConeCar | ConeCar[], dt: number) {
   ctx.clock += dt;   // sim time: distinct-impact counting (chevrons / flags)
-  if (ctx.sections.length) stepTape(ctx, Array.isArray(carOrCars) ? carOrCars : [carOrCars]);
-  const cars = Array.isArray(carOrCars) ? carOrCars : [carOrCars];
+  // the cars on the ground only: one over a bridge (or in a tunnel) never meets what lies on the
+  // ground beneath it (world/crossings.ts) - into a reused list, no allocation a step
+  const given = Array.isArray(carOrCars) ? carOrCars : [carOrCars], cars = GROUND_CARS;
+  cars.length = 0;
+  for (const car of given) if ((car.crossing ?? -1) < 0) cars.push(car);
+  if (ctx.sections.length) stepTape(ctx, cars);
   const newTyres: Loose[] = [];
 
   for (const obj of ctx.list) stepObject(ctx, obj, cars, dt, newTyres);

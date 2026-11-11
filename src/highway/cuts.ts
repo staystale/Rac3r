@@ -1,6 +1,7 @@
 // highway cuts: slip road / bridge / river bookkeeping (keep-out rects, cut-short polylines, the
 // secret side road, approaches, river covers). Split out of highway.ts.
 import { SURFACES } from "../world/surfaces.ts";
+import { DECK_ROAD_HI, DECK_ROAD_LO } from "../world/crossinggeo.ts";
 import { adoptRoadCovers } from "../world/puddles.ts";
 import { STEP } from "./presets.ts";
 import { ease } from "./road.ts";
@@ -185,11 +186,15 @@ export function approaches(level: HwLevel, bridge: Bridge, dist: number) {
     { x: bridge.x, y: bridge.y, ax: axisX, ay: axisY, hu: half + 4 + APP_LEN, hv: width / 2 + 4 },
     dist
   );
+  // (a drivable bridge's road is off its centre line - the footway on one side: its approaches
+  // line up with it - world/crossinggeo.ts)
+  const shift = bridge.look === 'venue' ? (DECK_ROAD_LO + DECK_ROAD_HI) / 2 : 0;
   [-1, 1].forEach((sign, sideIdx) => {
     const pts: Point[] = [];
     for (let along = 0; along <= APP_LEN + 1e-6; along += APP_STEP) {
       const offset = sign * (half + 3 + along);
-      pts.push([bridge.x + axisX * offset, bridge.y + axisY * offset]);
+      pts.push([bridge.x + axisX * offset - axisY * shift, bridge.y + axisY * offset
+        + axisX * shift]);
     }
     const lane: Lane = { pts, width: width, surface, _s: dist };
     level.lanes.push(lane);

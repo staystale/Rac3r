@@ -185,6 +185,7 @@ export interface Prop {
   roadHw?: number;   // highway.ts river bridges
   skew?: number;   // highway.ts river bridges
   appL?: number[];   // highway.ts bridges: the approach lengths [0 | 1]
+  rampL?: number[];   // a drivable highway bridge's ramps, when its approaches run on past them
   appW?: number;   // highway.ts bridges: the approaches' width
   type?: string;   // highway.ts slips: 'short', 'long' or 'side'
   ww?: number;   // highway.ts river bridges: the river's width

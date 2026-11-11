@@ -66,6 +66,11 @@ export const FIX = {
   // desert's look (timber trestles, sand concrete); a central reservation's street lights
   // (highway/dress.ts, extras.ts, render/props/bridges.ts)
   desertroads: atLoad('desertroads'),
+  // ?drivebridges=1: the endless roads' road bridges drivable as the venues' are (owner 11-11:
+  // "make sure they work too like all bridges and tunnels should"): the venue bridge - ramps up
+  // from its approach roads, the deck, its walls, its look (sand concrete in Deaf Valley) - and
+  // the crossings kept as the road streams (highway/bridgeways.ts, extras.ts)
+  drivebridges: atLoad('drivebridges'),
   // ?desertmore=1: Deaf Valley's junk from the same LITTER slider as every endless road, as much
   // of it (the shared litter, desert kinds: highway/litter.ts), its own heaps, shacks and skulls
   // scaled by the slider too and nearer the road; and the cactus in PATCHES, with more single ones

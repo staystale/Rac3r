@@ -11,7 +11,7 @@
 import { barrierClamp, clampToBarriers, prepBarriers, solidClamp } from "./barriers.ts";
 import { dragTangled } from "./armcodent.ts";
 import {
-  DECK_ROAD_HI, DECK_ROAD_LO, PORTAL_LINTEL_M, VENUE_DECK, acrossOf, alongOf, crossingOf,
+  DECK_ROAD_HI, DECK_ROAD_LO, PORTAL_LINTEL_M, VENUE_DECK, acrossOf, alongOf, crossingOf, rampsOf,
 } from "./crossinggeo.ts";
 import { LEVEL } from "./state.ts";
 import { fenceClamp, obstacleClamp } from "./obstacles.ts";
@@ -112,13 +112,14 @@ function makeCrossing(kind: Crossing['kind'], start: Point, end: Point, sides: P
 }
 
 /**
- * A venue road bridge's crossing: from one ramp's foot to the other's, the deck's road between.
+ * A drivable road bridge's crossing (a venue's, a highway's): from one ramp's foot to the other's,
+ * the deck's road between.
  * @param prop the bridge (rot along its road, wid its span, appL its ramps)
  * @returns the crossing
  */
-function bridgeCrossing(prop: Prop): Crossing {
+export function bridgeCrossing(prop: Prop): Crossing {
   const dirX = Math.cos(prop.rot || 0), dirY = Math.sin(prop.rot || 0);
-  const half = (prop.wid || 30) / 2 + VENUE_DECK.abutment, [rampA, rampB] = prop.appL!;
+  const half = (prop.wid || 30) / 2 + VENUE_DECK.abutment, [rampA, rampB] = rampsOf(prop);
   return makeCrossing('bridge', [prop.x - dirX * (half + rampA), prop.y - dirY * (half + rampA)],
     [prop.x + dirX * (half + rampB), prop.y + dirY * (half + rampB)],
     [DECK_ROAD_LO, DECK_ROAD_HI], 0);

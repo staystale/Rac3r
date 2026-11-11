@@ -66,6 +66,14 @@ export function noteDeckCell(cell: WearCell, x: number): void {
  */
 export const deckCellsOf = (index: number): WearCell[] => deckCells[index] || [];
 
+/**
+ * Forgets one crossing's cells as drawn (its slot given to another bridge: highway/bridgeways.ts).
+ * @param index its LEVEL.crossings index
+ */
+export function clearDeckCellsOf(index: number): void {
+  deckCells[index] = [];
+}
+
 /** Forgets every crossing's cells (the wear map cleared: world/wear.ts clearWear). */
 export function clearDeckCells(): void {
   deckCells = [];

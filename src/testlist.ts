@@ -13,6 +13,14 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'drivebridges',
+    added: '2026-11-11',
+    name: 'Highway road bridges you can drive over (the venue bridge); sand concrete in the desert',
+    where: 'Test link + &drivebridges=1: Highway to Hull, any road, COUNTRYSIDE or DEAF VALLEY',
+    try: 'Leave the road at a bridge, drive along its road up the ramp, over the motorway, off.',
+    wrong: 'Stuck or thrown off on it, hitting things below, BACK TO THE ROAD / WRONG WAY on it.',
+  },
+  {
     id: 'desertroads',
     added: '2026-11-11',
     name: 'Deaf Valley motorways as the others: exits, bridges, services, reservation lamps',

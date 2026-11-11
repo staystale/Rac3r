@@ -18,7 +18,7 @@ import {
 } from "../physics/openwheel.ts";
 import { CORNER_OF_WHEEL } from "./wheels.ts";
 import {
-  DECK_ROAD_HI, DECK_ROAD_LO, PORTAL_LINTEL_M, PORTAL_WALL_M, VENUE_DECK,
+  DECK_ROAD_HI, DECK_ROAD_LO, PORTAL_LINTEL_M, PORTAL_WALL_M, VENUE_DECK, rampsOf,
 } from "./crossinggeo.ts";
 import {
   applyRailHit, dents, isTornAfter, railBounce, railContact, railScrape, straightenRails,
@@ -256,7 +256,8 @@ function addRampSolids(box: (offX: number, offY: number, width: number, height: 
   prop: Prop): void {
   const half = (prop.wid || 30) / 2, { abutment, wing, road, rampWall } = VENUE_DECK;
   const deck = road + 2 * VENUE_DECK.beam + VENUE_DECK.footway;
-  for (const [end, ramp] of [[-1, prop.appL![0]], [1, prop.appL![1]]]) {
+  const [rampNeg, rampPos] = rampsOf(prop);
+  for (const [end, ramp] of [[-1, rampNeg], [1, rampPos]]) {
     box(end * (half + abutment / 2), 0, abutment, deck + wing);
     const rampMid = end * (half + abutment + ramp / 2);
     box(rampMid, DECK_ROAD_LO - rampWall / 2, ramp, rampWall);

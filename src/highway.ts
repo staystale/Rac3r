@@ -38,6 +38,7 @@ import { dress } from "./highway/dress.ts";
 import { desertGround, REACH, resetStreamed, pruneStreamed } from "./highway/gorge.ts";
 import type { HwState, HwLevel, HwCar, HwCfg, HwPoint } from './highway/hwtypes.ts';
 import { FIX } from './core/fixes.ts';
+import { syncBridgeways } from './highway/bridgeways.ts';
 import type { RoadLoc } from './highway/road.ts';
 import type { Level } from './world/types.ts';
 export { HW_PRESETS, HW_SCENERY, HW_ROADS } from "./highway/presets.ts";
@@ -87,11 +88,15 @@ function rebuild(level: HwLevel) {
   const propSolids = solidsFromProps(level.props);
   level.solids.length = 0;
   level.solids.push(...propSolids);
+  // (?drivebridges=1) the road bridges' crossings, in step with the props loaded
+  if (FIX.drivebridges) syncBridgeways(level);
 }
 // first window (also RESTART: the same seed builds the same motorway, so cached ground tiles stay
 // right)
 export function resetHighway(level: HwLevel) {
   const rand = rng(level.seed);
+  // (?drivebridges=1: a fresh road's bridges take fresh slots - highway/bridgeways.ts)
+  if (FIX.drivebridges) level.crossings = [];
   level._hw = {
     seed: level.seed,
     rnd: rand,
@@ -264,7 +269,8 @@ export function speedCamera(level: HwLevel, car: HwCar) {
  * @returns whether the car must be reset for going the wrong way
  */
 function checkWrongWay(state: HwState, loc: RoadLoc, car: HwCar, dt: number) {
-  const vAlong = car.vx * loc.dx + car.vy * loc.dy;
+  // (a car over a bridge goes across the road, not back along it: ?drivebridges=1)
+  const vAlong = (car.crossing ?? -1) >= 0 ? 0 : car.vx * loc.dx + car.vy * loc.dy;
   state.backT = vAlong < -BACK_V ? state.backT + dt : 0;
   return state.backT > BACK_T || loc.s < state.best - BACK_M;
 }
@@ -298,7 +304,9 @@ function measureOffRoad(level: HwLevel, state: HwState, loc: RoadLoc, car: HwCar
   // (?hwstations=1: a lay-by's tarmac too - a station's forecourt)
   const out = side ? 0 : Math.abs(loc.off) - state.geo.hw - (FIX.hwstations ? bayOut(level, loc.s,
     loc.off < 0 ? -1 : 1) : 0);
-  const onLane = out > OFF_SOFT && zoneSurfaceAt(car.x, car.y).id === 'tarmac';
+  // (a bridge's deck as a lane: ?drivebridges=1 - world/crossings.ts)
+  const onLane = out > OFF_SOFT && ((car.crossing ?? -1) >= 0
+    || zoneSurfaceAt(car.x, car.y).id === 'tarmac');
   return { out, onLane };
 }
 

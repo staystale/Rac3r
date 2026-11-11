@@ -15,6 +15,9 @@ import { stretchAt } from './desertplan.ts';
 
 // (?hwstations=1) a SERVICES (highway/stations.ts): m between them, the least and the most; the
 // first one's road distance; m the side road runs beside the motorway past it
+// (?drivebridges=1) a drivable road bridge's ramps up from its approach roads, m (the venues'
+// longest: a 2.5 m rise over the crossing stays gentle - world/crossings.ts RISE_SHARE)
+const RAMP_M = 14;
 // (?desertroads=1) Deaf Valley: open ground (no rock wall, no gorge) this far back and ahead of an
 // extra, m - the signs before it, a long slip's bend, the services' side road and yard after it;
 // and the step the check walks, m
@@ -313,6 +316,10 @@ function buildBridge(level: HwLevel, i: number, dist: number, pointAt: (i: numbe
     roadHw: halfWidth + 1.2 + wallOff,
     // (Deaf Valley: sun-bleached road bridges, timber rail trestles - render/props/bridges.ts)
     ...(state.desert ? { look: 'desert' } : {}),
+    // (?drivebridges=1: a road bridge the venues' drivable one - world/crossings.ts - its ramps
+    // up from its approaches; Deaf Valley's in sand concrete)
+    ...(FIX.drivebridges && kind === 'road' ? { look: 'venue', rampL: [RAMP_M, RAMP_M],
+      ...(state.desert ? { pal: 'desert' } : {}) } : {}),
   }) as Bridge;
   // CHEEKY EXTRAS, rare (each ~1 in 6 of its bridge type)
   const extra = rand() < 1 / 6;

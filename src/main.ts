@@ -237,6 +237,10 @@ window.__game.launch = (levelId: string, car: string, opts?: LaunchOpts) =>
 window.__game.crossedJoker = (prevX: number, prevY: number, x: number, y: number) => (LEVEL.joker
   ? crossedJoker(LEVEL.joker, prevX, prevY, x, y) : null);
 window.__game.selectLevel = selectLevel;
+// (tools/scratch/_bridgeshot.mjs: the autopilot to a spot, then the car's own physics)
+window.__game.setAutopilot = (isOn: boolean) => {
+  shared.settings.autopilot = isOn;
+};
 window.__game.paintThumbsNow = paintThumbsNow;   // (tools/thumbs.mjs)
 Object.defineProperty(window.__game, 'level', { get: () => LEVEL });
 window.__game.renderer = shared.renderer;

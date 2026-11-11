@@ -5,14 +5,50 @@
 // be stopped by the walls, never come on), and one is driven along the track under each crossing
 // (it must stay on the ground).
 // CROSSINGS=1 node tools/crossingcheck.mjs <level>        (built 11-08)
+// node tools/crossingcheck.mjs highway [road] [scenery]  - the endless road (?drivebridges=1): the
+//   autopilot drives on until a drivable bridge has loaded, then each loaded one is checked
 import { makeCar, step, reset, PHYSICS_STEP_SECONDS } from '../src/vehicle.ts';
 import * as L from '../src/lab.ts';
 import { clampWorld } from '../src/world/crossings.ts';
 import { alongOf, acrossOf } from '../src/world/crossinggeo.ts';
+import { FIX } from '../src/core/fixes.ts';
+import * as highway from '../src/highway.ts';
+import { createAutoDriver } from '../src/ai/autodrive.ts';
+import { solidClamp } from '../src/world/barriers.ts';
 
 const levelId = process.argv[2] || 'brands-snatch';
-L.setLevel(levelId);
+if (levelId === 'highway') loadHighwayBridges(process.argv[3] || 'motorway', process.argv[4]
+  || 'countryside');
+else L.setLevel(levelId);
 const ways = L.LEVEL.crossings || [];
+
+/**
+ * The endless road with drivable bridges, driven by the autopilot until two have loaded.
+ * @param road the road type
+ * @param scenery its scenery
+ */
+function loadHighwayBridges(road, scenery) {
+  FIX.drivebridges = true;
+  // (Deaf Valley's need its roads' extras)
+  FIX.desertroads = true;
+  highway.addHighwayLevel();
+  L.setLevel('highway');
+  const level = L.LEVEL;
+  highway.setHighwayPreset(level, road, scenery);
+  highway.resetHighway(level);
+  const car = makeCar('hatch-rwd');
+  reset(car, level.spawn.x, level.spawn.y, level.spawn.heading);
+  let sub = level.subtrack, driver = createAutoDriver(sub);
+  const real = () => (level.crossings || []).filter((way) => way.length > 0).length;
+  for (let time = 0; time < 600 && real() < 2; time += PHYSICS_STEP_SECONDS) {
+    if (level.subtrack !== sub) { sub = level.subtrack; driver = createAutoDriver(sub); }
+    L.applyGround(car, PHYSICS_STEP_SECONDS);
+    step(car, driver.drive(car, PHYSICS_STEP_SECONDS), PHYSICS_STEP_SECONDS);
+    solidClamp(car);
+    highway.stepHighway(level, car, L.querySubtrack(sub, car.x, car.y).trackDist);
+  }
+  console.log(`highway ${road} ${scenery}: driven ${Math.round(level._hw.driven || 0)} m`);
+}
 console.log(`${levelId}: ${ways.length} crossings`);
 if (!ways.length) process.exit(1);
 
@@ -54,6 +90,8 @@ const holdLine = (way, sign, offset, speed) => (car) => {
 const START_OUT_M = 8;
 let bad = 0;
 ways.forEach((way, index) => {
+  // (an empty slot of the endless road's: highway/bridgeways.ts)
+  if (!way.length) return;
   const mid = (way.minAcross + way.maxAcross) / 2;
   for (const sign of [1, -1]) {
     const startAlong = sign > 0 ? -START_OUT_M : way.length + START_OUT_M;
