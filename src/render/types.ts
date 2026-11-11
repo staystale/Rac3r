@@ -193,7 +193,8 @@ export interface CarSprite {
 export type RenderCarSpec =
   Pick<Spec, 'id' | 'paint' | 'trim' | 'kind' | 'lf' | 'lr' | 'len' | 'wid'>
   // num: the livery
-  & Partial<Pick<Spec, 'num' | 'trackWidth' | 'wheelR' | 'rideH' | 'rim' | 'third' | 'drive'>>
+  & Partial<Pick<Spec, 'num' | 'trackWidth' | 'wheelR' | 'rideH' | 'rim' | 'third' | 'drive'
+    | 'police'>>
   & { noWing?: boolean };   // its rear wing / spoiler knocked off (render/carparts.ts)
 
 // What the car layers read of a CAR (vehicle.ts Car + what damage.ts / roll.ts / the render

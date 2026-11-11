@@ -6,6 +6,27 @@ import { trainAt } from '../../world/trains.ts';
 import { worldSeconds } from '../../world/worldclock.ts';
 import { FIX } from '../../core/fixes.ts';
 
+/**
+ * A rail bridge's train clock, s: the world's sim clock (?railbridges=1: a car on the deck meets
+ * the train it sees), else the wall clock; the bridge's own phase added (world/trains.ts trainAt).
+ * @param prop the bridge
+ * @returns s
+ */
+export const trainClock = (prop: Prop): number => (FIX.railbridges ? worldSeconds()
+  : performance.now() / 1000) + (prop.phase || 0);
+
+/**
+ * The ends of a bridge's track, m along it from its middle: [the -x end, the +x end] (its span, its
+ * abutments' 3 m, its approaches).
+ * @param prop the bridge (wid, appL)
+ * @returns [negEnd, posEnd]
+ */
+export function trackEnds(prop: Prop): [number, number] {
+  const half = (prop.wid || 30) / 2;
+  return [half + 3 + ((prop.appL && prop.appL[0]) ?? 0),
+    half + 3 + ((prop.appL && prop.appL[1]) ?? 0)];
+}
+
 /** A bridge look's paint: abutments, deck, its lit and shaded parapets, a road deck's tarmac. */
 interface BridgeLook { abutment: string; deck: string; railDeck: string; lit: string;
   shade: string; tarmac: string; cars: string[] }
@@ -284,11 +305,7 @@ export function drawBridge(propCtx: PropCtx, prop: Prop, ppm: number) {
     drawRiverBoat(prop, half, paint);
     return;
   }
-  const negEnd = half + 3 + ((prop.appL && prop.appL[0]) ?? 0),
-    posEnd = half + 3 + ((prop.appL && prop.appL[1]) ?? 0),
-    trackLen = negEnd + posEnd,
-    // (?railbridges=1: the world's sim clock - a car on the deck meets the train it sees)
-    clock = (FIX.railbridges ? worldSeconds() : performance.now() / 1000) + (prop.phase || 0);
+  const [negEnd, posEnd] = trackEnds(prop), trackLen = negEnd + posEnd, clock = trainClock(prop);
   // a mover at distance d along [-a0, a1] (wrapping), drawn by f(x)
   const along = (speed: number, slot: number, gap: number, draw: (x: number) => void) =>
     // v < 0 runs -x by itself

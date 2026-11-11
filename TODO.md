@@ -63,9 +63,22 @@ build's full record (what was built, every number) is in `TODO-DONE.md` under it
   alongside at the lights, a lap ending early or late, Armco across a portal, a gap in the fence,
   a tyre or board on the road. Next: a start line on the rival's lane too.
 
+- POLICE LIVERY (in ?police=1; owner 11-11 "police liveries / hi-vis strips ... like real cars";
+  render/carsprite.ts paintPolice): the Battenberg check (blue / fluorescent yellow) down both
+  flanks and across the bonnet's and boot's edges, a hi-vis strip, a white roof with a roof number
+  (the digits ~3 px on a phone: a number panel, not readable), the light bar ahead of it.
+- TRAINLIGHTS (`?trainlights=1`; owner 11-11 "Do trains have lights at night?"; render/eventglows.ts
+  trainLights): at night a rail bridge's train throws a headlight pool ~16 m up the track, its
+  windows lit warm (strong: WINDOW in eventglows.ts); Deaf Valley's freight a headlight and a dim
+  cab. WRONG: no lights, lights off the train, lights by day.
+- TUNNEL LIGHT (a fix, no switch; owner 11-11 "tunnels still show lights thru the edges"; render/
+  light.ts clipToCut): a car in a tunnel lights only its own cut - no light on the portal walls,
+  lintel, slats or the ground over it (Brands, Moanaco photographed before / after); driving out its
+  beam still spreads ahead. Seen, not fixed: in a highway road tunnel (?roadtunnels=1) a car's beam
+  does not show at all (likely under the motorway's dark).
+
 ## 2. BEING BUILT
 
-- POLICE LIVERY (hi-vis Battenberg), TRAIN LIGHTS AT NIGHT, the TUNNEL LIGHT LEAK fix (a worker).
 
 ## 3. OPEN, IN THE OWNER'S ORDER
 

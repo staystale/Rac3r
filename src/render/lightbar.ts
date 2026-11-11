@@ -8,9 +8,9 @@ import type { CarSprite, RenderCar } from './types.ts';
 
 // ms each half of the bar is lit in turn (~3 flashes a second each side)
 const FLASH_MS = 160;
-// the bar's middle, m ahead of the car's centre (the roof's front), its length along the car and
-// its span across, m
-export const BAR_ALONG_M = 0.1, BAR_LONG_M = 0.28, BAR_SPAN_M = 1.2;
+// the bar's middle, m ahead of the car's centre (the roof's front, ahead of the roof number:
+// render/carsprite.ts paintPolice), its length along the car and its span across, m
+export const BAR_ALONG_M = 0.25, BAR_LONG_M = 0.28, BAR_SPAN_M = 1.2;
 
 /**
  * The side of the bar lit now (wall clock: a look): -1 the car's -y half, 1 its +y half.

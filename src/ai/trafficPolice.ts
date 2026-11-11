@@ -1,6 +1,7 @@
 // ai/trafficPolice.ts - POLICE ON THE HIGHWAYS (?police=1; TODO.md ROUND 4, the design agreed
-// 11-11): a police car is a traffic car (a TrafficCar slot) with a blue roof light bar and no
-// livery (render/lightbar.ts). Now and then a car put back is one (ai/trafficKinds.ts),
+// 11-11): a police car is a traffic car (a TrafficCar slot) in a UK police livery - the Battenberg
+// check, a roof number (render/carsprite.ts paintPolice) - with a blue roof light bar (render/
+// lightbar.ts). Now and then a car put back is one (ai/trafficKinds.ts),
 // either way - oftener while police are DUE (you went over 70 mph or set off a speed camera within
 // the last DUE_M of road: ai/policeHeat.ts) - and every PLACE_EVERY_M you drive there is a chance
 // of one of our way placed ahead, out of sight. Of our way's put back ahead WAIT_SHARE wait at the
@@ -46,6 +47,9 @@ const WAIT_SHARE = 0.5;
 // and their paint (a PAINTS row: white)
 const POLICE_CARS: [string, number][] = [['saloon-rwd', 1], ['estate-4x4', 1]];
 const POLICE_PAINT = 1;
+// the roof numbers a police car carries (render/carsprite.ts paints them; one sprite each, so a
+// short list)
+const ROOF_NUMBERS = [12, 17, 23, 31, 38, 44, 52, 67];
 // m ahead of where it is put back a waiting car looks for its place, every WAIT_STEP_M; m behind
 // it a station may be
 const WAIT_LOOK_M = 160, WAIT_STEP_M = 8, WAIT_BACK_M = 20;
@@ -126,15 +130,18 @@ export function policeShare(ctx: TrafficCtx): number {
 }
 
 /**
- * A police car: a model of POLICE_CARS, white, its aids as its spec, its light bar flag.
+ * A police car: a model of POLICE_CARS, white, in the police livery with a roof number, its aids
+ * as its spec, its light bar flag.
  * @param ctx the traffic
  * @returns the car (not placed)
  */
 function policeVehicle(ctx: TrafficCtx): TrafficVehicle {
   const ids = POLICE_CARS.filter(([candId]) => ROSTER.some((entry) => entry.id === candId));
   const [vehId] = pick(ctx, ids), [paint, trim] = PAINTS[POLICE_PAINT];
+  const roofNo = ROOF_NUMBERS[Math.floor(ctx.rnd() * ROOF_NUMBERS.length)];
   const car: TrafficVehicle = makeCar(vehId);
-  car.spec = { ...car.spec, id: vehId + '#p', paint, trim };
+  // (its livery: the Battenberg check and the roof number - render/carsprite.ts paintPolice)
+  car.spec = { ...car.spec, id: vehId + '#p' + roofNo, paint, trim, police: roofNo };
   car.traffic = true;
   car.police = true;
   car.absOn = !!(car.spec.aids && car.spec.aids.abs);

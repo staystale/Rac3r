@@ -24,6 +24,22 @@ export const TEST_LIST: TestEntry[] = [
       + ' portal or across the underpass, a gap in the fence, a tyre or board on the road.',
   },
   {
+    id: 'tunnellight',
+    added: '2026-11-11',
+    name: 'Tunnels at night: a car in a tunnel lights only its own cut (a fix, no switch)',
+    where: 'Test link + &night=0.9: the Brands Snatch tunnel, Moanaco, &roadtunnels=1 Highway',
+    try: 'Drive into a tunnel and out again at night; watch the portal walls and the slats.',
+    wrong: 'Light on the walls, lintel, slats or ground beside it; no light ahead leaving it.',
+  },
+  {
+    id: 'trainlights',
+    added: '2026-11-11',
+    name: 'Trains lit at night: a headlight up the track, lit windows (a freight: its dim cab)',
+    where: 'Test link + &trainlights=1&night=0.9: Highway to Hull (rail bridges; Deaf Valley)',
+    try: 'Wait by a rail bridge at night for a train to cross.',
+    wrong: 'No lights, lights off the train or the track, lights by day, a lit train in a tunnel.',
+  },
+  {
     id: 'stadeprance',
     added: '2026-11-11',
     name: 'Stade de Prance: the Race of Champions track in Paris, two lanes and a crossover',
@@ -34,7 +50,7 @@ export const TEST_LIST: TestEntry[] = [
   {
     id: 'police',
     added: '2026-11-11',
-    name: 'Police on the highways: heat stars, chases, BUSTED (no siren sound yet)',
+    name: 'Police on the highways: livery, heat stars, chases, BUSTED (no siren sound yet)',
     where: 'Test link + &police=1: Highway to Hull, any road (traffic on)',
     try: 'Speed past a camera or a police car, or swerve / flash by one; lose them, or stop.',
     wrong: 'Stars for nothing, no chase, chasers stuck or flying, unfair BUSTED, never escaping.',
