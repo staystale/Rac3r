@@ -1,4 +1,6 @@
 // Colour language (CLAUDE.md §4: never pick a colour ad hoc).
+// an event's pennants and flags, in turn (a grandstand's roof ridge; a stadium's flag row)
+export const PENNANTS = ['#ef4444', '#3b82f6', '#eab308', '#22c55e'];
 export const COL = {
   floor: '#f2f2f4',
   floorWarm: '#ececed',

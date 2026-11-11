@@ -127,13 +127,17 @@ export interface VenueSpec {
   mixFences?: boolean;
   // landmarks the map does not carry (a prop kind at its real spot, size m across, scaled with the
   // map): where the sources show them - a long one len m along, turned rot (Moanaco's yachts)
-  landmarks?: { at: Point; kind: string; size: number; len?: number; rot?: number }[];
+  // (a flag its colour)
+  landmarks?: { at: Point; kind: string; size: number; len?: number; rot?: number; col?: string }[];
   // light aircraft parked on the airfield's grass stands (data.aero stands), one a colour
   planes?: string[];
   // an oval's: races start rolling; each layout's banking (world/terrain.ts camberTable: sections
   // by lap metre); the concrete wall round the named layout's outside, gapM past its edge
   rollingStart?: boolean;
   camber?: Record<string, Camber>;
+  // a Race of Champions stadium's start: the cars side by side on the path's two halves, each
+  // timed from its own line (Level.splitStart)
+  splitStart?: boolean;
   ovalWall?: { layout: string; gapM: number; kind: Barrier['kind'] };
   // a rallycross layout's START LANE: its pieces in driving order from the dead end of the start
   // straight to where it meets the lap (the grid stands on it, off the lap; ai/line.ts startLane)
@@ -597,6 +601,7 @@ export function venueLevel(spec: VenueSpec, layout: string, levelId: string,
       scenery.bounds.y1)),
     camber: spec.camber?.[layout] || { maxDeg: 3, refR: 70, crown: 0.02, edge: 6, sections: [] },
     ...(spec.rollingStart ? { rollingStart: true } : {}),
+    ...(spec.splitStart ? { splitStart: true } : {}),
     ...(scenery.patches.length ? { patches: scenery.patches } : {}),
     zones: scenery.zones, covers: scenery.covers, bumps: prepBumps(venueBumps(build)), boards: [],
     // (a closing row's tyre on another road - a pit lane easing in by the junction - left out;

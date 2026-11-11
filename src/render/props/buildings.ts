@@ -1,6 +1,7 @@
 // The pit-lane buildings and trackside structures: garage rows, grandstand, official box,
 // gantry, pit wall and pylon.
 import { LEVEL } from '../../world/state.ts';
+import { PENNANTS } from '../../world/colours.ts';
 import { lampOfProp, lampsLit } from '../../world/lamps.ts';
 import type { Point, Prop } from '../../world/types.ts';
 import type { PropCtx } from './types.ts';
@@ -172,11 +173,10 @@ export function drawGrandstand(propCtx: PropCtx, prop: Prop, ppm: number) {
   }
   view.ctx.stroke();
   // Fluttering pennant flags along the roof ridge
-  const flagColors = ['#ef4444', '#3b82f6', '#eab308', '#22c55e'];
   for (let flagX = -standW / 2 + 6 * ppm; flagX <= standW / 2 - 6 * ppm; flagX += 10 * ppm) {
     view.ctx.fillStyle = '#222';
     view.ctx.fillRect(flagX - 1, -standH / 2 - 8, 2, 7);
-    view.ctx.fillStyle = flagColors[Math.abs(Math.floor(flagX)) % flagColors.length];
+    view.ctx.fillStyle = PENNANTS[Math.abs(Math.floor(flagX)) % PENNANTS.length];
     view.ctx.beginPath();
     view.ctx.moveTo(flagX + 1, -standH / 2 - 8);
     view.ctx.lineTo(flagX + 7, -standH / 2 - 5);

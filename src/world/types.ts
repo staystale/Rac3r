@@ -506,6 +506,10 @@ export interface Level {
   venue?: string;
   coneCount?: boolean;   // show the knocked-cone tally (a cone course)
   rollingStart?: boolean;   // races start rolling (the ovals)
+  // a SPLIT START (the Race of Champions' stadiums: one path crossing itself, two lanes side by
+  // side): the cars on the path's two halves, each timed over its laps from its own line
+  // (game/grid.ts splitLineDist)
+  splitStart?: boolean;
   snowy?: boolean;   // a snow-themed stage (weather only): its theme biases the weather
   seams?: boolean;
   randomise?: () => void;   // the Grass Track: new random patches every load

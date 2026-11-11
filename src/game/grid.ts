@@ -15,6 +15,7 @@ import { onTrack, querySubtrack } from "../world/tyrewall.ts";
 import { START_STEP, ROLL_BACK } from './order.ts';
 import { shared, game } from './state.ts';
 import type { GameCar } from './state.ts';
+import type { Subtrack } from '../world/types.ts';
 
 // AI CARS — stage 1 (user: up to 5 opponents, FULL CONTACT, the SAME car as the player
 // in different colours + numbers). Each is { car, drv }: a real car stepped by the same physics on
@@ -44,6 +45,8 @@ const aiPaintParts = (slot: number) => ({
 
 export function drawGridSlot(count: number) {
   if (!count) return 0;
+  // (a split start: you on the start line's half, your rival alongside on the other)
+  if (LEVEL.splitStart) return 0;
   // (the menu race: any slot, even odds)
   if (shared.mode === 'menu') return Math.floor(Math.random() * (count + 1));
   const weights = [];
@@ -67,6 +70,7 @@ export const STAGE_GAP_S = 30, STAGE_GAP_M = 9;
 export function gridPos(slot: number) {
   // the highway: 2 wide in the right-hand lanes (highwayrace.js)
   if (LEVEL.endless) return hwGrid(hwLevel(), slot);
+  if (LEVEL.splitStart) return splitGridPos(slot);
   const sub = LEVEL.subtrack!, spawn = LEVEL.spawn,
     offLap = querySubtrack(sub, spawn.x, spawn.y).dist > sub.width / 2;
   if (LEVEL.stage && slot > 0) {
@@ -96,6 +100,58 @@ export function gridPos(slot: number) {
   const spawnDist = querySubtrack(sub, spawn.x, spawn.y).trackDist,
     dist = (((spawnDist - backDist) % sub.totalDist) + sub.totalDist) % sub.totalDist;
   const point = onTrack(sub, dist, side, {});
+  return { x: point.x, y: point.y, h: point.rot };
+}
+// THE SPLIT START (Level.splitStart, the Race of Champions' stadiums, owner 11-11: "cars on
+// separate track halves and timed, 1 full lap"): the path crosses itself, its two lanes side by
+// side, so the line alongside the start line lies on the path's other half. Slots alternate
+// halves - pole (yours) on the start line's, slot 1 alongside on the other, then each half's grid
+// back from its own line; each car counts its laps from its line (GameCar._origin), so a lap is
+// the same whole path for every car and the race is on time.
+// the share of a lap on from the start line the other line is looked for in (the half's middle)
+const SPLIT_FROM = 0.3, SPLIT_TO = 0.7;
+const splitLines = new WeakMap<Subtrack, number>();
+/**
+ * The split start's other line: the point of the path's other half nearest the start line - the
+ * lane alongside it.
+ * @param sub the race road
+ * @returns its road m
+ */
+export function splitLineDist(sub: Subtrack): number {
+  const known = splitLines.get(sub);
+  if (known !== undefined) return known;
+  const line = onTrack(sub, 0, 0, {});
+  let best = sub.totalDist / 2, bestGap = Infinity;
+  for (let dist = SPLIT_FROM * sub.totalDist; dist <= SPLIT_TO * sub.totalDist; dist += 1) {
+    const point = onTrack(sub, dist, 0, {}), gap = Math.hypot(point.x - line.x, point.y - line.y);
+    if (gap < bestGap) {
+      best = dist;
+      bestGap = gap;
+    }
+  }
+  splitLines.set(sub, best);
+  return best;
+}
+/**
+ * A split start's car's own line: the start line's (0) for even slots, the other half's for odd.
+ * @param slot the grid slot
+ * @returns its road m
+ */
+export function splitOrigin(slot: number): number {
+  return slot % 2 ? splitLineDist(LEVEL.subtrack!) : 0;
+}
+/**
+ * A split start's grid slot: its half's grid, back from its own line as far as the spawn is back
+ * from the start line, a staggered row per two slots.
+ * @param slot the grid slot
+ * @returns the position and heading
+ */
+function splitGridPos(slot: number) {
+  const sub = LEVEL.subtrack!, spawn = LEVEL.spawn, row = Math.floor(slot / 2);
+  const spawnDist = querySubtrack(sub, spawn.x, spawn.y).trackDist;
+  const dist = splitOrigin(slot) + spawnDist - row * GRID_STEP;
+  const point = onTrack(sub, ((dist % sub.totalDist) + sub.totalDist) % sub.totalDist,
+    gridColumn(row), {});
   return { x: point.x, y: point.y, h: point.rot };
 }
 // GRID_STEP: one slot back (so the same column is 2 x apart: 14 m nose to nose, ~9.5 m clear);
@@ -197,6 +253,7 @@ export function spawnAI(count: number = shared.aiCount) {
       const pos = gridPos(slot);
       reset(car, pos.x, pos.y, pos.h);
       car._slot = slot;
+      car._origin = LEVEL.splitStart ? splitOrigin(slot) : undefined;
       if (slot === 0) game.poleCar = car;
     }
     game.ai.push({ car, drv, stuckT: 0, inGate: false });

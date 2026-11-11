@@ -109,7 +109,9 @@ export function progressOf(car: GameCar) {
   queriesAt(was);
   if (car._prog === undefined) {
     if (near.dist > sub.width / 2 + 2) return undefined;   // not on the lap yet
-    car._prog = along > total / 2 ? along - total : along;
+    // (from the car's own line: a split start's other half counts its laps from its own)
+    const fromLine = (((along - (car._origin || 0)) % total) + total) % total;
+    car._prog = fromLine > total / 2 ? fromLine - total : fromLine;
     car._lastQ = along;
     return car._prog;
   }
