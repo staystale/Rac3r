@@ -50,12 +50,21 @@ build's full record (what was built, every number) is in `TODO-DONE.md` under it
 - STADEPRANCE (`?stadeprance=1`; TEST MODE > RALLYCROSS). Stade de Prance, the ROC track in Paris
   (2004-06), from the same generator (tools/scratch/_rocdata.mjs): 966 m, an oval bowl with a roof
   ring, gravel on both lanes' west hairpin. WRONG: as Wobbly.
+- THE STADIUMS REWORKED 11-11 (both switches; owner: "a bit bland", "soften up the track layout",
+  "the starting format is wrong", "tunnel cuts thru an Armco", "tunnels and edges misaligned"):
+  the ROC START (Level.splitStart: you and the rival side by side on the two lanes, each timed
+  over 1 full lap from its own line, the podium on time; TEST MODE defaults 1 rival, 1 lap, both
+  adjustable); every corner its own (radius, leaning sides, a kink or double apex; Wobbly 772 m,
+  Stade de Prance 951 m); ~900 tyre stacks a level, 15 boards, flags; the crossover's portals
+  along the road (world/venuecross.ts, as Moanaco's bent tunnel - Snoozuka moved 0.03 m) and the
+  parapets' Armco stopped at the portals (Snoozuka's too). MEASURED (_rocrace.mjs): the cars 20 m
+  apart at the lights, each timed over one lap (Wobbly 45-46 s, Stade de Prance 56-58 s); sealing
+  0 escapes; crossingcheck OK on Snoozuka, Brands, Moanaco, both stadiums. WRONG: the rival not
+  alongside at the lights, a lap ending early or late, Armco across a portal, a gap in the fence,
+  a tyre or board on the road. Next: a start line on the rival's lane too.
 
 ## 2. BEING BUILT
 
-- THE STADIUMS' REWORK (the venue helper; Wobbly Stadium and Stade de Prance): decor, softer and
-  unique corners, the tunnel / Armco fixes, and the ROC START FORMAT - two cars on separate halves
-  of the track, timed, 1 lap; the laps and the AI count optional in test mode.
 - POLICE LIVERY (hi-vis Battenberg), TRAIN LIGHTS AT NIGHT, the TUNNEL LIGHT LEAK fix (a worker).
 
 ## 3. OPEN, IN THE OWNER'S ORDER
