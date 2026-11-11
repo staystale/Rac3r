@@ -722,6 +722,18 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   assets/thumbs (shipped: src/menu/thumbfiles.ts; tools/thumbcheck.mjs, in the suite, fails on a
   level without one). The menu no longer paints them itself (11-10: the first TEST MODE tap after an
   update froze 37-49 s on the laptop painting all of them).
+- CI IS FREE BUT QUEUED (owner 11-11: "note that in any handover"): the repo is public, so GitHub
+  Actions minutes cost nothing, but a free account runs ~20 jobs at once and EVERY push to any
+  branch starts ~10 (verify, checks, 8 renderhash shards). On 11-11, 93 runs in a day with three
+  workers pushing: the suite took ~1 h queued instead of ~15 min. So: push a foreman branch only
+  when the work is ready for main; stack several workers' commits on one branch and run CI once
+  (cherry-pick, resolve the FIX / testlist / TODO joins); cancel the runs of superseded branches
+  (`gh run cancel <id>`); a commit that changes only .md files needs `verify` alone. When the
+  runners cannot install the browser ("Temporary failure resolving ... ubuntu.com" in the log -
+  GitHub's outage, not our code), run the same steps on the laptop: a base worktree of main for
+  `worldhash --highway 20 save` + `simhash save`, then `runall --skip renderhash,simhash,worldhash,
+  verify`, `simhash`, `worldhash --highway 20` on the branch (~20 min; one heavy browser run at a
+  time; the laptop can run out of memory - watch it) - or re-run the failed jobs later.
 - To main: commit, `git push origin HEAD:refs/heads/foreman/<name>`, wait for EVERY check-run - `verify`,
   `checks` (the suite: menucheck, barriercheck ...) and the 8 renderhash shards (GitHub API
   `repos/staystale/Rac3r/commits/<sha>/check-runs`; 11-10: `verify` alone passed a commit whose
