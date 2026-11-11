@@ -56,6 +56,9 @@ function bustPlayer(stars: number) {
   const heat = game.traffic.police().heat;
   if (heat) clearHeat(heat);
   game.heat = { stars: 0, siren: false };
+  // (the card is the news: a notice from before the reset - BACK TO THE ROAD, pushed off it -
+  // would stay up 2.2 s over the reset car)
+  game.notice = null;
   doReset();
 }
 

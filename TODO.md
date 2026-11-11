@@ -330,7 +330,12 @@ ROUND 4, POLICE ON THE HIGHWAYS (a design to agree first): waiting in lay-bys an
        BUSTED: a chaser within 1 m (box to box) while you are under 2 m/s for 3 s -> the BUSTED
        card (landscape centred under the buttons, portrait under the top-right column), a fine
        $500 / 1000 / 2000 shown "TEST MODE: NOT CHARGED", every police car gone, the heat cleared,
-       a normal reset (doReset: mended, our hard shoulder / a lay-by - behind you, as the R key).
+       a normal reset (doReset: mended, our hard shoulder / a lay-by - behind you, as the R key);
+       the notice line cleared, and (with the switch) every reset clears the off-road guard's
+       memory (highway.ts rehome: its time, warning, exit taken, last distance out, speed back
+       in). MEASURED (tools/scratch/_policebust.mjs, a bust 12 m off the road): before, BACK TO
+       THE ROAD 10 shown in 20 of 30 samples over the 3 s after the reset (a stale notice - the
+       guard's own warning was already clear); after, 0 of 30.
        A police car too damaged (or rolled) for 2 s is gone. NO SIREN SOUND (pending the owner).
        MEASURED (tools/scratch/_police.mjs; scenarios on the countryside motorway, seed 4242):
        camera at 140 km/h -> 1 star, a chaser in sight at once, within 30 m 11.0 s later;

@@ -399,6 +399,18 @@ export function highwayRespawn(level: HwLevel) {
 }
 
 /**
+ * The off-road guard's memory cleared, as a new road starts it (stepOffCountdown).
+ * @param state the highway state
+ */
+function clearGuard(state: HwState) {
+  state.offT = 0;
+  state.warn = null;
+  state.tookExit = false;
+  state.outPrev = null;
+  state.inV = 0;
+}
+
+/**
  * The car put down elsewhere on the road (a reset): its road frame is looked for there, not where
  * it was.
  * @param level the highway level
@@ -407,6 +419,11 @@ export function highwayRespawn(level: HwLevel) {
 export function rehome(level: HwLevel, dist: number) {
   const state = stateOf(level);
   state.backT = 0;
+  // (?police=1: every reset starts the off-road guard afresh - a car put back from off the road
+  // kept its countdown's memory: its time, its warning, an exit taken, its last distance out and
+  // its speed back in; a BUSTED reset of a car the police had pushed off the road showed BACK TO
+  // THE ROAD after it)
+  if (FIX.police) clearGuard(state);
   // (the furthest point reached comes back to it: the wrong-way guard reads 30 m short of that
   // as gone back - MEASURED, ?laybys=1: a lay-by 140 m behind was reset WRONG WAY every step)
   state.best = Math.min(state.best, dist);
