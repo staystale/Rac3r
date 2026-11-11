@@ -33,7 +33,8 @@ export const TEST_LIST: TestEntry[] = [
     added: '2026-11-10',
     name: 'Deaf Valley junk + cactus by the LITTER slider; its own kinds, the countryside its own',
     where: 'Test link + &desertmore=1: Highway to Hull > DEAF VALLEY (set the LITTER slider)',
-    try: 'LITTER 1, then OFF and 3: skulls, oil drums, bare tyres, wrecks, cactus - none to lots.',
+    try: 'LITTER 1, then OFF and 3: skulls, oil drums, bare tyres, wrecks, cactus - none to lots.'
+      + ' Cactus outnumbering the drums on the dunes and canyon floors; the rock walls bare.',
     wrong: 'Pallets, tarps or tyres with wheels in the desert; junk on the road or in a wall; lag.',
   },
   {

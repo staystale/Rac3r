@@ -3,6 +3,7 @@
 import { STEP } from "./presets.ts";
 import type { DressCtx } from './hwtypes.ts';
 import type { LevelObj } from '../cones/coneTypes.ts';
+import { insidePolygon } from '../world/zones.ts';
 // the roadside debris mix (weights by repetition: pallets / boxes / tarps are what really ends up
 // on a hard shoulder) + paint for bins, barrels, bumpers, tarps
 const DEBRIS_PICK = [
@@ -29,9 +30,12 @@ type AddLoose = (obj: LevelObj, dist: number) => LevelObj;
 // as we have now) ect / To be country side litter"): the same layers and chances, its kinds only
 // the desert's - a cone a skull or an oil drum, the roadside debris an oil drum, a bare tyre or a
 // skull, a tyre a bare one; no chevrons or cone tapers (road works); none where the ground is not
-// clear (a rock wall, a cactus)
-const DESERT_CONE = ['skull', 'skull', 'barrel', 'barrel'];
-const DESERT_DEBRIS = ['barrel', 'barrel', 'tyre', 'skull'];
+// clear (a cactus) or behind a rock wall's face. An oil drum one pick in four (MEASURED,
+// tools/scratch/_desertmix.mjs: at one in two drums outnumbered the cacti on the dunes)
+const DESERT_CONE = ['skull', 'skull', 'skull', 'barrel'];
+const DESERT_DEBRIS = ['barrel', 'tyre', 'tyre', 'skull'];
+// a rock wall this far along the road from a litter object can stand over it, m (a wall's piece)
+const ROCK_NEAR_M = 120;
 const DESERT_DRUM = ['#7a4a2a', '#3e5f7a', '#5c6339', '#8a3b22'];
 
 /**
@@ -48,6 +52,20 @@ function desertLitter(obj: LevelObj, rand: () => number): LevelObj | null {
   // (an oil drum takes its paint, not the debris colour)
   return { ...obj, col: undefined, kind, ...(kind === 'barrel' ? { paint: pick(DESERT_DRUM) } : {}),
     ...(kind === 'tyre' || kind === 'tyrestack' ? { bare: true } : {}) } as LevelObj;
+}
+/**
+ * Whether a spot is behind a rock wall's face (on the band the wall's look covers).
+ * @param barriers the level's barriers
+ * @param x world x, m
+ * @param y world y, m
+ * @param dist the spot's road distance, m
+ * @returns true when on a rock
+ */
+function isOnRock(barriers: DressCtx['level']['barriers'], x: number, y: number, dist: number) {
+  for (const bar of barriers)
+    if (bar.kind === 'rock' && bar.band && Math.abs((bar._s ?? 0) - dist) < ROCK_NEAR_M
+      && insidePolygon(bar.band, x, y)) return true;
+  return false;
 }
 /** What the litter layers share: their random stream, the adder, the density-scaled chance. */
 interface Loot { looseRand: () => number; addLoose: AddLoose; chance: (prob: number) => number;
@@ -219,7 +237,8 @@ export function layLooseRoadside(ctx: DressCtx) {
       addLoose = (obj: LevelObj, dist: number) => {
         // (the desert's kinds, where the ground is clear)
         const placed = desert ? desertLitter(obj, looseRand) : obj;
-        if (!placed || (desert && !ctx.clear(placed.x, placed.y, 0.8))) return obj;
+        if (!placed || (desert && (!ctx.clear(placed.x, placed.y, 0.8)
+          || isOnRock(level.barriers, placed.x, placed.y, dist)))) return obj;
         placed._s = dist;
         loose.push(placed);
         return placed;

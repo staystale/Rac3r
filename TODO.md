@@ -153,6 +153,12 @@ ROUND 2, DEAF VALLEY:
     tyres only (no pallets, tarps, boxes, crates); the countryside's as it was. Through the menu
     (tools/scratch/_littermenu.mjs): Deaf Valley OFF 0, 1.0x 164, 3.0x 399; the countryside 11 /
     102 / 198 (its litter worked; Deaf Valley's had no slider on the plain link).
+    Owner 11-11 ("too many barrels not enough cactus on certain floor types", the rock's edge "has
+    colour jutting thru the face - it should be one object"): the shared litter landed on the rock
+    walls' bands (MEASURED, tools/scratch/_desertmix.mjs, 6 km: 52 - 19 drums, 22 tyres, 11 skulls);
+    now none behind a face (0). Drums one pick in four (was one in two), the dunes the open
+    desert's patches too, a barrel cactus at a canyon wall's foot: canyon cacti 59 -> 122 (junk
+    85 -> 67), dunes 42 -> 86 (junk 68 -> 91), drums 228 -> 101 in all.
 ROUND 3, THE OTHER HIGHWAYS:
 11. Petrol stations on the other highway levels, reset spots too. BUILT 11-11 behind ?hwstations=1
     (highway/stations.ts, laybys.ts, extras.ts): on the dual carriageway (our side) and the single

@@ -252,13 +252,13 @@ function desertProps(ctx: DressCtx, i: number, side: number, from: number) {
  * @param from m off the centre line where the open ground starts
  */
 function moreCactus(ctx: DressCtx, i: number, side: number, from: number) {
-  const { rand } = ctx;
+  const { rand, road } = ctx;
   if (rand() < cactusOdds(ctx, PATCH_CHANCE)) {
     const middle = from + 4 + rand() * 40, count = PATCH_MIN + Math.floor(rand() * (PATCH_MAX
       - PATCH_MIN + 1));
     for (let plant = 0; plant < count; plant++)
-      cactus(ctx, i + Math.round((rand() - 0.5) * 4), side * (middle + (rand() - 0.5) * 2
-        * PATCH_R), rand() < 0.45);
+      cactus(ctx, Math.min(road.length - 1, Math.max(0, i + Math.round((rand() - 0.5) * 4))),
+        side * (middle + (rand() - 0.5) * 2 * PATCH_R), rand() < 0.45);
   }
   if (rand() < cactusOdds(ctx, FAR_CHANCE)) cactus(ctx, i, side * (from + 30 + rand() * 60), true);
 }
@@ -314,6 +314,9 @@ const cactusOdds = (ctx: DressCtx, prob: number): number => (FIX.desertmore
 // (?desertmore=1) a cactus patch's chance at a road point (each side, every other point), its
 // plants, its reach either way, m; a far single saguaro's chance
 const PATCH_CHANCE = 0.018, PATCH_MIN = 4, PATCH_MAX = 9, PATCH_R = 5, FAR_CHANCE = 0.12;
+
+// (?desertmore=1) a barrel cactus's chance at a canyon wall's foot, each side, every other point
+const FOOT_CHANCE = 0.25;
 
 // the desert's breeze: across the road one way or the other, BREEZE_M of road at
 // a time, BREEZE_MIN-BREEZE_MAX m/s, a little down the road with it
@@ -445,6 +448,9 @@ function dunesProps(ctx: DressCtx, i: number, side: number, from: number) {
   // (11-09, "in the sand dunes": three times the barrel cacti, saguaros too)
   if (rand() < cactusOdds(ctx, 0.12)) cactus(ctx, i, side * (from + rand() * 30), false);
   if (rand() < cactusOdds(ctx, 0.06)) cactus(ctx, i, side * (from + 4 + rand() * 30), true);
+  // (?desertmore=1: the open desert's patches and far singles too - MEASURED, _desertmix.mjs:
+  // junk outnumbered the cacti there)
+  if (FIX.desertmore) moreCactus(ctx, i, side, from);
   if (i % 4 === 0) junk(ctx, i, side, from, seed);
 }
 
@@ -572,6 +578,10 @@ function sideProps(ctx: DressCtx, i: number, side: number, kind: string) {
   else if (cut) { if (i % 4 === 0) desertProps(ctx, i, side, halfWidth + rimOf(cut) + 3); }
   else if (gap !== null) {
     rimProps(ctx, i, side, gap);
+    // (?desertmore=1: a barrel cactus now and then at the wall's foot - the canyon floor had
+    // fewer cacti than junk)
+    if (FIX.desertmore && ctx.rand() < cactusOdds(ctx, FOOT_CHANCE))
+      cactus(ctx, i, side * (ctx.halfWidth + gap * (0.5 + ctx.rand() * 0.4)), false);
     // (tumbleweed down the canyons too, from the foot of the wall)
     tumbleweed(ctx, i, side, side * (ctx.halfWidth + gap * 0.6), [0.04, 0]);
   }
