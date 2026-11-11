@@ -676,6 +676,12 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   of its length - 340 long turned slices over one harbour, overlapping: MEASURED 21.7 s from
   launch to the first frame (Yass Marina 5.0, Brands 1.5). world/puddles.ts mergedAreas marks one
   box round them where that is smaller: 3.3 s, the same pixels (renderhash).
+- A STADIUM TRACK IS BUILT AT FULL SIZE (11-11, Wobbly Stadium): at the venues' 13 m road two lanes
+  side by side need 20 m centre to centre (a barrier between: 2.5 m off each road's edge), so a
+  half-size Wembley (its pitch ~140 x 100 m) holds none; the ROC path is laid at its real ~800 m in
+  a bowl ~210 x 170 m (VenueSpec share 1, the data laid by hand: tools/scratch/_wobblydata.mjs).
+  Where four arms meet at a crossover the edge ends short of the portals: two abutment walls and
+  tidyEdge 'fences' seal it (_moseal.mjs: 0 escapes).
 - A STAND BESIDE A ROAD WATCHES ITS FAR SIDE TOO (11-11, Moanaco): the edge marks 30 m round a
   stand's corners as watched, so a stand by the swimming pool turned 26 m of the road's other side
   (beside the pit lane) to catch fence - a run shorter than MIN_RUN_PTS, dropped: a 19 m gap. The
