@@ -1,14 +1,13 @@
 // world/venueparks.ts - A PAVED VENUE'S GRASS (owner 11-11 on Moanaco: the parks "in their real
 // outlines"): the mapped parks, gardens, lawns and woods (VenueData.parks, written by
 // tools/osmvenue.mjs "parks") as outlined grass zones on a venue's paved ground. Each outline is
-// held PARK_CLEAR_M off every race road on the ground - a point nearer is moved out along the
+// held PARK_CLEAR_M off every race road (a tunnel's too) - a point nearer is moved out along the
 // road's normal to that line, so the park's edge follows the road there (an inset, not a shrunk
 // box) - and a park the road runs through (a hairpin across a garden), or one between two roads
 // with no room for it, is left out. Bushes grow
 // on them (world/bushplan.ts: grass only). Only a venue whose data carries parks has any.
 import { SURFACES } from "./surfaces.ts";
 import { centreAt, nearestLoop, resample } from "./venuegeo.ts";
-import { underground } from "./trackunder.ts";
 import { outlineZone } from "./venuetraps.ts";
 import { placeAll } from "./venuesite.ts";
 import { insidePolygon } from "./zones.ts";
@@ -37,29 +36,27 @@ function areaOf(pts: Point[]): number {
 }
 
 /**
- * A point held PARK_CLEAR_M off the nearest race road on the ground (its underground stretch, a
- * tunnel's covered road, is not in the way).
+ * A point held PARK_CLEAR_M off the nearest race road (a tunnel's too: its road is seen between
+ * its cover's slats).
  * @param site the venue's builders' state
  * @param point the point
  * @returns the point, or moved out along the road's normal
  */
 function holdOff(site: Site, point: Point): Point {
   const { sub, hit } = nearestLoop(site.loops, point[0], point[1]);
-  if (!(hit.dist < PARK_CLEAR_M) || underground(sub, hit.trackDist)) return point;
+  if (!(hit.dist < PARK_CLEAR_M)) return point;
   const centre = centreAt(sub, hit.trackDist), side = hit.side === 'left' ? 1 : -1;
   return [centre.x + centre.nx * side * PARK_CLEAR_M, centre.y + centre.ny * side * PARK_CLEAR_M];
 }
 
 /**
- * Whether a point keeps PARK_CLEAR_M (less a little: the held line itself) off every race road on
- * the ground.
+ * Whether a point keeps PARK_CLEAR_M (less a little: the held line itself) off every race road.
  * @param site the venue's builders' state
  * @param point the point
  * @returns true when it does
  */
 function isClear(site: Site, point: Point): boolean {
-  const { sub, hit } = nearestLoop(site.loops, point[0], point[1]);
-  return !(hit.dist < PARK_CLEAR_M - 0.5) || underground(sub, hit.trackDist);
+  return !(nearestLoop(site.loops, point[0], point[1]).hit.dist < PARK_CLEAR_M - 0.5);
 }
 
 /**
@@ -84,14 +81,14 @@ function withoutFolds(pts: Point[]): Point[] {
 }
 
 /**
- * Whether a race road runs through an outline (a point of its ground road inside it).
+ * Whether a race road runs through an outline (a point of it inside).
  * @param site the venue's builders' state
  * @param outline the outline
  * @returns true when one does
  */
 function crossedByRoad(site: Site, outline: Point[]): boolean {
-  return site.loops.some((sub) => sub.pts.some((point) => !underground(sub, point.dist)
-    && insidePolygon(outline, point.x, point.y)));
+  return site.loops.some((sub) => sub.pts.some((point) => insidePolygon(outline, point.x,
+    point.y)));
 }
 
 /**

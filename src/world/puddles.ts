@@ -104,6 +104,23 @@ function areaOf(shape: { x: number; y: number; w: number; h: number }): Area {
 }
 
 /**
+ * Dirty areas that overlap much as one: the box round them all where it is smaller than their sum
+ * (a harbour's water laid as hundreds of long turned slices - Moanaco's - each area the square of
+ * its length, overlapping: MEASURED 20 s masking the GPU field again and again at a race's start,
+ * the same squares; the ground repainted there is the same, only once).
+ * @param areas the areas
+ * @returns the areas, or the one round them
+ */
+function mergedAreas(areas: Area[]): Area[] {
+  if (areas.length < 2) return areas;
+  const union = { x0: Math.min(...areas.map((area) => area.x0)),
+    y0: Math.min(...areas.map((area) => area.y0)), x1: Math.max(...areas.map((area) => area.x1)),
+    y1: Math.max(...areas.map((area) => area.y1)) };
+  const size = (area: Area) => (area.x1 - area.x0) * (area.y1 - area.y0);
+  return size(union) < areas.reduce((sum, area) => sum + size(area), 0) ? [union] : areas;
+}
+
+/**
  * Whether a wear cell takes the cover over it now: water or ice the scenery laid follows it
  * (frozen, thawed); bare ground takes new ice; frozen mud keeps its own ice.
  * @param cell the wear cell
@@ -159,11 +176,9 @@ function resyncCells(area: Area): void {
  */
 function applyLooks(changed: Cover[]): void {
   LEVEL.covers = (LEVEL._staticCovers || []).map(staticLook);
-  for (const shape of changed) {
-    const area = areaOf(shape);
-    groundDirtyAreas.push(area);
-    resyncCells(area);
-  }
+  const areas = changed.map(areaOf);
+  groundDirtyAreas.push(...mergedAreas(areas));
+  for (const area of areas) resyncCells(area);
   // the AI's speed plan reads the ground's grip again (line.ts regripPath)
   if (changed.length) WEATHER.epoch++;
 }

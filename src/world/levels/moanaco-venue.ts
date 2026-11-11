@@ -450,12 +450,11 @@ export const MOANACO_SPEC: VenueSpec = {
   // the pit lane tarmac, as the real one (concrete on the concrete town it did not show)
   pitSurface: 'tarmac',
   railsSeen: MO_RAILS,
-  // the tyre wall inside the swimming pool's first chicane, where the pit lane comes up to the
-  // start straight (aerial photographs: the barrier between the pool's road and the pit exit; the
-  // edge's shared barrier between the two roads gives way to the pit lane there)
-  tyreWalls: [[[-311, 80], [-311, 90], [-310, 96], [-309, 107], [-306, 117], [-302, 124],
-    [-295, 133], [-287, 140], [-283, 143], [-278, 148], [-275, 153], [-274, 157], [-273, 165],
-    [-272, 174], [-271, 180], [-269, 189], [-268, 198]]],
+  // the barriers tidied (owner 11-11: "they look messy and cheap"): world/venuetidy.ts
+  tidyEdge: true,
+  // the hand finish (game m): a city block on Boulevard Albert 1er moved 3.6 m off its neighbour
+  // (our placing pushed the two onto each other)
+  finish: { move: [{ at: [-188, 20], by: [3, -2] }] },
   // THE TUNNEL (OSM: Boulevard Louis II, tunnel=yes, 356 m): from Portier under the hotels on the
   // shore, bending right 60 degrees down to the harbour - the race road's own underpass
   tunnel: { under: 'Tunnel' },

@@ -7,12 +7,6 @@ import type { Barrier, Point } from '../../world/types.ts';
 import type { PropCtx } from './types.ts';
 import { drawRockWall } from './desert.ts';
 
-// the level bases pale enough that Armco's bright face and grey shadow sink into them (the
-// concrete ground art #a9a7a0 against the face's #c9ccd3): a dark rim ARMCO_RIM_M wider than the
-// rail round it there (grass, tarmac and every other base: the rail as it always was)
-const PALE_BASES = new Set(['concrete']);
-const ARMCO_RIM = '#2b2e35', ARMCO_RIM_M = 0.5;
-
 /**
  * Draws the Armco fence round the runoff on each side of the arena.
  * @param propCtx the view, camera and painter helpers
@@ -220,14 +214,6 @@ function drawBarrierKind(propCtx: PropCtx, barrier: Barrier, half: number, ppm: 
     return;
   }
   if (barrier.kind === 'armco') {
-    // (on pale ground - a paved town's concrete - a dark rim round the rail, else its bright face
-    // and grey shadow sink into the ground: PALE_BASES)
-    if (PALE_BASES.has(LEVEL.base?.id || '')) {
-      path(barrier.pts);
-      view.ctx.strokeStyle = ARMCO_RIM;
-      view.ctx.lineWidth = Math.max(3, (2 * half + ARMCO_RIM_M) * ppm);
-      view.ctx.stroke();
-    }
     path(barrier.pts);
     view.ctx.strokeStyle = '#5d626d';
     view.ctx.lineWidth = Math.max(2, 2 * half * ppm);
