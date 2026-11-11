@@ -22,6 +22,8 @@ const STUB_M = 14, DOUBLE_M = 3, JOIN_M = 7, JOIN_ROAD_M = 9, JOIN_LANE_M = 1;
 const FOLD_COS = -0.6, FOLD_PTS = 3, FOLD_M = 30, FOLD_DOUBLE_M = 6;
 // points (about a metre apart) back from the joint a fold's end comes back beside
 const FOLD_BACK_PTS = 8;
+// a joined run's point its neighbours turn back on sharper than this (cos) is a spike
+const SPIKE_COS = -0.8;
 // the barrier kinds tidied (a catch fence, a pit wall or a building's outline are left as laid)
 const TIDIED = new Set<Barrier['kind']>(['armco', 'wall']);
 
@@ -179,12 +181,15 @@ function joinClear(from: Point, until: Point, sub: Subtrack, lanes: Lane[]): boo
  */
 function joinEnds(runs: Barrier[], sub: Subtrack, lanes: Lane[]): void {
   const ends = runs.flatMap((run) => [{ run, first: true }, { run, first: false }]);
+  // (the run carried on to meet the other: a tidied one - a fence keeps its own ends)
+  const ownsJoin = (one: number, two: number) => (TIDIED.has(ends[one].run.kind) ? [one, two]
+    : TIDIED.has(ends[two].run.kind) ? [two, one] : null);
   const endOf = (end: { run: Barrier; first: boolean }) =>
     (end.first ? end.run.pts[0] : end.run.pts[end.run.pts.length - 1]);
   const pairs: { gap: number; one: number; two: number }[] = [];
   for (let one = 0; one < ends.length; one++)
     for (let two = one + 1; two < ends.length; two++) {
-      if (ends[one].run === ends[two].run) continue;
+      if (ends[one].run === ends[two].run || !ownsJoin(one, two)) continue;
       const [oneX, oneY] = endOf(ends[one]), [twoX, twoY] = endOf(ends[two]);
       const gap = Math.hypot(twoX - oneX, twoY - oneY);
       if (gap > 0.01 && gap < JOIN_M) pairs.push({ gap, one, two });
@@ -195,9 +200,26 @@ function joinEnds(runs: Barrier[], sub: Subtrack, lanes: Lane[]): void {
     if (!joinClear(endOf(ends[one]), endOf(ends[two]), sub, lanes)) continue;
     used.add(one);
     used.add(two);
-    const end = ends[one], other = endOf(ends[two]);
+    const [own, met] = ownsJoin(one, two)!, end = ends[own], other = endOf(ends[met]);
     if (end.first) end.run.pts.unshift([other[0], other[1]]);
     else end.run.pts.push([other[0], other[1]]);
+  }
+}
+
+/**
+ * A line without its spikes: a point its neighbours turn back on (a flared end a join carried on
+ * past), and a point on the one before it, dropped until none is left.
+ * @param pts the line (changed)
+ */
+function despike(pts: Point[]): void {
+  for (let i = 1; i + 1 < pts.length; i++) {
+    const [prevX, prevY] = pts[i - 1], [x, y] = pts[i], [nextX, nextY] = pts[i + 1];
+    const inX = x - prevX, inY = y - prevY, outX = nextX - x, outY = nextY - y;
+    const lens = Math.hypot(inX, inY) * Math.hypot(outX, outY);
+    if (lens < 0.01 || (inX * outX + inY * outY) / lens < SPIKE_COS) {
+      pts.splice(i, 1);
+      i = Math.max(0, i - 2);
+    }
   }
 }
 
@@ -207,12 +229,17 @@ function joinEnds(runs: Barrier[], sub: Subtrack, lanes: Lane[]): void {
  * @param barriers the barriers as laid
  * @param sub the race road
  * @param lanes the lanes (a join keeps off them)
+ * @param joinFences an Armco end may be carried on to a catch fence's
  * @returns the barriers
  */
-export function tidyBarriers(barriers: Barrier[], sub: Subtrack, lanes: Lane[]): Barrier[] {
+export function tidyBarriers(barriers: Barrier[], sub: Subtrack, lanes: Lane[],
+  joinFences = false): Barrier[] {
   const tidied = withoutFolds(barriers.map((barrier) => (TIDIED.has(barrier.kind)
     ? { ...barrier, pts: withoutLoops(barrier.pts) } : barrier)));
   const kept = tidied.filter((barrier) => !TIDIED.has(barrier.kind) || !isStub(barrier, tidied));
-  joinEnds(kept.filter((barrier) => TIDIED.has(barrier.kind)), sub, lanes);
+  // (an Armco end carried on to a catch fence's too where the venue asks: a stadium's)
+  joinEnds(kept.filter((barrier) => TIDIED.has(barrier.kind)
+    || (joinFences && barrier.kind === 'catchfence')), sub, lanes);
+  for (const barrier of kept) if (TIDIED.has(barrier.kind)) despike(barrier.pts);
   return kept;
 }

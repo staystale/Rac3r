@@ -72,4 +72,8 @@ export const FIX = {
   // motorway between them - the venues' drivable tunnel (world/crossings.ts), its approach roads
   // as a bridge's (highway/extras.ts buildUnderpass, bridgeways.ts)
   roadtunnels: atLoad('roadtunnels'),
+  // ?wobbly=1: Wobbly Stadium, the Race of Champions' track at Wembley (2007-08) - two lanes
+  // interwoven round the bowl, one crossover bridge, so a car racing it covers both (TODO.md
+  // RALLYCROSS > NEW TRACKS; world/levels/wobbly-venue.ts)
+  wobbly: atLoad('wobbly'),
 };

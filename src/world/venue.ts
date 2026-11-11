@@ -161,8 +161,12 @@ export interface VenueSpec {
   // concrete, its parks laid as grass pads); grass when not given
   base?: keyof typeof SURFACES;
   // a street circuit's barriers tidied: loops cut out, stubs dropped, near ends joined
-  // (world/venuetidy.ts; Moanaco's)
-  tidyEdge?: boolean;
+  // (world/venuetidy.ts; Moanaco's) - 'fences': an Armco end joined to a catch fence's too (Wobbly)
+  tidyEdge?: boolean | 'fences';
+  // no bushes (a stadium's pitch: Wobbly Stadium)
+  bushless?: boolean;
+  // no kerbs (a track laid for a day on a stadium's pitch: Wobbly Stadium)
+  kerbless?: boolean;
   // the pit lane's surface where the venue's ground is concrete too (Moanaco's: tarmac); concrete
   // when not given
   pitSurface?: keyof typeof SURFACES;
@@ -262,8 +266,9 @@ function traceLayout(spec: VenueSpec, layout: string, scale: number): Subtrack {
     ...spec.trace?.[layout] });
   const loose = looseStretches(spec, layout, scale, pts);
   const sub = createSubtrack(pts, VENUE_ROAD_M, layoutSectors(loose), [], true);
-  // no kerbs on a loose stretch
-  sub.curvedKerbs = autoKerbs(sub, { maxR: 70, exitR: 30, heavyR: 22, minTurn: 20, mergeGap: 12 })
+  // no kerbs on a loose stretch (nor on a venue with none: spec.kerbless)
+  sub.curvedKerbs = spec.kerbless ? [] : autoKerbs(sub,
+    { maxR: 70, exitR: 30, heavyR: 22, minTurn: 20, mergeGap: 12 })
     .filter((kerb) => !loose.some((run) => kerb.startDist < run.to && kerb.endDist > run.from));
   return sub;
 }
@@ -599,10 +604,10 @@ export function venueLevel(spec: VenueSpec, layout: string, levelId: string,
     seams: false, cones: tidyLoose([...closed.cones.filter((tyre) => !scenery.lanes.some((lane) =>
       distToLine(lane.pts, tyre.x, tyre.y) < lane.width / 2)), ...scenery.cones],
     scenery.barriers, sub, scenery.covers),
-    bushes: CIRCUIT_BUSHES,
+    ...(spec.bushless ? {} : { bushes: CIRCUIT_BUSHES }),
     lanes: [...jokerLanes, ...scenery.lanes, ...closed.lanes],
     barriers: spec.tidyEdge ? tidyBarriers([...scenery.barriers, ...underParapets(sub)], sub,
-      [...jokerLanes, ...scenery.lanes, ...closed.lanes])
+      [...jokerLanes, ...scenery.lanes, ...closed.lanes], spec.tidyEdge === 'fences')
       : [...scenery.barriers, ...underParapets(sub)],
     props, solids: solidsFromProps(props), crossings: venueCrossings(props),
     paint: [{ kind: 'chequered', x: sub.pts[0].x, y: sub.pts[0].y, len: 1.6, wid: VENUE_ROAD_M,
