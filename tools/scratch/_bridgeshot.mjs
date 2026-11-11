@@ -17,8 +17,8 @@ try {
     + `&drivebridges=1&desertroads=1${process.env.Q || ''}`);
   await page.mouse.click(width / 2, height / 2);
   await page.waitForTimeout(800);
-  await page.evaluate(([road, scenery]) => window.__game.launch('highway', 'hatch-rwd',
-    { ai: 0, road, scenery, traffic: 0 }), [ROAD, SCENERY]);
+  await page.evaluate(([road, scenery, density]) => window.__game.launch('highway', 'hatch-rwd',
+    { ai: 0, road, scenery, traffic: density }), [ROAD, SCENERY, +(process.env.TRAFFIC || 0)]);
   // drive on until a drivable bridge is within 260 m ahead (still ahead once photographed)
   let way = null;
   for (let waited = 0; waited < 240 && !way; waited += 0.5) {

@@ -1,6 +1,8 @@
 // ai/trafficStep.ts: one physics step of the highway traffic: everyone in road coordinates,
 // recycling the cars that are out of view, the physics / kinematic choice, and driving each car.
 import { roadFrame, roadSpan } from "../highway.ts";
+import { FIX } from "../core/fixes.ts";
+import { stepBridgeCars } from "./trafficBridge.ts";
 import { rolling } from "../roll.ts";
 import type { AiCar, TrafficCar, TrafficEnt } from "./types.ts";
 import {
@@ -274,4 +276,6 @@ export function stepTraffic(ctx: TrafficCtx, dt: number, args: StepArgs) {
       changed = true;
     }
   if (changed) rebuildCars(ctx);
+  // (?bridgecars=1: the bridges' own cars)
+  if (FIX.bridgecars) stepBridgeCars(ctx, dt, args.player);
 }

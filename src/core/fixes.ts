@@ -57,4 +57,9 @@ export const FIX = {
   // junctions by the countryside's rules, the rock walls opened where they pass - only a gorge
   // keeps them off (highway.ts, extras.ts, junctions.ts, canyon.ts)
   roadparity: atLoad('roadparity'),
+  // ?bridgecars=1: real traffic cars over the endless road's road bridges (owner 11-11: "Real
+  // traffic cars"): each bridge's road a loop - up its left lane, over the deck, round a turning
+  // place and back - driven by the autopilot through the traffic's physics; asleep far from you
+  // (ai/trafficBridge.ts)
+  bridgecars: atLoad('bridgecars'),
 };

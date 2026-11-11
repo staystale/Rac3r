@@ -13,6 +13,14 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'bridgecars',
+    added: '2026-11-11',
+    name: 'Real traffic over the road bridges: two cars a bridge, round its road and back',
+    where: 'Test link + &bridgecars=1: Highway to Hull, any road (traffic on)',
+    try: 'Watch cars cross the bridges; drive onto one and meet them; hit one.',
+    wrong: 'Cars stuck, driving off the bridge road, flying, popping in close, or lag.',
+  },
+  {
     id: 'roadparity',
     added: '2026-11-11',
     name: 'Every highway alike: junctions on the walled road, Deaf Valley exits as the countryside',

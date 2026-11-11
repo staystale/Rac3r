@@ -271,7 +271,14 @@ ROUND 3, THE OTHER HIGHWAYS:
        walled, nothing on them; _junctiondrive.mjs (a careful driver: 6 m/s on rings and ramps -
        faster, the desert's sand beside the bridge road slides you into a ramp wall): 11 of 11 all
        38 points, 0 resets. Switch off: identical to the plain game.
-    R3 real traffic over them; R4 rail bridges drivable, the
+    R3 BRIDGE TRAFFIC - BUILT 11-11 behind ?bridgecars=1 (ai/trafficBridge.ts): two real traffic
+       cars a road bridge, a loop up its left lane, over the deck, round a turning place in the
+       country and back (round a junction's rings), the autopilot at the wheel through the
+       traffic's physics (trafficPhys.ts drivePhysics), asleep past 300 m; in the traffic's live
+       list (drawn, collided). MEASURED (tools/scratch/_bridgecars.mjs, 90 s by a bridge): 7 bridges
+       (plain, junctions, Deaf Valley, walled, dual, twisty) - each car over the deck 3 times,
+       17-47 km/h, never stuck, none rolled. Photographed one on the deck beside you.
+    R4 rail bridges drivable, the
        train can hit you; R5 road tunnels under the motorway.
 ROUND 4, POLICE ON THE HIGHWAYS (a design to agree first): waiting in lay-bys and petrol stations,
     cruising as traffic either side; they chase you / try to crash into you after: speeding past a

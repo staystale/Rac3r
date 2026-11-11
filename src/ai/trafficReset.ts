@@ -1,6 +1,7 @@
 // ai/trafficReset.ts: restarting the highway traffic (cars spread round the spawn) and
 // making room by sending cars off the road.
 import { roadFrame } from "../highway.ts";
+import { resetBridgeCars } from "./trafficBridge.ts";
 import type { HighwayLevel, TrafficCar } from "./types.ts";
 import { MAX_CARS, PER_LANE, geo } from "./trafficCtx.ts";
 import type { TrafficCtx } from "./trafficCtx.ts";
@@ -46,6 +47,8 @@ export const holdsOncoming = (ctx: TrafficCtx) => geo(ctx).median == null
  * YOUR lane, none within 40 m in front of you).
  */
 export function resetTraffic(ctx: TrafficCtx, nextLevel: HighwayLevel | null, density: number) {
+  // (?bridgecars=1: a new road's bridges get new cars)
+  resetBridgeCars(ctx);
   ctx.level = nextLevel;
   ctx.list = [];
   ctx.placed = 0;

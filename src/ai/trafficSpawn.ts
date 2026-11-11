@@ -5,6 +5,7 @@ import { ROSTER } from "../cars.ts";
 import { roadPose, roadSpan } from "../highway.ts";
 import type { TrafficCar, TrafficVehicle } from "./types.ts";
 import { PAINTS, SPAWN_AHEAD, SPAWN_BEHIND, VEH, geo } from "./trafficCtx.ts";
+import { bridgeCarBodies } from "./trafficBridge.ts";
 import type { TrafficCtx, VisFn } from "./trafficCtx.ts";
 
 /** A random row of a weighted table (the weight is the last column). */
@@ -56,14 +57,7 @@ export const lanesOf = (ctx: TrafficCtx, dir = 1) =>
 export function fresh(
   ctx: TrafficCtx, slot: TrafficCar, dist: number, lane: number, speed: number, dir = 1,
 ) {
-  const ids = VEH.filter(([candId]) => ROSTER.some((entry) => entry.id === candId)),
-    [vehId] = pick(ctx, ids), paintIdx = PAINTS.indexOf(pick(ctx, PAINTS)),
-    [paint, trim] = PAINTS[paintIdx];
-  const car: TrafficVehicle = makeCar(vehId);
-  car.spec = { ...car.spec, id: vehId + '#t' + paintIdx, paint, trim };
-  car.traffic = true;
-  car.absOn = !!(car.spec.aids && car.spec.aids.abs);
-  car.tcsOn = !!(car.spec.aids && car.spec.aids.tcs);
+  const car = newTrafficVehicle(ctx);
   const lanes = lanesOf(ctx, dir), off = lanes[lane], pose = roadPose(ctx.level!, dist, off),
     heading = pose.h + (dir < 0 ? Math.PI : 0);
   reset(car, pose.x, pose.y, heading);
@@ -77,6 +71,23 @@ export function fresh(
     parked: false, kOff: null, kin: false, phys: true, dir, quick: false, racer: null, broke: null,
   });
   return slot;
+}
+
+/**
+ * A road car for the traffic: a model and a paint picked by their weights, its aids as its spec.
+ * @param ctx the traffic
+ * @returns the car (not placed)
+ */
+export function newTrafficVehicle(ctx: TrafficCtx): TrafficVehicle {
+  const ids = VEH.filter(([candId]) => ROSTER.some((entry) => entry.id === candId)),
+    [vehId] = pick(ctx, ids), paintIdx = PAINTS.indexOf(pick(ctx, PAINTS)),
+    [paint, trim] = PAINTS[paintIdx];
+  const car: TrafficVehicle = makeCar(vehId);
+  car.spec = { ...car.spec, id: vehId + '#t' + paintIdx, paint, trim };
+  car.traffic = true;
+  car.absOn = !!(car.spec.aids && car.spec.aids.abs);
+  car.tcsOn = !!(car.spec.aids && car.spec.aids.tcs);
+  return car;
 }
 
 /**
@@ -102,6 +113,8 @@ export function rebuildCars(ctx: TrafficCtx) {
     ctx.cars.push(slot.car);
     if (median == null || dirOf(slot) > 0) ctx.ourSide.push(slot.car);
   }
+  // (?bridgecars=1: the bridges' cars live too - drawn and collided, ai/trafficBridge.ts)
+  ctx.cars.push(...bridgeCarBodies(ctx));
 }
 
 /**
