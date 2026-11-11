@@ -183,6 +183,12 @@ ROUND 4, POLICE ON THE HIGHWAYS (a design to agree first): waiting in lay-bys an
     speed camera nearby (that raises the chance they come; otherwise random), crashing, flashing
     your lights, changing lane without indicating; speeding hard raises the chance; a big pile-up
     brings them. A police car too damaged goes, until the next random one ("to keep it chill").
+    DESIGN AGREED 11-11 (owner): caught = boxed in and stopped for 3 s -> BUSTED, a fine as the
+    speed camera's (none in Test Mode), then a reset; escape = out of sight ~10 s and they give
+    up; a heat level of 1-3 small YELLOW STARS above the lights / indicator buttons, filled by the
+    triggers, setting how many come and how hard they ram; no name on the cars, just blues and
+    twos (blue roof lights, siren; a visual twin for the siren); the chase driver is the racing AI
+    with the player as its target ("for now": may be made more aggressive later). NEXT TO BUILD.
 ROUND 5, LOADING AND SPEED:
 13. The first load is long, and a circuit loads slower than "I'm able to drive faster than circuits
     even load in an f1" - fix.
