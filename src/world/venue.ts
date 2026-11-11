@@ -11,6 +11,7 @@ import { autoKerbs, createSubtrack, traceTrack } from "./subtrack.ts";
 import { SURFACES } from "./surfaces.ts";
 import { prepBumps } from "./terrain.ts";
 import { onTrack, querySubtrack } from "./tyrewall.ts";
+import { splitLineDist } from "./splitstart.ts";
 import { solidsFromProps } from "./barriers.ts";
 import { venueCrossings } from "./crossings.ts";
 import { markUnder } from "./trackunder.ts";
@@ -573,6 +574,19 @@ export function venueLap(spec: VenueSpec, layout: string): number {
 }
 
 /**
+ * A split start's second line, painted on the rival's lane where it starts and finishes
+ * (world/splitstart.ts) - none for any other venue.
+ * @param spec the venue
+ * @param sub the race road
+ * @returns its chequered mark, or none
+ */
+function splitLinePaint(spec: VenueSpec, sub: Subtrack) {
+  if (!spec.splitStart) return [];
+  const pos = onTrack(sub, splitLineDist(sub), 0, {});
+  return [{ kind: 'chequered', x: pos.x, y: pos.y, len: 1.6, wid: VENUE_ROAD_M, rot: pos.rot }];
+}
+
+/**
  * One layout of a venue as a level: its road, the closed-off pieces, and the venue's shared
  * scenery.
  * @param spec the venue
@@ -616,7 +630,7 @@ export function venueLevel(spec: VenueSpec, layout: string, levelId: string,
       : [...scenery.barriers, ...underParapets(sub)],
     props, solids: solidsFromProps(props), crossings: venueCrossings(props),
     paint: [{ kind: 'chequered', x: sub.pts[0].x, y: sub.pts[0].y, len: 1.6, wid: VENUE_ROAD_M,
-      rot: sub.pts[0].heading }, ...scenery.paint],
+      rot: sub.pts[0].heading }, ...splitLinePaint(spec, sub), ...scenery.paint],
     spawn: { x: start.x, y: start.y, heading: start.rot },
   } as Level;
 }

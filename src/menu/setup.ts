@@ -218,6 +218,7 @@ function paintSetupOpponents(state: SetupState) {
  * @param state the setup state (writes rxRace)
  */
 function addRxRaceRow(menu: Menu, panel: HTMLElement, level: Level, state: SetupState) {
+  if (level.splitStart) addHeadToHeadRow(menu, panel, state);
   if (level.joker) {
     const rxRow = addElement(panel, 'div', '', 'row');
     const practiceBtn = addButton(menu, rxRow, 'PRACTICE', () => {
@@ -231,6 +232,33 @@ function addRxRaceRow(menu: Menu, panel: HTMLElement, level: Level, state: Setup
       practiceBtn.classList.remove('on');
     }, state.rxRace ? 'on' : '');
   }
+}
+
+/**
+ * Adds the PRACTICE / HEAD-TO-HEADBUTT choice of a split-start level (the Race of Champions'
+ * stadiums; owner 11-11: "a test menu option like other rally cross events ... a true event like
+ * head to head race", "pressing this button should auto set" two cars): the event sets one rival
+ * and one lap - both still adjustable on their rows - practice is solo.
+ * @param menu the menu context
+ * @param panel the setup pane
+ * @param state the setup state (writes opponents, aiN, laps)
+ */
+function addHeadToHeadRow(menu: Menu, panel: HTMLElement, state: SetupState) {
+  const row = addElement(panel, 'div', '', 'row');
+  const practiceBtn = addButton(menu, row, 'PRACTICE', () => {
+    state.opponents = 0;
+    practiceBtn.classList.add('on');
+    eventBtn.classList.remove('on');
+    state.paint();
+  }, state.opponents ? '' : 'on');
+  const eventBtn = addButton(menu, row, 'HEAD-TO-HEADBUTT · 1 LAP', () => {
+    state.aiN = 1;
+    state.opponents = 1;
+    state.laps = 1;
+    eventBtn.classList.add('on');
+    practiceBtn.classList.remove('on');
+    state.paint();
+  }, state.opponents ? 'on' : '');
 }
 
 /**

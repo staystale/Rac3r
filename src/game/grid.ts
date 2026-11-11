@@ -11,11 +11,11 @@ import { aiTraits } from '../ai/traits.ts';
 import { tuneOf } from '../ai/tune.ts';
 import { lineRun } from '../ai/line.ts';
 import { LEVEL } from "../world/state.ts";
+import { splitLineDist } from "../world/splitstart.ts";
 import { onTrack, querySubtrack } from "../world/tyrewall.ts";
 import { START_STEP, ROLL_BACK } from './order.ts';
 import { shared, game } from './state.ts';
 import type { GameCar } from './state.ts';
-import type { Subtrack } from '../world/types.ts';
 
 // AI CARS — stage 1 (user: up to 5 opponents, FULL CONTACT, the SAME car as the player
 // in different colours + numbers). Each is { car, drv }: a real car stepped by the same physics on
@@ -108,30 +108,6 @@ export function gridPos(slot: number) {
 // halves - pole (yours) on the start line's, slot 1 alongside on the other, then each half's grid
 // back from its own line; each car counts its laps from its line (GameCar._origin), so a lap is
 // the same whole path for every car and the race is on time.
-// the share of a lap on from the start line the other line is looked for in (the half's middle)
-const SPLIT_FROM = 0.3, SPLIT_TO = 0.7;
-const splitLines = new WeakMap<Subtrack, number>();
-/**
- * The split start's other line: the point of the path's other half nearest the start line - the
- * lane alongside it.
- * @param sub the race road
- * @returns its road m
- */
-export function splitLineDist(sub: Subtrack): number {
-  const known = splitLines.get(sub);
-  if (known !== undefined) return known;
-  const line = onTrack(sub, 0, 0, {});
-  let best = sub.totalDist / 2, bestGap = Infinity;
-  for (let dist = SPLIT_FROM * sub.totalDist; dist <= SPLIT_TO * sub.totalDist; dist += 1) {
-    const point = onTrack(sub, dist, 0, {}), gap = Math.hypot(point.x - line.x, point.y - line.y);
-    if (gap < bestGap) {
-      best = dist;
-      bestGap = gap;
-    }
-  }
-  splitLines.set(sub, best);
-  return best;
-}
 /**
  * A split start's car's own line: the start line's (0) for even slots, the other half's for odd.
  * @param slot the grid slot

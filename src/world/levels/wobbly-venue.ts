@@ -30,7 +30,9 @@ export const WOBBLY_SPEC: VenueSpec = {
   realRoadM: 13,
   calibrate: { layout: 'roc', realLapM: 772 },
   // the start line on the outer lane's east straight, the grid back toward its south-east corner
-  start: [73.5, 0],
+  // (on the gravel of the north straight - the owner: "start on the gravel facing the same way but
+  // on different lanes"; the inner lane's gravel alongside, 20 m in, the same way)
+  start: [4, -54.6],
   startOnLine: true,
   // the Race of Champions' start: the two cars side by side on the two lanes, each timed over its
   // lap from its own line (Level.splitStart)
