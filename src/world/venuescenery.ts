@@ -27,6 +27,7 @@ import { continueRoad, joinApproaches, joinFrom } from "./venuejoin.ts";
 import type { VenueBox, VenueBuild } from "./venue.ts";
 import { inRow, pitLane, pitLines, placeGarageRow } from "./venuepit.ts";
 import { tunnelCover } from "./venuecross.ts";
+import { venueParks } from "./venueparks.ts";
 import type { Barrier, Cone, Cover, Lane, Paint, Patch, Point, Prop, Subtrack, Zone }
   from "./types.ts";
 
@@ -738,9 +739,8 @@ export function buildVenueScenery(build: VenueBuild, sub: Subtrack, closed: Lane
   const tunnels = venueTunnels(site);
   site.lanes.push(...tunnels.lanes);
   site.portals = tunnels.props;
-  // the pit wall is its stretch's barrier: the edge keeps PIT_WALL_CLEAR_M off it (with a rail
-  // mapped there, Armco stood just behind it)
-  // an oval's outside wall is its stretch's barrier, as the pit wall (spec.ovalWall)
+  // the pit wall and an oval's outside wall (spec.ovalWall) are their stretches' barriers: the edge
+  // keeps off them (with a rail mapped by the pit wall, Armco stood just behind it)
   const outerWall = ovalWall(site), walls = [...pitWalls, ...(outerWall ? [outerWall] : [])];
   const edge = buildEdge(site.rims, { loops, lanes: site.lanes,
     blocked: (x, y) => inBuilding(site.buildings, x, y, 1)
@@ -794,7 +794,7 @@ export function buildVenueScenery(build: VenueBuild, sub: Subtrack, closed: Lane
         || Math.abs(edgeY - y) > MAP_WALL_CLEAR_M
         || Math.hypot(edgeX - x, edgeY - y) > MAP_WALL_CLEAR_M))
     .map(([x, y]) => ({ x, y, kind: 'tyrestack' })));
-  return { lanes, zones, cones: [...edge.cones, ...karting],
+  return { lanes, zones: [...zones, ...venueParks(site)], cones: [...edge.cones, ...karting],
     barriers: [...walls, ...edge.barriers],
     props, paint: pitLanes.flatMap((lane) => pitLines(site, lane)), bounds, covers, patches };
 }

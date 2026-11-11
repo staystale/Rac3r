@@ -31,6 +31,9 @@
 // stand longer than STAND_SLICE_M is written as its slices (a curved one round a tri-oval).
 // A layout is the shortest loop through its "through" pieces that avoids its "avoid" pieces; it is
 // written as the ordered list of pieces it runs over, so a layout is changed by editing that list.
+// "parks": true also writes the parks, gardens, lawns and woods as outlines (a paved town's grass:
+// Moanaco), and "treeNodes": true the mapped single trees (natural=tree nodes) as one-point rows,
+// nearest the race roads first (a town's street trees); the other venues write neither.
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -287,7 +290,8 @@ const SERVICE_WIDTH = { service: 5, residential: 6, unclassified: 6, tertiary: 7
 const FOOT_WAYS = new Set(['footway', 'path', 'steps', 'pedestrian']);
 const out = { pieces: [], layouts: {}, pitLanes: [], roads: [], footbridges: [], dirt: [],
   karting: [], tunnels: [], traps: [], tyres: [], stands: [], buildings: [], paddocks: [],
-  woods: [], homes: [], rails: [], aero: [], rows: [], water: [] };
+  woods: [], homes: [], rails: [], aero: [], rows: [], water: [],
+  ...(config.parks ? { parks: [] } : {}) };
 for (const piece of pieces)
   out.pieces.push({ name: piece.name, ...(piece.loose ? { surface: 'dirt' } : {}),
     pts: cleanLine(piece.raw, 0.25) });
@@ -315,6 +319,10 @@ for (const way of ways) {
   if (roadRaceIds.has(String(way.id))) continue;   // a race piece
   if (tags.highway !== 'raceway' && skipIds.has(String(way.id))) continue;
   const line = (tolerance) => cleanLine(pts, tolerance);
+  // (a park's outline beside whatever else the way is: a wood is its trees too)
+  if (config.parks && closed(way) && (['park', 'garden'].includes(tags.leisure)
+    || ['grass', 'forest'].includes(tags.landuse) || tags.natural === 'wood'))
+    out.parks.push({ name: tags.name || '', pts: line(1) });
   if (tags.highway === 'raceway' && /Pit Lane/i.test(tags.name || ''))
     out.pitLanes.push({ name: config.names?.[way.id] || tags.name, pts: line(0.25) });
   else if (tags.highway === 'raceway' && /kart/.test(tags.sport || '')) out.karting.push({ pts: line(0.3) });
@@ -372,6 +380,15 @@ for (const way of ways) {
   else if (tags.natural === 'water' && closed(way)) out.water.push({ name: tags.name || '', pts: line(1) });
   // hedgerows and tree rows: the trees along the field edges
   else if (tags.barrier === 'hedge' || tags.natural === 'tree_row') out.rows.push({ pts: line(2) });
+}
+
+// the mapped single trees, nearest the race roads first
+if (config.treeNodes) {
+  const near = ([x, y]) => Math.min(...racePts.map(([px, py]) => Math.hypot(px - x, py - y)));
+  const trees = osm.elements.filter((element) => element.type === 'node'
+    && element.tags?.natural === 'tree').map((node) => toGame(node))
+    .filter((point) => inClip(point) && inReach(point)).sort((first, second) => near(first) - near(second));
+  for (const [x, y] of trees) out.rows.push({ pts: [[round1(x), round1(y)]] });
 }
 
 // a simple first build leaves whole kinds of feature out ("leaveOut": ["buildings", "roads", ...])
