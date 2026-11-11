@@ -18,8 +18,8 @@ owner before they ship (proposed below).
    we have (Brands, Donington, Thruxton, Oulton, Croft, Snetterton, Knockhill, Silverstone) - no
    new tracks. ORDER: Spa, Monza (the simplest), then SIMPLE versions of the long ones (the
    Nordschleife ~10 km, Le Mans ~7 km at 1/2) for the owner to test on the phone first, Monaco
-   (streets, walls, the tunnel) last. MOANACO built 11-11 by the venue helper behind
-   ?moanacovenue=1 (levels/moanaco-venue.ts): to review, then the owner's pass.
+   (streets, walls, the tunnel) last. MOANACO built 11-11 by the venue helper
+   (levels/moanaco-venue.ts; paved, its parks, street trees): PASSED 11-11, the default.
 2. WRC: one famous stage per rally remade from the map data as the venues are (Col de Turini,
    Ouninpohja, Sardinia, Safari, Acropolis; Sweaty Lamb is Wales).
 3. DAKAR: open desert, checkpoint gates, other racers, Deaf Valley's terrain; short stages (3-6
@@ -247,7 +247,7 @@ ROUND 3, THE OTHER HIGHWAYS:
        -> 1.4-3.9, 0-4 -> 4-6 a road, the longest gap 3.9 km; the countryside unchanged (1.0-3.6,
        4-6); crossingcheck all OK, nothing on a slip.
        PASSED 11-11 (owner: "Ok pass", with 12b): the default, switch deleted.
-    R2 JUNCTIONS - BUILT 11-11 behind ?junctions=1 (owner: "Roundabouts", "A few", past them EXIT
+    R2 JUNCTIONS - PASSED 11-11 (owner: "ok pass"): the default, switch deleted. Built (owner: "Roundabouts", "A few", past them EXIT
        TAKEN as now; highway/junctions.ts, ringgeo.ts, extras.ts buildJunction): about one road
        bridge in four (a roll owed to the next that fits) is a dumbbell junction - an off-slip 120 m
        before it up to a roundabout on its road past the left ramp (12 m of straight between them),

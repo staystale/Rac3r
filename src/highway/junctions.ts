@@ -1,4 +1,4 @@
-// highway/junctions.ts - A MOTORWAY JUNCTION (?junctions=1; owner 11-11: exits leading up to the
+// highway/junctions.ts - A MOTORWAY JUNCTION (owner 11-11: exits leading up to the
 // bridges, "Roundabouts", "A few"): now and then a drivable road bridge (highway/extras.ts
 // buildBridge) is a dumbbell junction. An off-slip leaves the left edge LEAD_POINTS before the
 // bridge and climbs to a small roundabout on the bridge's road past its left ramp; an on-slip

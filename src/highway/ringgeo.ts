@@ -1,4 +1,4 @@
-// highway/ringgeo.ts - A JUNCTION'S ROUNDABOUT MEASURES (?junctions=1): where a junction bridge's
+// highway/ringgeo.ts - A JUNCTION'S ROUNDABOUT MEASURES: where a junction bridge's
 // two roundabouts sit on its road, and their size - read by the junction builder
 // (highway/junctions.ts) and by the bridge's approach roads (highway/cuts.ts approaches), which
 // part round each ring.

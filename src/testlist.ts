@@ -12,24 +12,9 @@ export interface TestEntry {
 }
 
 export const TEST_LIST: TestEntry[] = [
-  {
-    id: 'junctions',
-    added: '2026-11-11',
-    name: 'Motorway junctions: an exit up to a roundabout at a bridge, over it, back down',
-    where: 'Test link + &junctions=1: Highway to Hull, MOTORWAY / INTERSTATE (one every ~5-10 km)',
-    try: 'Take the exit: round the roundabout, over the bridge, round the far one, back, down.',
-    wrong: 'A reset on the junction, something on its roads, a ring over the motorway, stuck.',
-  },
-  // (approved 11-11, deleted: decklights, drivebridges, desertroads, hwstations, medianlamps,
+  // (approved 11-11, deleted: junctions, moanacovenue, decklights, drivebridges, desertroads,
+  // hwstations, medianlamps,
   // desertmore, vergereset, trafficeven, speeders, breakdowns, bathurst)
-  {
-    id: 'moanacovenue',
-    added: '2026-11-11',
-    name: 'Moanaco: the Circuit de Monaco at 1/2 (1.6 km), streets, harbour and THE TUNNEL',
-    where: 'Test link + &moanacovenue=1: TEST MODE > WORLD CIRCUITS',
-    try: 'A lap, then VS AI: Casino Square, the hairpin, the tunnel, the pool, the pits.',
-    wrong: 'A car seen in the tunnel or stuck on its walls, a way off the streets, a yacht on it.',
-  },
   // (approved 11-10, deleted: badwood, hudon, resethazard, sticksize, bushflat)
   // (approved late, deleted: fields, grassedge, catchthem, slipsdual, fps - TODO.md 1c; dirtroad,
   // animals, labext, labsplit, zoomhold, gpupaint, minimap, zoomspring, grassgrip, hwmap,

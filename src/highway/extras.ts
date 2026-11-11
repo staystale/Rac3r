@@ -1,6 +1,5 @@
 // highway extras: the off-slip signs, slip roads, bridges and the other cheeky extras.
 // Split out of highway.ts.
-import { FIX } from "../core/fixes.ts";
 import { SURFACES } from "../world/surfaces.ts";
 import { STEP } from "./presets.ts";
 import { straightAt, ease } from "./road.ts";
@@ -30,7 +29,7 @@ const BRIDGE_OPEN_M = 60;
 // and the least bend radius under one, m: the desert's roads wind more (the countryside's 900);
 // over the 96 m checked a 500 m bend moves 2.3 m, inside the span's 6 m to spare
 const DESERT_BRIDGE_RADIUS_M = 500;
-// (?junctions=1) the least bend radius over a junction's 260 m, m: its slips follow the road's own
+// the least bend radius over a junction's 260 m, m: its slips follow the road's own
 // points and its rings sit at the bridge, so a gentle bend is fine (the road's ends 18 m toward the
 // rings' side at most; MEASURED, _junctions.mjs: at 900 the countryside had 0-1 in 12 km, at 600
 // none on the dual and the twisty road)
@@ -364,7 +363,7 @@ function buildBridge(level: HwLevel, i: number, dist: number, pointAt: (i: numbe
  * from its approaches; Deaf Valley's in sand concrete; a junction's with its rings.
  * @param kind what the bridge carries
  * @param isDesert on Deaf Valley
- * @param isJunction a junction's bridge (?junctions=1)
+ * @param isJunction a junction's bridge
  * @returns the fields to add to the bridge prop
  */
 function roadBridgeLook(kind: string, isDesert: boolean, isJunction: boolean) {
@@ -374,7 +373,7 @@ function roadBridgeLook(kind: string, isDesert: boolean, isJunction: boolean) {
 }
 
 /**
- * (?junctions=1) A junction in place of the bridge due at road point i, when one is owed (one
+ * A junction in place of the bridge due at road point i, when one is owed (one
  * rolled at a bridge where none fits is owed to the next that fits: about one bridge in four,
  * MEASURED _junctions.mjs - else the winding roads had none in 12 km) and fits.
  * @param level the highway level
@@ -395,7 +394,7 @@ function tryJunction(level: HwLevel, i: number, dist: number, pointAt: (i: numbe
 }
 
 /**
- * (?junctions=1) Whether a junction fits back over the road just dressed, its on-slip joining at
+ * Whether a junction fits back over the road just dressed, its on-slip joining at
  * road point i: the road gentle from before the off-slip to here, no wall (the walled road's is
  * built), no roadside station in the way, open ground in Deaf Valley.
  * @param level the highway level
@@ -416,7 +415,7 @@ function junctionFits(level: HwLevel, i: number, dist: number) {
 const STATION_KINDS = new Set(['gasstation', 'canopy', 'services', 'servicehall', 'station']);
 
 /**
- * (?junctions=1) A junction, its on-slip joining at road point i: the exit's signs before the
+ * A junction, its on-slip joining at road point i: the exit's signs before the
  * off-slip 2 x LEAD_POINTS back, the bridge LEAD_POINTS back (a road bridge, square to the road),
  * its slips and roundabouts (highway/junctions.ts); the next slip and bridge kept clear of it.
  * @param level the highway level
@@ -563,9 +562,9 @@ export function extras(level: HwLevel, i: number, dist: number, pointAt: (i: num
   }
   // BRIDGES: over (road / rail / foot) or the motorway over a river. Not while the side road runs
   // beside the motorway.
-  // (?junctions=1: a few of the bridges a junction - laid back over the road just dressed, its
+  // (a few of the bridges a junction - laid back over the road just dressed, its
   // on-slip joining here: the road ahead is not built yet)
-  if (FIX.junctions && bridgeDue(state, road, i, dist) && tryJunction(level, i, dist, pointAt,
+  if (bridgeDue(state, road, i, dist) && tryJunction(level, i, dist, pointAt,
     mark)) return;
   if (bridgeDue(state, road, i, dist)) {
     buildBridge(level, i, dist, pointAt, mark);

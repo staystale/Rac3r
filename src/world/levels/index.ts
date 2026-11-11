@@ -1,4 +1,3 @@
-import { FIX } from "../../core/fixes.ts";
 import { FLOOR } from "../bounds.ts";
 import type { Level } from "../types.ts";
 import { SURFACES } from "../surfaces.ts";
@@ -232,8 +231,8 @@ export const LEVELS: Level[] = [
   ...YASMARINA_LEVELS,
   // Bathworst, the Mount Panorama Circuit (bathurst-venue.ts; passed 11-11)
   ...BATHURST_LEVELS,
-  // ?moanacovenue=1: Moanaco, the Circuit de Monaco and its tunnel (moanaco-venue.ts)
-  ...(FIX.moanacovenue ? MOANACO_LEVELS : []),
+  // Moanaco, the Circuit de Monaco and its tunnel (moanaco-venue.ts; passed 11-11)
+  ...MOANACO_LEVELS,
   // Oulton Pork, a new venue (oultonpork-venue.ts), its International, Island and Frosters
   ...OP_LEVELS,
   // Thruston, the real venue (thruston-venue.ts; passed 11-10), built on first use

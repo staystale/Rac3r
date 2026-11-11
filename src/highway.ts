@@ -18,7 +18,6 @@
 // continuous across every join — straight -> sweeper -> S-bend -> straight, no kinks, no sudden
 // steering. LANES are config (HW_PRESETS): a UK motorway, a wide interstate, a skinny dual
 // carriageway — the same generator for later flavour levels.
-import { FIX } from "./core/fixes.ts";
 import { bayOut, bayBehind } from "./highway/laybys.ts";
 import { pruneHedges, resetHedges } from "./highway/hedges.ts";
 import { readSettings } from "./core/settings.ts";
@@ -355,10 +354,10 @@ export function highwayGuard(level: HwLevel, car: HwCar, dt: number) {
     loc = state.q;
   if (!loc) return null;
   const { out, onLane } = measureOffRoad(level, state, loc, car);
-  // (on a lane off the motorway - a slip, a junction's roundabout: ?junctions=1 - its way is
+  // (on a lane off the motorway - a slip, a junction's roundabout - its way is
   // not the motorway's; and OFF_NEAR m out the off-road countdown is the guard: round a junction's
   // ring a car falls 25-30 m back of its furthest, BACK_M)
-  if (checkWrongWay(state, loc, car, dt, FIX.junctions && (onLane || out > OFF_NEAR)))
+  if (checkWrongWay(state, loc, car, dt, onLane || out > OFF_NEAR))
     return 'WRONG WAY — RESET';
   stepOffCountdown(state, out, onLane, dt);
   if (out > OFF_HARD || state.offT > OFF_T) {

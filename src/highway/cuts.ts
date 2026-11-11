@@ -191,7 +191,7 @@ export function approaches(level: HwLevel, bridge: Bridge, dist: number) {
   // line up with it - world/crossinggeo.ts)
   const shift = bridge.look === 'venue' ? (DECK_ROAD_LO + DECK_ROAD_HI) / 2 : 0;
   [-1, 1].forEach((sign, sideIdx) => {
-    // (?junctions=1: a junction bridge's road parts round its roundabout - to its ring's near
+    // (a junction bridge's road parts round its roundabout - to its ring's near
     // side, on from its far side: highway/ringgeo.ts)
     const ringAt = bridge.rings ? Math.hypot(ringCentre(bridge, sign)[0] - bridge.x,
       ringCentre(bridge, sign)[1] - bridge.y) : Infinity;

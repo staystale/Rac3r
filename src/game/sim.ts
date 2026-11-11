@@ -270,7 +270,7 @@ export function streamHighwayLitter() {
     game.cones.cull((cone) => cone.field == null || !gone.has(cone.field));
     gone.clear();
   }
-  // (?junctions=1: a junction laid back over road already streamed in takes its litter)
+  // (a junction laid back over road already streamed in takes its litter)
   if (hwData.clearedGround && hwData.clearedGround.length) {
     const ground = hwData.clearedGround;
     game.cones.cull((cone) => !blocked(ground, cone.x, cone.y, CLEARED_M));
