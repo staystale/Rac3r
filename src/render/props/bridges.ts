@@ -2,6 +2,9 @@
 // walkway over the track.
 import type { Prop } from '../../world/types.ts';
 import type { BridgeGeom, PropCtx } from './types.ts';
+import { trainAt } from '../../world/trains.ts';
+import { worldSeconds } from '../../world/worldclock.ts';
+import { FIX } from '../../core/fixes.ts';
 
 /** A bridge look's paint: abutments, deck, its lit and shaded parapets, a road deck's tarmac. */
 interface BridgeLook { abutment: string; deck: string; railDeck: string; lit: string;
@@ -76,23 +79,14 @@ function drawBridgeRoad(propCtx: PropCtx, prop: Prop, geo: BridgeGeom) {
  */
 function drawBridgeTrain(prop: Prop, geo: BridgeGeom) {
   const { paint, seed, negEnd, posEnd, clock } = geo;
-  // A TRAIN every trainEvery s: 3-5 coaches of 18 m at 32 m/s, one way or the other, crossing
-  // the whole length then gone
-  const every = prop.trainEvery || 20,
-    cyc = Math.floor(clock / every),
-    trainT = clock - cyc * every,
-    dir = (cyc + seed) % 2 ? 1 : -1,
-    coaches = 3 + ((cyc + seed) % 3),
-    len = coaches * 19;
-  const head = -negEnd - 10 + trainT * 32;
-  if (head - len < posEnd + 10) {
-    const y = dir > 0 ? 1.25 : -1.25,
-      col = ['#c8302c', '#2b56b5', '#d6a21e'][(cyc + seed) % 3];
-    // mirrored about the middle of [-a0, a1] for the other way; a coach past either end of the
-    // track (a cut-short bed) is not drawn
-    for (let coach = 0; coach < coaches; coach++) {
-      const tailX = head - (coach + 1) * 19,
-        x = dir > 0 ? tailX : posEnd - negEnd - tailX - 18;
+  // A TRAIN every trainEvery s: 3-5 coaches, one way or the other, crossing the whole length then
+  // gone (world/trains.ts: where - the cars on the deck meet the same train)
+  const train = trainAt(prop, clock);
+  if (train) {
+    const y = train.across, col = ['#c8302c', '#2b56b5', '#d6a21e'][(train.cycle + seed) % 3];
+    // a coach past either end of the track (a cut-short bed) is not drawn
+    for (let coach = 0; coach < train.cars.length; coach++) {
+      const x = train.cars[coach];
       if (x < -negEnd - 18 || x > posEnd) continue;
       paint(x, y - 1.4, 18, 2.8, '#2a2c33');
       paint(x + 0.3, y - 1.25, 17.4, 2.5, coach === 0 ? col : '#d7d9de');
@@ -160,13 +154,12 @@ const LOCO = ['#d6a21e', '#8a3b22'], WAGONS = ['#7a3b22', '#5c4a3a', '#8a5a32', 
  */
 function drawFreight(prop: Prop, geo: BridgeGeom) {
   const { paint, seed, negEnd, posEnd, clock } = geo;
-  const every = (prop.trainEvery || 20) * 1.5, cycle = Math.floor(clock / every),
-    since = clock - cycle * every, dir = (cycle + seed) % 2 ? 1 : -1,
-    cars = 7 + ((cycle + seed) % 4), length = cars * 16, head = -negEnd - 10 + since * 22;
-  if (head - length >= posEnd + 10) return;
-  for (let car = 0; car < cars; car++) {
-    const tailX = head - (car + 1) * 16,
-      x = dir > 0 ? tailX : posEnd - negEnd - tailX - 15;
+  // (world/trains.ts: where - the cars on the deck meet the same train)
+  const train = trainAt(prop, clock);
+  if (!train) return;
+  const { cycle, dir } = train;
+  for (let car = 0; car < train.cars.length; car++) {
+    const x = train.cars[car];
     if (x < -negEnd - 15 || x > posEnd) continue;
     paint(x, -1.5, 15, 3, '#22201d');
     paint(x + 0.3, -1.35, 14.4, 2.7, car === 0 ? LOCO[(cycle + seed) % 2]
@@ -294,7 +287,8 @@ export function drawBridge(propCtx: PropCtx, prop: Prop, ppm: number) {
   const negEnd = half + 3 + ((prop.appL && prop.appL[0]) ?? 0),
     posEnd = half + 3 + ((prop.appL && prop.appL[1]) ?? 0),
     trackLen = negEnd + posEnd,
-    clock = performance.now() / 1000 + (prop.phase || 0);
+    // (?railbridges=1: the world's sim clock - a car on the deck meets the train it sees)
+    clock = (FIX.railbridges ? worldSeconds() : performance.now() / 1000) + (prop.phase || 0);
   // a mover at distance d along [-a0, a1] (wrapping), drawn by f(x)
   const along = (speed: number, slot: number, gap: number, draw: (x: number) => void) =>
     // v < 0 runs -x by itself

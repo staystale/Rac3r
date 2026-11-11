@@ -273,6 +273,9 @@ export interface CarBody {
 // tarmac, apart from the cars on the ground - until it leaves by an end.
 export interface Crossing {
   kind: 'bridge' | 'tunnel';
+  // (?railbridges=1) a rail bridge's: its deck the ballast, and the bridge whose train runs on it
+  ballast?: boolean;
+  train?: Prop;
   // end A, where a car changes level (a ramp's foot, a portal's mouth), m
   ax: number;
   ay: number;

@@ -13,6 +13,14 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'railbridges',
+    added: '2026-11-11',
+    name: 'Rail bridges drivable along the track (ballast), and the train hits you',
+    where: 'Test link + &railbridges=1: Highway to Hull (rail bridges, Deaf Valley trestles)',
+    try: 'Leave the road at a rail bridge, drive along its track over; wait on it for a train.',
+    wrong: 'Stuck on it, BACK TO THE ROAD on it, the train passing through you, or no hit.',
+  },
+  {
     id: 'bridgecars',
     added: '2026-11-11',
     name: 'Real traffic over the road bridges: two cars a bridge, round its road and back',

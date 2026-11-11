@@ -278,8 +278,17 @@ ROUND 3, THE OTHER HIGHWAYS:
        list (drawn, collided). MEASURED (tools/scratch/_bridgecars.mjs, 90 s by a bridge): 7 bridges
        (plain, junctions, Deaf Valley, walled, dual, twisty) - each car over the deck 3 times,
        17-47 km/h, never stuck, none rolled. Photographed one on the deck beside you.
-    R4 rail bridges drivable, the
-       train can hit you; R5 road tunnels under the motorway.
+    R4 RAIL BRIDGES - BUILT 11-11 behind ?railbridges=1 (world/trains.ts, worldclock.ts,
+       crossings.ts railCrossing / meetTrain, highway/bridgeways.ts): a rail bridge a crossing along
+       its track - its 7 m deck between walls, on ballast (crossinggeo.ts deckSurface), ramps up from
+       its ballast approaches (a laid lane counts as road for the off-road guard); its train placed
+       by the world's sim clock (advanced once a physics step, game/sim.ts), one function for the
+       drawing and the physics; a car its cars overlap is put beside them and carried at 80 % of
+       the train's speed (the speed change is the hit's damage). MEASURED (tools/scratch/
+       _railbridge.mjs): over and off both ways, 0 wall hits; a car stopped on the deck met by a
+       freight (Deaf Valley) kicked 17.6 m/s and carried 70 m, by a passenger train 25.6 m/s, 35-52
+       m. The train's drawing the same with the switch off. Photographed a car on a rail ramp.
+    R5 road tunnels under the motorway.
 ROUND 4, POLICE ON THE HIGHWAYS (a design to agree first): waiting in lay-bys and petrol stations,
     cruising as traffic either side; they chase you / try to crash into you after: speeding past a
     speed camera nearby (that raises the chance they come; otherwise random), crashing, flashing

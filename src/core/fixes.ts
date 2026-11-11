@@ -62,4 +62,9 @@ export const FIX = {
   // place and back - driven by the autopilot through the traffic's physics; asleep far from you
   // (ai/trafficBridge.ts)
   bridgecars: atLoad('bridgecars'),
+  // ?railbridges=1: the endless road's rail bridges drivable along their track - their narrow deck
+  // between its walls, on ballast - and their train meets the cars on it (owner 11-11: "Rail
+  // bridges drivable", "the train can hit you"): the train placed by the world's sim clock
+  // (world/trains.ts, worldclock.ts, crossings.ts, highway/bridgeways.ts)
+  railbridges: atLoad('railbridges'),
 };

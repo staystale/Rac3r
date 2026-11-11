@@ -39,6 +39,7 @@ import { desertGround, REACH, resetStreamed, pruneStreamed } from "./highway/gor
 import type { HwState, HwLevel, HwCar, HwCfg, HwPoint } from './highway/hwtypes.ts';
 import { FIX } from './core/fixes.ts';
 import { syncBridgeways } from './highway/bridgeways.ts';
+import { laneAt } from './world/zones.ts';
 import type { RoadLoc } from './highway/road.ts';
 import type { Level } from './world/types.ts';
 export { HW_PRESETS, HW_SCENERY, HW_ROADS } from "./highway/presets.ts";
@@ -320,8 +321,9 @@ function measureOffRoad(level: HwLevel, state: HwState, loc: RoadLoc, car: HwCar
   const out = side ? 0 : Math.abs(loc.off) - state.geo.hw - bayOut(level, loc.s,
     loc.off < 0 ? -1 : 1);
   // (a bridge's deck as a lane - world/crossings.ts)
+  // (?railbridges=1: any laid lane - a rail bridge's ballast approach too)
   const onLane = out > OFF_SOFT && ((car.crossing ?? -1) >= 0
-    || zoneSurfaceAt(car.x, car.y).id === 'tarmac');
+    || zoneSurfaceAt(car.x, car.y).id === 'tarmac' || (FIX.railbridges && !!laneAt(car.x, car.y)));
   return { out, onLane };
 }
 

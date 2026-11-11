@@ -13,6 +13,8 @@ import { dragTangled } from "./armcodent.ts";
 import {
   DECK_ROAD_HI, DECK_ROAD_LO, PORTAL_LINTEL_M, VENUE_DECK, acrossOf, alongOf, crossingOf, rampsOf,
 } from "./crossinggeo.ts";
+import { trainAt } from "./trains.ts";
+import { worldSeconds } from "./worldclock.ts";
 import { LEVEL } from "./state.ts";
 import { lineLength } from "./venuegeo.ts";
 import { fenceClamp, obstacleClamp } from "./obstacles.ts";
@@ -41,6 +43,7 @@ export function clampWorld(car: CarBody, dt: number): void {
   const way = crossingOf(car);
   if (way) {
     clampToBarriers(car, way.walls);
+    if (way.train) meetTrain(car, way.train);
     return;
   }
   fenceClamp(car);
@@ -176,6 +179,53 @@ function bentTunnel(first: Prop, second: Prop): Crossing {
     rise: -Math.min(RISE_MAX_M, RISE_SHARE * length), walls, track: true, mouth,
     hidden: first.slats || [] };
 }
+
+/**
+ * (?railbridges=1) A rail bridge's crossing: from one approach's ramp foot to the other's, between
+ * the deck's walls, on its ballast; its train runs on it.
+ * @param prop the bridge (rot along its track, wid its span, rampL its ramps)
+ * @returns the crossing
+ */
+export function railCrossing(prop: Prop): Crossing {
+  const dirX = Math.cos(prop.rot || 0), dirY = Math.sin(prop.rot || 0);
+  const half = (prop.wid || 30) / 2 + RAIL_ABUTMENT_M, [rampA, rampB] = rampsOf(prop);
+  const way = makeCrossing('bridge', [prop.x - dirX * (half + rampA), prop.y - dirY * (half
+    + rampA)], [prop.x + dirX * (half + rampB), prop.y + dirY * (half + rampB)],
+  [-RAIL_DECK_HALF_M, RAIL_DECK_HALF_M], 0);
+  return { ...way, ballast: true, train: prop };
+}
+// m: a rail bridge's abutments past its span (render/props/bridges.ts draws them 4 m), the half
+// width of its deck between the walls (its 7 m deck less its edge beams)
+const RAIL_ABUTMENT_M = 4, RAIL_DECK_HALF_M = 2.7;
+
+/**
+ * (?railbridges=1) A car on a rail bridge's deck meets its train: where the train's cars overlap
+ * the car's body, the car is put beside the train and carried at its speed along the track - the
+ * change of speed is the impact (game/sim.ts hit: the damage), pressed on a wall it is crushed.
+ * @param car the car
+ * @param bridge the rail bridge
+ */
+function meetTrain(car: CarBody, bridge: Prop): void {
+  const train = trainAt(bridge, worldSeconds() + (bridge.phase || 0));
+  if (!train) return;
+  const cos = Math.cos(bridge.rot || 0), sin = Math.sin(bridge.rot || 0);
+  const relX = car.x - bridge.x, relY = car.y - bridge.y;
+  const along = relX * cos + relY * sin, across = -relX * sin + relY * cos;
+  const reach = car.spec.len / 2, side = car.spec.wid / 2 + train.halfWidth;
+  if (Math.abs(across - train.across) >= side) return;
+  if (!train.cars.some((start) => along + reach > start && along - reach < start + train.carM))
+    return;
+  // beside the train on the nearer side, moving with it along the track
+  const out = train.across + Math.sign(across - train.across || 1) * (side + TRAIN_CLEAR_M);
+  const alongV = car.vx * cos + car.vy * sin, acrossV = -car.vx * sin + car.vy * cos;
+  const newAlong = alongV + (train.speed - alongV) * TRAIN_GRIP;
+  car.x = bridge.x + along * cos - out * sin;
+  car.y = bridge.y + along * sin + out * cos;
+  car.vx = newAlong * cos - acrossV * sin;
+  car.vy = newAlong * sin + acrossV * cos;
+}
+// m a car is put clear of the train's side; the share of the train's speed it takes in one meeting
+const TRAIN_CLEAR_M = 0.05, TRAIN_GRIP = 0.8;
 
 /**
  * A tunnel's crossing: from one portal's open end to the other's, between the portals' walls.

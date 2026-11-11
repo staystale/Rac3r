@@ -27,6 +27,7 @@ import { stepAIInjury } from './ai.ts';
 import { wakeStep } from '../physics/wake.ts';
 import { roofFlapStep } from '../physics/roofflaps.ts';
 import type { Car, CarInput } from '../vehicle.ts';
+import { advanceWorldClock } from '../world/worldclock.ts';
 import type { TrafficVehicle } from '../ai/types.ts';
 
 export function recoverCar(why: unknown) {
@@ -222,6 +223,8 @@ export function stepCarPhysics(inp: CarInput) {
     // DAMAGE (damage.ts): the velocity change the clamps impose IS the impact
     const pv0x = game.car.vx, pv0y = game.car.vy;
     // the fence, buildings, barriers, trees ... or a bridge's or tunnel's walls
+    // (?railbridges=1: the world's movers - a rail bridge's train - on the sim clock)
+    advanceWorldClock(PHYSICS_STEP_SECONDS);
     clampWorld(game.car, PHYSICS_STEP_SECONDS);
     hit(game.car, pv0x, pv0y);
     applyGround(game.car, PHYSICS_STEP_SECONDS);

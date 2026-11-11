@@ -215,7 +215,7 @@ ways.forEach((way, index) => {
       : along < 0;
     const ok = came && left && through && car.crossing === -1;
     if (!ok) bad++;
-    console.log(`${ok ? 'OK  ' : 'FAIL'} ${way.kind} ${index} ${sign > 0 ? 'A->B' : 'B->A'}`
+    console.log(`${ok ? 'OK  ' : 'FAIL'} ${way.ballast ? 'rail ' : ''}${way.kind} ${index} ${sign > 0 ? 'A->B' : 'B->A'}`
       + ` ${way.length.toFixed(1)} m: on ${came}, off ${left} past the far end ${through},`
       + ` widest ${worst.toFixed(2)} m off the middle, ${hits} wall hits,`
       + ` ${Math.hypot(car.vx, car.vy).toFixed(1)} m/s out`);

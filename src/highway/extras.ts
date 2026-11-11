@@ -388,6 +388,8 @@ function openRockAt(state: HwState, i: number) {
  * @returns the fields to add to the bridge prop
  */
 function roadBridgeLook(kind: string, isDesert: boolean, isJunction: boolean) {
+  // (?railbridges=1: a rail bridge drivable along its track, its ramps up from its ballast)
+  if (kind === 'rail' && FIX.railbridges) return { rampL: [RAMP_M, RAMP_M] };
   if (kind !== 'road') return {};
   return { look: 'venue', rampL: [RAMP_M, RAMP_M], ...(isDesert ? { pal: 'desert' } : {}),
     ...(isJunction ? { rings: true } : {}) };

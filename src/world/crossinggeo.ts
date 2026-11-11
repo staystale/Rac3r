@@ -114,7 +114,9 @@ function endHeights(way: Crossing): [number, number] {
  * @returns the surface
  */
 export function deckSurface(way: Crossing): Surface {
-  return way.kind === 'bridge' ? dampSurface(SURFACES.tarmac, WEATHER.wetness) : SURFACES.tarmac;
+  // (a rail bridge's: its ballast)
+  const base = way.ballast ? SURFACES.gravel : SURFACES.tarmac;
+  return way.kind === 'bridge' ? dampSurface(base, WEATHER.wetness) : base;
 }
 
 /**
