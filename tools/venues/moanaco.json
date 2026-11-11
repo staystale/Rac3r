@@ -67,6 +67,8 @@
     "homes",
     "paddocks"
   ],
+  "parks": true,
+  "treeNodes": true,
   "names": {
     "4226740": "Antony Noghes",
     "4229536": "Chicane approach",
@@ -1106,6 +1108,3870 @@
         [
           43.7367615,
           7.423379
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.734467,
+          7.4216907
+        ],
+        [
+          43.734535,
+          7.4216757
+        ],
+        [
+          43.7346051,
+          7.4216601
+        ],
+        [
+          43.734676,
+          7.4216444
+        ],
+        [
+          43.7347448,
+          7.4216291
+        ],
+        [
+          43.7348118,
+          7.4216142
+        ],
+        [
+          43.734881,
+          7.4216027
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7382216,
+          7.4280747
+        ],
+        [
+          43.7382927,
+          7.4281255
+        ],
+        [
+          43.7383668,
+          7.4281587
+        ],
+        [
+          43.7384544,
+          7.4281824
+        ],
+        [
+          43.7385404,
+          7.4281867
+        ],
+        [
+          43.7386227,
+          7.4281806
+        ],
+        [
+          43.7387119,
+          7.4281617
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7400299,
+          7.4280005
+        ],
+        [
+          43.7400352,
+          7.4280059
+        ],
+        [
+          43.7400935,
+          7.4280642
+        ],
+        [
+          43.7401507,
+          7.4281215
+        ],
+        [
+          43.7401698,
+          7.4281406
+        ],
+        [
+          43.7402262,
+          7.4281994
+        ],
+        [
+          43.7402832,
+          7.4282588
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7407136,
+          7.4298813
+        ],
+        [
+          43.740754,
+          7.4298771
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7349059,
+          7.4219428
+        ],
+        [
+          43.7348312,
+          7.4219618
+        ],
+        [
+          43.7347606,
+          7.4219798
+        ],
+        [
+          43.7346899,
+          7.4219979
+        ],
+        [
+          43.7346192,
+          7.4220159
+        ],
+        [
+          43.7345485,
+          7.4220339
+        ],
+        [
+          43.7344779,
+          7.422052
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7326174,
+          7.4229914
+        ],
+        [
+          43.7326062,
+          7.4229377
+        ],
+        [
+          43.7326042,
+          7.4229221
+        ],
+        [
+          43.7325936,
+          7.4228347
+        ],
+        [
+          43.7325872,
+          7.4227538
+        ],
+        [
+          43.7325868,
+          7.4227575
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7343816,
+          7.4217151
+        ],
+        [
+          43.734449,
+          7.4216959
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7367135,
+          7.4211429
+        ],
+        [
+          43.7367807,
+          7.4211577
+        ],
+        [
+          43.7368558,
+          7.4211744
+        ],
+        [
+          43.7369319,
+          7.4211923
+        ],
+        [
+          43.7369902,
+          7.4212197
+        ],
+        [
+          43.7370785,
+          7.4212911
+        ],
+        [
+          43.7371348,
+          7.4213751
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7376396,
+          7.4245221
+        ],
+        [
+          43.7376473,
+          7.424621
+        ],
+        [
+          43.7376549,
+          7.4247199
+        ],
+        [
+          43.7376618,
+          7.4248099
+        ],
+        [
+          43.7376601,
+          7.4248031
+        ],
+        [
+          43.7376683,
+          7.424856
+        ],
+        [
+          43.737687,
+          7.4249307
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.738352,
+          7.4274369
+        ],
+        [
+          43.7383894,
+          7.4274804
+        ],
+        [
+          43.7384365,
+          7.4275258
+        ],
+        [
+          43.7384418,
+          7.4275329
+        ],
+        [
+          43.7384568,
+          7.4275468
+        ],
+        [
+          43.7384762,
+          7.4275558
+        ],
+        [
+          43.7385036,
+          7.4275645
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7402986,
+          7.4275023
+        ],
+        [
+          43.7403568,
+          7.4275606
+        ],
+        [
+          43.740416,
+          7.4276199
+        ],
+        [
+          43.7404371,
+          7.4276411
+        ],
+        [
+          43.7404956,
+          7.4277019
+        ],
+        [
+          43.7405533,
+          7.4277621
+        ],
+        [
+          43.7406108,
+          7.4278219
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.74129,
+          7.4299502
+        ],
+        [
+          43.7413053,
+          7.430029
+        ],
+        [
+          43.7413114,
+          7.4301034
+        ],
+        [
+          43.7413149,
+          7.4301802
+        ],
+        [
+          43.7413099,
+          7.4302977
+        ],
+        [
+          43.7412944,
+          7.4303825
+        ],
+        [
+          43.7412417,
+          7.4305099
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7367813,
+          7.4250851
+        ],
+        [
+          43.7368006,
+          7.4250153
+        ],
+        [
+          43.73684,
+          7.4249174
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7363149,
+          7.4222196
+        ],
+        [
+          43.7362903,
+          7.4222053
+        ],
+        [
+          43.7362264,
+          7.4221785
+        ],
+        [
+          43.7361652,
+          7.4221526
+        ],
+        [
+          43.7361642,
+          7.422152
+        ],
+        [
+          43.7361053,
+          7.4221321
+        ],
+        [
+          43.7360931,
+          7.4221279
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7341403,
+          7.4227897
+        ],
+        [
+          43.7340798,
+          7.4228021
+        ],
+        [
+          43.7339696,
+          7.4227746
+        ],
+        [
+          43.7338735,
+          7.422703
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7321841,
+          7.4231549
+        ],
+        [
+          43.7321688,
+          7.4230792
+        ],
+        [
+          43.7321619,
+          7.4230301
+        ],
+        [
+          43.7321491,
+          7.4229235
+        ],
+        [
+          43.7321397,
+          7.4228068
+        ],
+        [
+          43.7321379,
+          7.422777
+        ],
+        [
+          43.7321397,
+          7.4226523
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7338765,
+          7.4212566
+        ],
+        [
+          43.7339457,
+          7.4212294
+        ],
+        [
+          43.7340159,
+          7.4212018
+        ],
+        [
+          43.7340667,
+          7.4211818
+        ],
+        [
+          43.7341371,
+          7.4211562
+        ],
+        [
+          43.7342116,
+          7.4211291
+        ],
+        [
+          43.7342167,
+          7.4211274
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.734881,
+          7.4216027
+        ],
+        [
+          43.7349502,
+          7.4215912
+        ],
+        [
+          43.735019,
+          7.4215797
+        ],
+        [
+          43.7350486,
+          7.4215747
+        ],
+        [
+          43.7351177,
+          7.421567
+        ],
+        [
+          43.7351882,
+          7.421559
+        ],
+        [
+          43.7352599,
+          7.421551
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7387119,
+          7.4281617
+        ],
+        [
+          43.7387801,
+          7.4281463
+        ],
+        [
+          43.7388646,
+          7.428112
+        ],
+        [
+          43.7388872,
+          7.4281022
+        ],
+        [
+          43.7389678,
+          7.4280587
+        ],
+        [
+          43.7389905,
+          7.4280462
+        ],
+        [
+          43.739063,
+          7.4279974
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7402832,
+          7.4282588
+        ],
+        [
+          43.7403407,
+          7.4283186
+        ],
+        [
+          43.7403981,
+          7.4283784
+        ],
+        [
+          43.7404555,
+          7.4284382
+        ],
+        [
+          43.7405129,
+          7.4284981
+        ],
+        [
+          43.7405703,
+          7.4285579
+        ],
+        [
+          43.7406278,
+          7.4286177
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7407908,
+          7.4298774
+        ],
+        [
+          43.7408201,
+          7.4299734
+        ],
+        [
+          43.7408337,
+          7.4300177
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7344779,
+          7.422052
+        ],
+        [
+          43.7344072,
+          7.42207
+        ],
+        [
+          43.7343329,
+          7.422089
+        ],
+        [
+          43.7342638,
+          7.4221068
+        ],
+        [
+          43.7341905,
+          7.4221322
+        ],
+        [
+          43.7341175,
+          7.4221576
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7325922,
+          7.4227127
+        ],
+        [
+          43.7325927,
+          7.4227132
+        ],
+        [
+          43.7326951,
+          7.4226783
+        ],
+        [
+          43.7327005,
+          7.4226761
+        ],
+        [
+          43.732798,
+          7.4226177
+        ],
+        [
+          43.7328035,
+          7.4226142
+        ],
+        [
+          43.7328888,
+          7.42254
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7343882,
+          7.4210787
+        ],
+        [
+          43.7344621,
+          7.4210623
+        ],
+        [
+          43.734534,
+          7.4210463
+        ],
+        [
+          43.7346049,
+          7.4210306
+        ],
+        [
+          43.7346781,
+          7.4210144
+        ],
+        [
+          43.7347495,
+          7.4209986
+        ],
+        [
+          43.734823,
+          7.4209863
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7371348,
+          7.4213751
+        ],
+        [
+          43.7371814,
+          7.421499
+        ],
+        [
+          43.7371973,
+          7.4215819
+        ],
+        [
+          43.7372085,
+          7.4216953
+        ],
+        [
+          43.7372183,
+          7.421799
+        ],
+        [
+          43.7372277,
+          7.4218976
+        ],
+        [
+          43.7372369,
+          7.4219955
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.737687,
+          7.4249307
+        ],
+        [
+          43.7376896,
+          7.4249437
+        ],
+        [
+          43.7377174,
+          7.4250231
+        ],
+        [
+          43.7377474,
+          7.4251095
+        ],
+        [
+          43.7377786,
+          7.4251991
+        ],
+        [
+          43.7378097,
+          7.4252887
+        ],
+        [
+          43.7378408,
+          7.4253784
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7385036,
+          7.4275645
+        ],
+        [
+          43.7385379,
+          7.4275651
+        ],
+        [
+          43.7385832,
+          7.4275613
+        ],
+        [
+          43.7386359,
+          7.427549
+        ],
+        [
+          43.7386863,
+          7.4275384
+        ],
+        [
+          43.7387393,
+          7.427515
+        ],
+        [
+          43.7387391,
+          7.4275154
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7406108,
+          7.4278219
+        ],
+        [
+          43.7406682,
+          7.4278817
+        ],
+        [
+          43.7407256,
+          7.4279415
+        ],
+        [
+          43.740783,
+          7.4280014
+        ],
+        [
+          43.7408404,
+          7.4280612
+        ],
+        [
+          43.7408979,
+          7.428121
+        ],
+        [
+          43.7409553,
+          7.4281808
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7412417,
+          7.4305099
+        ],
+        [
+          43.7411782,
+          7.4305953
+        ],
+        [
+          43.7410818,
+          7.4306563
+        ],
+        [
+          43.7410186,
+          7.4306734
+        ],
+        [
+          43.7409272,
+          7.4306722
+        ],
+        [
+          43.74088,
+          7.4306706
+        ],
+        [
+          43.7408069,
+          7.430666
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7368322,
+          7.424902
+        ],
+        [
+          43.7368221,
+          7.4248108
+        ],
+        [
+          43.7368131,
+          7.4247302
+        ],
+        [
+          43.7368032,
+          7.4246304
+        ],
+        [
+          43.7367933,
+          7.4245309
+        ],
+        [
+          43.7367836,
+          7.4244323
+        ],
+        [
+          43.7367738,
+          7.4243338
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7360931,
+          7.4221279
+        ],
+        [
+          43.7360317,
+          7.4221121
+        ],
+        [
+          43.7359654,
+          7.4220949
+        ],
+        [
+          43.7359049,
+          7.4220862
+        ],
+        [
+          43.7358704,
+          7.4220805
+        ],
+        [
+          43.7358036,
+          7.4220802
+        ],
+        [
+          43.7357407,
+          7.4220798
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7338532,
+          7.4226701
+        ],
+        [
+          43.733839,
+          7.422675
+        ],
+        [
+          43.7337787,
+          7.4226784
+        ],
+        [
+          43.7337511,
+          7.4226776
+        ],
+        [
+          43.733708,
+          7.422709
+        ],
+        [
+          43.7336547,
+          7.4227437
+        ],
+        [
+          43.7336013,
+          7.4227773
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7321397,
+          7.4226523
+        ],
+        [
+          43.7321425,
+          7.422559
+        ],
+        [
+          43.7321572,
+          7.4224674
+        ],
+        [
+          43.7322005,
+          7.4223379
+        ],
+        [
+          43.7322514,
+          7.4222513
+        ],
+        [
+          43.7323536,
+          7.4221475
+        ],
+        [
+          43.732408,
+          7.4221214
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7342167,
+          7.4211274
+        ],
+        [
+          43.734291,
+          7.4211062
+        ],
+        [
+          43.7343644,
+          7.4210854
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7352599,
+          7.421551
+        ],
+        [
+          43.7353315,
+          7.4215429
+        ],
+        [
+          43.735401,
+          7.4215351
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.739063,
+          7.4279974
+        ],
+        [
+          43.7390732,
+          7.4279903
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.740648,
+          7.4286434
+        ],
+        [
+          43.7406089,
+          7.4286569
+        ],
+        [
+          43.7405408,
+          7.4286765
+        ],
+        [
+          43.7404718,
+          7.4286964
+        ],
+        [
+          43.740409,
+          7.4287147
+        ],
+        [
+          43.7404121,
+          7.4287143
+        ],
+        [
+          43.7403481,
+          7.428723
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7408261,
+          7.4300449
+        ],
+        [
+          43.740755,
+          7.4300404
+        ],
+        [
+          43.7406832,
+          7.4300358
+        ],
+        [
+          43.7406114,
+          7.4300312
+        ],
+        [
+          43.7405396,
+          7.4300266
+        ],
+        [
+          43.7404679,
+          7.4300221
+        ],
+        [
+          43.7403972,
+          7.4300176
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7341193,
+          7.4221457
+        ],
+        [
+          43.734102,
+          7.4221196
+        ],
+        [
+          43.7339648,
+          7.4220264
+        ],
+        [
+          43.7338898,
+          7.4220181
+        ],
+        [
+          43.73384,
+          7.4220301
+        ],
+        [
+          43.7337703,
+          7.4220591
+        ],
+        [
+          43.7337675,
+          7.4220613
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7328888,
+          7.42254
+        ],
+        [
+          43.7328961,
+          7.4225331
+        ],
+        [
+          43.7329522,
+          7.42247
+        ],
+        [
+          43.7329938,
+          7.4224228
+        ],
+        [
+          43.7330489,
+          7.4223744
+        ],
+        [
+          43.733105,
+          7.4223247
+        ],
+        [
+          43.7331654,
+          7.4222711
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.734823,
+          7.4209863
+        ],
+        [
+          43.7348965,
+          7.420974
+        ],
+        [
+          43.7349703,
+          7.4209617
+        ],
+        [
+          43.7350049,
+          7.420956
+        ],
+        [
+          43.7350791,
+          7.4209476
+        ],
+        [
+          43.7351518,
+          7.4209394
+        ],
+        [
+          43.7352234,
+          7.4209314
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7372369,
+          7.4219955
+        ],
+        [
+          43.7372445,
+          7.4220752
+        ],
+        [
+          43.7372544,
+          7.4221729
+        ],
+        [
+          43.7372643,
+          7.4222708
+        ],
+        [
+          43.7372743,
+          7.4223693
+        ],
+        [
+          43.7372839,
+          7.4224639
+        ],
+        [
+          43.7372875,
+          7.4224999
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7378408,
+          7.4253784
+        ],
+        [
+          43.737872,
+          7.425468
+        ],
+        [
+          43.7379031,
+          7.4255577
+        ],
+        [
+          43.7379375,
+          7.4256569
+        ],
+        [
+          43.7379606,
+          7.4257248
+        ],
+        [
+          43.7379878,
+          7.4258352
+        ],
+        [
+          43.7380108,
+          7.4259305
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7387391,
+          7.4275154
+        ],
+        [
+          43.7387924,
+          7.4274864
+        ],
+        [
+          43.7388101,
+          7.4274769
+        ],
+        [
+          43.7388667,
+          7.4274383
+        ],
+        [
+          43.738889,
+          7.4274234
+        ],
+        [
+          43.7388644,
+          7.4274463
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7409553,
+          7.4281808
+        ],
+        [
+          43.7410127,
+          7.4282406
+        ],
+        [
+          43.7410701,
+          7.4283004
+        ],
+        [
+          43.7411275,
+          7.4283602
+        ],
+        [
+          43.7411938,
+          7.4284298
+        ],
+        [
+          43.7412468,
+          7.4284898
+        ],
+        [
+          43.7412967,
+          7.4285844
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7408069,
+          7.430666
+        ],
+        [
+          43.7407343,
+          7.4306614
+        ],
+        [
+          43.7406625,
+          7.4306568
+        ],
+        [
+          43.7405908,
+          7.4306522
+        ],
+        [
+          43.740519,
+          7.4306476
+        ],
+        [
+          43.7404472,
+          7.4306431
+        ],
+        [
+          43.7403743,
+          7.4306384
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7367738,
+          7.4243338
+        ],
+        [
+          43.736764,
+          7.4242353
+        ],
+        [
+          43.7367542,
+          7.4241367
+        ],
+        [
+          43.7367444,
+          7.4240382
+        ],
+        [
+          43.7367347,
+          7.4239396
+        ],
+        [
+          43.7367249,
+          7.4238411
+        ],
+        [
+          43.7367151,
+          7.4237426
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7357407,
+          7.4220798
+        ],
+        [
+          43.7357328,
+          7.4220796
+        ],
+        [
+          43.7356645,
+          7.4220841
+        ],
+        [
+          43.7356122,
+          7.4220864
+        ],
+        [
+          43.7356149,
+          7.4220844
+        ],
+        [
+          43.7355635,
+          7.4221093
+        ],
+        [
+          43.7355666,
+          7.422108
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7336013,
+          7.4227773
+        ],
+        [
+          43.7336063,
+          7.4227724
+        ],
+        [
+          43.7335583,
+          7.4228199
+        ],
+        [
+          43.7334947,
+          7.4228818
+        ],
+        [
+          43.7334602,
+          7.422915
+        ],
+        [
+          43.7333877,
+          7.4229702
+        ],
+        [
+          43.733335,
+          7.4230098
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.732408,
+          7.4221214
+        ],
+        [
+          43.7325074,
+          7.4221022
+        ],
+        [
+          43.7325184,
+          7.4221001
+        ],
+        [
+          43.7325555,
+          7.4220874
+        ],
+        [
+          43.7325561,
+          7.4220875
+        ],
+        [
+          43.7325903,
+          7.4220665
+        ],
+        [
+          43.7325931,
+          7.4220649
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7374983,
+          7.425827
+        ],
+        [
+          43.7375263,
+          7.4259071
+        ],
+        [
+          43.7375439,
+          7.4259565
+        ],
+        [
+          43.7375624,
+          7.4260347
+        ],
+        [
+          43.73758,
+          7.4261064
+        ],
+        [
+          43.7375971,
+          7.4261987
+        ],
+        [
+          43.7376145,
+          7.4262927
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7391891,
+          7.4279032
+        ],
+        [
+          43.7392318,
+          7.4278154
+        ],
+        [
+          43.7392901,
+          7.4277252
+        ],
+        [
+          43.7393309,
+          7.427663
+        ],
+        [
+          43.7393539,
+          7.4276275
+        ],
+        [
+          43.7393947,
+          7.4275657
+        ],
+        [
+          43.7394166,
+          7.4275325
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7403481,
+          7.428723
+        ],
+        [
+          43.7402709,
+          7.4287339
+        ],
+        [
+          43.7402322,
+          7.4287394
+        ],
+        [
+          43.7401208,
+          7.4287727
+        ],
+        [
+          43.7401028,
+          7.4287809
+        ],
+        [
+          43.739974,
+          7.4288976
+        ],
+        [
+          43.7399659,
+          7.4289069
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7376344,
+          7.4267562
+        ],
+        [
+          43.7376179,
+          7.4266657
+        ],
+        [
+          43.7376013,
+          7.4265747
+        ],
+        [
+          43.7375848,
+          7.4264849
+        ],
+        [
+          43.7375787,
+          7.4264525
+        ],
+        [
+          43.7375671,
+          7.4263611
+        ],
+        [
+          43.737555,
+          7.4262659
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7337675,
+          7.4220613
+        ],
+        [
+          43.7336844,
+          7.4220706
+        ],
+        [
+          43.7336308,
+          7.4220786
+        ],
+        [
+          43.7335435,
+          7.4221306
+        ],
+        [
+          43.7334663,
+          7.4221794
+        ],
+        [
+          43.7333893,
+          7.4222293
+        ],
+        [
+          43.7333714,
+          7.4222424
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7331654,
+          7.4222711
+        ],
+        [
+          43.7332219,
+          7.4222209
+        ],
+        [
+          43.733248,
+          7.4221976
+        ],
+        [
+          43.7333025,
+          7.4221571
+        ],
+        [
+          43.7333116,
+          7.4221501
+        ],
+        [
+          43.7333609,
+          7.4221166
+        ],
+        [
+          43.7333797,
+          7.4221031
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7352234,
+          7.4209314
+        ],
+        [
+          43.7352951,
+          7.4209233
+        ],
+        [
+          43.7353688,
+          7.420915
+        ],
+        [
+          43.7353883,
+          7.4209129
+        ],
+        [
+          43.7354622,
+          7.4209077
+        ],
+        [
+          43.7355383,
+          7.4209024
+        ],
+        [
+          43.7356115,
+          7.4208974
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7372875,
+          7.4224999
+        ],
+        [
+          43.7373001,
+          7.4225942
+        ],
+        [
+          43.7373125,
+          7.422687
+        ],
+        [
+          43.7373148,
+          7.4227042
+        ],
+        [
+          43.7373286,
+          7.4227925
+        ],
+        [
+          43.7373352,
+          7.4228347
+        ],
+        [
+          43.7373531,
+          7.422927
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7380108,
+          7.4259305
+        ],
+        [
+          43.7380295,
+          7.4260308
+        ],
+        [
+          43.7380479,
+          7.4261295
+        ],
+        [
+          43.738049,
+          7.4261354
+        ],
+        [
+          43.738069,
+          7.4262267
+        ],
+        [
+          43.7380899,
+          7.4263221
+        ],
+        [
+          43.7380932,
+          7.4263373
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7389047,
+          7.4273894
+        ],
+        [
+          43.7389425,
+          7.4273316
+        ],
+        [
+          43.7389978,
+          7.4272459
+        ],
+        [
+          43.7390216,
+          7.4272093
+        ],
+        [
+          43.7390782,
+          7.4271247
+        ],
+        [
+          43.7391045,
+          7.4270855
+        ],
+        [
+          43.7391765,
+          7.4270023
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7412286,
+          7.4290777
+        ],
+        [
+          43.7411139,
+          7.429128
+        ],
+        [
+          43.7410215,
+          7.4291582
+        ],
+        [
+          43.7409602,
+          7.4291769
+        ],
+        [
+          43.7408918,
+          7.4292003
+        ],
+        [
+          43.7408233,
+          7.4292238
+        ],
+        [
+          43.7407513,
+          7.4292484
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7372035,
+          7.4269318
+        ],
+        [
+          43.7371847,
+          7.4268295
+        ],
+        [
+          43.7371659,
+          7.4267276
+        ],
+        [
+          43.7371471,
+          7.4266247
+        ],
+        [
+          43.7371389,
+          7.4265791
+        ],
+        [
+          43.7371255,
+          7.4264745
+        ],
+        [
+          43.7371126,
+          7.4263739
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7367151,
+          7.4237426
+        ],
+        [
+          43.7367053,
+          7.423644
+        ],
+        [
+          43.7366955,
+          7.4235455
+        ],
+        [
+          43.7366861,
+          7.4234502
+        ],
+        [
+          43.7366788,
+          7.4233767
+        ],
+        [
+          43.7366666,
+          7.4232819
+        ],
+        [
+          43.7366544,
+          7.4231865
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7355666,
+          7.422108
+        ],
+        [
+          43.7355519,
+          7.4221035
+        ],
+        [
+          43.7355351,
+          7.4221149
+        ],
+        [
+          43.7355268,
+          7.4221268
+        ],
+        [
+          43.7354967,
+          7.4221868
+        ],
+        [
+          43.7354567,
+          7.4222619
+        ],
+        [
+          43.7354275,
+          7.4223136
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.733335,
+          7.4230098
+        ],
+        [
+          43.7332684,
+          7.4230553
+        ],
+        [
+          43.7332022,
+          7.4231004
+        ],
+        [
+          43.7331449,
+          7.4231393
+        ],
+        [
+          43.7331074,
+          7.4231635
+        ],
+        [
+          43.7330728,
+          7.4231972
+        ],
+        [
+          43.7330372,
+          7.423236
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7325931,
+          7.4220649
+        ],
+        [
+          43.7326293,
+          7.4220326
+        ],
+        [
+          43.7326282,
+          7.4220341
+        ],
+        [
+          43.7326836,
+          7.4219718
+        ],
+        [
+          43.7327316,
+          7.4219181
+        ],
+        [
+          43.7327976,
+          7.4218592
+        ],
+        [
+          43.7328625,
+          7.4218014
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7376145,
+          7.4262927
+        ],
+        [
+          43.7376172,
+          7.4263068
+        ],
+        [
+          43.7376389,
+          7.4264059
+        ],
+        [
+          43.7376597,
+          7.4265009
+        ],
+        [
+          43.7376628,
+          7.4265152
+        ],
+        [
+          43.737685,
+          7.4266191
+        ],
+        [
+          43.7376875,
+          7.4266307
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7394166,
+          7.4275325
+        ],
+        [
+          43.7394556,
+          7.4274894
+        ],
+        [
+          43.7394336,
+          7.4275093
+        ],
+        [
+          43.7394397,
+          7.4275045
+        ],
+        [
+          43.7394763,
+          7.4274837
+        ],
+        [
+          43.7394584,
+          7.427487
+        ],
+        [
+          43.7394648,
+          7.4274838
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7399659,
+          7.4289069
+        ],
+        [
+          43.7398796,
+          7.4290831
+        ],
+        [
+          43.7398743,
+          7.4290966
+        ],
+        [
+          43.7398428,
+          7.4293049
+        ],
+        [
+          43.7398417,
+          7.4293206
+        ],
+        [
+          43.7398713,
+          7.4295309
+        ],
+        [
+          43.7398745,
+          7.4295453
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.737555,
+          7.4262659
+        ],
+        [
+          43.7375425,
+          7.4261679
+        ],
+        [
+          43.73753,
+          7.42607
+        ],
+        [
+          43.7375175,
+          7.425972
+        ],
+        [
+          43.737505,
+          7.4258741
+        ],
+        [
+          43.7374926,
+          7.4257768
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7333714,
+          7.4222424
+        ],
+        [
+          43.7333019,
+          7.4223095
+        ],
+        [
+          43.7332481,
+          7.4223623
+        ],
+        [
+          43.7332247,
+          7.4223857
+        ],
+        [
+          43.7331709,
+          7.4224257
+        ],
+        [
+          43.7331289,
+          7.4224575
+        ],
+        [
+          43.7330666,
+          7.4224999
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7333797,
+          7.4221031
+        ],
+        [
+          43.7334403,
+          7.4220778
+        ],
+        [
+          43.7335004,
+          7.4220523
+        ],
+        [
+          43.7335005,
+          7.4220522
+        ],
+        [
+          43.7335699,
+          7.4220274
+        ],
+        [
+          43.7336096,
+          7.4220131
+        ],
+        [
+          43.7336809,
+          7.4219831
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7356115,
+          7.4208974
+        ],
+        [
+          43.7356862,
+          7.420899
+        ],
+        [
+          43.735766,
+          7.4209009
+        ],
+        [
+          43.7357846,
+          7.4209014
+        ],
+        [
+          43.7358597,
+          7.4209081
+        ],
+        [
+          43.7359321,
+          7.4209146
+        ],
+        [
+          43.7360094,
+          7.4209216
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7373531,
+          7.422927
+        ],
+        [
+          43.7373707,
+          7.4230181
+        ],
+        [
+          43.737377,
+          7.4230507
+        ],
+        [
+          43.7373971,
+          7.4231433
+        ],
+        [
+          43.7374176,
+          7.4232376
+        ],
+        [
+          43.7374383,
+          7.4233329
+        ],
+        [
+          43.7374589,
+          7.4234281
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7380932,
+          7.4263373
+        ],
+        [
+          43.7381116,
+          7.4264243
+        ],
+        [
+          43.7381134,
+          7.4264331
+        ],
+        [
+          43.7381338,
+          7.4265081
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7391765,
+          7.4270023
+        ],
+        [
+          43.7392078,
+          7.4269719
+        ],
+        [
+          43.7392646,
+          7.426932
+        ],
+        [
+          43.7393538,
+          7.4268856
+        ],
+        [
+          43.739404,
+          7.4268699
+        ],
+        [
+          43.7395126,
+          7.4268657
+        ],
+        [
+          43.7395887,
+          7.4268849
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7407513,
+          7.4292484
+        ],
+        [
+          43.7407077,
+          7.4292633
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7371126,
+          7.4263739
+        ],
+        [
+          43.7371002,
+          7.4262759
+        ],
+        [
+          43.7370877,
+          7.426178
+        ],
+        [
+          43.7370752,
+          7.42608
+        ],
+        [
+          43.7370627,
+          7.4259821
+        ],
+        [
+          43.7370501,
+          7.4258834
+        ],
+        [
+          43.7370485,
+          7.4258709
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7366544,
+          7.4231865
+        ],
+        [
+          43.7366412,
+          7.4230836
+        ],
+        [
+          43.7366398,
+          7.4230716
+        ],
+        [
+          43.7366302,
+          7.4229679
+        ],
+        [
+          43.7366211,
+          7.4228689
+        ],
+        [
+          43.7366121,
+          7.4227702
+        ],
+        [
+          43.736603,
+          7.4226715
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7354275,
+          7.4223136
+        ],
+        [
+          43.7353787,
+          7.42238
+        ],
+        [
+          43.7352834,
+          7.4224752
+        ],
+        [
+          43.7352185,
+          7.4225077
+        ],
+        [
+          43.7351182,
+          7.4225278
+        ],
+        [
+          43.7350459,
+          7.4225389
+        ],
+        [
+          43.7349794,
+          7.4225561
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7330372,
+          7.423236
+        ],
+        [
+          43.7330259,
+          7.4232536
+        ],
+        [
+          43.733012,
+          7.4232805
+        ],
+        [
+          43.7329844,
+          7.4233549
+        ],
+        [
+          43.7329498,
+          7.4234456
+        ],
+        [
+          43.7329261,
+          7.423507
+        ],
+        [
+          43.7328541,
+          7.4236414
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7328625,
+          7.4218014
+        ],
+        [
+          43.732923,
+          7.4217478
+        ],
+        [
+          43.7329876,
+          7.4216905
+        ],
+        [
+          43.7330183,
+          7.4216634
+        ],
+        [
+          43.7330902,
+          7.4216093
+        ],
+        [
+          43.7331073,
+          7.4215965
+        ],
+        [
+          43.7331874,
+          7.4215432
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.737681,
+          7.4266958
+        ],
+        [
+          43.7376876,
+          7.4267853
+        ],
+        [
+          43.7376931,
+          7.426941
+        ],
+        [
+          43.7377082,
+          7.4270571
+        ],
+        [
+          43.737721,
+          7.4271531
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7394648,
+          7.4274838
+        ],
+        [
+          43.7394839,
+          7.4274894
+        ],
+        [
+          43.7395088,
+          7.4275
+        ],
+        [
+          43.7395524,
+          7.427529
+        ],
+        [
+          43.7395943,
+          7.4275609
+        ],
+        [
+          43.7396432,
+          7.4276114
+        ],
+        [
+          43.739696,
+          7.4276649
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7398745,
+          7.4295453
+        ],
+        [
+          43.7399598,
+          7.4297226
+        ],
+        [
+          43.7399666,
+          7.4297341
+        ],
+        [
+          43.7400937,
+          7.4298524
+        ],
+        [
+          43.7401028,
+          7.4298591
+        ],
+        [
+          43.7402326,
+          7.4299002
+        ],
+        [
+          43.7402483,
+          7.429903
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7354122,
+          7.4215242
+        ],
+        [
+          43.7353424,
+          7.4215536
+        ],
+        [
+          43.735264,
+          7.4216193
+        ],
+        [
+          43.7352023,
+          7.421697
+        ],
+        [
+          43.7351469,
+          7.4217969
+        ],
+        [
+          43.7351014,
+          7.4218816
+        ],
+        [
+          43.7350967,
+          7.4218931
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7330666,
+          7.4224999
+        ],
+        [
+          43.7330038,
+          7.4225428
+        ],
+        [
+          43.7329322,
+          7.4225918
+        ],
+        [
+          43.7328714,
+          7.4226345
+        ],
+        [
+          43.7328054,
+          7.4226978
+        ],
+        [
+          43.7327313,
+          7.4227809
+        ],
+        [
+          43.732678,
+          7.4228603
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7336809,
+          7.4219831
+        ],
+        [
+          43.7337501,
+          7.4219538
+        ],
+        [
+          43.7337938,
+          7.4219353
+        ],
+        [
+          43.7338618,
+          7.4219086
+        ],
+        [
+          43.7339301,
+          7.4218817
+        ],
+        [
+          43.7339993,
+          7.4218545
+        ],
+        [
+          43.7340684,
+          7.4218274
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7360094,
+          7.4209216
+        ],
+        [
+          43.7360217,
+          7.420923
+        ],
+        [
+          43.7360982,
+          7.420938
+        ],
+        [
+          43.736176,
+          7.4209535
+        ],
+        [
+          43.7361906,
+          7.4209567
+        ],
+        [
+          43.7362665,
+          7.4209807
+        ],
+        [
+          43.7363418,
+          7.4210047
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7374589,
+          7.4234281
+        ],
+        [
+          43.7374796,
+          7.4235234
+        ],
+        [
+          43.7375006,
+          7.42362
+        ],
+        [
+          43.737508,
+          7.4236542
+        ],
+        [
+          43.7375279,
+          7.4237513
+        ],
+        [
+          43.7375479,
+          7.4238493
+        ],
+        [
+          43.7375648,
+          7.4239318
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7381384,
+          7.4268589
+        ],
+        [
+          43.7381491,
+          7.4269385
+        ],
+        [
+          43.7381589,
+          7.4270148
+        ],
+        [
+          43.7381758,
+          7.427086
+        ],
+        [
+          43.7381722,
+          7.4270724
+        ],
+        [
+          43.738193,
+          7.4271382
+        ],
+        [
+          43.738204,
+          7.4271731
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7395887,
+          7.4268849
+        ],
+        [
+          43.7396733,
+          7.4269215
+        ],
+        [
+          43.7397592,
+          7.4269771
+        ],
+        [
+          43.7398305,
+          7.4270322
+        ],
+        [
+          43.7398976,
+          7.4270991
+        ],
+        [
+          43.7399609,
+          7.4271629
+        ],
+        [
+          43.7400187,
+          7.4272213
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7406737,
+          7.4292621
+        ],
+        [
+          43.7407063,
+          7.429259
+        ],
+        [
+          43.7407736,
+          7.4292464
+        ],
+        [
+          43.7408429,
+          7.4292336
+        ],
+        [
+          43.7410085,
+          7.4292309
+        ],
+        [
+          43.7411107,
+          7.429307
+        ],
+        [
+          43.741181,
+          7.4295264
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7370485,
+          7.4258709
+        ],
+        [
+          43.7370364,
+          7.4257721
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.736603,
+          7.4226715
+        ],
+        [
+          43.736594,
+          7.4225729
+        ],
+        [
+          43.7365849,
+          7.4224742
+        ],
+        [
+          43.7365778,
+          7.4223926
+        ],
+        [
+          43.7365829,
+          7.4223959
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7349794,
+          7.4225561
+        ],
+        [
+          43.7349127,
+          7.4225731
+        ],
+        [
+          43.734842,
+          7.4225912
+        ],
+        [
+          43.7347713,
+          7.4226092
+        ],
+        [
+          43.7347006,
+          7.4226272
+        ],
+        [
+          43.73463,
+          7.4226453
+        ],
+        [
+          43.7345593,
+          7.4226633
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7328541,
+          7.4236414
+        ],
+        [
+          43.7328047,
+          7.4237074
+        ],
+        [
+          43.7326925,
+          7.4237789
+        ],
+        [
+          43.7326025,
+          7.4238054
+        ],
+        [
+          43.7325219,
+          7.4238035
+        ],
+        [
+          43.7324306,
+          7.4237648
+        ],
+        [
+          43.7323551,
+          7.4236973
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7331874,
+          7.4215432
+        ],
+        [
+          43.7332208,
+          7.4215217
+        ],
+        [
+          43.7332975,
+          7.4214885
+        ],
+        [
+          43.7333748,
+          7.4214555
+        ],
+        [
+          43.7333802,
+          7.4214533
+        ],
+        [
+          43.73345,
+          7.4214283
+        ],
+        [
+          43.7334867,
+          7.4214152
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7379148,
+          7.427689
+        ],
+        [
+          43.7379562,
+          7.4277634
+        ],
+        [
+          43.7380152,
+          7.427848
+        ],
+        [
+          43.7380562,
+          7.4279047
+        ],
+        [
+          43.7381086,
+          7.4279656
+        ],
+        [
+          43.7381789,
+          7.428035
+        ],
+        [
+          43.7382216,
+          7.4280747
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.739696,
+          7.4276649
+        ],
+        [
+          43.7397542,
+          7.4277237
+        ],
+        [
+          43.7397968,
+          7.4277668
+        ],
+        [
+          43.7398552,
+          7.4278253
+        ],
+        [
+          43.7399135,
+          7.4278838
+        ],
+        [
+          43.7399717,
+          7.4279421
+        ],
+        [
+          43.7400299,
+          7.4280005
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7402483,
+          7.429903
+        ],
+        [
+          43.7403348,
+          7.4299037
+        ],
+        [
+          43.7404117,
+          7.4299037
+        ],
+        [
+          43.7404867,
+          7.4299035
+        ],
+        [
+          43.7405623,
+          7.4298962
+        ],
+        [
+          43.740638,
+          7.4298888
+        ],
+        [
+          43.7407136,
+          7.4298813
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7350967,
+          7.4218931
+        ],
+        [
+          43.7350988,
+          7.4218938
+        ],
+        [
+          43.7350917,
+          7.421913
+        ],
+        [
+          43.7350883,
+          7.4219128
+        ],
+        [
+          43.7350458,
+          7.4219143
+        ],
+        [
+          43.7349807,
+          7.4219239
+        ],
+        [
+          43.7349059,
+          7.4219428
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.732678,
+          7.4228603
+        ],
+        [
+          43.7326326,
+          7.4229477
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7340684,
+          7.4218274
+        ],
+        [
+          43.7341364,
+          7.4218006
+        ],
+        [
+          43.7341848,
+          7.4217816
+        ],
+        [
+          43.7342535,
+          7.4217566
+        ],
+        [
+          43.7343179,
+          7.4217331
+        ],
+        [
+          43.7343151,
+          7.421734
+        ],
+        [
+          43.7343816,
+          7.4217151
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7363418,
+          7.4210047
+        ],
+        [
+          43.7364137,
+          7.4210277
+        ],
+        [
+          43.7364866,
+          7.4210595
+        ],
+        [
+          43.7365574,
+          7.4210905
+        ],
+        [
+          43.7366154,
+          7.4211164
+        ],
+        [
+          43.7366514,
+          7.4211296
+        ],
+        [
+          43.7367135,
+          7.4211429
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7375648,
+          7.4239318
+        ],
+        [
+          43.7375845,
+          7.4240374
+        ],
+        [
+          43.7376018,
+          7.424131
+        ],
+        [
+          43.737615,
+          7.4242418
+        ],
+        [
+          43.7376237,
+          7.4243169
+        ],
+        [
+          43.7376317,
+          7.4244203
+        ],
+        [
+          43.7376396,
+          7.4245221
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.738204,
+          7.4271731
+        ],
+        [
+          43.7382295,
+          7.4272341
+        ],
+        [
+          43.7382302,
+          7.4272375
+        ],
+        [
+          43.7382627,
+          7.4272959
+        ],
+        [
+          43.7382975,
+          7.4273594
+        ],
+        [
+          43.7383389,
+          7.427417
+        ],
+        [
+          43.738352,
+          7.4274369
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7400187,
+          7.4272213
+        ],
+        [
+          43.7400609,
+          7.427264
+        ],
+        [
+          43.7401189,
+          7.4273222
+        ],
+        [
+          43.740177,
+          7.4273804
+        ],
+        [
+          43.7402352,
+          7.4274387
+        ],
+        [
+          43.7402934,
+          7.4274971
+        ],
+        [
+          43.7402986,
+          7.4275023
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.741181,
+          7.4295264
+        ],
+        [
+          43.7411919,
+          7.4295925
+        ],
+        [
+          43.741212,
+          7.4296615
+        ],
+        [
+          43.7412389,
+          7.4297487
+        ],
+        [
+          43.7412536,
+          7.4297973
+        ],
+        [
+          43.741279,
+          7.4299026
+        ],
+        [
+          43.74129,
+          7.4299502
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7369998,
+          7.425749
+        ],
+        [
+          43.736912,
+          7.4256954
+        ],
+        [
+          43.7368043,
+          7.4255014
+        ],
+        [
+          43.7367922,
+          7.4254228
+        ],
+        [
+          43.7367755,
+          7.4252811
+        ],
+        [
+          43.7367696,
+          7.4252138
+        ],
+        [
+          43.7367813,
+          7.4250851
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7365497,
+          7.422375
+        ],
+        [
+          43.7365081,
+          7.4223428
+        ],
+        [
+          43.7365037,
+          7.422339
+        ],
+        [
+          43.7364437,
+          7.4222997
+        ],
+        [
+          43.7363831,
+          7.4222598
+        ],
+        [
+          43.73637,
+          7.422251
+        ],
+        [
+          43.7363149,
+          7.4222196
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7345593,
+          7.4226633
+        ],
+        [
+          43.7344886,
+          7.4226813
+        ],
+        [
+          43.7344216,
+          7.4226984
+        ],
+        [
+          43.7343597,
+          7.4227141
+        ],
+        [
+          43.7342936,
+          7.4227372
+        ],
+        [
+          43.7342272,
+          7.4227604
+        ],
+        [
+          43.7341403,
+          7.4227897
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7323551,
+          7.4236973
+        ],
+        [
+          43.7323125,
+          7.4236351
+        ],
+        [
+          43.7322638,
+          7.4235245
+        ],
+        [
+          43.732248,
+          7.4234654
+        ],
+        [
+          43.7322241,
+          7.4233511
+        ],
+        [
+          43.7322042,
+          7.4232534
+        ],
+        [
+          43.7321841,
+          7.4231549
+        ]
+      ]
+    },
+    {
+      "source": "street trees: plane trees in rows 25 real m off the lap, beyond the walls, along the boulevards, quays and squares (tools/scratch/_mostreettrees.mjs; spread round the lap)",
+      "tags": {
+        "natural": "tree_row"
+      },
+      "pts": [
+        [
+          43.7334867,
+          7.4214152
+        ],
+        [
+          43.7335529,
+          7.4213872
+        ],
+        [
+          43.7336212,
+          7.4213583
+        ],
+        [
+          43.7336672,
+          7.4213389
+        ],
+        [
+          43.7337375,
+          7.4213112
+        ],
+        [
+          43.7338074,
+          7.4212837
+        ],
+        [
+          43.7338765,
+          7.4212566
         ]
       ]
     }

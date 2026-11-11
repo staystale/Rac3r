@@ -654,11 +654,16 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   barriers and solids grown half a car) found each gap the eye missed.
 - A STREET VENUE'S TOWN IS PAVED (owner 11-11 on Moanaco's town on grass: "make pavement or
   anything else you need"): VenueSpec.base sets the ground off the road (Moanaco: concrete, the
-  existing ground art - pavements, quays and squares to the water's edge), its parks, gardens and
-  woods laid as grass pads (OSM's outlines boxed, kept 13 m off the road: tools/scratch/
-  _moparks.mjs, _mopads.mjs), its car parks left out (mown grass with parked cars). A concrete
+  existing ground art - pavements, quays and squares to the water's edge), its parks, gardens, lawns and
+  woods grass in their mapped outlines (tools/osmvenue.mjs "parks"; world/venueparks.ts holds
+  each outline 13 m off the road, an inset; a park the road crosses, or a strip between two roads,
+  left out), its street trees OSM's natural=tree nodes ("treeNodes") and rows 25 real m off the
+  lap (tools/scratch/_mostreettrees.mjs) laid as tree rows - beyond the walls (a venue's trees keep
+  6 m past the run-off's rim), its car parks left out (mown grass with parked cars). A concrete
   pit lane did not show on the concrete town: VenueSpec.pitSurface (Moanaco's tarmac, as the
-  real one). Every other venue: grass and a concrete pit lane, as before (worldhash).
+  real one). Every other venue: grass and a concrete pit lane, as before (worldhash). Armco on a
+  pale base (render/props/fence.ts PALE_BASES: concrete) gets a dark rim, else its bright face sank
+  into the concrete; every other base draws it as before (renderhash Brands / Castle Kum SAME).
 - A STAND BESIDE A ROAD WATCHES ITS FAR SIDE TOO (11-11, Moanaco): the edge marks 30 m round a
   stand's corners as watched, so a stand by the swimming pool turned 26 m of the road's other side
   (beside the pit lane) to catch fence - a run shorter than MIN_RUN_PTS, dropped: a 19 m gap. The

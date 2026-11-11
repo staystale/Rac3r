@@ -53,6 +53,8 @@ export interface VenueData {
   rows?: { pts: Point[] }[];
   // lakes and ponds (scenery water)
   water?: { name: string; pts: Point[] }[];
+  // a paved town's parks, gardens, lawns and woods (outlines: world/venueparks.ts)
+  parks?: { name: string; pts: Point[] }[];
 }
 
 /** One venue level's hand-set facts (real metres in the venue data's frame). */
