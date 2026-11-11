@@ -31,6 +31,7 @@ import { advanceWorldClock } from '../world/worldclock.ts';
 import type { TrafficVehicle } from '../ai/types.ts';
 import { FIX } from '../core/fixes.ts';
 import { noteTouches, notePoliceCamera, stepPoliceGame } from './police.ts';
+import { stepFlashes } from './flashes.ts';
 
 export function recoverCar(why: unknown) {
   if (shared.nanReports++ < 5)
@@ -440,6 +441,8 @@ export function stepTrafficContacts(tcars: TrafficVehicle[]) {
     if (game.ai.length) wakeStep(racers.filter(onGround));
   }
   if (FIX.police) stepPoliceGame();
+  // (?moveover=1 / ?roadrage=1: your flashes at the car ahead of you)
+  stepFlashes();
   // a stock car's roof flaps (physics/roofflaps.ts)
   for (const racer of [game.car, ...game.ai.map((entry) => entry.car)])
     roofFlapStep(racer, PHYSICS_STEP_SECONDS);

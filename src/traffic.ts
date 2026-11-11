@@ -22,6 +22,8 @@ import { stepTraffic } from "./ai/trafficStep.ts";
 import type { StepArgs } from "./ai/trafficStep.ts";
 import type { HighwayLevel } from "./ai/types.ts";
 import { clearPolice, ordersOf, putAway } from "./ai/trafficPolice.ts";
+import { noteFlash } from "./ai/trafficYield.ts";
+import type { AiCar } from "./ai/types.ts";
 
 export { PER_LANE };
 
@@ -47,6 +49,9 @@ export function createTraffic({ rnd = Math.random } = {}) {
     police: () => ordersOf(ctx),
     clearPolice: (target: object | null = null) => clearPolice(ctx, target),
     putAway: (car: object) => putAway(ctx, car),
+    // ?moveover=1 / ?roadrage=1: you flashed your lights (ai/trafficYield.ts)
+    noteFlash: (player: AiCar, you: { s: number; off: number }, clock: number) =>
+      noteFlash(ctx, player, you, clock),
     stats: () => ({
       live: ctx.cars.length, want: ctx.want, placed: ctx.placed, recycled: ctx.recycled,
       visHits: ctx.visHits,

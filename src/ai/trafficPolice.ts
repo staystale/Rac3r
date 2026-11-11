@@ -107,7 +107,9 @@ export type PoliceMode = 'cruise' | 'wait' | 'chase';
  * is after, s until it looks again for the closest and s it has waited ahead of it stopped.
  */
 export interface TrafficPolice { mode: PoliceMode; seat: number; wreckT: number;
-  target?: (AiCar & { crossing?: number }) | null; targetT?: number; waitT?: number }
+  target?: (AiCar & { crossing?: number }) | null; targetT?: number; waitT?: number;
+  // ?roadrage=1: an angry driver chasing as police do, no lights, and s until it calms down
+  angry?: boolean; angryT?: number }
 
 /**
  * What the heat (ai/policeHeat.ts) tells the police, and their counts: every driver's stars in all
@@ -290,7 +292,8 @@ export function drivePolice(ctx: TrafficCtx, slot: TrafficCar, env: DriveEnv,
 function driveChaser(ctx: TrafficCtx, slot: TrafficCar, env: DriveEnv, speed: number) {
   const car = slot.car, racer = slot.racer!, median = geo(ctx).median;
   const target = slot.police!.target ?? null;
-  const stars = ordersOf(ctx).suspects.find((each) => each.car === target)?.stars ?? 1;
+  const stars = slot.police!.angry ? ANGRY_STARS
+    : ordersOf(ctx).suspects.find((each) => each.car === target)?.stars ?? 1;
   if (slot.kin) racer.relocate();
   slot.laneT = slot.lane;
   slot.ind = 0;
@@ -417,7 +420,7 @@ function vanishWrecks(ctx: TrafficCtx, dt: number): boolean {
   let changed = false;
   for (const slot of ctx.list) {
     const police = slot.police;
-    if (slot.parked || !police) continue;
+    if (slot.parked || !police || police.angry) continue;
     const wrecked = slot.wreck || rolling(slot.car) || tooInjured(slot.car);
     police.wreckT = wrecked ? police.wreckT + dt : 0;
     if (police.wreckT <= VANISH_S) continue;
@@ -651,12 +654,14 @@ export function stepPolice(ctx: TrafficCtx, dt: number, player: AiCar & { crossi
   const orders = ordersOf(ctx);
   let changed = vanishWrecks(ctx, dt);
   changed = placeAhead(ctx, ents, vis) || changed;
-  const chasers = ctx.list.filter((slot) => !slot.parked && slot.police?.mode === 'chase');
+  const chasers = ctx.list.filter((slot) => !slot.parked && slot.police?.mode === 'chase'
+    && !slot.police.angry);
   if (!orders.stars) {
     for (const slot of chasers) giveUp(ctx, slot);
     orders.owed = 0;
   } else changed = runChase(ctx, dt, player, chasers, { ents, vis }) || changed;
-  for (const slot of ctx.list) if (slot.police) slot.car.blues = slot.police.mode === 'chase';
+  for (const slot of ctx.list) if (slot.police) slot.car.blues = slot.police.mode === 'chase'
+    && !slot.police.angry;
   if (changed) rebuildCars(ctx);
 }
 
@@ -694,4 +699,50 @@ export function putAway(ctx: TrafficCtx, car: object): boolean {
   slot.police = null;
   rebuildCars(ctx);
   return true;
+}
+
+// ?roadrage=1: s an angry driver stays angry, the least and the most; the stars it drives at you
+// with (its closing speed and its rams: ai/trafficPolice.ts ramAt), and how far away it gives up
+const ANGRY_S = [30, 45], ANGRY_STARS = 2, ANGRY_SIGHT_M = 200;
+
+/**
+ * A driver made ANGRY (?roadrage=1, ai/trafficYield.ts noteFlash): the police's chase driver at its
+ * wheel - the racing AI, you its target, tailgating and ramming - without the lights or the livery
+ * (render/cars.ts flashes its headlights); not a police car to the heat (ai/policeHeat.ts).
+ * @param ctx the traffic
+ * @param slot the car
+ * @param target you
+ */
+export function makeAngry(ctx: TrafficCtx, slot: TrafficCar,
+  target: AiCar & { crossing?: number }) {
+  seatRacer(ctx, slot, CHASE_DIFF, CHASE_AGG);
+  slot.broke = null;
+  slot.yieldT = 0;
+  slot.police = { mode: 'chase', seat: 0, wreckT: 0, target, targetT: Infinity, angry: true,
+    angryT: ANGRY_S[0] + ctx.rnd() * (ANGRY_S[1] - ANGRY_S[0]) };
+  slot.car.angry = true;
+}
+
+/**
+ * The angry drivers' step (?roadrage=1): each one's speed after you, as a chaser's; calmed down -
+ * driving on as traffic - once its time is up, it is wrecked, or you are out of its sight.
+ * @param ctx the traffic
+ * @param dt the step, s
+ * @param player you
+ */
+export function stepAngry(ctx: TrafficCtx, dt: number, player: AiCar) {
+  const playerS = ctx.level!._hw.q!.s, youV = Math.hypot(player.vx, player.vy);
+  for (const slot of ctx.list) {
+    const police = slot.police;
+    if (slot.parked || !police?.angry) continue;
+    police.angryT = (police.angryT ?? 0) - dt;
+    const gap = Math.hypot(slot.car.x - player.x, slot.car.y - player.y);
+    if (police.angryT > 0 && gap < ANGRY_SIGHT_M && !slot.wreck) {
+      slot.vWant = chaseSpeed(ANGRY_STARS, youV, slot.s - playerS);
+      continue;
+    }
+    giveUp(ctx, slot);
+    slot.police = null;
+    slot.car.angry = false;
+  }
 }

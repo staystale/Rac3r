@@ -112,3 +112,37 @@ export function drawLightBar(ctx: CanvasRenderingContext2D, car: RenderCar, spri
     ctx.fillRect(lampX, lampY, FLASHER_PX, FLASHER_PX);
   }
 }
+
+// ms an angry driver's lamps (?roadrage=1) are on, then off: a quick, cross flashing
+const ANGRY_FLASH_MS = 220;
+
+/**
+ * Whether an angry driver's lamps are in the lit half of their flash (?roadrage=1, ai/
+ * trafficPolice.ts makeAngry): its headlights (and their beams) and its brake lights flash
+ * together - flashing back at you, brake-testing you; wall clock: a look.
+ * @param car the car
+ * @returns lit now
+ */
+export const isAngryFlashOn = (car: RenderCar): boolean => !!car.angry
+  && Math.floor(performance.now() / ANGRY_FLASH_MS) % 2 === 0;
+
+// sprite px: an angry driver's flashed headlights' halo past each lamp (read by day: the lamps
+// alone are 3 px)
+const ANGRY_HALO_PX = 4;
+
+/**
+ * An angry driver's headlights flashed by day too (?roadrage=1): a white halo round each, in the
+ * lit half of the flash (the headlights themselves: render/cars.ts).
+ * @param ctx the context, in the car's frame at sprite scale
+ * @param car the car
+ * @param sprite the body sprite (its size)
+ */
+export function drawAngryFlash(ctx: CanvasRenderingContext2D, car: RenderCar, sprite: CarSprite) {
+  if (!isAngryFlashOn(car)) return;
+  ctx.globalAlpha = HALO_ALPHA * 1.6;
+  ctx.fillStyle = COL.bluesCore;
+  for (const y of [-sprite.Wp / 2 + 4, sprite.Wp / 2 - 4])
+    ctx.fillRect(sprite.Lp / 2 - 3 - ANGRY_HALO_PX, y - 2 - ANGRY_HALO_PX, 3 + 2 * ANGRY_HALO_PX,
+      4 + 2 * ANGRY_HALO_PX);
+  ctx.globalAlpha = 1;
+}

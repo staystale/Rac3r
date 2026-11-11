@@ -16,8 +16,9 @@ import type { Kind } from "./trafficKinds.ts";
 import { mayPlaceBroken } from "./trafficBreak.ts";
 import type { DriveEnv } from "./trafficLane.ts";
 import { holdsOncoming } from "./trafficReset.ts";
-import { POLICE_PHYS_M, mayWait, stepPolice } from "./trafficPolice.ts";
+import { POLICE_PHYS_M, mayWait, stepAngry, stepPolice } from "./trafficPolice.ts";
 import { SIGHT_M } from "./policeHeat.ts";
+import { mayPlaceAtPump } from "./trafficFuel.ts";
 
 /** The inputs of a step: you, the AI cars and the renderer's screen test. */
 export interface StepArgs {
@@ -159,8 +160,8 @@ function dealPutBack(ctx: TrafficCtx, slot: TrafficCar,
     slot.quick = true;
     setSpeed(slot, slot.vWant);
   }
-  if (back.kind === 'cruise' && back.from === 'ahead' && dirOf(slot) > 0)
-    mayPlaceBroken(ctx, slot, ents);
+  if (back.kind === 'cruise' && back.from === 'ahead' && dirOf(slot) > 0
+    && !mayPlaceBroken(ctx, slot, ents) && FIX.stationstops) mayPlaceAtPump(ctx, slot, ents);
   if (back.kind === 'police' && back.from === 'ahead' && dirOf(slot) > 0) mayWait(ctx, slot, ents);
   const ent = ents[ents.length - 1];
   ent.off = slot.off;
@@ -298,6 +299,8 @@ export function stepTraffic(ctx: TrafficCtx, dt: number, args: StepArgs) {
   if (recycle(ctx, ents, playerS, vis, args.held, speedOf(ents, args.player))) rebuildCars(ctx);
   // (?police=1: the police's orders - a chase, its chasers sent - before the cars are driven)
   if (FIX.police) stepPolice(ctx, dt, args.player, ents, vis);
+  // (?roadrage=1: the angry drivers after you)
+  if (FIX.roadrage) stepAngry(ctx, dt, args.player);
   assignPhys(ctx, ents, playerS);
   const [env, otherEnv] = driveEnvs(ctx, dt, ents);
   for (const slot of ctx.list)

@@ -13,6 +13,30 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'moveover',
+    added: '2026-11-11',
+    name: 'Traffic moves over for police (lights on), and maybe for your flash',
+    where: 'Test link + &moveover=1&police=1: Highway to Hull, traffic on',
+    try: 'Get a chase going and watch cars ahead of it; flash LIGHTS at the car ahead of you.',
+    wrong: 'Cars moving right into the police, cutting into a car, every flashed car obeying.',
+  },
+  {
+    id: 'roadrage',
+    added: '2026-11-11',
+    name: 'Road rage: flash the same car 3 times and it comes after you for a while',
+    where: 'Test link + &roadrage=1: Highway to Hull, traffic on',
+    try: 'Flash LIGHTS three times quickly at the car ahead; drive on and watch your mirror.',
+    wrong: 'No anger, anger after one flash, it never calms down, police stars from it alone.',
+  },
+  {
+    id: 'stationstops',
+    added: '2026-11-11',
+    name: 'Traffic stops at the petrol stations now and then, and pulls out again',
+    where: 'Test link + &stationstops=1: Highway to Hull, dual or twisty roads (lay-by stations)',
+    try: 'Drive past the stations; look for a car pulling in, at the pumps, or pulling out.',
+    wrong: 'A car stopping in the road, driving into the pumps, pulling out into a car.',
+  },
+  {
     id: 'stadiums2',
     added: '2026-11-11',
     name: 'ROC stadiums reworked: the real start, softer corners, tyres, boards and flags',
