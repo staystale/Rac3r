@@ -34,7 +34,7 @@ function survey() {
   for (const prop of lv.props) {
     if (seen.has(prop)) continue;
     seen.add(prop);
-    if (['slip', 'bridge', 'river', 'services', 'station', 'servicehall'].includes(prop.kind)
+    if (['slip', 'bridge', 'river', 'services', 'station', 'servicehall', 'gasstation'].includes(prop.kind)
       || prop.kind?.includes('service'))
       found.push(`${prop.kind}${prop.carries ? ':' + prop.carries : ''}${prop.label ? ' ' + prop.label
         : ''} @${Math.round(prop._s)} (${stretchAt(prop._s, lv._hw.seed).kind})`);

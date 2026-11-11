@@ -60,10 +60,11 @@ export const FIX = {
   // instead of on the verges (owner 11-10: "lamps on the central reservation", "Instead then");
   // each side's light as before (a pool every 68 m), half the posts (highway/roadlamps.ts)
   medianlamps: atLoad('medianlamps'),
-  // ?desertroads=1: Deaf Valley's roads with a central reservation built as the other motorways
-  // are (owner 11-11: "it should be built similarly"): off-slips, bridges over it and SERVICES
-  // (with ?hwstations=1) where the ground is open - the desert and the dunes, never through a
-  // canyon wall or by a gorge - and the street lights (highway/dress.ts, extras.ts)
+  // ?desertroads=1: Deaf Valley's roads built as the other roads are (owner 11-11: "it should be
+  // built similarly"): off-slips, bridges over it and SERVICES (with ?hwstations=1) where the
+  // ground is open - the desert and the dunes, never through a canyon wall or by a gorge - in the
+  // desert's look (timber trestles, sand concrete); a central reservation's street lights
+  // (highway/dress.ts, extras.ts, render/props/bridges.ts)
   desertroads: atLoad('desertroads'),
   // ?desertmore=1: Deaf Valley's junk from the same LITTER slider as every endless road, as much
   // of it (the shared litter, desert kinds: highway/litter.ts), its own heaps, shacks and skulls

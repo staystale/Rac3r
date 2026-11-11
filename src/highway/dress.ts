@@ -342,13 +342,14 @@ export function dress(level: HwLevel, firstIdx: number, endIdx: number, loose: L
   layLaybys(ctx);
   // a themed road dresses its own way (Deaf Valley: highway/canyon.ts)
   if (level._cfg.theme === 'canyon') {
-    // (?desertroads=1: a road with a central reservation gets the motorway's slips, bridges and
-    // services first - the scenery below keeps off them)
-    const motorway = FIX.desertroads && level._cfg.oncoming === 'carriageway';
-    if (motorway) layDesertExtras(ctx);
+    // (?desertroads=1: every road there gets the other roads' slips, bridges and services first,
+    // as those roads have them - the scenery below keeps off them)
+    if (FIX.desertroads) layDesertExtras(ctx);
     dressCanyon(ctx);
-    // (the reservation's columns only: a verge post would stand in a canyon wall)
-    if (motorway && FIX.medianlamps) layRoadLamps(ctx);
+    // (the reservation's columns only - a verge post would stand in a canyon wall: a road with a
+    // central reservation)
+    if (FIX.desertroads && FIX.medianlamps && level._cfg.oncoming === 'carriageway')
+      layRoadLamps(ctx);
     // (?desertmore=1: the shared litter, its slider and its amount - in the desert's kinds)
     if (FIX.desertmore) layLooseRoadside(ctx);
     // (any road there - a twin carriageway's central reservation, the walled road's walls)

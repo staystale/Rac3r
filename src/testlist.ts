@@ -16,7 +16,7 @@ export const TEST_LIST: TestEntry[] = [
     id: 'desertroads',
     added: '2026-11-11',
     name: 'Deaf Valley motorways as the others: exits, bridges, services, reservation lamps',
-    where: 'Test link + &desertroads=1 (with hwstations, medianlamps): DEAF VALLEY > MOTORWAY',
+    where: 'Test link + &desertroads=1 (+hwstations, medianlamps): DEAF VALLEY, any road',
     try: 'Drive 8 km: exits, WELCOME BRAKE services, sand-concrete road bridges, timber rail'
       + ' trestles with freight trains; lamps at night.',
     wrong: 'An exit or yard through a rock wall or gorge, junk on a slip, a footbridge or river.',
