@@ -189,6 +189,12 @@ ROUND 3, THE OTHER HIGHWAYS:
     twin columns with ?medianlamps=1. MEASURED (tools/scratch/_desertroads.mjs, motorway 10 km):
     services at 3.1 / 7.9 km, an exit at 7.4, bridges 4.6 (rail), 6.8 (foot), 8.4 / 10.9 (road),
     170 lamps; nothing on a slip's tarmac, no lane in a rock (0). Photos day and night.
+    The bridges in the desert's look (owner 11-11: "different looking bridges and train bridges ...
+    to match the Death Valley asthetic"; chose the timber trestle, and "No footbridges there"):
+    road bridges sun-bleached sand concrete, rusted railings, dusty pickups; rail bridges an old
+    timber trestle (bents, ties, two rails) with a freight train, a locomotive and 6-9 wagons;
+    footbridges and rivers road bridges instead (render/props/bridges.ts BRIDGE_LOOKS, look
+    'desert'). Photographed: the trestle at 4.6 km, a road bridge at 6.8.
 ROUND 4, POLICE ON THE HIGHWAYS (a design to agree first): waiting in lay-bys and petrol stations,
     cruising as traffic either side; they chase you / try to crash into you after: speeding past a
     speed camera nearby (that raises the chance they come; otherwise random), crashing, flashing

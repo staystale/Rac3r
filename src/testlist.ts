@@ -17,8 +17,9 @@ export const TEST_LIST: TestEntry[] = [
     added: '2026-11-11',
     name: 'Deaf Valley motorways as the others: exits, bridges, services, reservation lamps',
     where: 'Test link + &desertroads=1 (with hwstations, medianlamps): DEAF VALLEY > MOTORWAY',
-    try: 'Drive 8 km: FURNACE CREAK etc exits, bridges, WELCOME BRAKE services; lamps at night.',
-    wrong: 'An exit or yard through a rock wall or by a gorge, junk on a slip, a river bridge.',
+    try: 'Drive 8 km: exits, WELCOME BRAKE services, sand-concrete road bridges, timber rail'
+      + ' trestles with freight trains; lamps at night.',
+    wrong: 'An exit or yard through a rock wall or gorge, junk on a slip, a footbridge or river.',
   },
   {
     id: 'hwstations',

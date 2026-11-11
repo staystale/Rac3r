@@ -3,6 +3,27 @@
 import type { Prop } from '../../world/types.ts';
 import type { BridgeGeom, PropCtx } from './types.ts';
 
+/** A bridge look's paint: abutments, deck, its lit and shaded parapets, a road deck's tarmac. */
+interface BridgeLook { abutment: string; deck: string; railDeck: string; lit: string;
+  shade: string; tarmac: string; cars: string[] }
+// the countryside's grey concrete; Deaf Valley's sun-bleached sand concrete with rusted railings
+// and dusty pickups (owner 11-11: bridges "to match the Death Valley asthetic")
+const BRIDGE_LOOKS: Record<string, BridgeLook> = {
+  plain: { abutment: '#7c7f86', deck: '#8f949c', railDeck: '#5a5048', lit: '#c9ccd3',
+    shade: '#5d626d', tarmac: '#3b3e44', cars: ['#c8302c', '#2b56b5', '#e9e4d8', '#3f5a3a',
+      '#d6a21e'] },
+  desert: { abutment: '#a8957a', deck: '#c4b497', railDeck: '#5a4330', lit: '#8a4a2a',
+    shade: '#7d6a52', tarmac: '#4b4743', cars: ['#b8a888', '#8a3b22', '#e9e4d8', '#5c6339',
+      '#3e5f7a'] },
+};
+/**
+ * The look a bridge is painted in.
+ * @param prop the bridge prop
+ * @returns its paint
+ */
+const lookOf = (prop: Prop): BridgeLook => BRIDGE_LOOKS[prop.look === 'desert' ? 'desert'
+  : 'plain'];
+
 /**
  * Draws the traffic lanes, the cow and the cars of a road bridge.
  * @param propCtx the view and painter helpers
@@ -10,8 +31,9 @@ import type { BridgeGeom, PropCtx } from './types.ts';
  * @param geo the deck geometry shared with the other bridge drawers
  */
 function drawBridgeRoad(propCtx: PropCtx, prop: Prop, geo: BridgeGeom) {
-  const { paint, half, seed, negEnd, posEnd, trackLen, along, deckWid } = geo;
-  paint(-half, -deckWid / 2 + 0.6, 2 * half, deckWid - 1.2, '#3b3e44');
+  const { paint, half, seed, negEnd, posEnd, trackLen, along, deckWid } = geo,
+    look = lookOf(prop);
+  paint(-half, -deckWid / 2 + 0.6, 2 * half, deckWid - 1.2, look.tarmac);
   // centre dashes over the deck AND the approaches, edge lines on the approaches (the ribbon is
   // 7 m: edges at +-3.2)
   for (let dashX = -negEnd + 1; dashX < posEnd - 2; dashX += 4)
@@ -32,7 +54,7 @@ function drawBridgeRoad(propCtx: PropCtx, prop: Prop, geo: BridgeGeom) {
   if (prop.quiet) return;
   // TRAFFIC both ways (left-hand: +x in the lane at y +1.6): 1-2 cars per direction, 13-17 m/s,
   // spaced along the whole road
-  const cols = ['#c8302c', '#2b56b5', '#e9e4d8', '#3f5a3a', '#d6a21e'],
+  const cols = look.cars,
     carCount = 1 + (prop.cars || 1);
   for (let car = 0; car < carCount; car++) {
     const dir = car % 2 ? -1 : 1,
@@ -97,6 +119,62 @@ function drawBridgeRail(propCtx: PropCtx, prop: Prop, geo: BridgeGeom) {
   for (let bracketX = -half + 3; bracketX < half; bracketX += 12)
     paint(bracketX, -deckWid / 2 - 0.3, 0.3, deckWid + 0.6, '#3d4049');
   drawBridgeTrain(prop, geo);
+}
+
+// (Deaf Valley) a timber trestle's bents (the frames under the deck), m apart and how far each
+// cap sticks out past the deck; its timbers' colours
+const BENT_GAP_M = 4, CAP_OUT_M = 0.7;
+const TIMBER = '#4a3624', TIMBER_DARK = '#33251a', TIE = '#6b5038', RAIL = '#9a9488';
+
+/**
+ * (Deaf Valley) Draws a rail bridge as an old timber trestle - the bents' caps and bracing out past
+ * a narrow open deck of ties - and the freight train over it.
+ * @param prop the bridge prop
+ * @param geo the deck geometry shared with the other bridge drawers
+ */
+function drawTrestle(prop: Prop, geo: BridgeGeom) {
+  const { paint, half, negEnd, posEnd, deckWid } = geo;
+  // the bents: a cap across, a brace out either side, a shadow strip down the gap below
+  for (let bentX = -half + 1; bentX < half; bentX += BENT_GAP_M) {
+    paint(bentX, -deckWid / 2 - CAP_OUT_M, 0.5, deckWid + 2 * CAP_OUT_M, TIMBER_DARK);
+    paint(bentX + 0.5, -deckWid / 2 - CAP_OUT_M, BENT_GAP_M - 0.5, 0.25, TIMBER);
+    paint(bentX + 0.5, deckWid / 2 + CAP_OUT_M - 0.25, BENT_GAP_M - 0.5, 0.25, TIMBER);
+  }
+  // the ties, close across the deck and the ballast beyond it, and the two rails
+  for (let tieX = -negEnd; tieX < posEnd; tieX += 0.8) {
+    const onDeck = tieX >= -half && tieX <= half;
+    paint(tieX, onDeck ? -deckWid / 2 + 0.6 : -2.2, 0.4, onDeck ? deckWid - 1.2 : 4.4, TIE);
+  }
+  for (const y of [-0.75, 0.75]) paint(-negEnd, y - 0.08, negEnd + posEnd, 0.16, RAIL);
+  drawFreight(prop, geo);
+}
+
+// (Deaf Valley) the freight train: its locomotive's livery, then its wagons' (boxcars, a tanker)
+const LOCO = ['#d6a21e', '#8a3b22'], WAGONS = ['#7a3b22', '#5c4a3a', '#8a5a32', '#6e6a62'];
+
+/**
+ * (Deaf Valley) Draws the freight train of a trestle: a locomotive and 6-9 wagons of 15 m at
+ * 22 m/s, one way or the other, every trainEvery s.
+ * @param prop the bridge prop
+ * @param geo the deck geometry shared with the other bridge drawers
+ */
+function drawFreight(prop: Prop, geo: BridgeGeom) {
+  const { paint, seed, negEnd, posEnd, clock } = geo;
+  const every = (prop.trainEvery || 20) * 1.5, cycle = Math.floor(clock / every),
+    since = clock - cycle * every, dir = (cycle + seed) % 2 ? 1 : -1,
+    cars = 7 + ((cycle + seed) % 4), length = cars * 16, head = -negEnd - 10 + since * 22;
+  if (head - length >= posEnd + 10) return;
+  for (let car = 0; car < cars; car++) {
+    const tailX = head - (car + 1) * 16,
+      x = dir > 0 ? tailX : posEnd - negEnd - tailX - 15;
+    if (x < -negEnd - 15 || x > posEnd) continue;
+    paint(x, -1.5, 15, 3, '#22201d');
+    paint(x + 0.3, -1.35, 14.4, 2.7, car === 0 ? LOCO[(cycle + seed) % 2]
+      : WAGONS[(car * 3 + seed) % WAGONS.length]);
+    // a boxcar's roof walk, a tanker's dome, the locomotive's cab
+    if (car === 0) paint(x + (dir > 0 ? 10.5 : 1.5), -1.1, 3, 2.2, '#2a2c33');
+    else paint(x + 1, -0.15, 13, 0.3, 'rgba(20,16,12,0.45)');
+  }
 }
 
 /**
@@ -229,11 +307,13 @@ export function drawBridge(propCtx: PropCtx, prop: Prop, ppm: number) {
     2 * half * ppm,
     deckWid * ppm,
   ); // shadow
-  paint(-half - 4, -deckWid / 2 - 0.6, 4, deckWid + 1.2, '#7c7f86');
-  paint(half, -deckWid / 2 - 0.6, 4, deckWid + 1.2, '#7c7f86'); // abutments
-  paint(-half, -deckWid / 2, 2 * half, deckWid, carries === 'rail' ? '#5a5048' : '#8f949c');
-  paint(-half, -deckWid / 2, 2 * half, 0.4, '#c9ccd3');
-  paint(-half, deckWid / 2 - 0.4, 2 * half, 0.4, '#5d626d'); // parapets
+  const look = lookOf(prop);
+  // abutments, the deck, the parapets
+  paint(-half - 4, -deckWid / 2 - 0.6, 4, deckWid + 1.2, look.abutment);
+  paint(half, -deckWid / 2 - 0.6, 4, deckWid + 1.2, look.abutment);
+  paint(-half, -deckWid / 2, 2 * half, deckWid, carries === 'rail' ? look.railDeck : look.deck);
+  paint(-half, -deckWid / 2, 2 * half, 0.4, look.lit);
+  paint(-half, deckWid / 2 - 0.4, 2 * half, 0.4, look.shade);
   const geo: BridgeGeom = {
     ppm,
     paint,
@@ -247,6 +327,7 @@ export function drawBridge(propCtx: PropCtx, prop: Prop, ppm: number) {
     deckWid,
   };
   if (carries === 'road') drawBridgeRoad(propCtx, prop, geo);
+  else if (carries === 'rail' && prop.look === 'desert') drawTrestle(prop, geo);
   else if (carries === 'rail') drawBridgeRail(propCtx, prop, geo);
   else drawBridgeFoot(propCtx, prop, geo);
 }

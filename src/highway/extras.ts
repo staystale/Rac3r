@@ -265,6 +265,18 @@ function addRiverParapets(level: HwLevel, i: number, dist: number, pointAt: (i: 
   }
 }
 /**
+ * What a bridge carries, from its roll: a road, a railway, a footpath or (the motorway over) a
+ * river; Deaf Valley no footbridges or rivers - road bridges instead (owner 11-11).
+ * @param roll 0..1
+ * @param desert on Deaf Valley
+ * @returns 'road', 'rail', 'foot' or 'river'
+ */
+function bridgeKind(roll: number, desert: boolean): string {
+  if (roll < 0.38 || (desert && roll >= 0.62)) return 'road';
+  return roll < 0.62 ? 'rail' : roll < 0.82 ? 'foot' : 'river';
+}
+
+/**
  * A bridge: over (road / rail / foot) or the motorway over a river, with its cheeky extras and
  * what moves across it, then the approaches (or the river and its parapets).
  * @param level the highway level
@@ -283,9 +295,7 @@ function buildBridge(level: HwLevel, i: number, dist: number, pointAt: (i: numbe
   state.nextBridge = dist + BRIDGE_EVERY[0] + rand() * (BRIDGE_EVERY[1] - BRIDGE_EVERY[0]);
   // no slip under a bridge's approach
   if (dist > state.nextSlip! - 400) state.nextSlip = dist + 400;
-  const roll = rand(),
-    kind = roll < 0.38 || (state.desert && roll >= 0.82) ? 'road' : roll < 0.62 ? 'rail'
-      : roll < 0.82 ? 'foot' : 'river';
+  const kind = bridgeKind(rand(), !!state.desert);
   // walled: the wall stands wallGap off the edge - the span and the parapets clear it
   const wallOff = walled ? level._cfg.wallGap! : 0,
     centre = pointAt(i, 0),
@@ -301,6 +311,8 @@ function buildBridge(level: HwLevel, i: number, dist: number, pointAt: (i: numbe
     seed: dist | 0,
     skew,
     roadHw: halfWidth + 1.2 + wallOff,
+    // (Deaf Valley: sun-bleached road bridges, timber rail trestles - render/props/bridges.ts)
+    ...(state.desert ? { look: 'desert' } : {}),
   }) as Bridge;
   // CHEEKY EXTRAS, rare (each ~1 in 6 of its bridge type)
   const extra = rand() < 1 / 6;
