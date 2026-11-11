@@ -22,6 +22,13 @@ const RAMP_M = 14;
 // extra, m - the signs before it, a long slip's bend, the services' side road and yard after it;
 // and the step the check walks, m
 const OPEN_BACK_M = 100, OPEN_AHEAD_M = 560, OPEN_STEP_M = 20;
+// a bridge's: its approaches run off square to the road, so open ground only round it, m
+// (MEASURED, tools/scratch/_hwextras.mjs: with the exits' window the first came at 4.6-9.3 km, on
+// one seed none in 10 km)
+const BRIDGE_OPEN_M = 60;
+// and the least bend radius under one, m: the desert's roads wind more (the countryside's 900);
+// over the 96 m checked a 500 m bend moves 2.3 m, inside the span's 6 m to spare
+const DESERT_BRIDGE_RADIUS_M = 500;
 const SERVICES_EVERY = [4000, 5000], SERVICES_FIRST_M = 1200, SERVICES_RUN_M = 220;
 // m: the tightest bend a services goes on (the side road and its yard follow the road's bends; a
 // slip's 900 m - MEASURED, _svcprobe: on the motorway's first seed none was straight enough from
@@ -410,15 +417,17 @@ function buildServices(level: HwLevel, i: number, dist: number, pointAt: (i: num
 
 /**
  * Whether the ground round an extra is open: always off Deaf Valley; there (?desertroads=1) only
- * desert or dunes from OPEN_BACK_M before to OPEN_AHEAD_M after - no rock wall, no gorge.
+ * desert or dunes from `back` m before to `ahead` m after - no rock wall, no gorge.
  * @param state the highway state
  * @param dist road distance, m
+ * @param back m before it that must be open (an exit's signs)
+ * @param ahead m after it (a long slip's bend, the services' side road and yard)
  * @returns true when an extra can be built here
  */
-function isOpenGround(state: HwState, dist: number) {
+function isOpenGround(state: HwState, dist: number, back = OPEN_BACK_M, ahead = OPEN_AHEAD_M) {
   if (!state.desert) return true;
-  const last = dist + OPEN_AHEAD_M;
-  for (let along = Math.max(0, dist - OPEN_BACK_M); along <= last; along += OPEN_STEP_M) {
+  const last = dist + ahead;
+  for (let along = Math.max(0, dist - back); along <= last; along += OPEN_STEP_M) {
     const kind = stretchAt(along, state.seed).kind;
     if (kind !== 'desert' && kind !== 'dunes') return false;
   }
@@ -433,8 +442,9 @@ function isOpenGround(state: HwState, dist: number) {
  * @returns true when the bridge should be built
  */
 function bridgeDue(state: HwState, road: HwPoint[], i: number, dist: number) {
-  return isOpenGround(state, dist) && (
-    dist >= state.nextBridge! && !state.side && i < road.length - 20 && straightAt(road, i, 12)
+  return isOpenGround(state, dist, BRIDGE_OPEN_M, BRIDGE_OPEN_M) && (
+    dist >= state.nextBridge! && !state.side && i < road.length - 20
+    && straightAt(road, i, 12, 12, state.desert ? DESERT_BRIDGE_RADIUS_M : undefined)
   );
 }
 /**

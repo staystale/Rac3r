@@ -228,6 +228,13 @@ ROUND 3, THE OTHER HIGHWAYS:
        decks' cars' beams and glows (render/light.ts paintUnderDecks, isOnLevel). The plain game
        (a fix). Photographed (tools/scratch/_decknight.mjs, Brands, night 0.9): before the beam from
        the deck's edge and no tail glow; now from the lamps, the tail red; a car beneath still dark.
+    DEAF VALLEY'S BRIDGES TOO RARE (owner 11-11: "Didn't see a single bridge on Death Valley dual
+       carriage way after 5km"): a bridge waited for the exits' 660 m of open ground and the
+       countryside's 900 m bend radius. Now 60 m of open ground either side and a 500 m radius
+       there (extras.ts BRIDGE_OPEN_M, DESERT_BRIDGE_RADIUS_M). MEASURED (tools/scratch/
+       _hwextras.mjs, every road, 2 seeds, 10 km): Deaf Valley first bridge 4.6-9.3 km (twice none)
+       -> 1.4-3.9, 0-4 -> 4-6 a road, the longest gap 3.9 km; the countryside unchanged (1.0-3.6,
+       4-6); crossingcheck all OK, nothing on a slip.
     R2 exits lead up to them (a junction); R3 real traffic over them; R4 rail bridges drivable, the
        train can hit you; R5 road tunnels under the motorway.
 ROUND 4, POLICE ON THE HIGHWAYS (a design to agree first): waiting in lay-bys and petrol stations,

@@ -141,9 +141,10 @@ export function growTo(level: HwLevel, sTarget: number) {
     if (elem.done >= elem.len - 1e-6) state.plan.shift();
   }
 }
-export const straightAt = (road: HwPoint[], i: number, back: number, fwd = back) => {
+export const straightAt = (road: HwPoint[], i: number, back: number, fwd = back,
+  leastRadius = 900) => {
   for (let j = Math.max(0, i - back); j < Math.min(road.length, i + fwd); j++)
-    if (Math.abs(road[j].curv || 0) > 1 / 900) return false;
+    if (Math.abs(road[j].curv || 0) > 1 / leastRadius) return false;
   return true;
 };
 export const ease = (prog: number) =>
