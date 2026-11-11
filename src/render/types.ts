@@ -224,6 +224,7 @@ export interface RenderCar extends CamCar, Pick<Car, 'heading' | 'delta' | 'cros
   rainLight?: boolean;   // the rear rain light is on (game/sim.ts)
   police?: boolean;   // a police car: its roof light bar (render/lightbar.ts)
   blues?: boolean;   // its light bar going (it is chasing)
+  angry?: boolean;   // ?roadrage=1: an angry driver - its headlights flash (render/cars.ts)
   handbrakeOn?: number;   // the handbrake is on, 1 (game/loop.ts, game/ai.ts): rear brake heat
   tyreT?: number[];   // the tyre temperatures (vehicle.ts; a reset makes a new array)
   gear?: number;   // the gear, -1 in reverse (vehicle.ts): its reversing lights

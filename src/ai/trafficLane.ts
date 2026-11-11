@@ -4,6 +4,7 @@
 import { CROSS_T, IND_T, SPEEDER_IND, SPEEDER_LOOK_M } from "./trafficCtx.ts";
 import type { TrafficCtx } from "./trafficCtx.ts";
 import type { TrafficCar, TrafficEnt } from "./types.ts";
+import { isYielding, yieldLane } from "./trafficYield.ts";
 
 /** What every car's step shares: the step, everyone on the road and the road's lanes. */
 export interface DriveEnv {
@@ -76,11 +77,16 @@ function overtakeLane(ctx: TrafficCtx, slot: TrafficCar, env: DriveEnv) {
     ? slot.lane - 1 : null;
 }
 
-/** Pick a lane to move to (or none): overtake, keep left, or now and then for no reason. */
+/**
+ * Pick a lane to move to (or none): move over (?moveover=1), overtake, keep left, or now and then
+ * for no reason.
+ */
 function chooseLane(
   ctx: TrafficCtx, slot: TrafficCar, env: DriveEnv, lead: TrafficEnt | null, gap: number,
 ) {
   const rnd = ctx.rnd;
+  // (?moveover=1: moving over for a police car or a flash - to its left, never to its right)
+  if (isYielding(slot, env)) return yieldLane(slot, (laneNo) => laneClear(slot, env, laneNo));
   const blocked = lead && lead.v < slot.vWant - 3 && gap < (slot.racer ? SPEEDER_LOOK_M : 45);
   let goLane: number | null = null;
   if (blocked) goLane = overtakeLane(ctx, slot, env);

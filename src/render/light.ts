@@ -21,7 +21,7 @@ import {
 } from './reverselights.ts';
 import type { RenderCar, RenderGame, View } from './types.ts';
 import type { Point } from '../world/types.ts';
-import { litPoliceLamps } from './lightbar.ts';
+import { isAngryFlashOn, litPoliceLamps } from './lightbar.ts';
 import { COL } from '../world/colours.ts';
 
 // the night's dark at darkness 1 this opaque (the darkest patches still show the track's shape
@@ -381,7 +381,7 @@ function drawIndicatorGlows(painter: GlowPainter, car: RenderCar) {
  */
 function drawRearGlows(painter: GlowPainter, car: RenderCar) {
   const halfLen = car.spec.len / 2, halfWid = car.spec.wid / 2;
-  const rear = car.brakeLight! > 0.05 ? 1 : car.lightsOn ? TAIL_GLOW : 0;
+  const rear = car.brakeLight! > 0.05 || isAngryFlashOn(car) ? 1 : car.lightsOn ? TAIL_GLOW : 0;
   if (rear) {
     if (lampLevel(car, 2)) glowAt(painter, car, -halfLen, -halfWid * 0.7, painter.redGlow, rear);
     if (lampLevel(car, 3)) glowAt(painter, car, -halfLen, halfWid * 0.7, painter.redGlow, rear);
@@ -511,7 +511,8 @@ function makeMapGlows(pools: PoolPainter, sparks: SparkLight[]) {
  * @param car the car
  */
 function drawBeams(painter: PoolPainter, beam: HTMLCanvasElement, car: RenderCar) {
-  if (!car.lightsOn) return;
+  // (?roadrage=1: an angry driver's headlights flash at you)
+  if (!car.lightsOn && !isAngryFlashOn(car)) return;
   const { lightCtx, artX, artY } = painter;
   const scale = painter.artPerMetre(), cos = Math.cos(car.heading), sin = Math.sin(car.heading);
   const reach = BEAM_REACH_M * scale;

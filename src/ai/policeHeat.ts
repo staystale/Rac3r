@@ -156,13 +156,17 @@ function speedOffences(heat: Heat, input: HeatInput) {
   heatAtLeast(heat, speed > HARD_MPH * MPH_MS ? 2 : 1, 'speeding');
 }
 
+/** What a flash is told by: the lights as last seen, when they last changed and the clock, s. */
+export interface FlashWatch { lightsWas: boolean | null; lightsAt: number; clock: number }
+
 /**
- * Your lights on and off inside FLASH_S: whether that just happened.
- * @param heat the heat
+ * Your lights on and off inside FLASH_S: whether that just happened (a heat's watch, or the
+ * traffic's: game/flashes.ts).
+ * @param heat the watch (its clock kept by its owner)
  * @param lightsOn your lights now
  * @returns a flash
  */
-function flashed(heat: Heat, lightsOn: boolean): boolean {
+export function flashed(heat: FlashWatch, lightsOn: boolean): boolean {
   if (heat.lightsWas === null) heat.lightsWas = lightsOn;
   if (lightsOn === heat.lightsWas) return false;
   const isFlash = heat.clock - heat.lightsAt < FLASH_S;
@@ -274,7 +278,8 @@ export function stepHeat(heat: Heat, input: HeatInput): 'escaped' | 'busted' | n
   heat.clock += dt;
   noteOffences(heat, input);
   // (its chasers: the police cars whose target it is)
-  const after = (slot: TrafficCar) => slot.police?.mode === 'chase' && slot.police.target === car;
+  const after = (slot: TrafficCar) => slot.police?.mode === 'chase' && slot.police.target === car
+    && !slot.police.angry;
   heat.sees = input.police.some((slot) => after(slot) && !slot.wreck && !tooInjured(slot.car)
     && Math.hypot(slot.car.x - car.x, slot.car.y - car.y) < SIGHT_M
     && sameLevel(slot.car, car));
@@ -318,7 +323,9 @@ const INPUT = {} as HeatInput;
 export function stepHeats(orders: PoliceOrders, drivers: Driver[], road: { dt: number;
   level: HwLevel; slots: TrafficCar[]; cars: TrafficVehicle[] }): HeatEvent[] {
   POLICE_NOW.length = EVENTS.length = orders.suspects.length = 0;
-  for (const slot of road.slots) if (!slot.parked && slot.police) POLICE_NOW.push(slot);
+  // (an angry driver chasing as police do - ?roadrage=1 - is no police car to the heat)
+  for (const slot of road.slots)
+    if (!slot.parked && slot.police && !slot.police.angry) POLICE_NOW.push(slot);
   Object.assign(INPUT, road, { police: POLICE_NOW, orders });
   let total = 0;
   for (const driver of drivers) {

@@ -108,6 +108,44 @@ build's full record (what was built, every number) is in `TODO-DONE.md` under it
   beam still spreads ahead. Seen, not fixed: in a highway road tunnel (?roadtunnels=1) a car's beam
   does not show at all (likely under the motorway's dark).
 
+- MOVEOVER (`?moveover=1`; owner 11-11 "Can traffic move over for police", "flashing a traffic AI
+  [to] encourage them but not guarantee them to move over"; ai/trafficYield.ts through trafficLane.ts
+  chooseLane): a car of our way with a chasing police car (its lights on) closing up behind it in
+  its lane within 90 m moves a lane left (signalling, clear for the whole move) or, in the nearside
+  lane, edges 1.6 m toward the hard shoulder (where it is 2 m or more), its left indicator on, and
+  goes nowhere to its right meanwhile; the other way is unaffected. You flashing your lights at the
+  car ahead of you in your lane within 60 m: a 50 % chance it does the same for 8 s (it eases to
+  85 % of its speed to drop in behind a car alongside); one that cannot (no lane, a car alongside)
+  does not. MEASURED (tools/scratch/_police.mjs PART=traffic4, you up the shoulder at 150 km/h, 2
+  stars): 8 cars had a chaser closing in their lane - 4 moved a lane left (6-53 m ahead of it) and
+  3 edged to the shoulder; switch off, the same run: 3 moved left (keeping left), 0 edged. 30 cars
+  flashed from 30 m behind in the middle lane: asked 12; at traffic 0.6 1 moved over, 11 had a car
+  alongside on their left all the way; at traffic 0.3 3 of 12 moved over (9 boxed in). WRONG: cars
+  moving right into the police, cutting into a car, every flashed car obeying.
+- ROADRAGE (`?roadrage=1`; owner 11-11 "flashing the same car multiple times make them act like
+  police no lights ... they are angry"; ai/trafficYield.ts noteFlash, ai/trafficPolice.ts makeAngry
+  / stepAngry): the same car flashed 3 times inside 20 s gets angry for 30-45 s - the police's chase
+  driver at its wheel (the racing AI, you its target, tailgating, ramming at 2 stars' closing speed)
+  with no lights or livery, its headlights (their beams at night, a white halo by day) and brake
+  lights flashing together; then it calms down and drives on as traffic (or out of 200 m it gives
+  up). It is no police car to the heat (it gives no stars, cannot bust you; its rams are not your
+  offence). MEASURED (_police.mjs): flashes ignored, ignored, angry; angry 44 s, within 10 m of you
+  41 s, touching 35 s, then calm; your stars 0 -> 0. WRONG: anger after one flash, never calming,
+  stars from it alone.
+- STATIONSTOPS (`?stationstops=1`; owner 11-11 "Can traffic use petrol stations"; ai/trafficFuel.ts,
+  the breakdowns' TrafficBroke / roadside road / PARKED): a nearside car of our way 70-170 m short
+  of a roadside station (a lay-by's, Deaf Valley's LAST GASP - not a services', behind its side
+  road) stops there 15 % of its passes: left indicator, slows to 29 km/h by the forecourt, eased
+  across it, stops level with the pumps at the canopy's road-side edge (5.2 m in from the station's
+  middle - under the canopy a car is hidden), 10-20 s, then pulls out once the nearside lane is
+  clear 70 m back (right indicator); 25 % of the cars put back ahead by a station are already at
+  its pumps. MEASURED (_police.mjs, you at 54 km/h, 10 km each): dual 0 stops, twisty 2, Deaf
+  Valley motorway 3 (8-9 s at the pumps; one hurt doing it) - a stop you have passed is put back
+  out of sight before it finishes (as any car behind you); at the 2.6 m-in stop before, on the dual
+  one put there was 19 s at the pumps, pulled out and back in its lane. In the real game (a car put
+  at the pumps, tools/scratch/_traffic4shots.mjs WHAT=pumps): waited, then pulled out indicating
+  right; photographed at the pumps (half under the canopy) and pulling out. WRONG: stopping in the road, into the pumps, pulling out into a car.
+
 ## 2. BEING BUILT
 
 

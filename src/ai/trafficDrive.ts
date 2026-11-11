@@ -8,6 +8,9 @@ import type { DriveEnv } from "./trafficLane.ts";
 import { carryKinematic, drivePhysics } from "./trafficPhys.ts";
 import { driveBroken, mayBreak } from "./trafficBreak.ts";
 import { driveSpeeder } from "./trafficSpeeder.ts";
+import { edgeOver, isYielding, yieldSlowing } from "./trafficYield.ts";
+import { driveFuelStop, mayStopForFuel } from "./trafficFuel.ts";
+import { FIX } from "../core/fixes.ts";
 import { drivePolice } from "./trafficPolice.ts";
 import type { TrafficCar, TrafficEnt } from "./types.ts";
 
@@ -16,6 +19,8 @@ import type { TrafficCar, TrafficEnt } from "./types.ts";
 // it stopped dead in the road - MEASURED, hwracecheck: racers ran into the queue; braking in full
 // as it edged over, it spun off - tools/trafficcheck.mjs TWOWAY=1: 92 car-steps off the road)
 const MEET_T = 3, MEET_BRAKE = 0.5, MEET_EDGE_M = 0.8;
+// m a car has edged toward the hard shoulder (moving over: ?moveover=1) past which it signals
+const EDGE_SIGNAL_M = 0.3;
 
 /** SPEED: cruise, or follow the car ahead; hard braking when a collision is close. */
 function speedTarget(slot: TrafficCar, lead: TrafficEnt | null, gap: number) {
@@ -55,8 +60,11 @@ export function driveOne(ctx: TrafficCtx, slot: TrafficCar, env: DriveEnv) {
   const speed = Math.hypot(car.vx, car.vy);
   // (a car with an issue pulls over and stops; a speeder near a real car is the racing driver's)
   mayBreak(ctx, slot, env);
+  // (?stationstops=1: now and then one pulls in for fuel - ai/trafficFuel.ts)
+  if (FIX.stationstops) mayStopForFuel(ctx, slot, env);
   if (slot.broke) {
-    driveBroken(ctx, slot, env, speed);
+    if (slot.broke.at != null) driveFuelStop(ctx, slot, env, speed);
+    else driveBroken(ctx, slot, env, speed);
     return;
   }
   // (a police car waiting, or chasing near a real car: ai/trafficPolice.ts)
@@ -71,8 +79,13 @@ export function driveOne(ctx: TrafficCtx, slot: TrafficCar, env: DriveEnv) {
     laneDecisions(ctx, slot, env, lead, gap);
     crossLanes(ctx, slot, env);
     leanAway(slot, env);
+    // (?moveover=1: in the nearside lane, edged toward the hard shoulder - ai/trafficYield.ts)
+    if (FIX.moveover) env = edgeOver(slot, env, ctx.level!._cfg.shoulder, isYielding(slot, env));
   }
-  const { vTarget, brakeX } = speedTarget(slot, lead, gap);
+  const target = speedTarget(slot, lead, gap), brakeX = target.brakeX;
+  // (?moveover=1: asked over with the lane on its left taken alongside, it eases off to drop in
+  // behind - ai/trafficYield.ts)
+  const vTarget = target.vTarget * (FIX.moveover ? yieldSlowing(slot) : 1);
   // ---- LOD (MEASURED, tools/_tfprof: applyGround alone is ~17 us per car-step,
   // 18 cars = 0.57 ms a step = a phone frame's budget gone): a car OUT OF VIEW and > PHYS_NEAR
   // m from every real car (you, the AI) is KINEMATIC — the same decisions, then carried
@@ -80,4 +93,6 @@ export function driveOne(ctx: TrafficCtx, slot: TrafficCar, env: DriveEnv) {
   // real car again before you can see it or touch it.
   if (!slot.phys) carryKinematic(ctx, slot, env, vTarget, brakeX);
   else drivePhysics(ctx, slot, env, speed, vTarget, brakeX);
+  // (edging over for someone: its left indicator on)
+  if ((slot.edge ?? 0) < -EDGE_SIGNAL_M) car.indicator = -1;
 }

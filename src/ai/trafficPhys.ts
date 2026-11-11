@@ -105,7 +105,9 @@ function physicsInput(
     return { steer: 0, throttle: 0, brake: 0.7, handbrake: 0, reverse: 0 };
   }
   // PURE PURSUIT on the lane line (+ the lean), kept inside the carriageway
-  const offT = Math.max(env.minOff, Math.min(env.maxOff, slot.laneOff + slot.bias)),
+  // (?moveover=1: + its edge toward the hard shoulder, moving over - ai/trafficYield.ts)
+  const offT = Math.max(env.minOff, Math.min(env.maxOff, slot.laneOff + slot.bias
+    + (slot.edge ?? 0))),
     lookAhead = Math.max(10, Math.min(32, 8 + 0.5 * speed)),
     target = roadPose(ctx.level!, slot.s + (slot.dir ?? 1) * lookAhead, offT);
   const cosH = Math.cos(car.heading), sinH = Math.sin(car.heading),

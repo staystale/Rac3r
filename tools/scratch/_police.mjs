@@ -249,8 +249,8 @@ function placePolice(world, ahead, kmh, laneIdx = 0) {
 const ctxOf = (world) => ({ rnd: (world.dice ||= mulberry(99)), police: world.orders, level });
 
 /** Drive legally for a while from a fresh motorway, to get going. */
-function warm(seed = 4242, road = 'motorway', kmh = 95) {
-  const world = newWorld(road, 'countryside', seed);
+function warm(seed = 4242, road = 'motorway', kmh = 95, density = 0.6) {
+  const world = newWorld(road, 'countryside', seed, density);
   world.want = kmh / 3.6;
   run(world, 20);
   world.heat.offences.length = 0;
@@ -600,6 +600,185 @@ function scenarioOthers() {
 }
 
 if (PART === 'others') scenarioOthers();
+
+/** A traffic car of our way put ahead m ahead in a lane at kmh (a cruising one). */
+function placeCar(world, ahead, kmh, laneIdx) {
+  const slot = world.traffic.list.find((each) => !each.parked && (each.dir ?? 1) > 0
+    && !each.police && !each.broke && !each.racer && Math.abs(each.s - level._hw.q.s) > 60);
+  const here = level._hw.q, lanes = level._hw.geo.own;
+  const pose = hw.roadPose(level, here.s + ahead, lanes[laneIdx]);
+  reset(slot.car, pose.x, pose.y, pose.h);
+  Object.assign(slot, { s: here.s + ahead, off: lanes[laneIdx], lane: laneIdx, laneT: laneIdx,
+    laneOff: lanes[laneIdx], kOff: null, vAl: kmh / 3.6, vWant: kmh / 3.6, quick: true,
+    yieldT: 0, edge: 0, flashes: [] });
+  slot.car.vx = Math.cos(pose.h) * kmh / 3.6;
+  slot.car.vy = Math.sin(pose.h) * kmh / 3.6;
+  return slot;
+}
+
+/** MOVE OVER for a chasing police car: who moves left / edges over, how far ahead of it. */
+function scenarioMoveOver() {
+  const world = warm(4242, 'motorway', 95);
+  keepClean(world);
+  // (you up the shoulder at 150 km/h: the chaser, up to 200, comes through the traffic)
+  world.carry = 150 / 3.6;
+  world.heat.stars = 2;
+  const lastLane = new Map(), moved = [], edged = new Set(), asked = new Set();
+  let chaserSeen = 0;
+  run(world, 60, (each) => {
+    each.heat.escapeT = 0;
+    const cops = chasers(each);
+    if (cops.length) chaserSeen += DT;
+    for (const slot of each.traffic.list) {
+      if (slot.parked || slot.police || (slot.dir ?? 1) < 0) continue;
+      const was = lastLane.get(slot);
+      lastLane.set(slot, slot.lane);
+      // (a chasing police car behind it in its old lane, within 90 m)
+      const behind = cops.map((cop) => slot.s - cop.s).filter((gap) => gap > 0 && gap < 90);
+      if (cops.some((cop) => slot.s - cop.s > 0 && slot.s - cop.s < 90
+        && Math.abs(cop.off - slot.off) < 2.6 && cop.vAl > slot.vAl)) asked.add(slot);
+      if (was != null && slot.lane === was - 1 && behind.length)
+        moved.push(Math.min(...behind));
+      if ((slot.edge ?? 0) < -0.5 && behind.length) edged.add(slot);
+    }
+  });
+  const avg = moved.length ? moved.reduce((sum, gap) => sum + gap, 0) / moved.length : 0;
+  say('move over (police)', `${chaserSeen.toFixed(0)} s of chase in 60 s: ${asked.size} cars had`
+    + ` one closing behind in their lane; ${moved.length} cars`
+    + ` moved a lane left with a chaser behind (${avg.toFixed(0)} m ahead of it on average, `
+    + `${moved.length ? Math.min(...moved).toFixed(0) + '-' + Math.max(...moved).toFixed(0) : '-'}`
+    + ` m), ${edged.size} in the nearside lane edged to the shoulder`);
+}
+
+/** The car a flash now goes to (as ai/trafficYield.ts flashTarget): nearest ahead in your lane. */
+function flashedCar(world) {
+  const here = level._hw.q;
+  return world.traffic.list.filter((slot) => !slot.parked && !slot.police && !slot.broke
+    && (slot.dir ?? 1) > 0 && slot.s - here.s > 0 && slot.s - here.s < 60
+    && Math.abs(slot.off - here.off) < 1.8).sort((a, b) => a.s - b.s)[0] || null;
+}
+
+/** FLASHES: N cars ahead of you in your lane flashed once each - the share that moved over. */
+function scenarioFlashes(density = 0.6) {
+  const world = warm(4242, 'motorway', 95, density);
+  world.carryOff = level._hw.geo.own[1];
+  world.carry = 95 / 3.6;
+  run(world, 2);
+  const tries = +(process.env.TRIES || 30), tally = { yield: 0, ignored: 0, none: 0 };
+  let movedOver = 0, askedButStuck = 0, movedAnyway = 0;
+  for (let i = 0; i < tries; i++) {
+    placeCar(world, 30, 95, 1);
+    run(world, 0.5);
+    const slot = flashedCar(world);
+    if (!slot) {
+      tally.none++;
+      continue;
+    }
+    const what = world.traffic.noteFlash(world.you, level._hw.q, world.time) || 'none';
+    tally[what] = (tally[what] || 0) + 1;
+    // (then you drop back - carried, you would drive through it)
+    world.carry = 75 / 3.6;
+    let tick = 0;
+    run(world, 7, (each) => {
+      if (process.env.DEBUG && what === 'yield' && !(tick++ % 120)) console.log(i, each.time
+        .toFixed(0), 'yieldT', (slot.yieldT ?? 0).toFixed(1), 'lane', slot.lane, slot.laneT,
+      'off', slot.off.toFixed(1), 'phys', slot.phys, 'think', slot.think.toFixed(2),
+      'ents lane0', each.traffic.list.filter((other) => !other.parked && Math.abs(other.off
+        - level._hw.geo.own[0]) < 2.4 && Math.abs(other.s - slot.s) < 60).map((other) =>
+        (other.s - slot.s).toFixed(0)).join(','));
+    });
+    const isOver = slot.lane === 0 || (slot.edge ?? 0) < -0.5;
+    world.carry = 95 / 3.6;
+    if (process.env.DEBUG2) console.log(i, what, 'lane', slot.lane, slot.laneT, 'racer', !!slot.racer,
+      'off', slot.off.toFixed(1), 'yieldT', (slot.yieldT ?? 0).toFixed(1), 'phys', slot.phys,
+      'ds', (slot.s - level._hw.q.s).toFixed(0));
+    if (isOver && what === 'yield') movedOver++;
+    else if (isOver) movedAnyway++;
+    else if (what === 'yield') askedButStuck++;
+  }
+  say(`flashes (traffic ${density})`, `${tries} cars flashed once from 30 m behind in the middle lane: asked to move`
+    + ` over ${tally.yield}, ignored ${tally.ignored}${tally.none ? ', none found ' + tally.none
+      : ''}; asked and moved over ${movedOver}, asked but no room (a car alongside on its left)`
+    + ` ${askedButStuck}; not asked but moved left anyway (keeping left) ${movedAnyway}`);
+}
+
+/** ROAD RAGE: one car flashed 3 times in 3 s - it chases you: how close, how long, then calm. */
+function scenarioRage() {
+  const world = warm(4242, 'motorway', 95);
+  world.carryOff = level._hw.geo.own[1];
+  world.carry = 95 / 3.6;
+  run(world, 2);
+  const slot = placeCar(world, 30, 95, 1), car = slot.car;
+  const results = [];
+  for (let i = 0; i < 3; i++) {
+    run(world, 1);
+    results.push(world.traffic.noteFlash(world.you, level._hw.q, world.time));
+  }
+  let closest = 99, near = 0, angryFor = 0, calmAt = null, hits = 0;
+  const youStars = world.heat.stars;
+  run(world, 60, (each) => {
+    const angry = slot.police?.angry && slot.car === car;
+    if (angry) {
+      angryFor += DT;
+      const gap = boxGap(car, each.you);
+      closest = Math.min(closest, gap);
+      if (gap < 10) near += DT;
+      if (gap < 0.05) hits++;
+    } else if (calmAt == null && angryFor > 0) calmAt = each.time;
+  });
+  say('road rage', `flashes: ${results.join(', ')}; angry ${angryFor.toFixed(1)} s, closest`
+    + ` ${closest.toFixed(1)} m, within 10 m ${near.toFixed(1)} s, touching ${(hits * DT)
+      .toFixed(1)} s; then ${calmAt ? 'calm, driving on' : 'still angry'}; your stars `
+    + `${youStars} -> ${world.heat.stars} (no police near)`);
+}
+
+/** STATION STOPS: KM km on a road with roadside stations - the stops, at the pump, rejoining. */
+function scenarioStations() {
+  for (const [road, scenery] of [['dual', 'countryside'], ['twisty', 'countryside'],
+    ['motorway', 'canyon']]) {
+    const world = newWorld(road, scenery, 4242);
+    // (you carried at 54 km/h along the edge of the carriageway: the traffic comes past you and
+    // stops ahead, where it is kept - one behind you out of sight is put back, as any car)
+    world.carryOff = -level._hw.geo.hw + 0.4;
+    world.carry = +(process.env.YOU_KMH || 54) / 3.6;
+    const stops = new Map(), rolled = new Set();
+    while ((level._hw.driven || 0) < KM * 1000 && world.time < KM * 150) {
+      stepWorld(world);
+      for (const slot of world.traffic.list) {
+        if (slot.stationAt != null) rolled.add(slot.car.spec.id + slot.stationAt);
+        const stop = slot.broke;
+        if (slot.parked || !stop || stop.at == null) continue;
+        const row = stops.get(slot.car) || { from: world.time, pumpT: 0, out: false, back: false,
+          hurt0: hurt(slot.car), placed: stop.stopped && !stops.has(slot.car) };
+        if (stop.stopped) row.pumpT += DT;
+        if (stop.out) row.out = true;
+        row.last = world.time;
+        stops.set(slot.car, row);
+      }
+      for (const [car, row] of stops) if (!row.back && row.out && !world.traffic.list.some(
+        (slot) => slot.car === car && slot.broke)) row.back = true;
+    }
+    const rows = [...stops.values()], pumps = rows.filter((row) => row.pumpT > 1);
+    const crashed = [...stops.entries()].filter(([car, row]) => hurt(car) - row.hurt0 > 0.02);
+    say(`stations ${road}/${scenery}`, `${((level._hw.driven || 0) / 1000).toFixed(1)} km:`
+      + ` ${rolled.size} passes rolled, ${rows.length} stops (${rows.filter((row) => row.placed)
+        .length} put there), at the`
+      + ` pump ${pumps.length ? Math.min(...pumps.map((row) => row.pumpT)).toFixed(0) + '-'
+        + Math.max(...pumps.map((row) => row.pumpT)).toFixed(0) + ' s' : '-'}, pulled out`
+      + ` ${rows.filter((row) => row.out).length}, back in the lane ${rows.filter((row) =>
+        row.back).length}, hurt doing it ${crashed.length}`);
+  }
+}
+
+if (PART === 'traffic4') {
+  console.log('TRAFFIC 4 (countryside motorway, seed 4242, traffic 0.6):');
+  // (the move-over count with the switch off too: the lane changes left a chaser behind anyway)
+  if (FIX.moveover || process.env.BASELINE) scenarioMoveOver();
+  if (FIX.moveover) scenarioFlashes(0.6);
+  if (FIX.moveover) scenarioFlashes(0.3);
+  if (FIX.roadrage) scenarioRage();
+  if (FIX.stationstops) scenarioStations();
+}
 if (PART === 'survey' || PART === 'all') survey();
 if (PART === 'scenarios' || PART === 'all') {
   console.log('SCENARIOS (countryside motorway, seed 4242, traffic 0.6):');
@@ -667,3 +846,22 @@ function whoHit() {
   });
 }
 if (PART === 'whohit') whoHit();
+
+/** FUELTRACE: the first fuel stop on ROAD, every half second (a debugging aid). */
+if (PART === 'fueltrace') {
+  const world = newWorld(process.env.ROAD || 'dual', 'countryside', 4242);
+  world.want = 60 / 3.6;
+  let slot = null, tick = 0;
+  while (world.time < 900) {
+    stepWorld(world);
+    slot ||= world.traffic.list.find((each) => !each.parked && each.broke?.at != null);
+    if (!slot || (tick++ % 60)) continue;
+    const stop = slot.broke;
+    console.log(world.time.toFixed(1), stop ? `toGo ${(stop.at - slot.s).toFixed(1)} off`
+      + ` ${slot.off.toFixed(1)}/${stop.off.toFixed(1)}->${stop.stopOff.toFixed(1)} v`
+      + ` ${(slot.vAl * 3.6).toFixed(0)}/${(stop.v * 3.6).toFixed(0)} ${slot.phys ? 'phys' : 'kin'}`
+      + ` stopped ${stop.stopped} out ${stop.out} wait ${(stop.wait ?? 0).toFixed(1)}`
+      + ` youDs ${(slot.s - level._hw.q.s).toFixed(0)} parked ${slot.parked}` : 'done / gone');
+    if (!stop || slot.parked) break;
+  }
+}

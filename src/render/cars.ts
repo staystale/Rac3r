@@ -8,7 +8,7 @@ import { SPRITE_PPM } from "./shared.ts";
 import { DAYLIGHT } from "../world/daylight.ts";
 import { REVERSE_LAMP, isReversing } from "./reverselights.ts";
 import { settledLampLevel } from "./carlamps.ts";
-import { drawLightBar } from "./lightbar.ts";
+import { drawAngryFlash, drawLightBar, isAngryFlashOn } from "./lightbar.ts";
 import { drawTyreByPressure, wheelTurn } from "./tyrelook.ts";
 import { drawRolledBody, prepareBody } from "./rollbody.ts";
 import type {
@@ -322,12 +322,14 @@ function drawIndicators(carsCtx: CarsContext, car: RenderCar, sprite: CarSprite)
 function drawCarLamps(carsCtx: CarsContext, car: RenderCar, sprite: CarSprite) {
   const { view } = carsCtx;
   // brake lights glow when braking (a live overlay on the sprite)
-  if (car.lightsOn) drawHeadlights(carsCtx, car, sprite);
+  // (?roadrage=1: an angry driver's headlights and brake lights flash - render/lightbar.ts)
+  const angryOn = isAngryFlashOn(car);
+  if (car.lightsOn || angryOn) drawHeadlights(carsCtx, car, sprite);
   drawIndicators(carsCtx, car, sprite);
   // tail lights: dim red with the headlights in the dark (by day they do not show)
   const isTail = !!car.lightsOn && DAYLIGHT.darkness > 0;
-  if (car.brakeLight! > 0.05 || isTail) {   // undefined > 0.05 is false
-    view.ctx.fillStyle = car.brakeLight! > 0.05 ? '#ff4a3a' : '#a8291f';
+  if (car.brakeLight! > 0.05 || isTail || angryOn) {   // undefined > 0.05 is false
+    view.ctx.fillStyle = car.brakeLight! > 0.05 || angryOn ? '#ff4a3a' : '#a8291f';
     if (lampLevel(car, 2)) view.ctx.fillRect(-sprite.Lp / 2, -sprite.Wp / 2 + 2, 2, 3);
     if (lampLevel(car, 3)) view.ctx.fillRect(-sprite.Lp / 2, sprite.Wp / 2 - 5, 2, 3);
   }
@@ -342,8 +344,10 @@ function drawCarLamps(carsCtx: CarsContext, car: RenderCar, sprite: CarSprite) {
     if (lampLevel(car, 2)) view.ctx.fillRect(-sprite.Lp / 2, -sprite.Wp / 2 + 5, 2, 2);
     if (lampLevel(car, 3)) view.ctx.fillRect(-sprite.Lp / 2, sprite.Wp / 2 - 7, 2, 2);
   }
-  // a police car's roof light bar (?police=1: render/lightbar.ts)
+  // a police car's roof light bar (?police=1: render/lightbar.ts); an angry driver's flashed
+  // headlights' halo (?roadrage=1)
   drawLightBar(view.ctx, car, sprite);
+  drawAngryFlash(view.ctx, car, sprite);
 }
 
 /**

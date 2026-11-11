@@ -91,4 +91,16 @@ export const FIX = {
   // leading car's headlight thrown up the track, the coaches' windows lit, a freight's dim cab -
   // through the one night layer (render/eventglows.ts trainLights)
   trainlights: atLoad('trainlights'),
+  // ?moveover=1: traffic moves over for a police car chasing up behind it, and now and then (a
+  // chance) for you flashing your lights at it from behind - into the nearside lane, or to the
+  // hard shoulder's edge, signalling, through its own lane changes (ai/trafficYield.ts)
+  moveover: atLoad('moveover'),
+  // ?roadrage=1: the same car flashed 3 times in 20 s gets ANGRY - for a while it drives at you as
+  // a chasing police car does, without the lights, its headlights flashing back, then calms down
+  // (ai/trafficYield.ts noteFlash, ai/trafficPolice.ts makeAngry)
+  roadrage: atLoad('roadrage'),
+  // ?stationstops=1: now and then a nearside car pulls into a roadside petrol station, stops at
+  // the pumps, then pulls out again; cars put back ahead now and then already there (ai/
+  // trafficBreak.ts, the breakdowns' pull-over)
+  stationstops: atLoad('stationstops'),
 };
