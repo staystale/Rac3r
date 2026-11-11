@@ -13,6 +13,10 @@ import type { HudRect } from './widgets.ts';
  * @param pieceId the piece (hud.ts HIDEABLE)
  * @returns hidden
  */
+// px the heat's stars take above the lights / indicator row (?police=1: hud/heat.ts), a gap
+// included; the keyboard / steering hint above the row moves up by it (hud/controls.ts)
+export const HEAT_ROW_H = 18;
+
 const isHidden = (state: HudState, pieceId: string) => !!state.hidden && state.hidden.has(pieceId);
 
 /**
@@ -62,7 +66,7 @@ function layoutCornerPanels(state: HudState, width: number, btnY: number, narrow
  * Bottom corners: the ABS / TCS aid chips above the pedals and the lights / indicator row.
  * @param width canvas width in px
  * @param height canvas height in px
- * @returns absChip, tcsChip, indL, lights and indR rects
+ * @returns absChip, tcsChip, indL, lights, indR and heat rects
  */
 function layoutBottomChips(width: number, height: number) {
   // DRIVER AID CHIPS (user: small chips ABOVE THE PEDALS). Laid out from the same
@@ -79,7 +83,9 @@ function layoutBottomChips(width: number, height: number) {
   const indL = { x: MARGIN, y: lbY, w: lbW, h: lbH },
     lights = { x: MARGIN + lbW + 6, y: lbY, w: lbW + 14, h: lbH },
     indR = { x: MARGIN + lbW * 2 + 26, y: lbY, w: lbW, h: lbH };
-  return { absChip, tcsChip, indL, lights, indR };
+  // ?police=1: the heat's stars (hud/heat.ts) just above the row, its own room
+  const heat = { x: MARGIN, y: lbY - HEAT_ROW_H, w: indR.x + lbW - MARGIN, h: HEAT_ROW_H - 4 };
+  return { absChip, tcsChip, indL, lights, indR, heat };
 }
 
 /**
@@ -142,10 +148,10 @@ export function layoutHud(state: HudState, width: number, height: number) {
   }
 
   const { speed, lap, trackTemp, fps, tally } = layoutCornerPanels(state, width, btnY, narrow);
-  const { absChip, tcsChip, indL, lights, indR } = layoutBottomChips(width, height);
+  const { absChip, tcsChip, indL, lights, indR, heat } = layoutBottomChips(width, height);
   clearAidChips(absChip, tcsChip, width, Math.max(lap.y + lap.h, fps.y + fps.h), trackTemp);
   return { restart, reset, vol, help, absChip, tcsChip, speed, lap, trackTemp, fps, tally, indL,
-    lights, indR };
+    lights, indR, heat };
 }
 
 /**

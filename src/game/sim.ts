@@ -29,6 +29,8 @@ import { roofFlapStep } from '../physics/roofflaps.ts';
 import type { Car, CarInput } from '../vehicle.ts';
 import { advanceWorldClock } from '../world/worldclock.ts';
 import type { TrafficVehicle } from '../ai/types.ts';
+import { FIX } from '../core/fixes.ts';
+import { TOUCH_MS, notePoliceCamera, stepPoliceGame } from './police.ts';
 
 export function recoverCar(why: unknown) {
   if (shared.nanReports++ < 5)
@@ -301,6 +303,8 @@ export function caughtBySpeedCamera() {
     if (!(shared.camRecord.fastest >= cam.kmh)) shared.camRecord.fastest = cam.kmh;
     shared.camDirty = true;
     game.camBest = shared.camRecord.fastest;
+    // (?police=1: a camera catching you is heat - game/police.ts)
+    if (FIX.police) notePoliceCamera();
   }
 }
 
@@ -425,13 +429,18 @@ export function stepTrafficContacts(tcars: TrafficVehicle[]) {
   // the wake (physics/wake.ts) on the racers on the ground; a car in the air, or alone, has none
   for (const racer of [game.car, ...game.ai.map((entry) => entry.car)])
     racer.dragMul = racer.wakeDown = 1;
+  let touched = false;
   if (game.ai.length || tcars.length) {
     const racers = [game.car, ...game.ai.map((entry) => entry.car)], all = tcars.length
       ? [...racers, ...tcars] : racers, startVel = all.map((racer) => [racer.vx, racer.vy]);
     carContacts(all);
+    // (?police=1: you running into a car - your speed changed by it - a police car may see)
+    touched = FIX.police && game.car._hitKind === 'car' && Math.hypot(game.car.vx
+      - startVel[0][0], game.car.vy - startVel[0][1]) > TOUCH_MS;
     all.forEach((racer, i) => hit(racer, startVel[i][0], startVel[i][1]));
     if (game.ai.length) wakeStep(racers.filter(onGround));
   }
+  if (FIX.police) stepPoliceGame(touched);
   // a stock car's roof flaps (physics/roofflaps.ts)
   for (const racer of [game.car, ...game.ai.map((entry) => entry.car)])
     roofFlapStep(racer, PHYSICS_STEP_SECONDS);

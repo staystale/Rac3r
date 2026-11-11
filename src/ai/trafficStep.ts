@@ -16,6 +16,8 @@ import type { Kind } from "./trafficKinds.ts";
 import { mayPlaceBroken } from "./trafficBreak.ts";
 import type { DriveEnv } from "./trafficLane.ts";
 import { holdsOncoming } from "./trafficReset.ts";
+import { POLICE_PHYS_M, mayWait, stepPolice } from "./trafficPolice.ts";
+import { SIGHT_M } from "./policeHeat.ts";
 
 /** The inputs of a step: you, the AI cars and the renderer's screen test. */
 export interface StepArgs {
@@ -67,10 +69,11 @@ function collectEnts(ctx: TrafficCtx, args: StepArgs) {
  */
 function leaving(slot: TrafficCar, relS: number, seen: boolean,
   span: { s0: number; s1: number }, youV: number) {
-  // (one stopped at the roadside ahead waits there for you)
-  const waits = !!slot.broke && relS > 0;
+  // (one stopped at the roadside ahead - broken down, a police car waiting - waits there for you)
+  const waits = (!!slot.broke || slot.police?.mode === 'wait') && relS > 0;
   return {
-    away: !seen && ((relS < -RECYCLE_BEHIND && !catchingUp(slot, youV)) || relS > RECYCLE_AHEAD
+    away: !seen && ((relS < -RECYCLE_BEHIND && !catchingUp(slot, youV) && !chasing(slot, relS))
+      || relS > RECYCLE_AHEAD
       || pullingAway(slot, relS, youV) || (slot.deadT > 6 && !waits)),
     forced: relS < -HARD_BEHIND || slot.s < span.s0 + 30 || slot.s > span.s1 - 30,
   };
@@ -91,6 +94,16 @@ const CATCH_MS = 1;
  */
 const catchingUp = (slot: TrafficCar, youV: number) => dirOf(slot) > 0
   && slot.vAl > youV + CATCH_MS;
+
+/**
+ * Whether a police car chasing you is still in it (?police=1): kept, out of sight behind, until it
+ * has lost you (ai/policeHeat.ts SIGHT_M).
+ * @param slot the car
+ * @param relS its road distance from you, m
+ * @returns chasing
+ */
+const chasing = (slot: TrafficCar, relS: number) => slot.police?.mode === 'chase'
+  && relS > -SIGHT_M;
 
 // m ahead of you past which a car of your way pulling away (out of
 // sight) is put back: past where one is put back ahead (ai/trafficSpawn.ts OWN_AHEAD, to 300 m)
@@ -122,14 +135,16 @@ const PASS_MS = 3;
  * @returns ahead / behind, and its driver
  */
 function putBack(ctx: TrafficCtx, dir: number, youV: number) {
-  if (dir < 0) return { from: 'ahead', kind: 'cruise' as Kind };
+  // (?police=1: the other way's are dealt the police now and then)
+  if (dir < 0) return { from: 'ahead', kind: FIX.police ? dealKind(ctx, dir) : 'cruise' as Kind };
   const kind = dealKind(ctx, dir);
   return { from: kindSpeed(kind) > youV + CATCH_MS ? 'behind' : 'ahead', kind };
 }
 
 /**
  * A car just put back made its driver (ai/trafficKinds.ts), or (cruising, ahead) now and then
- * one stopped at the roadside; its road entry (the last) follows it.
+ * one stopped at the roadside - a police car ahead (?police=1) now and then waiting there; its road
+ * entry (the last) follows it.
  * @param ctx the traffic
  * @param slot the car
  * @param back how it comes back (putBack)
@@ -146,6 +161,7 @@ function dealPutBack(ctx: TrafficCtx, slot: TrafficCar,
   }
   if (back.kind === 'cruise' && back.from === 'ahead' && dirOf(slot) > 0)
     mayPlaceBroken(ctx, slot, ents);
+  if (back.kind === 'police' && back.from === 'ahead' && dirOf(slot) > 0) mayWait(ctx, slot, ents);
   const ent = ents[ents.length - 1];
   ent.off = slot.off;
   ent.v = dirOf(slot) * slot.vAl;
@@ -203,9 +219,11 @@ function recycle(ctx: TrafficCtx, ents: TrafficEnt[], playerS: number, vis: VisF
 /**
  * Physics or kinematic (LOD, driveOne): within PHYS_NEAR of a real car, wrecked or
  * tumbling = physics. Being IN VIEW does not need it — a kinematic car on its lane line
- * looks the same; only something that can TOUCH it needs real physics.
+ * looks the same; only something that can TOUCH it needs real physics. A police car out of its
+ * lane (waiting at the roadside, chasing) within POLICE_PHYS_M of you is one too: carried, it
+ * would be put onto its lane line in view.
  */
-function assignPhys(ctx: TrafficCtx, ents: TrafficEnt[]) {
+function assignPhys(ctx: TrafficCtx, ents: TrafficEnt[], playerS: number) {
   const reals = ents.filter((ent) => ent.you), median = geo(ctx).median;
   // (a real car the far side of the central reservation's barrier cannot touch it)
   const sameSide = (off: number, other: number) => median == null
@@ -217,7 +235,9 @@ function assignPhys(ctx: TrafficCtx, ents: TrafficEnt[]) {
       || reals.some((ent) => (
         Math.abs(ent.s - slot.s) < PHYS_NEAR && Math.abs(ent.off - slot.off) < 14
         && sameSide(ent.off, slot.off)
-      ));
+      ))
+      || (!!slot.police && slot.police.mode !== 'cruise'
+        && Math.abs(slot.s - playerS) < POLICE_PHYS_M);
   }
 }
 
@@ -251,6 +271,21 @@ const speedOf = (ents: TrafficEnt[], player: AiCar) => ents.find((ent) => ent.ca
   ?? 0;
 
 /**
+ * One broken car never stops the game: a car whose numbers went bad leaves the road.
+ * @param ctx the traffic
+ * @returns true when one left
+ */
+function parkBrokenCars(ctx: TrafficCtx): boolean {
+  let changed = false;
+  for (const slot of ctx.list)
+    if (!slot.parked && !Number.isFinite(slot.car.x + slot.car.y + slot.car.vx + slot.car.vy)) {
+      slot.parked = true;
+      changed = true;
+    }
+  return changed;
+}
+
+/**
  * One physics step. player = your car; others = the AI cars; vis(x, y, s) = on screen right
  * now (main.ts: the renderer's view).
  */
@@ -260,22 +295,14 @@ export function stepTraffic(ctx: TrafficCtx, dt: number, args: StepArgs) {
   const playerS = level._hw.q.s;
   const vis = args.visible || ((x, y, dist) => dist - playerS > -90 && dist - playerS < 270);
   const ents = collectEnts(ctx, args);
-  let changed = recycle(ctx, ents, playerS, vis, args.held, speedOf(ents, args.player));
-  if (changed) {
-    rebuildCars(ctx);
-    changed = false;
-  }
-  assignPhys(ctx, ents);
+  if (recycle(ctx, ents, playerS, vis, args.held, speedOf(ents, args.player))) rebuildCars(ctx);
+  // (?police=1: the police's orders - a chase, its chasers sent - before the cars are driven)
+  if (FIX.police) stepPolice(ctx, dt, args.player, ents, vis);
+  assignPhys(ctx, ents, playerS);
   const [env, otherEnv] = driveEnvs(ctx, dt, ents);
   for (const slot of ctx.list)
     if (!slot.parked) driveOne(ctx, slot, dirOf(slot) < 0 ? otherEnv : env);
-  // one broken car never stops the game
-  for (const slot of ctx.list)
-    if (!slot.parked && !Number.isFinite(slot.car.x + slot.car.y + slot.car.vx + slot.car.vy)) {
-      slot.parked = true;
-      changed = true;
-    }
-  if (changed) rebuildCars(ctx);
+  if (parkBrokenCars(ctx)) rebuildCars(ctx);
   // (?bridgecars=1: the bridges' own cars)
   if (FIX.bridgecars) stepBridgeCars(ctx, dt, args.player);
 }

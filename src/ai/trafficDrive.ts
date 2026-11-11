@@ -8,6 +8,7 @@ import type { DriveEnv } from "./trafficLane.ts";
 import { carryKinematic, drivePhysics } from "./trafficPhys.ts";
 import { driveBroken, mayBreak } from "./trafficBreak.ts";
 import { driveSpeeder } from "./trafficSpeeder.ts";
+import { drivePolice } from "./trafficPolice.ts";
 import type { TrafficCar, TrafficEnt } from "./types.ts";
 
 // s to meeting a car coming at it in its lane within which the other way's car brakes, the most
@@ -58,6 +59,8 @@ export function driveOne(ctx: TrafficCtx, slot: TrafficCar, env: DriveEnv) {
     driveBroken(ctx, slot, env, speed);
     return;
   }
+  // (a police car waiting, or chasing near a real car: ai/trafficPolice.ts)
+  if (slot.police && drivePolice(ctx, slot, env, speed)) return;
   if (slot.racer && slot.phys) {
     driveSpeeder(ctx, slot, env, speed);
     return;

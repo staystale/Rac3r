@@ -2,6 +2,7 @@
 // createTraffic) shares with its step functions (trafficSpawn.ts, trafficStep.ts,
 // trafficDrive.ts, trafficKin.ts).
 import type { HighwayLevel, TrafficCar, TrafficVehicle } from "./types.ts";
+import type { PoliceOrders } from "./trafficPolice.ts";
 
 // what is on the road (weights) — road cars only; vans / lorries come with the traffic
 // vehicles (TODO 4)
@@ -42,6 +43,9 @@ export const latOf = (slot: { racer?: unknown }) => (slot.racer ? LAT_V * SPEEDE
 // m along the road from you (+ out of view)
 export const RECYCLE_BEHIND = 70, RECYCLE_AHEAD = 520, HARD_BEHIND = 320;
 export const SPAWN_AHEAD = [300, 470], SPAWN_BEHIND = [150, 240];
+// m behind you a chaser is sent from (ai/trafficPolice.ts): out of sight on screen, inside its
+// sight of you (ai/policeHeat.ts SIGHT_M)
+export const CHASE_BEHIND = [110, 170];
 
 /** The traffic's state: its slots, the live cars, the counters and the random source. */
 export interface TrafficCtx {
@@ -59,6 +63,8 @@ export interface TrafficCtx {
   // (MEASURED, hwracecheck: reading the other way's cars 7.6 m across on the dual
   // carriageway, the racers ran 9-12 km/h slower)
   ourSide: TrafficVehicle[];
+  // ?police=1: what the heat tells the police (ai/trafficPolice.ts ordersOf)
+  police?: PoliceOrders;
 }
 
 /** Is (x, y) at road distance dist on screen right now? */

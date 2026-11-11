@@ -316,7 +316,46 @@ ROUND 4, POLICE ON THE HIGHWAYS (a design to agree first): waiting in lay-bys an
     next 500 m - so does setting off a speed camera; a speed camera catching you is 1 star, and so
     is speeding within 30 m of a police car. After BUSTED (the fine paid, none in Test Mode): back on
     the road at the nearest safe spot ahead as a reset, the car mended, the heat cleared, the
-    police gone. Wobbly Stadium's ROC heats / bracket: later, after police. NEXT TO BUILD.
+    police gone. Wobbly Stadium's ROC heats / bracket: later, after police.
+    BUILT 11-11 behind ?police=1 (ai/trafficPolice.ts, ai/policeHeat.ts, game/police.ts,
+       render/lightbar.ts, hud/heat.ts): police cars ARE traffic cars (BMV 3 Serious / Volvoh V70
+       Arr, white, a roof light bar - dark blue while cruising or waiting, flashing left / right
+       while chasing, a blue glow at night); dealt now and then as cars are put back, either way,
+       and every 400 m you drive a 35 % chance (70 % while due) of one of ours placed ahead out of
+       sight - half of those waiting at the roadside (beside a station's canopy, in a lay-by, else
+       the hard shoulder / verge) until you pass. HEAT 0-3 stars (tiny yellow stars over the
+       LIGHTS row; a blue light flashing behind them while a chaser sees you = the siren's twin):
+       a camera >= 1; over 70 mph within 30 m of a police car >= 1, over 100 mph >= 2; flashing
+       the lights / an unsignalled lane change within 60 m of one >= 1 (not +1: in a chase every
+       swerve would add up); a crash into a car there +1; a pile-up you were in (3 cars hurt in
+       6 s) +1. Over 70 mph and a camera make police due for the next 500 m. Each star gained
+       sends a chaser (one in sight joins, else one from 110-170 m behind, out of view) - the
+       racing AI with you as its target (it does not dodge you; within 30 m, the way clear, it
+       steers at its seat - behind, your left, your right - closing 3 / 6 / 10 m/s faster than you
+       at 1 / 2 / 3 stars; a slow car it creeps up to and holds against); up to 170 / 200 /
+       230 km/h. ESCAPE: no chaser within 200 m on your level for 10 s -> LOST THEM, they give up.
+       BUSTED: a chaser within 1 m (box to box) while you are under 2 m/s for 3 s -> the BUSTED
+       card (landscape centred under the buttons, portrait under the top-right column), a fine
+       $500 / 1000 / 2000 shown "TEST MODE: NOT CHARGED", every police car gone, the heat cleared,
+       a normal reset (doReset: mended, our hard shoulder / a lay-by - behind you, as the R key).
+       A police car too damaged (or rolled) for 2 s is gone. NO SIREN SOUND (pending the owner).
+       MEASURED (tools/scratch/_police.mjs; scenarios on the countryside motorway, seed 4242):
+       camera at 140 km/h -> 1 star, a chaser in sight at once, within 30 m 11.0 s later;
+       past a police car at 130 km/h -> 1 star, at 175 km/h -> 2; unsignalled lane change beside
+       one -> 1, signalled -> 0; lights on/off in 0.4 s by one -> 1, on then off 3 s later -> 0;
+       1 / 2 / 3 stars -> 1 / 2 / 3 chasers, all within 40 m at 10.6 / 10.5 / 14.2 s, your damage
+       after 30 s 0.01 / 0.04 / 0.68; stopped with 2 stars (95 km/h) BUSTED 4.2 s after, with 3
+       (130 km/h) 5.8 s after, the police all gone; at 260 km/h up the hard shoulder LOST THEM
+       10-17 s after the last sighting; a wrecked chaser gone 2.0 s later. In the real game (the
+       autopilot, 4 runs) BUSTED in 3 within 45 s of stopping, the 4th just after. SURVEY (5 km at 95 km/h
+       on every road, both sceneries, 2 seeds): 1-14 police cars met within 150 m a run (one every
+       0.4-5 km; the most oncoming, cruising), ours waiting 0-4 a run (hard shoulder, lay-by /
+       verge; never on a forecourt in these 100 km - stations are 2-3 km apart); at that legal
+       speed stars came only from the driver's own unsignalled lane changes or crashes near one
+       (8 runs of 20), every one lost again. Photographed (tools/scratch/
+       _policeshots.mjs, 844x390 and 390x844, day and ?night=0.9): the bar unlit and chasing, the
+       night glow, 1 and 3 stars, a chase, the BUSTED card. Switch off: _hwextras.mjs 10 identical
+       to main, simhash SAME.
 ROUND 5, LOADING AND SPEED:
 13. The first load is long, and a circuit loads slower than "I'm able to drive faster than circuits
     even load in an f1" - fix.

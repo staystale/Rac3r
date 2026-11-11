@@ -37,6 +37,7 @@ import {
 import { drawHudLapTimer } from './hud/laps.ts';
 import { drawHudPedals, drawHudDevReadout, drawHudFps } from './hud/controls.ts';
 import { drawHudMinimap } from './hud/minimap.ts';
+import { drawHudBusted, drawHudHeat } from './hud/heat.ts';
 import type { HudState, HudCar, ScreenPoint, HudGame } from './hud/hudtypes.ts';
 
 // the pieces hud.ts itself hides on the player's choice (the minimap and the progress bar live in
@@ -134,6 +135,8 @@ export function createHud() {
         drawHudLights(ctx, game, width, height);
         drawHudNotice(ctx, game, width, height);
         drawHudCamera(ctx, game, width, height);
+        // (portrait: under the top-right column, its FPS strip the lowest)
+        drawHudBusted(ctx, game, width, height, rects.fps.y + rects.fps.h);
         drawHudFlag(state, ctx, game, width, height);
       };
     } catch {}
@@ -143,6 +146,7 @@ export function createHud() {
 
     drawHudAids(ctx, state, rects, car, spec, wallDt);
     drawHudIndicators(ctx, rects, car);
+    drawHudHeat(ctx, game, rects.heat);
     drawHudButtonRow(ctx, state, game, rects);
     drawHudConeTally(ctx, state, game, rects);
     if (!state.hidden.has('speedo')) drawHudSpeedo(ctx, state, rects, car, spec, wallDt);

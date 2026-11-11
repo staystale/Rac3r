@@ -27,7 +27,7 @@ const SHOULDER_M = 2, VERGE_M = 1.6, LOOK_M = 160, LOOK_STEP_M = 40;
 // m along the roadside kept clear of another stopped car, m across
 const STOP_GAP_M = 30, STOP_ACROSS_M = 2.6;
 // a stopped car's controls: the brakes and the handbrake on
-const PARKED = { steer: 0, throttle: 0, brake: 1, handbrake: 1, reverse: 0 };
+export const PARKED = { steer: 0, throttle: 0, brake: 1, handbrake: 1, reverse: 0 };
 
 /**
  * Where a car with an issue stops at road distance dist, m off the road's line: the hard
@@ -36,7 +36,7 @@ const PARKED = { steer: 0, throttle: 0, brake: 1, handbrake: 1, reverse: 0 };
  * @param dist road distance, m
  * @returns the offset, or null
  */
-function stopOffAt(ctx: TrafficCtx, dist: number): number | null {
+export function stopOffAt(ctx: TrafficCtx, dist: number): number | null {
   const level = ctx.level!, half = geo(ctx).hw, shoulder = level._cfg.shoulder;
   if (shoulder >= SHOULDER_M) return -half + shoulder / 2;
   const off = -(half + VERGE_M);
@@ -50,19 +50,19 @@ function stopOffAt(ctx: TrafficCtx, dist: number): number | null {
  * @param off m off the road's line
  * @returns free
  */
-const roadsideFree = (ents: TrafficEnt[], dist: number, off: number) => !ents.some((ent) =>
+export const roadsideFree = (ents: TrafficEnt[], dist: number, off: number) => !ents.some((ent) =>
   Math.abs(ent.off - off) < STOP_ACROSS_M && Math.abs(ent.s - dist) < STOP_GAP_M);
 
 /**
  * Whether a car may have an issue now: your way's, in the nearside lane, not changing lanes,
- * not a speeder or a wreck or broken down already - and the dice.
+ * not a speeder, a police car or a wreck or broken down already - and the dice.
  * @param ctx the traffic
  * @param slot the car
  * @param dt the step, s
  * @returns it may
  */
 const mayHaveIssue = (ctx: TrafficCtx, slot: TrafficCar, dt: number) => !slot.broke
-  && !slot.racer && !slot.wreck && (slot.dir ?? 1) > 0 && slot.lane === 0
+  && !slot.racer && !slot.police && !slot.wreck && (slot.dir ?? 1) > 0 && slot.lane === 0
   && slot.laneT === 0 && ctx.rnd() < BREAK_PER_S * dt;
 
 /**

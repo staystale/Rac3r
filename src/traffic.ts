@@ -21,6 +21,7 @@ import { clearAround, clearSpan, resetTraffic } from "./ai/trafficReset.ts";
 import { stepTraffic } from "./ai/trafficStep.ts";
 import type { StepArgs } from "./ai/trafficStep.ts";
 import type { HighwayLevel } from "./ai/types.ts";
+import { clearPolice, ordersOf } from "./ai/trafficPolice.ts";
 
 export { PER_LANE };
 
@@ -41,6 +42,9 @@ export function createTraffic({ rnd = Math.random } = {}) {
     clearAround: (x: number, y: number, radius: number) => clearAround(ctx, x, y, radius),
     clearSpan: (fromS: number, toS: number) => clearSpan(ctx, fromS, toS),
     get list() { return ctx.list; }, get want() { return ctx.want; },
+    // ?police=1: the police's orders (the heat sets the stars), and every police car gone (a bust)
+    police: () => ordersOf(ctx),
+    clearPolice: () => clearPolice(ctx),
     stats: () => ({
       live: ctx.cars.length, want: ctx.want, placed: ctx.placed, recycled: ctx.recycled,
       visHits: ctx.visHits,

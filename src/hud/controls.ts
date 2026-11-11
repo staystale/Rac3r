@@ -5,6 +5,7 @@ import { COL } from '../world/colours.ts';
 import { MARGIN, drawHudPanel, drawHudLabel } from './widgets.ts';
 import type { HudState, HudCar, HudGame } from './hudtypes.ts';
 import type { HudRects } from './layout.ts';
+import { HEAT_ROW_H } from './layout.ts';
 
 /**
  * Bottom-right: pedals (touch only), the thumb stick, and the keyboard hint.
@@ -16,6 +17,8 @@ import type { HudRects } from './layout.ts';
  */
 export function drawHudPedals(ctx: CanvasRenderingContext2D, game: HudGame, width: number,
   height: number) {
+  // (the hint over the lights / indicator row moves up over the heat's stars: ?police=1)
+  const hintY = height - MARGIN - 46 - (game.heat ? HEAT_ROW_H : 0);
   if (game.input.isTouch()) {
     for (const pedal of game.input.pedalHits(width, height)) {
       const pressed = !!game.input.pedals[pedal.name];
@@ -51,12 +54,12 @@ export function drawHudPedals(ctx: CanvasRenderingContext2D, game: HudGame, widt
       ctx.fillStyle = 'rgba(232,232,238,0.85)';
       ctx.fill();
     } else {
-      drawHudLabel(ctx, 'drag anywhere on the left to steer', MARGIN, height - MARGIN - 46,
+      drawHudLabel(ctx, 'drag anywhere on the left to steer', MARGIN, hintY,
         { size: 10.5, col: 'rgba(42,44,51,0.5)' });
     }
   } else {
     drawHudLabel(ctx, 'W/S drive   A/D steer   SPACE handbrake   B abs   T tcs   R reset   H help',
-      MARGIN, height - MARGIN - 46,
+      MARGIN, hintY,
       { size: 11, col: 'rgba(42,44,51,0.55)' });
   }
 }
