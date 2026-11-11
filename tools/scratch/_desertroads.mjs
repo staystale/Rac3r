@@ -17,7 +17,7 @@ const KM = +(process.argv[2] || 12), ROAD = process.env.ROAD || 'motorway';
 hw.addHighwayLevel();
 L.setLevel('highway');
 const lv = L.LEVEL;
-hw.setHighwayPreset(lv, ROAD, 'canyon');
+hw.setHighwayPreset(lv, ROAD, process.env.SCENERY || 'canyon');
 hw.resetHighway(lv);
 const seen = new Set(), found = [], clashes = [];
 let lamps = 0;

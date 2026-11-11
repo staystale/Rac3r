@@ -102,11 +102,15 @@ function layRockWalls(ctx: DressCtx) {
   const { level, halfWidth, road, firstIdx, endIdx, pointAt } = ctx;
   for (let startIdx = Math.max(0, firstIdx - 1); startIdx < endIdx; startIdx += PIECE)
     for (const side of [-1, 1]) {
-      let face: Point[] = [], back: Point[] = [], strata: Point[][] = [[], []];
+      let face: Point[] = [], back: Point[] = [], strata: Point[][] = [[], []],
+        grounds: number[][] = [];
       const flush = () => {
+        // (the band as ground in the rock's look, under the wall's face: each piece along the
+        // face, not the road - where a wall flares away the road's way stuck out past it)
+        for (const [piece, j] of grounds) rockGround(ctx, j, side, face, back, piece);
         if (face.length > 1) level.barriers.push({ kind: 'rock', pts: face,
           band: [...face, ...back.reverse()], strata, _s: road[startIdx].s });
-        face = []; back = []; strata = [[], []];
+        face = []; back = []; strata = [[], []]; grounds = [];
       };
       for (let j = startIdx; j <= Math.min(endIdx, road.length - 1, startIdx + PIECE); j++) {
         const dist = road[j].s, gap = wallGapAt(dist, side, ctx.state.seed);
@@ -122,8 +126,7 @@ function layRockWalls(ctx: DressCtx) {
           };
         face.push(spot(near));
         back.push(spot(from + deep));
-        // (the band as ground in the rock's look, under the wall's face)
-        if (j % ROCK_STEP === 0) rockGround(ctx, j, side, near, from + deep);
+        if (j % ROCK_STEP === 0) grounds.push([face.length - 1, j]);
         strata[0].push(spot(from + deep * (0.32 + 0.06 * Math.sin(dist / 23 + side))));
         strata[1].push(spot(from + deep * (0.66 + 0.06 * Math.sin(dist / 31 - side))));
       }
@@ -138,6 +141,9 @@ function layRockWalls(ctx: DressCtx) {
 const ROCK_STEP = 3, ROCK_PIECE_M = ROCK_STEP * 4 + 4;
 // its back's blend: m between squares along it, the chance of each
 const ROCK_SPECKLE_M = 1.2, ROCK_BLEND = 0.6;
+// the face points either side of a piece's own that its length covers (4 m apart: 8 m of its
+// 16 m half each way), and how far its back runs past the band's, m
+const ROCK_REACH = 2, BACK_OVER_M = 0.5;
 
 /**
  * A piece of the rock's ground: the band behind a wall's face at road point i, as a
@@ -146,12 +152,35 @@ const ROCK_SPECKLE_M = 1.2, ROCK_BLEND = 0.6;
  * @param ctx the dress context
  * @param i road point
  * @param side -1 / +1
- * @param near m off the centre line of the face
- * @param back m off the centre line of the band's back
+ * @param face the wall's face points
+ * @param back the band's back points (one for each face point)
+ * @param piece the piece's point in face / back
  */
-function rockGround(ctx: DressCtx, i: number, side: number, near: number, back: number) {
-  const { level, road, pointAt, rand } = ctx, mid = pointAt(i, side * (near + back) / 2),
-    zone = { x: mid.x, y: mid.y, w: ROCK_PIECE_M, h: back - near + 1, rot: mid.rot,
+function rockGround(ctx: DressCtx, i: number, side: number, face: Point[], back: Point[],
+  piece: number) {
+  const { level, road, rand } = ctx,
+    before = face[Math.max(0, piece - 1)], after = face[Math.min(face.length - 1, piece + 1)],
+    [faceX, faceY] = face[piece],
+    rot = Math.atan2(after[1] - before[1], after[0] - before[0]),
+    alongX = Math.cos(rot), alongY = Math.sin(rot),
+    // square to the face, away from the road (where a wall flares the band's back is not)
+    inX = -side * alongY, inY = side * alongX,
+    depthOf = (spot: Point) => (spot[0] - faceX) * inX + (spot[1] - faceY) * inY,
+    reachOf = (spot: Point) => Math.abs((spot[0] - faceX) * alongX + (spot[1] - faceY) * alongY),
+    bandDepth = Math.max(0.5, depthOf(back[piece]));
+  // its road-side edge set back to the face's deepest point along the piece (the face bends
+  // within it), never past the face; its back BACK_OVER_M past the band's; its length kept to
+  // the face it lies along (at a wall's end it ran on past it)
+  let inset = 0;
+  const first = Math.max(0, piece - ROCK_REACH),
+    last = Math.min(face.length - 1, piece + ROCK_REACH);
+  for (let near = first; near <= last; near++) inset = Math.max(inset, depthOf(face[near]));
+  inset = Math.min(inset, bandDepth * 0.7);
+  const backReach = Math.min(ROCK_PIECE_M / 2, reachOf(face[first])),
+    fwdReach = Math.min(ROCK_PIECE_M / 2, reachOf(face[last])),
+    shift = (fwdReach - backReach) / 2, middle = (inset + bandDepth + BACK_OVER_M) / 2,
+    zone = { x: faceX + inX * middle + alongX * shift, y: faceY + inY * middle + alongY * shift,
+      w: Math.max(1, backReach + fwdReach), h: bandDepth + BACK_OVER_M - inset, rot,
       surface: level.base, art: 'redrock', _s: road[i].s } as Zone;
   level.zones.push(zone);
   // its back blended as the ground's patches are (highway/gorge.ts speckle): squares of rock out

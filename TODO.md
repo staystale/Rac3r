@@ -159,6 +159,13 @@ ROUND 2, DEAF VALLEY:
     now none behind a face (0). Drums one pick in four (was one in two), the dunes the open
     desert's patches too, a barrel cactus at a canyon wall's foot: canyon cacti 59 -> 122 (junk
     85 -> 67), dunes 42 -> 86 (junk 68 -> 91), drums 228 -> 101 in all.
+    Then (owner 11-11, a photo: "square colouring coming past rock face edge"): the rock look's
+    pieces were 16 m rectangles along the ROAD; where a wall flares off at a canyon's end, or bends,
+    one end stood out past the face. Now each lies along the face, set back to its deepest point
+    over the piece, its length kept to the face (canyon.ts rockGround). MEASURED (tools/scratch/
+    _rockoverhang.mjs, 5 km): corners past the face, off the rock, by > 0.5 m - twisty and motorway
+    many, worst 5.0 m -> none; within 0.15 m for 95 % (was 3.0 m). The plain link (the look is the
+    default).
 ROUND 3, THE OTHER HIGHWAYS:
 11. Petrol stations on the other highway levels, reset spots too. BUILT 11-11 behind ?hwstations=1
     (highway/stations.ts, laybys.ts, extras.ts): on the dual carriageway (our side) and the single
