@@ -5,7 +5,7 @@
 // dropped behind is emptied (a way nowhere) and given to the next new bridge, its deck's wear
 // forgotten. The list stays as long as the most bridges loaded at once (2-4), never past the
 // deck filing's room.
-import { bridgeCrossing, railCrossing } from '../world/crossings.ts';
+import { bridgeCrossing, railCrossing, tunnelCrossing } from '../world/crossings.ts';
 import { FIX } from '../core/fixes.ts';
 import { clearDeckCellsOf } from '../world/deckwear.ts';
 import type { Crossing, Prop } from '../world/types.ts';
@@ -24,6 +24,20 @@ const isDrivable = (prop: Prop): boolean => prop.kind === 'bridge' && (prop.look
   || (FIX.railbridges && prop.carries === 'rail'));
 
 /**
+ * A drivable bridge's or underpass's crossing.
+ * @param owner the bridge, or an underpass's first portal
+ * @param portals the underpasses' portals by their pair
+ * @returns the crossing
+ */
+function wayOf(owner: Prop, portals: Map<number, Prop[]>): Crossing {
+  if (owner.kind === 'tunnel') {
+    const [first, second] = portals.get(owner.pair!)!;
+    return tunnelCrossing(first, second);
+  }
+  return owner.carries === 'rail' ? railCrossing(owner) : bridgeCrossing(owner);
+}
+
+/**
  * Brings the highway's crossings in line with its loaded props: each drivable bridge keeps its
  * slot, a dropped one's slot is emptied, a new one takes the first empty slot (else a new one).
  * Called when the road is rebuilt (highway.ts rebuild).
@@ -33,6 +47,12 @@ export function syncBridgeways(level: HwLevel): void {
   const state = level._hw, owners = (state.wayOwners ||= []);
   const crossings = (level.crossings ||= []);
   const loaded = new Set(level.props.filter(isDrivable));
+  // (?roadtunnels=1: an underpass by its first portal - the crossing from its pair)
+  const portals = new Map<number, Prop[]>();
+  for (const prop of level.props)
+    if (prop.kind === 'tunnel' && prop.pair != null)
+      portals.set(prop.pair, [...(portals.get(prop.pair) || []), prop]);
+  for (const pairOf of portals.values()) if (pairOf.length === 2) loaded.add(pairOf[0]);
   for (let slot = 0; slot < owners.length; slot++) {
     if (owners[slot] && !loaded.has(owners[slot]!)) {
       owners[slot] = null;
@@ -46,6 +66,6 @@ export function syncBridgeways(level: HwLevel): void {
     let slot = owners.indexOf(null);
     if (slot < 0) slot = owners.length;
     owners[slot] = bridge;
-    crossings[slot] = bridge.carries === 'rail' ? railCrossing(bridge) : bridgeCrossing(bridge);
+    crossings[slot] = wayOf(bridge, portals);
   }
 }

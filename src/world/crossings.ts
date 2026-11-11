@@ -233,7 +233,7 @@ const TRAIN_CLEAR_M = 0.05, TRAIN_GRIP = 0.8;
  * @param second the portal on the track's other side
  * @returns the crossing
  */
-function tunnelCrossing(first: Prop, second: Prop): Crossing {
+export function tunnelCrossing(first: Prop, second: Prop): Crossing {
   if (first.path) return bentTunnel(first, second);
   const openEnd = (portal: Prop): Point => [
     portal.x - Math.cos(portal.rot || 0) * portal.w! / 2,

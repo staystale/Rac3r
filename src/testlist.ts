@@ -13,12 +13,20 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'roadtunnels',
+    added: '2026-11-11',
+    name: 'Road tunnels under the motorway: a portal each side, the road dipping under',
+    where: 'Test link + &roadtunnels=1: Highway to Hull (a third of the road bridges)',
+    try: 'Off the road at one, down into the portal, under the motorway, out the other side.',
+    wrong: 'Seen while under the motorway, stuck in a portal, a way in from the side.',
+  },
+  {
     id: 'railbridges',
     added: '2026-11-11',
     name: 'Rail bridges drivable along the track (ballast), and the train hits you',
     where: 'Test link + &railbridges=1: Highway to Hull (rail bridges, Deaf Valley trestles)',
-    try: 'Leave the road at a rail bridge, drive along its track over; wait on it for a train.',
-    wrong: 'Stuck on it, BACK TO THE ROAD on it, the train passing through you, or no hit.',
+    try: 'Off the road at a rail bridge, along its track (not a road: BACK TO THE ROAD counts).',
+    wrong: 'Stuck on it, the train passing through you or not hitting you, no countdown on it.',
   },
   {
     id: 'bridgecars',

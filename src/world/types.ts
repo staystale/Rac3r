@@ -186,6 +186,7 @@ export interface Prop {
   skew?: number;   // highway.ts river bridges
   appL?: number[];   // highway.ts bridges: the approach lengths [0 | 1]
   rings?: boolean;   // a junction's bridge: a roundabout past each ramp (highway/junctions.ts)
+  pair?: number;   // (?roadtunnels=1) an underpass's two portals share it (highway/bridgeways.ts)
   rampL?: number[];   // a drivable highway bridge's ramps, when its approaches run on past them
   appW?: number;   // highway.ts bridges: the approaches' width
   type?: string;   // highway.ts slips: 'short', 'long' or 'side'

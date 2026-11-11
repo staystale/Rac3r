@@ -67,4 +67,9 @@ export const FIX = {
   // bridges drivable", "the train can hit you"): the train placed by the world's sim clock
   // (world/trains.ts, worldclock.ts, crossings.ts, highway/bridgeways.ts)
   railbridges: atLoad('railbridges'),
+  // ?roadtunnels=1: now and then a road under the endless road in a tunnel instead of over it on a
+  // bridge (owner 11-11: "Road tunnels too"): a portal each side, the road dipping under the
+  // motorway between them - the venues' drivable tunnel (world/crossings.ts), its approach roads
+  // as a bridge's (highway/extras.ts buildUnderpass, bridgeways.ts)
+  roadtunnels: atLoad('roadtunnels'),
 };

@@ -337,22 +337,17 @@ function buildBridge(level: HwLevel, i: number, dist: number, pointAt: (i: numbe
   }) as Bridge;
   // CHEEKY EXTRAS, rare (each ~1 in 6 of its bridge type)
   const extra = rand() < 1 / 6;
-  if (kind === "road") {
-    bridge.cars = 1 + ((rand() * 2) | 0);
-    bridge.cow = extra;
-  }
-  if (kind === "foot") {
-    bridge.cone = extra;
-    bridge.people = 1 + ((rand() * 3) | 0);
-  }
-  if (kind === "river") {
-    bridge.boat = extra;
-    bridge.ww = 10 + rand() * 8;
-  }
+  addBridgeExtras(bridge, kind, extra, rand);
   // what MOVES across it (render.ts drawBridge, wall clock, no physics): road traffic both ways,
   // walkers, a train now and then
   bridge.phase = rand() * 1000;
   if (kind === 'rail') bridge.trainEvery = 14 + rand() * 16;
+  // (?roadtunnels=1: now and then the road goes under instead - its portals, not a bridge)
+  if (FIX.roadtunnels && kind === 'road' && !isJunction && rand() < TUNNEL_SHARE) {
+    buildUnderpass(level, bridge, dist);
+    openRockAt(state, i);
+    return bridge;
+  }
   level.props.push(bridge);
   openRockAt(state, i);
   if (kind === 'river') {
@@ -378,6 +373,58 @@ function openRockAt(state: HwState, i: number) {
     state.pts[j].gapR = 1;
   }
 }
+
+/**
+ * A bridge's cheeky extras by what it carries: a road's cars and its cow, a footbridge's cone and
+ * walkers, a river's boat and its width.
+ * @param bridge the bridge
+ * @param kind what it carries
+ * @param extra whether its rare extra is there
+ * @param rand the extras' random stream
+ */
+function addBridgeExtras(bridge: Bridge, kind: string, extra: boolean, rand: () => number) {
+  if (kind === "road") {
+    bridge.cars = 1 + ((rand() * 2) | 0);
+    bridge.cow = extra;
+  }
+  if (kind === "foot") {
+    bridge.cone = extra;
+    bridge.people = 1 + ((rand() * 3) | 0);
+  }
+  if (kind === "river") {
+    bridge.boat = extra;
+    bridge.ww = 10 + rand() * 8;
+  }
+}
+
+/**
+ * (?roadtunnels=1) A road under the motorway in place of a bridge: a portal each side just past
+ * the motorway's edge (its wall's on the walled road), facing the other, the road dipping under
+ * between them (the venues' tunnel: world/crossings.ts tunnelCrossing, paired by `pair` in
+ * highway/bridgeways.ts); its approach roads on from the portals' open ends, as a bridge's.
+ * @param level the highway level
+ * @param bridge the bridge it stands for (its centre, its road's line rot, its span wid)
+ * @param dist road distance, m
+ */
+function buildUnderpass(level: HwLevel, bridge: Bridge, dist: number) {
+  const state = level._hw, wallOff = level._cfg.walls ? level._cfg.wallGap! : 0;
+  const mouth = state.geo.hw + wallOff + PORTAL_CLEAR_M, centreOut = mouth + PORTAL_M / 2;
+  // (square to the motorway - a bridge's skew left its portals at an angle to the road above -
+  // and its road on the portals' middle line, not a drivable deck's footway-offset one)
+  const rot = bridge.rot - bridge.skew, axisX = Math.cos(rot), axisY = Math.sin(rot);
+  const pair = (state.underpasses = (state.underpasses || 0) + 1);
+  for (const side of [-1, 1])
+    level.props.push({ kind: 'tunnel', x: bridge.x + axisX * side * centreOut,
+      y: bridge.y + axisY * side * centreOut, rot: rot + (side > 0 ? Math.PI : 0),
+      w: PORTAL_M, h: TUNNEL_ROAD_M, pair, _s: bridge._s } as Prop);
+  // (the approaches from the open ends: approaches() starts them at half + 3 m out)
+  approaches(level, { ...bridge, rot, skew: 0, look: undefined, rampL: undefined,
+    wid: 2 * (mouth + PORTAL_M - 3) } as Bridge, dist);
+}
+// (?roadtunnels=1) the share of road bridges that are tunnels instead; a portal's length and the
+// tunnel road's width (the venues' measures, world/venuecross.ts); m its mouth stands past the
+// motorway's edge
+const TUNNEL_SHARE = 1 / 3, PORTAL_M = 9, TUNNEL_ROAD_M = 8.2, PORTAL_CLEAR_M = 3;
 
 /**
  * A road bridge's drivable look: the venues' drivable bridge (world/crossings.ts), its ramps up

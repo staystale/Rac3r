@@ -22,17 +22,17 @@ try {
   // drive on until a drivable bridge is within 260 m ahead (still ahead once photographed)
   let way = null;
   for (let waited = 0; waited < 240 && !way; waited += 0.5) {
-    way = await page.evaluate((onlyRail) => {
+    way = await page.evaluate((want) => {
       const game = window.__game, car = game.car;
       for (const [index, item] of (game.level.crossings || []).entries()) {
-        if (!item.length || (onlyRail && !item.ballast)) continue;
+        if (!item.length || (want === 'rail' && !item.ballast) || (want === 'tunnel' && item.kind !== 'tunnel')) continue;
         const midX = item.ax + item.dirX * item.length / 2, midY = item.ay + item.dirY
           * item.length / 2, gap = Math.hypot(midX - car.x, midY - car.y);
         const ahead = (midX - car.x) * car.vx + (midY - car.y) * car.vy > 0;
         if (gap < 260 && ahead) return { index, ...item, walls: undefined };
       }
       return null;
-    }, !!process.env.RAIL);
+    }, process.env.RAIL ? 'rail' : process.env.WANT || '');
     if (!way) await page.waitForTimeout(500);
   }
   if (!way) throw new Error('no drivable bridge reached');

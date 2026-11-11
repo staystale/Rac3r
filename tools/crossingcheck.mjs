@@ -36,7 +36,11 @@ function loadHighwayBridges(road, scenery) {
   reset(car, level.spawn.x, level.spawn.y, level.spawn.heading);
   let sub = level.subtrack, driver = createAutoDriver(sub);
   const real = () => (level.crossings || []).filter((way) => way.length > 0).length;
-  for (let time = 0; time < 600 && real() < 2; time += PHYSICS_STEP_SECONDS) {
+  // (WANT=tunnel | rail: on until one of those is loaded)
+  const wanted = () => !process.env.WANT || (level.crossings || []).some((way) => way.length > 0
+    && (process.env.WANT === 'rail' ? way.ballast : way.kind === process.env.WANT));
+  for (let time = 0; time < 900 && (process.env.WANT ? !wanted() : real() < 2);
+    time += PHYSICS_STEP_SECONDS) {
     if (level.subtrack !== sub) { sub = level.subtrack; driver = createAutoDriver(sub); }
     L.applyGround(car, PHYSICS_STEP_SECONDS);
     step(car, driver.drive(car, PHYSICS_STEP_SECONDS), PHYSICS_STEP_SECONDS);
