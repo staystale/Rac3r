@@ -42,6 +42,8 @@ import { SUZUKA_LEVELS } from "./suzuka-venue.ts";
 import { YASMARINA_LEVELS } from "./yasmarina-venue.ts";
 import { BATHURST_LEVELS } from "./bathurst-venue.ts";
 import { MOANACO_LEVELS } from "./moanaco-venue.ts";
+import { WOBBLY_LEVELS } from "./wobbly-venue.ts";
+import { FIX } from "../../core/fixes.ts";
 import { OP_LEVELS } from "./oultonpork-venue.ts";
 import { DT_LEVELS } from "./dieatona-venue.ts";
 import { TH_VENUE_LEVEL } from "./thruston-venue.ts";
@@ -117,6 +119,8 @@ export const LEVELS: Level[] = [
   // the rallycross as it was (owner 11-10: "keep the originals"), the real venue's circuit beside
   // it (knobhill-venue.ts; passed 11-10)
   KH_LEVEL, ...KH_VENUE_LEVELS,
+  // ?wobbly=1: Wobbly Stadium, the Race of Champions' track at Wembley (wobbly-venue.ts)
+  ...(FIX.wobbly ? WOBBLY_LEVELS : []),
   BH_GP_LEVEL,
   BH_INDY_LEVEL,
   {

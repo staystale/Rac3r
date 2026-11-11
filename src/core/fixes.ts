@@ -57,4 +57,8 @@ export const FIX = {
   // junctions by the countryside's rules, the rock walls opened where they pass - only a gorge
   // keeps them off (highway.ts, extras.ts, junctions.ts, canyon.ts)
   roadparity: atLoad('roadparity'),
+  // ?wobbly=1: Wobbly Stadium, the Race of Champions' track at Wembley (2007-08) - two lanes
+  // interwoven round the bowl, one crossover bridge, so a car racing it covers both (TODO.md
+  // RALLYCROSS > NEW TRACKS; world/levels/wobbly-venue.ts)
+  wobbly: atLoad('wobbly'),
 };

@@ -13,6 +13,14 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'wobbly',
+    added: '2026-11-11',
+    name: 'Wobbly Stadium: the Race of Champions track at Wembley, two lanes and a crossover',
+    where: 'Test link + &wobbly=1: TEST MODE > RALLYCROSS',
+    try: 'A lap, then VS AI: round the outer lane, over the bridge, the inner lane, under it.',
+    wrong: 'A car seen under the bridge, a way off the lanes, a car stuck at the crossover.',
+  },
+  {
     id: 'roadparity',
     added: '2026-11-11',
     name: 'Every highway alike: junctions on the walled road, Deaf Valley exits as the countryside',
