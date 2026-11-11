@@ -3,7 +3,8 @@
 import { SURFACES } from "../world/surfaces.ts";
 import { STEP } from "./presets.ts";
 import { straightAt, ease } from "./road.ts";
-import { blocked, keepOut, addCut, sideStep, approaches, river, SLIP_EVERY, BRIDGE_EVERY, SLIP_LEN,
+import { blocked, isSignClear, keepOut, addCut, sideStep, approaches, river, SLIP_EVERY,
+  BRIDGE_EVERY, SLIP_LEN,
   SLIP_DEG, SLIP_W, PIER, SLIP_LONG, SIDE_RUN } from "./cuts.ts";
 import type { Prop, Point, Lane } from '../world/types.ts';
 import type { HwPoint, HwPose, HwState, HwLevel, Stamp, Bridge } from './hwtypes.ts';
@@ -81,12 +82,13 @@ function addSlipSigns(level: HwLevel, i: number, pointAt: (i: number, off: numbe
     const j = i + Math.round(delta / STEP);
     if (j < 0) continue;
     const pos = pointAt(j, -(halfWidth + 3));
-    level.props.push(mark({ kind: "slipcount", x: pos.x, y: pos.y, rot: pos.rot, bars }));
+    if (isSignClear(pos.x, pos.y))
+      level.props.push(mark({ kind: "slipcount", x: pos.x, y: pos.y, rot: pos.rot, bars }));
   }
   {
     const j = i - Math.round(90 / STEP);
-    if (j >= 0) {
-      const pos = pointAt(j, -(halfWidth + 6));
+    const pos = j >= 0 ? pointAt(j, -(halfWidth + 6)) : null;
+    if (pos && isSignClear(pos.x, pos.y)) {
       level.props.push(
         mark({
           kind: "board",

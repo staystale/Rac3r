@@ -4,7 +4,8 @@ import { layLaybys, bayOut } from "./laybys.ts";
 import { envValue } from "../core/debug.ts";
 import { STEP, SIGNS } from "./presets.ts";
 import { stateOf } from "./road.ts";
-import { blocked, cutBy, sideStep, sideFlush, syncCovers, SLIP_W, cutSkips } from "./cuts.ts";
+import { blocked, cutBy, isSignClear, sideStep, sideFlush, syncCovers, SLIP_W, cutSkips }
+  from "./cuts.ts";
 import { fields } from "./fields.ts";
 import { extras } from "./extras.ts";
 import { layLooseRoadside } from "./litter.ts";
@@ -341,6 +342,36 @@ function layDesertExtras(ctx: DressCtx) {
  * @returns {void}
  */
 export function dress(level: HwLevel, firstIdx: number, endIdx: number, loose: LevelObj[]) {
+  dressStretch(level, firstIdx, endIdx, loose);
+  clearSignsOffLanes(level, level._hw.pts[Math.max(0, firstIdx - SIGN_SWEEP_BACK)].s);
+}
+
+// road points back from a stretch's first a later road (a slip, a bridge's approach, a junction)
+// can reach a sign laid before it (60 x 4 m: the dress context's reach)
+const SIGN_SWEEP_BACK = 60;
+
+/**
+ * Takes away the roadside signs a road laid after them now runs over (cuts.ts isSignClear): a
+ * sign is laid with its own feature, and a later one's lanes can cross it.
+ * @param level the highway level
+ * @param fromS road distance from which signs are checked, m
+ */
+function clearSignsOffLanes(level: HwLevel, fromS: number) {
+  const kept = level.props.filter((prop) => (prop.kind !== 'board' && prop.kind !== 'slipcount')
+    || (prop._s ?? 0) < fromS || isSignClear(prop.x, prop.y));
+  if (kept.length === level.props.length) return;
+  level.props.length = 0;
+  level.props.push(...kept);
+}
+
+/**
+ * Dresses road points [firstIdx, endIdx) (dress's body).
+ * @param level the highway level
+ * @param firstIdx first road point
+ * @param endIdx end (exclusive) road point
+ * @param loose where loose objects go
+ */
+function dressStretch(level: HwLevel, firstIdx: number, endIdx: number, loose: LevelObj[]) {
   const ctx = makeDressContext(level, firstIdx, endIdx, loose);
   // (the lay-bys first - the scenery keeps off them)
   layLaybys(ctx);

@@ -18,6 +18,10 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   first, even when the owner asked for it. On the owner's OK it becomes the default the same day
   and the OLD PATH IS DELETED (no `=0` kept), its testlist entry is deleted and the verdict noted
   in `TODO.md`.
+- NO DUPLICATE VEHICLES (owner 11-11: "no duplicate vehicle versions if we can help it",
+  "upgrades should dictate that"): a car is in the roster once; a variant (a police / pursuit
+  spec, a race version) is the same car with upgrades (the planned upgrade system) or a livery,
+  never a second roster entry with tweaked stats. The police cars are traffic cars in a livery.
 - ONE SYSTEM FOR EVERYTHING (owner, 10-18: "we don't need old systems and new systems getting
   crossed up"): never two ways of doing one job (the car pictures' own daytime beam met the night
   layer at dusk). Before building, check nothing already does it; extend that instead.

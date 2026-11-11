@@ -3,6 +3,7 @@
 import { SURFACES } from "../world/surfaces.ts";
 import { DECK_ROAD_HI, DECK_ROAD_LO } from "../world/crossinggeo.ts";
 import { RING_R, ringCentre } from "./ringgeo.ts";
+import { laneAt } from "../world/zones.ts";
 import { adoptRoadCovers } from "../world/puddles.ts";
 import { STEP } from "./presets.ts";
 import { ease } from "./road.ts";
@@ -68,6 +69,22 @@ export function blocked(keep: KeepRect[], x: number, y: number, radius: number) 
   return false;
 }
 const SCENERY: Record<string, number> = { tree: 3, rock: 3, block: 8, solarfarm: 16 };
+/**
+ * Whether a roadside sign (an exit's board or countdown post, a station's board) can stand at a
+ * spot: none of its post and panel (SIGN_REACH_M round it) on a laid lane - a slip, a junction's
+ * roads, a side road, a services' yard road (owner 11-11: "signs on slip roads ... blocking it";
+ * MEASURED _signsonlanes.mjs: a junction's post on a services' side road, a station's board on a
+ * lane).
+ * @param x world x, m
+ * @param y world y, m
+ * @returns true when it is clear
+ */
+export function isSignClear(x: number, y: number): boolean {
+  return !SIGN_PROBES.some(([dx, dy]) => laneAt(x + dx * SIGN_REACH_M, y + dy * SIGN_REACH_M));
+}
+// m a sign's post and panel reach round its spot, and the probes that test it
+const SIGN_REACH_M = 1.2, SIGN_PROBES = [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]];
+
 export function keepOut(level: HwLevel, rect: KeepRect, dist: number) {
   // a feature that needs the GROUND (approach, river, slip) drops any field / village under it,
   // whole (scenery, fieldsA below)

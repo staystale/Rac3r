@@ -8,7 +8,7 @@
 // the slips): the drivable deck is the bridge's own crossing.
 import { SURFACES } from '../world/surfaces.ts';
 import { FIX } from '../core/fixes.ts';
-import { blocked, keepOut } from './cuts.ts';
+import { blocked, isSignClear, keepOut } from './cuts.ts';
 import { RING_LANE_M, RING_OUTER_M, RING_R, ringCentre } from './ringgeo.ts';
 import type { Lane, Point, Prop } from '../world/types.ts';
 import type { HwLevel, HwPose, KeepRect } from './hwtypes.ts';
@@ -143,6 +143,8 @@ export function layJunction(level: HwLevel, fromIdx: number, bridge: Prop, bridg
 const CLEAR_M = 1.5;
 // what a junction laid there itself, kept
 const OWN_KINDS = new Set(['bridge', 'slipcount', 'board']);
+// the roadside signs among them
+const SIGN_KINDS = new Set(['slipcount', 'board']);
 
 /**
  * Clears the road already dressed under a junction (it is laid back over it): the street lights,
@@ -164,7 +166,10 @@ function clearJunctionGround(level: HwLevel, mine: KeepRect[]) {
     list.push(...kept);
   };
   keepOnly(level.lamps, isClear);
-  keepOnly(level.props, (prop) => OWN_KINDS.has(prop.kind) || isPropClear(prop));
+  // (its signs and the bridge kept - but no sign, its own or another's, left on a lane it laid:
+  // cuts.ts isSignClear)
+  keepOnly(level.props, (prop) => (OWN_KINDS.has(prop.kind) || isPropClear(prop))
+    && (!SIGN_KINDS.has(prop.kind) || isSignClear(prop.x, prop.y)));
   keepOnly(level._hw.looseNew, isClear);
   keepOnly(level.cones, isClear);
   // (and those already handed to the game: game/sim.ts culls them)

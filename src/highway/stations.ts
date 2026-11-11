@@ -9,6 +9,7 @@
 // signed with its name, and part way along its run a station and the services hall off its far
 // edge. The guard (highway.ts) counts both as road.
 import { SURFACES } from '../world/surfaces.ts';
+import { isSignClear } from './cuts.ts';
 import { BRANDS, SERVICE_NAMES } from '../world/stationbrands.ts';
 import type { Brand } from '../world/stationbrands.ts';
 import { keepOut } from './cuts.ts';
@@ -84,8 +85,9 @@ export function layStation(ctx: DressCtx, i: number, side: number, half: number)
   const boardIdx = i - Math.round((half + BOARD_BEFORE_M) / STEP);
   if (boardIdx < 0 || boardIdx >= road.length) return;
   const board = pointAt(boardIdx, side * (halfWidth + 3.5));
-  level.props.push({ kind: 'board', x: board.x, y: board.y, rot: board.rot, label: brand.name,
-    _s: dist } as Prop);
+  if (isSignClear(board.x, board.y))
+    level.props.push({ kind: 'board', x: board.x, y: board.y, rot: board.rot, label: brand.name,
+      _s: dist } as Prop);
 }
 
 /** A services on the side road: its name and brand, and whether its station is laid yet. */
@@ -166,6 +168,7 @@ export function layServices(level: HwLevel, i: number, sideOff: number,
   level.props.push({ kind: 'services', x: hall.x, y: hall.y, rot: hall.rot + Math.PI,
     label: services.name, brand: brand.name, _s: dist } as Prop);
   const boardIdx = Math.max(0, i - YARD_BACK - 2), board = pointAt(boardIdx, -(edge + 3));
-  level.props.push({ kind: 'board', x: board.x, y: board.y, rot: board.rot, label: brand.name,
-    _s: dist } as Prop);
+  if (isSignClear(board.x, board.y))
+    level.props.push({ kind: 'board', x: board.x, y: board.y, rot: board.rot, label: brand.name,
+      _s: dist } as Prop);
 }
