@@ -3,6 +3,7 @@ import { shade } from "../render.ts";   // hoisted, only called at draw time (no
 import { SPRITE_PPM } from "./shared.ts";
 import { LOOKS } from "./carlooks.ts";
 import { readSoon } from "./spritepixels.ts";
+import { COL } from "../world/colours.ts";
 import type { CarSprite, RenderCarSpec } from "./types.ts";
 
 // A sprite per car, GENERATED on an integer grid in the reference style
@@ -573,6 +574,60 @@ function paintRaceNumber(spr: SpriteCtx): void {
   numPanel(spr, along(numSpot[0]), numSpot[1]);
 }
 
+// A POLICE CAR's livery (?police=1): the Battenberg check's squares along the flanks, px (~0.35 m:
+// two or three px on a phone's screen), and its two rows' depth, px; the bonnet's and the boot's
+// bands, the share of the length in from each end and their depth, px; where the roof is (the
+// shares of the length its white runs between) and the roof number's middle, by body
+const CHECK_PX = 6, CHECK_ROW_PX = 2, BAND_IN = 0.08, BAND_PX = 4;
+const POLICE_ROOF: Record<string, [number, number, number]> = {
+  saloon: [0.29, 0.52, 0.40], estate: [0.10, 0.52, 0.32],
+};
+
+/**
+ * One row of the check: squares of CHECK_PX along it, blue and yellow in turn.
+ * @param spr the painting context
+ * @param fromX where it starts, px
+ * @param toX where it ends, px
+ * @param y its top, px
+ * @param height its depth, px
+ * @param phase 0 or 1: which colour comes first
+ */
+function checkRow(spr: SpriteCtx, fromX: number, toX: number, y: number, height: number,
+  phase: number) {
+  for (let x = fromX, i = phase; x < toX; x += CHECK_PX, i++)
+    spr.block(x, y, Math.min(CHECK_PX, toX - x), height, i % 2 ? COL.battenBlue : COL.hiVis);
+}
+
+/**
+ * A UK POLICE car from above (?police=1, ai/trafficPolice.ts - spec.police its roof number): the
+ * blue-and-yellow Battenberg check in two rows down both flanks, a band of it across the bonnet's
+ * and the boot's edges, a hi-vis yellow strip inside each flank's check, the roof white with its
+ * number in big black digits (as real cars carry for the helicopter); the light bar is drawn live
+ * over the roof's front (render/lightbar.ts).
+ * @param spr the painting context
+ */
+function paintPolice(spr: SpriteCtx): void {
+  const roofNo = spr.spec.police;
+  if (!roofNo) return;
+  const { widthPx, lengthPx, block, along } = spr;
+  const [roofFrom, roofTo, numberAt] = POLICE_ROOF[spr.kind] || [0.25, 0.52, 0.38];
+  const startX = Math.round(along(BAND_IN)), endX = Math.round(lengthPx - along(BAND_IN));
+  for (const top of [1, widthPx - 1 - 2 * CHECK_ROW_PX]) {
+    checkRow(spr, startX, endX, top, CHECK_ROW_PX, 0);
+    checkRow(spr, startX, endX, top + CHECK_ROW_PX, CHECK_ROW_PX, 1);
+  }
+  // the hi-vis strips, just inside the check
+  block(startX, 1 + 2 * CHECK_ROW_PX, endX - startX, 1, COL.hiVis);
+  block(startX, widthPx - 2 - 2 * CHECK_ROW_PX, endX - startX, 1, COL.hiVis);
+  // the bonnet's and the boot's edge bands (squares across the car)
+  for (const bandX of [startX, endX - BAND_PX])
+    for (let y = 1, i = 0; y < widthPx - 1; y += CHECK_PX, i++)
+      block(bandX, y, BAND_PX, Math.min(CHECK_PX, widthPx - 1 - y),
+        i % 2 ? COL.battenBlue : COL.hiVis);
+  block(along(roofFrom), 3, along(roofTo - roofFrom), widthPx - 6, COL.policeWhite);
+  numPanel({ ...spr, NUM: roofNo }, along(numberAt), 2);
+}
+
 /**
  * Paints one car sprite on a fresh canvas.
  * @param spec the car's render spec
@@ -590,6 +645,7 @@ function paintCarSprite(spec: RenderCarSpec): CarSprite {
   } else if (spr.kind === 'tractor') paintTractor(spr);
   else paintCarBody(spr);
   paintRaceNumber(spr);
+  paintPolice(spr);
   return { c: spr.canvas, Lp: spr.lengthPx, Wp: spr.widthPx };
 }
 

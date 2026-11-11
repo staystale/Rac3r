@@ -8,6 +8,8 @@
 //   start gantry  a white light bar over the grid; the start lights glow red, then green
 //   caravans      warm light spilling out round the sides (top-down: no windows to see)
 //   pits          a warm lamp over each garage door / along the pit wall
+//   trains        (?trainlights=1) a rail bridge's train: the leading car's headlight thrown up the
+//                 track, the coaches' windows lit warm; a freight's headlight and its dim cab
 // Only from dusk (the lamps' light sensor) and only what is near the screen.
 import { lampsLit } from '../world/lamps.ts';
 import { LEVEL, PROPS } from '../world/state.ts';
@@ -17,6 +19,9 @@ import { isHutWrecked } from '../world/marshalbox.ts';
 import { BOARD_H_M, BOARD_W_M } from './props/scenery.ts';
 import type { Point, Prop } from '../world/types.ts';
 import type { RenderCone, RenderGame } from './types.ts';
+import { trackEnds, trainClock } from './props/bridges.ts';
+import { trainAt } from '../world/trains.ts';
+import { FIX } from '../core/fixes.ts';
 
 /** What the event glows paint with: the light map and its art-px mapping (light.ts). */
 export interface EventPainter {
@@ -44,6 +49,13 @@ const BAR_DEPTH_M = 9, BAR = 0.55, START_GLOW_M = 3.2, GREEN_HOLD_S = 3, START_S
 const CARAVAN_LONG_M = 4.5, CARAVAN_WIDE_M = 3, CARAVAN = 0.45;
 // pit lamps: pool radius, m, brightness, and the spacing along a pit wall, m
 const PIT_POOL_M = 6, PIT = 0.4, PIT_WALL_GAP_M = 22;
+// a train's headlight: the pool's reach up the track and half width, m, and brightness; a coach's
+// windows (as the drawing's: render/props/bridges.ts drawBridgeTrain - from 1.5 m in, every 3 m,
+// 1.6 x 1 m, 0.5 m off the coach's line) and their brightness; a freight locomotive's cab (from
+// its leading end, 3 x 2.2 m) and its brightness
+const HEAD_REACH_M = 16, HEAD_HALF_M = 3.2, HEAD = 0.75, WINDOW_FROM_M = 1.5, WINDOW_GAP_M = 3;
+const WINDOW_LONG_M = 1.6, WINDOW_WIDE_M = 1, WINDOW_OFF_M = -0.5, WINDOW = 0.9;
+const CAB_IN_M = 1.5, CAB_LONG_M = 3, CAB_WIDE_M = 2.2, CAB = 0.45;
 const WHITE = '255,255,255', AMBER = '255,150,40', WARM = '255,214,140', RED = '255,50,40',
   GREEN = '70,255,110';
 
@@ -118,6 +130,65 @@ function boardLight(painter: EventPainter, isTint: boolean, prop: Prop): void {
   lightCtx.fillRect(-BOARD_W_M * scale / 2, -BOARD_H_M * scale / 2, BOARD_W_M * scale,
     BOARD_H_M * scale);
   lightCtx.setTransform(1, 0, 0, 1, 0, 0);
+}
+
+/**
+ * A lit rectangle in a bridge's frame: rubbed out of the dark, then tinted its colour.
+ * @param painter the light map
+ * @param isTint the tint pass
+ * @param prop the bridge (x, y, rot: its frame)
+ * @param rect from (along, across), m, and its size along and across, m
+ * @param rect.along its -x end, m along the bridge from its middle
+ * @param rect.across its -y edge, m across
+ * @param rect.long m along
+ * @param rect.wide m across
+ * @param level its brightness, 0..1
+ */
+function litRect(painter: EventPainter, isTint: boolean, prop: Prop,
+  rect: { along: number; across: number; long: number; wide: number }, level: number): void {
+  const { lightCtx, artPerMetre } = painter, scale = artPerMetre(), rot = prop.rot || 0;
+  const cos = Math.cos(rot), sin = Math.sin(rot);
+  lightCtx.globalAlpha = level;
+  lightCtx.setTransform(cos * scale, sin * scale, -sin * scale, cos * scale, painter.artX(prop.x),
+    painter.artY(prop.y));
+  lightCtx.fillStyle = isTint ? `rgb(${WARM})` : '#fff';
+  lightCtx.fillRect(rect.along, rect.across, rect.long, rect.wide);
+  lightCtx.setTransform(1, 0, 0, 1, 0, 0);
+}
+
+/**
+ * (?trainlights=1) A rail bridge's train at night: the leading car's headlight - a pool thrown up
+ * the track ahead of it - and the coaches' windows lit warm; a freight (Deaf Valley's trestles)
+ * its headlight and its locomotive's dim cab. The same train as the drawing's (world/trains.ts).
+ * @param painter the light map
+ * @param isTint the tint pass
+ * @param prop the rail bridge
+ */
+function trainLights(painter: EventPainter, isTint: boolean, prop: Prop): void {
+  const train = trainAt(prop, trainClock(prop));
+  if (!train || !painter.isNear(painter.artX(prop.x), painter.artY(prop.y),
+    ((prop.wid || 30) + 200) * painter.artPerMetre())) return;
+  const [negEnd, posEnd] = trackEnds(prop), { cars, carM, dir } = train;
+  const rot = prop.rot || 0, cos = Math.cos(rot), sin = Math.sin(rot), freight = prop.look
+    === 'desert';
+  // (the leading car: the first; its nose the +x end going +x)
+  const nose = cars[0] + (dir > 0 ? carM : 0), beamAt = nose + dir * HEAD_REACH_M / 2;
+  glow(painter, isTint, prop.x + cos * beamAt - sin * train.across, prop.y + sin * beamAt + cos
+    * train.across, HEAD_REACH_M / 2, WARM, HEAD, { wideM: HEAD_HALF_M, rot });
+  for (let car = 0; car < cars.length; car++) {
+    const start = cars[car];
+    // (a car past either end of the track is not drawn: none lit)
+    if (start < -negEnd - carM || start > posEnd) continue;
+    if (freight) {
+      if (car === 0) litRect(painter, isTint, prop, { along: start + (dir > 0 ? carM - CAB_IN_M
+        - CAB_LONG_M : CAB_IN_M), across: -CAB_WIDE_M / 2, long: CAB_LONG_M, wide: CAB_WIDE_M },
+      CAB);
+      continue;
+    }
+    for (let winX = WINDOW_FROM_M; winX < carM - 1; winX += WINDOW_GAP_M)
+      litRect(painter, isTint, prop, { along: start + winX, across: train.across
+        + WINDOW_OFF_M, long: WINDOW_LONG_M, wide: WINDOW_WIDE_M }, WINDOW);
+  }
 }
 
 /**
@@ -251,6 +322,8 @@ function propLights(painter: EventPainter, isTint: boolean, game: RenderGame): v
     }
     else if (kind === 'gantry') gantryLights(painter, isTint, prop, game);
     else if (kind === 'garagerow' || kind === 'pit_wall') pitLamps(painter, isTint, prop);
+    else if (kind === 'bridge' && prop.carries === 'rail' && FIX.trainlights)
+      trainLights(painter, isTint, prop);
   }
 }
 

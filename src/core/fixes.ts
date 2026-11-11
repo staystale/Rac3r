@@ -87,4 +87,8 @@ export const FIX = {
   // AI, you its target, ramming harder at each star); out of sight 10 s and they give up, boxed in
   // and stopped 3 s and you are BUSTED (ai/trafficPolice.ts, ai/policeHeat.ts, game/police.ts)
   police: atLoad('police'),
+  // ?trainlights=1: the rail bridges' trains lit at night (owner 11-11: they had none) - the
+  // leading car's headlight thrown up the track, the coaches' windows lit, a freight's dim cab -
+  // through the one night layer (render/eventglows.ts trainLights)
+  trainlights: atLoad('trainlights'),
 };

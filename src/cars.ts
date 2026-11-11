@@ -779,7 +779,9 @@ export const ROSTER: RosterRow[] = [
 
 // What spec(id) returns: SHARED + the row + L and Izz (+ what applyTyre / applyLivery set).
 export type Spec = typeof SHARED & RosterRow
-  & { L: number; Izz: number; tyre?: Tyre | null; num?: number };
+  & { L: number; Izz: number; tyre?: Tyre | null; num?: number;
+    // a police car's roof number: its livery (?police=1: ai/trafficPolice.ts, render/carsprite.ts)
+    police?: number };
 // Resolve a roster row into a full spec: SHARED defaults + computed wheelbase and yaw inertia.
 
 export function spec(carId: string): Spec {
