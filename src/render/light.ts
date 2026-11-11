@@ -20,6 +20,8 @@ import {
   REVERSE_SIDE_SHARE, isReversing,
 } from './reverselights.ts';
 import type { RenderCar, RenderGame, View } from './types.ts';
+import { BAR_ALONG_M, BAR_SPAN_M, bluesSide } from './lightbar.ts';
+import { COL } from '../world/colours.ts';
 
 // the night's dark at darkness 1 this opaque (the darkest patches still show the track's shape
 // faintly); its colour is the sky's (world/daylight.ts: blue-black, or a sunrise / sunset)
@@ -33,6 +35,8 @@ const BEAM_STRENGTH = 0.6;
 // a lamp's glow at night: its radius, m, and its strength at darkness 1; a tail light's share of
 // a brake light's glow
 const GLOW_M = 1.8, GLOW_STRENGTH = 0.7, TAIL_GLOW = 0.35;
+// a police car's lit light bar half: its glow's radius, m (it lights the road round the car)
+const BLUES_GLOW_M = 4;
 // the glows' colours, 'r,g,b': indicators amber; brake, tail and rain lights red; a street
 // light's head warm
 const AMBER = '255,160,40', RED = '255,40,28', WARM = '255,217,138';
@@ -146,6 +150,7 @@ interface GlowPainter {
   reverseGlow: HTMLCanvasElement;   // reversing lights (cool white, or white)
   brakeGlow: HTMLCanvasElement;   // hot brake discs (orange, or white)
   brakeHotGlow: HTMLCanvasElement;   // the hottest brake discs (deep red, or white)
+  bluesGlow: HTMLCanvasElement;   // a police car's light bar (blue, or white)
   headGlow: HTMLCanvasElement;  // a street light's head (warm, or white)
   strength: number;             // this frame's glow strength (by the dark)
   mapX: (worldX: number) => number;
@@ -272,6 +277,9 @@ function drawCarGlows(painter: GlowPainter, car: RenderCar, isBlinkOn: boolean) 
   if (isUnderground(car)) return;
   if (isBlinkOn) drawIndicatorGlows(painter, car);
   drawRearGlows(painter, car);
+  // a chasing police car's lit light bar half glows blue (render/lightbar.ts)
+  if (car.blues) glowAt(painter, car, BAR_ALONG_M, bluesSide() * BAR_SPAN_M / 4,
+    painter.bluesGlow, 1, BLUES_GLOW_M);
   // hot brake discs glow at their wheels (render/brakeglow.ts): orange, redder the hotter
   for (const wheel of hotBrakes(car)) {
     const red = wheel.level;
@@ -408,9 +416,11 @@ function makeMapGlows(pools: PoolPainter, sparks: SparkLight[]) {
     reverseGlow: makePicture(glowOf(REVERSE_GLOW, TINT_STOPS)),
     brakeGlow: makePicture(glowOf(BRAKE_GLOW, TINT_STOPS)),
     brakeHotGlow: makePicture(glowOf(BRAKE_GLOW_HOT, TINT_STOPS)),
+    bluesGlow: makePicture(glowOf(COL.bluesRgb, TINT_STOPS)),
     mapX: pools.artX, mapY: pools.artY, perMetre: pools.artPerMetre };
   const out: GlowPainter = { ...tint, glow: whiteGlow, redGlow: whiteGlow, headGlow: whiteGlow,
-    reverseGlow: whiteGlow, brakeGlow: whiteGlow, brakeHotGlow: whiteGlow, sparks };
+    reverseGlow: whiteGlow, brakeGlow: whiteGlow, brakeHotGlow: whiteGlow, bluesGlow: whiteGlow,
+    sparks };
   const paint = (game: RenderGame, tintFirst: () => void) => {
     paintGlows(out, game);
     pools.lightCtx.globalCompositeOperation = 'source-over';

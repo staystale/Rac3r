@@ -76,4 +76,11 @@ export const FIX = {
   // interwoven round the bowl, one crossover bridge, so a car racing it covers both (TODO.md
   // RALLYCROSS > NEW TRACKS; world/levels/wobbly-venue.ts)
   wobbly: atLoad('wobbly'),
+  // ?police=1: police on the endless roads (TODO.md ROUND 4, agreed 11-11): police cars in the
+  // traffic, cruising either way or waiting at the roadside (a forecourt, a lay-by, the hard
+  // shoulder); a heat of 1-3 stars from a speed camera, speeding near one, a crash, flashing your
+  // lights or an unsignalled lane change in sight of one, a pile-up; as many chase you (the racing
+  // AI, you its target, ramming harder at each star); out of sight 10 s and they give up, boxed in
+  // and stopped 3 s and you are BUSTED (ai/trafficPolice.ts, ai/policeHeat.ts, game/police.ts)
+  police: atLoad('police'),
 };

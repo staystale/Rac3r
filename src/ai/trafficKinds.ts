@@ -10,6 +10,8 @@
 import type { TrafficCtx } from './trafficCtx.ts';
 import { setSpeed } from './trafficSpawn.ts';
 import { SPEEDER_KMH, SPEEDER_SHARE, makeSpeeder } from './trafficSpeeder.ts';
+import { makePolice, policeShare } from './trafficPolice.ts';
+import { FIX } from '../core/fixes.ts';
 import type { TrafficCar } from './types.ts';
 
 // the share of your way's cars that are quicker drivers, and their cruise, km/h
@@ -17,16 +19,18 @@ const FAST_SHARE = 0.2, FAST_KMH = [125, 150];
 // km/h a cruising car does on the whole (ai/trafficSpawn.ts cruise: 90-110)
 const CRUISE_KMH = 100;
 
-/** A driver: cruising, a quicker one, a speeder. */
-export type Kind = 'cruise' | 'fast' | 'speeder';
+/** A driver: cruising, a quicker one, a speeder, the police (?police=1). */
+export type Kind = 'cruise' | 'fast' | 'speeder' | 'police';
 
 /**
- * The driver a car joining the road is: the other way's every one cruise.
+ * The driver a car joining the road is: now and then (?police=1) the police, either way
+ * (ai/trafficPolice.ts policeShare); the other way's every other one cruise.
  * @param ctx the traffic
  * @param dir its way (+1 yours)
  * @returns its kind
  */
 export function dealKind(ctx: TrafficCtx, dir: number): Kind {
+  if (FIX.police && ctx.rnd() < policeShare(ctx)) return 'police';
   if (dir < 0) return 'cruise';
   if (ctx.rnd() < SPEEDER_SHARE) return 'speeder';
   if (ctx.rnd() < FAST_SHARE) return 'fast';
@@ -46,13 +50,14 @@ export function kindSpeed(kind: Kind): number {
 
 /**
  * A car just placed made its kind: a quicker driver's cruise raised to FAST_KMH and put moving at
- * it; a speeder's racing driver; a cruising car as it is.
+ * it; a speeder's racing driver; a police car (cruising); a cruising car as it is.
  * @param ctx the traffic
  * @param slot the car
  * @param kind the driver
  */
 export function applyKind(ctx: TrafficCtx, slot: TrafficCar, kind: Kind) {
   if (kind === 'speeder') makeSpeeder(ctx, slot);
+  else if (kind === 'police') makePolice(ctx, slot);
   else if (kind === 'fast') {
     slot.vWant = Math.max(slot.vWant, (FAST_KMH[0] + ctx.rnd() * (FAST_KMH[1] - FAST_KMH[0]))
       / 3.6);

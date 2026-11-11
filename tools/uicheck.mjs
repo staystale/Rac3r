@@ -61,7 +61,9 @@ for (const [W, H] of [[844, 390], [390, 844], [1280, 720], [360, 640], [412, 915
     const L = window.__game.hudLayout();
     // speed panel and lap panel included after controls collided in narrow viewports — every control lane
     // must be tested across all supported sizes.
-    const named = [['restart', L.restart], ['reset', L.reset], ['speed', L.speed], ['lap', L.lap], ['fps', L.fps], ['tally', L.tally], ['help', L.help], ['abs', L.absChip], ['tcs', L.tcsChip]];
+    const named = [['restart', L.restart], ['reset', L.reset], ['speed', L.speed], ['lap', L.lap], ['fps', L.fps], ['tally', L.tally], ['help', L.help], ['abs', L.absChip], ['tcs', L.tcsChip],
+      // the lights / indicator row and the heat's stars above it (?police=1: hud/heat.ts)
+      ['indL', L.indL], ['lights', L.lights], ['indR', L.indR], ['heat', L.heat]];
     const hit = (a, b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
     const out = [];
     for (let i = 0; i < named.length; i++)

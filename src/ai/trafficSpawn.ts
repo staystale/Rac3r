@@ -4,7 +4,7 @@ import { makeCar, reset } from "../vehicle.ts";
 import { ROSTER } from "../cars.ts";
 import { roadPose, roadSpan } from "../highway.ts";
 import type { TrafficCar, TrafficVehicle } from "./types.ts";
-import { PAINTS, SPAWN_AHEAD, SPAWN_BEHIND, VEH, geo } from "./trafficCtx.ts";
+import { CHASE_BEHIND, PAINTS, SPAWN_AHEAD, SPAWN_BEHIND, VEH, geo } from "./trafficCtx.ts";
 import { bridgeCarBodies } from "./trafficBridge.ts";
 import type { TrafficCtx, VisFn } from "./trafficCtx.ts";
 
@@ -69,6 +69,7 @@ export function fresh(
     vWant: cruise(ctx, lane, lanes.length), s: dist, off, vAl: speed,
     ind: 0, indT: 0, think: ctx.rnd() * 0.3, keepLeftT: 0, wreck: false, deadT: 0,
     parked: false, kOff: null, kin: false, phys: true, dir, quick: false, racer: null, broke: null,
+    police: null,
   });
   return slot;
 }
@@ -133,8 +134,8 @@ export function roomAt(
 }
 
 /**
- * A free OFF-SCREEN spot ahead of / behind playerS; null if there is none this step
- * (try again next step).
+ * A free OFF-SCREEN spot ahead of / behind playerS ('chase': CHASE_BEHIND behind, a police car
+ * sent after you); null if there is none this step (try again next step).
  */
 // m ahead your way's traffic is put back: as near as out of sight lets (the
 // oncoming way's SPAWN_AHEAD) - MEASURED, tools/scratch/_trafficsides.mjs (a single carriageway,
@@ -148,7 +149,7 @@ export function spot(
 ) {
   const { s0: roadStart, s1: roadEnd } = roadSpan(ctx.level!),
     [near, far] = from === 'ahead' ? (dir > 0 ? OWN_AHEAD : SPAWN_AHEAD)
-      : SPAWN_BEHIND,
+      : from === 'chase' ? CHASE_BEHIND : SPAWN_BEHIND,
     lanes = lanesOf(ctx, dir), laneCount = lanes.length;
   for (let attempt = 0; attempt < 8; attempt++) {
     const dist = playerS + (from === 'ahead' ? 1 : -1) * (near + ctx.rnd() * (far - near)),

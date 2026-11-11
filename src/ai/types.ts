@@ -6,6 +6,7 @@ import type { Spec, Surface } from "../cars.ts";
 import type { Car, CarTelemetry } from "../vehicle.ts";
 import type { DamageCar } from "../damage.ts";
 import type { HwLevel } from '../highway/hwtypes.ts';
+import type { TrafficPolice } from './trafficPolice.ts';
 
 // One row of DIFFICULTIES: the centre of a difficulty's spread.
 export interface Difficulty {
@@ -336,6 +337,8 @@ export type TrafficVehicle = Car & DamageCar
   indicator?: number;   // traffic.ts: -1 / 0 / 1
   hazard?: boolean;   // traffic.ts: a wreck's hazard lights
   brakeLight?: number;   // traffic.ts
+  police?: boolean;   // a police car: its roof light bar (ai/trafficPolice.ts)
+  blues?: boolean;   // its light bar going: it is chasing you
 };
 
 // One traffic slot: a live car, or (parked) a slot waiting for a free off-screen spot.
@@ -367,6 +370,8 @@ export interface TrafficCar {
   racer?: TrafficRacer | null;
   // a car with an issue, pulling over or stopped (ai/trafficBreak.ts)
   broke?: TrafficBroke | null;
+  // a police car (ai/trafficPolice.ts)
+  police?: TrafficPolice | null;
 }
 
 /** The racing driver at a speeder's wheel (ai/circuit.ts createAIDriver). */

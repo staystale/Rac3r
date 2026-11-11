@@ -29,13 +29,26 @@ const SPEEDER_DIFF = 1, SPEEDER_AGG = 0.9;
  * @param slot the car
  */
 export function makeSpeeder(ctx: TrafficCtx, slot: TrafficCar) {
+  seatRacer(ctx, slot, SPEEDER_DIFF, SPEEDER_AGG);
+  slot.vWant = (SPEEDER_KMH[0] + ctx.rnd() * (SPEEDER_KMH[1] - SPEEDER_KMH[0])) / 3.6;
+  setSpeed(slot, slot.vWant);
+}
+
+/**
+ * The racing driver put at a traffic car's wheel (a speeder's, a police chaser's: ai/
+ * trafficPolice.ts), its own seed; the car keeps its cruise when it is handed a lane.
+ * @param ctx the traffic
+ * @param slot the car
+ * @param difficulty the driver's difficulty (ai/traits.ts aiTraits)
+ * @param aggression 0..1
+ */
+export function seatRacer(ctx: TrafficCtx, slot: TrafficCar, difficulty: number,
+  aggression: number) {
   const seed = 1 + ((ctx.rnd() * 1e6) | 0);
-  const traits = { ...aiTraits(SPEEDER_DIFF, 0, 1, seed), aggression: SPEEDER_AGG };
+  const traits = { ...aiTraits(difficulty, 0, 1, seed), aggression };
   // (the traffic's level is the game's endless level)
   slot.racer = createAIDriver(ctx.level as unknown as Level, traits);
   slot.quick = true;
-  slot.vWant = (SPEEDER_KMH[0] + ctx.rnd() * (SPEEDER_KMH[1] - SPEEDER_KMH[0])) / 3.6;
-  setSpeed(slot, slot.vWant);
 }
 
 /**

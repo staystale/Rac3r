@@ -8,6 +8,7 @@ import { SPRITE_PPM } from "./shared.ts";
 import { DAYLIGHT } from "../world/daylight.ts";
 import { REVERSE_LAMP, isReversing } from "./reverselights.ts";
 import { settledLampLevel } from "./carlamps.ts";
+import { drawLightBar } from "./lightbar.ts";
 import { drawTyreByPressure, wheelTurn } from "./tyrelook.ts";
 import { drawRolledBody, prepareBody } from "./rollbody.ts";
 import type {
@@ -341,6 +342,8 @@ function drawCarLamps(carsCtx: CarsContext, car: RenderCar, sprite: CarSprite) {
     if (lampLevel(car, 2)) view.ctx.fillRect(-sprite.Lp / 2, -sprite.Wp / 2 + 5, 2, 2);
     if (lampLevel(car, 3)) view.ctx.fillRect(-sprite.Lp / 2, sprite.Wp / 2 - 7, 2, 2);
   }
+  // a police car's roof light bar (?police=1: render/lightbar.ts)
+  drawLightBar(view.ctx, car, sprite);
 }
 
 /**

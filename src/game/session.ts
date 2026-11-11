@@ -26,6 +26,8 @@ import { resetCar, armStart, startHeld, startAtOf } from './order.ts';
 import { gridPos, spawnAI } from './grid.ts';
 import { shared, game } from './state.ts';
 import { saveProfile } from '../menu/profile.ts';
+import { FIX } from '../core/fixes.ts';
+import { restartPoliceGame } from './police.ts';
 import type { GameCar, PlaceCar } from './state.ts';
 import type { TrackPoint } from '../world/types.ts';
 
@@ -386,6 +388,8 @@ export function doRestart() {
     game.camCount = 0;
     game.camCaught = null;
   }   // the same motorway from the start again
+  // (?police=1: no stars, no card - game/police.ts; the stars only on an endless road)
+  if (FIX.police) restartPoliceGame();
   // the FPS corner's 10 s LOW starts again: the level-load hitch is not a driving dip (MEASURED:
   // LOW 26 from the load)
   game.fpsClear = true;

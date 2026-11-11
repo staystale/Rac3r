@@ -49,6 +49,8 @@ export const holdsOncoming = (ctx: TrafficCtx) => geo(ctx).median == null
 export function resetTraffic(ctx: TrafficCtx, nextLevel: HighwayLevel | null, density: number) {
   // (?bridgecars=1: a new road's bridges get new cars)
   resetBridgeCars(ctx);
+  // (?police=1: a new road forgets the police's orders and the heat)
+  ctx.police = undefined;
   ctx.level = nextLevel;
   ctx.list = [];
   ctx.placed = 0;
