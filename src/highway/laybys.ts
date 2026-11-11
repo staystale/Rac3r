@@ -14,6 +14,7 @@ import { SURFACES } from '../world/surfaces.ts';
 import { gorgeAt } from './gorge.ts';
 import { byStation } from './desertplan.ts';
 import { keepOut } from './cuts.ts';
+import { hash01, layStation } from './stations.ts';
 import { STEP } from './presets.ts';
 import type { Point } from '../world/types.ts';
 import type { DressCtx, HwLevel } from './hwtypes.ts';
@@ -29,9 +30,25 @@ const CANYON_GAP = [160, 260];
 // m: the flat length, each taper's, the depth past the road edge
 const FLAT_M = 32, TAPER_M = 18, DEEP_M = 3.2;
 const HALF_M = FLAT_M / 2 + TAPER_M;
+// (?hwstations=1) a ROADSIDE STATION in a lay-by now and then (highway/stations.ts): m between
+// their middles, the least and the most; the first one's middle this far in at the least; its
+// flat, each taper and its depth past the road edge (the forecourt, the pumps, the shop), m; where
+// a reset puts a car across it (the forecourt's front, short of the pumps), m past the edge
+const STATION_EVERY = [2000, 3000], STATION_FIRST_M = 500;
+// (a two-way road's far side: its first one this much further in, its own gaps - MEASURED,
+// _stations.mjs: with the same, the single lane's came in pairs, ~150 m apart)
+const FAR_STATION_M = 1200;
+const STATION_FLAT_M = 34, STATION_TAPER_M = 20, STATION_DEEP_M = 28, STATION_RESET_M = 2.5;
+const STATION_HALF_M = STATION_FLAT_M / 2 + STATION_TAPER_M;
 
-/** A road side's lay-bys: their middles so far (ascending), which are laid, its random stream. */
-interface Plan { mids: number[]; open: boolean[]; next: number; state: number }
+/**
+ * A road side's lay-bys: their middles so far (ascending), which are laid, which are stations
+ * (?hwstations=1) and the last station's middle, its random stream.
+ */
+interface Plan {
+  mids: number[]; open: boolean[]; station: boolean[]; lastStation: number; next: number;
+  state: number;
+}
 const PLANS = new Map<string, Plan>();
 
 /**
@@ -42,6 +59,26 @@ const PLANS = new Map<string, Plan>();
 export const laybysOn = (level: HwLevel) => level._cfg.shoulder < SHOULDER_MIN_M;
 
 /**
+ * (?hwstations=1) Whether a road side has roadside stations in its lay-bys: not Deaf Valley (its
+ * own), not the walled road (a services); our side, and on a two-way road the far side too.
+ * @param level the highway level
+ * @param side -1 / +1
+ * @returns true when it does
+ */
+const stationsOn = (level: HwLevel, side: number) => FIX.hwstations
+  && level._cfg.theme !== 'canyon' && !level._cfg.walls && (side < 0
+  || level._cfg.oncoming === 'lane');
+
+/**
+ * The m either side of a lay-by's middle it can reach on a road side.
+ * @param level the highway level
+ * @param side -1 / +1
+ * @returns m
+ */
+const reachOf = (level: HwLevel, side: number) => (stationsOn(level, side)
+  ? Math.max(HALF_M, STATION_HALF_M) : HALF_M);
+
+/**
  * A road side's plan of lay-bys, laid out to past a road distance.
  * @param level the highway level
  * @param dist road distance, m
@@ -50,12 +87,14 @@ export const laybysOn = (level: HwLevel) => level._cfg.shoulder < SHOULDER_MIN_M
  */
 function planTo(level: HwLevel, dist: number, side: number): Plan {
   const seed = level._hw.seed, canyon = level._cfg.theme === 'canyon',
-    key = `${seed}:${canyon}:${side}`;
+    stations = stationsOn(level, side), key = `${seed}:${canyon}:${side}:${stations}`;
   let plan = PLANS.get(key);
-  if (!plan) PLANS.set(key, plan = { mids: [], open: [], next: side < 0 ? FIRST_M : FAR_FIRST_M,
+  if (!plan) PLANS.set(key, plan = { mids: [], open: [], station: [],
+    lastStation: STATION_FIRST_M + (side < 0 ? 0 : FAR_STATION_M) - STATION_EVERY[0],
+    next: side < 0 ? FIRST_M : FAR_FIRST_M,
     state: (seed ^ (side < 0 ? 0x6c8e9cf5 : 0x2f1b77a3)) >>> 0 || 1 });
   const rand = () => (plan!.state = (plan!.state * 16807) % 2147483647) / 2147483647;
-  while (plan.next <= dist + HALF_M) {
+  while (plan.next <= dist + reachOf(level, side)) {
     const mid = plan.next;
     // (none over a gorge falling away on that side: Deaf Valley's high road; none by a petrol
     // station - MEASURED, _desertroom.mjs: their keep-out stopped 2 stations in 3)
@@ -63,6 +102,11 @@ function planTo(level: HwLevel, dist: number, side: number): Plan {
       seed) && !byStation(mid + along, side, seed));
     plan.mids.push(mid);
     plan.open.push(open);
+    // (?hwstations=1: a station when the last is far enough behind - its gap by the road's seed)
+    const station = stations && open && mid - plan.lastStation >= STATION_EVERY[0]
+      + hash01(mid + side * 101, seed) * (STATION_EVERY[1] - STATION_EVERY[0]);
+    if (station) plan.lastStation = mid;
+    plan.station.push(station);
     // (?vergereset=1: Deaf Valley's oftener - CANYON_GAP)
     const [gapMin, gapMax] = canyon && FIX.vergereset ? CANYON_GAP : [GAP_MIN, GAP_MAX];
     plan.next = mid + gapMin + rand() * (gapMax - gapMin);
@@ -93,16 +137,32 @@ function lastAtOrBefore(mids: number[], dist: number): number {
  * @returns m past the road edge (0: none)
  */
 export function bayOut(level: HwLevel, dist: number, side = -1): number {
-  if (!laybysOn(level)) return 0;
-  // (the lay-bys are further apart than two of them are long: the one at or before dist +
-  // HALF_M is the only one that can reach dist)
-  const plan = planTo(level, dist, side), i = lastAtOrBefore(plan.mids, dist + HALF_M);
-  if (i < 0 || !plan.open[i]) return 0;
-  const from = Math.abs(dist - plan.mids[i]);
-  if (from > HALF_M) return 0;
-  if (from <= FLAT_M / 2) return DEEP_M;
-  const frac = 1 - (from - FLAT_M / 2) / TAPER_M;
-  return DEEP_M * frac * frac * (3 - 2 * frac);
+  return bayHere(level, dist, side)?.out ?? 0;
+}
+
+/**
+ * The lay-by reaching a road distance on a side: the extra tarmac there (its depth in the flat,
+ * tapering in and out), its middle, and whether it is a station (?hwstations=1).
+ * @param level the highway level
+ * @param dist road distance, m
+ * @param side -1 our left (the default) / +1 the far side
+ * @returns the lay-by, or null: none there
+ */
+export function bayHere(level: HwLevel, dist: number, side = -1): { out: number; mid: number;
+  station: boolean } | null {
+  if (!laybysOn(level)) return null;
+  // (the lay-bys are further apart than two of them are long: the one at or before dist + its
+  // reach is the only one that can reach dist)
+  const plan = planTo(level, dist, side), i = lastAtOrBefore(plan.mids, dist + reachOf(level,
+    side));
+  if (i < 0 || !plan.open[i]) return null;
+  const station = plan.station[i], mid = plan.mids[i], from = Math.abs(dist - mid);
+  const [flat, taper, deep] = station ? [STATION_FLAT_M, STATION_TAPER_M, STATION_DEEP_M]
+    : [FLAT_M, TAPER_M, DEEP_M];
+  if (from > flat / 2 + taper) return null;
+  if (from <= flat / 2) return { out: deep, mid, station };
+  const frac = 1 - (from - flat / 2) / taper;
+  return { out: deep * frac * frac * (3 - 2 * frac), mid, station };
 }
 
 /**
@@ -117,14 +177,16 @@ export function bayOut(level: HwLevel, dist: number, side = -1): number {
 export function bayBehind(level: HwLevel, dist: number, free: (at: number) => boolean = () => true,
   floor = -Infinity): { s: number; off: number } | null {
   if (!laybysOn(level)) return null;
-  const plan = planTo(level, dist, -1), off = -(level._hw.geo.hw + DEEP_M / 2);
+  const plan = planTo(level, dist, -1), half = level._hw.geo.hw;
+  // (a station's forecourt front, short of the pumps: ?hwstations=1)
+  const offOf = (i: number) => -(half + (plan.station[i] ? STATION_RESET_M : DEEP_M / 2));
   // (the last one behind, then the one before it if it is full)
   for (let i = lastAtOrBefore(plan.mids, dist), tried = 0; i >= 0 && tried < 2; i--) {
     if (!plan.open[i]) continue;
     const mid = plan.mids[i];
     if (mid < floor) return null;
     tried++;
-    for (const spot of [mid, mid - 9, mid + 9]) if (free(spot)) return { s: spot, off };
+    for (const spot of [mid, mid - 9, mid + 9]) if (free(spot)) return { s: spot, off: offOf(i) };
   }
   return null;
 }
@@ -139,15 +201,19 @@ export function layLaybys(ctx: DressCtx) {
   const { level, road, firstIdx, endIdx, pointAt, halfWidth } = ctx;
   for (const side of [-1, 1]) {
     if (!laybysOn(level)) continue;
-    let run: number[] = [];
+    let run: number[] = [], concrete = false;
     const flush = () => {
-      if (run.length > 1) bayZone(ctx, run, side);
+      if (run.length > 1) bayZone(ctx, run, side, concrete);
       run = [];
     };
     for (let i = Math.max(0, firstIdx - 1); i < endIdx; i++) {
-      const out = bayOut(level, road[i].s, side);
-      if (out <= 0.05) { flush(); continue; }
+      const here = bayHere(level, road[i].s, side), out = here ? here.out : 0;
+      if (!here || out <= 0.05) { flush(); continue; }
       run.push(i);
+      concrete = here.station;
+      // (?hwstations=1: a station's shop, pumps and canopy at its middle - highway/stations.ts)
+      if (here.station && i >= firstIdx && road[i].s <= here.mid && here.mid < road[i].s + STEP)
+        layStation(ctx, i, side, STATION_HALF_M);
       if ((i - firstIdx) % 3 === 0) {
         const pos = pointAt(i, side * (halfWidth + out / 2));
         keepOut(level, { x: pos.x, y: pos.y, ax: Math.cos(pos.rot), ay: Math.sin(pos.rot),
@@ -159,12 +225,14 @@ export function layLaybys(ctx: DressCtx) {
 }
 
 /**
- * One run of a lay-by's points as a tarmac zone: the road edge, then back along its outer edge.
+ * One run of a lay-by's points as a tarmac zone (a station's concrete): the road edge, then back
+ * along its outer edge.
  * @param ctx the dress context
  * @param run the road points
  * @param side -1 / +1
+ * @param concrete a station's forecourt (?hwstations=1)
  */
-function bayZone(ctx: DressCtx, run: number[], side: number) {
+function bayZone(ctx: DressCtx, run: number[], side: number, concrete = false) {
   const { level, road, pointAt, halfWidth } = ctx, poly: Point[] = [];
   for (const i of run) {
     const pos = pointAt(i, side * (halfWidth - 0.2));
@@ -177,5 +245,6 @@ function bayZone(ctx: DressCtx, run: number[], side: number) {
   const allX = poly.map(([x]) => x), allY = poly.map(([, y]) => y), minX = Math.min(...allX),
     maxX = Math.max(...allX), minY = Math.min(...allY), maxY = Math.max(...allY);
   level.zones.push({ x: (minX + maxX) / 2, y: (minY + maxY) / 2, w: maxX - minX, h: maxY - minY,
-    poly, surface: SURFACES.tarmac, art: null, boxed: true, _s: road[run[0]].s });
+    poly, surface: concrete ? SURFACES.concrete : SURFACES.tarmac, art: null, boxed: true,
+    _s: road[run[0]].s });
 }

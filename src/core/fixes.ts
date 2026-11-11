@@ -47,6 +47,13 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
+  // ?hwstations=1: petrol stations on the other endless roads (owner 11-10: "petrol stations on
+  // other highway levels (also reset spots)", services with their own slip road "yeah", the names
+  // "perfect"): a ROADSIDE STATION in a lay-by now and then on the dual carriageway and the single
+  // lane (SHALL, SMELL, ESS-NO, GULP, TAXACO), a reset spot as a lay-by is; a SERVICES (WELCOME
+  // BRAKE, ROADTHIEF, EXTORTION) on the motorway, the interstate and the walled road - a side road
+  // past a station and the services hall (highway/stations.ts, laybys.ts, extras.ts)
+  hwstations: atLoad('hwstations'),
   // ?medianlamps=1: on a road with a central reservation (dual, motorway, interstate, walled) the
   // street lights stand in it - a TWIN-ARM column every 68 m, an arm over each carriageway -
   // instead of on the verges (owner 11-10: "lamps on the central reservation", "Instead then");

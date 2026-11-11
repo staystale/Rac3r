@@ -36,7 +36,8 @@ import { laneGeo, stateOf, growTo, locate, roadFrame, shoulderOff } from "./high
 import { syncCovers, SIDE_W_HALF } from "./highway/cuts.ts";
 import { dress } from "./highway/dress.ts";
 import { desertGround, REACH, resetStreamed, pruneStreamed } from "./highway/gorge.ts";
-import type { HwState, HwLevel, HwCar, HwCfg } from './highway/hwtypes.ts';
+import type { HwState, HwLevel, HwCar, HwCfg, HwPoint } from './highway/hwtypes.ts';
+import { FIX } from './core/fixes.ts';
 import type { RoadLoc } from './highway/road.ts';
 import type { Level } from './world/types.ts';
 export { HW_PRESETS, HW_SCENERY, HW_ROADS } from "./highway/presets.ts";
@@ -269,23 +270,34 @@ function checkWrongWay(state: HwState, loc: RoadLoc, car: HwCar, dt: number) {
 }
 
 /**
+ * Whether a spot left of the road is on the secret side road (?hwstations=1: or a services' yard
+ * past its far edge).
+ * @param point the road point there
+ * @param left m to the left of the road's line
+ * @returns on it
+ */
+function onSideRoad(point: HwPoint, left: number): boolean {
+  const across = left - (point.sideOff || 0);
+  return across > -(SIDE_W_HALF + 1) && across < SIDE_W_HALF + 1 + (FIX.hwstations
+    ? point.sideOut || 0 : 0);
+}
+
+/**
  * How far the car is off the road edge, and whether it is on a tarmac lane off the motorway.
  * @param state the highway state
  * @param loc where the car is on the road (locate)
  * @param car the car (x, y)
  * @returns {{out: number, onLane: boolean}} metres past the edge (0 on the side road) and lane flag
  */
-function measureOffRoad(state: HwState, loc: RoadLoc, car: HwCar) {
+function measureOffRoad(level: HwLevel, state: HwState, loc: RoadLoc, car: HwCar) {
   // THE SECRET SIDE ROAD is road (its points carry sideOff, the offset of its centre to the left);
   // any OTHER lane off the motorway (an off-slip, a bridge approach) holds the countdown and only
   // the far-out reset ends it, as "EXIT TAKEN" (requirement: slip roads you can take)
   const pointHere = state.pts[loc.i],
-    side =
-      pointHere &&
-      pointHere.sideOff &&
-      loc.off < 0 &&
-      Math.abs(-loc.off - pointHere.sideOff) < SIDE_W_HALF + 1;
-  const out = side ? 0 : Math.abs(loc.off) - state.geo.hw;
+    side = pointHere && pointHere.sideOff && loc.off < 0 && onSideRoad(pointHere, -loc.off);
+  // (?hwstations=1: a lay-by's tarmac too - a station's forecourt)
+  const out = side ? 0 : Math.abs(loc.off) - state.geo.hw - (FIX.hwstations ? bayOut(level, loc.s,
+    loc.off < 0 ? -1 : 1) : 0);
   const onLane = out > OFF_SOFT && zoneSurfaceAt(car.x, car.y).id === 'tarmac';
   return { out, onLane };
 }
@@ -332,7 +344,7 @@ export function highwayGuard(level: HwLevel, car: HwCar, dt: number) {
     loc = state.q;
   if (!loc) return null;
   if (checkWrongWay(state, loc, car, dt)) return 'WRONG WAY — RESET';
-  const { out, onLane } = measureOffRoad(state, loc, car);
+  const { out, onLane } = measureOffRoad(level, state, loc, car);
   stepOffCountdown(state, out, onLane, dt);
   if (out > OFF_HARD || state.offT > OFF_T) {
     const exitTaken = state.tookExit;

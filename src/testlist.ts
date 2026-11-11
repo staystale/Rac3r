@@ -13,6 +13,14 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'hwstations',
+    added: '2026-11-11',
+    name: 'Petrol stations on the other roads; motorway services with their own slip road',
+    where: 'Test link + &hwstations=1: Highway to Hull > COUNTRYSIDE: DUAL, SINGLE, MOTORWAY',
+    try: 'Drive 5 km: SHALL, GULP ... stations; motorway: WELCOME BRAKE etc; pull in, reset.',
+    wrong: 'A tree, lamp or Armco on a forecourt, OFF THE MOTORWAY on one, a reset not to it.',
+  },
+  {
     id: 'medianlamps',
     added: '2026-11-10',
     name: 'Street lights in the central reservation: twin-arm columns, none on the verges',

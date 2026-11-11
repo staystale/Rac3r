@@ -126,6 +126,8 @@ export function sideStep(level: HwLevel, i: number, pointAt: (i: number, off: nu
   const off = halfWidth - 2.6 + (SIDE_GAP + 2.6) * blend;
   road[i].sideOff = off;
   road[i].gapL = 1;
+  // (?hwstations=1: a services' yard off its far edge - highway/stations.ts)
+  if (sideRoad.extra) road[i].sideOut = sideRoad.extra(i, along, off, pointAt) || undefined;
   if (i % 3 === 0 || along + STEP > total) {
     const pos = pointAt(i, -off);
     sideRoad.pts.push([pos.x, pos.y]);

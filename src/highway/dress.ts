@@ -298,7 +298,7 @@ function layWalls(ctx: DressCtx) {
           const pos = pointAt(
             j,
             sideOffset
-              ? -Math.max(edge, sideOffset + SLIP_W / 2 + wallGap)
+              ? -Math.max(edge, sideOffset + SLIP_W / 2 + wallGap + (road[j].sideOut || 0))
               : side * edge
           );
           pts.push([pos.x, pos.y]);

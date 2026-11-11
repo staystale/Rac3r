@@ -7,6 +7,33 @@ import { blocked, keepOut, addCut, sideStep, approaches, river, SLIP_EVERY, BRID
   SLIP_DEG, SLIP_W, PIER, SLIP_LONG, SIDE_RUN } from "./cuts.ts";
 import type { Prop, Point, Lane } from '../world/types.ts';
 import type { HwPoint, HwPose, HwState, HwLevel, Stamp, Bridge } from './hwtypes.ts';
+import { FIX } from '../core/fixes.ts';
+import { laybysOn } from './laybys.ts';
+import { layServices, newServices, servicesDue as yardDue, servicesOut } from './stations.ts';
+import { SIDE_OUT } from './cuts.ts';
+
+// (?hwstations=1) a SERVICES (highway/stations.ts): m between them, the least and the most; the
+// first one's road distance; m the side road runs beside the motorway past it
+const SERVICES_EVERY = [4000, 5000], SERVICES_FIRST_M = 1200, SERVICES_RUN_M = 220;
+// m: the tightest bend a services goes on (the side road and its yard follow the road's bends; a
+// slip's 900 m - MEASURED, _svcprobe: on the motorway's first seed none was straight enough from
+// 1.2 km to 4.7 km)
+const SERVICES_MIN_R_M = 500;
+
+/**
+ * Whether the road is gentle enough for a services round point i: no bend tighter than
+ * SERVICES_MIN_R_M back to i - back and on to i + fwd.
+ * @param road the road points
+ * @param i road point index
+ * @param back points behind
+ * @param fwd points ahead
+ * @returns gentle enough
+ */
+const gentleAt = (road: HwPoint[], i: number, back: number, fwd: number) => {
+  for (let j = Math.max(0, i - back); j < Math.min(road.length, i + fwd); j++)
+    if (Math.abs(road[j].curv || 0) > 1 / SERVICES_MIN_R_M) return false;
+  return true;
+};
 /**
  * The signs before an off-slip, the SAME for every type: 180 / 120 / 60 m posts + the exit board.
  * @param level the highway level
@@ -310,6 +337,50 @@ function slipDue(state: HwState, road: HwPoint[], i: number, dist: number) {
   );
 }
 /**
+ * (?hwstations=1) Whether a SERVICES is due here: a road with a hard shoulder or walls (not Deaf
+ * Valley), its distance reached, 60 m of gentle road before and 150 m after, no side road running.
+ * @param level the highway level
+ * @param i road point index
+ * @param dist road distance at i
+ * @returns true when it should be built
+ */
+function servicesDue(level: HwLevel, i: number, dist: number) {
+  const state = level._hw, road = state.pts;
+  if (!FIX.hwstations || level._cfg.theme === 'canyon' || (laybysOn(level) && !level._cfg.walls))
+    return false;
+  state.nextServices ??= SERVICES_FIRST_M;
+  return dist >= state.nextServices && !state.side && i > 20 && i < road.length - 50
+    && gentleAt(road, i, 15, 38);
+}
+
+/**
+ * (?hwstations=1) A SERVICES: the slip's signs with its name, then the side road (highway/cuts.ts
+ * sideStep) running SERVICES_RUN_M beside the motorway, its yard laid part way along it
+ * (highway/stations.ts layServices); the next slip and bridge kept clear of it.
+ * @param level the highway level
+ * @param i road point index
+ * @param dist road distance at i
+ * @param pointAt road point at (index, offset)
+ * @param mark stamps a prop with its road distance
+ */
+function buildServices(level: HwLevel, i: number, dist: number, pointAt: (i: number,
+  off: number) => HwPose, mark: Stamp) {
+  const state = level._hw, rand = state.xrnd;
+  state.nextServices = dist + SERVICES_EVERY[0] + rand() * (SERVICES_EVERY[1] - SERVICES_EVERY[0]);
+  state.nextSlip = Math.max(state.nextSlip!, dist + 700);
+  if (dist > state.nextBridge! - 450) state.nextBridge = dist + 450;
+  const services = newServices(state.servicesN || 0, dist, state.seed);
+  state.servicesN = (state.servicesN || 0) + 1;
+  addSlipSigns(level, i, pointAt, mark, services.name);
+  state.side = { s0: dist, run: SERVICES_RUN_M, pts: [], mpts: [], sPiece: dist,
+    extra: (j, along, off, poseAt) => {
+      if (yardDue(services, along, SIDE_OUT)) layServices(level, j, off, poseAt, services);
+      return servicesOut(along, SIDE_OUT);
+    } };
+  sideStep(level, i, pointAt);
+}
+
+/**
  * Whether a bridge is due here: not while the side road runs beside the motorway.
  * @param state the highway state
  * @param road the road points
@@ -345,6 +416,11 @@ export function extras(level: HwLevel, i: number, dist: number, pointAt: (i: num
   if (state.nextSlip == null) {
     state.nextSlip = 900 + rand() * 900;
     state.nextBridge = 500 + rand() * 500;
+  }
+  // (?hwstations=1) a SERVICES: the side road, signed with its name, past its yard
+  if (servicesDue(level, i, dist)) {
+    buildServices(level, i, dist, pointAt, mark);
+    return;
   }
   // OFF-SLIP: needs 60 m of straight before (signs) and 150 m after; never while the side road is
   // running

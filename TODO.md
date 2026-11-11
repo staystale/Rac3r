@@ -152,7 +152,17 @@ ROUND 2, DEAF VALLEY:
     (tools/scratch/_littermenu.mjs): Deaf Valley OFF 0, 1.0x 164, 3.0x 399; the countryside 11 /
     102 / 198 (its litter worked; Deaf Valley's had no slider on the plain link).
 ROUND 3, THE OTHER HIGHWAYS:
-11. Petrol stations on the other highway levels, reset spots too.
+11. Petrol stations on the other highway levels, reset spots too. BUILT 11-11 behind ?hwstations=1
+    (highway/stations.ts, laybys.ts, extras.ts): on the dual carriageway (our side) and the single
+    lane (both sides, staggered) a lay-by now and then is a ROADSIDE STATION - 28 m deep on
+    concrete, the shop, two pumps under the canopy in its brand's colours (world/stationbrands.ts:
+    SHALL, SMELL, ESS-NO, GULP, TAXACO), its board before it - every 2-3 km; a reset past one goes
+    to its forecourt's front. On the motorway, the interstate and the walled road a SERVICES every
+    4-5 km (WELCOME BRAKE, ROADTHIEF, EXTORTION): the slip signs with its name, the side road past
+    a station and the services hall (the wall round it). The guard counts a forecourt and a yard
+    as road. MEASURED (tools/scratch/_stations.mjs): dual 5 stations in 8.9 km, single lane 3 in
+    4 km, motorway services at 1.4 / 5.8 / 10.3 km, walled 1.4 / 6.4 / 10.9; nothing standing on a
+    lot; photos driving and still (STILL=1).
 12. Lamps on the central reservation. Owner 11-10: services with their own slip road on the
     motorways "yeah", the names "perfect" (SHALL, SMELL, ESS-NO, GULP, TAXACO; WELCOME BRAKE,
     ROADTHIEF, EXTORTION), the reservation's lamps "Instead" of the verge ones. BUILT 11-10 behind

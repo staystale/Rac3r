@@ -5,6 +5,7 @@
 // floor pan and axles up), a CATTLE SKULL (bleached bone, the horns), the LAST GASP station (the
 // shop's flat roof and its plant, two pumps on their islands) and its CANOPY (over the cars).
 import { WRECK_M, GAS_SHOP, GAS_PUMPS, GAS_CANOPY, SHACK_M } from '../../world/desertjunk.ts';
+import { brandOf, SERVICES_HALL } from '../../world/stationbrands.ts';
 import type { Prop } from '../../world/types.ts';
 import type { PropCtx } from './types.ts';
 
@@ -159,14 +160,16 @@ export function drawGasStation(propCtx: PropCtx, prop: Prop, ppm: number) {
     ctx.fillRect(x * ppm, y * ppm, wide * ppm, high * ppm);
   };
   const [x, y, wide, deep] = GAS_SHOP, [shX, shY] = shadowShift(prop, 1.2);
+  // (?hwstations=1: a brand's colours - world/stationbrands.ts; none: LAST GASP's)
+  const brand = brandOf(prop.brand);
   rect(x - wide / 2 + shX, y - deep / 2 + shY, wide, deep, SHADOW);
   rect(x - wide / 2, y - deep / 2, wide, deep, '#b9b4a8');
-  rect(x - wide / 2, y - deep / 2, wide, 0.6, '#c0392b');
+  rect(x - wide / 2, y - deep / 2, wide, 0.6, brand ? brand.front : '#c0392b');
   rect(x - wide * 0.3, y - deep * 0.1, 1.6, 1.2, '#7d7a72');
   rect(x + wide * 0.15, y + deep * 0.05, 1.2, 1.2, '#7d7a72');
   for (const [pumpX, pumpY, pumpW, pumpH] of GAS_PUMPS) {
     rect(pumpX - pumpW / 2 - 0.4, pumpY - pumpH / 2 - 0.5, pumpW + 0.8, pumpH + 1, '#9c9a94');
-    rect(pumpX - pumpW / 2, pumpY - pumpH / 2, pumpW, pumpH, '#d8432f');
+    rect(pumpX - pumpW / 2, pumpY - pumpH / 2, pumpW, pumpH, brand ? brand.pump : '#d8432f');
     rect(pumpX - pumpW / 2 + 0.15, pumpY - pumpH / 2 + 0.2, pumpW - 0.3, 0.4, '#f1e9d8');
   }
 }
@@ -185,8 +188,35 @@ export function drawCanopy(propCtx: PropCtx, prop: Prop, ppm: number) {
   ctx.fillRect((x - wide / 2 + shX) * ppm, (y - deep / 2 + shY) * ppm, wide * ppm, deep * ppm);
   ctx.fillStyle = '#f2efe8';
   ctx.fillRect((x - wide / 2) * ppm, (y - deep / 2) * ppm, wide * ppm, deep * ppm);
-  ctx.strokeStyle = '#c0392b';
+  ctx.strokeStyle = brandOf(prop.brand)?.band ?? '#c0392b';
   ctx.lineWidth = Math.max(1, 0.6 * ppm);
   ctx.strokeRect((x - wide / 2 + 0.3) * ppm, (y - deep / 2 + 0.3) * ppm, (wide - 0.6) * ppm,
     (deep - 0.6) * ppm);
+}
+
+/**
+ * (?hwstations=1) A motorway SERVICES hall (highway/stations.ts): its shadow, the long flat roof
+ * with its plant, the brand's band along the front (toward the road) and the services' name on
+ * the roof.
+ * @param propCtx the view and painter helpers
+ * @param prop the hall (its label the name, its brand the colours)
+ * @param ppm pixels per metre
+ */
+export function drawServices(propCtx: PropCtx, prop: Prop, ppm: number) {
+  const ctx = propCtx.view.ctx, [x, y, wide, deep] = SERVICES_HALL,
+    [shX, shY] = shadowShift(prop, 1.6), brand = brandOf(prop.brand);
+  ctx.fillStyle = SHADOW;
+  ctx.fillRect((x - wide / 2 + shX) * ppm, (y - deep / 2 + shY) * ppm, wide * ppm, deep * ppm);
+  ctx.fillStyle = '#c3c6cb';
+  ctx.fillRect((x - wide / 2) * ppm, (y - deep / 2) * ppm, wide * ppm, deep * ppm);
+  ctx.fillStyle = brand ? brand.front : '#1f4fa8';
+  ctx.fillRect((x - wide / 2) * ppm, (y - deep / 2) * ppm, wide * ppm, 1.2 * ppm);
+  ctx.fillStyle = '#9da1a8';
+  for (const unitX of [-wide / 2 + 3, wide / 2 - 6]) ctx.fillRect(unitX * ppm, (y + deep / 2
+    - 3.5) * ppm, 3 * ppm, 2 * ppm);
+  ctx.fillStyle = '#2b2f36';
+  ctx.font = `900 ${Math.round(2.2 * ppm)}px Impact, ui-sans-serif, sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(prop.label || 'SERVICES', x * ppm, (y + 0.6) * ppm);
 }

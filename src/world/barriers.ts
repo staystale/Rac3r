@@ -3,6 +3,7 @@
 import { rideUp } from "./jersey.ts";
 import { hoodooSpires, archShape } from './formations.ts';
 import { WRECK_M, SHACK_M, GAS_SHOP, GAS_PUMPS, GAS_POSTS } from './desertjunk.ts';
+import { SERVICES_HALL } from './stationbrands.ts';
 import { LEVEL } from "./state.ts";
 import { activeLamps, resetLamps, type Lamp } from "./lamps.ts";
 import { driveOverPost, hitLamp } from "./lampdamage.ts";
@@ -322,6 +323,8 @@ function addFormationSolids(out: Solid[], prop: Prop): boolean {
     for (const [x, y, wid, len] of [GAS_SHOP, ...GAS_PUMPS]) pushPropBox(out, prop, x, y, wid, len);
   else if (prop.kind === 'canopy')
     for (const [x, y] of GAS_POSTS) pushPropBox(out, prop, x, y, 0.4, 0.4);
+  // (?hwstations=1: a motorway services hall - highway/stations.ts)
+  else if (prop.kind === 'services') pushPropBox(out, prop, ...SERVICES_HALL);
   else return false;
   return true;
 }

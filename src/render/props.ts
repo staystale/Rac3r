@@ -38,7 +38,9 @@ import {
 } from './props/scenery.ts';
 import { drawParkedCar, drawTunnel, drawVenueBridge } from './props/venueprops.ts';
 import { drawButte, drawHoodoo, drawArch } from './props/formations.ts';
-import { drawWreck, drawGasStation, drawCanopy, drawShack } from './props/desertjunk.ts';
+import {
+  drawWreck, drawGasStation, drawCanopy, drawServices, drawShack,
+} from './props/desertjunk.ts';
 import { propsNear, screenBox } from './propgrid.ts';
 
 /** the drawer of each prop kind (a kind with no entry is only positioned) */
@@ -80,6 +82,7 @@ const PROP_DRAWERS: Record<string, PropDrawer> = {
   shack: drawShack,
   gasstation: drawGasStation,
   canopy: drawCanopy,
+  services: drawServices,
 };
 
 // OVERHEAD props span the track ABOVE the cars and are drawn AFTER them. MEASURED BUG (user,
