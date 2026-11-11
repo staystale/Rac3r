@@ -77,7 +77,7 @@ export function pitLane(site: Site, name: string): { lane: Lane; wall: Barrier |
     (along) => HALF_ROAD + wallGap(sub, along) + PIT_WALL_GAP + PIT_W / 2, fromMerge);
   // (where a stretch was laid as mapped, the joints eased: spec.pitCuts)
   const lanePts = spec.pitCuts ? smoothLine(eased, CUT_EASE_REACH, CUT_EASE_PASSES) : eased;
-  return { lane: { pts: lanePts, width: PIT_W, surface: SURFACES.concrete },
+  return { lane: { pts: lanePts, width: PIT_W, surface: SURFACES[spec.pitSurface || 'concrete'] },
     wall: beside.length > 8 ? pitWall(site, beside, lanePts, held) : null };
 }
 

@@ -154,6 +154,12 @@ export interface VenueSpec {
   // a pit lane's tunnel under the track: its two open ends, game m (Yass Marina's pit exit, under
   // the first corner; world/venuecross.ts pitTunnelPortals)
   pitTunnel?: { a: Point; b: Point };
+  // the ground off the road where it is not grass (a street circuit's pavements: Moanaco's
+  // concrete, its parks laid as grass pads); grass when not given
+  base?: keyof typeof SURFACES;
+  // the pit lane's surface where the venue's ground is concrete too (Moanaco's: tarmac); concrete
+  // when not given
+  pitSurface?: keyof typeof SURFACES;
   seed: number;
 }
 
@@ -574,7 +580,8 @@ export function venueLevel(spec: VenueSpec, layout: string, levelId: string,
   // on the grid near the start lane's dead end, facing along it; else 15 m before the line
   const start = startLane ? laneSpawn(startLane) : onTrack(sub, sub.totalDist - 15, 0, {});
   return {
-    id: levelId, name, base: SURFACES.grass, subtrack: sub, bounds: scenery.bounds,
+    id: levelId, name, base: SURFACES[spec.base || 'grass'], subtrack: sub,
+    bounds: scenery.bounds,
     floor: Math.ceil(Math.max(-scenery.bounds.x0, scenery.bounds.x1, -scenery.bounds.y0,
       scenery.bounds.y1)),
     camber: spec.camber?.[layout] || { maxDeg: 3, refR: 70, crown: 0.02, edge: 6, sections: [] },

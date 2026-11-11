@@ -64,7 +64,8 @@
   "traps": [],
   "leaveOut": [
     "tunnels",
-    "homes"
+    "homes",
+    "paddocks"
   ],
   "names": {
     "4226740": "Antony Noghes",

@@ -441,6 +441,33 @@ export const MOANACO_SPEC: VenueSpec = {
   // m past the road's edge the walls stand (a street circuit: the walls hard by the road)
   runoffM: 3,
   mixFences: true,
+  // THE TOWN PAVED (owner 11-11: "make pavement or anything else you need"): the ground off the
+  // road concrete - pavements, quays, squares - and the parks and gardens grass (OSM leisure=park /
+  // garden, landuse=grass and the woods near the lap, each its smallest turned rectangle:
+  // tools/scratch/_moparks.mjs), each shrunk about its middle to keep 13 m off the road
+  // (tools/scratch/_mopads.mjs; the Parc Spelugues by the hairpin and a strip by Tabac left out):
+  // the Casino's gardens - the Petite Afrique, the Boulingrins - the terraces above the tunnel
+  base: 'concrete',
+  // the pit lane tarmac, as the real one (concrete on the concrete town it did not show)
+  pitSurface: 'tarmac',
+  pads: [
+{ at: [48, -238], w: 26, h: 37, rot: -0.9, surface: 'grass' },
+    { at: [449, -641], w: 113, h: 57, rot: -1.48, surface: 'grass' },
+    { at: [97, -438], w: 116, h: 51, rot: -2.5, surface: 'grass' },
+    { at: [12, -378], w: 52, h: 39, rot: -1.14, surface: 'grass' },
+    { at: [-408, 287], w: 29, h: 40, rot: -1.7, surface: 'grass' },
+    { at: [73, -389], w: 19, h: 98, rot: 2.22, surface: 'grass' },
+    { at: [281, -239], w: 116, h: 51, rot: 2.27, surface: 'grass' },
+    { at: [-272, 542], w: 172, h: 53, rot: 0.04, surface: 'grass' },
+    { at: [-502, 506], w: 154, h: 42, rot: 3.06, surface: 'grass' },
+    { at: [-42, 497], w: 196, h: 20, rot: -0.23, surface: 'grass' },
+    { at: [-30, -277], w: 34, h: 46, rot: -1.22, surface: 'grass' },
+    { at: [-11, 453], w: 254, h: 23, rot: -0.24, surface: 'grass' },
+    { at: [-339, -129], w: 73, h: 32, rot: -2.44, surface: 'grass' },
+    { at: [-402, -118], w: 93, h: 17, rot: -2.56, surface: 'grass' },
+    { at: [50, -407], w: 41, h: 18, rot: -2.5, surface: 'grass' },
+    { at: [507, -633], w: 118, h: 47, rot: -0.95, surface: 'grass' },
+  ],
   railsSeen: MO_RAILS,
   // the tyre wall inside the swimming pool's first chicane, where the pit lane comes up to the
   // start straight (aerial photographs: the barrier between the pool's road and the pit exit; the

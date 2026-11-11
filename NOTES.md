@@ -652,6 +652,13 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   (up to 16 real m) gave 17.7 m; the lane's entry moved from the corner's apex (in its island at
   the game's widths) to Avenue du Port. tools/scratch/_moseal.mjs (a flood fill from the start,
   barriers and solids grown half a car) found each gap the eye missed.
+- A STREET VENUE'S TOWN IS PAVED (owner 11-11 on Moanaco's town on grass: "make pavement or
+  anything else you need"): VenueSpec.base sets the ground off the road (Moanaco: concrete, the
+  existing ground art - pavements, quays and squares to the water's edge), its parks, gardens and
+  woods laid as grass pads (OSM's outlines boxed, kept 13 m off the road: tools/scratch/
+  _moparks.mjs, _mopads.mjs), its car parks left out (mown grass with parked cars). A concrete
+  pit lane did not show on the concrete town: VenueSpec.pitSurface (Moanaco's tarmac, as the
+  real one). Every other venue: grass and a concrete pit lane, as before (worldhash).
 - A STAND BESIDE A ROAD WATCHES ITS FAR SIDE TOO (11-11, Moanaco): the edge marks 30 m round a
   stand's corners as watched, so a stand by the swimming pool turned 26 m of the road's other side
   (beside the pit lane) to catch fence - a run shorter than MIN_RUN_PTS, dropped: a 19 m gap. The
