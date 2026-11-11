@@ -21,7 +21,31 @@ build's full record (what was built, every number) is in `TODO-DONE.md` under it
   11 s later; 1 / 2 / 3 stars - 1 / 2 / 3 chasers within 40 m in 10-14 s; stopped, BUSTED 4.2-5.8 s
   after; lost 10-17 s after the last sighting; no BACK TO THE ROAD left after a bust; switch off
   identical. WRONG: stars for nothing, no chase, chasers stuck or flying, an unfair BUSTED, never
-  escaping.
+  escaping. Owner 11-11: "police seem good".
+  ANY LAW BREAKER (owner 11-11 "they should target AI / anyone who's breaking the rules", "pursue
+  the closest law breaker"; ai/policeHeat.ts stepHeats, ai/trafficPolice.ts pickTarget): every
+  driver has its own heat by the same rules - you, the AI rivals, the traffic (speeders, quicker
+  drivers, a crasher; the camera and police-due are yours only; a crash counts against the one
+  moving into the other); each star anyone gains sends a chaser (3 at most), and each chaser goes
+  after the closest driver with heat on its level, looked at again every 2 s (a new one only when
+  under 3/4 of the distance); one ahead of its stopped target, out of sight, is sent round behind
+  it; a ram eases off once touching (it shoved a braking rival on at 35-49 km/h). Busted: an AI
+  rival held 6 s on the brakes, then its own reset; a traffic driver put away; you as before - only
+  your chasers go. Your stars, LOST THEM and BUSTED are yours only. MEASURED (_police.mjs PART=
+  others, you clean on the shoulder): a rival past a police car at 140-150 km/h - its 1 star, yours
+  0, the chaser after the rival; pulled over, BUSTED 17 s later and held; a speeder past one at
+  170 km/h - its 2 stars, yours 0, 2 chasers after it (not caught: it outran them); a rival 40 m
+  ahead and a traffic car 233 m ahead, 1 star each - both chasers after the rival (the first 150 m
+  from it, 356 m from the other); your own scenarios unchanged (camera 1 star, chase 1-3 chasers
+  within 40 m in 10-13 s, BUSTED 5-7 s after stopping, lost 10 s after the last sighting). WRONG:
+  police chasing you when someone nearer broke the rules, you getting stars for what a rival did,
+  an AI never let go after a bust, a chaser flicking between two.
+  MORE LIGHTS (owner 11-11 "slightly brighter / bigger reach and more lights - some on the front
+  grille / back window"; render/lightbar.ts, light.ts): while chasing, the bar's lit half brighter
+  (a white core) with a small blue halo by day, two blue flashers in the grille and two in the back
+  window flashing against the bar's side; at night each glows - the bar's reach 4 -> 7 m, a
+  flasher's 2.6 m. Photographed chasing, day and night, 844x390 and 390x844. WRONG: lights while
+  cruising or waiting, flashers off the grille / back window, a glow on a car not chasing.
 - ROADPARITY (`?roadparity=1`; Highway to Hull, the WALLED and DEAF VALLEY roads). Every endless
   road built alike, only the look apart: the road dressed 320 m behind its end so a junction is laid
   ahead; junctions on the walled road (the wall open at the slips); Deaf Valley's exits, services,

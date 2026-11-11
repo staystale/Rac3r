@@ -22,7 +22,7 @@ try {
   // the heat held at 2 (no escape) until the bust
   await page.evaluate(() => {
     window.__holder = setInterval(() => {
-      const game = window.__game, heat = game.traffic.police().heat;
+      const game = window.__game, orders = game.traffic.police(), heat = orders.heats.get(game.car);
       if (!heat || game.busted) return;
       heat.stars = Math.max(heat.stars, 2);
       heat.escapeT = 0;

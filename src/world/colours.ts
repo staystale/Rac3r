@@ -47,9 +47,11 @@ export const COL = {
   grassDark: '#6a8850',
   gravelGrit: '#b4a894',
   fence: '#8a8d99',
-  // ?police=1: a police car's roof light bar lit, unlit (still showing what it is), its night glow
-  // ('r,g,b'); the heat's stars on the HUD (the speed camera card's yellow)
-  blues: '#4d8dff', bluesOff: '#2f4f94', bluesRgb: '77,141,255', heat: '#eab308',
+  // ?police=1: a police car's lamps lit, its bar unlit (still showing what it is), their night
+  // glow ('r,g,b'), a lit half's white core; the heat's stars on the HUD (the speed camera card's
+  // yellow)
+  blues: '#5b9bff', bluesOff: '#2f4f94', bluesRgb: '91,155,255', bluesCore: '#dceaff',
+  heat: '#eab308',
   // a UK police car's livery (render/carsprite.ts paintPolice): the Battenberg check's blue and
   // fluorescent yellow, its white body and roof, the roof number's black
   battenBlue: '#1f4fc4', hiVis: '#d4ec1c', policeWhite: '#f2f2ee', roofNumber: '#14161b',

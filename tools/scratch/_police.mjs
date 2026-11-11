@@ -16,7 +16,8 @@ const { createAIDriver } = await import('../../src/ai/circuit.ts');
 const { aiTraits } = await import('../../src/ai/traits.ts');
 const { clampWorld } = await import('../../src/world/crossings.ts');
 const { createTraffic } = await import('../../src/traffic.ts');
-const { createHeat, stepHeat, boxGap } = await import('../../src/ai/policeHeat.ts');
+const { createHeat, stepHeats, boxGap, heatOf } = await import('../../src/ai/policeHeat.ts');
+const { makeSpeeder } = await import('../../src/ai/trafficSpeeder.ts');
 const { makePolice } = await import('../../src/ai/trafficPolice.ts');
 const { carContacts } = await import('../../src/contact.ts');
 const { hit, damageInit } = await import('../../src/damage.ts');
@@ -43,7 +44,10 @@ function newWorld(road, scenery, seed, density = 0.6) {
     driver: createAIDriver(level, aiTraits(4, 0, 1)),
     time: 0, want: 95 / 3.6, carry: 0, input: null, lane: null, results: [] };
   world.orders = traffic.police();
-  world.heat = (world.orders.heat ||= createHeat());
+  world.heat = createHeat();
+  world.orders.heats.set(you, world.heat);
+  world.rivals = [];
+  world.busts = [];
   return world;
 }
 
@@ -77,25 +81,87 @@ function stepWorld(world) {
     L.applyGround(you, DT);
     step(you, input, DT);
   }
+  for (const rival of world.rivals) stepRival(world, rival);
   hw.stepHighway(level, you);
   const cam = hw.speedCamera(level, you);
-  traffic.step(DT, { player: you });
-  const all = [you, ...traffic.cars], startVel = all.map((car) => [car.vx, car.vy]);
+  traffic.step(DT, { player: you, others: world.rivals.map((rival) => rival.car),
+    visible: world.vis });
+  const all = [you, ...world.rivals.map((rival) => rival.car), ...traffic.cars];
+  const startVel = all.map((car) => [car.vx, car.vy]);
   carContacts(all);
-  const touched = you._hitKind === 'car' && Math.hypot(you.vx - startVel[0][0],
-    you.vy - startVel[0][1]) > 1.5;
+  const touched = new Set(all.filter((car, i) => car._hitKind === 'car' && Math.hypot(car.vx
+    - startVel[i][0], car.vy - startVel[i][1]) > 1.5));
   all.forEach((car, i) => hit(car, startVel[i][0], startVel[i][1]));
-  const result = stepHeat(world.heat, { dt: DT, player: you, level, slots: traffic.list,
-    cars: traffic.cars, orders: world.orders, camera: !!cam, touched });
+  const events = stepHeats(world.orders, driversOf(world, cam, touched), { dt: DT, level,
+    slots: traffic.list, cars: traffic.cars });
   world.time += DT;
   if (cam) world.results.push(`camera at ${(cam.kmh)} km/h, t ${world.time.toFixed(1)} s`);
-  if (result === 'busted') {
-    world.busted = world.time;
-    traffic.clearPolice();
-    world.heat.stars = 0;
+  let result = null;
+  for (const { driver, result: what } of events) {
+    if (!driver.isYou) {
+      noteOther(world, driver, what);
+      continue;
+    }
+    result = what;
+    if (what === 'busted') {
+      world.busted = world.time;
+      traffic.clearPolice(you);
+      world.heat.stars = 0;
+    }
+    if (what === 'escaped') world.escaped = world.time;
   }
-  if (result === 'escaped') world.escaped = world.time;
   return result;
+}
+
+/** Every driver, as game/police.ts collectDrivers: you, the rivals, the traffic but the police. */
+function driversOf(world, cam, touched) {
+  const { you, traffic } = world;
+  const drivers = [{ car: you, frame: level._hw.q, isYou: true, camera: !!cam, kind: 'you' },
+    ...world.rivals.map((rival) => ({ car: rival.car, frame: rival.frame, isYou: false,
+      camera: false, kind: 'ai', owner: rival })),
+    ...traffic.list.filter((slot) => !slot.parked && !slot.police).map((slot) => ({
+      car: slot.car, frame: slot, isYou: false, camera: false, kind: 'traffic', owner: slot }))];
+  for (const driver of drivers) driver.touched = touched.has(driver.car);
+  return drivers;
+}
+
+/** Another driver's escape or bust: a traffic one put away, a rival held (as the game's). */
+function noteOther(world, driver, what) {
+  world.busts.push({ kind: driver.kind + ' ' + what, at: world.time, car: driver.car });
+  if (what !== 'busted') return;
+  if (driver.kind === 'traffic') world.traffic.putAway(driver.car);
+  else driver.owner.heldT = 6;
+}
+
+/** A racing AI rival, stepped as you are (held after a bust: on the brakes). */
+function stepRival(world, rival) {
+  const car = rival.car;
+  const input = { ...rival.driver.drive(car, DT, { cars: [world.you, ...world.traffic.cars],
+    vMax: Math.max(1, rival.want), lap: 1, laps: 99 }) };
+  if (Math.hypot(car.vx, car.vy) > rival.want) input.throttle = 0;
+  if (rival.heldT > 0 || rival.want < 0.5) Object.assign(input, { throttle: 0, brake: 1 });
+  rival.heldT = Math.max(0, (rival.heldT || 0) - DT);
+  const v0x = car.vx, v0y = car.vy;
+  clampWorld(car, DT);
+  hit(car, v0x, v0y);
+  L.applyGround(car, DT);
+  step(car, input, DT);
+  rival.frame = hw.roadFrame(level, car.x, car.y, rival.frame ? rival.frame.s : null);
+  car._hwS = rival.frame ? rival.frame.s : car._hwS;
+}
+
+/** A rival ahead m ahead of you in a lane, at kmh and driven at wantKmh. */
+function addRival(world, ahead, laneIdx, kmh, wantKmh) {
+  const here = level._hw.q, lanes = level._hw.geo.own;
+  const pose = hw.roadPose(level, here.s + ahead, lanes[laneIdx]);
+  const car = makeCar('saloon-rwd');
+  reset(car, pose.x, pose.y, pose.h);
+  car.vx = Math.cos(pose.h) * kmh / 3.6;
+  car.vy = Math.sin(pose.h) * kmh / 3.6;
+  const rival = { car, driver: createAIDriver(level, aiTraits(4, 0, 1, 99)), want: wantKmh / 3.6,
+    heldT: 0, frame: hw.roadFrame(level, pose.x, pose.y, here.s + ahead) };
+  world.rivals.push(rival);
+  return rival;
 }
 
 /** You carried along your lane at world.carry m/s (faster than any car could be driven here). */
@@ -180,7 +246,7 @@ function placePolice(world, ahead, kmh, laneIdx = 0) {
   return slot;
 }
 // the traffic's context as makePolice reads it (its dice and its police orders)
-const ctxOf = (world) => ({ rnd: Math.random, police: world.orders, level });
+const ctxOf = (world) => ({ rnd: (world.dice ||= mulberry(99)), police: world.orders, level });
 
 /** Drive legally for a while from a fresh motorway, to get going. */
 function warm(seed = 4242, road = 'motorway', kmh = 95) {
@@ -377,6 +443,163 @@ function scenarioWreck() {
     + ` (vanished ${world.orders.vanished - before}); chasers now ${chasers(world).length}`);
 }
 
+/** A traffic car of our way made a speeder (the racing driver at its wheel) at kmh. */
+function placeSpeeder(world, ahead, kmh, laneIdx) {
+  const slot = world.traffic.list.find((each) => !each.parked && (each.dir ?? 1) > 0
+    && !each.police && !each.broke && !each.racer);
+  const here = level._hw.q, lanes = level._hw.geo.own;
+  const pose = hw.roadPose(level, here.s + ahead, lanes[laneIdx]);
+  reset(slot.car, pose.x, pose.y, pose.h);
+  Object.assign(slot, { s: here.s + ahead, off: lanes[laneIdx], lane: laneIdx, laneT: laneIdx,
+    laneOff: lanes[laneIdx], kOff: null, vAl: kmh / 3.6 });
+  makeSpeeder(ctxOf(world), slot);
+  slot.vWant = kmh / 3.6;
+  slot.car.vx = Math.cos(pose.h) * kmh / 3.6;
+  slot.car.vy = Math.sin(pose.h) * kmh / 3.6;
+  return slot;
+}
+
+/** Who the chasers are after: counts by target (you, the rival, the speeder, another). */
+function targetsOf(world, named) {
+  const counts = {};
+  for (const slot of chasers(world)) {
+    const target = slot.police.target;
+    const name = Object.keys(named).find((key) => named[key] === target) || (target ? 'other'
+      : 'none');
+    counts[name] = (counts[name] || 0) + 1;
+  }
+  return JSON.stringify(counts);
+}
+
+/** Every driver's heat but these held at none (one offender's check against yours). */
+function quietOthers(world, keep) {
+  for (const [car, heat] of world.orders.heats) if (!keep.includes(car)) heat.stars = 0;
+  const kept = world.orders.suspects.filter((each) => keep.includes(each.car));
+  world.orders.suspects.length = 0;
+  world.orders.suspects.push(...kept);
+}
+
+/** You carried at 95 km/h up the hard shoulder: legal, clear of the traffic (no offence). */
+function keepClean(world) {
+  world.carryOff = -level._hw.geo.hw + level._cfg.shoulder / 2;
+  world.carry = 95 / 3.6;
+}
+
+/** OTHERS: a rival / a speeder offends by a police car and you do not; two offenders. */
+function scenarioOthers() {
+  // a rival AI past a police car at 150 km/h, you legal behind
+  {
+    const world = warm(4242, 'motorway', 95);
+    keepClean(world);
+    placePolice(world, 60, 95, 1);
+    const rival = addRival(world, 15, 2, 140, 150);
+    let rivalMax = 0, youMax = 0, seen = '';
+    run(world, 40, (each) => {
+      quietOthers(each, [each.you, rival.car]);
+      rivalMax = Math.max(rivalMax, heatOf(each.orders, rival.car)?.stars || 0);
+      youMax = Math.max(youMax, each.heat.stars);
+      heatOf(each.orders, rival.car) && (heatOf(each.orders, rival.car).escapeT = 0);
+      if (chasers(each).length) seen = targetsOf(each, { you: each.you, rival: rival.car });
+    });
+    if (process.env.DEBUG) console.log('suspects', world.orders.suspects.map((each) => each.car
+      === rival.car ? 'rival' : each.car.spec.id + ' ' + each.stars), world.busts.map((entry) =>
+      entry.kind + ' ' + (entry.car === rival.car)));
+    // (then the rival stops; yours held at none - carried, you go through the traffic)
+    rival.want = 0;
+    // (it pulls over: put stopped on the hard shoulder 60 m ahead of you - stopped in a live lane
+    // the traffic queued behind it, the chasers in the queue; and the chase stays round you: far
+    // from you a chaser is put back - and you stop on the shoulder)
+    {
+      const at = level._hw.q.s + 60, pose = hw.roadPose(level, at, -level._hw.geo.hw
+        + level._cfg.shoulder / 2);
+      reset(rival.car, pose.x, pose.y, pose.h);
+      rival.frame = hw.roadFrame(level, pose.x, pose.y, at);
+    }
+    world.carry = 0.01;
+    // (a chaser lost is not replaced until a new star: one owed while none is after it; the screen
+    // as a phone's, 40 m behind you to 120 m ahead - the headless default sees to 270 m)
+    world.vis = (x, y, dist) => dist - level._hw.q.s > -40 && dist - level._hw.q.s < 120;
+    const oweOne = (each) => {
+      if (!chasers(each).some((slot) => slot.police.target === rival.car))
+        each.orders.owed = Math.max(each.orders.owed, 1);
+    };
+    const youAfter = world.heat.stars;
+    let bustAt = null;
+    let tick = 0;
+    run(world, 60, (each) => {
+      quietOthers(each, [rival.car]);
+      oweOne(each);
+      if (process.env.DEBUG && !(tick++ % 600)) console.log(each.time.toFixed(0), 'rival',
+        (Math.hypot(rival.car.vx, rival.car.vy) * 3.6).toFixed(0), chasers(each).map((slot) =>
+          (slot.police.target === rival.car ? 'R ' : '? ') + boxGap(slot.car, rival.car)
+            .toFixed(1) + ' ' + (Math.hypot(slot.car.vx, slot.car.vy) * 3.6).toFixed(0)
+            + (slot.phys ? '' : ' kin') + ' ds ' + (slot.s - level._hw.q.s).toFixed(0) + ' lane ' + slot.lane + '/' + slot.off.toFixed(1)).join(' | '), 'stars', heatOf(each.orders,
+          rival.car)?.stars, 'owed', each.orders.owed, 'total', each.orders.stars, 'sus', each.orders.suspects.length, 'ds', ((rival.frame?.s ?? 0) - level._hw.q.s).toFixed(0));
+      const heat = heatOf(each.orders, rival.car);
+      if (heat && heat.stars) heat.escapeT = 0;
+      const bust = each.busts.find((entry) => entry.car === rival.car
+        && entry.kind.endsWith('busted'));
+      if (bust) bustAt = bust.at;
+      return !bust;
+    });
+    say('rival offends', `rival past a police car at 140-150 km/h: its stars ${rivalMax}, yours`
+      + ` ${youMax}; chasers after ${seen || 'none'}; the rival stopped: ${bustAt ? 'BUSTED at '
+      + bustAt.toFixed(1) + ' s, held ' + (rival.heldT > 0 ? 'yes' : 'no') : 'not busted in 60 s'}`
+      + `; your stars before it stopped ${youAfter}`);
+  }
+  // a speeder past a police car at 170 km/h
+  {
+    const world = warm(4242, 'motorway', 95);
+    keepClean(world);
+    placePolice(world, 60, 95, 1);
+    const speeder = placeSpeeder(world, 20, 170, 2);
+    const car = speeder.car;
+    let max = 0, youMax = 0, seen = '';
+    run(world, 30, (each) => {
+      quietOthers(each, [each.you, car]);
+      max = Math.max(max, heatOf(each.orders, car)?.stars || 0);
+      youMax = Math.max(youMax, each.heat.stars);
+      if (chasers(each).length) seen = targetsOf(each, { you: each.you, speeder: car });
+    });
+    const fate = world.busts.filter((entry) => entry.car === car).map((entry) => entry.kind
+      + ' at ' + entry.at.toFixed(1) + ' s').join(', ');
+    say('speeder offends', `speeder past a police car at 170 km/h: its stars ${max}, yours`
+      + ` ${youMax} [${world.heat.offences.join(', ')}]; chasers after ${seen || 'none'}; then ${fate || 'still wanted'}`);
+  }
+  // two offenders: a rival 40 m ahead of you, a traffic car 200 m ahead - one star each
+  {
+    const world = warm(4242, 'motorway', 95);
+    keepClean(world);
+    const rival = addRival(world, 40, 0, 95, 95);
+    const far = world.traffic.list.find((slot) => !slot.parked && !slot.police
+      && (slot.dir ?? 1) > 0 && slot.s - level._hw.q.s > 150);
+    const hold = (each) => {
+      for (const car of [rival.car, far && far.car]) {
+        if (!car) continue;
+        const heat = heatOf(each.orders, car) || createHeat();
+        each.orders.heats.set(car, heat);
+        heat.stars = Math.max(heat.stars, 1);
+        heat.escapeT = 0;
+      }
+    };
+    let first = null;
+    // (the stars set, then the chasers they send: two)
+    run(world, 0.1, hold);
+    run(world, 30, (each) => {
+      hold(each);
+      if (!first && chasers(each).length) first = { at: each.time, gaps: chasers(each).map(
+        (slot) => [Math.hypot(slot.car.x - rival.car.x, slot.car.y - rival.car.y),
+          far ? Math.hypot(slot.car.x - far.car.x, slot.car.y - far.car.y) : 0]) };
+    });
+    say('two offenders', `a rival 40 m ahead, a traffic car ${far ? Math.round(far.s
+      - level._hw.q.s) : '-'} m ahead, 1 star each: chasers after ${targetsOf(world,
+      { you: world.you, rival: rival.car, far: far && far.car })}; the first chaser was`
+      + ` ${first ? first.gaps.map(([near, away]) => `${near.toFixed(0)} m from the rival, `
+        + `${away.toFixed(0)} m from the far one`).join('; ') : '-'}; your stars ${world.heat.stars}`);
+  }
+}
+
+if (PART === 'others') scenarioOthers();
 if (PART === 'survey' || PART === 'all') survey();
 if (PART === 'scenarios' || PART === 'all') {
   console.log('SCENARIOS (countryside motorway, seed 4242, traffic 0.6):');

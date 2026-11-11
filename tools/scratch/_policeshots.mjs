@@ -21,7 +21,8 @@ const holdStars = (page, stars) => page.evaluate((want) => {
   window.__holdStars = want;
   if (window.__holder) return;
   window.__holder = setInterval(() => {
-    const heat = window.__game.traffic.police().heat;
+    // (your heat: a star raised sends a chaser - policeHeat.ts stepHeats)
+    const orders = window.__game.traffic.police(), heat = orders.heats.get(window.__game.car);
     if (!heat || window.__holdStars == null || window.__game.busted) return;
     heat.stars = Math.max(heat.stars, window.__holdStars);
     heat.escapeT = 0;
@@ -48,7 +49,7 @@ try {
     await holdStars(page, 0);
     await page.evaluate(() => {
       window.__unlit = setInterval(() => {
-        const heat = window.__game.traffic.police().heat;
+        const heat = window.__game.traffic.police().heats.get(window.__game.car);
         if (heat) heat.stars = 0;
       }, 20);
     });
