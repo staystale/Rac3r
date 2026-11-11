@@ -43,6 +43,7 @@ import { YASMARINA_LEVELS } from "./yasmarina-venue.ts";
 import { BATHURST_LEVELS } from "./bathurst-venue.ts";
 import { MOANACO_LEVELS } from "./moanaco-venue.ts";
 import { WOBBLY_LEVELS } from "./wobbly-venue.ts";
+import { STADEPRANCE_LEVELS } from "./stadeprance-venue.ts";
 import { FIX } from "../../core/fixes.ts";
 import { OP_LEVELS } from "./oultonpork-venue.ts";
 import { DT_LEVELS } from "./dieatona-venue.ts";
@@ -121,6 +122,8 @@ export const LEVELS: Level[] = [
   KH_LEVEL, ...KH_VENUE_LEVELS,
   // ?wobbly=1: Wobbly Stadium, the Race of Champions' track at Wembley (wobbly-venue.ts)
   ...(FIX.wobbly ? WOBBLY_LEVELS : []),
+  // ?stadeprance=1: Stade de Prance, the Race of Champions' track in Paris (stadeprance-venue.ts)
+  ...(FIX.stadeprance ? STADEPRANCE_LEVELS : []),
   BH_GP_LEVEL,
   BH_INDY_LEVEL,
   {

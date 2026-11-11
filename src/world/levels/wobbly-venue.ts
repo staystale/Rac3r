@@ -1,8 +1,8 @@
 // world/levels/wobbly-venue.ts - WOBBLY STADIUM (Wembley; the name approved by the owner 11-10), a
-// NEW venue (world/venue.ts) laid by hand (venues/wobbly.ts, tools/scratch/_wobblydata.mjs): the
-// Race of Champions' track on Wembley's pitch, 2007-08 - "a parallel track ... two lanes running
-// parallel to allow drivers to race within the confines of the stadium", about a kilometre with
-// "a 100-tonne cross-over bridge", 400 m of motorway barrier along its corners (CAR magazine,
+// NEW venue (world/venue.ts) laid by hand (venues/wobbly.ts: tools/scratch/_rocdata.mjs wobbly):
+// the Race of Champions' track on Wembley's pitch, 2007-08 - "a parallel track ... two lanes
+// running parallel to allow drivers to race within the confines of the stadium", about a kilometre
+// with "a 100-tonne cross-over bridge", 400 m of motorway barrier along its corners (CAR magazine,
 // racecar.com, the Wirtgen Group's account of the build). TODO.md RALLYCROSS > NEW TRACKS (agreed
 // 11-10): ONE path crossing itself once - round the outer lane, over the crossover bridge onto
 // the inner lane, round it inside, under the bridge back out - so a car racing it covers both
@@ -18,8 +18,8 @@ import type { Level, Point } from "../types.ts";
 
 // THE BARRIERS (the ROC's "400 m of standard motorway barrier along the corners" and concrete
 // blocks: both sides of both lanes all round): a line 10 m off each side of every lane but the
-// crossover (tools/scratch/_wobblydata.mjs), followed as rails - the edge's Armco at its run-off's
-// rim, a catch fence where the stands are
+// crossover (tools/scratch/_rocdata.mjs wobbly), followed as rails - the edge's Armco at its
+// run-off's rim, a catch fence where the stands are
 const WB_RAILS: Point[][] = [
   [
     [20, 42], [22.8, 42], [25.6, 42], [28.3, 42], [31.1, 42], [33.9, 42], [36.7, 42], [39.4, 42],

@@ -13,6 +13,14 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'stadeprance',
+    added: '2026-11-11',
+    name: 'Stade de Prance: the Race of Champions track in Paris, two lanes and a crossover',
+    where: 'Test link + &stadeprance=1: TEST MODE > RALLYCROSS',
+    try: 'A lap, then VS AI: the long straight to the bridge, the hairpins, under it.',
+    wrong: 'A car seen under the bridge, a way off the lanes, a car stuck at the crossover.',
+  },
+  {
     id: 'roadtunnels',
     added: '2026-11-11',
     name: 'Road tunnels under the motorway: a portal each side, the road dipping under',

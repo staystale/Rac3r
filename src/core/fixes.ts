@@ -76,4 +76,8 @@ export const FIX = {
   // interwoven round the bowl, one crossover bridge, so a car racing it covers both (TODO.md
   // RALLYCROSS > NEW TRACKS; world/levels/wobbly-venue.ts)
   wobbly: atLoad('wobbly'),
+  // ?stadeprance=1: Stade de Prance, the Race of Champions' track in the Stade de France
+  // (2004-06) - as Wobbly Stadium's, two lanes interwoven round an oval bowl, one crossover
+  // bridge (world/levels/stadeprance-venue.ts)
+  stadeprance: atLoad('stadeprance'),
 };

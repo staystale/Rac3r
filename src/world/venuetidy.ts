@@ -4,10 +4,10 @@
 // the rim's offset and its stretches run close (a hairpin's legs, Portier inside Mirabeau Bas, the
 // pool's chicanes by the pit lane) that left loops where a rim folded back on itself, short stubs
 // beside a barrier already standing, and ends a few metres short of the next. VenueSpec.tidyEdge
-// (Moanaco's only) runs four passes over the Armco and walls: a loop cut out at its crossing, a
-// run's fold back along itself dropped, a short run doubling another dropped, two ends that
-// nearly meet joined where the join keeps clear of the road and every lane (a pit lane's mouth
-// stays open).
+// (Moanaco's, the stadiums') runs its passes over the Armco and walls: a loop cut out at its
+// crossing, a run's fold back along itself dropped, a short run doubling another dropped, a run's
+// end along another trimmed (the stadiums'), two ends that nearly meet joined where the join
+// keeps clear of the road and every lane (a pit lane's mouth stays open).
 import { distToLine } from "./venuegeo.ts";
 import { onGroundQuery, querySubtrack } from "./tyrewall.ts";
 import type { Barrier, Lane, Point, Subtrack } from "./types.ts";
@@ -207,6 +207,29 @@ function joinEnds(runs: Barrier[], sub: Subtrack, lanes: Lane[]): void {
 }
 
 /**
+ * A run's ends trimmed where they double another barrier (one not carried on from that end: a run
+ * from the edge laid on along a bridge's parapet), at least two points kept.
+ * @param run the run (changed)
+ * @param others the barriers
+ */
+function trimDoubledEnds(run: Barrier, others: Barrier[]): void {
+  for (const first of [true, false]) {
+    const end = first ? run.pts[0] : run.pts[run.pts.length - 1];
+    const touches = (other: Barrier) => [other.pts[0], other.pts[other.pts.length - 1]]
+      .some(([x, y]) => Math.hypot(x - end[0], y - end[1]) < 0.01);
+    const beside = others.filter((other) => other !== run && TIDIED.has(other.kind)
+      && !touches(other));
+    const doubled = ([x, y]: Point) => beside.some((other) => distToLine(other.pts, x, y)
+      < DOUBLE_M);
+    while (run.pts.length > 2 && doubled(first ? run.pts[0] : run.pts[run.pts.length - 1])
+      && doubled(first ? run.pts[1] : run.pts[run.pts.length - 2])) {
+      if (first) run.pts.shift();
+      else run.pts.pop();
+    }
+  }
+}
+
+/**
  * A line without its spikes: a point its neighbours turn back on (a flared end a join carried on
  * past), and a point on the one before it, dropped until none is left.
  * @param pts the line (changed)
@@ -229,7 +252,8 @@ function despike(pts: Point[]): void {
  * @param barriers the barriers as laid
  * @param sub the race road
  * @param lanes the lanes (a join keeps off them)
- * @param joinFences an Armco end may be carried on to a catch fence's
+ * @param joinFences an Armco end may be carried on to a catch fence's, and an end along another
+ *   barrier trimmed (a stadium's)
  * @returns the barriers
  */
 export function tidyBarriers(barriers: Barrier[], sub: Subtrack, lanes: Lane[],
@@ -240,6 +264,9 @@ export function tidyBarriers(barriers: Barrier[], sub: Subtrack, lanes: Lane[],
   // (an Armco end carried on to a catch fence's too where the venue asks: a stadium's)
   joinEnds(kept.filter((barrier) => TIDIED.has(barrier.kind)
     || (joinFences && barrier.kind === 'catchfence')), sub, lanes);
+  // (a stadium's abutment ends trimmed where they lie along a parapet; Moanaco's edge as it was)
+  const trimmed = joinFences ? kept.filter((barrier) => TIDIED.has(barrier.kind)) : [];
+  for (const barrier of trimmed) trimDoubledEnds(barrier, kept);
   for (const barrier of kept) if (TIDIED.has(barrier.kind)) despike(barrier.pts);
   return kept;
 }

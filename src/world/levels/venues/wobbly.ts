@@ -1,6 +1,6 @@
-// wobbly.ts - written by tools/scratch/_wobblydata.mjs (laid by hand: the Race of Champions' track
-// at Wembley, 2007-08, as two lanes interwoven round the bowl, one crossover bridge). Game m
-// (share 1). Edit the generator, not this file.
+// wobbly.ts - written by tools/scratch/_rocdata.mjs wobbly (laid by hand: the Race of
+// Champions' track at Wembley, 2007-08, as two lanes interwoven round the bowl, one crossover
+// bridge). Game m (share 1). Edit the generator, not this file.
 import type { VenueData } from '../../venue.ts';
 
 export const WOBBLY_VENUE: VenueData = {

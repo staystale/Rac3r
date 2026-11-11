@@ -1,8 +1,9 @@
 // _wobblyxshots.mjs - WOBBLY STADIUM's crossover in the live game, as _crossovershots.mjs drives
 // Snoozuka's: the player car put down before the bridge's road under, then over, driven by the demo
 // driver, a phone-size shot every SHOT_S s (scratch). node tools/scratch/_wobblyxshots.mjs [query]
+// [level] (a Race of Champions stadium: wobbly, stadeprance)
 import { startServer, launchBrowser, gotoGame } from '../lib/browser.mjs';
-const [query = 'wobbly=1'] = process.argv.slice(2);
+const [query = 'wobbly=1', level = 'wobbly'] = process.argv.slice(2);
 const ZOOM = +(process.env.ZOOM || 0.6), SHOTS = +(process.env.SHOTS || 8);
 const SHOT_S = +(process.env.SHOT_S || 0.35);
 const server = await startServer();
@@ -13,10 +14,10 @@ try {
   const page = await context.newPage();
   const errors = [];
   page.on('pageerror', (err) => errors.push(err.message));
-  await gotoGame(page, `${server.url}/?pc=1&guide=0&menu=0&noaudio=1&level=wobbly&${query}`);
+  await gotoGame(page, `${server.url}/?pc=1&guide=0&menu=0&noaudio=1&level=${level}&${query}`);
   await page.mouse.click(viewW / 2, viewH / 2);
   await page.waitForTimeout(1500);
-  await page.evaluate(() => window.__game.launch('wobbly', window.__game.car.spec.id, { ai: 0 }));
+  await page.evaluate((lv) => window.__game.launch(lv, window.__game.car.spec.id, { ai: 0 }), level);
   // (past the start's lights: a car on the grid is held until the green)
   await page.waitForTimeout(+(process.env.SETTLE_MS || 9000));
   for (const leg of ['under', 'over']) {
@@ -63,7 +64,7 @@ try {
             : Math.round(game.trackD), kmh: Math.round(Math.hypot(car.vx, car.vy) * 3.6),
           held: !!(game.start && game.start.on && !game.start.green) };
       });
-      const name = `tools/scratch/_wobblyx-${leg}-${shot}-${viewW}x${viewH}.png`;
+      const name = `tools/scratch/_${level}x-${leg}-${shot}-${viewW}x${viewH}.png`;
       await page.screenshot({ path: name });
       console.log(leg, shot, JSON.stringify(state));
     }

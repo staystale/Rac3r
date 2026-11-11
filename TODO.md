@@ -55,8 +55,9 @@ owner before they ship (proposed below).
      AND a 4-car race round the whole path. The stadium round it (stands, the bowl), creative
      licence allowed. WOBBLY STADIUM first (Wembley, ROC 2007-08: BUILT 11-11 behind ?wobbly=1 -
      the track and the stadium, raced as a lap / VS AI; the 1v1 heats and the bracket a game mode to
-     agree with the owner first); then 3+ more ROC stadiums
-     (NAMES APPROVED 11-10: Stade de Prance 2004-06, The Bird's Mess 2009, Accordion Stadium
+     agree with the owner first); STADE DE PRANCE next (Paris, ROC 2004-06: BUILT 11-11 behind
+     ?stadeprance=1 - an oval bowl with a roof ring, from the same shared generator); then 3+ more
+     ROC stadiums (NAMES APPROVED 11-10: The Bird's Mess 2009, Accordion Stadium
      2025, Dusseldork Arena 2010-11). Built by the venue helper, reviewed by the foreman, passed by
      the owner.
    - X GAMES RALLYCROSS, Los Angeles 2012: tarmac and dirt round the streets, the joker's 52 ft
