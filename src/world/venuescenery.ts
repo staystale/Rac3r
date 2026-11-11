@@ -26,6 +26,7 @@ import { FOOT_REACH_M, handFinish, tidyRoads, venueRoads, withoutDuplicates }
 import { continueRoad, joinApproaches, joinFrom } from "./venuejoin.ts";
 import type { VenueBox, VenueBuild } from "./venue.ts";
 import { inRow, pitLane, pitLines, placeGarageRow } from "./venuepit.ts";
+import { tunnelCover } from "./venuecross.ts";
 import type { Barrier, Cone, Cover, Lane, Paint, Patch, Point, Prop, Subtrack, Zone }
   from "./types.ts";
 
@@ -37,8 +38,7 @@ export interface VenueScenery {
 
 // m the track's edge barriers keep off the pit wall
 const PIT_WALL_CLEAR_M = 4;
-// m past every layout's road edge a marshal post keeps (was 2 - one stood 2.2 m off
-// Oulton Pork's Island hairpin, built for another layout's corner)
+// m past every layout's road edge a marshal post keeps (another layout's corners included)
 const POST_ROAD_M = 5;
 // m the track's edge barriers keep off an oval's outside wall (it is their barrier there)
 const OVAL_WALL_CLEAR_M = 7;
@@ -50,8 +50,7 @@ const PIT_APRON_M = 16;
 const APPROACH_M = 8, APPROACH_W = 6, PORTAL_OUT_M = 3, PORTAL_LEN_M = 9, PORTAL_LOOK_M = 80;
 // m a portal keeps off every road and building
 const PORTAL_CLEAR_M = 2.5;
-// m: a drivable tunnel's mouth opens onto this much clear ground (a car's length and more), at
-// least APRON_RIM_M outside every Armco line (roomToDriveOut)
+// m: a drivable tunnel's mouth opens onto this clear ground, APRON_RIM_M past any Armco line
 const APRON_M = 6, APRON_RIM_M = 1.5;
 // m: tunnels crossing the track this close together are one tunnel
 const SAME_TUNNEL_M = 12;
@@ -71,8 +70,7 @@ const TRUCK_ALONG_M = 17, TRUCK_ACROSS_M = 6, TRUCK_FULL = 0.6, MAX_TRUCKS = 12;
 const MAX_TREES = 260, OPEN_TREE_SHARE = 0.05, TREE_OUT_M = 6;
 // hedgerow trees: m apart along a row, the share kept, the most
 const ROW_TREE_M = 9, ROW_TREE_SHARE = 0.6, MAX_ROW_TREES = 90;
-// m a tree's trunk keeps off a lake's shore (its canopy may hang over the water) and off a mown
-// pattern (its canopy clear of it)
+// m a tree's trunk keeps off a lake's shore and off a mown pattern (canopies clear of them)
 const TREE_WATER_M = 3, TREE_MOWN_M = 6;
 // m a tree's trunk keeps off a mapped tyre wall's line (the largest trunk's box and a tyre)
 const TREE_TYRE_M = 2.5;
@@ -293,13 +291,14 @@ const nearestLane = (lanes: Lane[], x: number, y: number): Lane => lanes.reduce(
 /**
  * The venue's own buildings (not the neighbours' homes): grandstands, the pit garages as a garage
  * row facing the pit lane, the control tower with its cab, every other building a flat-roofed
- * block, each outside the edge; and the landmarks the map does not carry where the sources show.
+ * block, each outside the edge (first the buildings over a race-road tunnel, venuecross.ts: one
+ * mapped there is the same building); the landmarks the map does not carry where sources show.
  * @param site the venue's builders' state
  * @param pits the pit lanes (none: no garage row; the garages face the nearest)
  * @returns the props
  */
 function venueBuildings(site: Site, pits: Lane[]): Prop[] {
-  const data = site.build.spec.data, props: Prop[] = [];
+  const data = site.build.spec.data, props: Prop[] = site.loops.flatMap(tunnelCover);
   const homes = data.homes.map((home) => outlineZone(placeAll(site, home.pts), SURFACES.grass));
   for (const stand of data.stands) {
     const prop = boxProp(site, stand, 'grandstand');
@@ -327,7 +326,8 @@ function venueBuildings(site: Site, pits: Lane[]): Prop[] {
   });
   for (const mark of site.build.spec.landmarks || []) {
     const [x, y] = site.place(mark.at), size = mark.size * site.build.scale;
-    props.push({ kind: mark.kind, x, y, size, w: size, h: size });
+    props.push({ kind: mark.kind, x, y, size, w: (mark.len || mark.size) * site.build.scale,
+      h: size, ...(mark.rot === undefined ? {} : { rot: mark.rot }) });
   }
   return props;
 }

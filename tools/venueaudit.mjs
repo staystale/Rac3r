@@ -70,7 +70,8 @@ const distToLine = (pts, x, y) => {
   }
   return best;
 };
-const onTrack = (x, y) => querySubtrack(level.subtrack, x, y).dist < half;
+// (a prop stands on the ground: over a race-road underpass the road below is not its road)
+const onTrack = (x, y) => onGroundQuery(() => querySubtrack(level.subtrack, x, y)).dist < half;
 const onLane = (x, y, pad = 0) => level.lanes.find((lane) => distToLine(lane.pts, x, y) < lane.width / 2 + pad);
 
 const props = level.props.filter((prop) => prop.kind !== 'tree' || true);

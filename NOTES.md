@@ -60,7 +60,8 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   Croughed (owner 11-09), Spa-Francorchamps = Spa-Frankenchumps (owner's brief 11-09), Le Mans =
   Le Manky (its Mulsanne straight, the Hunaudieres, = the Mulsanity; owner's brief 11-09), Suzuka =
   Snoozuka (the brief 11-09, confirmed by the owner 11-10), Yas Marina = Yass Marina (the brief
-  11-10, the name approved), Bathurst = Bathworst (approved 11-10). Approved 11-10: the Race of
+  11-10, the name approved), Bathurst = Bathworst (approved 11-10), Monaco = Moanaco (TODO.md
+  CHAMPIONSHIPS 11-09; built behind ?moanacovenue=1 11-11, to pass). Approved 11-10: the Race of
   Champions head-to-head event = HEAD-TO-HEADBUTT; its stadiums Wembley = Wobbly Stadium, Stade de
   France = Stade de Prance, the Bird's Nest = The Bird's Mess, Accor Stadium = Accordion Stadium,
   Esprit Arena = Dusseldork Arena; the old Wembley (the Empire Stadium, its stock car oval) = Old
@@ -633,6 +634,28 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   offset, stepped back on itself (venueaudit "barrier folds back" x6). world/venuepit.ts unfold
   drops a point whose step turns back more than a right angle; every other venue's wall the same
   (worldhash SAME).
+- A RACE ROAD'S OWN TUNNEL ROUND A BEND (11-11, Moanaco: Boulevard Louis II under the shore's
+  hotels, 356 real m bending 60 deg): a crossing is a straight way between its ends, and a 190 m
+  game tunnel bowed 23 m off that line. VenueSpec.tunnel names the piece; the stretch is the race
+  road's own underpass (trackunder.ts, as Snoozuka's) with no road over it - its portals on the
+  road at each end (venuecross.ts roadPortals, the first carrying the road's centre as
+  Prop.path), the crossing's walls along the road (crossings.ts bentTunnel), a car on only through
+  a mouth (Crossing.mouth, not anywhere across the bend's span), the hidden stretch the walls'
+  outline lintel to lintel (Crossing.hidden, render/screen.ts), the edge on past the portals to the
+  lintels, a row of blocks over it (tunnelCover). Every other venue's crossings, edges and props
+  the same (worldhash). crossingcheck drives a bent tunnel along its road (checkBent).
+- A PIT LANE BETWEEN TWO ROADS 16-18 REAL M APART HAS NO ROOM AT 1/2 (11-11, Moanaco: the pit lane
+  up from Rascasse beside the Rascasse approach): the lane is held 14.6 m off the road it runs
+  beside, a barrier needs 2.5 m off a road's edge and a barrier's end 8.5 m off the lane's centre
+  (venueedge.ts END_ROAD_M) - the lane overlapped the approach. A warp (14 real m over 40 m, the
+  start straight's south end and Noghes with the lane) and the approach eased toward the harbour
+  (up to 16 real m) gave 17.7 m; the lane's entry moved from the corner's apex (in its island at
+  the game's widths) to Avenue du Port. tools/scratch/_moseal.mjs (a flood fill from the start,
+  barriers and solids grown half a car) found each gap the eye missed.
+- A STAND BESIDE A ROAD WATCHES ITS FAR SIDE TOO (11-11, Moanaco): the edge marks 30 m round a
+  stand's corners as watched, so a stand by the swimming pool turned 26 m of the road's other side
+  (beside the pit lane) to catch fence - a run shorter than MIN_RUN_PTS, dropped: a 19 m gap. The
+  pool's grandstands (N, O, P) were left out; T and K stand.
 - A WALKING TRAIL'S BRIDGES ARE NOT OVER THE TRACK (11-10, Bathworst): the Mount Panorama
   Boardwalk runs beside the road, mapped with bridge=yes over drains by the walls and
   bridge=boardwalk along Skyline and the Esses; any bridge deck within 10.5 m of the centreline

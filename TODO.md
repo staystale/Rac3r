@@ -18,7 +18,8 @@ owner before they ship (proposed below).
    we have (Brands, Donington, Thruxton, Oulton, Croft, Snetterton, Knockhill, Silverstone) - no
    new tracks. ORDER: Spa, Monza (the simplest), then SIMPLE versions of the long ones (the
    Nordschleife ~10 km, Le Mans ~7 km at 1/2) for the owner to test on the phone first, Monaco
-   (streets, walls, the tunnel) last.
+   (streets, walls, the tunnel) last. MOANACO built 11-11 by the venue helper behind
+   ?moanacovenue=1 (levels/moanaco-venue.ts): to review, then the owner's pass.
 2. WRC: one famous stage per rally remade from the map data as the venues are (Col de Turini,
    Ouninpohja, Sardinia, Safari, Acropolis; Sweaty Lamb is Wales).
 3. DAKAR: open desert, checkpoint gates, other racers, Deaf Valley's terrain; short stages (3-6

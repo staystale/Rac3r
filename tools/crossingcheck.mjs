@@ -85,9 +85,117 @@ const holdLine = (way, sign, offset, speed) => (car) => {
 // m out from an end each run starts
 const START_OUT_M = 8;
 let bad = 0;
+
+// A BENT TUNNEL (world/crossings.ts bentTunnel: Moanaco's, its walls along the race road's bend):
+// driven along its road - the middle of its two walls - not along the straight line of its ends.
+/** the tunnel's road: the middle of its two walls, A to B */
+const roadOf = (way) => way.walls[0].pts.map(([x, y], i) => [(x + way.walls[1].pts[i][0]) / 2,
+  (y + way.walls[1].pts[i][1]) / 2]);
+/** m from the road's centre to each wall's face */
+const halfOf = (way) => Math.hypot(way.walls[0].pts[0][0] - way.walls[1].pts[0][0],
+  way.walls[0].pts[0][1] - way.walls[1].pts[0][1]) / 2 - 0.45;
+/** the nearest road point: its index, the signed m off it (+ to the left), its heading */
+function onRoad(road, x, y) {
+  let best = 0, bestSq = Infinity;
+  road.forEach(([px, py], i) => {
+    const distSq = (px - x) ** 2 + (py - y) ** 2;
+    if (distSq < bestSq) { bestSq = distSq; best = i; }
+  });
+  const [ax, ay] = road[Math.max(0, best - 1)], [bx, by] = road[Math.min(road.length - 1, best + 1)];
+  const head = Math.atan2(by - ay, bx - ax), len = Math.hypot(bx - ax, by - ay) || 1;
+  const off = ((y - road[best][1]) * (bx - ax) - (x - road[best][0]) * (by - ay)) / len;
+  return { index: best, off, head };
+}
+/** a steering law along the bent road at an offset (+ left of A -> B), sign 1 A -> B */
+const holdRoad = (road, sign, offsetAt, speed) => (car) => {
+  const here = onRoad(road, car.x, car.y), head = here.head + (sign > 0 ? 0 : Math.PI);
+  const off = (here.off - offsetAt(car)) * sign;
+  let err = head - car.heading - off * 0.08;
+  err = Math.atan2(Math.sin(err), Math.cos(err));
+  const now = Math.hypot(car.vx, car.vy);
+  return { steer: Math.max(-1, Math.min(1, err * 2.5)), throttle: now < speed ? 0.6 : 0,
+    brake: now > speed + 3 ? 0.4 : 0, handbrake: 0 };
+};
+
+/**
+ * Drives a bent tunnel both ways along its road, pressed on each wall, and from beside a portal.
+ * @param way the crossing
+ * @param index its index
+ */
+function checkBent(way, index) {
+  const road = roadOf(way), half = halfOf(way), last = road.length - 1;
+  const lead = (from, toward, out) => {
+    const [ax, ay] = road[from], [bx, by] = road[toward], len = Math.hypot(bx - ax, by - ay);
+    return [ax - (bx - ax) / len * out, ay - (by - ay) / len * out, Math.atan2(by - ay, bx - ax)];
+  };
+  for (const sign of [1, -1]) {
+    const [x, y, head] = sign > 0 ? lead(0, 1, START_OUT_M) : lead(last, last - 1, START_OUT_M);
+    const car = makeCar('hatch-rwd');
+    reset(car, x, y, head);
+    let came = false, left = false, worst = 0, hits = 0;
+    drive(car, holdRoad(road, sign, () => 0, 14), 5 + (way.length * 1.2 + START_OUT_M) / 10,
+      (moved) => {
+        if (moved.crossing === index) {
+          came = true;
+          worst = Math.max(worst, Math.abs(onRoad(road, moved.x, moved.y).off));
+          if (moved._hitKind) hits++;
+          moved._hitKind = null;
+        } else if (came && !left) left = true;
+      });
+    const end = onRoad(road, car.x, car.y).index, through = sign > 0 ? end === last : end === 0;
+    const ok = came && left && through && car.crossing === -1;
+    if (!ok) bad++;
+    console.log(`${ok ? 'OK  ' : 'FAIL'} bent tunnel ${index} ${sign > 0 ? 'A->B' : 'B->A'}`
+      + ` ${way.length.toFixed(1)} m: on ${came}, off ${left} past the far end ${through},`
+      + ` widest ${worst.toFixed(2)} m off its road, ${hits} wall hits,`
+      + ` ${Math.hypot(car.vx, car.vy).toFixed(1)} m/s out`);
+  }
+  for (const [wallName, aim] of [['left', half + 3], ['right', -half - 3]]) {
+    const [x, y, head] = lead(0, 1, START_OUT_M), car = makeCar('hatch-rwd');
+    reset(car, x, y, head);
+    let beyond = -Infinity, slipped = false, hits = 0;
+    const law = holdRoad(road, 1, (moved) => (onRoad(road, moved.x, moved.y).index < 3 ? 0 : aim),
+      12);
+    drive(car, law, 5 + way.length * 1.2 / 8, (moved) => {
+      const here = onRoad(road, moved.x, moved.y);
+      if (moved.crossing === index) {
+        beyond = Math.max(beyond, Math.abs(here.off) - half);
+        if (moved._hitKind) hits++;
+      } else if (here.index > 1 && here.index < last - 1 && Math.abs(here.off) < half) slipped = true;
+      moved._hitKind = null;
+    });
+    const ok = beyond < 0 && !slipped && hits > 0;
+    if (!ok) bad++;
+    console.log(`${ok ? 'OK  ' : 'FAIL'} bent tunnel ${index} pressed on its ${wallName} wall:`
+      + ` centre ${(-beyond).toFixed(2)} m inside it at the closest, ${hits} wall hits,`
+      + ` fell off the level inside ${slipped}`);
+  }
+  // a car on the ground driven at the first portal from beside it, both sides: stopped, never on
+  for (const side of [1, -1]) {
+    const here = onRoad(road, road[2][0], road[2][1]), out = (half + 9) * side;
+    const nx = -Math.sin(here.head), ny = Math.cos(here.head), car = makeCar('hatch-rwd');
+    reset(car, road[2][0] + nx * out, road[2][1] + ny * out, Math.atan2(-ny * side, -nx * side));
+    let cameOn = false;
+    const law = (moved) => {
+      let err = Math.atan2(-ny * side, -nx * side) - moved.heading;
+      err = Math.atan2(Math.sin(err), Math.cos(err));
+      return { steer: err * 2, throttle: 0.5, brake: 0, handbrake: 0 };
+    };
+    drive(car, law, 4, (moved) => { if (moved.crossing === index) cameOn = true; });
+    const pastWall = Math.abs(onRoad(road, car.x, car.y).off) < half;
+    if (cameOn || pastWall) bad++;
+    console.log(`${cameOn || pastWall ? 'FAIL' : 'OK  '} bent tunnel ${index} from the`
+      + ` ${side > 0 ? 'left' : 'right'}: came on ${cameOn}, got past its wall ${pastWall}`);
+  }
+}
+
 ways.forEach((way, index) => {
   // (an empty slot of the endless road's: highway/bridgeways.ts)
   if (!way.length) return;
+  if (way.hidden) {
+    checkBent(way, index);
+    return;
+  }
   const mid = (way.minAcross + way.maxAcross) / 2;
   for (const sign of [1, -1]) {
     const startAlong = sign > 0 ? -START_OUT_M : way.length + START_OUT_M;
@@ -157,6 +265,8 @@ ways.forEach((way, index) => {
 // a car on the track under / over each crossing stays on the ground
 const sub = L.LEVEL.subtrack;
 ways.forEach((way, index) => {
+  // (a bent tunnel's road is the track itself: no road over it)
+  if (way.hidden) return;
   const hitAt = sub.pts.reduce((best, point) => {
     const along = alongOf(way, point.x, point.y), across = acrossOf(way, point.x, point.y);
     const score = Math.abs(across - (way.minAcross + way.maxAcross) / 2)

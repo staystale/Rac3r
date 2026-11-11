@@ -7,7 +7,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { startServer, launchBrowser, gotoGame } from './lib/browser.mjs';
+import { startServer, launchBrowser, gotoGame, extraQuery } from './lib/browser.mjs';
 import { LEVELS } from '../src/world/levels/index.ts';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -23,7 +23,8 @@ const errors = [];
 try {
   const page = await (await browser.newContext({ viewport: { width: 844, height: 390 } })).newPage();
   page.on('pageerror', (err) => errors.push(err.message));
-  await gotoGame(page, `${server.url}/?pc=1&guide=0&menu=0&noaudio=1`);
+  // (RAC3R_QUERY: a level behind its switch, with the switch's NAME=1 for the list here too)
+  await gotoGame(page, `${server.url}/?pc=1&guide=0&menu=0&noaudio=1${extraQuery()}`);
   const t0 = Date.now();
   for (let from = 0; from < ids.length; from += BATCH) {
     const batch = ids.slice(from, from + BATCH);

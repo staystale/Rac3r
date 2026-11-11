@@ -194,6 +194,21 @@ function drawSharpCar(ctx: ScreenCtx, car: RenderCar, sharp: SharpScale) {
 const UNDERGROUND_MARGIN_M = 0.6;
 
 /**
+ * Traces a bent tunnel's underground stretch (world points) as the path's next shape.
+ * @param ctx the renderer context
+ * @param hidden the stretch's outline
+ * @param sharp the frame's sharp-car scale
+ */
+function traceHidden(ctx: ScreenCtx, hidden: [number, number][], sharp: SharpScale) {
+  hidden.forEach(([x, y], i) => {
+    const screenX = ctx.toScreenX(x) * sharp.devPerCss + sharp.subX;
+    const screenY = ctx.toScreenY(y) * sharp.devPerCss + sharp.subY;
+    if (i) ctx.mainCtx.lineTo(screenX, screenY);
+    else ctx.mainCtx.moveTo(screenX, screenY);
+  });
+}
+
+/**
  * Clips the screen canvas to everything but a tunnel's underground stretch (from one portal's
  * lintel to the other's): what is in it is hidden.
  * @param ctx the renderer context
@@ -215,10 +230,13 @@ function clipAboveGround(ctx: ScreenCtx, way: Crossing, sharp: SharpScale) {
   mainCtx.beginPath();
   // the whole canvas, the stretch cut out of it (even-odd)
   mainCtx.rect(0, 0, ctx.canvas.width, ctx.canvas.height);
-  corner(way.cut, least, true);
-  corner(way.length - way.cut, least, false);
-  corner(way.length - way.cut, most, false);
-  corner(way.cut, most, false);
+  if (way.hidden) traceHidden(ctx, way.hidden, sharp);
+  else {
+    corner(way.cut, least, true);
+    corner(way.length - way.cut, least, false);
+    corner(way.length - way.cut, most, false);
+    corner(way.cut, most, false);
+  }
   mainCtx.closePath();
   mainCtx.clip('evenodd');
 }

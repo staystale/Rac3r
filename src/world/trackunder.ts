@@ -37,7 +37,8 @@ export function markUnder(sub: Subtrack, spans: NonNullable<Subtrack['under']>):
  * @param dist m along
  * @returns the stretch, or null
  */
-export function underSpan(sub: Subtrack, dist: number): { d0: number; d1: number } | null {
+export function underSpan(sub: Subtrack, dist: number):
+  NonNullable<Subtrack['under']>[number] | null {
   if (!sub.under) return null;
   const along = ((dist % sub.totalDist) + sub.totalDist) % sub.totalDist;
   return sub.under.find((span) => along >= span.d0 && along <= span.d1) || null;

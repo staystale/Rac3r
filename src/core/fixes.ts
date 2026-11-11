@@ -47,5 +47,11 @@ export function dialAtLoad(name: string): number {
   return raw == null || !Number.isFinite(value) ? 0 : Math.min(1, Math.max(0, value));
 }
 
-/** The switches under test, all off on the plain link (none at the moment). */
-export const FIX = {};
+/** The switches under test, all off on the plain link. */
+export const FIX = {
+  // ?moanacovenue=1: Moanaco, the Circuit de Monaco at 1/2 of real length - the streets of Monte
+  // Carlo between their walls, the harbour, the casino, the hairpin and THE TUNNEL under the
+  // shore's hotels (a drivable underpass of the race road); a world championship circuit (the
+  // owner's list 11-09; world/levels/moanaco-venue.ts)
+  moanacovenue: atLoad('moanacovenue'),
+};
