@@ -50,9 +50,9 @@ export const TEST_LIST: TestEntry[] = [
   {
     id: 'police',
     added: '2026-11-11',
-    name: 'Police on the highways: livery, heat stars, chases, BUSTED (no siren sound yet)',
+    name: 'Police: livery, more lights, heat for anyone, the nearest chased (no siren yet)',
     where: 'Test link + &police=1: Highway to Hull, any road (traffic on)',
-    try: 'Speed past a camera or a police car, or swerve / flash by one; lose them, or stop.',
+    try: 'Speed past a camera or police, or watch a rival / speeder do it; lose them, or stop.',
     wrong: 'Stars for nothing, no chase, chasers stuck or flying, unfair BUSTED, never escaping.',
   },
   {

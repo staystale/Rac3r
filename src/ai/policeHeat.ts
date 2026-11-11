@@ -1,5 +1,9 @@
 // ai/policeHeat.ts - THE HEAT (?police=1; TODO.md ROUND 4, the design agreed 11-11): 0-3 stars,
-// what sends the police (ai/trafficPolice.ts) after you. A speed camera catching you is at least 1
+// what sends the police (ai/trafficPolice.ts) after a driver - EVERY driver its own (owner 11-11:
+// the police pursue the closest law breaker): you, the racing AI rivals, the traffic (its speeders,
+// a quicker driver, one that crashes), by the same rules - "you" below is the driver whose heat it
+// is; the speed camera reads only you (the player), and only your speeding makes police due.
+// A speed camera catching you is at least 1
 // star; over LIMIT_MPH within SPEED_NEAR_M of a police car at least 1, over HARD_MPH there at least
 // 2. FLASHING your lights (on and off inside FLASH_S) or changing lane without indicating (in the
 // last INDICATE_S) with a police car within WITNESS_M (on your level: a car on a bridge is on
@@ -41,19 +45,35 @@ const MAX_STARS = 3;
 /** Your car as the heat reads it: its box, speed, lights, indicator and level. */
 export type HeatCar = AiCar & { lightsOn?: boolean; indicator?: number; crossing?: number };
 
-/** The heat's state: the stars and its clocks (s), what it last saw of your lights and lane. */
+/**
+ * The heat's state: the stars, the stars it has sent chasers for, its clocks (s), what it last saw
+ * of your lights and lane.
+ */
 export interface Heat {
-  stars: number; escapeT: number; bustT: number; clock: number;
+  stars: number; sent: number; escapeT: number; bustT: number; clock: number;
   cool: Record<string, number>; lightsWas: boolean | null; lightsAt: number;
   lane: number; indAt: Record<number, number>; touchAt: number;
   hurt: WeakMap<object, number>; pile: { car: object; at: number }[];
   sees: boolean; offences: string[];
 }
 
-/** One step's input: you, the road, the traffic's slots and cars, the police orders, events. */
+/**
+ * A driver the police watch: its car, its road frame (s along, off sideways: m), whether it is you
+ * (the camera, police due, the HUD), a camera's catch and a crash this step, and what it is (the
+ * game's: 'you', 'ai', 'traffic') with its own (an AI entry, a traffic slot).
+ */
+export interface Driver {
+  car: HeatCar; frame: { s: number; off: number } | null; isYou: boolean; camera: boolean;
+  touched: boolean; kind: string; owner: unknown;
+}
+
+/** A driver with heat, as the chase reads it (ai/trafficPolice.ts): its car, road s, stars. */
+export interface Suspect { car: HeatCar; s: number; stars: number; isYou: boolean }
+
+/** One step's input: the driver, the road, the traffic's slots and cars, its police, the orders. */
 export interface HeatInput {
-  dt: number; player: HeatCar; level: HwLevel; slots: TrafficCar[]; cars: TrafficVehicle[];
-  orders: PoliceOrders; camera?: boolean; touched?: boolean;
+  dt: number; driver: Driver; level: HwLevel; slots: TrafficCar[]; cars: TrafficVehicle[];
+  police: TrafficCar[]; orders: PoliceOrders;
 }
 
 /**
@@ -61,9 +81,9 @@ export interface HeatInput {
  * @returns the heat
  */
 export function createHeat(): Heat {
-  return { stars: 0, escapeT: 0, bustT: 0, clock: 0, cool: {}, lightsWas: null, lightsAt: -99,
-    lane: -1, indAt: { [-1]: -99, 1: -99 }, touchAt: -99, hurt: new WeakMap(), pile: [],
-    sees: false, offences: [] };
+  return { stars: 0, sent: 0, escapeT: 0, bustT: 0, clock: 0, cool: {}, lightsWas: null,
+    lightsAt: -99, lane: -1, indAt: { [-1]: -99, 1: -99 }, touchAt: -99, hurt: new WeakMap(),
+    pile: [], sees: false, offences: [] };
 }
 
 /**
@@ -91,10 +111,10 @@ export function boxGap(first: AiCar, second: AiCar): number {
  * @param reachM m
  * @returns seen
  */
-const witnessed = (input: HeatInput, reachM: number) => input.slots.some((slot) => !slot.parked
-  && !!slot.police && !slot.wreck
-  && Math.hypot(slot.car.x - input.player.x, slot.car.y - input.player.y) < reachM
-  && sameLevel(slot.car, input.player));
+const witnessed = (input: HeatInput, reachM: number) => input.police.some((slot) =>
+  slot.car !== input.driver.car && !slot.wreck
+  && Math.hypot(slot.car.x - input.driver.car.x, slot.car.y - input.driver.car.y) < reachM
+  && sameLevel(slot.car, input.driver.car));
 
 /**
  * A star more (once a COOL_S for one kind of offence).
@@ -128,10 +148,10 @@ function heatAtLeast(heat: Heat, stars: number, kind: string) {
  * @param input the step's input
  */
 function speedOffences(heat: Heat, input: HeatInput) {
-  const speed = Math.hypot(input.player.vx, input.player.vy), youS = input.level._hw.q?.s;
-  if ((speed > LIMIT_MPH * MPH_MS || input.camera) && youS != null)
-    input.orders.dueUntil = youS + DUE_M;
-  if (input.camera) heatAtLeast(heat, 1, 'camera');
+  const { car, isYou, camera, frame } = input.driver, speed = Math.hypot(car.vx, car.vy);
+  if (isYou && (speed > LIMIT_MPH * MPH_MS || camera) && frame)
+    input.orders.dueUntil = frame.s + DUE_M;
+  if (camera) heatAtLeast(heat, 1, 'camera');
   if (speed <= LIMIT_MPH * MPH_MS || !witnessed(input, SPEED_NEAR_M)) return;
   heatAtLeast(heat, speed > HARD_MPH * MPH_MS ? 2 : 1, 'speeding');
 }
@@ -159,8 +179,8 @@ function flashed(heat: Heat, lightsOn: boolean): boolean {
  * @returns an unsignalled lane change
  */
 function changedLaneUnsignalled(heat: Heat, input: HeatInput): boolean {
-  const geom = input.level._hw.geo, here = input.level._hw.q, player = input.player;
-  if (player.indicator) heat.indAt[player.indicator] = heat.clock;
+  const geom = input.level._hw.geo, here = input.driver.frame, car = input.driver.car;
+  if (car.indicator) heat.indAt[car.indicator] = heat.clock;
   if (!here) return false;
   const lanes = geom.median == null ? [...geom.centres, ...geom.oncoming] : geom.centres;
   let lane = -1;
@@ -176,23 +196,28 @@ function changedLaneUnsignalled(heat: Heat, input: HeatInput): boolean {
 }
 
 /**
- * Whether you just ran into a car that is not chasing you (a chaser ramming you is no offence).
+ * Whether you just ran into a car - you moving into it faster than it into you (a car running into
+ * you is its offence, not yours), and not one chasing you (its ram is no offence of yours).
  * @param input the step's input
  * @returns a crash
  */
 function crashedIntoTraffic(input: HeatInput): boolean {
-  if (!input.touched) return false;
-  const player = input.player;
+  if (!input.driver.touched) return false;
+  const car = input.driver.car;
   let nearest: TrafficCar | null = null, best = Infinity;
   for (const slot of input.slots) {
-    if (slot.parked) continue;
-    const gap = Math.hypot(slot.car.x - player.x, slot.car.y - player.y);
+    if (slot.parked || slot.car === car) continue;
+    const gap = Math.hypot(slot.car.x - car.x, slot.car.y - car.y);
     if (gap < best) {
       best = gap;
       nearest = slot;
     }
   }
-  return !!nearest && nearest.police?.mode !== 'chase';
+  if (!nearest) return true;
+  if (nearest.police?.target === car) return false;
+  const other = nearest.car, gap = best || 1;
+  const toX = (other.x - car.x) / gap, toY = (other.y - car.y) / gap;
+  return car.vx * toX + car.vy * toY > -(other.vx * toX + other.vy * toY);
 }
 
 /**
@@ -202,10 +227,12 @@ function crashedIntoTraffic(input: HeatInput): boolean {
  * @returns a pile-up
  */
 function pileUp(heat: Heat, input: HeatInput): boolean {
-  const player = input.player;
+  const you = input.driver.car;
+  // (another driver's only while it has hit a car lately: every driver's every step is a cost)
+  if (!input.driver.isYou && heat.clock - heat.touchAt > PILE_S) return false;
   for (const car of input.cars) {
-    if (Math.abs(car.x - player.x) > PILE_NEAR_M || Math.abs(car.y - player.y) > PILE_NEAR_M)
-      continue;
+    if (car === you || Math.abs(car.x - you.x) > PILE_NEAR_M
+      || Math.abs(car.y - you.y) > PILE_NEAR_M) continue;
     const hurt = car.dmg ? (car.dmg[0] + car.dmg[1] + car.dmg[2] + car.dmg[3]) / 4 : 0;
     const before = heat.hurt.get(car) ?? hurt;
     heat.hurt.set(car, hurt);
@@ -226,32 +253,31 @@ function pileUp(heat: Heat, input: HeatInput): boolean {
  */
 function noteOffences(heat: Heat, input: HeatInput) {
   const crash = crashedIntoTraffic(input);
-  if (input.touched) heat.touchAt = heat.clock;
+  if (input.driver.touched) heat.touchAt = heat.clock;
   speedOffences(heat, input);
   const near = witnessed(input, WITNESS_M);
-  if (flashed(heat, !!input.player.lightsOn) && near) heatAtLeast(heat, 1, 'flash');
+  if (flashed(heat, !!input.driver.car.lightsOn) && near) heatAtLeast(heat, 1, 'flash');
   if (changedLaneUnsignalled(heat, input) && near) heatAtLeast(heat, 1, 'lane');
   if (crash && near) raiseHeat(heat, 'crash');
   if (pileUp(heat, input)) raiseHeat(heat, 'pileup');
 }
 
 /**
- * One step of the heat: the offences, then (with stars) whether a chaser sees you - the escape
- * clock - and whether one has you boxed in, stopped - the bust clock. Writes the stars to the
- * police orders.
+ * One step of a driver's heat: the offences, then (with stars) whether a chaser after it sees it -
+ * the escape clock - and whether one has it boxed in, stopped - the bust clock.
  * @param heat the heat
  * @param input the step's input
  * @returns 'escaped', 'busted' or null
  */
 export function stepHeat(heat: Heat, input: HeatInput): 'escaped' | 'busted' | null {
-  const { dt, player } = input;
+  const { dt } = input, car = input.driver.car;
   heat.clock += dt;
   noteOffences(heat, input);
-  input.orders.stars = heat.stars;
-  const isChaser = (slot: TrafficCar) => !slot.parked && slot.police?.mode === 'chase';
-  heat.sees = input.slots.some((slot) => isChaser(slot) && !slot.wreck && !tooInjured(slot.car)
-    && Math.hypot(slot.car.x - player.x, slot.car.y - player.y) < SIGHT_M
-    && sameLevel(slot.car, player));
+  // (its chasers: the police cars whose target it is)
+  const after = (slot: TrafficCar) => slot.police?.mode === 'chase' && slot.police.target === car;
+  heat.sees = input.police.some((slot) => after(slot) && !slot.wreck && !tooInjured(slot.car)
+    && Math.hypot(slot.car.x - car.x, slot.car.y - car.y) < SIGHT_M
+    && sameLevel(slot.car, car));
   if (!heat.stars) {
     heat.escapeT = heat.bustT = 0;
     return null;
@@ -259,14 +285,74 @@ export function stepHeat(heat: Heat, input: HeatInput): 'escaped' | 'busted' | n
   heat.escapeT = heat.sees ? 0 : heat.escapeT + dt;
   if (heat.escapeT >= ESCAPE_S) {
     clearHeat(heat);
-    input.orders.stars = 0;
     return 'escaped';
   }
-  const boxed = Math.hypot(player.vx, player.vy) < BUST_STILL_MS && input.slots.some((slot) =>
-    isChaser(slot) && sameLevel(slot.car, player) && boxGap(slot.car, player) < BUST_GAP_M);
+  const boxed = Math.hypot(car.vx, car.vy) < BUST_STILL_MS && input.police.some((slot) =>
+    after(slot) && sameLevel(slot.car, car) && boxGap(slot.car, car) < BUST_GAP_M);
   heat.bustT = boxed ? heat.bustT + dt : 0;
   return heat.bustT >= BUST_S ? 'busted' : null;
 }
+
+/** What one step of every driver's heat tells the caller: a driver's escape or bust. */
+export interface HeatEvent { driver: Driver; result: 'escaped' | 'busted' }
+
+// reused each step: the live police cars, the events (no allocation a step)
+const POLICE_NOW: TrafficCar[] = [], EVENTS: HeatEvent[] = [];
+// a heat's input, filled in for each driver in turn
+const INPUT = {} as HeatInput;
+
+/**
+ * One step of EVERY driver's heat (each its own, made on its first step, forgotten once its car is
+ * off the road): the offences, escapes and busts; then the orders' suspects - every driver with
+ * stars, for the chase (ai/trafficPolice.ts) - their stars in all (the most chasers there may be)
+ * and the chasers owed for every star gained this step.
+ * @param orders the police orders (its heats, suspects)
+ * @param drivers every driver this step
+ * @param road the step, the road, the traffic's slots and cars
+ * @param road.dt the step, s
+ * @param road.level the endless road
+ * @param road.slots the traffic's slots
+ * @param road.cars the traffic's live cars
+ * @returns the step's escapes and busts (reused: read it before the next step)
+ */
+export function stepHeats(orders: PoliceOrders, drivers: Driver[], road: { dt: number;
+  level: HwLevel; slots: TrafficCar[]; cars: TrafficVehicle[] }): HeatEvent[] {
+  POLICE_NOW.length = EVENTS.length = orders.suspects.length = 0;
+  for (const slot of road.slots) if (!slot.parked && slot.police) POLICE_NOW.push(slot);
+  Object.assign(INPUT, road, { police: POLICE_NOW, orders });
+  let total = 0;
+  for (const driver of drivers) {
+    let heat = orders.heats.get(driver.car);
+    if (!heat) orders.heats.set(driver.car, heat = createHeat());
+    INPUT.driver = driver;
+    const result = stepHeat(heat, INPUT);
+    if (result) EVENTS.push({ driver, result });
+    // (a star more since its last step - however it came - is a chaser owed)
+    if (heat.stars > heat.sent) orders.owed += heat.stars - heat.sent;
+    heat.sent = heat.stars;
+    if (!heat.stars || !driver.frame) continue;
+    orders.suspects.push({ car: driver.car, s: driver.frame.s, stars: heat.stars,
+      isYou: driver.isYou });
+    total += heat.stars;
+  }
+  orders.stars = Math.min(MAX_STARS, total);
+  // (a car gone from the road: its heat goes with it)
+  if (orders.heats.size > drivers.length + HEATS_SPARE) for (const car of orders.heats.keys())
+    if (!drivers.some((driver) => driver.car === car)) orders.heats.delete(car);
+  return EVENTS;
+}
+// heats kept past the drivers on the road before the gone ones are dropped (a few: no search a
+// step)
+const HEATS_SPARE = 8;
+
+/**
+ * A driver's heat (none yet: no stars).
+ * @param orders the police orders
+ * @param car the driver's car
+ * @returns the heat, or null
+ */
+export const heatOf = (orders: PoliceOrders, car: object): Heat | null => orders.heats.get(car)
+  ?? null;
 
 /**
  * The heat cleared (an escape, a bust): no stars, the clocks stopped.

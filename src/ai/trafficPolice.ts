@@ -7,13 +7,16 @@
 // of one of our way placed ahead, out of sight. Of our way's put back ahead WAIT_SHARE wait at the
 // roadside - beside a petrol station's canopy (a lay-by's, a services', Deaf Valley's), in a
 // lay-by, else on the hard shoulder or the verge (ai/trafficBreak.ts stopOffAt) - until you pass.
-// With the heat on (ai/policeHeat.ts, 1-3 stars) as many CHASE you as there are stars - each star
-// gained sends one: one of our way's in sight joins, else one is sent from behind you, out of
-// sight (one lost is not replaced until the next star). A chaser has the racing AI
-// at its wheel (ai/circuit.ts, as a speeder's: ai/trafficSpeeder.ts seatRacer) with you as its
-// target - it does not dodge you, and within RAM_M it steers at you (each its own seat: your
-// middle, your left side, your right side) closing faster at each star; a stopped car it creeps
-// into, boxing it in. A police car too damaged to drive is gone VANISH_S later.
+// With the heat on (ai/policeHeat.ts: every driver's own, 1-3 stars) they CHASE - each star any
+// driver gains sends one, up to MAX_CHASERS in all: one of our way's in sight of an offender joins,
+// else one is sent from behind you, out of sight (one lost is not replaced until the next star).
+// Each chaser goes after the CLOSEST driver with heat (owner 11-11: "pursue the closest law
+// breaker"), picked again every RETARGET_S - a new one only when it is clearly closer. A chaser
+// has the racing AI at its wheel (ai/circuit.ts, as a speeder's: ai/trafficSpeeder.ts seatRacer)
+// with its target as its target - it does not dodge it, and within RAM_M it steers at it (each its
+// own seat: its middle, its left side, its right side) closing faster at each of its stars; a
+// stopped car it creeps into, boxing it in. A police car too damaged to drive is gone VANISH_S
+// later.
 import { tooInjured } from '../damage.ts';
 import { makeCar, reset } from '../vehicle.ts';
 import { ROSTER } from '../cars.ts';
@@ -31,7 +34,7 @@ import { drivePhysics } from './trafficPhys.ts';
 import { seatRacer } from './trafficSpeeder.ts';
 import type { AiCar, DriveInput, TrafficCar, TrafficEnt, TrafficVehicle } from './types.ts';
 import { boxGap } from './policeHeat.ts';
-import type { Heat } from './policeHeat.ts';
+import type { Heat, Suspect } from './policeHeat.ts';
 
 // the share of the cars put back that are police, and the share while police are due (MEASURED,
 // tools/scratch/_police.mjs survey: at 1 / 30 an oncoming police car every 0.3-0.8 km - you sped
@@ -79,14 +82,19 @@ const AIM_MAX_RAD = 1.2;
 // at 10 m/s over you it shoved a stopped car 40 s down the road at up to 49 km/h); STILL_MS: you
 // are stopped
 const RAM_CLOSE_MS = [3, 6, 10], BOX_M = 6, BOX_MS = 6, TOUCH_GAP_M = 0.4, CREEP_MS = 1;
+// the share of its target's speed a chaser touching it holds (it backs off from the hit)
+const TOUCH_SHARE = 0.9;
 const STILL_MS = 2;
 // s you must have been stopped before a chaser ahead of you, out of sight, is sent round behind
 const STILL_RESEND_S = 2;
 // m: a police car of our way within this of you joins a chase (it sees you: ai/policeHeat.ts
 // SIGHT_M); one sent comes from this far behind you (out of sight on screen)
 const JOIN_M = 200;
-// s between two tries to send a chaser
-const SEND_GAP_S = 1;
+// s between two tries to send a chaser; the most chasers at once
+const SEND_GAP_S = 1, MAX_CHASERS = 3;
+// s between a chaser's looks for the closest driver with heat, and the share of the distance to
+// its own a new one must be inside to take it (no flicking between two)
+const RETARGET_S = 2, RETARGET_SHARE = 0.75;
 // m along the road from you inside which a police car out of its lane (waiting, chasing) is a
 // real physics car, seen or not (carried, it would be put onto its lane line)
 export const POLICE_PHYS_M = 150;
@@ -94,17 +102,23 @@ export const POLICE_PHYS_M = 150;
 /** What a police car is doing: cruising with the traffic, waiting at the roadside, chasing. */
 export type PoliceMode = 'cruise' | 'wait' | 'chase';
 
-/** A police car's state: its mode, its seat in a chase (0-2), s it has been wrecked. */
-export interface TrafficPolice { mode: PoliceMode; seat: number; wreckT: number }
+/**
+ * A police car's state: its mode, its seat in a chase (0-2), s it has been wrecked, the driver it
+ * is after, s until it looks again for the closest and s it has waited ahead of it stopped.
+ */
+export interface TrafficPolice { mode: PoliceMode; seat: number; wreckT: number;
+  target?: (AiCar & { crossing?: number }) | null; targetT?: number; waitT?: number }
 
 /**
- * What the heat (ai/policeHeat.ts) tells the police, and their counts: the stars, the road
- * distance (m) until which police are due, you (the target), chasers still to send and when the
- * next try is (s); the heat's own state; counts for the tools.
+ * What the heat (ai/policeHeat.ts) tells the police, and their counts: every driver's stars in all
+ * (capped), the road distance (m) until which police are due, the chasers still to send and when
+ * the next try is (s); every driver's heat and those with stars (the suspects); s you have been
+ * still; counts for the tools.
  */
 export interface PoliceOrders {
-  stars: number; dueUntil: number; target: AiCar | null; owed: number; lastStars: number;
-  sendT: number; heat: Heat | null; nextPlaceS: number | null; stillT: number;
+  stars: number; dueUntil: number; owed: number;
+  sendT: number; heats: Map<object, Heat>; suspects: Suspect[]; nextPlaceS: number | null;
+  stillT: number;
   sent: number; joined: number; vanished: number; dealt: number; waiting: number; placed: number;
 }
 
@@ -114,8 +128,8 @@ export interface PoliceOrders {
  * @returns the orders
  */
 export function ordersOf(ctx: TrafficCtx): PoliceOrders {
-  return (ctx.police ||= { stars: 0, dueUntil: -Infinity, target: null, owed: 0, lastStars: 0,
-    sendT: 0, heat: null, nextPlaceS: null, stillT: 0, sent: 0, joined: 0, vanished: 0, dealt: 0,
+  return (ctx.police ||= { stars: 0, dueUntil: -Infinity, owed: 0, sendT: 0, heats: new Map(),
+    suspects: [], nextPlaceS: null, stillT: 0, sent: 0, joined: 0, vanished: 0, dealt: 0,
     waiting: 0, placed: 0 });
 }
 
@@ -274,8 +288,9 @@ export function drivePolice(ctx: TrafficCtx, slot: TrafficCar, env: DriveEnv,
  * @param speed its speed, m/s
  */
 function driveChaser(ctx: TrafficCtx, slot: TrafficCar, env: DriveEnv, speed: number) {
-  const car = slot.car, racer = slot.racer!, orders = ordersOf(ctx), median = geo(ctx).median;
-  const target = orders.target;
+  const car = slot.car, racer = slot.racer!, median = geo(ctx).median;
+  const target = slot.police!.target ?? null;
+  const stars = ordersOf(ctx).suspects.find((each) => each.car === target)?.stars ?? 1;
   if (slot.kin) racer.relocate();
   slot.laneT = slot.lane;
   slot.ind = 0;
@@ -288,7 +303,7 @@ function driveChaser(ctx: TrafficCtx, slot: TrafficCar, env: DriveEnv, speed: nu
         .map((ent) => ent.car),
       vMax: slot.vWant, hold: false }));
     if (target) input = ramAt({ car, target, raced: input, others: env.ents },
-      slot.police!.seat, orders.stars, speed);
+      slot.police!.seat, stars, speed);
   }
   drivePhysics(ctx, slot, env, speed, slot.vWant, 0, input);
 }
@@ -345,8 +360,10 @@ function ramAt(ram: RamCtx, seat: number, stars: number, speed: number): DriveIn
   const steer = Math.max(-cap, Math.min(cap, demand / lock));
   const youV = Math.hypot(target.vx, target.vy);
   // (a slow car within BOX_M: crept up to, then held touching - not shoved down the road)
-  const boxing = youV < BOX_MS && dist < BOX_M;
-  const wantV = boxing ? (boxGap(car, target) < TOUCH_GAP_M ? 0 : youV + CREEP_MS)
+  // (touching: it eases off to the target's speed - a ram is a hit, not a shove: MEASURED,
+  // _police.mjs, held on at 3 m/s over a braking rival it pushed it on at 35-49 km/h)
+  const boxing = youV < BOX_MS && dist < BOX_M, touching = boxGap(car, target) < TOUCH_GAP_M;
+  const wantV = touching ? youV * TOUCH_SHARE : boxing ? youV + CREEP_MS
     : youV + RAM_CLOSE_MS[Math.max(0, Math.min(2, stars - 1))];
   const err = wantV - speed;
   return { steer, throttle: err > 0 ? Math.min(1, 0.25 + err * 0.2) : 0,
@@ -413,21 +430,20 @@ function vanishWrecks(ctx: TrafficCtx, dt: number): boolean {
 }
 
 /**
- * The police cars of our way in sight of you (JOIN_M, on your level) join the chase while chasers
- * are owed (a star more: one more chaser - one lost is not replaced, so you can get away).
+ * The police cars of our way in sight of a driver with heat (JOIN_M, on its level) join the chase
+ * while chasers are owed (a star more: one more chaser - one lost is not replaced, so you can get
+ * away).
  * @param ctx the traffic
- * @param player you
  * @param chasers the chasers (added to)
  */
-function joinBySight(ctx: TrafficCtx, player: AiCar & { crossing?: number },
-  chasers: TrafficCar[]) {
+function joinBySight(ctx: TrafficCtx, chasers: TrafficCar[]) {
   const orders = ordersOf(ctx);
   for (const slot of ctx.list) {
     if (orders.owed <= 0) return;
     const police = slot.police;
     if (slot.parked || !police || police.mode === 'chase' || (slot.dir ?? 1) < 0 || slot.wreck
-      || Math.hypot(slot.car.x - player.x, slot.car.y - player.y) > JOIN_M
-      || !sameLevel(slot.car, player)) continue;
+      || !orders.suspects.some((each) => each.car !== slot.car && sameLevel(slot.car, each.car)
+        && Math.hypot(slot.car.x - each.car.x, slot.car.y - each.car.y) < JOIN_M)) continue;
     makeChaser(ctx, slot);
     chasers.push(slot);
     orders.owed--;
@@ -436,22 +452,46 @@ function joinBySight(ctx: TrafficCtx, player: AiCar & { crossing?: number },
 }
 
 /**
- * Sends a chaser from behind you, out of sight: a parked slot of our way, else our way's car out
- * of view furthest from you (not a police car) - or a chaser sent round again - made a police car
- * with the racing driver.
+ * A chaser's target: every RETARGET_S the closest driver with heat on its level (not itself) -
+ * taken only when inside RETARGET_SHARE of the distance to its own, or when its own has no heat.
+ * @param ctx the traffic
+ * @param slot the chaser
+ * @param dt the step, s
+ * @returns the target's suspect entry, or null: no one to chase
+ */
+function pickTarget(ctx: TrafficCtx, slot: TrafficCar, dt: number): Suspect | null {
+  const police = slot.police!, suspects = ordersOf(ctx).suspects, car = slot.car;
+  const gapTo = (each: Suspect) => (each.car === car || !sameLevel(car, each.car) ? Infinity
+    : Math.hypot(each.car.x - car.x, each.car.y - car.y));
+  let mine = suspects.find((each) => each.car === police.target) ?? null;
+  police.targetT = (police.targetT ?? 0) - dt;
+  if (mine && police.targetT > 0) return mine;
+  police.targetT = RETARGET_S;
+  let best: Suspect | null = null;
+  for (const each of suspects) if (!best || gapTo(each) < gapTo(best)) best = each;
+  if (best && gapTo(best) < Infinity && (!mine || gapTo(best) < RETARGET_SHARE * gapTo(mine)))
+    mine = best;
+  police.target = mine ? mine.car : null;
+  return mine;
+}
+
+/**
+ * Sends a chaser from behind a driver with heat, out of sight: a parked slot of our way, else our
+ * way's car out of view furthest from you (not a police car) - or a chaser sent round again - made
+ * a police car with the racing driver.
  * @param ctx the traffic
  * @param ents everyone on the road (the car's entry kept up)
  * @param vis the screen test
- * @param youV your speed, m/s
+ * @param after the driver it is sent after (from behind it)
  * @param again a chaser to send round again (none: a spare slot)
  * @returns the chaser, or null: no room this step
  */
-function sendChaser(ctx: TrafficCtx, ents: TrafficEnt[], vis: VisFn, youV: number,
+function sendChaser(ctx: TrafficCtx, ents: TrafficEnt[], vis: VisFn, after: Suspect,
   again: TrafficCar | null = null) {
   const playerS = ctx.level!._hw.q!.s, pickSlot = again ?? spareSlot(ctx, playerS, vis);
-  const place = pickSlot && spot(ctx, ents, playerS, 'chase', vis, 1);
+  const place = pickSlot && spot(ctx, ents, after.s, 'chase', vis, 1);
   if (!pickSlot || !place) return null;
-  fresh(ctx, pickSlot, place.s, place.lane, youV + CATCH_MS, 1);
+  fresh(ctx, pickSlot, place.s, place.lane, Math.hypot(after.car.vx, after.car.vy) + CATCH_MS, 1);
   makePolice(ctx, pickSlot);
   makeChaser(ctx, pickSlot);
   keepEntry(ents, pickSlot);
@@ -522,10 +562,28 @@ function placeAhead(ctx: TrafficCtx, ents: TrafficEnt[], vis: VisFn): boolean {
 }
 
 /**
- * One step of a chase: the police in sight joining while chasers are owed, else one sent from
- * behind (one a SEND_GAP_S); one ahead of you while you have been stopped STILL_RESEND_S, out of
- * sight, sent round behind you (it cannot turn back) - in sight, one more owed while none is behind
- * you and there are fewer chasers than stars; each chaser's speed and seat.
+ * You stopped with heat and no chaser of yours behind you (one ahead in sight cannot turn back):
+ * one more chaser is owed. Keeps the time you have been still.
+ * @param ctx the traffic
+ * @param dt the step, s
+ * @param player you
+ * @param chasers the chasers
+ */
+function oweOneBehind(ctx: TrafficCtx, dt: number, player: AiCar, chasers: TrafficCar[]) {
+  const orders = ordersOf(ctx), playerS = ctx.level!._hw.q!.s;
+  orders.stillT = Math.hypot(player.vx, player.vy) < STILL_MS ? orders.stillT + dt : 0;
+  if (orders.stillT > STILL_RESEND_S && orders.suspects.some((each) => each.car === player)
+    && !chasers.some((slot) => slot.police!.target === player && slot.s < playerS))
+    orders.owed = Math.max(orders.owed, 1);
+}
+
+/**
+ * One step of a chase: the police in sight of an offender joining while chasers are owed, else
+ * one sent from behind you (one a SEND_GAP_S), up to MAX_CHASERS; each chaser's target (the
+ * closest with heat; none: it gives up), its speed by its target's and its seat among that
+ * target's chasers. One ahead of its target stopped STILL_RESEND_S, out of sight, is sent round
+ * behind it (it cannot turn back); you stopped with none of yours behind you, in sight, one more
+ * is owed.
  * @param ctx the traffic
  * @param dt the step, s
  * @param player you
@@ -537,33 +595,44 @@ function placeAhead(ctx: TrafficCtx, ents: TrafficEnt[], vis: VisFn): boolean {
  */
 function runChase(ctx: TrafficCtx, dt: number, player: AiCar & { crossing?: number },
   chasers: TrafficCar[], road: { ents: TrafficEnt[]; vis: VisFn }): boolean {
-  const orders = ordersOf(ctx), playerS = ctx.level!._hw.q!.s;
-  const youV = Math.hypot(player.vx, player.vy);
+  const orders = ordersOf(ctx);
   let changed = false;
-  orders.stillT = youV < STILL_MS ? orders.stillT + dt : 0;
-  // (stopped, no chaser behind you - one ahead in sight cannot turn back: one more is owed)
-  if (orders.stillT > STILL_RESEND_S && !chasers.some((slot) => slot.s < playerS))
-    orders.owed = Math.max(orders.owed, 1);
-  orders.owed = Math.max(0, Math.min(orders.owed, orders.stars - chasers.length));
-  joinBySight(ctx, player, chasers);
+  oweOneBehind(ctx, dt, player, chasers);
+  orders.owed = Math.max(0, Math.min(orders.owed, Math.min(MAX_CHASERS, orders.stars)
+    - chasers.length));
+  joinBySight(ctx, chasers);
   orders.sendT -= dt;
-  if (orders.owed > 0 && orders.sendT <= 0) {
+  // (a new one from behind the driver with heat nearest you: the chase you can see)
+  const playerS = ctx.level!._hw.q!.s;
+  const nearest = orders.suspects.reduce<Suspect | null>((best, each) => (!best
+    || Math.abs(each.s - playerS) < Math.abs(best.s - playerS) ? each : best), null);
+  if (orders.owed > 0 && orders.sendT <= 0 && nearest) {
     orders.sendT = SEND_GAP_S;
-    const sent = sendChaser(ctx, road.ents, road.vis, youV);
+    const sent = sendChaser(ctx, road.ents, road.vis, nearest);
     if (sent) {
       chasers.push(sent);
       orders.owed--;
       changed = true;
     }
   }
-  chasers.forEach((slot, i) => {
-    const relS = slot.s - playerS;
-    if (orders.stillT > STILL_RESEND_S && relS > BOX_M
-      && !road.vis(slot.car.x, slot.car.y, slot.s) && sendChaser(ctx, road.ents, road.vis, youV,
-        slot)) changed = true;
-    slot.vWant = chaseSpeed(orders.stars, youV, relS);
-    slot.police!.seat = i % 3;
-  });
+  const seats = new Map<object, number>();
+  for (const slot of chasers) {
+    const mine = pickTarget(ctx, slot, dt);
+    if (!mine) {
+      giveUp(ctx, slot);
+      continue;
+    }
+    const relS = slot.s - mine.s, targetV = Math.hypot(mine.car.vx, mine.car.vy);
+    // (ahead of its target stopped STILL_RESEND_S, out of sight: sent round behind it)
+    const police = slot.police!;
+    police.waitT = relS > BOX_M && targetV < STILL_MS ? (police.waitT ?? 0) + dt : 0;
+    if (police.waitT > STILL_RESEND_S && !road.vis(slot.car.x, slot.car.y, slot.s)
+      && sendChaser(ctx, road.ents, road.vis, mine, slot)) changed = true;
+    slot.vWant = chaseSpeed(mine.stars, targetV, relS);
+    const seat = seats.get(mine.car) ?? 0;
+    seats.set(mine.car, seat + 1);
+    slot.police!.seat = seat % 3;
+  }
   return changed;
 }
 
@@ -580,11 +649,8 @@ function runChase(ctx: TrafficCtx, dt: number, player: AiCar & { crossing?: numb
 export function stepPolice(ctx: TrafficCtx, dt: number, player: AiCar & { crossing?: number },
   ents: TrafficEnt[], vis: VisFn) {
   const orders = ordersOf(ctx);
-  orders.target = player;
   let changed = vanishWrecks(ctx, dt);
   changed = placeAhead(ctx, ents, vis) || changed;
-  if (orders.stars > orders.lastStars) orders.owed += orders.stars - orders.lastStars;
-  orders.lastStars = orders.stars;
   const chasers = ctx.list.filter((slot) => !slot.parked && slot.police?.mode === 'chase');
   if (!orders.stars) {
     for (const slot of chasers) giveUp(ctx, slot);
@@ -595,18 +661,37 @@ export function stepPolice(ctx: TrafficCtx, dt: number, player: AiCar & { crossi
 }
 
 /**
- * Every police car goes (a bust: the chase is over); their slots rejoin later as random cars.
+ * The police cars chasing a driver go (its bust: that chase is over), every police car with none
+ * given; their slots rejoin later as random cars.
  * @param ctx the traffic
+ * @param target the busted driver's car (none: every police car)
  */
-export function clearPolice(ctx: TrafficCtx) {
+export function clearPolice(ctx: TrafficCtx, target: object | null = null) {
   let changed = false;
   for (const slot of ctx.list)
-    if (!slot.parked && slot.police) {
+    if (!slot.parked && slot.police && (!target || slot.police.target === target)) {
       slot.parked = true;
       slot.police = null;
       changed = true;
     }
   const orders = ordersOf(ctx);
-  orders.stars = orders.lastStars = orders.owed = 0;
+  if (!target) orders.stars = orders.owed = 0;
   if (changed) rebuildCars(ctx);
+}
+
+/**
+ * A traffic driver busted (a speeder, a crasher) is put away: off the road, its slot to rejoin
+ * later as a random car.
+ * @param ctx the traffic
+ * @param car its car
+ * @returns true when it was one of the traffic's
+ */
+export function putAway(ctx: TrafficCtx, car: object): boolean {
+  const slot = ctx.list.find((each) => !each.parked && each.car === car);
+  if (!slot) return false;
+  slot.parked = true;
+  slot.racer = null;
+  slot.police = null;
+  rebuildCars(ctx);
+  return true;
 }
