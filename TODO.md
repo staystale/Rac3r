@@ -59,8 +59,12 @@ records in `TODO-DONE.md` (PASSED 11-12). On the phone now:
   clip was one even-odd path of the walls and the slats, and a slat's end out past a wall was
   inside the slat and outside the walls - so lit. Now the walls are clipped first, then the slats
   off that (render/light.ts clipToCut). The photo turned 0.9 rad at five stops: the beam ends at
-  the wall. WRONG as above, and light on the slats from a car approaching, leaving or beside the
-  tunnel, or past its side.
+  the wall. And a car in a bent tunnel's last cut lit nothing past its mouth (tools/lightleak.mjs:
+  0% of the road ahead lit) - the straight ones' open ground past each mouth was missing: now
+  from each mouth's own line out (render/coverlight.ts traceMouthOpen): 100%. lightleak on Moanaco
+  (the tunnel, both footbridges; 45 stops): 0 leaks with the switch, 6 without. WRONG as above,
+  and light on the slats from a car approaching, leaving or beside the tunnel, or past its side,
+  or the road ahead dark as a car leaves the tunnel.
 
 ## 2. BEING BUILT
 

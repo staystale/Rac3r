@@ -5,8 +5,7 @@
 // then the glows' colour is laid in as a tint; then it is laid over the screen canvas once, under
 // the HUD. The cost is one extra full-screen image a frame.
 import { crossingOf, isUnderground } from "../world/crossinggeo.ts";
-import { clipOffCovers } from './coverlight.ts';
-import { FIX } from '../core/fixes.ts';
+import { clipToCut } from './coverlight.ts';
 import { DAYLIGHT } from '../world/daylight.ts';
 import { lampHeads, activeLamps, lampsLit } from '../world/lamps.ts';
 import { hazardsOn, indicatorBlinkOn, lampLevel } from './cars.ts';
@@ -22,7 +21,6 @@ import {
   REVERSE_SIDE_SHARE, isReversing,
 } from './reverselights.ts';
 import type { RenderCar, RenderGame, View } from './types.ts';
-import type { Point } from '../world/types.ts';
 import { isAngryFlashOn, litPoliceLamps } from './lightbar.ts';
 import { COL } from '../world/colours.ts';
 
@@ -33,6 +31,8 @@ const NIGHT_ALPHA = 0.9;
 const BEAM_START_M = 1.8, BEAM_REACH_M = 32, BEAM_HALF_M = 9;
 // m a car's light reaches from its centre: the beam's far end (the glows well within it)
 const LIGHT_REACH_M = BEAM_START_M + BEAM_REACH_M;
+// the reach a tunnel's light clip is cut to (render/coverlight.ts)
+const LIGHT_CLIP = { lightM: LIGHT_REACH_M, beamM: BEAM_REACH_M };
 // each headlight's sideways offset from the car's centre line, m
 const LAMP_SIDE_M = 0.7;
 // how much of the dark one headlight rubs out at its brightest (two overlap to ~0.84)
@@ -211,85 +211,13 @@ function paintCarGlows(painter: GlowPainter, game: RenderGame, level: CarLevel =
   const each = (car: RenderCar) => {
     if (!isOnLevel(car, level)) return;
     // (a car in a tunnel lights only its own open cut)
-    const clipped = clipToCut(painter.ctx, car, painter.mapX, painter.mapY);
+    const clipped = clipToCut(painter.ctx, car, painter.mapX, painter.mapY, LIGHT_CLIP);
     drawCarGlows(painter, car, isBlinkOn);
     if (clipped) painter.ctx.restore();
   };
   if (game.traffic) for (const car of game.traffic.cars) each(car);
   for (const rival of game.ai || []) each(rival.car);
   each(game.car);
-}
-
-// m a tunnel's wall's line lies outside its face (world/crossings.ts WALL_HALF_M): a bent tunnel's
-// walls are its only outline of the road
-const WALL_LINE_M = 0.45;
-
-/**
- * A car in a tunnel lights only its own open cut (owner: the light came through the portal's walls,
- * its lintel, the slats and the ground beyond): the light map clipped to the way between its walls'
- * faces (a straight one's and, past its mouths, the open ground a beam reaches), less
- * its hidden stretch - under the ground from lintel to lintel, or under a bent tunnel's slats.
- * Saves the context when it clips (the caller restores it).
- * @param ctx the light map's context (identity transform)
- * @param car the car
- * @param toX world x to the map's px
- * @param toY world y to the map's px
- * @returns true when it clipped
- */
-function clipToCut(ctx: CanvasRenderingContext2D, car: RenderCar, toX: (x: number) => number,
-  toY: (y: number) => number): boolean {
-  const way = crossingOf(car);
-  // (?coverlight=1: a car outside a tunnel lights no slatted cover's slats - render/coverlight.ts)
-  if (!way || way.kind !== 'tunnel') {
-    return FIX.coverlight && clipOffCovers(ctx, car, toX, toY, LIGHT_REACH_M);
-  }
-  const point = ([x, y]: Point, first: boolean) => {
-    if (first) ctx.moveTo(toX(x), toY(y));
-    else ctx.lineTo(toX(x), toY(y));
-  };
-  const onWay = (along: number, across: number): Point => [way.ax + way.dirX * along - way.dirY
-    * across, way.ay + way.dirY * along + way.dirX * across];
-  ctx.save();
-  ctx.setTransform(1, 0, 0, 1, 0, 0);
-  ctx.beginPath();
-  if (way.hidden) {
-    // (a bent tunnel: between its walls' faces, each wall point moved in toward the other's)
-    const [left, right] = way.walls.map((wall) => wall.pts as Point[]);
-    const face = (pts: Point[], other: Point[]) => pts.map(([x, y], i): Point => {
-      const dx = other[i][0] - x, dy = other[i][1] - y, gap = Math.hypot(dx, dy) || 1;
-      return [x + dx / gap * WALL_LINE_M, y + dy / gap * WALL_LINE_M];
-    });
-    [...face(left, right), ...face(right, left).reverse()].forEach((pts, i) => point(pts, !i));
-    ctx.closePath();
-    // (?coverlight=1: the walls clipped first, then the slats off it - in one even-odd path a
-    // slat's end out past a wall was inside the slat and outside the walls, so it was lit)
-    if (FIX.coverlight) {
-      ctx.clip();
-      ctx.beginPath();
-      ctx.rect(0, 0, ctx.canvas.width, ctx.canvas.height);
-    }
-    for (const outline of way.hidden) {
-      outline.forEach((pts, i) => point(pts, !i));
-      ctx.closePath();
-    }
-    ctx.clip('evenodd');
-    return true;
-  }
-  // (a straight one, nonzero: the way between its walls and, past each mouth, the open ground a
-  // beam reaches - wound one way - less its hidden stretch, wound the other)
-  const quad = (near: number, far: number, low: number, high: number, wound: number) => {
-    const corners: Point[] = [[near, low], [far, low], [far, high], [near, high]];
-    (wound > 0 ? corners : corners.reverse()).forEach(([along, across], i) =>
-      point(onWay(along, across), !i));
-    ctx.closePath();
-  };
-  const open = 2 * BEAM_REACH_M;
-  quad(0, way.length, way.minAcross, way.maxAcross, 1);
-  quad(-open, 0, -open, open, 1);
-  quad(way.length, way.length + open, -open, open, 1);
-  quad(way.cut, way.length - way.cut, way.minAcross, way.maxAcross, -1);
-  ctx.clip('nonzero');
-  return true;
 }
 
 /**
@@ -571,7 +499,8 @@ function drawFieldBeams(painter: PoolPainter, beam: HTMLCanvasElement, game: Ren
     // a car under a tunnel's whole cover lights nothing up here (world/crossings.ts), and in its
     // open cut - or between a cover's slats - only the cut
     if (lampsHidden(car) || !isOnLevel(car, level)) return;
-    const clipped = clipToCut(painter.lightCtx, car, painter.artX, painter.artY);
+    const clipped = clipToCut(painter.lightCtx, car, painter.artX, painter.artY,
+      LIGHT_CLIP);
     drawBeams(painter, beam, car);
     drawReverseBeams(painter, beam, car);
     if (clipped) painter.lightCtx.restore();

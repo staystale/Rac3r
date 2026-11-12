@@ -844,6 +844,11 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
 
 ## Tools worth knowing
 
+- `tools/lightleak.mjs [level ...] [query]` (11-12): a car's light where it must not fall, at every
+  tunnel and overhead deck over the race road - photos lamps off / on / off at stops before, in and
+  past each, facing along and turned 0.9 rad; light on slats, past a tunnel's walls, in a straight
+  one's underground stretch or on a deck's top is a LEAK (its photo marked, in
+  tools/scratch/lightleak). Run it after any change to the night layer, a crossing or a deck.
 - `tools/tilecost.mjs` (tiles by reason), `tools/framecheck.mjs <level> [query]` (frame times),
   `tools/profile.mjs`, `tools/phonereport.mjs`, `tools/renderhash.mjs` (`--only`, `--shots`),
   `tools/shotdiff.mjs`, `tools/zoomcheck.mjs`, `tools/scratch/carmock.html` (car drawing mockup),
