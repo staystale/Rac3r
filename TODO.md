@@ -25,6 +25,21 @@ records in `TODO-DONE.md` (PASSED 11-12). On the phone now:
   beside it (cut back first where it ran in beside it, so nothing doubles; the run met split
   there, a joint). MEASURED (tools/scratch/_barrierends.mjs): free ends 2 / 2 / 0 -> 0 / 0 / 0,
   kink points (over 25 deg) 3 / 10 / 7 -> 0 / 5 / 3 (Bird's Mess / Stade de Prance / Wobbly).
+  THE TUNNEL MOUTHS (owner 11-12 on The Bird's Mess: "Armco are close to the tunnel too and a bit
+  messy still"; all three alike): each run's end was carried to the mouth's wall corner in a hook -
+  3-5 m square across from the run (the run between the lanes turning 44-70 deg at once toward the
+  lens), and six ran 0.11-0.25 m into a wall over 1.0-1.4 m. Now (world/portalflare.ts) a run's
+  last stretch is laid along the road out of the mouth: the corner's own offset for 3 m (in line
+  with the wall), then eased to the run's offset (smoothstep, ending where the run lies along the
+  road within tan 17 deg, else at most tan 48 deg - a short run into the lens). MEASURED
+  (tools/scratch/_portalflare.mjs, the 12 mouth ends): the sharpest turn over the last 20 m, the
+  worst four, 70 / 44 / 61 / 26 -> 15 / 24 / 10 / 12 deg (all 12: 2-26, one - The Bird's Mess
+  portal 2's run between the lanes - 12 -> 26 as it now curves round); every run 3-20 m back
+  3.0-3.2 m from the walls (was 1.7-2.7); portaltouch: no barrier inside a wall (was 0.11-0.25 m
+  in), the length within 0.3 m of a wall 1.0-1.4 -> 0.3-0.4 m, at the corner itself; kink points
+  (whole level) 0 / 5 / 3 -> 3 / 6 / 4, the tapers' ends; portal drives (centre, +-5, +-6 m)
+  clean, sealing 0 escapes, barriercheck, venueaudit (nothing overlaps), crossingcheck OK on all
+  three; worldhash with the switch off SAME.
   THE DRESSING, each stadium its own (the generator's DRESS kits of existing kinds, laid after the
   boards and kept 2.5 m off them and 1.5 m off every barrier - VenueSpec.dress, world/
   venuebowl.ts): Wobbly (red, blue, white; all in the infield - its apron between the catch
