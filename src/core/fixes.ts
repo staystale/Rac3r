@@ -56,4 +56,7 @@ export const FIX = {
   // live (render/cars.ts stampFixedArms). The same pixels; half the cars' painting with a grid of
   // open-wheelers (MEASURED, Spa 20 AI, CPU x4)
   carcache: atLoad('carcache'),
+  // ?carcull=1: an AI car off the view (past a car's reach) is not drawn, as highway traffic is
+  // not (render/screen.ts forEachDrawnCar): each drawn car's picture is painted afresh each frame
+  carcull: atLoad('carcull'),
 };

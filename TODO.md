@@ -23,6 +23,19 @@ The 11-11 round (14 entries, 11 switches) passed 11-12, its record in `TODO-DONE
   fillRect blurred their edges (0.007% of a frame's pixels, renderhash with RAC3R_CAR=track-rwd).
   WRONG: arms missing or misplaced, not turning with the steering, a lower frame rate.
 
+- CARCULL (`?carcull=1`; the same pass; testlist carcull): what the "AI cost" of a full grid
+  really was - not the AI's driving (outside the profile's top 40) but its cars' drawing: every
+  AI car's picture painted afresh each frame, the ones off the view too (highway traffic was
+  culled, the AI was not; CDP profile, test track 20 AI, CPU x4: the cars' drawing 3.9 s of an
+  8.2 s loop). An AI car more than 12 m off the view is not drawn (render/screen.ts
+  forEachDrawnCar isNearView). MEASURED, Spa 20 AI, CPU x4: our work a frame 29.3 -> 19.9 ms
+  (median), p95 42.0 -> 31.6 ms. The pixels: renderhash SAME (Spa, Thruston) once a car's lamps
+  have their own random numbers (render/carlamps.ts lampRandom; before, a car's first lamp read
+  took the looks' shared stream, so a car not drawn shifted every later puff - Spa's dust only,
+  shotdiff 0.3-1.1%). That stream of its own is on for everyone: the puffs' random numbers moved
+  ([look], no change in kind). WRONG: an AI car popping in at the screen's edge, a car's lamps or
+  wheels odd as it comes into view.
+
 - STADIUM CROSSOVERS, ROOM AT THE PORTALS (owner 11-12: "the tunnel still just touches some
   barriers"; testlist stadeprancebarriers; Stade de Prance and Wobbly): a car on a road's edge
   met the end of a portal's wall (the cut 0.6 m wider than the road) and the barrier at a lintel's
@@ -172,6 +185,9 @@ inputs and get the cars back. A SPIKE (two phones on the tunnel) before committi
 - Owner (10-24): "Multiplayer: no rush; talk it through in detail when we get there."
 - A player too far behind is LEFT BEHIND (the endless road would grow past memory): a hard limit by
   time or distance; the place at that limit is the result (first out of a 10-car race = 10th).
+- The other players' cars are drawn through the same off-view cull as the AI's (render/screen.ts
+  forEachDrawnCar; CARCULL), or a full online grid loses it. Every phone must build the same world:
+  worldhash (tools/worldhash.mjs) is the check that the build is identical.
 
 ### 3e. Small open items
 

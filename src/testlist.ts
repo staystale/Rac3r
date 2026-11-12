@@ -21,6 +21,14 @@ export const TEST_LIST: TestEntry[] = [
     wrong: 'Arms missing, in the wrong place, not turning with the steering, a lower frame rate.',
   },
   {
+    id: 'carcull',
+    added: '2026-11-12',
+    name: 'Faster full grids: AI cars off the screen are not drawn',
+    where: 'Test link + &carcull=1: a race with a full grid (20 AI), Spa or any big track',
+    try: 'Race a few laps; watch cars come onto the screen at its edges as you catch or lose them.',
+    wrong: 'A car popping in at the edge, lamps or wheels odd as it arrives, a lower frame rate.',
+  },
+  {
     id: 'tunnellights',
     added: '2026-11-12',
     name: 'Lights in a slatted tunnel: your lamps and the cars\' seen between the slats',

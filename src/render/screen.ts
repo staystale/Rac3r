@@ -3,6 +3,7 @@
 // sharp cars (the default) and,, the skid marks. Everything here is the 2D
 // canvas: never copy pixels between it and WebGL per frame (NOTES.md).
 import { SPRITE_PPM } from "./shared.ts";
+import { FIX } from "../core/fixes.ts";
 import { drawWetTrails } from "../wettrail.ts";
 import { drawStingers } from "./stingers.ts";
 import { drawFlipRamps } from "./flipramps.ts";
@@ -52,21 +53,37 @@ export interface ScreenLock {
  */
 export function forEachDrawnCar(ctx: ScreenCtx, game: RenderGame,
     draw: (car: RenderCar) => void) {
-  const { view, skip } = ctx;
+  const { skip } = ctx;
   // HIGHWAY TRAFFIC (traffic.js), only the ones near the view (they are spread over ~800 m),
   // under the AI and the player
   if (game.traffic && !skip('traffic')) {
-    const margin = 12 * ctx.PPMz();
-    for (const car of game.traffic.cars) {
-      const screenX = ctx.toScreenX(car.x), screenY = ctx.toScreenY(car.y);
-      if (screenX < -margin || screenX > view.W + margin
-        || screenY < -margin || screenY > view.H + margin) continue;
-      draw(car);
+    for (const car of game.traffic.cars) if (isNearView(ctx, car)) draw(car);
+  }
+  // AI cars under the player's (?carcull=1: only the ones near the view, as the traffic - each
+  // drawn car's picture is painted afresh each frame)
+  if (!skip('ai')) {
+    for (const rival of game.ai || []) if (!FIX.carcull || isNearView(ctx, rival.car)) {
+      draw(rival.car);
     }
   }
-  // AI cars under the player's
-  if (!skip('ai')) for (const rival of game.ai || []) draw(rival.car);
   if (!skip('car')) draw(game.car);
+}
+
+// m round the view a car is still drawn within: past its picture's reach (the longest body, its
+// wheels and shadow, or a rolling car's side) at any heading
+const DRAWN_CAR_MARGIN_M = 12;
+
+/**
+ * Whether a car is near enough the view to show any of its picture.
+ * @param ctx the renderer context
+ * @param car the car
+ * @returns true when it may show
+ */
+function isNearView(ctx: ScreenCtx, car: RenderCar) {
+  const margin = DRAWN_CAR_MARGIN_M * ctx.PPMz();
+  const screenX = ctx.toScreenX(car.x), screenY = ctx.toScreenY(car.y);
+  return screenX >= -margin && screenX <= ctx.view.W + margin
+    && screenY >= -margin && screenY <= ctx.view.H + margin;
 }
 
 /**
