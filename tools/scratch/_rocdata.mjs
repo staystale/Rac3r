@@ -40,19 +40,24 @@ if (!venue) throw new Error(`no stadium ${venueId}`);
 const OUT = venue.out, GAP = venue.gap;
 // m between the lanes' centres along the south straight that carries the crossover (GAP round
 // the rest): room for the crossover's X to cross steeply enough (below)
-const CROSS_GAP = 30;
+const CROSS_GAP = 32;
 const IN = { ax: OUT.ax - GAP, ay: OUT.ay - CROSS_GAP, r: OUT.r - GAP };
 const AT = venue.crossAt, STEP = 3;
+// m wider the underpass's cut each side than the 0.6 m by its road, and m further its lintels
+// stand from the road over (the stadium specs' crossover.spareM and clearM, world/venuecross.ts):
+// a car on the lane's edge still turning out of the bend met the end of a portal's wall, and one
+// on the bridge road's edge the barrier met at a portal's corner
+const CUT_SPARE = 1.5, LINTEL_EXTRA = 2.4;
 // THE CROSSOVER (a real ROC crossover: a straight bridge over a straight lane): two straight
 // diagonals CROSS_ANGLE off the lanes (2 x that between them), each leaving its lane by a
 // CROSS_BEND_R bend - so the underpass runs straight from portal to portal, each portal's walls
 // along its road and its open end on it. Its straight must reach past the underpass's end
 // (world/venuecross.ts halfLength: the road over, its parapet, the lintel's clearance over the
 // crossing's sine, then the 9 m portal), and the crossing be steep enough that the cut's corner
-// at the lintel (7.7 m out from the road under: half the cut, its wall) clears the road over's
-// edge - a car on its edge met the portal's wall at 30 deg between the roads. At the lanes'
-// CROSS_GAP 30 m apart, 25 deg each (50 between) and a 30 m bend do, 3.5 m to spare (gentle into
-// the mouth: a car 5 m off the centre out of a 20 m bend brushed the cut's wall)
+// at the lintel (half the cut and its wall out from the road under) stands CORNER_CLEAR past the
+// road over's edge - 1 m left a car on the bridge road's edge touching the Armco met there. At
+// the lanes' CROSS_GAP 32 m apart, 25 deg each (50 between) and a 30 m bend do (steeper, its
+// bends tighter: cars on the lane's edges strayed out of them into the walls)
 const CROSS_ANGLE = 25 * Math.PI / 180, CROSS_BEND_R = 30;
 // m: half the straight, crossing to bend; the crossover's half width along the lanes
 const CROSS_HALF = (CROSS_GAP / 2 - CROSS_BEND_R * (1 - Math.cos(CROSS_ANGLE)))
@@ -60,10 +65,11 @@ const CROSS_HALF = (CROSS_GAP / 2 - CROSS_BEND_R * (1 - Math.cos(CROSS_ANGLE)))
 const CROSS_X = CROSS_HALF * Math.cos(CROSS_ANGLE) + CROSS_BEND_R * Math.sin(CROSS_ANGLE);
 // m the underpass reaches from the crossing (as world/venuecross.ts halfLength: half the road 6.5,
 // the parapet 3, the lintel's clearance 3, the portal 9)
-const UNDER_HALF = (6.5 + 3 + 3) / Math.sin(2 * CROSS_ANGLE) + 9;
-// m the cut's corner at the lintel clears the road over's edge by (half the road 6.5 off its centre)
-const CORNER_CLEAR = (UNDER_HALF - 9) * Math.sin(2 * CROSS_ANGLE) - 7.7 * Math.cos(2 * CROSS_ANGLE)
-  - 6.5;
+const UNDER_HALF = (6.5 + 3 + 3 + LINTEL_EXTRA) / Math.sin(2 * CROSS_ANGLE) + 9;
+// m the cut's corner at the lintel stands past the road over's edge (half the road 6.5 off its
+// centre; the corner half the cut, 7.1 m, its spare and its 0.6 m wall out from the road under)
+const CORNER_CLEAR = (UNDER_HALF - 9) * Math.sin(2 * CROSS_ANGLE)
+  - (7.7 + CUT_SPARE) * Math.cos(2 * CROSS_ANGLE) - 6.5;
 const r1 = (v) => Math.round(v * 10) / 10;
 const line = (from, to) => { const n = Math.max(1, Math.ceil(Math.hypot(to[0] - from[0], to[1] - from[1]) / STEP)); const out = []; for (let i = 0; i <= n; i++) out.push([from[0] + (to[0] - from[0]) * i / n, from[1] + (to[1] - from[1]) * i / n]); return out; };
 const arc = (cx, cy, r, a0, a1) => { const n = Math.max(2, Math.ceil(Math.abs(a1 - a0) * r / STEP)); const out = []; for (let i = 0; i <= n; i++) { const a = a0 + (a1 - a0) * i / n; out.push([cx + Math.cos(a) * r, cy + Math.sin(a) * r]); } return out; };

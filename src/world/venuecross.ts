@@ -84,9 +84,10 @@ function selfCrosses(sub: Subtrack, piece: Point[]): SelfCross[] {
  * The half-length of the underpass along the road under: from the crossing out past the road over
  * it and its parapet to the lintel, then the portal itself.
  * @param sine the sine of the angle between the two roads
+ * @param clear m further the lintel stands (a venue's crossover that asks)
  * @returns m
  */
-const halfLength = (sine: number) => (HALF_ROAD + PARAPET_M + LINTEL_CLEAR_M)
+const halfLength = (sine: number, clear = 0) => (HALF_ROAD + PARAPET_M + LINTEL_CLEAR_M + clear)
   / Math.max(sine, 0.5) + PORTAL_LEN_M;
 /**
  * The half-length of the bridge along the road over it: across the cut below and its walls, with a
@@ -94,22 +95,26 @@ const halfLength = (sine: number) => (HALF_ROAD + PARAPET_M + LINTEL_CLEAR_M)
  * @param sine the sine of the angle between the two roads
  * @returns m
  */
-const overHalf = (sine: number) => ((VENUE_ROAD_M + CUT_SPARE_M) / 2 + LINTEL_CLEAR_M + 1)
+const overHalf = (sine: number, spare = 0) => ((VENUE_ROAD_M + CUT_SPARE_M) / 2 + spare
+  + LINTEL_CLEAR_M + 1)
   / Math.max(sine, 0.5) + PARAPET_RUN_M;
 
 /**
  * The stretches of a layout's loop that pass under it (m along), for spec.crossover.
  * @param sub the loop
  * @param piece the piece that runs under, at game scale (none: the venue has no crossover)
+ * @param spare m wider the cut each side (VenueSpec.crossover.spareM)
+ * @param clear m further the lintels clear the road over (VenueSpec.crossover.clearM)
  * @returns the stretches
  */
-export function underSpans(sub: Subtrack, piece: Point[] | undefined):
+export function underSpans(sub: Subtrack, piece: Point[] | undefined, spare = 0, clear = 0):
   NonNullable<Subtrack['under']> {
   if (!piece) return [];
   return selfCrosses(sub, piece).map((cross) => {
-    const half = halfLength(cross.sine);
+    const half = halfLength(cross.sine, clear);
     return { d0: cross.under - half, d1: cross.under + half, over: cross.over,
-      overHalf: overHalf(cross.sine), cut: PORTAL_LEN_M - PORTAL_LINTEL_M };
+      overHalf: overHalf(cross.sine, spare), cut: PORTAL_LEN_M - PORTAL_LINTEL_M,
+      ...(spare ? { spare } : {}) };
   });
 }
 
@@ -160,11 +165,12 @@ const PATH_STEP_M = 2;
  * @param span.d0 m along where it starts (the first portal's open end)
  * @param span.d1 m along where it ends
  * @param span.cut m in from each end its open cut runs
+ * @param span.spare m wider its cut each side (a venue's crossover that asks)
  * @param covered a tunnel's slatted cover over it (none under a crossover's bridge)
  * @returns the two portals
  */
-function roadPortals(sub: Subtrack, span: { d0: number; d1: number; cut?: number },
-  covered: boolean): Prop[] {
+function roadPortals(sub: Subtrack, span: { d0: number; d1: number; cut?: number;
+  spare?: number }, covered: boolean): Prop[] {
   const path: Point[] = [];
   const count = Math.max(2, Math.round((span.d1 - span.d0) / PATH_STEP_M));
   for (let i = 0; i <= count; i++) {
@@ -174,7 +180,7 @@ function roadPortals(sub: Subtrack, span: { d0: number; d1: number; cut?: number
   const portal = (dist: number, back: boolean): Prop => {
     const centre = centreBetween(sub, dist), head = Math.atan2(-centre.nx, centre.ny);
     return { kind: 'tunnel', x: centre.x, y: centre.y, rot: head + (back ? Math.PI : 0),
-      w: PORTAL_LEN_M, h: VENUE_ROAD_M + CUT_SPARE_M, track: true } as Prop;
+      w: PORTAL_LEN_M, h: VENUE_ROAD_M + CUT_SPARE_M + 2 * (span.spare || 0), track: true } as Prop;
   };
   // (and the slats' outlines: a car below is hidden under each, seen between; under a bridge the
   // whole stretch between the lintels)
@@ -266,17 +272,21 @@ export function crossoverAt(sub: Subtrack, dist: number): boolean {
 }
 
 /**
- * An underpass portal's four wall corners: the outer face's ends of each side wall, the open
- * end's two first (where a barrier along the road comes to the mouth), then the lintel end's.
+ * An underpass portal's four wall corners a barrier meets it at: the open end's two first - each
+ * side wall's inner corner there, so a barrier along the road flares into the mouth and a car
+ * sliding along it is led into the cut, never onto the wall's end - then the lintel end's two,
+ * the walls' outer corners (where a bridge's parapet ends against the wall).
  * @param portal the portal (w its length along its road, h its width between the walls)
  * @returns the corners
  */
 export function portalCorners(portal: Prop): Point[] {
   const cosR = Math.cos(portal.rot || 0), sinR = Math.sin(portal.rot || 0);
-  const out = portal.h! / 2 + PORTAL_WALL_M;
-  return [[-1, -1], [-1, 1], [1, -1], [1, 1]].map(([along, across]): Point => [
-    portal.x + cosR * along * portal.w! / 2 - sinR * across * out,
-    portal.y + sinR * along * portal.w! / 2 + cosR * across * out]);
+  const inner = portal.h! / 2, outer = inner + PORTAL_WALL_M;
+  return [[-1, -1], [-1, 1], [1, -1], [1, 1]].map(([along, across]): Point => {
+    const out = along < 0 ? inner : outer;
+    return [portal.x + cosR * along * portal.w! / 2 - sinR * across * out,
+      portal.y + sinR * along * portal.w! / 2 + cosR * across * out];
+  });
 }
 
 // m a parapet's end keeps off an underpass portal's walls (it stops at their outer face)

@@ -655,7 +655,9 @@ export interface Subtrack {
   layoutId?: number;   // highway.ts, grass-track.js: a new value means cached ground is stale
   // the stretches that pass under another stretch, m along, and where along the road over it they
   // cross (world/trackunder.ts)
-  under?: { d0: number; d1: number; over?: number; overHalf?: number; cut?: number }[];
+  // (spare: m the cut is wider than its own, a venue's crossover that asks: VenueSpec.crossover)
+  under?: { d0: number; d1: number; over?: number; overHalf?: number; cut?: number;
+    spare?: number }[];
 }
 
 // Options of autoKerbs (all optional; defaults in subtrack.ts).

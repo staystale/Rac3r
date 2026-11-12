@@ -11,4 +11,15 @@ export interface TestEntry {
   id: string; added: string; name: string; where: string; try: string; wrong: string;
 }
 
-export const TEST_LIST: TestEntry[] = [];
+export const TEST_LIST: TestEntry[] = [
+  {
+    id: 'stadeprancebarriers',
+    added: '2026-11-12',
+    name: 'Stadium crossovers: room at the portals, the Armco flared into each mouth',
+    where: 'TEST MODE > RALLYCROSS > Stade de Prance (and Wobbly Stadium)',
+    try: 'Drive under the bridge both ways with your wheels on each edge line, and along both edges'
+      + ' of the bridge road past the portals; look where the Armco meets each portal.',
+    wrong: 'A car on the road touching a portal or its Armco, Armco across a portal or overlapping'
+      + ' it, a gap or pocket beside a portal.',
+  },
+];

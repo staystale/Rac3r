@@ -9,13 +9,23 @@ verdicts) is in `TODO-DONE.md` and git; the owner's rules, decisions and lessons
 The live list is `src/core/fixes.ts` FIX (a switch there = under test) and `src/testlist.ts`. Each
 build's full record (what was built, every number) is in `TODO-DONE.md` under its round.
 
-Nothing on the phone: the 11-11 round (14 entries, 11 switches) passed 11-12, its record in
-`TODO-DONE.md` (PASSED 11-12).
+The 11-11 round (14 entries, 11 switches) passed 11-12, its record in `TODO-DONE.md` (PASSED
+11-12). On the phone now:
+
+- STADIUM CROSSOVERS, ROOM AT THE PORTALS (owner 11-12: "the tunnel still just touches some
+  barriers"; testlist stadeprancebarriers; Stade de Prance and Wobbly): a car on a road's edge
+  met the end of a portal's wall (the cut 0.6 m wider than the road) and the barrier at a lintel's
+  corner (1.05 m past the bridge road's edge). The cut now 1.5 m wider each side, the lintels
+  2.4 m further out (VenueSpec.crossover spareM / clearM; Snoozuka unchanged), the lane gap at
+  the crossover 32 m; each barrier meets a portal at its wall's inner mouth corner (flared in) or
+  its lintel corner, no connector or V left beside a wall. MEASURED: the walls 8.56-8.65 m from
+  the road under's centre (2.1 m past its edge), the lintel corners 2.49 m past the bridge road's
+  edge; 24 drives at 15 m/s (centre, +-5 m) and 16 at +-6 m clean on both; portals 0.14-1.76 deg
+  off their lane; sealing 0 escapes; worldhash: only the two stadiums change. WRONG: a car on the
+  road touching a portal or its Armco, Armco across a portal, a gap or pocket by a portal.
 
 ## 2. BEING BUILT
 
-- STADE DE PRANCE: the crossover tunnel still just touches some barriers (owner 11-12, after the
-  pass) - find where a portal meets the Armco and close it.
 - LIGHTS IN TUNNELS (owner 11-12: "lights seem to turn off in tunnels they shouldn't"): find which
   lights go out under a tunnel (your headlights, the lamps, the cars' lamps) and keep them lit.
 
