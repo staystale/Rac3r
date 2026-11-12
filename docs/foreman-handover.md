@@ -15,9 +15,10 @@ not repeated here), then `TODO.md`, then this page. The 11-07 version of this pa
     code with both on against the new code: SAME on every level.
   - NOTES: the game-time rule; the stadium list closed. This page.
   - Push to main when every check-run is green (Routine), then move the served clone.
-- **Switches awaiting the owner's phone test (`src/testlist.ts`):**
-  - `thumbfill`: open TEST MODE straight after load. Every picture should fill in.
-  - `tyrelights`: The Bird's Mess and Naffcar. No tyre ring over a light pylon.
+  - thumbfill and tyrelights PASSED (owner 11-12: "Pass"): the default, switches gone.
+- **The test list is EMPTY**; FIX has no switches.
+- **Owner report to look at:** "some dodgey line / track tarmac corner" at The Bird's Mess or Stade
+  de Prance. Not yet found.
 - **itch.io:** behind. Push only when the owner says (recipe below).
 
 ## In progress

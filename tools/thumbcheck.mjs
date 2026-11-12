@@ -1,5 +1,5 @@
 // thumbcheck.mjs - EVERY LEVEL HAS A SHIPPED THUMBNAIL (src/menu/thumbfiles.ts): each level in the
-// menu listed in assets/thumbs/index.json with its PNG and its WebP there (?thumbfill=1 reads the
+// menu listed in assets/thumbs/index.json with its PNG and its WebP there (the menu reads the
 // WebP; a level without one is painted by the
 // menu when its list opens - the freeze the shipped ones are for). Fails naming them: run
 // node tools/thumbs.mjs <id,id...>. node tools/thumbcheck.mjs

@@ -8,7 +8,6 @@ const THEME_NAMES = THEMES as Record<string, { name: string }>;
 import { saveProfile } from './profile.ts';
 import { addPane, addButton, addElement, copyThumb } from './widgets.ts';
 import { whenThumbArrives } from './thumbfiles.ts';
-import { FIX } from '../core/fixes.ts';
 import { showSetup } from './setup.ts';
 import { showSettings } from './settings.ts';
 import { showCredits } from './credits.ts';
@@ -179,7 +178,7 @@ export function categoryThumbIds(): string[] {
 const THUMB_W = 320, THUMB_H = 200;
 
 /**
- * Adds a level's thumbnail. ?thumbfill=1: one not read yet (the shipped ones are read in the
+ * Adds a level's thumbnail. One not read yet (the shipped ones are read in the
  * background at load - a screen opened before showed only what had come, and stayed so) holds its
  * place, filled as it arrives (menu/thumbfiles.ts whenThumbArrives).
  * @param parent where it goes
@@ -193,7 +192,6 @@ function addThumb(parent: HTMLElement, thumbs: Record<string, HTMLCanvasElement>
     parent.appendChild(copyThumb(thumb));
     return;
   }
-  if (!FIX.thumbfill) return;
   const slot = document.createElement('canvas');
   slot.width = THUMB_W;
   slot.height = THUMB_H;

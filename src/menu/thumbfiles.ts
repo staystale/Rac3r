@@ -6,13 +6,12 @@
 // the laptop's menu 37 s, 49 s with the 11-10 venues). A level without one (added since the tool
 // last ran: tools/thumbcheck.mjs fails on it) is painted when a list needs it.
 
-import { FIX } from '../core/fixes.ts';
 
 // the folder, beside the page (dist/assets the same: tools/build.mjs)
 const DIR = 'assets/thumbs/';
-// ?thumbfill=1: the thumbnails as lossless WebP (the same pixels, MEASURED 1871 -> 1221 KB for 52:
-// tools/scratch/_thumbwebp.mjs), else the PNGs
-const EXT = FIX.thumbfill ? '.webp' : '.png';
+// the thumbnails as lossless WebP (the PNGs' pixels, MEASURED 1871 -> 1221 KB for 52:
+// tools/scratch/_thumbwebp.mjs; the PNGs stay as the tools' source)
+const EXT = '.webp';
 
 // level id -> what fills a menu screen's empty place for its thumbnail when it arrives (a screen
 // opened while they are still read: menu/tracks.ts addThumb); true while they are read
@@ -34,7 +33,7 @@ export function whenThumbArrives(levelId: string, fill: (thumb: HTMLCanvasElemen
 
 /**
  * Reads the shipped thumbnails into a record (one that failed to load is left out: painted when
- * needed). ?thumbfill=1: the first ones (the menu's first screen's) read before the rest.
+ * needed). The first ones (the menu's first screen's) are read before the rest.
  * @param into level id -> thumbnail (filled; one already there is kept)
  * @param first the level ids to read first
  * @returns the level ids read
@@ -44,7 +43,7 @@ export async function loadShippedThumbs(into: Record<string, HTMLCanvasElement>,
   const base = new URL(DIR, document.baseURI), done = new Set<string>();
   isReading = true;
   try {
-    return await readThumbs(into, base, done, FIX.thumbfill ? first : []);
+    return await readThumbs(into, base, done, first);
   } finally {
     isReading = false;
     waiting.clear();

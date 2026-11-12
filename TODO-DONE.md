@@ -13,6 +13,31 @@ rolls - OWNER 11-07; the AI rework - Where we are 11-04; the driving root fix, t
 LIST 11-01; TypeScript, mud, grass, lamps - Queue; weather, surfaces, car systems, damage,
 lighting, bushes and trees - OWNER LIST 10-24; the checking tools - Tools that are wrong.
 
+## PASSED 11-12 (owner: "Pass") - menu pictures fill in (thumbfill) and lights clear of tyres (tyrelights), both now the default
+
+- THUMBFILL (`?thumbfill=1`; owner 11-12, a photo of TEST MODE with half the category pictures
+  missing, "This seems to happen when loading menu?"; testlist thumbfill): the 52 shipped track
+  thumbnails are read one by one in the background after the page opens (menu/thumbfiles.ts), and
+  a screen opened before they arrived showed only what had come - and stayed so. Now each missing
+  one holds its place and is drawn in as it arrives (menu/tracks.ts addThumb, whenThumbArrives).
+  WRONG: a card still without its picture after a few seconds, a jump as one arrives.
+
+- TYRELIGHTS (`?tyrelights=1`; owner 11-12: "Tyres placed over lights on birds mess and probs
+  others check please"; testlist tyrelights). Every level's lights (its own floodlight pylons and
+  the lamp plan's) checked by drawn footprint (a pylon 1.2 m round, a street light's post 0.3 m)
+  against every loose object (the level's and the corner floodlights' tyre rings) and every other
+  light - tools/propcheck.mjs now does it on every level. FOUND: The Bird's Mess - the lamp plan's
+  corner floodlight (inside the west sweeper) stood 3.2 m from one of the stadium's own pylons, its
+  ring of tyres over that pylon's base (2 stacks); Naffcar - a plan floodlight 6 m from one of the
+  level's own pylons (no tyres, two lights side by side). Every other level clear. THE CAUSE: a
+  level's own pylons are props, not solids, so the lamp plan never saw them. Now (world/
+  lampplan.ts nearOwnPylon) a planned light keeps LAMP_APART_M (8 m) off them: The Bird's Mess's
+  corner light moved to 11.2 m off the pylon, Naffcar's plan light off its pylon. MEASURED
+  (propcheck, every level): with the switch off and ?birdsmess=1 2 things on a light (the check
+  fires), with ?tyrelights=1 0; with every switch off 0 (Naffcar's pair is 6 m apart, not on each
+  other's footprint). Worldhash with every switch off SAME. WRONG: a tyre or prop over a light's
+  base, two lights side by side, a corner floodlight without its tyre ring.
+
 ## PASSED 11-12 (owner: "That's all pass") - The Bird's Mess (birdsmess) and the stadium dressing (stadiumprops), both now the default
 
 - STADIUMPROPS (`?stadiumprops=1`; owner 11-12: "All stadiums could be jazzed up with some props

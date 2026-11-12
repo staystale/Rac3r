@@ -16,7 +16,6 @@ import { FLOOR } from './bounds.ts';
 import { SURFACES } from './surfaces.ts';
 import { catOf } from './levels/category.ts';
 import { smoothOnTrack } from './barriers.ts';
-import { FIX } from '../core/fixes.ts';
 import type { Level, Point, Prop, Subtrack, TrackPoint } from './types.ts';
 
 // street lights: their spacing, and the stretch of the lap round the start / finish line (m
@@ -202,15 +201,14 @@ function isFreeOfThings(level: Level, spot: Spot, reach: number): boolean {
 
 /**
  * Whether a point lies within LAMP_APART_M (and the thing's own reach past a pylon's base) of one
- * of the level's own floodlight pylons (?tyrelights=1: they are props, not solids - the plan stood
+ * of the level's own floodlight pylons (they are props, not solids - the plan stood
  * a corner floodlight's tyre ring over one at The Bird's Mess, a pylon 6 m from one at Naffcar).
  * @param level the level
  * @param spot the point
  * @param reach the thing's clearance, m
- * @returns true when too near (always false with the switch off)
+ * @returns true when too near
  */
 function nearOwnPylon(level: Level, spot: Spot, reach: number): boolean {
-  if (!FIX.tyrelights) return false;
   const apart = Math.max(LAMP_APART_M, reach + FLOOD_REACH_M);
   return (level.props || []).some((prop) => prop.kind === 'pylon'
     && Math.hypot(prop.x - spot.x, prop.y - spot.y) < apart);

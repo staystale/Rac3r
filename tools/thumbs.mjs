@@ -4,7 +4,7 @@
 // assets/thumbs/index.json listing the levels that have one. Run it when a level is added or its
 // look changes (tools/thumbcheck.mjs fails on a level without one).
 // Each is also written as lossless WebP beside its PNG (tools/lib/thumbwebp.mjs; the menu reads
-// those with ?thumbfill=1), kept only when its pixels match.
+// those), kept only when its pixels match.
 // node tools/thumbs.mjs [id,id...]   (only those painted again; the list covers every file)
 // node tools/thumbs.mjs --webp        (no painting: every listed PNG written again as WebP)
 import fs from 'node:fs';

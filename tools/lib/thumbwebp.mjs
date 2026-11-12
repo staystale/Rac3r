@@ -1,6 +1,6 @@
 // tools/lib/thumbwebp.mjs - A TRACK THUMBNAIL AS LOSSLESS WEBP (tools/thumbs.mjs): the browser
 // encodes a PNG's pixels as WebP at quality 1 (lossless in Chromium), decodes it back and keeps it
-// only if every pixel matches; menu/thumbfiles.ts reads these (?thumbfill=1). MEASURED
+// only if every pixel matches; menu/thumbfiles.ts reads these. MEASURED
 // (tools/scratch/_thumbwebp.mjs): the 52 thumbnails 1871 -> 1221 KB, every pixel the same.
 
 /**
