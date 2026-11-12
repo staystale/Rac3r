@@ -44,7 +44,12 @@ not repeated here), then `TODO.md`, then this page. The 11-07 version of this pa
   pieces, five side by side so the whole road is the jump). AI clears it 19 of 20; no AI change.
   Night frames: 17.5 ms work vs Knobhill's 16.1. The owner's answers (11-12): joker cost "fine";
   "street lamps please"; night frame cost "yes" (look into it); the rest OK. The worker is on that
-  as `foreman/xgayms2` (from round10). The thumbnail is in index.json with
+  as `foreman/xgayms2`, DONE: a5f626b, stacked as `foreman/round11` (de7ba95), to push when
+  round10 is on main. 22 street lamps (Level.streetLamps: the lamp plan's street-light rule round
+  the whole lap). The lamps cost nothing measurable. X Gayms' extra frame cost (night 23.6 vs
+  Knobhill 19.4 ms, CPU x4, 20 AI) is BARRIER DRAWING: 1723 m of Armco in 7 long runs, and
+  render/props/fence.ts skips a barrier only when its whole box is off screen (`?skip=barriers`
+  brings it to Knobhill's level). Asked: cull barriers stretch by stretch (shared code)? The thumbnail is in index.json with
   birdsmess (`XGAYMS=1 node tools/thumbs.mjs --webp`: a switched level is seen only with its env).
 - **The Bird's Mess follows the world clock** (owner 11-12: "World clock all levels like I asked"):
   Level.eventHour removed, so no level fixes its own hour; only TEST MODE's START HOUR does. In
