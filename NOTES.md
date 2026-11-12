@@ -775,6 +775,11 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   Steeper (34 deg, 15 m bends) was worse: cars on the edges strayed out of the tight bends. A
   test driver holding an offset line drifts outward on a bend at 15 m/s past ~6 m: read edge
   drives beyond that with care.
+- A JUMP ACROSS A ROAD IS SEVERAL PIECES (11-12, L.A. Lively's gap jump): a terrain ramp or table is
+  full height only on its middle line (cos^2 to its edges), so one the road's width was a kicker for
+  a car on the lane's middle only - the AI, on its line a few metres off, 0-3 of 20 cleared the
+  16 m gap. Pieces half their width apart sum to a flat full height (cos^2 + sin^2): five, 3.5 m
+  apart and 7 m wide, stand the whole road; then 19 of 20 cleared (tools/scratch/_aigapcheck.mjs).
 - A STADIUM'S BOWL NEEDS ROOM AT THE HAIRPINS (11-11, Stade de Prance): the catch fence stands
   10 m past the edge where the stands watch; an ellipse round a long lane box came within 25 m of
   the hairpins' outside, the fence had no room and left 16 escapes. The bowl is a superellipse

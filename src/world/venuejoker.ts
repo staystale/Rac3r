@@ -50,7 +50,10 @@ export function venueJoker(build: VenueBuild, layout: string): Lane | null {
   while (ahead(offLast, last + 1) < MOUTH_M) last++;
   const lane: [number, number][] = [];
   for (let i = first; i <= last; i++) lane.push([pts[wrap(i)].x, pts[wrap(i)].y]);
-  return { pts: lane, width: VENUE_ROAD_M, surface: SURFACES.racetarmac };
+  // on the joker loop's own surface at its middle (a dirt joker: L.A. Lively's), race tarmac else
+  const midDist = pts[mid].dist;
+  const sector = via.sectors.find((part) => midDist >= part.startDist && midDist < part.endDist);
+  return { pts: lane, width: VENUE_ROAD_M, surface: sector?.surface || SURFACES.racetarmac };
 }
 
 // m of the start lane behind the pole's slot (the grid's rows, 7 m apart, two by two: 20 cars)

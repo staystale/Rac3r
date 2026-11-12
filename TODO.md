@@ -13,6 +13,37 @@ The 11-11 round (14 entries, 11 switches) passed 11-12, and the performance roun
 carcull, the texture warm-up) and the stadium crossovers passed 11-12 ("mostly pass"), their
 records in `TODO-DONE.md` (PASSED 11-12). On the phone now:
 
+- X GAYMS / L.A. LIVELY (`?xgayms=1`; owner 11-12: "the worker can move on to the next levels / tracks";
+  testlist xgayms; TEST MODE > RALLYCROSS). The X Gayms rallycross course in the streets round an
+  arena, laid by hand (tools/scratch/_lalivelydata.mjs; not traced): a 942 m figure of eight on the
+  street grid, the north-south street UNDER the avenue at 90 deg (the stadiums' crossover system,
+  spareM 1.5, clearM 3.5 - at 2.4 two corners by the south portal stayed open), tarmac streets and
+  three dirt lots (43 % dirt, the dirt a piece's surface over the street, as every rallycross lap),
+  concrete off the road. THE JOKER (the shared rule: once a race, 30 s): a dirt lane round the north
+  lot's outside, 52 m longer, with the 16 m (52 ft) GAP JUMP on its straight - a 2 m kicker over
+  10 m (terrain ramp, red lip), the gap, a 2 m landing deck (terrain table), each five pieces side
+  by side so the whole road is the jump (one piece was full height only on the lane's middle: the
+  AI, on its line, 0-3 of 20 cleared it). No new physics, no AI change. Its look: blocks round it
+  (the arena, halls, offices, shops, a hotel, a parking deck, studios), bleachers at the start, the
+  jump and the avenue with orange / black / white flags, 15 floodlight pylons, litter; the world's
+  clock and weather (no eventHour). MEASURED: the jump held at a speed (tools/scratch/_gapjump.mjs,
+  on the middle and 5 m off it) - rally-4x4 / rx-super clear from 60 km/h, hatch-fwd / muscle-rwd
+  from 70; at 100 km/h 31-40 m (to the end of the landing's run down); short ones land 10-15 m
+  past the lip, in the gap or on the landing's face: no damage, none stuck. The AI (20 cars on
+  their last lap, tools/scratch/_aigapcheck.mjs): 19 / 19 / 19 of 20 cleared (seeds 1 / 2, and
+  rx-super), landing 15-22 m past the lip, 1 / 0 / 1 short, none stuck. Joker cost (jokercost,
+  the careful autodriver): 5.4-5.9 s (real ones ~1-2 s). lapdriver: rally-4x4 59.3 s, rx-super
+  58.0 s, 0.0 s off. aijokercheck: 5 seeds, the gate once each. crossovercheck (20 AI, seeds 1 / 2):
+  43 / 42 passes under, 43 / 45 over, 0 on the wrong level, 0 wall hits by the crossover; the 5 / 3
+  cars it flags (progress jump 114-117 m) are joker cars (line index jump 147: the AI's joker
+  branch) - the lap's nearest point skips along while a car is off on the joker. Portals 0.00 deg
+  off their lane, 12 drives clean; crossingcheck, barriercheck, propcheck, solidcheck OK; sealing
+  (_moseal FAR 25) 0 escapes but the joker's own run-off (the tool reads distance off the lap
+  only); venueaudit: 3 Armco ends by a road - the noses between the joker and the lap. Frames
+  (framecheck CPU x4, 20 AI, our work a frame, median; Knobhill RX the same session): day 13.0
+  (12.5), night 17.5 (16.1); frames over 33 ms at night 122 / 570 (66). Worldhash with the switch
+  off: SAME.
+
 ## 2. BEING BUILT
 
 
@@ -37,9 +68,7 @@ ROUND 5, LOADING AND SPEED:
   is really special - we have enough for a short championship or two"): Wobbly, Stade de Prance and
   The Bird's Mess built; ACCORDION STADIUM (Sydney 2025) and DUSSELDORK ARENA (2010-11) not built
   unless their track is really special.
-- X GAYMS RALLYCROSS, the course L.A. LIVELY (Los Angeles 2012; names approved 11-10): tarmac and
-  dirt round the streets, the joker's 52 ft (16 m) dirt-to-dirt GAP JUMP (terrain ramps: the game's
-  airtime and landings) - "tarmac plus dirt x games make 52 gap version".
+- X GAYMS RALLYCROSS, the course L.A. LIVELY: BUILT 11-12 behind ?xgayms=1 (section 1).
 - OLD WOBBLY (approved 11-10): the old Wembley's stock car / speedway track round the pitch, 345 m
   real (378 yd), so built at its size (Wembley's shape, a ~550 m lap) in the old stadium's bowl
   with its twin towers ("it can size match with the current stock car circuit or relative if it's

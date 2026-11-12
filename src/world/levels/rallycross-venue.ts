@@ -54,7 +54,8 @@ export function rallycrossLevel(spec: VenueSpec, layout: string, levelId: string
   const cones = [...level.cones, ...bales];
   const mid = lane.pts[Math.floor(lane.pts.length / 2)];
   // (tidied as the venue's own: none on another or on a barrier)
-  return { ...level, bushes: RX_BUSHES,
+  // (the rallycross bushes, but on a venue with none: a street course's)
+  return { ...level, ...(spec.bushless ? {} : { bushes: RX_BUSHES }),
     cones: tidyLoose([...cones, ...jokerBales(sub, lane, cones)], level.barriers || [], sub,
       level.covers || []),
     joker: { gate: { x: mid[0], y: mid[1], r: JOKER_GATE_R }, penalty: JOKER_PENALTY_S,

@@ -17,8 +17,10 @@ not repeated here), then `TODO.md`, then this page. The 11-07 version of this pa
   - Push to main when every check-run is green (Routine), then move the served clone.
   - thumbfill and tyrelights PASSED (owner 11-12: "Pass"): the default, switches gone.
 - **The test list is EMPTY**; FIX has no switches.
-- **Owner report to look at:** "some dodgey line / track tarmac corner" at The Bird's Mess or Stade
-  de Prance. Not yet found.
+- **Owner report:** "some dodgey line / track tarmac corner" on a stadium. FOUND (asked to confirm
+  and fix): Stade de Prance, 117 m into the lap (86.4, 7.2), the lap path turns 18.9 deg in 1.5 m
+  (every other point on both stadiums 9 deg or less): the inner lane's edge has a hard angle
+  (`tools/scratch/_kinkshots.mjs`). kerbside's fold check (smoothed) misses it.
 - **itch.io:** behind. Push only when the owner says (recipe below).
 
 ## In progress
@@ -35,17 +37,14 @@ not repeated here), then `TODO.md`, then this page. The 11-07 version of this pa
     one-off scripts.
   - The owner's phone already holds 60 fps on every level it drove. This work is for slower phones
     only.
-- **X Gayms rallycross, L.A. LIVELY (`?xgayms=1`)**: a worker is building it in
-  `rac3r/.claude/worktrees/agent-a392686c42b57b5db`, on branch `foreman/xgayms`, not pushed.
-  - The owner's answers (11-12):
-    1. Layout: OK. The real street grid, not traced, about 900 m, about 60/40 tarmac/dirt.
-    2. No fixed time: game clock and weather.
-    3. A crossover bridge, using the stadiums' system.
-    4. Dropped (owner: "Just make the track"): no difficulty target, numbers only.
-    5. "Keep it realistic": the real joker rule, the gap in the joker.
-    6. Surfaces: copy how the existing real-surface levels do it.
-  - The gap jump is built from existing pieces: a `ramp` 2 m high, a 16 m gap, then a `table`.
-    Cars clear it at about 70-95 km/h. Nothing new in the physics.
+- **X Gayms rallycross, L.A. LIVELY (`?xgayms=1`)**: BUILT by the worker (its commit 20ecddd,
+  cherry-picked onto round9 as branch `foreman/round10`). A 942 m figure of eight on a street grid,
+  one crossover bridge (clearM 3.5), 43% dirt, the joker with the 16 m gap jump (ramp and table
+  pieces, five side by side so the whole road is the jump). AI clears it 19 of 20; no AI change.
+  Night frames: 17.5 ms work vs Knobhill's 16.1. The worker's open questions for the owner: the
+  joker's cost (5.4-5.9 s, real about 1-2 s), tyre stacks at the joker's split, night frame cost,
+  no street lamps (pylons only), clearM 3.5, no kerbs. The thumbnail is in index.json with
+  birdsmess (`XGAYMS=1 node tools/thumbs.mjs --webp`: a switched level is seen only with its env).
 - **The Bird's Mess follows the world clock** (owner 11-12: "World clock all levels like I asked"):
   Level.eventHour removed, so no level fixes its own hour; only TEST MODE's START HOUR does. In
   round9, after its stadium commit.

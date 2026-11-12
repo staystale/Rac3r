@@ -3,9 +3,10 @@
 import { makeCar, step, reset, PHYSICS_STEP_SECONDS } from '../src/vehicle.ts';
 import * as L from '../src/lab.ts';
 import { createAutoDriver } from '../src/ai/autodrive.ts';
+import { jokerLane } from '../src/world/joker.ts';
 const lv = process.argv[2] || 'slidden-hill';
 L.setLevel(lv);
-const st = L.LEVEL.subtrack, J = L.LEVEL.lanes.find((l) => l.surface.id === 'dirt' && l.width === 12).pts;
+const st = L.LEVEL.subtrack, J = (L.LEVEL.lanes.find((l) => l.surface.id === 'dirt' && l.width === 12) || jokerLane(L.LEVEL)).pts;
 const dOf = ([x, y]) => L.querySubtrack(st, x, y).trackDist;
 const d0 = dOf(J[0]), d1 = dOf(J[J.length - 1]);
 const pts = st.pts.filter((p) => p.dist < d0).map((p) => [p.x, p.y]).concat(J.slice(1, -1), st.pts.filter((p) => p.dist > d1).map((p) => [p.x, p.y]));
