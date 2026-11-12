@@ -236,4 +236,7 @@ the road at each end and whose walls follow the road's own path (the bent-tunnel
 parapets stop at the portals' walls. A ROC stadium (`tools/scratch/_rocdata.mjs`, one generator for all) crosses on a straight
 X (its portals square with their lane; its barrier ends carried on to the portals' wall corners, `world/venuetidy.ts`) and races on a SPLIT
 START (`Level.splitStart`): its cars on the path's two halves, each timed over its laps from its own line (`game/grid.ts`,
-`game/order.ts` progressOf).
+`game/order.ts` progressOf). A stadium may dress its own bowl (`VenueSpec.bowlLook`: the stands' seat colours, the roof ring's
+steel lattice - `world/venuebowl.ts`, drawn by `drawGrandstand` / `drawBlock`), lay litter by hand (`VenueSpec.litter`: loose
+debris kinds, tidied as every loose object) and floodlight pylons (landmarks of kind `pylon`, lamps as any level's). A level may
+start its events at an hour of its own (`Level.eventHour`, a night race: used when the setup's TIME is LIVE, `game/menuflow.ts`).

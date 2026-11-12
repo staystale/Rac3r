@@ -177,6 +177,13 @@ export interface VenueSpec {
   bushless?: boolean;
   // no kerbs (a track laid for a day on a stadium's pitch: Wobbly Stadium)
   kerbless?: boolean;
+  // a stadium's own bowl (The Bird's Mess): its stands' seats (two tiers' colours) and its roof
+  // ring's membrane with a steel lattice over it, in that colour (world/venuescenery.ts; drawn by
+  // render/props/buildings.ts drawGrandstand, scenery.ts drawBlock) - the stands and roof only
+  bowlLook?: { seats: [string, string]; roof: string; lattice: string };
+  // loose objects laid by hand (real m; the highway's debris kinds - pallets, barrels, tarps -
+  // and tyres): a venue's litter, kept off the road as every loose object is (tidyLoose)
+  litter?: { at: Point; kind: string; col?: string }[];
   // the pit lane's surface where the venue's ground is concrete too (Moanaco's: tarmac); concrete
   // when not given
   pitSurface?: keyof typeof SURFACES;

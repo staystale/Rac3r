@@ -59,4 +59,8 @@ export const FIX = {
   // ?carcull=1: an AI car off the view (past a car's reach) is not drawn, as highway traffic is
   // not (render/screen.ts forEachDrawnCar): each drawn car's picture is painted afresh each frame
   carcull: atLoad('carcull'),
+  // ?birdsmess=1: The Bird's Mess, the Race of Champions' track in the Bird's Nest (Beijing 2009)
+  // - as the other stadiums', two lanes interwoven round an elliptical bowl, one crossover bridge;
+  // a night race (world/levels/birdsmess-venue.ts)
+  birdsmess: atLoad('birdsmess'),
 };

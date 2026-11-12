@@ -18,6 +18,7 @@ import { WALL_REACH_M, boxedLine, buildEdge, railLines, buildRims, inZones, outl
 import { boardOnArmco, marshalPosts, startGantry } from "./venueposts.ts";
 import { venueAero, venuePlanes } from "./venueairfield.ts";
 import { nearWater, onPatches, ovalWall, venueMown, venueWater } from "./venueoval.ts";
+import { bowlRoof, bowlSeats, venueLitter } from "./venuebowl.ts";
 import type { EdgeNeeds, RealLines } from "./venueedge.ts";
 import { REACH_M, cellKey, inBuilding, inSolid, nearArmco, nearRace, onLanes, placeAll }
   from "./venuesite.ts";
@@ -303,7 +304,7 @@ function venueBuildings(site: Site, pits: Lane[]): Prop[] {
   const data = site.build.spec.data, props: Prop[] = site.loops.flatMap(tunnelCover);
   const homes = data.homes.map((home) => outlineZone(placeAll(site, home.pts), SURFACES.grass));
   for (const stand of data.stands) {
-    const prop = boxProp(site, stand, 'grandstand');
+    const prop: Prop = { ...boxProp(site, stand, 'grandstand'), ...bowlSeats(site) };
     // (one stand mapped twice - a stand and its bleachers - keeps the first)
     if (standClear(site, prop) && !overlapsAny(prop, props, 0)) props.push(prop);
   }
@@ -324,7 +325,7 @@ function venueBuildings(site: Site, pits: Lane[]): Prop[] {
     if (overlapsAny(prop, props.filter((other) => other.kind === 'grandstand'), 0)) return;
     props.push(/control tower/i.test(building.name) ? { ...prop, kind: 'tower' }
       : building.kind === 'hangar' ? { ...prop, kind: 'hangar' }
-        : { ...prop, roof: ROOFS[i % ROOFS.length] });
+        : { ...prop, roof: ROOFS[i % ROOFS.length], ...bowlRoof(site, building.kind, i) });
   });
   for (const mark of site.build.spec.landmarks || []) {
     const [x, y] = site.place(mark.at), size = mark.size * site.build.scale, { rot, col } = mark;
@@ -792,7 +793,8 @@ export function buildVenueScenery(build: VenueBuild, sub: Subtrack, closed: Lane
     .filter(([x, y]) => !onLanes(site.lanes, x, y, 0.6)
       && !isAnyPointWithin(edgeTyres, x, y, MAP_WALL_CLEAR_M))
     .map(([x, y]) => ({ x, y, kind: 'tyrestack' })));
-  return { lanes, zones: [...zones, ...venueParks(site)], cones: [...edge.cones, ...karting],
+  return { lanes, zones: [...zones, ...venueParks(site)],
+    cones: [...edge.cones, ...karting, ...venueLitter(site)],
     barriers: [...walls, ...edge.barriers],
     props, paint: pitLanes.flatMap((lane) => pitLines(site, lane)), bounds, covers, patches };
 }

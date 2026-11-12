@@ -243,6 +243,55 @@ export function drawSculpture(propCtx: PropCtx, prop: Prop, ppm: number) {
   paint(-0.4, -0.4, 0.8, 0.8, '#f07a1a');
 }
 
+// A ROOF'S STEEL LATTICE (VenueSpec.bowlLook, the Bird's Nest's woven steel): LATTICE_BEAMS beams
+// each way across a roof slice, each at an angle of its own LATTICE_MIN_RAD..+LATTICE_SPREAD_RAD
+// off the slice's long side, LATTICE_BEAM_M wide with its shadow LATTICE_SHADOW_M below and right
+const LATTICE_BEAMS = 4, LATTICE_MIN_RAD = 0.45, LATTICE_SPREAD_RAD = 0.7;
+const LATTICE_BEAM_M = 0.6, LATTICE_SHADOW_M = 0.45;
+const LATTICE_SHADOW = 'rgba(10,12,16,0.55)';
+
+/**
+ * A fixed number 0..1 for a slice's beam (the same each frame: no random stream, nothing made).
+ * @param seed the slice's seed
+ * @param index which number of the slice's
+ * @returns 0..1
+ */
+function latticeValue(seed: number, index: number): number {
+  const wave = Math.sin(seed * 12.9898 + index * 78.233) * 43758.5453;
+  return wave - Math.floor(wave);
+}
+
+/**
+ * Draws a roof slice's steel lattice over its membrane, clipped to the roof (in the prop's turned
+ * frame; ctx at its middle).
+ * @param ctx the canvas
+ * @param prop the roof slice (w, h, seed, lattice: the steel's colour)
+ * @param ppm pixels per metre
+ */
+function drawRoofLattice(ctx: CanvasRenderingContext2D, prop: Prop, ppm: number) {
+  const halfW = prop.w! / 2 - 0.4, halfH = prop.h! / 2 - 0.4, seed = prop.seed || 1;
+  const reach = (halfW + halfH) * ppm;
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(-halfW * ppm, -halfH * ppm, 2 * halfW * ppm, 2 * halfH * ppm);
+  ctx.clip();
+  ctx.lineWidth = LATTICE_BEAM_M * ppm;
+  for (const shift of [LATTICE_SHADOW_M * ppm, 0]) {
+    ctx.strokeStyle = shift ? LATTICE_SHADOW : prop.lattice!;
+    ctx.beginPath();
+    for (let beam = 0; beam < LATTICE_BEAMS * 2; beam++) {
+      const way = beam % 2 ? 1 : -1;
+      const angle = way * (LATTICE_MIN_RAD + LATTICE_SPREAD_RAD * latticeValue(seed, beam));
+      const across = (latticeValue(seed, beam + 50) - 0.5) * 2 * halfW * ppm + shift;
+      const dx = Math.cos(angle) * reach, dy = Math.sin(angle) * reach;
+      ctx.moveTo(across - dx, shift - dy);
+      ctx.lineTo(across + dx, shift + dy);
+    }
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
 /**
  * Draws the block prop (block).
  * @param propCtx the view and painter helpers
@@ -268,6 +317,11 @@ export function drawBlock(propCtx: PropCtx, prop: Prop, ppm: number) {
   );
   paint(-halfW, -halfH, prop.w!, prop.h!, '#3b4047');
   paint(-halfW + 0.4, -halfH + 0.4, prop.w! - 0.8, prop.h! - 0.8, prop.roof || '#5b626b');
+  // (a stadium's roof ring: its steel lattice over the membrane, no rooftop plant)
+  if (prop.lattice) {
+    drawRoofLattice(view.ctx, prop, ppm);
+    return;
+  }
   paint(halfW - 4, -halfH + 1.2, 2.4, 1.8, '#9aa0a8');
   paint(halfW - 3.6, -halfH + 1.5, 1.6, 1.2, '#7c828a');
   // a CHURCH (highway.ts village): a square tower at the west end of the nave, with a little

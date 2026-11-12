@@ -44,6 +44,8 @@ import { BATHURST_LEVELS } from "./bathurst-venue.ts";
 import { MOANACO_LEVELS } from "./moanaco-venue.ts";
 import { WOBBLY_LEVELS } from "./wobbly-venue.ts";
 import { STADEPRANCE_LEVELS } from "./stadeprance-venue.ts";
+import { BIRDSMESS_LEVELS } from "./birdsmess-venue.ts";
+import { FIX } from "../../core/fixes.ts";
 import { OP_LEVELS } from "./oultonpork-venue.ts";
 import { DT_LEVELS } from "./dieatona-venue.ts";
 import { TH_VENUE_LEVEL } from "./thruston-venue.ts";
@@ -123,6 +125,8 @@ export const LEVELS: Level[] = [
   ...WOBBLY_LEVELS,
   // Stade de Prance, the Race of Champions' track in Paris (stadeprance-venue.ts)
   ...STADEPRANCE_LEVELS,
+  // ?birdsmess=1: The Bird's Mess, the Race of Champions' track in Beijing (birdsmess-venue.ts)
+  ...(FIX.birdsmess ? BIRDSMESS_LEVELS : []),
   BH_GP_LEVEL,
   BH_INDY_LEVEL,
   {

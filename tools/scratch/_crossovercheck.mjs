@@ -22,7 +22,7 @@ import { trackSpotOf, inTrackUnderpass } from '../../src/world/trackunder.ts';
 
 const [lv = 'suzuka', nArg = '12', carId = 'hatch-rwd'] = process.argv.slice(2);
 const N = +nArg, SECONDS = +(process.env.SECONDS || 120), DT = PHYSICS_STEP_SECONDS;
-let dice = 12345;
+let dice = +(process.env.SEED || 12345);
 Math.random = () => { dice = (Math.imul(dice, 1664525) + 1013904223) >>> 0; return dice / 4294967296; };
 L.setLevel(lv); L.clearWear();
 const level = L.LEVEL, sub = level.subtrack, total = sub.totalDist;

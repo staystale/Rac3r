@@ -707,7 +707,12 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   Where four arms meet at a crossover the edge ends short of the portals: tidyEdge 'fences'
   carries each end on to a portal's wall corner and seals it (_moseal.mjs: 0 escapes; below: A
   STADIUM'S CROSSOVER IS A STRAIGHT X). An end lying along another barrier is trimmed
-  (world/venuetidy.ts trimDoubledEnds), so no Armco is drawn twice.
+  (world/venuetidy.ts trimDoubledEnds), so no Armco is drawn twice. Each stadium dresses itself
+  from the shared kinds (owner 11-12: "make each stadium / track slightly unique aesthetics, track
+  litter / props"; "don't include things that will obscure gameplay" - nothing over the track):
+  The Bird's Mess its bowlLook, litter, floodlight ring and mown lattice. tools/aifieldcheck.mjs
+  steps no crossings (world/crossings.ts clampWorld): on a stadium its field stalls at the bridge,
+  0 laps (Stade de Prance too) - use tools/scratch/_crossovercheck.mjs and _rocrace.mjs.
 - THE ROC START (owner 11-11: "cars on separate track halves and timed, 1 full lap; optional laps
   still in test and optional AI quantity"): Level.splitStart - you on the start line's half, the
   rival alongside on the other lane (the path's other half: game/grid.ts splitLineDist), each
