@@ -62,4 +62,8 @@ export const FIX = {
   // ?thumbfill=1: a menu screen opened while the shipped track thumbnails are still being read
   // fills each one in as it arrives (before, it showed only what had come; menu/tracks.ts addThumb)
   thumbfill: atLoad('thumbfill'),
+  // ?tyrelights=1: the lamp plan keeps off a level's own floodlight pylons (world/lampplan.ts):
+  // a corner floodlight's tyre ring stood over The Bird's Mess's pylon, a plan pylon 6 m from
+  // Naffcar's
+  tyrelights: atLoad('tyrelights'),
 };

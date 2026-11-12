@@ -13,6 +13,16 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'tyrelights',
+    added: '2026-11-12',
+    name: 'Lights clear of tyres: no corner light and its tyre ring on top of a floodlight pylon',
+    where: "Test link + &tyrelights=1 (and &birdsmess=1): The Bird's Mess, Naffcar",
+    try: "The Bird's Mess: the infield inside the long west sweeper; Naffcar: the east end's"
+      + ' pylons. Any other level: look at the floodlights and their tyre rings.',
+    wrong: "A tyre or prop over a light's base, two lights side by side, a corner floodlight"
+      + ' with no tyre ring round it.',
+  },
+  {
     id: 'stadiumprops',
     added: '2026-11-12',
     name: 'Stadium dressing: each stadium its own props and litter, its Armco and fences tidied',
