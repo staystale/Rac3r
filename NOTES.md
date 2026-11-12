@@ -268,7 +268,7 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   is until the owner has tested and asks.
 - No level fixes its own time or weather (owner 11-12: "all levels run on game time / tests
   forced time weather"): a level follows the global clock and weather; only TEST MODE forces them.
-  A new level must read by day and at night. (The Bird's Mess still has Level.eventHour - asked.)
+  A new level must read by day and at night. Level.eventHour is removed (The Bird's Mess had it).
 - The ROC stadiums are enough (owner 11-12): Wobbly, Stade de Prance, The Bird's Mess; another only
   if the track is really special.
 - Code (owner, 10-18): new modules are TypeScript (.ts); the remaining .js files are older.

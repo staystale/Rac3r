@@ -40,14 +40,14 @@ not repeated here), then `TODO.md`, then this page. The 11-07 version of this pa
     1. Layout: OK. The real street grid, not traced, about 900 m, about 60/40 tarmac/dirt.
     2. No fixed time: game clock and weather.
     3. A crossover bridge, using the stadiums' system.
-    4. What the player should fail at: asked again (unclear). The build uses keeping 70 km/h or
-       more for the gap.
+    4. Dropped (owner: "Just make the track"): no difficulty target, numbers only.
     5. "Keep it realistic": the real joker rule, the gap in the joker.
     6. Surfaces: copy how the existing real-surface levels do it.
   - The gap jump is built from existing pieces: a `ramp` 2 m high, a 16 m gap, then a `table`.
     Cars clear it at about 70-95 km/h. Nothing new in the physics.
-- **Open question to the owner:** The Bird's Mess still forces a night race (`Level.eventHour`),
-  which conflicts with the game-time rule. Should it follow the game clock?
+- **The Bird's Mess follows the world clock** (owner 11-12: "World clock all levels like I asked"):
+  Level.eventHour removed, so no level fixes its own hour; only TEST MODE's START HOUR does. In
+  round9, after its stadium commit.
 
 ## How the owner works
 

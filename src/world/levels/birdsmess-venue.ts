@@ -13,7 +13,7 @@
 // others (two lanes at the 13 m road need 20 m between centres); the bowl a near-ellipse with its
 // roof ring (creative licence). SURFACES: tarmac (the base off the road the pitch's grass), gravel
 // on both lanes' east end - the south-east sweeper, the start straight and the north-east hairpin.
-// A NIGHT RACE under floodlights (Level.eventHour). ITS OWN DRESSING: the stands' seats the
+// Floodlit (the global clock, as on every level). ITS OWN DRESSING: the stands' seats the
 // Nest's red, its roof ring a steel lattice (both outside the catch fence, nothing over the track
 // or a car), floodlight pylons round both lanes (apron and infield), the flags red and gold, the
 // Nest's criss-cross mown into the pitch, litter behind the barriers (pallets, barrels, spare
@@ -26,10 +26,6 @@ import type { Level } from "../types.ts";
 
 // the venue's name (a parody of the Bird's Nest, approved by the owner 11-10), in one place
 export const THE_BIRDS_MESS = "The Bird's Mess";
-
-// the hour an event here starts at when the setup leaves the time LIVE: a night race (the owner's
-// answer), 22:00 dark in every season (world/clock.ts: the longest day's dusk ends ~21:00)
-const NIGHT_RACE_HOUR = 22;
 
 export const BIRDSMESS_SPEC: VenueSpec = {
   id: 'birdsmess',
@@ -123,9 +119,9 @@ export const BIRDSMESS_SPEC: VenueSpec = {
   ] }],
 };
 
-// the one layout - built on first use (world/load.ts buildLevel); a night race
+// the one layout - built on first use (world/load.ts buildLevel)
 export const BIRDSMESS_LEVELS: Level[] = [
-  { id: 'birdsmess', name: THE_BIRDS_MESS, venue: THE_BIRDS_MESS, eventHour: NIGHT_RACE_HOUR,
+  { id: 'birdsmess', name: THE_BIRDS_MESS, venue: THE_BIRDS_MESS,
     _lap: () => venueLap(BIRDSMESS_SPEC, 'roc'),
     _build: () => venueLevel(BIRDSMESS_SPEC, 'roc', 'birdsmess', THE_BIRDS_MESS) } as Level,
 ];

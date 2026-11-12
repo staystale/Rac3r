@@ -514,9 +514,6 @@ export interface Level {
   // side): the cars on the path's two halves, each timed over its laps from its own line
   // (game/grid.ts splitLineDist)
   splitStart?: boolean;
-  // the hour 0..24 an event here starts at when the setup leaves the time LIVE (a night race: The
-  // Bird's Mess; world/clock.ts startEventClock - the global clock runs on as it was)
-  eventHour?: number;
   snowy?: boolean;   // a snow-themed stage (weather only): its theme biases the weather
   seams?: boolean;
   randomise?: () => void;   // the Grass Track: new random patches every load
