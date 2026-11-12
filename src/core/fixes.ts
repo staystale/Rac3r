@@ -58,4 +58,8 @@ export const FIX = {
   // - as the other stadiums', two lanes interwoven round an elliptical bowl, one crossover bridge;
   // a night race (world/levels/birdsmess-venue.ts)
   birdsmess: atLoad('birdsmess'),
+  // ?stadiumprops=1: the ROC stadiums' dressing pass - each its own props and litter on the apron
+  // and in the infield (tools/scratch/_rocdata.mjs <id>: the venues' _DRESS), and their barriers
+  // made even (world/stadiumtidy.ts: Armco and fences eased, free ends met)
+  stadiumprops: atLoad('stadiumprops'),
 };

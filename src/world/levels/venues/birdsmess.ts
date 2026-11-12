@@ -587,3 +587,48 @@ export const BIRDSMESS_LITTER: NonNullable<VenueSpec['litter']> = [
   {"at": [-65.5, 0.3], "kind": "box"},
   {"at": [-66, 2.1], "kind": "crate"},
 ];
+
+// the dressing pass's props, on the apron and in the infield (?stadiumprops=1:
+// VenueSpec.landmarks)
+export const BIRDSMESS_DRESS: NonNullable<VenueSpec['landmarks']> = [
+  {"at": [28.4, -80.8], "kind": "truck", "size": 2.5, "len": 14, "rot": 2.831, "col": "#c8302c"},
+  {"at": [13.1, -75.9], "kind": "truck", "size": 2.5, "len": 14, "rot": 2.831, "col": "#d6a21e"},
+  {"at": [114, 7], "kind": "truck", "size": 2.5, "len": 14, "rot": -1.571, "col": "#c8302c"},
+  {"at": [118.5, 7], "kind": "truck", "size": 2.5, "len": 14, "rot": -1.571, "col": "#d6a21e"},
+  {"at": [115, 18], "kind": "parkedcar", "size": 1.8, "len": 4.2, "rot": -1.571, "col": "#c8302c"},
+  {"at": [117.6, 18], "kind": "parkedcar", "size": 1.8, "len": 4.2, "rot": -1.571,
+      "col": "#c8302c"},
+  {"at": [-123.6, -19.1], "kind": "parkedcar", "size": 1.8, "len": 4.2, "rot": 1.849,
+      "col": "#d6a21e"},
+  {"at": [-68.2, -79.4], "kind": "tower", "size": 4, "rot": 2.799},
+  {"at": [27, -18], "kind": "sculpture", "size": 4, "rot": 2.82},
+  {"at": [-64, -14.6], "kind": "parkedcar", "size": 1.8, "len": 4.2, "rot": 1.849,
+      "col": "#c8302c"},
+  {"at": [-65.5, -9.3], "kind": "parkedcar", "size": 1.8, "len": 4.2, "rot": 1.849,
+      "col": "#d6a21e"},
+  {"at": [-67, -4.1], "kind": "parkedcar", "size": 1.8, "len": 4.2, "rot": 1.849, "col": "#c8302c"},
+  {"at": [-116.4, 38], "kind": "crowd", "size": 3, "len": 9, "rot": 1.225, "seed": 1},
+  {"at": [-113, 48.5], "kind": "crowd", "size": 3, "len": 7, "rot": 1.225, "seed": 2},
+];
+
+// and its loose objects (?stadiumprops=1: VenueSpec.litter)
+export const BIRDSMESS_DRESS_LITTER: NonNullable<VenueSpec['litter']> = [
+  {"at": [121.5, -3], "kind": "crate", "rot": -1.571},
+  {"at": [121.6, -4.2], "kind": "box", "rot": -1.571},
+  {"at": [121.4, -5.4], "kind": "crate", "rot": -1.571},
+  {"at": [120.5, 19], "kind": "tyre", "rot": -1.571},
+  {"at": [120.7, 18.1], "kind": "tyre", "rot": -1.571},
+  {"at": [120.4, 17.2], "kind": "tyre", "rot": -1.571},
+  {"at": [121.4, 18.6], "kind": "tyre", "rot": -1.571},
+  {"at": [-121.3, -25.2], "kind": "caravan", "rot": 1.849},
+  {"at": [-120.3, -29.6], "kind": "bin", "rot": 1.849},
+  {"at": [-120, -30.3], "kind": "bin", "rot": 1.849},
+  {"at": [-120, -31.1], "kind": "bin", "rot": 1.849},
+  {"at": [-62.3, -82.1], "kind": "box", "rot": 2.799},
+  {"at": [-61.3, -81.6], "kind": "crate", "rot": 2.799},
+  {"at": [-61.5, -80.7], "kind": "box", "rot": 2.799},
+  {"at": [-9.7, -70.3], "kind": "bin", "rot": -2.872},
+  {"at": [-10.6, -70.6], "kind": "bin", "rot": -2.872},
+  {"at": [-11.5, -70.8], "kind": "bin", "rot": -2.872},
+  {"at": [-12.8, -71.4], "kind": "pallet", "rot": -2.872},
+];

@@ -15,8 +15,9 @@
 // the south straight's middle so a long straight leads to it, 950 m (the real 1-1.2 km). At FULL
 // SIZE as Wobbly's (two lanes at the 13 m road need 20 m between centres); the bowl the Stade de
 // France's oval, ~380 x 245 m with its roof ring (creative licence). Dressed as Wobbly's. North up.
-import { STADEPRANCE_FLAGS, STADEPRANCE_VENUE }
+import { STADEPRANCE_DRESS, STADEPRANCE_DRESS_LITTER, STADEPRANCE_FLAGS, STADEPRANCE_VENUE }
   from "./venues/stadeprance.ts";
+import { FIX } from "../../core/fixes.ts";
 import { venueLap, venueLevel } from "../venue.ts";
 import type { VenueSpec } from "../venue.ts";
 import type { Level } from "../types.ts";
@@ -77,14 +78,21 @@ export const STADEPRANCE_SPEC: VenueSpec = {
   // the barriers tidied, an Armco end carried on to the catch fence's round the crossover
   // (world/venuetidy.ts)
   tidyEdge: 'fences',
+  // (?stadiumprops=1) and made even: its Armco and fences eased, its free ends met
+  // (world/stadiumtidy.ts)
+  ...(FIX.stadiumprops ? { evenEdge: true } : {}),
   // the crossover: the inner lane's way back out runs under the outer lane's way in, its cut 1.5 m
   // wider each side than the road's own and its lintels 2.4 m further from the bridge road (room
   // for a car on either road's edge at the portals; the generator's CUT_SPARE, LINTEL_EXTRA)
   crossover: { under: 'Crossover under', spareM: 1.5, clearM: 2.4 },
-  // the flags along the front of the bowl (the generator's)
+  // the flags along the front of the bowl (the generator's); with ?stadiumprops=1 its dressing
+  // (the generator's): a paddock and transporters in blue, white and red along the north apron, a
+  // TV camera platform, a motorhome, fans, show cars in the infield, spare tyres, cones
   landmarks: [
     ...STADEPRANCE_FLAGS,
   ],
+  ...(FIX.stadiumprops
+    ? { dress: { props: STADEPRANCE_DRESS, litter: STADEPRANCE_DRESS_LITTER } } : {}),
   // a stadium: no trees, no bushes on its pitch, no kerbs (the lanes laid on plates)
   trees: 0,
   bushless: true,

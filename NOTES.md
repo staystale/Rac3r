@@ -713,6 +713,12 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   The Bird's Mess its bowlLook, litter, floodlight ring and mown lattice. tools/aifieldcheck.mjs
   steps no crossings (world/crossings.ts clampWorld): on a stadium its field stalls at the bridge,
   0 laps (Stade de Prance too) - use tools/scratch/_crossovercheck.mjs and _rocrace.mjs.
+  DRESSING IS LAID AFTER THE BOARDS (11-12, ?stadiumprops=1): a landmark is a building to the edge
+  and the boards - one near a board pushed it along its fence (one board went), and the catch
+  fence kept off it. VenueSpec.dress is placed once the boards and the edge stand, and an item
+  2.5 m from a board or 1.5 m from a barrier is left out (world/venuebowl.ts). A stadium's catch
+  fence stands ~15 m off the outer lane, not at the 10 m rail: its apron is 15 m out to the flags
+  (Wobbly's a few metres - its dressing is in the infield).
 - THE ROC START (owner 11-11: "cars on separate track halves and timed, 1 full lap; optional laps
   still in test and optional AI quantity"): Level.splitStart - you on the start line's half, the
   rival alongside on the other lane (the path's other half: game/grid.ts splitLineDist), each

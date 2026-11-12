@@ -501,3 +501,51 @@ export const STADEPRANCE_FLAGS: NonNullable<VenueSpec['landmarks']> = [
   {"at": [-33.6, 79.2], "kind": "flag", "size": 1, "col": "#3b82f6"},
   {"at": [-19.1, 79.9], "kind": "flag", "size": 1, "col": "#eab308"},
 ];
+
+// the dressing pass's props, on the apron and in the infield (?stadiumprops=1:
+// VenueSpec.landmarks)
+export const STADEPRANCE_DRESS: NonNullable<VenueSpec['landmarks']> = [
+  {"at": [37, -70], "kind": "truck", "size": 2.5, "len": 14, "rot": -3.107, "col": "#2b56b5"},
+  {"at": [37.1, -74.5], "kind": "truck", "size": 2.5, "len": 14, "rot": -3.107, "col": "#e8e6e0"},
+  {"at": [48, -70.6], "kind": "parkedcar", "size": 1.8, "len": 4.2, "rot": -3.107,
+      "col": "#c8302c"},
+  {"at": [48.1, -73.2], "kind": "parkedcar", "size": 1.8, "len": 4.2, "rot": -3.107,
+      "col": "#2b56b5"},
+  {"at": [-6.4, -74.4], "kind": "truck", "size": 2.5, "len": 14, "rot": -3.107, "col": "#2b56b5"},
+  {"at": [-22.4, -74.9], "kind": "truck", "size": 2.5, "len": 14, "rot": -3.107, "col": "#e8e6e0"},
+  {"at": [-42.3, -70.9], "kind": "tower", "size": 4, "rot": 3.075},
+  {"at": [123.2, -7.1], "kind": "parkedcar", "size": 1.8, "len": 4.2, "rot": -1.645,
+      "col": "#e8e6e0"},
+  {"at": [-113.9, 4.7], "kind": "crowd", "size": 3, "len": 9, "rot": 1.535, "seed": 1},
+  {"at": [-113.9, 15.7], "kind": "crowd", "size": 3, "len": 7, "rot": 1.535, "seed": 2},
+  {"at": [29.2, -11.2], "kind": "parkedcar", "size": 1.8, "len": 4.2, "rot": -3.107,
+      "col": "#2b56b5"},
+  {"at": [23.7, -11.4], "kind": "parkedcar", "size": 1.8, "len": 4.2, "rot": -3.107,
+      "col": "#e8e6e0"},
+  {"at": [18.2, -11.6], "kind": "parkedcar", "size": 1.8, "len": 4.2, "rot": -3.107,
+      "col": "#c8302c"},
+];
+
+// and its loose objects (?stadiumprops=1: VenueSpec.litter)
+export const STADEPRANCE_DRESS_LITTER: NonNullable<VenueSpec['litter']> = [
+  {"at": [27.2, -77.8], "kind": "crate", "rot": -3.107},
+  {"at": [26, -78], "kind": "box", "rot": -3.107},
+  {"at": [24.8, -77.8], "kind": "crate", "rot": -3.107},
+  {"at": [-35.8, -71.8], "kind": "box", "rot": 3.075},
+  {"at": [-35, -71], "kind": "crate", "rot": 3.075},
+  {"at": [-35.5, -70.2], "kind": "box", "rot": 3.075},
+  {"at": [123.2, -0.6], "kind": "caravan", "rot": -1.645},
+  {"at": [123.8, 3.9], "kind": "bin", "rot": -1.645},
+  {"at": [123.7, 4.7], "kind": "bin", "rot": -1.645},
+  {"at": [124, 5.5], "kind": "bin", "rot": -1.645},
+  {"at": [-63.4, -9.1], "kind": "cone", "rot": 1.534},
+  {"at": [-63.1, -8.5], "kind": "cone", "rot": 1.534},
+  {"at": [-63.4, -7.9], "kind": "cone", "rot": 1.534},
+  {"at": [-63.8, -8.4], "kind": "cone", "rot": 1.534},
+  {"at": [-63.1, -6.9], "kind": "cone", "rot": 1.534},
+  {"at": [-93.9, 55.8], "kind": "tyre", "rot": 0.637},
+  {"at": [-93.3, 56.5], "kind": "tyre", "rot": 0.637},
+  {"at": [-92.4, 56.8], "kind": "tyre", "rot": 0.637},
+  {"at": [-94.1, 56.7], "kind": "tyre", "rot": 0.637},
+  {"at": [-93.4, 57.4], "kind": "tyre", "rot": 0.637},
+];

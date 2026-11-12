@@ -416,3 +416,33 @@ export const WOBBLY_FLAGS: NonNullable<VenueSpec['landmarks']> = [
   {"at": [-80.9, 61.8], "kind": "flag", "size": 1, "col": "#ef4444"},
   {"at": [-67.2, 69.3], "kind": "flag", "size": 1, "col": "#3b82f6"},
 ];
+
+// the dressing pass's props, on the apron and in the infield (?stadiumprops=1:
+// VenueSpec.landmarks)
+export const WOBBLY_DRESS: NonNullable<VenueSpec['landmarks']> = [
+  {"at": [18.3, -13.1], "kind": "truck", "size": 2.5, "len": 14, "rot": -3.105, "col": "#c8302c"},
+  {"at": [2.3, -13.7], "kind": "truck", "size": 2.5, "len": 14, "rot": -3.105, "col": "#2b56b5"},
+  {"at": [-37.9, -14.1], "kind": "tower", "size": 4, "rot": 2.207},
+  {"at": [3.8, -7.6], "kind": "crowd", "size": 3, "len": 9, "rot": 3.105, "seed": 1},
+  {"at": [-7.2, -6.8], "kind": "crowd", "size": 3, "len": 7, "rot": 3.105, "seed": 2},
+  {"at": [-15.2, -12], "kind": "crowd", "size": 3, "len": 8, "rot": 3.07, "seed": 3},
+  {"at": [37.1, -0.8], "kind": "parkedcar", "size": 1.8, "len": 4.2, "rot": -1.67,
+      "col": "#c8302c"},
+  {"at": [36.5, -6.3], "kind": "parkedcar", "size": 1.8, "len": 4.2, "rot": -1.67,
+      "col": "#2b56b5"},
+  {"at": [36, -11.8], "kind": "parkedcar", "size": 1.8, "len": 4.2, "rot": -1.67, "col": "#e8e6e0"},
+];
+
+// and its loose objects (?stadiumprops=1: VenueSpec.litter)
+export const WOBBLY_DRESS_LITTER: NonNullable<VenueSpec['litter']> = [
+  {"at": [-40.8, 4.8], "kind": "caravan", "rot": 1.196},
+  {"at": [-42.2, 0.5], "kind": "bin", "rot": 1.196},
+  {"at": [-42.6, -0.2], "kind": "bin", "rot": 1.196},
+  {"at": [-42.8, -1], "kind": "bin", "rot": 1.196},
+  {"at": [-15.5, -16.4], "kind": "podium", "rot": 3.07},
+  {"at": [-42, -7.6], "kind": "cone", "rot": 1.608},
+  {"at": [-41.7, -7], "kind": "cone", "rot": 1.608},
+  {"at": [-42.1, -6.4], "kind": "cone", "rot": 1.608},
+  {"at": [-42.4, -7.1], "kind": "cone", "rot": 1.608},
+  {"at": [-41.9, -5.4], "kind": "cone", "rot": 1.608},
+];

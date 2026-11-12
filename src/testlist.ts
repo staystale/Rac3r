@@ -13,6 +13,18 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'stadiumprops',
+    added: '2026-11-12',
+    name: 'Stadium dressing: each stadium its own props and litter, its Armco and fences tidied',
+    where: 'Test link + &stadiumprops=1 (and &birdsmess=1): TEST MODE > RALLYCROSS > Wobbly,'
+      + " Stade de Prance, The Bird's Mess",
+    try: 'Lap each stadium: look at the Armco between the lanes by the crossover and in the'
+      + ' corners beside it, and at the transporters, paddock, TV platform, motorhome, show cars'
+      + ' and fans behind the fences and in the infield.',
+    wrong: 'Armco with a kink or step, an end meeting nothing, a prop on a fence, over the track or'
+      + " in a car's way, a board gone or moved, a lower frame rate.",
+  },
+  {
     id: 'birdsmess',
     added: '2026-11-12',
     name: "The Bird's Mess: the Race of Champions in Beijing, two lanes, a crossover, at night",

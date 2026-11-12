@@ -169,7 +169,7 @@ function isStub(run: Barrier, others: Barrier[]): boolean {
  * @param lanes the lanes
  * @returns true when it does
  */
-function joinClear(from: Point, until: Point, sub: Subtrack, lanes: Lane[],
+export function joinClear(from: Point, until: Point, sub: Subtrack, lanes: Lane[],
   roadM = JOIN_ROAD_M): boolean {
   for (let share = 0; share <= 1.0001; share += 0.1) {
     const x = from[0] + (until[0] - from[0]) * share, y = from[1] + (until[1] - from[1]) * share;

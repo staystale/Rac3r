@@ -238,5 +238,8 @@ X (its portals square with their lane; its barrier ends carried on to the portal
 START (`Level.splitStart`): its cars on the path's two halves, each timed over its laps from its own line (`game/grid.ts`,
 `game/order.ts` progressOf). A stadium may dress its own bowl (`VenueSpec.bowlLook`: the stands' seat colours, the roof ring's
 steel lattice - `world/venuebowl.ts`, drawn by `drawGrandstand` / `drawBlock`), lay litter by hand (`VenueSpec.litter`: loose
-debris kinds, tidied as every loose object) and floodlight pylons (landmarks of kind `pylon`, lamps as any level's). A level may
+debris kinds, tidied as every loose object) and floodlight pylons (landmarks of kind `pylon`, lamps as any level's).
+Under `?stadiumprops=1` a stadium's tidied edge is made even (`VenueSpec.evenEdge`, `world/stadiumtidy.ts`: Armco and catch
+fences eased by Taubin smoothing, free ends carried on to the run beside them) and it gets a dressing pass (`VenueSpec.dress`:
+props and loose objects from `tools/scratch/_rocdata.mjs`'s kits, laid after the boards and kept clear of them and the barriers). A level may
 start its events at an hour of its own (`Level.eventHour`, a night race: used when the setup's TIME is LIVE, `game/menuflow.ts`).
