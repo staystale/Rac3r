@@ -24,11 +24,21 @@ try {
   await page.waitForTimeout(1500);
   await page.evaluate(() => window.__game.launch('moanaco', window.__game.car.spec.id, { ai: 0 }));
   await page.waitForTimeout(9000);
-  await page.evaluate(async () => {
-    const game = window.__game, sub = game.level.subtrack, span = sub.under[0];
+  // (env AT=x,y: start 25 m before the race road's point nearest there - a footbridge - instead
+  // of before the tunnel's mouth)
+  const at = process.env.AT ? process.env.AT.split(',').map(Number) : null;
+  await page.evaluate(async (near) => {
+    const game = window.__game, sub = game.level.subtrack;
+    let from = sub.under[0].d0 - 22;
+    if (near) {
+      let closest = sub.pts[0];
+      for (const point of sub.pts) if (Math.hypot(point.x - near[0], point.y - near[1])
+        < Math.hypot(closest.x - near[0], closest.y - near[1])) closest = point;
+      from = closest.dist - 25;
+    }
     let best = sub.pts[0];
     const speed = 20;
-    for (const point of sub.pts) if (point.dist <= span.d0 - 22) best = point;
+    for (const point of sub.pts) if (point.dist <= from) best = point;
     const { reset } = await import('/src/vehicle.ts');
     game.car.crossing = -1;
     reset(game.car, best.x, best.y, best.heading);
@@ -40,24 +50,27 @@ try {
       ? { steer: 0, throttle: 0, brake: 1, handbrake: 1, reverse: 0, shiftUp: false,
         shiftDown: false }
       : { ...driver.drive(game.car), reverse: 0, shiftUp: false, shiftDown: false });
-  });
+  }, at);
   await page.evaluate((zoom) => window.__game.renderer.debugZoom(zoom), ZOOM);
   for (let stop = 0; stop < STOPS; stop++) {
     // (on again at the speed it was stopped at)
     await page.evaluate(() => {
       const car = window.__game.car, leak = window.__leak;
-      if (leak.vx !== undefined) Object.assign(car, { vx: leak.vx, vy: leak.vy });
+      if (leak.vx !== undefined) Object.assign(car, { vx: leak.vx, vy: leak.vy, heading: leak.heading });
       leak.stopped = false;
     });
     await page.waitForTimeout(STEP_S * 1000);
-    const state = await page.evaluate(() => {
+    // (env TURN=radians: the stopped car turned by that much - its beam at the tunnel's side)
+    const state = await page.evaluate((turn) => {
       const car = window.__game.car;
+      window.__leak.heading = car.heading;
+      car.heading += turn;
       Object.assign(window.__leak, { stopped: true, vx: car.vx, vy: car.vy });
       car.vx = 0;
       car.vy = 0;
       car.lightsOn = false;
       return { crossing: car.crossing, at: [+car.x.toFixed(1), +car.y.toFixed(1)] };
-    });
+    }, +(process.env.TURN || 0));
     await page.waitForTimeout(700);
     const off = await page.screenshot();
     await page.evaluate(() => { window.__game.car.lightsOn = true; });

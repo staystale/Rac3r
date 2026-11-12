@@ -261,6 +261,13 @@ function clipToCut(ctx: CanvasRenderingContext2D, car: RenderCar, toX: (x: numbe
     });
     [...face(left, right), ...face(right, left).reverse()].forEach((pts, i) => point(pts, !i));
     ctx.closePath();
+    // (?coverlight=1: the walls clipped first, then the slats off it - in one even-odd path a
+    // slat's end out past a wall was inside the slat and outside the walls, so it was lit)
+    if (FIX.coverlight) {
+      ctx.clip();
+      ctx.beginPath();
+      ctx.rect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    }
     for (const outline of way.hidden) {
       outline.forEach((pts, i) => point(pts, !i));
       ctx.closePath();

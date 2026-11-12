@@ -54,8 +54,13 @@ records in `TODO-DONE.md` (PASSED 11-12). On the phone now:
   is its light). COVERLIGHT (`?coverlight=1`): a car not in a tunnel has its light clipped off
   every slat of a slatted cover within its light's reach (render/coverlight.ts clipOffCovers; one
   box test per cover out of reach). The photo before the mouth: the beam stops at the slats, the
-  open cut before them still lit. WRONG as above, and light on the slats from a car approaching,
-  leaving or beside the tunnel.
+  open cut before them still lit. And (owner 11-12, a photo: "still happening on the side of
+  moanaco tunnel") a car IN the tunnel turned toward a wall lit slat-shaped patches past it: its
+  clip was one even-odd path of the walls and the slats, and a slat's end out past a wall was
+  inside the slat and outside the walls - so lit. Now the walls are clipped first, then the slats
+  off that (render/light.ts clipToCut). The photo turned 0.9 rad at five stops: the beam ends at
+  the wall. WRONG as above, and light on the slats from a car approaching, leaving or beside the
+  tunnel, or past its side.
 
 ## 2. BEING BUILT
 
