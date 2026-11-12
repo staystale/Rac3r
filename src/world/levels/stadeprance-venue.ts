@@ -33,7 +33,7 @@ export const STADEPRANCE_SPEC: VenueSpec = {
   calibrate: { layout: 'roc', realLapM: 950 },
   // the start line on the outer lane's north straight, the grid back toward its north-east hairpin
   // (on the gravel of the south-west straight - the owner: "start on the gravel facing the same
-  // way but on different lanes"; the inner lane's gravel alongside, 20 m in, the same way)
+  // way but on different lanes"; the inner lane's gravel alongside, 30 m in, the same way)
   start: [-19.9, 48],
   startOnLine: true,
   // the Race of Champions' start: the two cars side by side on the two lanes, each timed over its

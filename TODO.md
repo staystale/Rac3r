@@ -89,7 +89,8 @@ build's full record (what was built, every number) is in `TODO-DONE.md` under it
   different lanes where they race back to their start line"; "a test menu option like other rally
   cross events", "pressing this button should auto set" 2 cars): the start line on the outer lane's
   gravel (Wobbly the north straight, Stade de Prance the south-west), the rival's line painted on
-  the inner lane's gravel alongside (world/splitstart.ts; the same way, 20 m apart); setup's
+  the inner lane's gravel alongside (world/splitstart.ts; the same way, Wobbly 20 m apart, Stade de Prance 30 m);
+  setup's
   PRACTICE / HEAD-TO-HEADBUTT · 1 LAP row (the event sets 1 rival and 1 lap, both still
   adjustable). MEASURED (_rocrace.mjs): the cars 20 m apart side by side on the gravel, Wobbly
   46.39 / 46.54 s, Stade de Prance 56.87 / 56.96 s, each one lap back to its own line.
