@@ -14,7 +14,6 @@ import { SPRITE_PPM } from "./shared.ts";
 import type { ArtLayer } from "./types.ts";
 
 export const TEX_M = 24;        // the repeat distance in metres (owner judges it on the phone)
-export const TEX_MAX = 24;      // most textures cached (least recently used goes first)
 export const TEX_PPM = SPRITE_PPM;  // art px per metre of every texture (as the car sprites)
 
 type Mark = (
@@ -259,10 +258,17 @@ export function fillTexture(gfx: Gfx, tex: HTMLCanvasElement, ppm: number, rect:
   gfx.imageSmoothingEnabled = smooth;
 }
 
-// the texture cache: key -> canvas, one painting per surface at TEX_PPM whatever the zoom, dpr or
-// level (a texture depends only on the surface's art, so it is kept across levels), at most
-// TEX_MAX entries, least recently used evicted first
-export function createTextureCache() {
+/**
+ * The texture cache: key -> canvas, one painting per surface at TEX_PPM whatever the zoom, dpr or
+ * level (a texture depends only on the surface's art, so it is kept across levels), at most
+ * capacity entries, least recently used evicted first. The capacity is every surface's (ground.ts):
+ * at 24 for 27 surfaces the idle warm-up (ground/art.ts warmNextTexture) never ended - each
+ * texture it painted evicted one it had painted, so one was repainted (and uploaded to the GPU
+ * again) every 60 ms all session (MEASURED: 19% of the main thread, Spa at CPU x4).
+ * @param capacity the most textures kept (~0.7 MB each)
+ * @returns get (painted on first use) and has
+ */
+export function createTextureCache(capacity: number) {
   const cache = new Map<string, HTMLCanvasElement>();
   function get(key: string, paint: (gfx: Gfx, period: number) => void) {
     const hit = cache.get(key);
@@ -275,7 +281,7 @@ export function createTextureCache() {
     const gfx = canvas.getContext('2d', { willReadFrequently: true })!;
     paint(gfx, size / TEX_PPM);
     cache.set(key, canvas);
-    while (cache.size > TEX_MAX) cache.delete(cache.keys().next().value!);
+    while (cache.size > capacity) cache.delete(cache.keys().next().value!);
     return canvas;
   }
   return { get, has: (key: string) => cache.has(key) };

@@ -27,14 +27,15 @@ import type { Crossing } from "../world/types.ts";
  * @returns the painters and the surface tables render.ts and others read
  */
 export function createGround(view: View, cam: Cam, helpers: GroundHelpers) {
+  const SURFACE_ART = makeSurfaceArt();
+  // every surface's texture kept (each one painting: textures.ts createTextureCache)
   const groundCtx: GroundCtx = {
-    view, cam, ...helpers, textures: createTextureCache(),
-    SURFACE_ART: makeSurfaceArt(),
+    view, cam, ...helpers, textures: createTextureCache(Object.keys(SURFACE_ART).length),
+    SURFACE_ART,
     bladeMasks: new Map(),
     PRIM: {},
   };
   groundCtx.PRIM = makePrim(groundCtx);
-  const { SURFACE_ART } = groundCtx;
 
   return {
     drawFloor: () => drawFloor(groundCtx),

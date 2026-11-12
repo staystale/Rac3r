@@ -322,6 +322,15 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
 
 ## Measured lessons
 
+- A CACHE MUST HOLD WHAT ITS WARM-UP FILLS (11-12): the texture cache kept 24, the idle warm-up
+  painted all 27 surfaces, so each one it painted evicted one it had painted and it never ended -
+  a texture repainted (and uploaded to the GPU again) every 60 ms all session, on every level and
+  the menu: 19% of the main thread at CPU x4, and the frames pushed past the refresh (Spa 20 AI
+  with the AI culled: frame median 34.7 -> 18.1 ms once fixed). Size a cache from the table it
+  caches (render/ground.ts), and profile a few seconds AFTER a load, not only the load.
+- WHAT A FULL GRID COSTS IS ITS DRAWING (11-12): 20 AI at CPU x4 - their driving outside the
+  profile's top 40, their cars' pictures (each repainted each frame, the ones off the view too)
+  48% of the loop. Profile before naming the cost.
 - A CANVAS READ BACK STALLS AND CAN RASTERISE DIFFERENTLY (11-08): getImageData waits for all the
   drawing queued before it (the crash bench's re-dented cars: 22 % of the impact's CPU - read a
   sprite once, render/spritepixels.ts). Chrome keeps a canvas's drawing as a list and rasterises

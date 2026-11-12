@@ -23,6 +23,14 @@ The 11-11 round (14 entries, 11 switches) passed 11-12, its record in `TODO-DONE
   fillRect blurred their edges (0.007% of a frame's pixels, renderhash with RAC3R_CAR=track-rwd).
   WRONG: arms missing or misplaced, not turning with the steering, a lower frame rate.
 
+- TEXTURE WARM-UP NEVER ENDED (the same pass; a fix, no switch, no look - CI's renderhash on every
+  level is its proof; no testlist entry, nothing to see): the texture cache held 24 of the 27
+  surfaces, so the idle warm-up evicted what it painted and repainted one every 60 ms all session
+  (render/textures.ts createTextureCache: its capacity now every surface's). MEASURED, Spa at CPU
+  x4: the warm-up 1371 -> 288 ms of a 10 s profile (its last textures, then done); with
+  ?carcull=1, frame median 34.7 -> 18.1 ms, frames over 33 ms 290 -> 237 of 570. Watch the phone
+  report's "slow with GPU uploads" on the next run: some were these repaints.
+
 - CARCULL (`?carcull=1`; the same pass; testlist carcull): what the "AI cost" of a full grid
   really was - not the AI's driving (outside the profile's top 40) but its cars' drawing: every
   AI car's picture painted afresh each frame, the ones off the view too (highway traffic was
