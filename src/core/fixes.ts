@@ -51,14 +51,6 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
-  // ?birdsmess=1: The Bird's Mess, the Race of Champions' track in the Bird's Nest (Beijing 2009)
-  // - as the other stadiums', two lanes interwoven round an elliptical bowl, one crossover bridge;
-  // a night race (world/levels/birdsmess-venue.ts)
-  birdsmess: atLoad('birdsmess'),
-  // ?stadiumprops=1: the ROC stadiums' dressing pass - each its own props and litter on the apron
-  // and in the infield (tools/scratch/_rocdata.mjs <id>: the venues' _DRESS), and their barriers
-  // made even (world/stadiumtidy.ts: Armco and fences eased, free ends met)
-  stadiumprops: atLoad('stadiumprops'),
   // ?thumbfill=1: a menu screen opened while the shipped track thumbnails are still being read
   // fills each one in as it arrives (before, it showed only what had come; menu/tracks.ts addThumb)
   thumbfill: atLoad('thumbfill'),

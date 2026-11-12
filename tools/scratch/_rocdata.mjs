@@ -22,7 +22,7 @@ const VENUES = {
       "// wobbly.ts - written by tools/scratch/_rocdata.mjs wobbly (laid by hand: the Race of",
       "// Champions' track at Wembley, 2007-08, as two lanes interwoven round the bowl, one crossover",
       '// bridge). Game m (share 1). Edit the generator, not this file.'],
-    // (?stadiumprops=1) London's, all in the infield (its apron between the catch fence and the
+    // London's, all in the infield (its apron between the catch fence and the
     // flags is a few metres): red, blue and white transporters, the podium and its crowd, show
     // cars, a TV camera platform, a motorhome with its bins, cones
     dressCols: ['#c8302c', '#2b56b5', '#e8e6e0'],
@@ -42,7 +42,7 @@ const VENUES = {
       "// stadeprance.ts - written by tools/scratch/_rocdata.mjs stadeprance (laid by hand: the Race of",
       "// Champions' track at the Stade de France, 2004-06, as two lanes interwoven round the bowl, one",
       '// crossover bridge). Game m (share 1). Edit the generator, not this file.'],
-    // (?stadiumprops=1) Paris's: a paddock and a row of transporters in blue, white and red along
+    // Paris's: a paddock and a row of transporters in blue, white and red along
     // the long north apron, a TV camera platform, a motorhome by the double apex, fans on the west,
     // show cars in the infield, spare tyres and cones
     dressCols: ['#2b56b5', '#e8e6e0', '#c8302c'],
@@ -66,7 +66,7 @@ const VENUES = {
       ['Outer north', 0.5, 1, 20, 'pallets'], ['Outer west', 0.55, 1, 20, 'barrels'],
       ['Outer west', 0.93, 1, 19, 'tarp'], ['Inner north', 0.3, -1, 18, 'tyres'],
       ['Inner west', 0.5, -1, 18, 'pallets']],
-    // (?stadiumprops=1) Beijing's: red and gold transporters and a paddock, a motorhome on the west
+    // Beijing's: red and gold transporters and a paddock, a motorhome on the west
     // apron, a TV camera platform, a red steel sculpture in the infield, show cars, bins
     dressCols: ['#c8302c', '#d6a21e'],
     dress: [['Outer north', 0.26, 1, 20, 'transporters'], ['Outer east', 0.5, 1, 19, 'paddock'],
@@ -324,7 +324,7 @@ const litter = (venue.litter || []).flatMap(([name, share, side, out, kit]) => {
     at: [r1(ax + along[0] * forward + across[0] * (out + outward)),
       r1(ay + along[1] * forward + across[1] * (out + outward))], kind, ...(col ? { col } : {}) }));
 });
-// THE DRESSING (?stadiumprops=1: venue.dress, [piece, share along it, side, m out, kit]): kits of
+// THE DRESSING (venue.dress, [piece, share along it, side, m out, kit]): kits of
 // the existing prop kinds (DRESS_PROPS: VenueSpec.landmarks, solid where their kind is) and loose
 // objects (VenueSpec.litter), each [m along, m out, kind, { c: colour index into
 // venue.dressCols, size, len, seed }] in the lane's frame, behind the barrier on the apron or in
@@ -434,11 +434,11 @@ if (litter.length) {
 }
 if (dressItems.length) {
   const name = venue.exportName.replace('_VENUE', '');
-  lines.push("// the dressing pass's props, on the apron and in the infield (?stadiumprops=1:",
+  lines.push("// the dressing pass's props, on the apron and in the infield (",
     '// VenueSpec.landmarks)',
     `export const ${name}_DRESS: NonNullable<VenueSpec['landmarks']> = [`);
   for (const item of dressProps) lines.push(`  ${json(item)},`);
-  lines.push('];', '', "// and its loose objects (?stadiumprops=1: VenueSpec.litter)",
+  lines.push('];', '', "// and its loose objects (VenueSpec.litter)",
     `export const ${name}_DRESS_LITTER: NonNullable<VenueSpec['litter']> = [`);
   for (const item of dressLoose) lines.push(`  ${json(item)},`);
   lines.push('];', '');

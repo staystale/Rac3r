@@ -190,7 +190,7 @@ export interface VenueSpec {
   // and tyres): a venue's litter, kept off the road as every loose object is (tidyLoose)
   litter?: { at: Point; kind: string; col?: string; rot?: number }[];
   // a dressing pass's props (as landmarks) and loose objects (as litter), laid after the boards
-  // and kept clear of them (world/venuebowl.ts venueDress; the stadiums' ?stadiumprops=1)
+  // and kept clear of them (world/venuebowl.ts venueDress)
   dress?: { props: NonNullable<VenueSpec['landmarks']>; litter: NonNullable<VenueSpec['litter']> };
   // the pit lane's surface where the venue's ground is concrete too (Moanaco's: tarmac); concrete
   // when not given

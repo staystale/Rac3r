@@ -502,7 +502,7 @@ export const STADEPRANCE_FLAGS: NonNullable<VenueSpec['landmarks']> = [
   {"at": [-19.1, 79.9], "kind": "flag", "size": 1, "col": "#eab308"},
 ];
 
-// the dressing pass's props, on the apron and in the infield (?stadiumprops=1:
+// the dressing pass's props, on the apron and in the infield (
 // VenueSpec.landmarks)
 export const STADEPRANCE_DRESS: NonNullable<VenueSpec['landmarks']> = [
   {"at": [37, -70], "kind": "truck", "size": 2.5, "len": 14, "rot": -3.107, "col": "#2b56b5"},
@@ -526,7 +526,7 @@ export const STADEPRANCE_DRESS: NonNullable<VenueSpec['landmarks']> = [
       "col": "#c8302c"},
 ];
 
-// and its loose objects (?stadiumprops=1: VenueSpec.litter)
+// and its loose objects (VenueSpec.litter)
 export const STADEPRANCE_DRESS_LITTER: NonNullable<VenueSpec['litter']> = [
   {"at": [27.2, -77.8], "kind": "crate", "rot": -3.107},
   {"at": [26, -78], "kind": "box", "rot": -3.107},

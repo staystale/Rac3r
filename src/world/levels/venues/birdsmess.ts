@@ -588,7 +588,7 @@ export const BIRDSMESS_LITTER: NonNullable<VenueSpec['litter']> = [
   {"at": [-66, 2.1], "kind": "crate"},
 ];
 
-// the dressing pass's props, on the apron and in the infield (?stadiumprops=1:
+// the dressing pass's props, on the apron and in the infield (
 // VenueSpec.landmarks)
 export const BIRDSMESS_DRESS: NonNullable<VenueSpec['landmarks']> = [
   {"at": [28.4, -80.8], "kind": "truck", "size": 2.5, "len": 14, "rot": 2.831, "col": "#c8302c"},
@@ -611,7 +611,7 @@ export const BIRDSMESS_DRESS: NonNullable<VenueSpec['landmarks']> = [
   {"at": [-113, 48.5], "kind": "crowd", "size": 3, "len": 7, "rot": 1.225, "seed": 2},
 ];
 
-// and its loose objects (?stadiumprops=1: VenueSpec.litter)
+// and its loose objects (VenueSpec.litter)
 export const BIRDSMESS_DRESS_LITTER: NonNullable<VenueSpec['litter']> = [
   {"at": [121.5, -3], "kind": "crate", "rot": -1.571},
   {"at": [121.6, -4.2], "kind": "box", "rot": -1.571},

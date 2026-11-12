@@ -17,7 +17,6 @@
 // infield, a row of flags before the stands. North up.
 import { WOBBLY_VENUE, WOBBLY_FLAGS, WOBBLY_DRESS, WOBBLY_DRESS_LITTER }
   from "./venues/wobbly.ts";
-import { FIX } from "../../core/fixes.ts";
 import { venueLap, venueLevel } from "../venue.ts";
 import type { VenueSpec } from "../venue.ts";
 import type { Level } from "../types.ts";
@@ -79,20 +78,19 @@ export const WOBBLY_SPEC: VenueSpec = {
   // the barriers tidied, an Armco end carried on to the catch fence's round the crossover
   // (world/venuetidy.ts)
   tidyEdge: 'fences',
-  // (?stadiumprops=1) and made even: its Armco and fences eased, its free ends met
-  // (world/stadiumtidy.ts)
-  ...(FIX.stadiumprops ? { evenEdge: true } : {}),
+  // and made even: its Armco and fences eased, its free ends met (world/stadiumtidy.ts)
+  evenEdge: true,
   // the crossover: the inner lane's way back out runs under the outer lane's way in, its cut 1.5 m
   // wider each side than the road's own and its lintels 2.4 m further from the bridge road (room
   // for a car on either road's edge at the portals; the generator's CUT_SPARE, LINTEL_EXTRA)
   crossover: { under: 'Crossover under', spareM: 1.5, clearM: 2.4 },
-  // the flags along the front of the bowl (the generator's); with ?stadiumprops=1 its dressing
+  // the flags along the front of the bowl (the generator's); its dressing
   // (the generator's), all in the infield (the apron is a few metres): red, blue and white
   // transporters, the podium and its crowd, show cars, a TV camera platform, cones
   landmarks: [
     ...WOBBLY_FLAGS,
   ],
-  ...(FIX.stadiumprops ? { dress: { props: WOBBLY_DRESS, litter: WOBBLY_DRESS_LITTER } } : {}),
+  dress: { props: WOBBLY_DRESS, litter: WOBBLY_DRESS_LITTER },
   // a stadium: no trees, no bushes on its pitch
   trees: 0,
   bushless: true,

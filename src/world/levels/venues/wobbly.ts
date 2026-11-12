@@ -417,7 +417,7 @@ export const WOBBLY_FLAGS: NonNullable<VenueSpec['landmarks']> = [
   {"at": [-67.2, 69.3], "kind": "flag", "size": 1, "col": "#3b82f6"},
 ];
 
-// the dressing pass's props, on the apron and in the infield (?stadiumprops=1:
+// the dressing pass's props, on the apron and in the infield (
 // VenueSpec.landmarks)
 export const WOBBLY_DRESS: NonNullable<VenueSpec['landmarks']> = [
   {"at": [18.3, -13.1], "kind": "truck", "size": 2.5, "len": 14, "rot": -3.105, "col": "#c8302c"},
@@ -433,7 +433,7 @@ export const WOBBLY_DRESS: NonNullable<VenueSpec['landmarks']> = [
   {"at": [36, -11.8], "kind": "parkedcar", "size": 1.8, "len": 4.2, "rot": -1.67, "col": "#e8e6e0"},
 ];
 
-// and its loose objects (?stadiumprops=1: VenueSpec.litter)
+// and its loose objects (VenueSpec.litter)
 export const WOBBLY_DRESS_LITTER: NonNullable<VenueSpec['litter']> = [
   {"at": [-40.8, 4.8], "kind": "caravan", "rot": 1.196},
   {"at": [-42.2, 0.5], "kind": "bin", "rot": 1.196},
