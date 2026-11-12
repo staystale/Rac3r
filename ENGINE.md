@@ -233,6 +233,7 @@ glass look, grip and dry as on any ground), and is drawn over the bridge or, in 
 (`render/screen.ts`); its tyre marks are its own layer, drawn the same way (`marks.ts`). `tools/crossingcheck.mjs` drives every one.
 A lap that crosses itself (Snoozuka, the ROC stadiums: `world/venuecross.ts`) runs under in a cut whose portals are turned along
 the road at each end and whose walls follow the road's own path (the bent-tunnel crossing, as Moanaco's tunnel); the bridge's
-parapets stop at the portals' walls. A ROC stadium (`tools/scratch/_rocdata.mjs`, one generator for all) races on a SPLIT
+parapets stop at the portals' walls. A ROC stadium (`tools/scratch/_rocdata.mjs`, one generator for all) crosses on a straight
+X (its portals square with their lane; its barrier ends carried on to the portals' wall corners, `world/venuetidy.ts`) and races on a SPLIT
 START (`Level.splitStart`): its cars on the path's two halves, each timed over its laps from its own line (`game/grid.ts`,
 `game/order.ts` progressOf).

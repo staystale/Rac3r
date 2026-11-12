@@ -685,9 +685,10 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   - the inner lane the same lines 20 m in, the crossover's place, which sides are gravel, the
   bowl's shape; it writes the barriers' lines as data.rails, each hairpin's tyre rows as
   data.tyres, the flags as landmarks).
-  Where four arms meet at a crossover the edge ends short of the portals: two abutment walls and
-  tidyEdge 'fences' seal it (_moseal.mjs: 0 escapes). An abutment's end lying along another
-  barrier is trimmed (world/venuetidy.ts trimDoubledEnds), so no Armco is drawn twice.
+  Where four arms meet at a crossover the edge ends short of the portals: tidyEdge 'fences'
+  carries each end on to a portal's wall corner and seals it (_moseal.mjs: 0 escapes; below: A
+  STADIUM'S CROSSOVER IS A STRAIGHT X). An end lying along another barrier is trimmed
+  (world/venuetidy.ts trimDoubledEnds), so no Armco is drawn twice.
 - THE ROC START (owner 11-11: "cars on separate track halves and timed, 1 full lap; optional laps
   still in test and optional AI quantity"): Level.splitStart - you on the start line's half, the
   rival alongside on the other lane (the path's other half: game/grid.ts splitLineDist), each
@@ -697,9 +698,23 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   through one 772 m lap, the results 44.59 s / 46.24 s.
 - A CROSSOVER'S UNDERPASS FOLLOWS ITS ROAD (11-11, owner: "tunnels and edges still seem
   misaligned"): its portals turned along the road at each end and its walls along the road's own
-  path (world/venuecross.ts roadPortals: Moanaco's bent-tunnel crossing) - laid on the chord of a
-  stadium's S, a portal's side wall stood 0.9 m on the road at its start. The bridge's parapet is
+  path (world/venuecross.ts roadPortals: Moanaco's bent-tunnel crossing). The bridge's parapet is
   left out where it runs along a portal's walls (the roads' X), so no Armco runs over a cut.
+- A STADIUM'S CROSSOVER IS A STRAIGHT X (11-11, owner: "the tunnel is wonky now"): under an
+  S-bend no portal can be square with its road (the road turns along it - its open end led onto
+  grass). Two straight diagonals, 25 deg off the lanes (50 between), each into its lane by a 30 m
+  bend: the underpass straight from mouth to mouth (portals 0.05-0.45 deg off the lane, centred).
+  Two limits set it (tools/scratch/_rocdata.mjs prints both): the straight must run past the
+  underpass's end (venuecross halfLength), and the crossing must be steep enough that the cut's
+  corner at the lintel (7.7 m out) clears the road over's edge - at 30 deg between them a car on
+  the bridge road's edge met the portal's wall. Neither fits at the lanes' 20 m: along the south
+  straight that carries the crossover the inner lane runs 30 m in. The stadium's trace is smoothed
+  lightly (2 passes: the default 10 spread the bends 4 deg into the portals), and its barrier ends
+  by a portal are carried on to the wall's corners (world/venuetidy.ts tuckToPortals; two barriers
+  meeting in a V by a wall, each to the corner on its own side - else they crossed): no gap, no
+  pocket, no corner to catch (tools/scratch/_portalcheck.mjs: 24 drives at 15 m/s, 0 hits;
+  tools/scratch/_crossplan.mjs draws the plan). barriercheck lets a barrier's point stand on a
+  portal's wall corner (7.7 m off the road, where the wall itself stands).
 - A STADIUM'S BOWL NEEDS ROOM AT THE HAIRPINS (11-11, Stade de Prance): the catch fence stands
   10 m past the edge where the stands watch; an ellipse round a long lane box came within 25 m of
   the hairpins' outside, the fence had no room and left 16 escapes. The bowl is a superellipse
