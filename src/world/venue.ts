@@ -20,7 +20,8 @@ import { pitTunnelPortals, tunnelSpans, underParapets, underPortals, underSpans 
 import { tidyBarriers } from "./venuetidy.ts";
 import { CIRCUIT_BUSHES } from "./levels/bushes.ts";
 import { buildVenueScenery } from "./venuescenery.ts";
-import { VENUE_ROAD_M, distToLine, kerbOut, lineLength, pointAlong } from "./venuegeo.ts";
+import { VENUE_ROAD_M, distToLine, isNearLine, kerbOut, lineLength, pointAlong }
+  from "./venuegeo.ts";
 import { laneSpawn, venueJoker, venueStartLane } from "./venuejoker.ts";
 import { nearWater } from "./venueoval.ts";
 import type { Barrier, Bump, Camber, Cone, Cover, Lane, Level, Point, Subtrack } from "./types.ts";
@@ -488,7 +489,7 @@ export function tidyLoose(cones: Cone[], barriers: Barrier[], sub: Subtrack,
     if (!Number.isFinite(cone.x) || !Number.isFinite(cone.y)) continue;
     const reach = looseRadius(cone);
     if (!reach) { kept.push(cone); continue; }
-    if (rails.some((rail) => distToLine(rail.pts, cone.x, cone.y) < reach * ON_RAIL_SHARE)
+    if (rails.some((rail) => isNearLine(rail.pts, cone.x, cone.y, reach * ON_RAIL_SHARE))
       || onKerb(sub, cone) || nearWater(covers, cone.x, cone.y, reach) || stackedOn(grid, cone))
       continue;
     kept.push(cone);

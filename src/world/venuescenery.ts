@@ -11,8 +11,8 @@ import { SURFACES } from "./surfaces.ts";
 import { querySubtrack } from "./tyrewall.ts";
 import { parkMiller } from "../core/random.ts";
 import { isAnyPointInBox, isAnyPointWithin, makePointGrid } from "../core/pointgrid.ts";
-import { HALF_ROAD, VENUE_ROAD_M, centreAt, distToLine, evenly, kerbOut, lineLength,
-  makePlacer, nearestLoop, pointAlong, resample, smoothLine } from "./venuegeo.ts";
+import { HALF_ROAD, VENUE_ROAD_M, centreAt, distToLine, evenly, isNearLine, kerbOut,
+  lineLength, makePlacer, nearestLoop, pointAlong, resample, smoothLine } from "./venuegeo.ts";
 import { WALL_REACH_M, boxedLine, buildEdge, railLines, buildRims, inZones, outlineZone, pastRim,
   trapZones } from "./venueedge.ts";
 import { boardOnArmco, marshalPosts, startGantry } from "./venueposts.ts";
@@ -463,7 +463,7 @@ function venueTrees(site: Site, bounds: VenueScenery['bounds'], solids: Prop[],
     || onLanes(site.lanes, x, y, 4) || onLanes(pieces, x, y, TREE_PIECE_M) || inZones(zones, x, y)
     || nearSolid(x, y) || nearWater(ground.covers, x, y, TREE_WATER_M)
     || onPatches(ground.patches, x, y, TREE_MOWN_M)
-    || tyreLines.some((line) => distToLine(line, x, y) < TREE_TYRE_M));
+    || tyreLines.some((line) => isNearLine(line, x, y, TREE_TYRE_M)));
   const most = site.build.spec.trees ?? MAX_TREES;
   for (let i = 0; i < most * 16 && trees.length < most; i++) {
     const x = bounds.x0 + site.rnd() * (bounds.x1 - bounds.x0);

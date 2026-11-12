@@ -140,6 +140,17 @@ const distToChunk = (pts: Point[], x: number, y: number, chunk: number, start: n
   distToSegments(pts, x, y, chunk * LINE_CHUNK, Math.min(pts.length - 1, (chunk + 1) * LINE_CHUNK),
     start);
 
+/**
+ * Whether a point is nearer a line than reach (distToLine < reach), the line's box first.
+ * @param pts the line
+ * @param x world x
+ * @param y world y
+ * @param reach metres
+ * @returns true when nearer
+ */
+export const isNearLine = (pts: Point[], x: number, y: number, reach: number): boolean =>
+  !isBeyondBox(lineBox(pts), x, y, reach) && distToLine(pts, x, y) < reach;
+
 /** A line's bounding box. */
 export interface LineBox { minX: number; minY: number; maxX: number; maxY: number }
 const LINE_BOXES = new WeakMap<Point[], LineBox & { length: number }>();

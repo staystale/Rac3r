@@ -5,7 +5,7 @@
 // its last junction, a road joining nothing goes.
 import { SURFACES } from "./surfaces.ts";
 import { KART_W, centreAt, clearRuns, distToLine, isClosedLoop, lineLength, nearestLoop,
-  isBeyondBox, lineBox, resample, roadDistance, smoothLine } from "./venuegeo.ts";
+  isBeyondBox, isNearLine, lineBox, resample, roadDistance, smoothLine } from "./venuegeo.ts";
 import { inZones, pastRim } from "./venueedge.ts";
 import { joinFrom } from "./venuejoin.ts";
 import { REACH_M, inSolid, nearArmco, nearRace, onLanes, placeAll, stepOut }
@@ -222,7 +222,7 @@ function carryInto(site: Site, road: Lane, atStart: boolean, roads: Lane[]): boo
   // at the joint, may be
   const added = joined.slice(1, -CARRY_JOINT_PTS);
   const beside = added.filter(([x, y]) => others.some((lane) =>
-    distToLine(lane.pts, x, y) < (lane.width + road.width) / 2 + PARALLEL_M)).length;
+    isNearLine(lane.pts, x, y, (lane.width + road.width) / 2 + PARALLEL_M))).length;
   if (beside * 2 > DUPLICATE_M / 2) return false;
   road.pts = atStart ? [...joined.slice(1).reverse(), ...pts] : [...pts, ...joined.slice(1)];
   return true;

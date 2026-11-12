@@ -11,7 +11,8 @@ export interface PointGrid { cellM: number; cells: Map<number, Point[]> }
 const KEY_ROW = 1 << 20;
 // m a builder's grid cell by default (about the reach its queries ask)
 export const BUILD_CELL_M = 4;
-const keyOf = (cellX: number, cellY: number): number => cellX * KEY_ROW + cellY;
+/** A grid cell's key, from its column and row. */
+export const gridKey = (cellX: number, cellY: number): number => cellX * KEY_ROW + cellY;
 
 /**
  * Files the points into a grid.
@@ -22,7 +23,7 @@ const keyOf = (cellX: number, cellY: number): number => cellX * KEY_ROW + cellY;
 export function makePointGrid(points: Point[], cellM = BUILD_CELL_M): PointGrid {
   const cells = new Map<number, Point[]>();
   for (const point of points) {
-    const key = keyOf(Math.floor(point[0] / cellM), Math.floor(point[1] / cellM));
+    const key = gridKey(Math.floor(point[0] / cellM), Math.floor(point[1] / cellM));
     const cell = cells.get(key);
     if (cell) cell.push(point);
     else cells.set(key, [point]);
@@ -46,7 +47,7 @@ export function isAnyPointNear(grid: PointGrid, x: number, y: number, reach: num
   const fromY = Math.floor((y - reach) / cellM), toY = Math.floor((y + reach) / cellM);
   for (let cellX = fromX; cellX <= toX; cellX++) {
     for (let cellY = fromY; cellY <= toY; cellY++) {
-      const cell = cells.get(keyOf(cellX, cellY));
+      const cell = cells.get(gridKey(cellX, cellY));
       if (cell && cell.some(test)) return true;
     }
   }

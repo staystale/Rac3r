@@ -2,9 +2,11 @@
 // venueroads.ts):
 // the site state (the roads, rims, placer, dice, lanes, buildings, the Armco's cells) and the
 // questions they all ask of it - near a race road, on a lane, in a building, near the Armco.
-import { HALF_ROAD, centreAt, distToLine, nearestLoop, roadDistance } from "./venuegeo.ts";
+import { HALF_ROAD, centreAt, distToLine, isNearLine, nearestLoop, roadDistance }
+  from "./venuegeo.ts";
 import { pastRim } from "./venueedge.ts";
 import { insidePolygon } from "./zones.ts";
+import { gridKey } from "../core/pointgrid.ts";
 import type { Rim } from "./venueedge.ts";
 import type { VenueBuild } from "./venue.ts";
 import type { Lane, Point, Prop, Subtrack } from "./types.ts";
@@ -27,7 +29,7 @@ export const nearRace = (site: Site, x: number, y: number, pad: number) =>
   roadDistance(site.loops, x, y) < HALF_ROAD + pad;
 
 export const onLanes = (lanes: Lane[], x: number, y: number, pad: number) =>
-  lanes.some((lane) => distToLine(lane.pts, x, y) < lane.width / 2 + pad);
+  lanes.some((lane) => isNearLine(lane.pts, x, y, lane.width / 2 + pad));
 
 /** A garage row's outline (front, then back reversed) and its bounding box. */
 interface RowOutline { outline: Point[]; minX: number; minY: number; maxX: number; maxY: number }
@@ -58,22 +60,94 @@ function rowOutline(prop: Prop): RowOutline {
  * @returns true when in or that near one
  */
 export function inBuilding(buildings: Prop[], x: number, y: number, pad: number): boolean {
-  return buildings.some((prop) => {
-    // the garage row: its outline (front and back)
-    if (prop.front && prop.back) {
-      const row = rowOutline(prop);
-      // (beyond its box by more than pad: neither inside it nor within pad of its sides)
-      if (x < row.minX - pad || x > row.maxX + pad || y < row.minY - pad || y > row.maxY + pad)
-        return false;
-      return insidePolygon(row.outline, x, y) || distToLine(prop.front, x, y) < pad
-        || distToLine(prop.back, x, y) < pad;
+  const grid = buildingGrid(buildings);
+  // (a box building is within pad only inside its circle grown by pad x sqrt 2: so near its box)
+  const reach = Math.max(0, pad) * BOX_PAD_SHARE;
+  const fromX = Math.floor((x - reach) / BUILDING_CELL_M);
+  const toX = Math.floor((x + reach) / BUILDING_CELL_M);
+  const fromY = Math.floor((y - reach) / BUILDING_CELL_M);
+  const toY = Math.floor((y + reach) / BUILDING_CELL_M);
+  for (let cellX = fromX; cellX <= toX; cellX++) {
+    for (let cellY = fromY; cellY <= toY; cellY++) {
+      const cell = grid.cells.get(gridKey(cellX, cellY));
+      if (cell && cell.some((prop) => isInOne(prop, x, y, pad))) return true;
     }
-    if (!prop.w || !prop.h) return false;
-    const cosR = Math.cos(prop.rot || 0), sinR = Math.sin(prop.rot || 0);
-    const along = (x - prop.x) * cosR + (y - prop.y) * sinR;
-    const across = -(x - prop.x) * sinR + (y - prop.y) * cosR;
-    return Math.abs(along) <= prop.w / 2 + pad && Math.abs(across) <= prop.h / 2 + pad;
-  });
+  }
+  return false;
+}
+
+// m the building grid's cells; the share of pad a query reaches out (over sqrt 2: a turned box)
+const BUILDING_CELL_M = 16, BOX_PAD_SHARE = 1.5;
+/** The buildings filed by the cells their boxes cover (rebuilt if the list's length changed). */
+interface BuildingGrid { cells: Map<number, Prop[]>; length: number }
+const BUILDING_GRIDS = new WeakMap<Prop[], BuildingGrid>();
+
+/**
+ * A building list's grid: each building in every cell its box (a garage row's outline's, a box
+ * building's circle's) covers; a building with no size in none (it is never hit).
+ * @param buildings the building props
+ * @returns the grid
+ */
+function buildingGrid(buildings: Prop[]): BuildingGrid {
+  const cached = BUILDING_GRIDS.get(buildings);
+  if (cached && cached.length === buildings.length) return cached;
+  const cells = new Map<number, Prop[]>();
+  for (const prop of buildings) {
+    const box = buildingBox(prop);
+    if (!box) continue;
+    for (let cellX = Math.floor(box[0] / BUILDING_CELL_M);
+      cellX <= Math.floor(box[2] / BUILDING_CELL_M); cellX++) {
+      for (let cellY = Math.floor(box[1] / BUILDING_CELL_M);
+        cellY <= Math.floor(box[3] / BUILDING_CELL_M); cellY++) {
+        const key = gridKey(cellX, cellY), cell = cells.get(key);
+        if (cell) cell.push(prop);
+        else cells.set(key, [prop]);
+      }
+    }
+  }
+  const grid = { cells, length: buildings.length };
+  BUILDING_GRIDS.set(buildings, grid);
+  return grid;
+}
+
+/**
+ * A building's box (minX, minY, maxX, maxY): a garage row's outline's; a box building's circle's.
+ * @param prop the building
+ * @returns its box, or null with no size
+ */
+function buildingBox(prop: Prop): [number, number, number, number] | null {
+  if (prop.front && prop.back) {
+    const row = rowOutline(prop);
+    return [row.minX, row.minY, row.maxX, row.maxY];
+  }
+  if (!prop.w || !prop.h) return null;
+  const radius = Math.hypot(prop.w, prop.h) / 2;
+  return [prop.x - radius, prop.y - radius, prop.x + radius, prop.y + radius];
+}
+
+/**
+ * Whether a point lies within pad of one building.
+ * @param prop the building
+ * @param x world x
+ * @param y world y
+ * @param pad metres
+ * @returns true when in or that near it
+ */
+function isInOne(prop: Prop, x: number, y: number, pad: number): boolean {
+  // the garage row: its outline (front and back)
+  if (prop.front && prop.back) {
+    const row = rowOutline(prop);
+    // (beyond its box by more than pad: neither inside it nor within pad of its sides)
+    if (x < row.minX - pad || x > row.maxX + pad || y < row.minY - pad || y > row.maxY + pad)
+      return false;
+    return insidePolygon(row.outline, x, y) || distToLine(prop.front, x, y) < pad
+      || distToLine(prop.back, x, y) < pad;
+  }
+  if (!prop.w || !prop.h) return false;
+  const cosR = Math.cos(prop.rot || 0), sinR = Math.sin(prop.rot || 0);
+  const along = (x - prop.x) * cosR + (y - prop.y) * sinR;
+  const across = -(x - prop.x) * sinR + (y - prop.y) * cosR;
+  return Math.abs(along) <= prop.w / 2 + pad && Math.abs(across) <= prop.h / 2 + pad;
 }
 
 /**
