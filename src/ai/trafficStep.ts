@@ -1,7 +1,6 @@
 // ai/trafficStep.ts: one physics step of the highway traffic: everyone in road coordinates,
 // recycling the cars that are out of view, the physics / kinematic choice, and driving each car.
 import { roadFrame, roadSpan } from "../highway.ts";
-import { FIX } from "../core/fixes.ts";
 import { stepBridgeCars } from "./trafficBridge.ts";
 import { rolling } from "../roll.ts";
 import type { AiCar, TrafficCar, TrafficEnt } from "./types.ts";
@@ -97,7 +96,7 @@ const catchingUp = (slot: TrafficCar, youV: number) => dirOf(slot) > 0
   && slot.vAl > youV + CATCH_MS;
 
 /**
- * Whether a police car chasing you is still in it (?police=1): kept, out of sight behind, until it
+ * Whether a police car chasing you is still in it: kept, out of sight behind, until it
  * has lost you (ai/policeHeat.ts SIGHT_M).
  * @param slot the car
  * @param relS its road distance from you, m
@@ -136,15 +135,15 @@ const PASS_MS = 3;
  * @returns ahead / behind, and its driver
  */
 function putBack(ctx: TrafficCtx, dir: number, youV: number) {
-  // (?police=1: the other way's are dealt the police now and then)
-  if (dir < 0) return { from: 'ahead', kind: FIX.police ? dealKind(ctx, dir) : 'cruise' as Kind };
+  // (the other way's are dealt the police now and then)
+  if (dir < 0) return { from: 'ahead', kind: dealKind(ctx, dir) };
   const kind = dealKind(ctx, dir);
   return { from: kindSpeed(kind) > youV + CATCH_MS ? 'behind' : 'ahead', kind };
 }
 
 /**
  * A car just put back made its driver (ai/trafficKinds.ts), or (cruising, ahead) now and then
- * one stopped at the roadside - a police car ahead (?police=1) now and then waiting there; its road
+ * one stopped at the roadside - a police car ahead now and then waiting there; its road
  * entry (the last) follows it.
  * @param ctx the traffic
  * @param slot the car
@@ -161,7 +160,7 @@ function dealPutBack(ctx: TrafficCtx, slot: TrafficCar,
     setSpeed(slot, slot.vWant);
   }
   if (back.kind === 'cruise' && back.from === 'ahead' && dirOf(slot) > 0
-    && !mayPlaceBroken(ctx, slot, ents) && FIX.stationstops) mayPlaceAtPump(ctx, slot, ents);
+    && !mayPlaceBroken(ctx, slot, ents)) mayPlaceAtPump(ctx, slot, ents);
   if (back.kind === 'police' && back.from === 'ahead' && dirOf(slot) > 0) mayWait(ctx, slot, ents);
   const ent = ents[ents.length - 1];
   ent.off = slot.off;
@@ -297,15 +296,15 @@ export function stepTraffic(ctx: TrafficCtx, dt: number, args: StepArgs) {
   const vis = args.visible || ((x, y, dist) => dist - playerS > -90 && dist - playerS < 270);
   const ents = collectEnts(ctx, args);
   if (recycle(ctx, ents, playerS, vis, args.held, speedOf(ents, args.player))) rebuildCars(ctx);
-  // (?police=1: the police's orders - a chase, its chasers sent - before the cars are driven)
-  if (FIX.police) stepPolice(ctx, dt, args.player, ents, vis);
-  // (?roadrage=1: the angry drivers after you)
-  if (FIX.roadrage) stepAngry(ctx, dt, args.player);
+  // (the police's orders - a chase, its chasers sent - before the cars are driven)
+  stepPolice(ctx, dt, args.player, ents, vis);
+  // (the angry drivers after you)
+  stepAngry(ctx, dt, args.player);
   assignPhys(ctx, ents, playerS);
   const [env, otherEnv] = driveEnvs(ctx, dt, ents);
   for (const slot of ctx.list)
     if (!slot.parked) driveOne(ctx, slot, dirOf(slot) < 0 ? otherEnv : env);
   if (parkBrokenCars(ctx)) rebuildCars(ctx);
-  // (?bridgecars=1: the bridges' own cars)
-  if (FIX.bridgecars) stepBridgeCars(ctx, dt, args.player);
+  // (the bridges' own cars)
+  stepBridgeCars(ctx, dt, args.player);
 }

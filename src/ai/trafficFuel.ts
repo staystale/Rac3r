@@ -1,4 +1,4 @@
-// ai/trafficFuel.ts - TRAFFIC AT THE PETROL STATIONS (?stationstops=1; owner 11-11: "Can traffic
+// ai/trafficFuel.ts - TRAFFIC AT THE PETROL STATIONS (owner 11-11: "Can traffic
 // use petrol stations"): now and then (STOP_SHARE of the passes) a car of our way in the nearside
 // lane coming up to a roadside station (highway/stations.ts: a lay-by's, Deaf Valley's LAST GASP;
 // not a services' - it is off its side road) indicates left, slows and pulls onto the forecourt,

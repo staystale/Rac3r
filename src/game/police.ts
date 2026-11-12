@@ -1,4 +1,4 @@
-// game/police.ts - POLICE ON THE HIGHWAYS, the game's side (?police=1; TODO.md, POLICE): each
+// game/police.ts - POLICE ON THE HIGHWAYS, the game's side (TODO.md, POLICE): each
 // physics step after the contacts, every driver's heat (ai/policeHeat.ts stepHeats) - you, the
 // racing AI rivals, the traffic (not the police) - reads what happened this step: a speed camera's
 // catch (yours only: game/sim.ts caughtBySpeedCamera), a driver running into a car (noteTouches).

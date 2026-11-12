@@ -511,7 +511,7 @@ function makeMapGlows(pools: PoolPainter, sparks: SparkLight[]) {
  * @param car the car
  */
 function drawBeams(painter: PoolPainter, beam: HTMLCanvasElement, car: RenderCar) {
-  // (?roadrage=1: an angry driver's headlights flash at you)
+  // (an angry driver's headlights flash at you)
   if (!car.lightsOn && !isAngryFlashOn(car)) return;
   const { lightCtx, artX, artY } = painter;
   const scale = painter.artPerMetre(), cos = Math.cos(car.heading), sin = Math.sin(car.heading);

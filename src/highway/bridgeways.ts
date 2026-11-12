@@ -6,7 +6,6 @@
 // forgotten. The list stays as long as the most bridges loaded at once (2-4), never past the
 // deck filing's room.
 import { bridgeCrossing, railCrossing, tunnelCrossing } from '../world/crossings.ts';
-import { FIX } from '../core/fixes.ts';
 import { clearDeckCellsOf } from '../world/deckwear.ts';
 import type { Crossing, Prop } from '../world/types.ts';
 import type { HwLevel } from './hwtypes.ts';
@@ -21,7 +20,7 @@ const NOWHERE: Crossing = { kind: 'bridge', ax: -1e7, ay: -1e7, dirX: 1, dirY: 0
  * @returns true for one
  */
 const isDrivable = (prop: Prop): boolean => prop.kind === 'bridge' && (prop.look === 'venue'
-  || (FIX.railbridges && prop.carries === 'rail'));
+  || prop.carries === 'rail');
 
 /**
  * A drivable bridge's or underpass's crossing.
@@ -47,7 +46,7 @@ export function syncBridgeways(level: HwLevel): void {
   const state = level._hw, owners = (state.wayOwners ||= []);
   const crossings = (level.crossings ||= []);
   const loaded = new Set(level.props.filter(isDrivable));
-  // (?roadtunnels=1: an underpass by its first portal - the crossing from its pair)
+  // (an underpass by its first portal - the crossing from its pair)
   const portals = new Map<number, Prop[]>();
   for (const prop of level.props)
     if (prop.kind === 'tunnel' && prop.pair != null)

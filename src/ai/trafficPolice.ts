@@ -1,4 +1,4 @@
-// ai/trafficPolice.ts - POLICE ON THE HIGHWAYS (?police=1; TODO.md ROUND 4, the design agreed
+// ai/trafficPolice.ts - POLICE ON THE HIGHWAYS (TODO.md ROUND 4, the design agreed
 // 11-11): a police car is a traffic car (a TrafficCar slot) in a UK police livery - the Battenberg
 // check, a roof number (render/carsprite.ts paintPolice) - with a blue roof light bar (render/
 // lightbar.ts). Now and then a car put back is one (ai/trafficKinds.ts),
@@ -108,7 +108,7 @@ export type PoliceMode = 'cruise' | 'wait' | 'chase';
  */
 export interface TrafficPolice { mode: PoliceMode; seat: number; wreckT: number;
   target?: (AiCar & { crossing?: number }) | null; targetT?: number; waitT?: number;
-  // ?roadrage=1: an angry driver chasing as police do, no lights, and s until it calms down
+  // an angry driver chasing as police do, no lights, and s until it calms down
   angry?: boolean; angryT?: number }
 
 /**
@@ -640,7 +640,7 @@ function runChase(ctx: TrafficCtx, dt: number, player: AiCar & { crossing?: numb
 }
 
 /**
- * One step of the police (?police=1), before the traffic is driven: wrecks gone, now and then one
+ * One step of the police, before the traffic is driven: wrecks gone, now and then one
  * placed ahead, a chase given up when the heat is off, else the chase's step (runChase); every
  * police car's light bar going while it chases.
  * @param ctx the traffic
@@ -701,12 +701,12 @@ export function putAway(ctx: TrafficCtx, car: object): boolean {
   return true;
 }
 
-// ?roadrage=1: s an angry driver stays angry, the least and the most; the stars it drives at you
+// s an angry driver stays angry, the least and the most; the stars it drives at you
 // with (its closing speed and its rams: ai/trafficPolice.ts ramAt), and how far away it gives up
 const ANGRY_S = [30, 45], ANGRY_STARS = 2, ANGRY_SIGHT_M = 200;
 
 /**
- * A driver made ANGRY (?roadrage=1, ai/trafficYield.ts noteFlash): the police's chase driver at its
+ * A driver made ANGRY (ai/trafficYield.ts noteFlash): the police's chase driver at its
  * wheel - the racing AI, you its target, tailgating and ramming - without the lights or the livery
  * (render/cars.ts flashes its headlights); not a police car to the heat (ai/policeHeat.ts).
  * @param ctx the traffic
@@ -724,7 +724,7 @@ export function makeAngry(ctx: TrafficCtx, slot: TrafficCar,
 }
 
 /**
- * The angry drivers' step (?roadrage=1): each one's speed after you, as a chaser's; calmed down -
+ * The angry drivers' step: each one's speed after you, as a chaser's; calmed down -
  * driving on as traffic - once its time is up, it is wrecked, or you are out of its sight.
  * @param ctx the traffic
  * @param dt the step, s

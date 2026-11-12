@@ -63,7 +63,7 @@ export interface TrafficCtx {
   // (MEASURED, hwracecheck: reading the other way's cars 7.6 m across on the dual
   // carriageway, the racers ran 9-12 km/h slower)
   ourSide: TrafficVehicle[];
-  // ?police=1: what the heat tells the police (ai/trafficPolice.ts ordersOf)
+  // what the heat tells the police (ai/trafficPolice.ts ordersOf)
   police?: PoliceOrders;
 }
 

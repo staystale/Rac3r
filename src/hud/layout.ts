@@ -13,7 +13,7 @@ import type { HudRect } from './widgets.ts';
  * @param pieceId the piece (hud.ts HIDEABLE)
  * @returns hidden
  */
-// px the heat's stars take above the lights / indicator row (?police=1: hud/heat.ts), a gap
+// px the heat's stars take above the lights / indicator row (hud/heat.ts), a gap
 // included; the keyboard / steering hint above the row moves up by it (hud/controls.ts)
 export const HEAT_ROW_H = 18;
 
@@ -83,7 +83,7 @@ function layoutBottomChips(width: number, height: number) {
   const indL = { x: MARGIN, y: lbY, w: lbW, h: lbH },
     lights = { x: MARGIN + lbW + 6, y: lbY, w: lbW + 14, h: lbH },
     indR = { x: MARGIN + lbW * 2 + 26, y: lbY, w: lbW, h: lbH };
-  // ?police=1: the heat's stars (hud/heat.ts) just above the row, its own room
+  // the heat's stars (hud/heat.ts) just above the row, its own room
   const heat = { x: MARGIN, y: lbY - HEAT_ROW_H, w: indR.x + lbW - MARGIN, h: HEAT_ROW_H - 4 };
   return { absChip, tcsChip, indL, lights, indR, heat };
 }

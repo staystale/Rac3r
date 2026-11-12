@@ -47,7 +47,7 @@ export const COL = {
   grassDark: '#6a8850',
   gravelGrit: '#b4a894',
   fence: '#8a8d99',
-  // ?police=1: a police car's lamps lit, its bar unlit (still showing what it is), their night
+  // a police car's lamps lit, its bar unlit (still showing what it is), their night
   // glow ('r,g,b'), a lit half's white core; the heat's stars on the HUD (the speed camera card's
   // yellow)
   blues: '#5b9bff', bluesOff: '#2f4f94', bluesRgb: '91,155,255', bluesCore: '#dceaff',

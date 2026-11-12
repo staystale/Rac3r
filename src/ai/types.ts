@@ -339,7 +339,7 @@ export type TrafficVehicle = Car & DamageCar
   brakeLight?: number;   // traffic.ts
   police?: boolean;   // a police car: its roof light bar (ai/trafficPolice.ts)
   blues?: boolean;   // its light bar going: it is chasing you
-  angry?: boolean;   // ?roadrage=1: an angry driver, its headlights flashing (render/cars.ts)
+  angry?: boolean;   // an angry driver, its headlights flashing (render/cars.ts)
 };
 
 // One traffic slot: a live car, or (parked) a slot waiting for a free off-screen spot.
@@ -371,15 +371,15 @@ export interface TrafficCar {
   racer?: TrafficRacer | null;
   // a car with an issue, pulling over or stopped (ai/trafficBreak.ts)
   broke?: TrafficBroke | null;
-  // a police car (ai/trafficPolice.ts) - or an angry driver chasing as one (?roadrage=1)
+  // a police car (ai/trafficPolice.ts) - or an angry driver chasing as one
   police?: TrafficPolice | null;
-  // ?moveover=1: s it still keeps moving over to let someone by, and m it has edged toward the
+  // s it still keeps moving over to let someone by, and m it has edged toward the
   // hard shoulder (ai/trafficYield.ts)
   yieldT?: number;
   edge?: number;
-  // ?roadrage=1: when you flashed it (sim s, the last 20 s)
+  // when you flashed it (sim s, the last 20 s)
   flashes?: number[];
-  // ?stationstops=1: the station (its road s) it has passed or chosen (one roll a station)
+  // the station (its road s) it has passed or chosen (one roll a station)
   stationAt?: number;
 }
 
@@ -394,7 +394,7 @@ export interface TrafficRacer {
  * now (m/s), the offset it steers for now, and whether it has stopped.
  */
 export interface TrafficBroke { stopOff: number; v: number; off: number; stopped: boolean;
-  // ?stationstops=1: a stop for fuel (ai/trafficFuel.ts) - the pumps' road s, s left there,
+  // a stop for fuel (ai/trafficFuel.ts) - the pumps' road s, s left there,
   // pulling out
   at?: number; wait?: number; out?: boolean }
 

@@ -574,7 +574,7 @@ function paintRaceNumber(spr: SpriteCtx): void {
   numPanel(spr, along(numSpot[0]), numSpot[1]);
 }
 
-// A POLICE CAR's livery (?police=1): the Battenberg check's squares along the flanks, px (~0.35 m:
+// A POLICE CAR's livery: the Battenberg check's squares along the flanks, px (~0.35 m:
 // two or three px on a phone's screen), and its two rows' depth, px; the bonnet's and the boot's
 // bands, the share of the length in from each end and their depth, px; where the roof is (the
 // shares of the length its white runs between) and the roof number's middle, by body
@@ -599,7 +599,7 @@ function checkRow(spr: SpriteCtx, fromX: number, toX: number, y: number, height:
 }
 
 /**
- * A UK POLICE car from above (?police=1, ai/trafficPolice.ts - spec.police its roof number): the
+ * A UK POLICE car from above (ai/trafficPolice.ts - spec.police its roof number): the
  * blue-and-yellow Battenberg check in two rows down both flanks, a band of it across the bonnet's
  * and the boot's edges, a hi-vis yellow strip inside each flank's check, the roof white with its
  * number in big black digits (as real cars carry for the helicopter); the light bar is drawn live

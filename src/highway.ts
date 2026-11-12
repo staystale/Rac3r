@@ -37,7 +37,6 @@ import { syncCovers, SIDE_W_HALF } from "./highway/cuts.ts";
 import { dress } from "./highway/dress.ts";
 import { desertGround, REACH, resetStreamed, pruneStreamed } from "./highway/gorge.ts";
 import type { HwState, HwLevel, HwCar, HwCfg, HwPoint } from './highway/hwtypes.ts';
-import { FIX } from './core/fixes.ts';
 import { syncBridgeways } from './highway/bridgeways.ts';
 import { crossingOf } from './world/crossinggeo.ts';
 import type { RoadLoc } from './highway/road.ts';
@@ -92,14 +91,14 @@ function rebuild(level: HwLevel) {
   // the road bridges' crossings, in step with the props loaded
   syncBridgeways(level);
 }
-// (?roadparity=1) road points the dressing keeps behind the road's newest (320 m: a junction's
+// road points the dressing keeps behind the road's newest (320 m: a junction's
 // off-slip to on-slip, 2 x 30 points, laid ahead from where it falls due, and its margin)
 const DRESS_LAG_POINTS = 80;
 /**
  * How far behind the road's newest point it is dressed.
  * @returns road points
  */
-const dressLag = (): number => (FIX.roadparity ? DRESS_LAG_POINTS : 0);
+const dressLag = (): number => DRESS_LAG_POINTS;
 // first window (also RESTART: the same seed builds the same motorway, so cached ground tiles stay
 // right)
 export function resetHighway(level: HwLevel) {
@@ -160,7 +159,7 @@ export function resetHighway(level: HwLevel) {
   // every restart)
   level.cones.length = 0;
   growTo(level, AHEAD + 300);
-  // (?roadparity=1: dressed DRESS_LAG points behind the newest - the road ahead of a junction
+  // (dressed DRESS_LAG points behind the newest - the road ahead of a junction
   // is there to lay it on)
   const dressTo = Math.max(1, state.pts.length - dressLag());
   dress(level, 0, dressTo, level.cones);
@@ -419,11 +418,11 @@ function clearGuard(state: HwState) {
 export function rehome(level: HwLevel, dist: number) {
   const state = stateOf(level);
   state.backT = 0;
-  // (?police=1: every reset starts the off-road guard afresh - a car put back from off the road
+  // (every reset starts the off-road guard afresh - a car put back from off the road
   // kept its countdown's memory: its time, its warning, an exit taken, its last distance out and
   // its speed back in; a BUSTED reset of a car the police had pushed off the road showed BACK TO
   // THE ROAD after it)
-  if (FIX.police) clearGuard(state);
+  clearGuard(state);
   // (the furthest point reached comes back to it: the wrong-way guard reads 30 m short of that
   // as gone back - MEASURED, ?laybys=1: a lay-by 140 m behind was reset WRONG WAY every step)
   state.best = Math.min(state.best, dist);

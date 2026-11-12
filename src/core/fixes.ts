@@ -18,7 +18,9 @@
 // roundit, monza, spaforest, holdoncoming, lemans, suzuka, fences, desertjunk, knobhillvenue,
 // dieatona, thrustonvenue, roofflaps, yasmarina, rocklook, badwood, hudon, resethazard, sticksize,
 // bushflat passed 11-10; trafficeven, speeders, breakdowns, vergereset, desertmore, bathurst,
-// medianlamps, hwstations, desertroads, drivebridges passed 11-11.)
+// medianlamps, hwstations, desertroads, drivebridges passed 11-11; roadparity, bridgecars,
+// railbridges, roadtunnels, wobbly, stadeprance, police, trainlights, moveover, roadrage,
+// stationstops passed 11-12.)
 import { envValue } from './debug.ts';
 
 /**
@@ -48,59 +50,4 @@ export function dialAtLoad(name: string): number {
 }
 
 /** The switches under test, all off on the plain link. */
-export const FIX = {
-  // ?roadparity=1: every endless road built alike, only its look apart (owner 11-11: "Walled
-  // levels should work the similar as possible to other highway levels", Deaf Valley "both types
-  // should work the same just have a asthetic difference"): the road dressed DRESS_LAG behind its
-  // newest point, so a junction is laid ahead before the walls, rock and lamps there; junctions
-  // on the walled road (its wall open at the slips); Deaf Valley's exits, services, bridges and
-  // junctions by the countryside's rules, the rock walls opened where they pass - only a gorge
-  // keeps them off (highway.ts, extras.ts, junctions.ts, canyon.ts)
-  roadparity: atLoad('roadparity'),
-  // ?bridgecars=1: real traffic cars over the endless road's road bridges (owner 11-11: "Real
-  // traffic cars"): each bridge's road a loop - up its left lane, over the deck, round a turning
-  // place and back - driven by the autopilot through the traffic's physics; asleep far from you
-  // (ai/trafficBridge.ts)
-  bridgecars: atLoad('bridgecars'),
-  // ?railbridges=1: the endless road's rail bridges drivable along their track - their narrow deck
-  // between its walls, on ballast - and their train meets the cars on it (owner 11-11: "Rail
-  // bridges drivable", "the train can hit you"): the train placed by the world's sim clock
-  // (world/trains.ts, worldclock.ts, crossings.ts, highway/bridgeways.ts)
-  railbridges: atLoad('railbridges'),
-  // ?roadtunnels=1: now and then a road under the endless road in a tunnel instead of over it on a
-  // bridge (owner 11-11: "Road tunnels too"): a portal each side, the road dipping under the
-  // motorway between them - the venues' drivable tunnel (world/crossings.ts), its approach roads
-  // as a bridge's (highway/extras.ts buildUnderpass, bridgeways.ts)
-  roadtunnels: atLoad('roadtunnels'),
-  // ?wobbly=1: Wobbly Stadium, the Race of Champions' track at Wembley (2007-08) - two lanes
-  // interwoven round the bowl, one crossover bridge, so a car racing it covers both (TODO.md
-  // RALLYCROSS > NEW TRACKS; world/levels/wobbly-venue.ts)
-  wobbly: atLoad('wobbly'),
-  // ?stadeprance=1: Stade de Prance, the Race of Champions' track in the Stade de France
-  // (2004-06) - as Wobbly Stadium's, two lanes interwoven round an oval bowl, one crossover
-  // bridge (world/levels/stadeprance-venue.ts)
-  stadeprance: atLoad('stadeprance'),
-  // ?police=1: police on the endless roads (TODO.md ROUND 4, agreed 11-11): police cars in the
-  // traffic, cruising either way or waiting at the roadside (a forecourt, a lay-by, the hard
-  // shoulder); a heat of 1-3 stars from a speed camera, speeding near one, a crash, flashing your
-  // lights or an unsignalled lane change in sight of one, a pile-up; as many chase you (the racing
-  // AI, you its target, ramming harder at each star); out of sight 10 s and they give up, boxed in
-  // and stopped 3 s and you are BUSTED (ai/trafficPolice.ts, ai/policeHeat.ts, game/police.ts)
-  police: atLoad('police'),
-  // ?trainlights=1: the rail bridges' trains lit at night (owner 11-11: they had none) - the
-  // leading car's headlight thrown up the track, the coaches' windows lit, a freight's dim cab -
-  // through the one night layer (render/eventglows.ts trainLights)
-  trainlights: atLoad('trainlights'),
-  // ?moveover=1: traffic moves over for a police car chasing up behind it, and now and then (a
-  // chance) for you flashing your lights at it from behind - into the nearside lane, or to the
-  // hard shoulder's edge, signalling, through its own lane changes (ai/trafficYield.ts)
-  moveover: atLoad('moveover'),
-  // ?roadrage=1: the same car flashed 3 times in 20 s gets ANGRY - for a while it drives at you as
-  // a chasing police car does, without the lights, its headlights flashing back, then calms down
-  // (ai/trafficYield.ts noteFlash, ai/trafficPolice.ts makeAngry)
-  roadrage: atLoad('roadrage'),
-  // ?stationstops=1: now and then a nearside car pulls into a roadside petrol station, stops at
-  // the pumps, then pulls out again; cars put back ahead now and then already there (ai/
-  // trafficBreak.ts, the breakdowns' pull-over)
-  stationstops: atLoad('stationstops'),
-};
+export const FIX = {};

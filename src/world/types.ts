@@ -186,7 +186,7 @@ export interface Prop {
   skew?: number;   // highway.ts river bridges
   appL?: number[];   // highway.ts bridges: the approach lengths [0 | 1]
   rings?: boolean;   // a junction's bridge: a roundabout past each ramp (highway/junctions.ts)
-  pair?: number;   // (?roadtunnels=1) an underpass's two portals share it (highway/bridgeways.ts)
+  pair?: number;   // an underpass's two portals share it (highway/bridgeways.ts)
   rampL?: number[];   // a drivable highway bridge's ramps, when its approaches run on past them
   appW?: number;   // highway.ts bridges: the approaches' width
   type?: string;   // highway.ts slips: 'short', 'long' or 'side'
@@ -274,7 +274,7 @@ export interface CarBody {
 // tarmac, apart from the cars on the ground - until it leaves by an end.
 export interface Crossing {
   kind: 'bridge' | 'tunnel';
-  // (?railbridges=1) a rail bridge's: its deck the ballast, and the bridge whose train runs on it
+  // a rail bridge's: its deck the ballast, and the bridge whose train runs on it
   ballast?: boolean;
   train?: Prop;
   // end A, where a car changes level (a ramp's foot, a portal's mouth), m

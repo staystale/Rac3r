@@ -11,7 +11,6 @@
 // puncture).
 // Everything is a function of road distance (and the road's own seed), so the stretches each
 // dress call lays join exactly.
-import { FIX } from "../core/fixes.ts";
 import { bayOut } from './laybys.ts';
 import { keepOut } from './cuts.ts';
 import { stretchAt, stationSideOf } from './desertplan.ts';
@@ -146,7 +145,7 @@ const ROCK_SPECKLE_M = 1.2, ROCK_BLEND = 0.6;
 const ROCK_REACH = 2, BACK_OVER_M = 0.5;
 
 /**
- * (?roadparity=1) Whether the rock wall is open at a road point on a side: where a slip leaves or
+ * Whether the rock wall is open at a road point on a side: where a slip leaves or
  * a junction stands (gapL), the services' side road runs (sideOff) - the left - or a bridge's
  * approach crosses (gapL / gapR).
  * @param point the road point
@@ -154,7 +153,6 @@ const ROCK_REACH = 2, BACK_OVER_M = 0.5;
  * @returns true where no wall stands
  */
 function isWallOpen(point: HwPoint, side: number): boolean {
-  if (!FIX.roadparity) return false;
   return side < 0 ? !!(point.gapL || point.sideOff) : !!point.gapR;
 }
 

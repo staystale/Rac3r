@@ -44,12 +44,12 @@ export function createTraffic({ rnd = Math.random } = {}) {
     clearAround: (x: number, y: number, radius: number) => clearAround(ctx, x, y, radius),
     clearSpan: (fromS: number, toS: number) => clearSpan(ctx, fromS, toS),
     get list() { return ctx.list; }, get want() { return ctx.want; },
-    // ?police=1: the police's orders (the heats, the suspects), the police chasing a driver gone
+    // the police's orders (the heats, the suspects), the police chasing a driver gone
     // (its bust; none given: every police car), a traffic driver busted put away
     police: () => ordersOf(ctx),
     clearPolice: (target: object | null = null) => clearPolice(ctx, target),
     putAway: (car: object) => putAway(ctx, car),
-    // ?moveover=1 / ?roadrage=1: you flashed your lights (ai/trafficYield.ts)
+    // you flashed your lights (ai/trafficYield.ts)
     noteFlash: (player: AiCar, you: { s: number; off: number }, clock: number) =>
       noteFlash(ctx, player, you, clock),
     stats: () => ({

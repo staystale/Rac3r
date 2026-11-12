@@ -81,7 +81,7 @@ export interface HudGame {
   notice?: HudNotice | null;
   camCount?: number; camFines?: number;   // highway speed cameras: caught, fined
   camCaught?: { at: number; kmh: number; mph: number; fine: number } | null;   // the last flash
-  // ?police=1: the heat's stars and whether a chaser sees you; the last bust (game/police.ts)
+  // the heat's stars and whether a chaser sees you; the last bust (game/police.ts)
   heat?: { stars: number; siren: boolean };
   busted?: { at: number; stars: number; fine: number; charged: boolean } | null;
   bustCount?: number; bustFines?: number;

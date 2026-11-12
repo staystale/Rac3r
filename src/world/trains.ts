@@ -1,5 +1,5 @@
 // world/trains.ts - A RAIL BRIDGE'S TRAIN, where it is (the drawing, render/props/bridges.ts, and,
-// with ?railbridges=1, the cars it meets on the deck, world/crossings.ts): every trainEvery s a
+// with, the cars it meets on the deck, world/crossings.ts): every trainEvery s a
 // train crosses the whole length of the bridge's track, one way or the other - a passenger train,
 // 3-5 coaches of COACH_M at COACH_MS; on Deaf Valley's trestles (look 'desert') a freight, a
 // locomotive and 6-9 wagons of WAGON_M at WAGON_MS, every 1.5 x as long between.

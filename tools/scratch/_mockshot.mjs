@@ -1,13 +1,15 @@
-// _mockshot.mjs - one screenshot of a local mockup page at phone width (wrapped as published)
-// node tools/scratch/_mockshot.mjs <page.html> <out.png> [width]
-import { readFileSync } from 'node:fs';
+// one look at a local mockup page: phone width, the logo + the first screens; page errors
 import { launchBrowser } from '../lib/browser.mjs';
-const [file, out, width = '420'] = process.argv.slice(2);
+import { pathToFileURL } from 'node:url';
+const file = process.argv[2], out = process.argv[3];
 const browser = await launchBrowser();
-const page = await browser.newPage({ viewport: { width: +width, height: 900 } });
-page.on('pageerror', (error) => console.log('PAGE ERROR ' + error.message));
-await page.setContent('<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width">'
-  + readFileSync(file, 'utf8'));
-await page.waitForTimeout(2500);
-await page.screenshot({ path: out, fullPage: true });
-await browser.close();
+try {
+  const page = await browser.newPage({ viewport: { width: 1200, height: 900 } }); const errs = [];
+  page.on('pageerror', (e) => errs.push(e.message));
+  await page.goto(pathToFileURL(file).href).catch(() => {}); await page.waitForTimeout(3500);
+  await page.screenshot({ path: out, fullPage: false });
+  if (process.argv[4]) { await page.click('[data-pal="logo"]'); await page.waitForTimeout(300);
+    await page.evaluate(() => document.getElementById('phones').scrollIntoView()); await page.waitForTimeout(200);
+    await page.screenshot({ path: process.argv[4] }); }
+  console.log(errs.join('; ') || 'no errors');
+} finally { await browser.close(); }

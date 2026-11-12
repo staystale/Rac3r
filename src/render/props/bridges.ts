@@ -4,16 +4,14 @@ import type { Prop } from '../../world/types.ts';
 import type { BridgeGeom, PropCtx } from './types.ts';
 import { trainAt } from '../../world/trains.ts';
 import { worldSeconds } from '../../world/worldclock.ts';
-import { FIX } from '../../core/fixes.ts';
 
 /**
- * A rail bridge's train clock, s: the world's sim clock (?railbridges=1: a car on the deck meets
+ * A rail bridge's train clock, s: the world's sim clock (a car on the deck meets
  * the train it sees), else the wall clock; the bridge's own phase added (world/trains.ts trainAt).
  * @param prop the bridge
  * @returns s
  */
-export const trainClock = (prop: Prop): number => (FIX.railbridges ? worldSeconds()
-  : performance.now() / 1000) + (prop.phase || 0);
+export const trainClock = (prop: Prop): number => worldSeconds() + (prop.phase || 0);
 
 /**
  * The ends of a bridge's track, m along it from its middle: [the -x end, the +x end] (its span, its

@@ -141,7 +141,7 @@ export interface Game {
   hwBest: number; hwDist?: number;   // the endless highway: your best, this run
   camCount?: number; camFines?: number; camBest?: number;
   camCaught?: { at: number; kmh: number; mph: number; fine: number } | null;
-  // ?police=1 (game/police.ts): the stars and whether a chaser sees you (the siren's twin); the
+  // (game/police.ts) the stars and whether a chaser sees you (the siren's twin); the
   // last bust's card (wall-clock ms, stars, $ fine, charged or not in TEST MODE) and the counts
   heat?: { stars: number; siren: boolean };
   busted?: { at: number; stars: number; fine: number; charged: boolean } | null;

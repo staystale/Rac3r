@@ -182,7 +182,7 @@ function bentTunnel(first: Prop, second: Prop): Crossing {
 }
 
 /**
- * (?railbridges=1) A rail bridge's crossing: from one approach's ramp foot to the other's, between
+ * A rail bridge's crossing: from one approach's ramp foot to the other's, between
  * the deck's walls, on its ballast; its train runs on it.
  * @param prop the bridge (rot along its track, wid its span, rampL its ramps)
  * @returns the crossing
@@ -200,7 +200,7 @@ export function railCrossing(prop: Prop): Crossing {
 const RAIL_ABUTMENT_M = 4, RAIL_DECK_HALF_M = 2.7;
 
 /**
- * (?railbridges=1) A car on a rail bridge's deck meets its train: where the train's cars overlap
+ * A car on a rail bridge's deck meets its train: where the train's cars overlap
  * the car's body, the car is put beside the train and carried at its speed along the track - the
  * change of speed is the impact (game/sim.ts hit: the damage), pressed on a wall it is crushed.
  * @param car the car

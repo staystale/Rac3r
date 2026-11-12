@@ -1,4 +1,4 @@
-// ai/trafficBridge.ts - TRAFFIC OVER THE BRIDGES (?bridgecars=1; owner 11-11: "Real traffic
+// ai/trafficBridge.ts - TRAFFIC OVER THE BRIDGES (owner 11-11: "Real traffic
 // cars" over the road bridges): each drivable road bridge over the endless road
 // (highway/bridgeways.ts) has BRIDGE_CARS real traffic cars driving its road - a loop up its left
 // lane, over the deck, round a turning place out in the country and back (round a junction's
@@ -146,7 +146,7 @@ function syncBridgeCars(ctx: BridgeCtx): BridgeCar[] {
 }
 
 /**
- * One step of the bridges' cars (?bridgecars=1): each near you driven round its loop by the
+ * One step of the bridges' cars: each near you driven round its loop by the
  * autopilot at BRIDGE_SPEED_MS through the traffic's physics; the rest asleep.
  * @param ctx the traffic
  * @param dt the step, s

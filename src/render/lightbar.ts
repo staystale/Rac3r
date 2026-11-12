@@ -1,4 +1,4 @@
-// render/lightbar.ts - A POLICE CAR'S BLUES (?police=1; ai/trafficPolice.ts): a roof light bar -
+// render/lightbar.ts - A POLICE CAR'S BLUES (ai/trafficPolice.ts): a roof light bar -
 // two blue halves across the roof, dark while it cruises or waits (you can still tell what it is),
 // flashing left and right in turn while it chases, the siren's twin (the siren's sound waits for
 // the owner) - and, while it chases, two blue flashers in the front grille and two in the back
@@ -113,11 +113,11 @@ export function drawLightBar(ctx: CanvasRenderingContext2D, car: RenderCar, spri
   }
 }
 
-// ms an angry driver's lamps (?roadrage=1) are on, then off: a quick, cross flashing
+// ms an angry driver's lamps are on, then off: a quick, cross flashing
 const ANGRY_FLASH_MS = 220;
 
 /**
- * Whether an angry driver's lamps are in the lit half of their flash (?roadrage=1, ai/
+ * Whether an angry driver's lamps are in the lit half of their flash (ai/
  * trafficPolice.ts makeAngry): its headlights (and their beams) and its brake lights flash
  * together - flashing back at you, brake-testing you; wall clock: a look.
  * @param car the car
@@ -131,7 +131,7 @@ export const isAngryFlashOn = (car: RenderCar): boolean => !!car.angry
 const ANGRY_HALO_PX = 4;
 
 /**
- * An angry driver's headlights flashed by day too (?roadrage=1): a white halo round each, in the
+ * An angry driver's headlights flashed by day too: a white halo round each, in the
  * lit half of the flash (the headlights themselves: render/cars.ts).
  * @param ctx the context, in the car's frame at sprite scale
  * @param car the car

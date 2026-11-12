@@ -17,7 +17,7 @@ import { HEAT_ROW_H } from './layout.ts';
  */
 export function drawHudPedals(ctx: CanvasRenderingContext2D, game: HudGame, width: number,
   height: number) {
-  // (the hint over the lights / indicator row moves up over the heat's stars: ?police=1)
+  // (the hint over the lights / indicator row moves up over the heat's stars)
   const hintY = height - MARGIN - 46 - (game.heat ? HEAT_ROW_H : 0);
   if (game.input.isTouch()) {
     for (const pedal of game.input.pedalHits(width, height)) {

@@ -29,7 +29,6 @@ import { roofFlapStep } from '../physics/roofflaps.ts';
 import type { Car, CarInput } from '../vehicle.ts';
 import { advanceWorldClock } from '../world/worldclock.ts';
 import type { TrafficVehicle } from '../ai/types.ts';
-import { FIX } from '../core/fixes.ts';
 import { noteTouches, notePoliceCamera, stepPoliceGame } from './police.ts';
 import { stepFlashes } from './flashes.ts';
 
@@ -226,7 +225,7 @@ export function stepCarPhysics(inp: CarInput) {
     // DAMAGE (damage.ts): the velocity change the clamps impose IS the impact
     const pv0x = game.car.vx, pv0y = game.car.vy;
     // the fence, buildings, barriers, trees ... or a bridge's or tunnel's walls
-    // (?railbridges=1: the world's movers - a rail bridge's train - on the sim clock)
+    // (the world's movers - a rail bridge's train - on the sim clock)
     advanceWorldClock(PHYSICS_STEP_SECONDS);
     clampWorld(game.car, PHYSICS_STEP_SECONDS);
     hit(game.car, pv0x, pv0y);
@@ -304,8 +303,8 @@ export function caughtBySpeedCamera() {
     if (!(shared.camRecord.fastest >= cam.kmh)) shared.camRecord.fastest = cam.kmh;
     shared.camDirty = true;
     game.camBest = shared.camRecord.fastest;
-    // (?police=1: a camera catching you is heat - game/police.ts)
-    if (FIX.police) notePoliceCamera();
+    // (a camera catching you is heat - game/police.ts)
+    notePoliceCamera();
   }
 }
 
@@ -434,14 +433,14 @@ export function stepTrafficContacts(tcars: TrafficVehicle[]) {
     const racers = [game.car, ...game.ai.map((entry) => entry.car)], all = tcars.length
       ? [...racers, ...tcars] : racers, startVel = all.map((racer) => [racer.vx, racer.vy]);
     carContacts(all);
-    // (?police=1: the drivers running into a car - their speed changed by it - a police car may
+    // (the drivers running into a car - their speed changed by it - a police car may
     // see)
-    if (FIX.police) noteTouches(all, startVel);
+    noteTouches(all, startVel);
     all.forEach((racer, i) => hit(racer, startVel[i][0], startVel[i][1]));
     if (game.ai.length) wakeStep(racers.filter(onGround));
   }
-  if (FIX.police) stepPoliceGame();
-  // (?moveover=1 / ?roadrage=1: your flashes at the car ahead of you)
+  stepPoliceGame();
+  // (your flashes at the car ahead of you)
   stepFlashes();
   // a stock car's roof flaps (physics/roofflaps.ts)
   for (const racer of [game.car, ...game.ai.map((entry) => entry.car)])

@@ -21,8 +21,6 @@ const { makeSpeeder } = await import('../../src/ai/trafficSpeeder.ts');
 const { makePolice } = await import('../../src/ai/trafficPolice.ts');
 const { carContacts } = await import('../../src/contact.ts');
 const { hit, damageInit } = await import('../../src/damage.ts');
-const { FIX } = await import('../../src/core/fixes.ts');
-if (!FIX.police) throw new Error('POLICE=1 did not switch police on');
 const PART = process.env.PART || 'all', KM = +(process.env.KM || 6);
 const SEEDS = (process.env.SEEDS || '4242,7').split(',').map(Number);
 hw.addHighwayLevel();
@@ -773,11 +771,11 @@ function scenarioStations() {
 if (PART === 'traffic4') {
   console.log('TRAFFIC 4 (countryside motorway, seed 4242, traffic 0.6):');
   // (the move-over count with the switch off too: the lane changes left a chaser behind anyway)
-  if (FIX.moveover || process.env.BASELINE) scenarioMoveOver();
-  if (FIX.moveover) scenarioFlashes(0.6);
-  if (FIX.moveover) scenarioFlashes(0.3);
-  if (FIX.roadrage) scenarioRage();
-  if (FIX.stationstops) scenarioStations();
+  scenarioMoveOver();
+  scenarioFlashes(0.6);
+  scenarioFlashes(0.3);
+  scenarioRage();
+  scenarioStations();
 }
 if (PART === 'survey' || PART === 'all') survey();
 if (PART === 'scenarios' || PART === 'all') {

@@ -1,6 +1,6 @@
-// ai/trafficYield.ts - TRAFFIC MOVING OVER (?moveover=1; owner 11-11: "Can traffic move over for
+// ai/trafficYield.ts - TRAFFIC MOVING OVER (owner 11-11: "Can traffic move over for
 // police", "Can flashing a traffic AI encourage them but not guarantee them to move over") and ROAD
-// RAGE (?roadrage=1: "flashing the same car multiple times ... they are angry"). A car of our way
+// RAGE ("flashing the same car multiple times ... they are angry"). A car of our way
 // with a chasing police car closing up behind it in its lane moves over - into the lane on its
 // left through its own lane change (ai/trafficLane.ts chooseLane: signalling, clear for the whole
 // move), or in the nearside lane to the hard shoulder's edge, its left indicator on - and keeps
@@ -10,7 +10,6 @@
 // alongside - does not). The same car flashed RAGE_FLASHES times inside RAGE_WINDOW_S instead gets
 // ANGRY: it drives at you as a chasing police car does, without the lights (ai/trafficPolice.ts
 // makeAngry), its headlights flashing back.
-import { FIX } from '../core/fixes.ts';
 import { makeAngry } from './trafficPolice.ts';
 import type { TrafficCtx } from './trafficCtx.ts';
 import type { DriveEnv } from './trafficLane.ts';
@@ -57,14 +56,14 @@ function policeBehind(slot: TrafficCar, env: DriveEnv): boolean {
 }
 
 /**
- * Whether a car is moving over now (?moveover=1): our way's, flashed lately or a chasing police
+ * Whether a car is moving over now: our way's, flashed lately or a chasing police
  * car behind it.
  * @param slot the car
  * @param env the step's road
  * @returns it is
  */
 export function isYielding(slot: TrafficCar, env: DriveEnv): boolean {
-  if (!FIX.moveover || (slot.dir ?? 1) < 0 || slot.police || slot.broke) return false;
+  if ((slot.dir ?? 1) < 0 || slot.police || slot.broke) return false;
   return (slot.yieldT ?? 0) > 0 || policeBehind(slot, env);
 }
 
@@ -124,8 +123,7 @@ function flashTarget(ctx: TrafficCtx, you: { s: number; off: number }): TrafficC
 
 /**
  * You flashed your lights: the car ahead of you in your lane (if any) is asked to move over
- * (FLASH_CHANCE, ?moveover=1) - or, flashed RAGE_FLASHES times inside RAGE_WINDOW_S, gets angry
- * (?roadrage=1).
+ * (FLASH_CHANCE) - or, flashed RAGE_FLASHES times inside RAGE_WINDOW_S, gets angry.
  * @param ctx the traffic
  * @param player you
  * @param you your road frame (s, off), m
@@ -138,17 +136,15 @@ export function noteFlash(ctx: TrafficCtx, player: AiCar, you: { s: number; off:
   clock: number): string | null {
   const slot = flashTarget(ctx, you);
   if (!slot) return null;
-  if (FIX.roadrage) {
-    const times = (slot.flashes ||= []);
-    times.push(clock);
-    while (times.length && times[0] < clock - RAGE_WINDOW_S) times.shift();
-    if (times.length >= RAGE_FLASHES) {
-      times.length = 0;
-      makeAngry(ctx, slot, player);
-      return 'angry';
-    }
+  const times = (slot.flashes ||= []);
+  times.push(clock);
+  while (times.length && times[0] < clock - RAGE_WINDOW_S) times.shift();
+  if (times.length >= RAGE_FLASHES) {
+    times.length = 0;
+    makeAngry(ctx, slot, player);
+    return 'angry';
   }
-  if (FIX.moveover && ctx.rnd() < FLASH_CHANCE) {
+  if (ctx.rnd() < FLASH_CHANCE) {
     slot.yieldT = YIELD_S;
     return 'yield';
   }

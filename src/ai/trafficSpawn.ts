@@ -114,7 +114,7 @@ export function rebuildCars(ctx: TrafficCtx) {
     ctx.cars.push(slot.car);
     if (median == null || dirOf(slot) > 0) ctx.ourSide.push(slot.car);
   }
-  // (?bridgecars=1: the bridges' cars live too - drawn and collided, ai/trafficBridge.ts)
+  // (the bridges' cars live too - drawn and collided, ai/trafficBridge.ts)
   ctx.cars.push(...bridgeCarBodies(ctx));
 }
 

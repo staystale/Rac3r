@@ -322,7 +322,7 @@ function drawIndicators(carsCtx: CarsContext, car: RenderCar, sprite: CarSprite)
 function drawCarLamps(carsCtx: CarsContext, car: RenderCar, sprite: CarSprite) {
   const { view } = carsCtx;
   // brake lights glow when braking (a live overlay on the sprite)
-  // (?roadrage=1: an angry driver's headlights and brake lights flash - render/lightbar.ts)
+  // (an angry driver's headlights and brake lights flash - render/lightbar.ts)
   const angryOn = isAngryFlashOn(car);
   if (car.lightsOn || angryOn) drawHeadlights(carsCtx, car, sprite);
   drawIndicators(carsCtx, car, sprite);
@@ -344,8 +344,8 @@ function drawCarLamps(carsCtx: CarsContext, car: RenderCar, sprite: CarSprite) {
     if (lampLevel(car, 2)) view.ctx.fillRect(-sprite.Lp / 2, -sprite.Wp / 2 + 5, 2, 2);
     if (lampLevel(car, 3)) view.ctx.fillRect(-sprite.Lp / 2, sprite.Wp / 2 - 7, 2, 2);
   }
-  // a police car's roof light bar (?police=1: render/lightbar.ts); an angry driver's flashed
-  // headlights' halo (?roadrage=1)
+  // a police car's roof light bar (render/lightbar.ts); an angry driver's flashed
+  // headlights' halo
   drawLightBar(view.ctx, car, sprite);
   drawAngryFlash(view.ctx, car, sprite);
 }

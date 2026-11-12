@@ -1,4 +1,4 @@
-// ai/policeHeat.ts - THE HEAT (?police=1; TODO.md ROUND 4, the design agreed 11-11): 0-3 stars,
+// ai/policeHeat.ts - THE HEAT (TODO.md ROUND 4, the design agreed 11-11): 0-3 stars,
 // what sends the police (ai/trafficPolice.ts) after a driver - EVERY driver its own (owner 11-11:
 // the police pursue the closest law breaker): you, the racing AI rivals, the traffic (its speeders,
 // a quicker driver, one that crashes), by the same rules - "you" below is the driver whose heat it
@@ -323,7 +323,7 @@ const INPUT = {} as HeatInput;
 export function stepHeats(orders: PoliceOrders, drivers: Driver[], road: { dt: number;
   level: HwLevel; slots: TrafficCar[]; cars: TrafficVehicle[] }): HeatEvent[] {
   POLICE_NOW.length = EVENTS.length = orders.suspects.length = 0;
-  // (an angry driver chasing as police do - ?roadrage=1 - is no police car to the heat)
+  // (an angry driver chasing as police do is no police car to the heat)
   for (const slot of road.slots)
     if (!slot.parked && slot.police && !slot.police.angry) POLICE_NOW.push(slot);
   Object.assign(INPUT, road, { police: POLICE_NOW, orders });

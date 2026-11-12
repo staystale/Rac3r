@@ -11,9 +11,7 @@ import type { HwPoint, HwPose, HwState, HwLevel, Stamp, Bridge } from './hwtypes
 import { laybysOn } from './laybys.ts';
 import { layServices, newServices, servicesDue as yardDue, servicesOut } from './stations.ts';
 import { SIDE_OUT } from './cuts.ts';
-import { stretchAt } from './desertplan.ts';
 import { gorgeAt } from './gorge.ts';
-import { FIX } from '../core/fixes.ts';
 import { JUNCTION_SHARE, LEAD_POINTS, layJunction } from './junctions.ts';
 
 // a SERVICES (highway/stations.ts): m between them, the least and the most; the
@@ -29,7 +27,7 @@ const OPEN_BACK_M = 100, OPEN_AHEAD_M = 560, OPEN_STEP_M = 20;
 // (MEASURED, tools/scratch/_hwextras.mjs: with the exits' window the first came at 4.6-9.3 km, on
 // one seed none in 10 km)
 const BRIDGE_OPEN_M = 60;
-// (?roadparity=1) road points either side of a bridge where Deaf Valley's rock walls open for its
+// road points either side of a bridge where Deaf Valley's rock walls open for its
 // approaches (4 m apart: a 7 m road and its verges)
 const BRIDGE_GAP_POINTS = 4;
 // and the least bend radius under one, m: the desert's roads wind more (the countryside's 900);
@@ -218,8 +216,8 @@ function buildSlip(level: HwLevel, i: number, dist: number, pointAt: (i: number,
     sideStep(level, i, pointAt);
     return;
   }
-  // a gap in the left wall (walled preset; ?roadparity=1 a Deaf Valley rock wall) where it leaves
-  if (walled || (FIX.roadparity && state.desert))
+  // a gap in the left wall (walled preset; a Deaf Valley rock wall) where it leaves
+  if (walled || state.desert)
     for (let j = Math.max(0, i - 4); j < Math.min(road.length, i + 28); j++) road[j].gapL = 1;
   const len = type === 'long' ? SLIP_LONG[0] + rand() * (SLIP_LONG[1] - SLIP_LONG[0]) : SLIP_LEN;
   // degrees off the motorway at the end: a long one bends away, off screen
@@ -344,8 +342,8 @@ function buildBridge(level: HwLevel, i: number, dist: number, pointAt: (i: numbe
   // walkers, a train now and then
   bridge.phase = rand() * 1000;
   if (kind === 'rail') bridge.trainEvery = 14 + rand() * 16;
-  // (?roadtunnels=1: now and then the road goes under instead - its portals, not a bridge)
-  if (FIX.roadtunnels && kind === 'road' && !isJunction && rand() < TUNNEL_SHARE) {
+  // (now and then the road goes under instead - its portals, not a bridge)
+  if (kind === 'road' && !isJunction && rand() < TUNNEL_SHARE) {
     buildUnderpass(level, bridge, dist);
     openRockAt(state, i);
     return bridge;
@@ -362,13 +360,13 @@ function buildBridge(level: HwLevel, i: number, dist: number, pointAt: (i: numbe
 }
 
 /**
- * (?roadparity=1) Opens Deaf Valley's rock walls both sides where a bridge's approaches cross
+ * Opens Deaf Valley's rock walls both sides where a bridge's approaches cross
  * (canyon.ts isWallOpen).
  * @param state the highway state
  * @param i the bridge's road point
  */
 function openRockAt(state: HwState, i: number) {
-  if (!FIX.roadparity || !state.desert) return;
+  if (!state.desert) return;
   const last = Math.min(state.pts.length - 1, i + BRIDGE_GAP_POINTS);
   for (let j = Math.max(0, i - BRIDGE_GAP_POINTS); j <= last; j++) {
     state.pts[j].gapL = 1;
@@ -400,7 +398,7 @@ function addBridgeExtras(bridge: Bridge, kind: string, extra: boolean, rand: () 
 }
 
 /**
- * (?roadtunnels=1) A road under the motorway in place of a bridge: a portal each side just past
+ * A road under the motorway in place of a bridge: a portal each side just past
  * the motorway's edge (its wall's on the walled road), facing the other, the road dipping under
  * between them (the venues' tunnel: world/crossings.ts tunnelCrossing, paired by `pair` in
  * highway/bridgeways.ts); its approach roads on from the portals' open ends, as a bridge's.
@@ -423,7 +421,7 @@ function buildUnderpass(level: HwLevel, bridge: Bridge, dist: number) {
   approaches(level, { ...bridge, rot, skew: 0, look: undefined, rampL: undefined,
     wid: 2 * (mouth + PORTAL_M - 3) } as Bridge, dist);
 }
-// (?roadtunnels=1) the share of road bridges that are tunnels instead; a portal's length and the
+// the share of road bridges that are tunnels instead; a portal's length and the
 // tunnel road's width (the venues' measures, world/venuecross.ts); m its mouth stands past the
 // motorway's edge
 const TUNNEL_SHARE = 1 / 3, PORTAL_M = 9, TUNNEL_ROAD_M = 8.2, PORTAL_CLEAR_M = 3;
@@ -437,8 +435,8 @@ const TUNNEL_SHARE = 1 / 3, PORTAL_M = 9, TUNNEL_ROAD_M = 8.2, PORTAL_CLEAR_M = 
  * @returns the fields to add to the bridge prop
  */
 function roadBridgeLook(kind: string, isDesert: boolean, isJunction: boolean) {
-  // (?railbridges=1: a rail bridge drivable along its track, its ramps up from its ballast)
-  if (kind === 'rail' && FIX.railbridges) return { rampL: [RAMP_M, RAMP_M] };
+  // (a rail bridge drivable along its track, its ramps up from its ballast)
+  if (kind === 'rail') return { rampL: [RAMP_M, RAMP_M] };
   if (kind !== 'road') return {};
   return { look: 'venue', rampL: [RAMP_M, RAMP_M], ...(isDesert ? { pal: 'desert' } : {}),
     ...(isJunction ? { rings: true } : {}) };
@@ -473,11 +471,9 @@ function tryJunction(level: HwLevel, i: number, pointAt: (i: number, off: number
  * @returns true when one can be built
  */
 function junctionFits(level: HwLevel, i: number) {
-  const state = level._hw, road = state.pts, span = 2 * LEAD_POINTS, from = junctionFrom(i);
-  // (laid back over the road just dressed, the walled road's wall is built there; laid ahead -
-  // ?roadparity=1 - the road ahead must be there)
+  const state = level._hw, road = state.pts, span = 2 * LEAD_POINTS, from = i;
+  // (laid ahead, before the walls, rock and lamps there: the road ahead must be there)
   if (from < 4 || from + span + 4 >= road.length || state.side) return false;
-  if (level._cfg.walls && !FIX.roadparity) return false;
   if (!straightAt(road, from + span, span + 4, 12, JUNCTION_RADIUS_M)) return false;
   const fromS = road[from].s, toS = road[from + span].s;
   if (level.props.some((prop) => STATION_KINDS.has(prop.kind) && prop._s != null
@@ -485,13 +481,6 @@ function junctionFits(level: HwLevel, i: number) {
   return isOpenGround(state, fromS, OPEN_BACK_M, span * STEP + BRIDGE_OPEN_M)
     && isOpenGround(state, road[from + LEAD_POINTS].s, BRIDGE_OPEN_M, BRIDGE_OPEN_M, [1]);
 }
-/**
- * The road point a junction falling due at i leaves at: back over the road just dressed, or
- * (?roadparity=1, the road ahead there) i itself.
- * @param i the road point the junction falls due at
- * @returns its off-slip's road point
- */
-const junctionFrom = (i: number): number => (FIX.roadparity ? i : i - 2 * LEAD_POINTS);
 // what stands in a lay-by or a services' yard (a junction keeps off them)
 const STATION_KINDS = new Set(['gasstation', 'canopy', 'services', 'servicehall', 'station']);
 
@@ -506,7 +495,7 @@ const STATION_KINDS = new Set(['gasstation', 'canopy', 'services', 'servicehall'
  */
 function buildJunction(level: HwLevel, i: number, pointAt: (i: number, off: number) => HwPose,
   mark: Stamp) {
-  const state = level._hw, road = state.pts, fromIdx = junctionFrom(i);
+  const state = level._hw, road = state.pts, fromIdx = i;
   const bridgeIdx = fromIdx + LEAD_POINTS, names = state.desert ? DESERT_SLIP_NAMES : SLIP_NAMES;
   addSlipSigns(level, fromIdx, pointAt, mark, names[(Math.floor(road[fromIdx].s / 1000)
     + state.seed) % names.length]);
@@ -589,14 +578,8 @@ function isOpenGround(state: HwState, dist: number, back = OPEN_BACK_M, ahead = 
   if (!state.desert) return true;
   const last = dist + ahead;
   for (let along = Math.max(0, dist - back); along <= last; along += OPEN_STEP_M) {
-    // (?roadparity=1: only a gorge on its side keeps it off - the rock walls open where it passes,
-    // canyon.ts)
-    if (FIX.roadparity) {
-      if (sides.some((side) => gorgeAt(along, side, state.seed))) return false;
-      continue;
-    }
-    const kind = stretchAt(along, state.seed).kind;
-    if (kind !== 'desert' && kind !== 'dunes') return false;
+    // (only a gorge on its side keeps it off - the rock walls open where it passes, canyon.ts)
+    if (sides.some((side) => gorgeAt(along, side, state.seed))) return false;
   }
   return true;
 }

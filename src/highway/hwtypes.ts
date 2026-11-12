@@ -88,7 +88,7 @@ export interface HwState {
   wayOwners?: (Prop | null)[];
   /** a junction rolled and not yet built (none fitted): the next bridge that fits */
   junctionOwed?: boolean;
-  /** (?roadtunnels=1) the underpasses laid: each one's portals share its number (pair) */
+  /** the underpasses laid: each one's portals share its number (pair) */
   underpasses?: number;
   rnd: () => number; grnd: () => number; lrnd: () => number; xrnd: () => number;
   frnd: () => number;   // the random streams: dressing, road shape, loose, extras, fields

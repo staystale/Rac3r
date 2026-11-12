@@ -78,14 +78,14 @@ function overtakeLane(ctx: TrafficCtx, slot: TrafficCar, env: DriveEnv) {
 }
 
 /**
- * Pick a lane to move to (or none): move over (?moveover=1), overtake, keep left, or now and then
+ * Pick a lane to move to (or none): move over, overtake, keep left, or now and then
  * for no reason.
  */
 function chooseLane(
   ctx: TrafficCtx, slot: TrafficCar, env: DriveEnv, lead: TrafficEnt | null, gap: number,
 ) {
   const rnd = ctx.rnd;
-  // (?moveover=1: moving over for a police car or a flash - to its left, never to its right)
+  // (moving over for a police car or a flash - to its left, never to its right)
   if (isYielding(slot, env)) return yieldLane(slot, (laneNo) => laneClear(slot, env, laneNo));
   const blocked = lead && lead.v < slot.vWant - 3 && gap < (slot.racer ? SPEEDER_LOOK_M : 45);
   let goLane: number | null = null;

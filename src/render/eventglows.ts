@@ -8,7 +8,7 @@
 //   start gantry  a white light bar over the grid; the start lights glow red, then green
 //   caravans      warm light spilling out round the sides (top-down: no windows to see)
 //   pits          a warm lamp over each garage door / along the pit wall
-//   trains        (?trainlights=1) a rail bridge's train: the leading car's headlight thrown up the
+//   trains        a rail bridge's train: the leading car's headlight thrown up the
 //                 track, the coaches' windows lit warm; a freight's headlight and its dim cab
 // Only from dusk (the lamps' light sensor) and only what is near the screen.
 import { lampsLit } from '../world/lamps.ts';
@@ -21,7 +21,6 @@ import type { Point, Prop } from '../world/types.ts';
 import type { RenderCone, RenderGame } from './types.ts';
 import { trackEnds, trainClock } from './props/bridges.ts';
 import { trainAt } from '../world/trains.ts';
-import { FIX } from '../core/fixes.ts';
 
 /** What the event glows paint with: the light map and its art-px mapping (light.ts). */
 export interface EventPainter {
@@ -157,7 +156,7 @@ function litRect(painter: EventPainter, isTint: boolean, prop: Prop,
 }
 
 /**
- * (?trainlights=1) A rail bridge's train at night: the leading car's headlight - a pool thrown up
+ * A rail bridge's train at night: the leading car's headlight - a pool thrown up
  * the track ahead of it - and the coaches' windows lit warm; a freight (Deaf Valley's trestles)
  * its headlight and its locomotive's dim cab. The same train as the drawing's (world/trains.ts).
  * @param painter the light map
@@ -322,7 +321,7 @@ function propLights(painter: EventPainter, isTint: boolean, game: RenderGame): v
     }
     else if (kind === 'gantry') gantryLights(painter, isTint, prop, game);
     else if (kind === 'garagerow' || kind === 'pit_wall') pitLamps(painter, isTint, prop);
-    else if (kind === 'bridge' && prop.carries === 'rail' && FIX.trainlights)
+    else if (kind === 'bridge' && prop.carries === 'rail')
       trainLights(painter, isTint, prop);
   }
 }

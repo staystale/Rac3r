@@ -2,7 +2,7 @@
 // branch path: radius R, ground mu, the PLAN speed (profile x pace), and what one AI actually did there (speed, throttle, brake, slip,
 // m off the path) ??? then the same metres of the MAIN line for comparison. node tools/_jokerexit.mjs [level] [car] [diff] [seed]
 import { makeCar, step, reset, PHYSICS_STEP_SECONDS } from '../../src/vehicle.ts';
-import * as L from '../../src/lab.js';
+import * as L from '../../src/lab.ts';
 const { createAIDriver } = await import(process.env.AINEXT ? '../../src/ai/circuit.next.js' : '../../src/ai/circuit.ts'), { aiTraits } = await import('../../src/ai/traits.ts'), { aiPaths } = await import('../../src/ai/line.ts');
 const [lv = 'knobhill', carId = 'hatch-rwd', d = '4', seed = '1'] = process.argv.slice(2);
 L.setLevel(lv); L.clearWear();

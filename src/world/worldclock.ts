@@ -1,4 +1,4 @@
-// world/worldclock.ts - THE WORLD'S SIM CLOCK (?railbridges=1): seconds of simulation, advanced
+// world/worldclock.ts - THE WORLD'S SIM CLOCK: seconds of simulation, advanced
 // once per physics step of the player's car (game/sim.ts), for the world's own movers that cars
 // can meet - a rail bridge's train (world/trains.ts) - so the physics and the drawing read the
 // one time.

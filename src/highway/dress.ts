@@ -287,7 +287,7 @@ function layWalls(ctx: DressCtx) {
           pts = [];
         };
         // (beside the SECRET SIDE ROAD the left wall swings out with it, to its far edge - it
-        // starts and ends at the normal line; never past the last point dressed - ?roadparity=1
+        // starts and ends at the normal line; never past the last point dressed -
         // dresses behind the road's end, and the road past it has no side road marked yet: the
         // next stretch's first piece starts on that last point. MEASURED _serviceswall.mjs, a
         // wall across every services' way in)

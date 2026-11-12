@@ -1,4 +1,4 @@
-// hud/heat.ts - THE POLICE ON THE HUD (?police=1; game/police.ts): the heat as three very small
+// hud/heat.ts - THE POLICE ON THE HUD (game/police.ts): the heat as three very small
 // yellow stars just above the LIGHTS / indicator row (its own rect: hud/layout.ts heat), filled one
 // a star; while a chaser sees you a blue light flashes behind them left and right in turn, as its
 // light bar does - the siren's twin (the siren's sound waits for the owner). And the BUSTED card,
