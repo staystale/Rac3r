@@ -84,11 +84,13 @@ export async function openPage(browser, base, id, errors, extra = '') {
 /**
  * Page side: start a session on a level with 3 AI cars (opts may override), the game's own
  * launch path.
- * @param {[string, object]} args level id and extra launch options
+ * @param {[string, object]} args level id and extra launch options (car: the player car)
  * @returns {void}
  */
 export function launchLevel([id, opts]) {
-  window.__game.launch(id, 'hatch-rwd', { ai: 3, ...opts });
+  // (opts.car: another player car - renderhash's RAC3R_CAR, to draw an open-wheeler's arms)
+  const { car = 'hatch-rwd', ...rest } = opts || {};
+  window.__game.launch(id, car, { ai: 3, ...rest });
 }
 
 /**

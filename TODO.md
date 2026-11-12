@@ -12,6 +12,17 @@ build's full record (what was built, every number) is in `TODO-DONE.md` under it
 The 11-11 round (14 entries, 11 switches) passed 11-12, its record in `TODO-DONE.md` (PASSED
 11-12). On the phone now:
 
+- CARCACHE (`?carcache=1`; ROUND 5's performance pass, owner 11-12 "Ok" to the plan; testlist
+  carcache): with a grid of open-wheelers the cars' painting was 28% of a frame and their
+  suspension arms, a pixel at a time, half of that (MEASURED, Spa 20 AI, CPU x4, CDP profile).
+  Each wheel's fixed arms (the arms, a driven wheel's shaft and joints) painted once per car type
+  and stamped; only the track rod drawn live (render/cars.ts stampFixedArms). MEASURED: the arms
+  951 -> 528 ms of a 10 s profile; our work a frame 29.4 / 28.5 -> 25.9 / 25.8 ms (median, two
+  runs each), p95 43 -> 39 ms. The pixels: the same where the car's picture sits on whole pixel
+  blocks; at zooms where the arms fall half a pixel off them the stamp draws them crisp where
+  fillRect blurred their edges (0.007% of a frame's pixels, renderhash with RAC3R_CAR=track-rwd).
+  WRONG: arms missing or misplaced, not turning with the steering, a lower frame rate.
+
 - STADIUM CROSSOVERS, ROOM AT THE PORTALS (owner 11-12: "the tunnel still just touches some
   barriers"; testlist stadeprancebarriers; Stade de Prance and Wobbly): a car on a road's edge
   met the end of a portal's wall (the cut 0.6 m wider than the road) and the barrier at a lintel's

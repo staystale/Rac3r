@@ -13,6 +13,14 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'carcache',
+    added: '2026-11-12',
+    name: 'Faster car drawing: the suspension arms of open-wheelers painted once, not every frame',
+    where: 'Test link + &carcache=1: any race with F1 / F2 cars, a full grid (20 AI)',
+    try: 'Race with a full grid; look at the arms and drive shafts by each wheel while steering.',
+    wrong: 'Arms missing, in the wrong place, not turning with the steering, a lower frame rate.',
+  },
+  {
     id: 'tunnellights',
     added: '2026-11-12',
     name: 'Lights in a slatted tunnel: your lamps and the cars\' seen between the slats',

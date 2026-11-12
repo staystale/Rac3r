@@ -5,6 +5,7 @@ import {
   partRegion, cutPart, flatPart, withoutParts, isBare, drawnBit,
 } from "./carparts.ts";
 import { SPRITE_PPM } from "./shared.ts";
+import { FIX } from "../core/fixes.ts";
 import { DAYLIGHT } from "../world/daylight.ts";
 import { REVERSE_LAMP, isReversing } from "./reverselights.ts";
 import { settledLampLevel } from "./carlamps.ts";
@@ -185,6 +186,28 @@ function pixelLine(ctx: CanvasRenderingContext2D, from: number[], dest: number[]
  */
 function drawWishbones(ctx: CanvasRenderingContext2D, spec: RenderCarSpec, axleX: number,
   side: number, steer: number, halfWidth: number): void {
+  // (?carcache=1: the arms that never move stamped from their own picture - stampFixedArms)
+  if (FIX.carcache) stampFixedArms(ctx, spec, axleX, side, halfWidth);
+  else drawFixedArms(ctx, spec, axleX, side, halfWidth);
+  if (axleX <= 0) return;
+  const hubX = axleX * SPRITE_PPM, hubY = side * halfWidth, body = side * 2;
+  ctx.fillStyle = WISHBONE;
+  const arm = 0.14 * SPRITE_PPM, endX = hubX - Math.cos(steer) * arm,
+    endY = hubY - Math.sin(steer) * arm;
+  pixelLine(ctx, [hubX - arm, body], [endX, endY]);
+}
+
+/**
+ * A wheel's suspension that does not move: its upper and lower arms, and a driven wheel's drive
+ * shaft and joints (not the front's track rod, which turns with the steering).
+ * @param ctx the canvas (the car's frame, sprite px)
+ * @param spec the car as drawn (its drive)
+ * @param axleX the axle, m
+ * @param side -1 or 1
+ * @param halfWidth px from the middle to the wheel
+ */
+function drawFixedArms(ctx: CanvasRenderingContext2D, spec: RenderCarSpec, axleX: number,
+  side: number, halfWidth: number): void {
   const hubX = axleX * SPRITE_PPM, hubY = side * halfWidth, front = axleX > 0;
   // the chassis where the arms meet it: the NOSE at the front axle, the GEARBOX at the rear (owner
   // 11-07: "front wishbones etc don't link up to the body on f1 car" - they started at the
@@ -203,10 +226,45 @@ function drawWishbones(ctx: CanvasRenderingContext2D, spec: RenderCarSpec, axleX
   ctx.fillStyle = WISHBONE;
   for (const spread of [-0.2, 0.2])
     pixelLine(ctx, [hubX + spread * SPRITE_PPM, body], [hubX, hubY]);
-  if (!front) return;
-  const arm = 0.14 * SPRITE_PPM, endX = hubX - Math.cos(steer) * arm,
-    endY = hubY - Math.sin(steer) * arm;
-  pixelLine(ctx, [hubX - arm, body], [endX, endY]);
+}
+
+/** A wheel's fixed arms painted once: the picture and where its corner sits, sprite px. */
+interface ArmsPicture { canvas: HTMLCanvasElement; cornerX: number; cornerY: number }
+// by everything drawFixedArms reads (its drive, axle, side, track): one per wheel of a car type
+const FIXED_ARMS = new Map<string, ArmsPicture>();
+// sprite px kept round the arms' box (the joints, the rounding)
+const ARMS_PAD_PX = 4;
+
+/**
+ * Stamps a wheel's fixed arms from their own picture, painted the first time (MEASURED: the arms,
+ * a pixel at a time, were half the cars' painting with a grid of open-wheelers). The car's picture
+ * lands on whole pixel blocks and does not smooth: the stamp's pixels are the arms' own.
+ * @param ctx the canvas (the car's frame, sprite px)
+ * @param spec the car as drawn (its drive)
+ * @param axleX the axle, m
+ * @param side -1 or 1
+ * @param halfWidth px from the middle to the wheel
+ */
+function stampFixedArms(ctx: CanvasRenderingContext2D, spec: RenderCarSpec, axleX: number,
+  side: number, halfWidth: number): void {
+  const key = `${spec.drive ?? 0}|${axleX}|${side}|${halfWidth}`;
+  let arms = FIXED_ARMS.get(key);
+  if (!arms) {
+    const hubX = axleX * SPRITE_PPM, hubY = side * halfWidth, body = side * (axleX > 0 ? 2 : 3);
+    const spread = 0.2 * SPRITE_PPM;
+    const cornerX = Math.floor(hubX - spread) - ARMS_PAD_PX;
+    const cornerY = Math.floor(Math.min(body, hubY))
+      - ARMS_PAD_PX;
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.ceil(hubX + spread) + ARMS_PAD_PX - cornerX;
+    canvas.height = Math.ceil(Math.max(body, hubY)) + ARMS_PAD_PX - cornerY;
+    const paint = canvas.getContext('2d')!;
+    paint.translate(-cornerX, -cornerY);
+    drawFixedArms(paint, spec, axleX, side, halfWidth);
+    arms = { canvas, cornerX, cornerY };
+    FIXED_ARMS.set(key, arms);
+  }
+  ctx.drawImage(arms.canvas, arms.cornerX, arms.cornerY);
 }
 
 /**

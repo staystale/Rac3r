@@ -115,7 +115,9 @@ async function runLevel(browser, base, id, endless) {
     window.__rt.step(10);
   });
   await page.evaluate((seed) => window.__rt.seed(seed), SEED);
-  await page.evaluate(launchLevel, [id, endless ? HIGHWAY_OPTS : {}]);
+  // RAC3R_CAR: the player car (default the hatch: the saved references are the hatch's)
+  const car = process.env.RAC3R_CAR ? { car: process.env.RAC3R_CAR } : {};
+  await page.evaluate(launchLevel, [id, { ...(endless ? HIGHWAY_OPTS : {}), ...car }]);
   // the game's restart arms the start with a real setTimeout: let it fire before stepping
   await page.waitForTimeout(SETTLE_MS);
   await page.evaluate(installDriver);

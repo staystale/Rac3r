@@ -50,4 +50,10 @@ export function dialAtLoad(name: string): number {
 }
 
 /** The switches under test, all off on the plain link. */
-export const FIX = {};
+export const FIX = {
+  // ?carcache=1: an open-wheeler's fixed suspension arms (the arms, a driven wheel's shaft and
+  // joints) painted once per wheel of a car type and stamped each frame; only the track rod drawn
+  // live (render/cars.ts stampFixedArms). The same pixels; half the cars' painting with a grid of
+  // open-wheelers (MEASURED, Spa 20 AI, CPU x4)
+  carcache: atLoad('carcache'),
+};
