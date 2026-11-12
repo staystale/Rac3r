@@ -13,6 +13,40 @@ The 11-11 round (14 entries, 11 switches) passed 11-12, and the performance roun
 carcull, the texture warm-up) and the stadium crossovers passed 11-12 ("mostly pass"), their
 records in `TODO-DONE.md` (PASSED 11-12). On the phone now:
 
+- STADIUMPROPS (`?stadiumprops=1`; owner 11-12: "All stadiums could be jazzed up with some props
+  etc; bird mess also has some slightly messy Armco / fences"; testlist stadiumprops; Wobbly,
+  Stade de Prance, The Bird's Mess). THE BARRIERS: where a stadium's two lanes run apart (the
+  corners either side of the crossover, the inner lane 32 m in, not 20) the Armco between them
+  zig-zagged between the two lanes' rims (0.5-1.5 m), and two runs there stopped 2-3 m short of the
+  run beside them (The Bird's Mess and Stade de Prance, by the lens east / west of the
+  crossover). Now (VenueSpec.evenEdge, world/stadiumtidy.ts) each Armco run and catch fence is
+  eased (Taubin smoothing: a wave under ~10 m damped, a bend's radius kept, no point moved more
+  than 0.8 m, the points by a portal and the ends fixed) and each free end carried on to the run
+  beside it (cut back first where it ran in beside it, so nothing doubles; the run met split
+  there, a joint). MEASURED (tools/scratch/_barrierends.mjs): free ends 2 / 2 / 0 -> 0 / 0 / 0,
+  kink points (over 25 deg) 3 / 10 / 7 -> 0 / 5 / 3 (Bird's Mess / Stade de Prance / Wobbly).
+  THE DRESSING, each stadium its own (the generator's DRESS kits of existing kinds, laid after the
+  boards and kept 2.5 m off them and 1.5 m off every barrier - VenueSpec.dress, world/
+  venuebowl.ts): Wobbly (red, blue, white; all in the infield - its apron between the catch
+  fence and the flags is a few metres) transporters, the podium and its crowd, show cars, a TV
+  camera platform, cones; Stade de Prance (blue, white, red) a paddock (two transporters, cars,
+  flight cases, spare tyres) and a row of transporters on the long north apron, a TV camera
+  platform, a motorhome with its bins, fans, show cars in the infield, cones, tyres; The Bird's
+  Mess (red, gold) transporters, a paddock, a motorhome, a TV camera platform, a red steel
+  sculpture, show cars, fans, bins. Nothing inside the catch fence, nothing over the track.
+  FRAMES (framecheck, CPU x4, 20 AI; our work a frame, median, switch off -> on; frame median
+  35-36 ms in every run): Wobbly day 30.9 -> 33.6, again (on first) 29.9 -> 29.6; night 37.2 ->
+  35.3. Stade de Prance day 23.7 -> 24.6; night 25.1 -> 28.5, again (on first) 23.9 -> 27.8. The
+  Bird's Mess day 29.1 -> 29.0; night 36.7 -> 35.5. Stade's night is the one pair slower both
+  times (+3.5 ms); its CPU profile is the same on and off (drawImage 14.0 / 14.3%, no dressing
+  painter in the top 25) and drawload counts less drawing with it on (off-screen rects 929 -> 820,
+  screen strokes 197 -> 177) - not found; the laptop's tile cost this session 7-9 ms (4 ms earlier).
+  Worldhash with the switch off: SAME (every level, and The Bird's Mess with
+  ?birdsmess=1). Checks with it on: barriercheck, propcheck, venueaudit (nothing overlaps),
+  sealing 0 escapes, portal drives (centre, +-5, +-6 m) clean, crossingcheck OK on all three.
+  WRONG: an Armco run with a kink or a step, an end that meets nothing, a prop on a fence, over
+  the track or hiding the line, a board moved, a lower frame rate.
+
 - BIRDSMESS (`?birdsmess=1`; TEST MODE > RALLYCROSS; testlist birdsmess). THE BIRD'S MESS, the ROC
   track in the Bird's Nest (Beijing 2009), from the shared generator (tools/scratch/_rocdata.mjs
   birdsmess; close to, not traced - no plan supplied): 1015 m, a fat egg in a near-elliptical bowl

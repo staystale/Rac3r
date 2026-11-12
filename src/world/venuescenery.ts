@@ -18,7 +18,7 @@ import { WALL_REACH_M, boxedLine, buildEdge, railLines, buildRims, inZones, outl
 import { boardOnArmco, marshalPosts, startGantry } from "./venueposts.ts";
 import { venueAero, venuePlanes } from "./venueairfield.ts";
 import { nearWater, onPatches, ovalWall, venueMown, venueWater } from "./venueoval.ts";
-import { bowlRoof, bowlSeats, venueLitter } from "./venuebowl.ts";
+import { bowlRoof, bowlSeats, venueDress, venueLandmarks, venueLitter } from "./venuebowl.ts";
 import type { EdgeNeeds, RealLines } from "./venueedge.ts";
 import { REACH_M, cellKey, inBuilding, inSolid, nearArmco, nearRace, onLanes, placeAll }
   from "./venuesite.ts";
@@ -327,11 +327,7 @@ function venueBuildings(site: Site, pits: Lane[]): Prop[] {
       : building.kind === 'hangar' ? { ...prop, kind: 'hangar' }
         : { ...prop, roof: ROOFS[i % ROOFS.length], ...bowlRoof(site, building.kind, i) });
   });
-  for (const mark of site.build.spec.landmarks || []) {
-    const [x, y] = site.place(mark.at), size = mark.size * site.build.scale, { rot, col } = mark;
-    props.push({ kind: mark.kind, x, y, size, w: (mark.len || mark.size) * site.build.scale,
-      h: size, ...(rot === undefined ? {} : { rot }), ...(col ? { col } : {}) });
-  }
+  props.push(...venueLandmarks(site));
   return props;
 }
 
@@ -780,7 +776,7 @@ export function buildVenueScenery(build: VenueBuild, sub: Subtrack, closed: Lane
     ...finished], props);
   const zones = [...traps, ...paddocks.zones, ...venuePads(site), ...venueAero(site)];
   const lanes = [...pitLanes, ...bridges.lanes, ...tunnels.lanes, ...finished];
-  props.push(...venuePlanes(site, zones, props));
+  props.push(...venuePlanes(site, zones, props), ...venueDress(site, props, edge.barriers));
   const covers = venueWater(site), patches = venueMown(site);
   // (no tree whose trunk stands on a barrier: its solid box, a quarter of its size either way)
   const railGrid = makePointGrid([...walls, ...edge.barriers].flatMap((rail) => rail.pts));
@@ -794,7 +790,7 @@ export function buildVenueScenery(build: VenueBuild, sub: Subtrack, closed: Lane
       && !isAnyPointWithin(edgeTyres, x, y, MAP_WALL_CLEAR_M))
     .map(([x, y]) => ({ x, y, kind: 'tyrestack' })));
   return { lanes, zones: [...zones, ...venueParks(site)],
-    cones: [...edge.cones, ...karting, ...venueLitter(site)],
+    cones: [...edge.cones, ...karting, ...venueLitter(site, props, edge.barriers)],
     barriers: [...walls, ...edge.barriers],
     props, paint: pitLanes.flatMap((lane) => pitLines(site, lane)), bounds, covers, patches };
 }

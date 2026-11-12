@@ -21,7 +21,15 @@ const VENUES = {
     bowl: 'rounded', exportName: 'WOBBLY_VENUE', header: [
       "// wobbly.ts - written by tools/scratch/_rocdata.mjs wobbly (laid by hand: the Race of",
       "// Champions' track at Wembley, 2007-08, as two lanes interwoven round the bowl, one crossover",
-      '// bridge). Game m (share 1). Edit the generator, not this file.'] },
+      '// bridge). Game m (share 1). Edit the generator, not this file.'],
+    // (?stadiumprops=1) London's, all in the infield (its apron between the catch fence and the
+    // flags is a few metres): red, blue and white transporters, the podium and its crowd, show
+    // cars, a TV camera platform, a motorhome with its bins, cones
+    dressCols: ['#c8302c', '#2b56b5', '#e8e6e0'],
+    dress: [['Inner north', 0.3, -1, 21, 'transporters'], ['Inner west', 0.25, -1, 17, 'tvcamera'],
+      ['Inner north', 0.5, -1, 27, 'fans'], ['Inner west', 0.8, -1, 18, 'motorhome'],
+      ['Inner north', 0.75, -1, 17, 'podium'], ['Inner west', 0.5, -1, 15, 'cones'],
+      ['Inner east', 0.45, -1, 19, 'showcars']] },
   // the Stade de France, 2004-06: the lanes round a long rounded rectangle with tight ends ("tight
   // hairpins"), the crossover east of the south straight's middle (2006: "a long straight leads to
   // a cross-over bridge"), gravel on both lanes' west ends, an oval bowl. Its corners: the east end
@@ -33,7 +41,15 @@ const VENUES = {
     bowl: 'oval', exportName: 'STADEPRANCE_VENUE', header: [
       "// stadeprance.ts - written by tools/scratch/_rocdata.mjs stadeprance (laid by hand: the Race of",
       "// Champions' track at the Stade de France, 2004-06, as two lanes interwoven round the bowl, one",
-      '// crossover bridge). Game m (share 1). Edit the generator, not this file.'] },
+      '// crossover bridge). Game m (share 1). Edit the generator, not this file.'],
+    // (?stadiumprops=1) Paris's: a paddock and a row of transporters in blue, white and red along
+    // the long north apron, a TV camera platform, a motorhome by the double apex, fans on the west,
+    // show cars in the infield, spare tyres and cones
+    dressCols: ['#2b56b5', '#e8e6e0', '#c8302c'],
+    dress: [['Outer north', 0.24, 1, 22, 'paddock'], ['Outer north', 0.55, 1, 25, 'transporters'],
+      ['Outer north', 0.8, 1, 22, 'tvcamera'], ['Outer east', 0.5, 1, 17, 'motorhome'],
+      ['Outer west', 0.5, 1, 16, 'fans'], ['Inner north', 0.3, -1, 17, 'showcars'],
+      ['Inner west', 0.4, -1, 15, 'cones'], ['Outer west', 0.8, 1, 20, 'tyres']] },
   // the Bird's Nest (Beijing National Stadium), 2009: the lanes round a fat egg (the Nest's bowl is
   // an ellipse), the crossover west of the south straight's middle, gravel on both lanes' east
   // end, an elliptical bowl. Its corners: a sweeping south-east, the east end a tight hairpin, the
@@ -50,6 +66,13 @@ const VENUES = {
       ['Outer north', 0.5, 1, 20, 'pallets'], ['Outer west', 0.55, 1, 20, 'barrels'],
       ['Outer west', 0.93, 1, 19, 'tarp'], ['Inner north', 0.3, -1, 18, 'tyres'],
       ['Inner west', 0.5, -1, 18, 'pallets']],
+    // (?stadiumprops=1) Beijing's: red and gold transporters and a paddock, a motorhome on the west
+    // apron, a TV camera platform, a red steel sculpture in the infield, show cars, bins
+    dressCols: ['#c8302c', '#d6a21e'],
+    dress: [['Outer north', 0.26, 1, 20, 'transporters'], ['Outer east', 0.5, 1, 19, 'paddock'],
+      ['Outer west', 0.3, 1, 21, 'motorhome'], ['Outer north', 0.9, 1, 20, 'tvcamera'],
+      ['Inner north', 0.35, -1, 17, 'sculpture'], ['Inner west', 0.3, -1, 17, 'showcars'],
+      ['Outer north', 0.6, 1, 19, 'bins'], ['Outer west', 0.65, 1, 19, 'fans']],
     exportName: 'BIRDSMESS_VENUE', header: [
       "// birdsmess.ts - written by tools/scratch/_rocdata.mjs birdsmess (laid by hand: the Race of",
       "// Champions' track in the Bird's Nest, Beijing 2009, as two lanes interwoven round the bowl,",
@@ -301,6 +324,79 @@ const litter = (venue.litter || []).flatMap(([name, share, side, out, kit]) => {
     at: [r1(ax + along[0] * forward + across[0] * (out + outward)),
       r1(ay + along[1] * forward + across[1] * (out + outward))], kind, ...(col ? { col } : {}) }));
 });
+// THE DRESSING (?stadiumprops=1: venue.dress, [piece, share along it, side, m out, kit]): kits of
+// the existing prop kinds (DRESS_PROPS: VenueSpec.landmarks, solid where their kind is) and loose
+// objects (VenueSpec.litter), each [m along, m out, kind, { c: colour index into
+// venue.dressCols, size, len, seed }] in the lane's frame, behind the barrier on the apron or in
+// the infield. An item that comes within DRESS_RAIL_M of a barrier line, inside a stand grown
+// DRESS_STAND_M, or within DRESS_FLAG_M of a flag or floodlight is left out (and reported)
+const DRESS_PROPS = { truck: [2.5, 14], parkedcar: [1.8, 4.2], tower: [4, 4], crowd: [3, 9],
+  sculpture: [4, 4] };
+const DRESS_KITS = {
+  transporters: [[0, 0, 'truck', { c: 0 }], [16, 0, 'truck', { c: 1 }]],
+  paddock: [[0, 0, 'truck', { c: 0 }], [0, 4.5, 'truck', { c: 1 }], [-11, 1, 'parkedcar', { c: 2 }],
+    [-11, 3.6, 'parkedcar', { c: 0 }], [10, 7.5, 'crate'], [11.2, 7.6, 'box'], [12.4, 7.4, 'crate'],
+    [-12, 6.5, 'tyre'], [-11.1, 6.7, 'tyre'], [-10.2, 6.4, 'tyre'], [-11.6, 7.4, 'tyre']],
+  motorhome: [[0, 0, 'caravan'], [6.5, 0.5, 'parkedcar', { c: 1 }], [-4.5, 0.3, 'bin'],
+    [-5.3, 0.2, 'bin'], [-6.1, 0.35, 'bin']],
+  tvcamera: [[0, 0, 'tower'], [-6.5, 0.5, 'box'], [-7.3, -0.3, 'crate'], [-6.7, -1.1, 'box']],
+  fans: [[0, 0, 'crowd', { seed: 1 }], [11, 0.4, 'crowd', { len: 7, seed: 2 }]],
+  showcars: [[0, 0, 'parkedcar', { c: 0 }], [5.5, 0, 'parkedcar', { c: 1 }],
+    [11, 0, 'parkedcar', { c: 2 }]],
+  podium: [[0, 0, 'podium'], [0, 4.5, 'crowd', { len: 8, seed: 3 }]],
+  cones: [[0, 0, 'cone'], [0.6, 0.3, 'cone'], [1.2, 0, 'cone'], [0.6, -0.4, 'cone'],
+    [2.2, 0.2, 'cone']],
+  bins: [[0, 0, 'bin'], [0.9, 0, 'bin'], [1.8, 0, 'bin'], [3.2, 0.2, 'pallet']],
+  tyres: [[0, 0, 'tyre'], [0.9, 0.2, 'tyre'], [1.8, -0.1, 'tyre'], [0.4, 0.9, 'tyre'],
+    [1.3, 1.0, 'tyre']],
+  sculpture: [[0, 0, 'sculpture']],
+};
+const DRESS_RAIL_M = 3.5, DRESS_STAND_M = 1.5, DRESS_FLAG_M = 2.5;
+const inBox = (box, [x, y], grow) => {
+  const cosR = Math.cos(box.rot), sinR = Math.sin(box.rot), dx = x - box.x, dy = y - box.y;
+  return Math.abs(dx * cosR + dy * sinR) < box.w / 2 + grow
+    && Math.abs(-dx * sinR + dy * cosR) < box.h / 2 + grow;
+};
+const lineGap = (pts, [x, y]) => {
+  let best = Infinity;
+  for (let i = 0; i + 1 < pts.length; i++) {
+    const [ax, ay] = pts[i], [bx, by] = pts[i + 1], dx = bx - ax, dy = by - ay;
+    const t = Math.max(0, Math.min(1, ((x - ax) * dx + (y - ay) * dy) / (dx * dx + dy * dy || 1)));
+    best = Math.min(best, Math.hypot(x - ax - dx * t, y - ay - dy * t));
+  }
+  return best;
+};
+const dressDropped = [];
+const dressClear = (at, reach) => rails.every((rail) => lineGap(rail, at) > DRESS_RAIL_M + reach)
+  && ![...lower, ...upper].some((box) => inBox(box, at, DRESS_STAND_M + reach))
+  && [...flags, ...floods].every((mark) => Math.hypot(mark.at[0] - at[0], mark.at[1] - at[1])
+    > DRESS_FLAG_M + reach);
+const dressItems = (venue.dress || []).flatMap(([name, share, side, out, kit]) => {
+  const pts = pieces.find((piece) => piece.name === name).pts;
+  const at = Math.min(pts.length - 2, Math.round(share * (pts.length - 1)));
+  const [ax, ay] = pts[at], [bx, by] = pts[at + 1], len = Math.hypot(bx - ax, by - ay) || 1;
+  const along = [(bx - ax) / len, (by - ay) / len], across = [-along[1] * side, along[0] * side];
+  const rot = Math.round(Math.atan2(along[1], along[0]) * 1000) / 1000;
+  return DRESS_KITS[kit].flatMap(([forward, outward, kind, opts = {}]) => {
+    const spot = [r1(ax + along[0] * forward + across[0] * (out + outward)),
+      r1(ay + along[1] * forward + across[1] * (out + outward))];
+    const shape = DRESS_PROPS[kind], size = opts.size || (shape ? shape[0] : 1);
+    const long = opts.len || (shape ? shape[1] : 1);
+    // (its middle and both ends along the lane, each with half its width round it)
+    const ends = [-long / 2, 0, long / 2].map((shift) => [spot[0] + along[0] * shift,
+      spot[1] + along[1] * shift]);
+    if (!ends.every((end) => dressClear(end, size / 2))) {
+      dressDropped.push(`${kit} ${kind} at ${spot}`);
+      return [];
+    }
+    const col = opts.c === undefined ? undefined : venue.dressCols[opts.c % venue.dressCols.length];
+    return [{ at: spot, kind, ...(shape ? { size, ...(long !== size ? { len: long } : {}) } : {}),
+      rot, ...(col ? { col } : {}), ...(opts.seed ? { seed: opts.seed } : {}), prop: !!shape }];
+  });
+});
+const strip = ({ prop, ...item }) => item;
+const dressProps = dressItems.filter((item) => item.prop).map(strip);
+const dressLoose = dressItems.filter((item) => !item.prop).map(strip);
 const json = (value) => JSON.stringify(value).replace(/,(?=["[{\d-])/g, ', ').replace(/":(?=["[{\d-]|true|false)/g, '": ');
 const lines = [...venue.header, "import type { VenueData, VenueSpec } from '../../venue.ts';", '', `export const ${venue.exportName}: VenueData = {`, '  pieces: ['];
 for (const piece of pieces) lines.push(`    ${json(piece)},`);
@@ -336,6 +432,17 @@ if (litter.length) {
   for (const item of litter) lines.push(`  ${json(item)},`);
   lines.push('];', '');
 }
+if (dressItems.length) {
+  const name = venue.exportName.replace('_VENUE', '');
+  lines.push("// the dressing pass's props, on the apron and in the infield (?stadiumprops=1:",
+    '// VenueSpec.landmarks)',
+    `export const ${name}_DRESS: NonNullable<VenueSpec['landmarks']> = [`);
+  for (const item of dressProps) lines.push(`  ${json(item)},`);
+  lines.push('];', '', "// and its loose objects (?stadiumprops=1: VenueSpec.litter)",
+    `export const ${name}_DRESS_LITTER: NonNullable<VenueSpec['litter']> = [`);
+  for (const item of dressLoose) lines.push(`  ${json(item)},`);
+  lines.push('];', '');
+}
 const wrapped = lines.flatMap((text) => { if (text.length <= 100) return [text]; const parts = []; let rest = text; while (rest.length > 100) { const cut = rest.lastIndexOf(', ', 98); if (cut < 12) break; parts.push(rest.slice(0, cut + 1)); rest = `      ${rest.slice(cut + 2)}`; } parts.push(rest); return parts; });
 fs.writeFileSync(`src/world/levels/venues/${venueId}.ts`, wrapped.join(String.fromCharCode(10)));
 const len = (pts) => pts.slice(1).reduce((s, p, i) => s + Math.hypot(p[0] - pts[i][0], p[1] - pts[i][1]), 0);
@@ -347,3 +454,4 @@ console.log('crossover: straight', CROSS_HALF.toFixed(1), 'm each side of the cr
   'to', (AT + CROSS_X).toFixed(1), '; lane straights before the corners', ['Inner south east', 'Inner south west',
   'Outer south east', 'Outer south west'].map((name) => straightOf(name).toFixed(1)).join(' / '));
 console.log('folds:', FOLDS.length ? FOLDS.join('; ') : 'none');
+console.log('dressing:', dressProps.length, 'props,', dressLoose.length, 'loose; left out', dressDropped.length ? dressDropped.join('; ') : 'none');

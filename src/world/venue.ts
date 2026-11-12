@@ -15,9 +15,10 @@ import { splitLineDist } from "./splitstart.ts";
 import { solidsFromProps } from "./barriers.ts";
 import { venueCrossings } from "./crossings.ts";
 import { markUnder } from "./trackunder.ts";
-import { pitTunnelPortals, tunnelSpans, underParapets, underPortals, underSpans }
+import { pitTunnelPortals, portalCorners, tunnelSpans, underParapets, underPortals, underSpans }
   from "./venuecross.ts";
 import { tidyBarriers } from "./venuetidy.ts";
+import { evenStadiumEdge } from "./stadiumtidy.ts";
 import { CIRCUIT_BUSHES } from "./levels/bushes.ts";
 import { buildVenueScenery } from "./venuescenery.ts";
 import { VENUE_ROAD_M, distToLine, isNearLine, kerbOut, lineLength, pointAlong }
@@ -130,7 +131,8 @@ export interface VenueSpec {
   // landmarks the map does not carry (a prop kind at its real spot, size m across, scaled with the
   // map): where the sources show them - a long one len m along, turned rot (Moanaco's yachts)
   // (a flag its colour)
-  landmarks?: { at: Point; kind: string; size: number; len?: number; rot?: number; col?: string }[];
+  landmarks?: { at: Point; kind: string; size: number; len?: number; rot?: number; col?: string;
+    seed?: number }[];
   // light aircraft parked on the airfield's grass stands (data.aero stands), one a colour
   planes?: string[];
   // an oval's: races start rolling; each layout's banking (world/terrain.ts camberTable: sections
@@ -173,6 +175,9 @@ export interface VenueSpec {
   // a street circuit's barriers tidied: loops cut out, stubs dropped, near ends joined
   // (world/venuetidy.ts; Moanaco's) - 'fences': an Armco end joined to a catch fence's too (Wobbly)
   tidyEdge?: boolean | 'fences';
+  // a stadium's tidied edge made even (world/stadiumtidy.ts): its Armco and catch fences eased, a
+  // free end carried on to the run beside it
+  evenEdge?: boolean;
   // no bushes (a stadium's pitch: Wobbly Stadium)
   bushless?: boolean;
   // no kerbs (a track laid for a day on a stadium's pitch: Wobbly Stadium)
@@ -183,7 +188,10 @@ export interface VenueSpec {
   bowlLook?: { seats: [string, string]; roof: string; lattice: string };
   // loose objects laid by hand (real m; the highway's debris kinds - pallets, barrels, tarps -
   // and tyres): a venue's litter, kept off the road as every loose object is (tidyLoose)
-  litter?: { at: Point; kind: string; col?: string }[];
+  litter?: { at: Point; kind: string; col?: string; rot?: number }[];
+  // a dressing pass's props (as landmarks) and loose objects (as litter), laid after the boards
+  // and kept clear of them (world/venuebowl.ts venueDress; the stadiums' ?stadiumprops=1)
+  dress?: { props: NonNullable<VenueSpec['landmarks']>; litter: NonNullable<VenueSpec['litter']> };
   // the pit lane's surface where the venue's ground is concrete too (Moanaco's: tarmac); concrete
   // when not given
   pitSurface?: keyof typeof SURFACES;
@@ -601,6 +609,23 @@ function splitLinePaint(spec: VenueSpec, sub: Subtrack) {
 }
 
 /**
+ * A venue's barriers: the edge's and an underpass's parapets, tidied where the venue asks
+ * (spec.tidyEdge) and made even (spec.evenEdge, a stadium's: world/stadiumtidy.ts).
+ * @param spec the venue
+ * @param sub the race road
+ * @param laid the edge's barriers as laid
+ * @param lanes the lanes (a join keeps off them)
+ * @returns the barriers
+ */
+function venueBarriers(spec: VenueSpec, sub: Subtrack, laid: Barrier[], lanes: Lane[]): Barrier[] {
+  const all = [...laid, ...underParapets(sub)];
+  if (!spec.tidyEdge) return all;
+  const tidied = tidyBarriers(all, sub, lanes, spec.tidyEdge === 'fences');
+  return spec.evenEdge
+    ? evenStadiumEdge(tidied, sub, lanes, underPortals(sub).flatMap(portalCorners)) : tidied;
+}
+
+/**
  * One layout of a venue as a level: its road, the closed-off pieces, and the venue's shared
  * scenery.
  * @param spec the venue
@@ -622,6 +647,13 @@ export function venueLevel(spec: VenueSpec, layout: string, levelId: string,
   const props = [...underPortals(sub), ...pitTunnelPortals(spec.pitTunnel), ...scenery.props];
   // on the grid near the start lane's dead end, facing along it; else 15 m before the line
   const start = startLane ? laneSpawn(startLane) : onTrack(sub, sub.totalDist - 15, 0, {});
+  const lanes = [...jokerLanes, ...scenery.lanes, ...closed.lanes];
+  const barriers = venueBarriers(spec, sub, scenery.barriers, lanes);
+  // (a closing row's tyre on another road - a pit lane easing in by the junction - left out;
+  // none on another, on a barrier or on a kerb - an even edge's barriers as eased)
+  const loose = tidyLoose([...closed.cones.filter((tyre) => !scenery.lanes.some((lane) =>
+    distToLine(lane.pts, tyre.x, tyre.y) < lane.width / 2)), ...scenery.cones],
+  spec.evenEdge ? barriers : scenery.barriers, sub, scenery.covers);
   return {
     id: levelId, name, base: SURFACES[spec.base || 'grass'], subtrack: sub,
     bounds: scenery.bounds,
@@ -632,17 +664,9 @@ export function venueLevel(spec: VenueSpec, layout: string, levelId: string,
     ...(spec.splitStart ? { splitStart: true } : {}),
     ...(scenery.patches.length ? { patches: scenery.patches } : {}),
     zones: scenery.zones, covers: scenery.covers, bumps: prepBumps(venueBumps(build)), boards: [],
-    // (a closing row's tyre on another road - a pit lane easing in by the junction - left out;
-    // none on another, on a barrier or on a kerb)
-    seams: false, cones: tidyLoose([...closed.cones.filter((tyre) => !scenery.lanes.some((lane) =>
-      distToLine(lane.pts, tyre.x, tyre.y) < lane.width / 2)), ...scenery.cones],
-    scenery.barriers, sub, scenery.covers),
+    seams: false, cones: loose,
     ...(spec.bushless ? {} : { bushes: CIRCUIT_BUSHES }),
-    lanes: [...jokerLanes, ...scenery.lanes, ...closed.lanes],
-    barriers: spec.tidyEdge ? tidyBarriers([...scenery.barriers, ...underParapets(sub)], sub,
-      [...jokerLanes, ...scenery.lanes, ...closed.lanes], spec.tidyEdge === 'fences')
-      : [...scenery.barriers, ...underParapets(sub)],
-    props, solids: solidsFromProps(props), crossings: venueCrossings(props),
+    lanes, barriers, props, solids: solidsFromProps(props), crossings: venueCrossings(props),
     paint: [{ kind: 'chequered', x: sub.pts[0].x, y: sub.pts[0].y, len: 1.6, wid: VENUE_ROAD_M,
       rot: sub.pts[0].heading }, ...splitLinePaint(spec, sub), ...scenery.paint],
     spawn: { x: start.x, y: start.y, heading: start.rot },
