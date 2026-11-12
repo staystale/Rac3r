@@ -6,7 +6,7 @@
 // smashed: dark. A repair (RESET / RESTART: less damage than it had) brings it back. The flicker
 // is the same for every reader in one FLICKER_SLOT_MS (the picture, the glow and the beam agree
 // within a frame). Wall clock: it is only a look.
-import { fxRandom } from "./shared.ts";
+import { makeLookRandom } from "./shared.ts";
 import type { RenderCar } from './types.ts';
 
 // damage share at which a lamp starts to suffer, and at which it is smashed
@@ -26,6 +26,10 @@ interface LampState {
 }
 
 const states = new WeakMap<RenderCar, LampState[]>();
+// the lamps' own random numbers: a car's lamps are first read when it is drawn or lit, and the
+// drawing skips a car off the view (render/screen.ts forEachDrawnCar), so they draw from no other
+// look's stream (salt: any count far from the looks' own)
+const lampRandom = makeLookRandom(0x5a17_0000);
 
 /**
  * Whether a flickering lamp is off in this slot (the same answer all slot long).
@@ -50,7 +54,7 @@ export function settledLampLevel(car: RenderCar, corner: number, damage: number)
   let lamps = states.get(car);
   if (!lamps) {
     lamps = [0, 1, 2, 3].map(() => ({ seen: 0, until: 0, dead: false,
-      seed: Math.floor(fxRandom() * 1e6) }));
+      seed: Math.floor(lampRandom() * 1e6) }));
     states.set(car, lamps);
   }
   const lamp = lamps[corner], now = performance.now();
@@ -60,7 +64,7 @@ export function settledLampLevel(car: RenderCar, corner: number, damage: number)
   if (damage > lamp.seen + HIT_DAMAGE) {
     lamp.seen = damage;
     if (damage > LAMP_OK && !lamp.dead) {
-      lamp.until = now + SETTLE_MIN_MS + fxRandom() * (SETTLE_MAX_MS - SETTLE_MIN_MS);
+      lamp.until = now + SETTLE_MIN_MS + lampRandom() * (SETTLE_MAX_MS - SETTLE_MIN_MS);
     }
   }
   if (lamp.dead) return 0;
@@ -68,6 +72,6 @@ export function settledLampLevel(car: RenderCar, corner: number, damage: number)
   if (now < lamp.until) return flickersOff(lamp.seed, now) ? 0 : 1;
   lamp.until = 0;
   const share = Math.min(1, Math.max(0, (damage - LAMP_OK) / (LAMP_GONE - LAMP_OK)));
-  lamp.dead = fxRandom() < DIE_BASE + DIE_PER_SHARE * share;
+  lamp.dead = lampRandom() < DIE_BASE + DIE_PER_SHARE * share;
   return lamp.dead ? 0 : 1;
 }
