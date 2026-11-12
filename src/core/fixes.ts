@@ -54,4 +54,8 @@ export const FIX = {
   // ?coverlight=1: a car outside a slatted tunnel (before its mouth, past it, beside its walls)
   // lights none of its cover's slats - its light clipped off them (render/coverlight.ts)
   coverlight: atLoad('coverlight'),
+  // ?birdsmess=1: The Bird's Mess, the Race of Champions' track in the Bird's Nest (Beijing 2009)
+  // - as the other stadiums', two lanes interwoven round an elliptical bowl, one crossover bridge;
+  // a night race (world/levels/birdsmess-venue.ts)
+  birdsmess: atLoad('birdsmess'),
 };

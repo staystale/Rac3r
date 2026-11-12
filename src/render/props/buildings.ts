@@ -6,6 +6,9 @@ import { lampOfProp, lampsLit } from '../../world/lamps.ts';
 import type { Point, Prop } from '../../world/types.ts';
 import type { PropCtx } from './types.ts';
 
+// a grandstand's seat tiers in turn, where its venue sets none of its own (Prop.seats)
+const STAND_SEATS: [string, string] = ['#423d35', '#585246'];
+
 /**
  * Draws the brand name along the banner of a garage row, when it is big enough to read.
  * @param propCtx the view and painter helpers
@@ -128,9 +131,9 @@ export function drawGrandstand(propCtx: PropCtx, prop: Prop, ppm: number) {
   view.ctx.fillRect(-standW / 2, -standH / 2, standW, standH);
   // Stepped seating tiers
   const rows = prop.kind === 'stadium_grandstand' ? 6 : 4;
-  const rowH = standH / rows;
+  const rowH = standH / rows, seats = prop.seats || STAND_SEATS;
   for (let tier = 0; tier < rows; tier++) {
-    view.ctx.fillStyle = tier % 2 === 0 ? '#423d35' : '#585246';
+    view.ctx.fillStyle = seats[tier % 2];
     view.ctx.fillRect(-standW / 2, -standH / 2 + tier * rowH, standW, rowH);
     // Planks and footwells
     view.ctx.fillStyle = 'rgba(20,18,16,0.45)';

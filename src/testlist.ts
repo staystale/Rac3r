@@ -13,6 +13,17 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'birdsmess',
+    added: '2026-11-12',
+    name: "The Bird's Mess: the Race of Champions in Beijing, two lanes, a crossover, at night",
+    where: "Test link + &birdsmess=1: TEST MODE > RALLYCROSS > The Bird's Mess (TIME on LIVE)",
+    try: 'HEAD-TO-HEADBUTT vs one AI, then a full grid: the gravel start into the hairpin, the'
+      + ' pinched north side, the long west sweeper, over and under the bridge; look at the red'
+      + ' stands and the roof lattice past the fence.',
+    wrong: 'A dark stretch of road you cannot read, anything drawn over the track or a car, a car'
+      + ' touching a portal on the road, a way off the lanes, a lower frame rate than the others.',
+  },
+  {
     id: 'tunnellights',
     added: '2026-11-12',
     name: 'Lights in a slatted tunnel: your lamps and the cars\' seen between the slats',

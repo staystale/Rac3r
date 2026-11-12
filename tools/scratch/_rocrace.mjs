@@ -7,6 +7,7 @@
 import { startServer, launchBrowser } from '../lib/browser.mjs';
 const [level = 'wobbly', aiCount = '1', laps = '1', width = '844', height = '390'] =
   process.argv.slice(2);
+const OUT = process.env.OUT || 'tools/scratch';
 const query = process.env.RAC3R_QUERY || 'wobbly=1&stadeprance=1';
 const server = await startServer();
 let browser;
@@ -47,7 +48,7 @@ try {
   // (zoomed out for the start: both cars in one frame, then the game's own zoom again)
   await page.evaluate(() => window.__game.renderer.debugZoom(0.45));
   await page.waitForTimeout(300);
-  await page.screenshot({ path: `tools/scratch/_rocrace-${slug}-start.png` });
+  await page.screenshot({ path: `${OUT}/_rocrace-${slug}-start.png` });
   await page.evaluate(() => window.__game.renderer.debugZoom(null));
   let state = null;
   const began = Date.now();
@@ -63,9 +64,9 @@ try {
     if (state.shown) break;
   }
   await page.waitForTimeout(600);
-  await page.screenshot({ path: `tools/scratch/_rocrace-${slug}-podium.png` });
+  await page.screenshot({ path: `${OUT}/_rocrace-${slug}-podium.png` });
   await page.waitForTimeout(2600);
-  await page.screenshot({ path: `tools/scratch/_rocrace-${slug}-table.png` });
+  await page.screenshot({ path: `${OUT}/_rocrace-${slug}-table.png` });
   const results = await page.evaluate(() => {
     const flow = window.__game.flow;
     return flow && flow.results && flow.results.map((row) => ({ pos: row.pos,

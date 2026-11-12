@@ -159,6 +159,19 @@ function applyRoadType(levelId: string, opts: LaunchOpts) {
 }
 
 /**
+ * The hour a launch's event starts at: the setup's (TEST MODE's START HOUR), else the level's own
+ * (Level.eventHour: a night race), else none - the global time.
+ * @param levelId the level to launch
+ * @param opts the launch options
+ * @returns the hour 0..24, or null for the global time
+ */
+function eventStartHour(levelId: string, opts: LaunchOpts): number | null {
+  if (opts.time != null) return opts.time;
+  const level = LEVELS.find((item) => item.id === levelId);
+  return level?.eventHour ?? null;
+}
+
+/**
  * Applies the setup options of a launch (road, AI, race, traffic, litter) before the restart.
  * @param levelId the level to launch
  * @param opts the launch options
@@ -176,8 +189,8 @@ export function applyLaunchOptions(levelId: string, opts: LaunchOpts) {
   shared.hwFinish = opts.finish ?? null;
   // WEATHER (setup): the plan and the seed its random stream starts from, so a restart
   // replays the same weather; none = the dry 18 C game
-  // the game clock: the global time, or (TEST MODE) the hour the setup picked
-  startEventClock(opts.time ?? null);
+  // the game clock: the global time, or (TEST MODE) the hour the setup picked, or the level's own
+  startEventClock(eventStartHour(levelId, opts));
   shared.weatherPlan = opts.weather ? { mode: opts.weather.mode, season: opts.weather.season,
     seed: Math.floor(Math.random() * 2147483646) + 1 } : null;
   if (opts.traffic != null) shared.trafficDensity = Math.max(0, Math.min(1.5, +opts.traffic));

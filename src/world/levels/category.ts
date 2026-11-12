@@ -17,7 +17,7 @@ const CAT_OF: Record<string, string> = { 'test-track': 'circuits', thruston: 'ci
   lemans: 'circuits', suzuka: 'circuits', yasmarina: 'circuits',
   bathurst: 'circuits', moanaco: 'circuits',
   'sweaty-lamb': 'rally', killder: 'rally', knobhill: 'rx', 'slidden-hill': 'rx', wobbly: 'rx',
-  stadeprance: 'rx',
+  stadeprance: 'rx', birdsmess: 'rx',
   'grass-track': 'ovals', dieatona: 'ovals', 'dieatona-road': 'ovals', 'stock-car': 'ovals',
   naffcar: 'ovals',
   lab: 'test', sandbox: 'test', 'bowling-alley': 'test', 'rough-patch': 'test',

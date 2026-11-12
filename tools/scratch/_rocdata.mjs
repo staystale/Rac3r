@@ -34,6 +34,26 @@ const VENUES = {
       "// stadeprance.ts - written by tools/scratch/_rocdata.mjs stadeprance (laid by hand: the Race of",
       "// Champions' track at the Stade de France, 2004-06, as two lanes interwoven round the bowl, one",
       '// crossover bridge). Game m (share 1). Edit the generator, not this file.'] },
+  // the Bird's Nest (Beijing National Stadium), 2009: the lanes round a fat egg (the Nest's bowl is
+  // an ellipse), the crossover west of the south straight's middle, gravel on both lanes' east
+  // end, an elliptical bowl. Its corners: a sweeping south-east, the east end a tight hairpin, the
+  // north side pinched in (a bend out between two corners - the one bend the other way round
+  // the lap), a tighter north-west, the west end one long sweeper into the south-west. Its flags
+  // red and gold
+  birdsmess: { out: { ax: 100, ay: 62, r: 30 }, gap: 20, crossAt: -12, gravel: /east/,
+    corners: [[94, 62, 44, 'east'], [96, -52, 30, 'east'], [40, -66, 40, 'north'],
+      [0, -44, 50, 'north'], [-46, -66, 40, 'north'], [-92, -50, 34, 'west'],
+      [-108, 4, 58, 'west'], [-88, 62, 34, 'west']],
+    bowl: 'oval', oval: { power: 2.15, out: [8, 10] }, flagCols: ['#d4202a', '#f2c230'],
+    floods: { out: 16, every: 55, extra: [[-12, 80], [-12, 14]] },
+    litter: [['Outer east', 0.2, 1, 20, 'tyres'], ['Outer east', 0.85, 1, 19, 'barrels'],
+      ['Outer north', 0.5, 1, 20, 'pallets'], ['Outer west', 0.55, 1, 20, 'barrels'],
+      ['Outer west', 0.93, 1, 19, 'tarp'], ['Inner north', 0.3, -1, 18, 'tyres'],
+      ['Inner west', 0.5, -1, 18, 'pallets']],
+    exportName: 'BIRDSMESS_VENUE', header: [
+      "// birdsmess.ts - written by tools/scratch/_rocdata.mjs birdsmess (laid by hand: the Race of",
+      "// Champions' track in the Bird's Nest, Beijing 2009, as two lanes interwoven round the bowl,",
+      '// one crossover bridge). Game m (share 1). Edit the generator, not this file.'] },
 };
 const venueId = process.argv[2] || 'wobbly', venue = VENUES[venueId];
 if (!venue) throw new Error(`no stadium ${venueId}`);
@@ -120,6 +140,14 @@ function laneSides(corners, inset, southY, southInset = inset) {
     if (convex && corners[i][2] <= HAIRPIN_R) HAIRPINS.push(pts);
     return { side: corners[i][3], pts };
   });
+  // (a straight between two corners that runs backward: the corners' arcs overlap - the lane
+  // folds; reported with its length, m, below)
+  fillets.forEach((fillet, i) => {
+    const next = fillets[(i + 1) % count], end = fillet.pts[fillet.pts.length - 1];
+    const ahead = (next.pts[0][0] - end[0]) * dirs[i][0] + (next.pts[0][1] - end[1]) * dirs[i][1];
+    if (i < count - 1 && ahead < 0) FOLDS.push(`${inset ? 'inner' : 'outer'} after corner ${i}`
+      + ` ${ahead.toFixed(1)} m`);
+  });
   const sides = [['south east', line([AT + CROSS_X, southY], fillets[0].pts[0])]];
   const add = (side, pts) => {
     const last = sides[sides.length - 1];
@@ -138,7 +166,7 @@ function laneSides(corners, inset, southY, southInset = inset) {
 const CORNERS = venue.corners;
 // m: a corner this tight or tighter (the outer lane's radius) is a hairpin - tyres round its
 // outside (the ROC's tyres in front of the barrier where a car goes straight on); their arcs
-const HAIRPIN_R = 45, HAIRPINS = [];
+const HAIRPIN_R = 45, HAIRPINS = [], FOLDS = [];
 // a diagonal from one lane (y0) to the other (y1): walked along, its heading eased in over the
 // first bend, held along the straight, eased out over the last; a point every 2 m
 const diag = (y0, y1) => {
@@ -175,7 +203,9 @@ const ring = (ax, ay, r) => join(line([-ax + r, ay], [ax - r, ay]), arc(ax - r, 
 // (an oval bowl: a superellipse, power OVAL_POWER - squarer than an ellipse, as the Stade de
 // France's plan - OVAL_OUT m further out along x and y than the lanes' box grown: an ellipse came
 // within 25 m of the hairpins' outside, no room for the catch fence 10 m past the edge)
-const OVAL_POWER = 2.5, OVAL_OUT = [12, 8];
+// (a stadium's own: the Bird's Nest's rounder, an ellipse nearly)
+const OVAL_POWER = venue.oval ? venue.oval.power : 2.5;
+const OVAL_OUT = venue.oval ? venue.oval.out : [12, 8];
 const superCos = (angle) => Math.sign(Math.cos(angle)) * Math.abs(Math.cos(angle)) ** (2 / OVAL_POWER);
 const superSin = (angle) => Math.sign(Math.sin(angle)) * Math.abs(Math.sin(angle)) ** (2 / OVAL_POWER);
 const oval = (ax, ay) => { const out = []; for (let i = 0; i <= 160; i++) { const a = H - i / 160 * 4 * H; out.push([superCos(a) * ax, superSin(a) * ay]); } return out; };
@@ -208,8 +238,10 @@ const roof = slices(bowl(58), 18, 14, 'Roof').map((box) => ({ ...box, kind: 'roo
 // in turn (VenueSpec.landmarks)
 // m: FLAG_OUT past the lanes' box (behind the catch fence's boards, before the stands)
 const FLAG_EVERY = 16, FLAG_OUT = 21;
+// (the pennants' colours, or the stadium's own)
+const FLAG_COLS = venue.flagCols || PENNANTS;
 const flags = slices(bowl(FLAG_OUT), FLAG_EVERY, 1, 'Flag').map((box, i) => ({ at: [box.x, box.y],
-  kind: 'flag', size: 1, col: PENNANTS[i % PENNANTS.length] }));
+  kind: 'flag', size: 1, col: FLAG_COLS[i % FLAG_COLS.length] }));
 // the barriers: a line RAIL_M off each side of every lane (the ROC's motorway barrier and concrete
 // blocks both sides all round), none along the crossover (its bridge's parapets and cut walls)
 const RAIL_M = 10;
@@ -228,6 +260,47 @@ const overPts = pieces.find((piece) => piece.name === 'Crossover over').pts;
 const nearEnd = (pts, fromStart) => { const out = []; let run = 0; const list = fromStart ? pts : [...pts].reverse(); for (let i = 0; i < list.length && run <= CROSS_TYRES_M; i++) { out.push(list[i]); if (i) run += Math.hypot(list[i][0] - list[i - 1][0], list[i][1] - list[i - 1][1]); } return out; };
 for (const pts of [nearEnd(overPts, true), nearEnd(overPts, false)])
   for (const side of [1, -1]) for (const out of TYRE_ROWS_M) tyreRows.push(offset(pts, side, out));
+// THE FLOODLIGHTS (a stadium that asks: venue.floods, a night race - The Bird's Mess): floodlight
+// pylons (VenueSpec.landmarks kind 'pylon', world/lamps.ts: a pool 34 m round) every `every` m along
+// the outer lane's outside on the apron and along the inner lane's inside in the infield, `out` m
+// from the lane's centre (behind the barrier RAIL_M out, clear of its boards) - so both lanes lie
+// in light all round; and its `extra` spots (the crossover's: no lane runs along it)
+const floodsAlong = (names, side) => {
+  const pts = join(...names.map((name) => pieces.find((piece) => piece.name === name).pts));
+  const out = offset(pts, side, venue.floods.out), spots = [];
+  let run = venue.floods.every / 2;
+  for (let i = 1; i < out.length; i++) {
+    run += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);
+    if (run < venue.floods.every) continue;
+    run = 0;
+    spots.push({ at: out[i], kind: 'pylon', size: 2 });
+  }
+  return spots;
+};
+const laneNames = (lane) => pieces.map((piece) => piece.name).filter((name) => name.startsWith(lane));
+const floods = venue.floods ? [...floodsAlong(laneNames('Outer'), 1),
+  ...floodsAlong(laneNames('Inner'), -1),
+  ...(venue.floods.extra || []).map((at) => ({ at, kind: 'pylon', size: 2 }))] : [];
+// THE LITTER (a stadium that asks: venue.litter, [piece, share along it, side, m out, kit]): a
+// heap of the highway's debris kinds on the apron or in the infield, behind the barrier - LITTER_KITS
+// each a heap [m along, m out, kind, colour] (the colours the debris' own: highway/litter.ts)
+const LITTER_KITS = {
+  tyres: [[0, 0, 'tyre'], [0.9, 0.2, 'tyre'], [1.8, -0.1, 'tyre'], [0.4, 0.9, 'tyre'],
+    [1.3, 1.0, 'tyre']],
+  pallets: [[0, 0, 'pallet'], [1.6, 0.3, 'pallet'], [0.8, 1.5, 'box'], [2.6, 1.2, 'crate']],
+  barrels: [[0, 0, 'barrel', '#c8302c'], [0.9, 0.1, 'barrel', '#c8302c'],
+    [0.45, 0.85, 'barrel', '#d6a21e']],
+  tarp: [[0, 0, 'tarp', '#d6a21e'], [1.7, 0.4, 'sandbag'], [1.9, -0.6, 'sandbag']],
+};
+const litter = (venue.litter || []).flatMap(([name, share, side, out, kit]) => {
+  const pts = pieces.find((piece) => piece.name === name).pts;
+  const at = Math.min(pts.length - 2, Math.round(share * (pts.length - 1)));
+  const [ax, ay] = pts[at], [bx, by] = pts[at + 1], len = Math.hypot(bx - ax, by - ay) || 1;
+  const along = [(bx - ax) / len, (by - ay) / len], across = [-along[1] * side, along[0] * side];
+  return LITTER_KITS[kit].map(([forward, outward, kind, col]) => ({
+    at: [r1(ax + along[0] * forward + across[0] * (out + outward)),
+      r1(ay + along[1] * forward + across[1] * (out + outward))], kind, ...(col ? { col } : {}) }));
+});
 const json = (value) => JSON.stringify(value).replace(/,(?=["[{\d-])/g, ', ').replace(/":(?=["[{\d-]|true|false)/g, '": ');
 const lines = [...venue.header, "import type { VenueData, VenueSpec } from '../../venue.ts';", '', `export const ${venue.exportName}: VenueData = {`, '  pieces: ['];
 for (const piece of pieces) lines.push(`    ${json(piece)},`);
@@ -251,6 +324,18 @@ lines.push('};', '', '// the flags along the front of the bowl (VenueSpec.landma
   `export const ${venue.exportName.replace('_VENUE', '_FLAGS')}: NonNullable<VenueSpec['landmarks']> = [`);
 for (const flag of flags) lines.push(`  ${json(flag)},`);
 lines.push('];', '');
+if (floods.length) {
+  lines.push('// the floodlight pylons round both lanes (VenueSpec.landmarks; a night race)',
+    `export const ${venue.exportName.replace('_VENUE', '_FLOODS')}: NonNullable<VenueSpec['landmarks']> = [`);
+  for (const flood of floods) lines.push(`  ${json(flood)},`);
+  lines.push('];', '');
+}
+if (litter.length) {
+  lines.push('// the litter on the apron and in the infield, behind the barriers (VenueSpec.litter)',
+    `export const ${venue.exportName.replace('_VENUE', '_LITTER')}: NonNullable<VenueSpec['litter']> = [`);
+  for (const item of litter) lines.push(`  ${json(item)},`);
+  lines.push('];', '');
+}
 const wrapped = lines.flatMap((text) => { if (text.length <= 100) return [text]; const parts = []; let rest = text; while (rest.length > 100) { const cut = rest.lastIndexOf(', ', 98); if (cut < 12) break; parts.push(rest.slice(0, cut + 1)); rest = `      ${rest.slice(cut + 2)}`; } parts.push(rest); return parts; });
 fs.writeFileSync(`src/world/levels/venues/${venueId}.ts`, wrapped.join(String.fromCharCode(10)));
 const len = (pts) => pts.slice(1).reduce((s, p, i) => s + Math.hypot(p[0] - pts[i][0], p[1] - pts[i][1]), 0);
@@ -261,3 +346,4 @@ console.log('crossover: straight', CROSS_HALF.toFixed(1), 'm each side of the cr
   CORNER_CLEAR.toFixed(2), 'm clear of the road over; x', (AT - CROSS_X).toFixed(1),
   'to', (AT + CROSS_X).toFixed(1), '; lane straights before the corners', ['Inner south east', 'Inner south west',
   'Outer south east', 'Outer south west'].map((name) => straightOf(name).toFixed(1)).join(' / '));
+console.log('folds:', FOLDS.length ? FOLDS.join('; ') : 'none');

@@ -13,6 +13,29 @@ The 11-11 round (14 entries, 11 switches) passed 11-12, and the performance roun
 carcull, the texture warm-up) and the stadium crossovers passed 11-12 ("mostly pass"), their
 records in `TODO-DONE.md` (PASSED 11-12). On the phone now:
 
+- BIRDSMESS (`?birdsmess=1`; TEST MODE > RALLYCROSS; testlist birdsmess). THE BIRD'S MESS, the ROC
+  track in the Bird's Nest (Beijing 2009), from the shared generator (tools/scratch/_rocdata.mjs
+  birdsmess; close to, not traced - no plan supplied): 1015 m, a fat egg in a near-elliptical bowl
+  (superellipse power 2.15): a sweeping south-east, a tight north-east hairpin, the north side
+  pinched in (the lap's one bend the other way), a tighter north-west, one long west sweeper; the
+  crossover a straight X west of the south straight's middle (spareM 1.5 / clearM 2.4, the lane
+  gap 32 m there, as the others). Tarmac, gravel on both lanes' east end (the start straight and
+  the hairpin), the pitch grass. A NIGHT RACE (Level.eventHour 22, when the setup's TIME is LIVE)
+  under 17 floodlight pylons round both lanes (16 m off, every 55 m) plus the lamp plan's 3. ITS
+  OWN DRESSING: red seats (VenueSpec.bowlLook), the roof ring a steel lattice (both outside the
+  catch fence, nothing over the track), red and gold flags, the Nest's criss-cross mown into the
+  pitch, litter heaps behind the barriers (tyres, pallets, barrels, a tarp: VenueSpec.litter),
+  13 boards (the register's names, HEAD-TO-HEADBUTT, THE BIRD'S MESS). MEASURED: the portals
+  0.13 / 1.41 deg off their lane, centred; 20 edge drives at 15 m/s (centre, +-5, +-6 m) 0 hits
+  (at +-6.5 m 3 snag, as Stade de Prance's); sealing 0 escapes; barriercheck, propcheck,
+  venueaudit (nothing overlaps), solidcheck OK; crossovercheck 20 AI x 120 s, two seeds: 0 cars
+  on the wrong level, 76 / 83 passes; lapdriver 71.6 s, 0 m off; a real race with 20 AI (two
+  seeds) 57-61 s winners, no errors. Frame (CPU x4, 20 AI, night): work median 30.5 / 30.2 ms
+  against Stade de Prance's 28.5 / 28.8 (frame median 35.5 both; the pools' drawImage +1.5% of
+  the profile); with carcull + carcache 18.0 ms frame median. Worldhash with the switch off:
+  SAME. WRONG: a stretch of road too dark to read, anything over the track or a car, a car on
+  the road touching a portal, a way off the lanes.
+
 - LIGHTS IN A SLATTED TUNNEL (owner 11-12: "lights seem to turn off in tunnels they shouldn't";
   testlist tunnellights): measured at night (tools/scratch/_tunnellights.mjs, headlights on,
   stopped on the road, in the first cut, under the cover, in the last cut) in every tunnel kind:
@@ -54,8 +77,8 @@ ROUND 5, LOADING AND SPEED:
 
 ### 3b. Tracks (the venue helper builds, the foreman reviews, the owner passes; one switch each)
 
-- THE REST OF THE ROC STADIUMS (names approved 11-10): THE BIRD'S MESS (Beijing 2009), ACCORDION
-  STADIUM (Sydney 2025), DUSSELDORK ARENA (2010-11). The format as Wobbly's: two interwoven lanes
+- THE REST OF THE ROC STADIUMS (names approved 11-10): THE BIRD'S MESS (Beijing 2009: BUILT 11-12
+  behind ?birdsmess=1, section 1), ACCORDION STADIUM (Sydney 2025), DUSSELDORK ARENA (2010-11). The format as Wobbly's: two interwoven lanes
   side by side, one crossover bridge (one path crossing itself: world/trackunder.ts), tarmac with
   gravel in the same places on both lanes; the stadium round it, "creative license allowed".
 - X GAYMS RALLYCROSS, the course L.A. LIVELY (Los Angeles 2012; names approved 11-10): tarmac and
