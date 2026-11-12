@@ -19,7 +19,9 @@ try {
   await gotoGame(page, `${server.url}/?pc=1&guide=0&menu=0&noaudio=1&level=moanaco&${query}`);
   await page.mouse.click(viewW / 2, viewH / 2);
   await page.waitForTimeout(1500);
-  await page.evaluate(() => window.__game.launch('moanaco', window.__game.car.spec.id, { ai: 0 }));
+  // (env AI: that many AI cars, 0 by default)
+  await page.evaluate((ai) => window.__game.launch('moanaco', window.__game.car.spec.id, { ai }),
+    +(process.env.AI || 0));
   // (past the start's lights: a car on the grid is held until the green)
   await page.waitForTimeout(+(process.env.SETTLE_MS || 9000));
   for (const leg of ['tunnel']) {
@@ -44,6 +46,8 @@ try {
         shiftDown: false });
     }, [leg, KMH]);
     await page.evaluate((zoom) => window.__game.renderer.debugZoom(zoom), ZOOM);
+    // (env LIGHTS=1: the headlights on, as the LIGHTS button)
+    if (process.env.LIGHTS) await page.evaluate(() => { window.__game.car.lightsOn = true; });
     for (let shot = 0; shot < SHOTS; shot++) {
       await page.waitForTimeout(SHOT_S * 1000);
       const state = await page.evaluate(async () => {

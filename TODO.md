@@ -25,6 +25,14 @@ records in `TODO-DONE.md` (PASSED 11-12). On the phone now:
   tail-light glow 31.2 -> 37.3 and the road ahead 37.7 -> 40.1 (brightness); Snoozuka's 20 stops
   the same within 2. WRONG: a car seen between the slats with its lamps out, light on a slat or
   through a solid cover.
+  FAILED 11-12 ("Lights show thru the side of tunnels tho / on top monaco"): a car OUTSIDE the
+  tunnel was never clipped - on the road before the mouth its headlights ran on over the slats
+  (tools/scratch/_tunnelleak.mjs: the car stopped, a photo lamps off and lamps on, the difference
+  is its light). COVERLIGHT (`?coverlight=1`): a car not in a tunnel has its light clipped off
+  every slat of a slatted cover within its light's reach (render/coverlight.ts clipOffCovers; one
+  box test per cover out of reach). The photo before the mouth: the beam stops at the slats, the
+  open cut before them still lit. WRONG as above, and light on the slats from a car approaching,
+  leaving or beside the tunnel.
 
 ## 2. BEING BUILT
 

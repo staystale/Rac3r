@@ -16,10 +16,10 @@ export const TEST_LIST: TestEntry[] = [
     id: 'tunnellights',
     added: '2026-11-12',
     name: 'Lights in a slatted tunnel: your lamps and the cars\' seen between the slats',
-    where: 'TEST MODE > a night (or ?night=0.8) > Moanaco, through the tunnel; any other tunnel',
-    try: 'Drive through Moanaco\'s tunnel at night, headlights on, and watch the gaps between the'
-      + ' slats; then any crossover or road tunnel.',
-    wrong: 'A car seen between the slats with its lamps out, light on top of a slat, a car\'s light'
-      + ' showing through a solid tunnel\'s cover.',
+    where: 'Test link + &coverlight=1: a night (or ?night=0.8) > Moanaco, the tunnel; any tunnel',
+    try: 'Drive into and out of Moanaco\'s tunnel at night, headlights on, with AI cars; watch the'
+      + ' slats and gaps as you and they approach, pass under and leave; then any other tunnel.',
+    wrong: 'Light on top of a slat (from a car in, before or beside the tunnel), a car between the'
+      + ' slats with its lamps out, light through a solid tunnel\'s cover.',
   },
 ];

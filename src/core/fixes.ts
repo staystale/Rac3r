@@ -51,4 +51,7 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
+  // ?coverlight=1: a car outside a slatted tunnel (before its mouth, past it, beside its walls)
+  // lights none of its cover's slats - its light clipped off them (render/coverlight.ts)
+  coverlight: atLoad('coverlight'),
 };

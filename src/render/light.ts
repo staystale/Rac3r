@@ -5,6 +5,8 @@
 // then the glows' colour is laid in as a tint; then it is laid over the screen canvas once, under
 // the HUD. The cost is one extra full-screen image a frame.
 import { crossingOf, isUnderground } from "../world/crossinggeo.ts";
+import { clipOffCovers } from './coverlight.ts';
+import { FIX } from '../core/fixes.ts';
 import { DAYLIGHT } from '../world/daylight.ts';
 import { lampHeads, activeLamps, lampsLit } from '../world/lamps.ts';
 import { hazardsOn, indicatorBlinkOn, lampLevel } from './cars.ts';
@@ -29,6 +31,8 @@ import { COL } from '../world/colours.ts';
 const NIGHT_ALPHA = 0.9;
 // a headlight beam: where it starts ahead of the car's centre, its reach and half spread, m
 const BEAM_START_M = 1.8, BEAM_REACH_M = 32, BEAM_HALF_M = 9;
+// m a car's light reaches from its centre: the beam's far end (the glows well within it)
+const LIGHT_REACH_M = BEAM_START_M + BEAM_REACH_M;
 // each headlight's sideways offset from the car's centre line, m
 const LAMP_SIDE_M = 0.7;
 // how much of the dark one headlight rubs out at its brightest (two overlap to ~0.84)
@@ -235,7 +239,10 @@ const WALL_LINE_M = 0.45;
 function clipToCut(ctx: CanvasRenderingContext2D, car: RenderCar, toX: (x: number) => number,
   toY: (y: number) => number): boolean {
   const way = crossingOf(car);
-  if (!way || way.kind !== 'tunnel') return false;
+  // (?coverlight=1: a car outside a tunnel lights no slatted cover's slats - render/coverlight.ts)
+  if (!way || way.kind !== 'tunnel') {
+    return FIX.coverlight && clipOffCovers(ctx, car, toX, toY, LIGHT_REACH_M);
+  }
   const point = ([x, y]: Point, first: boolean) => {
     if (first) ctx.moveTo(toX(x), toY(y));
     else ctx.lineTo(toX(x), toY(y));
