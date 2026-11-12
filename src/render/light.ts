@@ -6,6 +6,7 @@
 // the HUD. The cost is one extra full-screen image a frame.
 import { crossingOf, isUnderground } from "../world/crossinggeo.ts";
 import { clipToCut } from './coverlight.ts';
+import { FIX } from '../core/fixes.ts';
 import { DAYLIGHT } from '../world/daylight.ts';
 import { lampHeads, activeLamps, lampsLit } from '../world/lamps.ts';
 import { hazardsOn, indicatorBlinkOn, lampLevel } from './cars.ts';
@@ -224,11 +225,14 @@ function paintCarGlows(painter: GlowPainter, game: RenderGame, level: CarLevel =
  * Whether a car's lamps are out of sight: under a tunnel's cover where it hides the whole stretch
  * (a straight one's, lintel to lintel). Under a cover in slats (a bent tunnel's: Crossing.hidden)
  * the car is seen between them, so its lamps light there too - clipToCut keeps them off the slats.
+ * ?coverlight=1: never - a car under a whole cover still throws its light out of the mouths
+ * and into the open cuts, as in a real tunnel seen from above; clipToCut keeps it off the cover
+ * (before, a car under a stadium crossover's short bridge lit nothing past it).
  * @param car the car
  * @returns true when its lamps are hidden
  */
 function lampsHidden(car: RenderCar): boolean {
-  return isUnderground(car) && !crossingOf(car)?.hidden;
+  return !FIX.coverlight && isUnderground(car) && !crossingOf(car)?.hidden;
 }
 
 /** Which cars a pass lights: every car, those on the ground (or in a tunnel), those on a deck. */

@@ -11,8 +11,9 @@
 //   - from a car in a bent tunnel: past its walls within its cover's box;
 //   - from a car on the ground: an overhead deck's top.
 // A stop with more than LEAK_POINTS such points is a LEAK (its photo, the leak points marked, is
-// kept). Also the share of the road 4-14 m ahead that is lit, facing along: a low share in a cut
-// or under slats is lamps out.
+// kept). And DARK: a car in a tunnel, facing along, lighting almost none of the open road 4-16 m
+// ahead (in a cut, between slats) or behind it (its brake lights' glow in the cut it is leaving) -
+// its lamps out where they should show.
 // node tools/lightleak.mjs [level ...] [query]   (no level: every level; query: e.g. coverlight=1)
 // (CHECK_PORT; one browser; memory: one page at a time)
 import fs from 'node:fs';
@@ -33,6 +34,24 @@ const LEAK_POINTS = 12;
 const EDGE_M = 0.4;
 // px of the photo's top and bottom not sampled: the HUD (the LIGHTS button lights with the lamps)
 const HUD_TOP_PX = 200, HUD_BOTTOM_PX = 80;
+// m past a tunnel's wall face light counts as through the wall (its portal, lintel and cover; a
+// lamp-lit barrier further off is not the tunnel's)
+const WALL_BAND_M = 6;
+// m ahead of the car the road it should light is sampled to (a beam's bright part; at 20 m and past
+// it is faint, and under a stadium's floodlights it adds next to nothing)
+const AHEAD_M = 16;
+// at the stop just under a cover: m behind the car's centre its brake lights sit, and m round them
+// their glow is sampled (a photo brakes held against one brakes off; the tail is still in the cut)
+const TAIL_BACK_M = 2.1, TAIL_GLOW_M = 1.4;
+// the camera's zoom pinned for the photos: out far enough that the road AHEAD_M ahead is on the
+// phone-size screen below the HUD (MEASURED: ~14 m at rest, ~17 m at 0.6; 0.30 is the game's own
+// zoom at speed)
+const ZOOM = 0.35;
+// a car in a tunnel, facing along, with this many open (not hidden) points ahead (or a quarter as
+// many round its brake lights, just under a cover) and under DARK_SHARE of them lit is DARK: lamps
+// out where its light should show (owner 11-12: a car going under The Bird's Mess's crossover lost
+// its lights while its tail was still out in the open cut)
+const DARK_MIN_POINTS = 20, DARK_SHARE = 0.05;
 // ms the camera takes to come to rest on the stopped car; the lamps to settle in the photo; a stop
 // may take to reach
 const CAMERA_MS = 1500, SETTLE_MS = 450, DRIVE_MS = 45000;
@@ -72,11 +91,12 @@ try {
  * @param errors the page's errors so far
  */
 async function checkLevel(page, levelId, errors) {
-  const ways = await page.evaluate(async (id) => {
+  const ways = await page.evaluate(async ({ id, zoom }) => {
     const game = window.__game;
     game.menu.hide();
     game.launch(id, 'hatch-rwd', { ai: 0 });
     await new Promise((done) => setTimeout(done, 2500));
+    game.renderer.debugZoom(zoom);
     const { overheadDeck } = await import('/src/render/props/bridges.ts');
     const { PROPS } = await import('/src/world/state.ts');
     const sub = game.level.subtrack, list = [];
@@ -96,14 +116,14 @@ async function checkLevel(page, levelId, errors) {
         at: [+prop.x.toFixed(1), +prop.y.toFixed(1)] });
     }
     return list;
-  }, levelId);
+  }, { id: levelId, zoom: ZOOM });
   if (!ways.length) return;
   console.log(`${levelId}: ${ways.filter((way) => way.kind === 'tunnel').length} tunnels, `
     + `${ways.filter((way) => way.kind === 'deck').length} decks over the road`);
   for (const way of ways) {
     const stops = way.kind === 'deck' ? [['before', -6], ['under', 0], ['past', 3]]
-      : [['before', -8], ['cut', 'cut'], ['middle', 'middle'], ['last cut', 'lastcut'],
-        ['past', 'past']];
+      : [['before', -8], ['cut', 'cut'], ['just in', 'justin'], ['middle', 'middle'],
+        ['last cut', 'lastcut'], ['past', 'past']];
     for (const [label, at] of stops) {
       for (const turn of [0, TURN_RAD, -TURN_RAD]) {
         const name = (`${levelId}-${way.kind}${way.index ?? way.at.join('_')}-${label}`
@@ -114,12 +134,20 @@ async function checkLevel(page, levelId, errors) {
           continue;
         }
         const leaked = result.leak > LEAK_POINTS;
-        if (leaked) {
-          leaks.push(name);
+        const tail = result.tail;
+        const dark = !turn && result.crossing >= 0
+          && ((result.ahead >= DARK_MIN_POINTS && result.aheadLit < DARK_SHARE * 100)
+            || (tail && tail.points >= DARK_MIN_POINTS / 4 && tail.lit < DARK_SHARE * 100));
+        if (leaked) leaks.push(name);
+        if (dark) leaks.push(`${name} (dark)`);
+        if (leaked || dark) {
           fs.writeFileSync(`${OUT_DIR}/${name}.png`, Buffer.from(result.marked, 'base64'));
         }
         console.log(`  ${name}: crossing ${result.crossing}, leak ${result.leak} points`
-          + `${turn ? '' : `, ahead lit ${result.aheadLit}%`}${leaked ? '  LEAK' : ''}`);
+          + `${turn ? '' : `, ahead lit ${result.aheadLit}% of ${result.ahead}`
+            + ` (skipped: ${result.skipped.off} off the photo, ${result.skipped.hidden} hidden)`
+            + (tail ? `, brake lights lit ${tail.lit}% of ${tail.points}` : '')}`
+          + `${leaked ? '  LEAK' : ''}${dark ? '  DARK' : ''}`);
       }
     }
   }
@@ -153,10 +181,22 @@ async function runStop(page, way, at, turn) {
   await page.evaluate(() => { window.__game.car.lightsOn = false; });
   await page.waitForTimeout(SETTLE_MS);
   const offAgain = await page.screenshot();
+  // (just under a cover: the brakes let off, the handbrake holding it - its brake lights' glow is
+  // the difference from the photo before)
+  let brakeOff = null;
+  if (at === 'justin' && !turn) {
+    await page.evaluate(() => {
+      window.__game.input.update = () => ({ steer: 0, throttle: 0, brake: 0, handbrake: 1,
+        reverse: 0, shiftUp: false, shiftDown: false });
+    });
+    await page.waitForTimeout(SETTLE_MS);
+    brakeOff = (await page.screenshot()).toString('base64');
+  }
   return page.evaluate(scoreStop, { off: off.toString('base64'), on: on.toString('base64'),
-    offAgain: offAgain.toString('base64'),
+    offAgain: offAgain.toString('base64'), brakeOff,
     turned: turn !== 0,
-    opts: { SAMPLE_M, REACH_M, GAIN_MIN, BODY_M, EDGE_M, HUD_TOP_PX, HUD_BOTTOM_PX } });
+    opts: { SAMPLE_M, REACH_M, GAIN_MIN, BODY_M, EDGE_M, HUD_TOP_PX, HUD_BOTTOM_PX,
+      WALL_BAND_M, AHEAD_M, TAIL_BACK_M, TAIL_GLOW_M } });
 }
 
 /**
@@ -183,7 +223,8 @@ async function driveToStop({ way, at, driveMs, driveMps }) {
     const [ax, ay] = onLine(0.5), [bx, by] = onLine(tunnel.length - 0.5);
     forward = ((roadAt(bx, by) - roadAt(ax, ay) + total) % total) < total / 2;
   }
-  const named = { cut: tunnel?.cut * 0.5, middle: tunnel?.length / 2,
+  // (just in: its centre just under the cover, its tail still out in the open cut)
+  const named = { cut: tunnel?.cut * 0.5, justin: tunnel?.cut + 1.5, middle: tunnel?.length / 2,
     lastcut: tunnel ? tunnel.length - tunnel.cut * 0.5 : 0, past: tunnel ? tunnel.length + 8 : 0 };
   const stopAlong = typeof at === 'number' ? at : named[at];
   const useRoad = !tunnel || tunnel.track;
@@ -240,7 +281,7 @@ async function driveToStop({ way, at, driveMs, driveMps }) {
  * @param root the photos and the settings
  * @returns { crossing, leak, aheadLit, marked }
  */
-async function scoreStop({ off, on, offAgain, turned, opts }) {
+async function scoreStop({ off, on, offAgain, brakeOff, turned, opts }) {
   const game = window.__game, car = game.car, renderer = game.renderer;
   const geo = await import('/src/world/crossinggeo.ts');
   const { overheadDeck } = await import('/src/render/props/bridges.ts');
@@ -254,6 +295,26 @@ async function scoreStop({ off, on, offAgain, turned, opts }) {
     return { canvas, ctx, data: ctx.getImageData(0, 0, image.width, image.height) };
   };
   const [dark, lit, again] = [await load(off), await load(on), await load(offAgain)];
+  // the brake lights' glow just under a cover: the brakes-held photo (offAgain) against brakes off,
+  // round the tail, where it is not hidden
+  const scoreTail = async () => {
+    const free = await load(brakeOff), held = again.data.data, loose = free.data.data;
+    const backX = car.x - Math.cos(car.heading) * opts.TAIL_BACK_M;
+    const backY = car.y - Math.sin(car.heading) * opts.TAIL_BACK_M;
+    let points = 0, glowing = 0;
+    for (let dx = -opts.TAIL_GLOW_M; dx <= opts.TAIL_GLOW_M; dx += 0.25) {
+      for (let dy = -opts.TAIL_GLOW_M; dy <= opts.TAIL_GLOW_M; dy += 0.25) {
+        if (Math.hypot(dx, dy) > opts.TAIL_GLOW_M || isForbidden(backX + dx, backY + dy)) continue;
+        const px = Math.round(renderer.toScreenX(backX + dx));
+        const py = Math.round(renderer.toScreenY(backY + dy));
+        if (px < 0 || py < 0 || px >= width || py >= height) continue;
+        const i = (py * width + px) * 4;
+        points++;
+        if (held[i] - loose[i] > opts.GAIN_MIN) glowing++;
+      }
+    }
+    return { points, lit: points ? Math.round(100 * glowing / points) : null };
+  };
   const width = dark.data.width, height = dark.data.height;
   const gainAt = (px, py) => {
     const i = (py * width + px) * 4, one = dark.data.data, two = lit.data.data;
@@ -353,12 +414,15 @@ async function scoreStop({ off, on, offAgain, turned, opts }) {
       }
       const along = geo.alongOf(way, x, y), across = geo.acrossOf(way, x, y);
       if (along > way.cut + opts.EDGE_M && along < way.length - way.cut - opts.EDGE_M) return true;
-      if (along > 0 && along < way.length && (across < way.minAcross - opts.EDGE_M
-        || across > way.maxAcross + opts.EDGE_M)) return true;
+      const past = Math.max(way.minAcross - across, across - way.maxAcross);
+      if (along > opts.EDGE_M && along < way.length - opts.EDGE_M && past > opts.EDGE_M
+        && past < opts.WALL_BAND_M) return true;
     }
     return decks.some((quad) => deepIn(quad, x, y));
   };
   let leak = 0, ahead = 0, aheadLit = 0;
+  // the road ahead not sampled: off the photo (or under the HUD), or hidden (under a cover)
+  const skipped = { off: 0, hidden: 0 };
   const marks = [];
   const cos = Math.cos(car.heading), sin = Math.sin(car.heading);
   for (let dx = -opts.REACH_M; dx <= opts.REACH_M; dx += opts.SAMPLE_M) {
@@ -366,11 +430,15 @@ async function scoreStop({ off, on, offAgain, turned, opts }) {
       if (Math.hypot(dx, dy) < opts.BODY_M) continue;
       const x = car.x + dx, y = car.y + dy;
       const px = Math.round(renderer.toScreenX(x)), py = Math.round(renderer.toScreenY(y));
+      const forward = dx * cos + dy * sin, side = -dx * sin + dy * cos;
+      const isAhead = !turned && forward > 4 && forward < opts.AHEAD_M && Math.abs(side) < 1.5;
       if (px < 1 || py < opts.HUD_TOP_PX || px >= width - 1 || py >= height - opts.HUD_BOTTOM_PX) {
+        if (isAhead) skipped.off++;
         continue;
       }
-      const forward = dx * cos + dy * sin, side = -dx * sin + dy * cos;
-      if (!turned && forward > 4 && forward < 14 && Math.abs(side) < 1.5 && !isForbidden(x, y)) {
+      if (isAhead && isForbidden(x, y)) skipped.hidden++;
+      if (!turned && forward > 4 && forward < opts.AHEAD_M && Math.abs(side) < 1.5
+        && !isForbidden(x, y)) {
         ahead++;
         if (isLit(px, py)) aheadLit++;
       }
@@ -385,6 +453,6 @@ async function scoreStop({ off, on, offAgain, turned, opts }) {
   const bytes = new Uint8Array(await blob.arrayBuffer());
   let binary = '';
   for (const byte of bytes) binary += String.fromCharCode(byte);
-  return { crossing: own, leak, aheadLit: ahead ? Math.round(100 * aheadLit / ahead) : null,
-    marked: btoa(binary) };
+  return { crossing: own, leak, ahead, skipped, tail: brakeOff ? await scoreTail() : null,
+    aheadLit: ahead ? Math.round(100 * aheadLit / ahead) : null, marked: btoa(binary) };
 }

@@ -99,6 +99,13 @@ records in `TODO-DONE.md` (PASSED 11-12). On the phone now:
   (the tunnel, both footbridges; 45 stops): 0 leaks with the switch, 6 without. WRONG as above,
   and light on the slats from a car approaching, leaving or beside the tunnel, or past its side,
   or the road ahead dark as a car leaves the tunnel.
+  And (owner 11-12, a photo of The Bird's Mess: "Lights don't show in tunnel ... surely we can
+  make it work n look like real life") a car under a straight tunnel's whole cover put every lamp
+  out (render/light.ts lampsHidden), so under a stadium crossover's short bridge it lit nothing,
+  not even the road past the far mouth. Now its light is never put out, only clipped
+  (clipToCut: off the cover, out of both mouths and into the open cuts) - as a real tunnel seen
+  from above. lightleak gains DARK (a car in a tunnel lighting almost none of the open road 4-28 m
+  ahead) and a 6 m band past a tunnel's walls (a barrier 25 m off flagged as a leak before).
 
 ## 2. BEING BUILT
 
