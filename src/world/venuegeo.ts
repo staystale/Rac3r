@@ -88,8 +88,161 @@ export function isClosedLoop(pts: Point[]): boolean {
  * @returns metres
  */
 export function distToLine(pts: Point[], x: number, y: number): number {
-  let best = Infinity;
-  for (let i = 0; i < pts.length - 1; i++) {
+  if (pts.length - 1 <= LINE_CHUNK * 2)
+    return distToSegments(pts, x, y, 0, pts.length - 1, Infinity);
+  const boxes = chunkBoxes(pts);
+  // the chunk nearest last time first (the builders ask along a line: the answer is near there)
+  let best = distToChunk(pts, x, y, boxes.last, Infinity);
+  for (let group = 0; group < boxes.groups; group++) {
+    // (a group's box no nearer than the best so far holds no nearer segment: skipped exactly)
+    if (isBoxFarther(boxes.groupBox, group, x, y, best)) continue;
+    const last = Math.min(boxes.count, (group + 1) * CHUNK_GROUP);
+    for (let chunk = group * CHUNK_GROUP; chunk < last; chunk++) {
+      if (chunk === boxes.last || isBoxFarther(boxes.box, chunk, x, y, best)) continue;
+      const found = distToChunk(pts, x, y, chunk, best);
+      if (found < best) {
+        best = found;
+        boxes.last = chunk;
+      }
+    }
+  }
+  return best;
+}
+
+/**
+ * Whether box `index` of a packed list (minX, minY, maxX, maxY each) is no nearer than best.
+ * @param boxes the packed boxes
+ * @param index the box
+ * @param x world x
+ * @param y world y
+ * @param best metres
+ * @returns true when every point in it is at least best away
+ */
+function isBoxFarther(boxes: Float64Array, index: number, x: number, y: number,
+  best: number): boolean {
+  const base = index * 4;
+  const outX = Math.max(boxes[base] - x, 0, x - boxes[base + 2]);
+  const outY = Math.max(boxes[base + 1] - y, 0, y - boxes[base + 3]);
+  const reach = best + BOX_SLACK_M;
+  return outX * outX + outY * outY > reach * reach;
+}
+
+/**
+ * The nearest segment of one chunk of a line.
+ * @param pts the line
+ * @param x world x
+ * @param y world y
+ * @param chunk the chunk
+ * @param start the best so far
+ * @returns metres (start when none is nearer)
+ */
+const distToChunk = (pts: Point[], x: number, y: number, chunk: number, start: number) =>
+  distToSegments(pts, x, y, chunk * LINE_CHUNK, Math.min(pts.length - 1, (chunk + 1) * LINE_CHUNK),
+    start);
+
+/** A line's bounding box. */
+export interface LineBox { minX: number; minY: number; maxX: number; maxY: number }
+const LINE_BOXES = new WeakMap<Point[], LineBox & { length: number }>();
+
+/**
+ * A line's bounding box, cached per line (built again if its length changed): a query far outside
+ * it can skip the line's points.
+ * @param pts the line
+ * @returns its box
+ */
+export function lineBox(pts: Point[]): LineBox {
+  const cached = LINE_BOXES.get(pts);
+  if (cached && cached.length === pts.length) return cached;
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  for (const [pointX, pointY] of pts) {
+    minX = Math.min(minX, pointX);
+    minY = Math.min(minY, pointY);
+    maxX = Math.max(maxX, pointX);
+    maxY = Math.max(maxY, pointY);
+  }
+  const box = { minX, minY, maxX, maxY, length: pts.length };
+  LINE_BOXES.set(pts, box);
+  return box;
+}
+
+/**
+ * Whether a point is more than reach outside a box.
+ * @param box the box
+ * @param x world x
+ * @param y world y
+ * @param reach metres
+ * @returns true when that far out
+ */
+export const isBeyondBox = (box: LineBox, x: number, y: number, reach: number): boolean =>
+  x < box.minX - reach || x > box.maxX + reach || y < box.minY - reach || y > box.maxY + reach;
+
+// segments a line's chunk holds (each chunk's bounding box cached: distToLine skips far chunks)
+const LINE_CHUNK = 8;
+// chunks a group's box covers (a long line's far stretches skipped a group at a time)
+const CHUNK_GROUP = 8;
+// m a box's distance may round above a segment's in it (float slack: a skip must never be wrong)
+const BOX_SLACK_M = 1e-6;
+/** A line's chunks' and their groups' boxes (minX, minY, maxX, maxY each), the nearest chunk last
+ * time. */
+interface ChunkBoxes {
+  box: Float64Array; count: number; groupBox: Float64Array; groups: number; last: number;
+  length: number;
+}
+const CHUNK_BOXES = new WeakMap<Point[], ChunkBoxes>();
+
+/**
+ * A line's chunk boxes, built on its first query (and again if its length changed). The builders
+ * lay a line, then ask about it: a line's points are not moved once it has been asked about.
+ * @param pts the line
+ * @returns its boxes
+ */
+function chunkBoxes(pts: Point[]): ChunkBoxes {
+  const cached = CHUNK_BOXES.get(pts);
+  if (cached && cached.length === pts.length) return cached;
+  const count = Math.ceil((pts.length - 1) / LINE_CHUNK), box = new Float64Array(count * 4);
+  for (let chunk = 0; chunk < count; chunk++) {
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    const last = Math.min(pts.length - 1, (chunk + 1) * LINE_CHUNK);
+    for (let i = chunk * LINE_CHUNK; i <= last; i++) {
+      const [pointX, pointY] = pts[i];
+      minX = Math.min(minX, pointX);
+      minY = Math.min(minY, pointY);
+      maxX = Math.max(maxX, pointX);
+      maxY = Math.max(maxY, pointY);
+    }
+    box.set([minX, minY, maxX, maxY], chunk * 4);
+  }
+  const groups = Math.ceil(count / CHUNK_GROUP), groupBox = new Float64Array(groups * 4);
+  for (let group = 0; group < groups; group++) {
+    const base = group * 4;
+    groupBox.set([Infinity, Infinity, -Infinity, -Infinity], base);
+    for (let chunk = group * CHUNK_GROUP; chunk < Math.min(count, (group + 1) * CHUNK_GROUP);
+      chunk++) {
+      for (let side = 0; side < 2; side++) {
+        groupBox[base + side] = Math.min(groupBox[base + side], box[chunk * 4 + side]);
+        groupBox[base + 2 + side] = Math.max(groupBox[base + 2 + side], box[chunk * 4 + 2 + side]);
+      }
+    }
+  }
+  const boxes = { box, count, groupBox, groups, last: 0, length: pts.length };
+  CHUNK_BOXES.set(pts, boxes);
+  return boxes;
+}
+
+/**
+ * The nearest of a run of a line's segments, from point index `from` to `to`.
+ * @param pts the line
+ * @param x world x
+ * @param y world y
+ * @param from the run's first point
+ * @param upTo the run's last point
+ * @param start the best so far
+ * @returns metres (start when none is nearer)
+ */
+function distToSegments(pts: Point[], x: number, y: number, from: number, upTo: number,
+  start: number): number {
+  let best = start;
+  for (let i = from; i < upTo; i++) {
     const [fromX, fromY] = pts[i], [toX, toY] = pts[i + 1];
     const dx = toX - fromX, dy = toY - fromY, lenSq = dx * dx + dy * dy || 1e-9;
     const frac = Math.max(0, Math.min(1, ((x - fromX) * dx + (y - fromY) * dy) / lenSq));

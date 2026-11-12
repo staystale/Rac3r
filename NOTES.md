@@ -22,6 +22,12 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   "upgrades should dictate that"): a car is in the roster once; a variant (a police / pursuit
   spec, a race version) is the same car with upgrades (the planned upgrade system) or a livery,
   never a second roster entry with tweaked stats. The police cars are traffic cars in a livery.
+- 60 FPS EVERYWHERE (owner 11-12: "it wants to run 60 frames or above everywhere, on every level,
+  the whole time"): only a weak phone may drop below 60, never our code. Measure a new level's or
+  feature's frame time at its real car count before handing it over.
+- PERFORMANCE FIXES ARE GLOBAL (owner 11-12: "it should be global, ideally", "make it even levels
+  where we don't need it" when it is the same and causes no problems): a speed-up goes in the
+  shared system and runs on every level, never a per-level patch to redo later.
 - ONE SYSTEM FOR EVERYTHING (owner, 10-18: "we don't need old systems and new systems getting
   crossed up"): never two ways of doing one job (the car pictures' own daytime beam met the night
   layer at dusk). Before building, check nothing already does it; extend that instead.

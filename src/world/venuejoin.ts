@@ -3,7 +3,7 @@
 // out"): straight off the end of the ramp, then a curve into the road along its own heading - the
 // smoothest of every join within reach - at the road's width, the road's dead end past the joint
 // trimmed, the drawn ramp (render/props/venueprops.ts, appL) shortened when the road is near.
-import { isClosedLoop, lineLength } from "./venuegeo.ts";
+import { isBeyondBox, isClosedLoop, lineBox, lineLength } from "./venuegeo.ts";
 import type { Lane, Point, Prop } from "./types.ts";
 
 // m beyond a deck's end a road is looked for to join its approach to
@@ -279,7 +279,9 @@ function smoothestJoinFrom(roads: Lane[], deckEnd: Point, dir: Point,
   blocked: (x: number, y: number) => boolean, foot: number, reach: number): Join | null {
   let best: Join | null = null;
   const start: Point = [deckEnd[0] + dir[0] * foot, deckEnd[1] + dir[1] * foot];
-  for (const road of roads)
+  for (const road of roads) {
+    // (every point of a road further than reach when the start is that far outside its box)
+    if (isBeyondBox(lineBox(road.pts), start[0], start[1], reach)) continue;
     road.pts.forEach((spot, index) => {
       const ahead = (spot[0] - start[0]) * dir[0] + (spot[1] - start[1]) * dir[1];
       const gap = Math.hypot(spot[0] - start[0], spot[1] - start[1]);
@@ -296,6 +298,7 @@ function smoothestJoinFrom(roads: Lane[], deckEnd: Point, dir: Point,
         best = { meet, ramp: 0, curve: [start, ...curve], score: total };
       }
     });
+  }
   return best;
 }
 

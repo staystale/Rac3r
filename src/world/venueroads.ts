@@ -5,7 +5,7 @@
 // its last junction, a road joining nothing goes.
 import { SURFACES } from "./surfaces.ts";
 import { KART_W, centreAt, clearRuns, distToLine, isClosedLoop, lineLength, nearestLoop,
-  resample, roadDistance, smoothLine } from "./venuegeo.ts";
+  isBeyondBox, lineBox, resample, roadDistance, smoothLine } from "./venuegeo.ts";
 import { inZones, pastRim } from "./venueedge.ts";
 import { joinFrom } from "./venuejoin.ts";
 import { REACH_M, inSolid, nearArmco, nearRace, onLanes, placeAll, stepOut }
@@ -319,6 +319,8 @@ function headingAt(pts: Point[], i: number): number {
  */
 function doubles(road: Lane, i: number, other: Point[]): boolean {
   const [x, y] = road.pts[i];
+  // (no point of it within PARALLEL_M when the point is that far outside its box)
+  if (isBeyondBox(lineBox(other), x, y, PARALLEL_M)) return false;
   let best = Infinity, nearest = 0;
   other.forEach(([pointX, pointY], index) => {
     const gap = Math.hypot(pointX - x, pointY - y);

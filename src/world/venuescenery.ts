@@ -10,6 +10,7 @@
 import { SURFACES } from "./surfaces.ts";
 import { querySubtrack } from "./tyrewall.ts";
 import { parkMiller } from "../core/random.ts";
+import { isAnyPointInBox, isAnyPointWithin, makePointGrid } from "../core/pointgrid.ts";
 import { HALF_ROAD, VENUE_ROAD_M, centreAt, distToLine, evenly, kerbOut, lineLength,
   makePlacer, nearestLoop, pointAlong, resample, smoothLine } from "./venuegeo.ts";
 import { WALL_REACH_M, boxedLine, buildEdge, railLines, buildRims, inZones, outlineZone, pastRim,
@@ -781,18 +782,15 @@ export function buildVenueScenery(build: VenueBuild, sub: Subtrack, closed: Lane
   props.push(...venuePlanes(site, zones, props));
   const covers = venueWater(site), patches = venueMown(site);
   // (no tree whose trunk stands on a barrier: its solid box, a quarter of its size either way)
-  const allRails = [...walls, ...edge.barriers].flatMap((rail) => rail.pts);
+  const railGrid = makePointGrid([...walls, ...edge.barriers].flatMap((rail) => rail.pts));
   props.push(...venueTrees(site, bounds, props, zones, { covers, patches }).filter((tree) =>
-    allRails.every(([x, y]) => Math.abs(x - tree.x) > (tree.s || 4) / 4 + TREE_RAIL_M
-      || Math.abs(y - tree.y) > (tree.s || 4) / 4 + TREE_RAIL_M)));
+    !isAnyPointInBox(railGrid, tree.x, tree.y, (tree.s || 4) / 4 + TREE_RAIL_M)));
   // the mapped tyre walls, spaced along each line, none on a road - nor where the edge already
   // stands its two rows along it (laid again, the wall stood three deep at Dongington)
-  const edgeTyres = edge.cones.map((tyre): Point => [tyre.x, tyre.y]);
+  const edgeTyres = makePointGrid(edge.cones.map((tyre): Point => [tyre.x, tyre.y]));
   const karting = spec.data.tyres.flatMap((line) => evenly(placeAll(site, line.pts), 1)
     .filter(([x, y]) => !onLanes(site.lanes, x, y, 0.6)
-      && edgeTyres.every(([edgeX, edgeY]) => Math.abs(edgeX - x) > MAP_WALL_CLEAR_M
-        || Math.abs(edgeY - y) > MAP_WALL_CLEAR_M
-        || Math.hypot(edgeX - x, edgeY - y) > MAP_WALL_CLEAR_M))
+      && !isAnyPointWithin(edgeTyres, x, y, MAP_WALL_CLEAR_M))
     .map(([x, y]) => ({ x, y, kind: 'tyrestack' })));
   return { lanes, zones: [...zones, ...venueParks(site)], cones: [...edge.cones, ...karting],
     barriers: [...walls, ...edge.barriers],

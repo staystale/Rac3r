@@ -29,6 +29,26 @@ export const nearRace = (site: Site, x: number, y: number, pad: number) =>
 export const onLanes = (lanes: Lane[], x: number, y: number, pad: number) =>
   lanes.some((lane) => distToLine(lane.pts, x, y) < lane.width / 2 + pad);
 
+/** A garage row's outline (front, then back reversed) and its bounding box. */
+interface RowOutline { outline: Point[]; minX: number; minY: number; maxX: number; maxY: number }
+const ROW_OUTLINES = new WeakMap<Prop, RowOutline>();
+
+/**
+ * A garage row's outline, built once per row (inBuilding is asked it thousands of times a build).
+ * @param prop the garage row (front and back)
+ * @returns its outline and box
+ */
+function rowOutline(prop: Prop): RowOutline {
+  const cached = ROW_OUTLINES.get(prop);
+  if (cached) return cached;
+  const outline = [...prop.front!, ...prop.back!.slice().reverse()];
+  const allX = outline.map(([x]) => x), allY = outline.map(([, y]) => y);
+  const row = { outline, minX: Math.min(...allX), minY: Math.min(...allY), maxX: Math.max(...allX),
+    maxY: Math.max(...allY) };
+  ROW_OUTLINES.set(prop, row);
+  return row;
+}
+
 /**
  * Whether a point lies within pad of a building's turned box.
  * @param buildings the building props
@@ -41,8 +61,11 @@ export function inBuilding(buildings: Prop[], x: number, y: number, pad: number)
   return buildings.some((prop) => {
     // the garage row: its outline (front and back)
     if (prop.front && prop.back) {
-      const outline = [...prop.front, ...prop.back.slice().reverse()];
-      return insidePolygon(outline, x, y) || distToLine(prop.front, x, y) < pad
+      const row = rowOutline(prop);
+      // (beyond its box by more than pad: neither inside it nor within pad of its sides)
+      if (x < row.minX - pad || x > row.maxX + pad || y < row.minY - pad || y > row.maxY + pad)
+        return false;
+      return insidePolygon(row.outline, x, y) || distToLine(prop.front, x, y) < pad
         || distToLine(prop.back, x, y) < pad;
     }
     if (!prop.w || !prop.h) return false;
