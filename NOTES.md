@@ -725,6 +725,11 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   pocket, no corner to catch (tools/scratch/_portalcheck.mjs: 24 drives at 15 m/s, 0 hits;
   tools/scratch/_crossplan.mjs draws the plan). barriercheck lets a barrier's point stand on a
   portal's wall corner (where the wall itself stands).
+- A CAR'S LAMPS UNDER A TUNNEL FOLLOW WHAT HIDES THE CAR (11-12, owner: "lights seem to turn off
+  in tunnels they shouldn't"): a straight tunnel hides the car from lintel to lintel and its lamps
+  with it; a cover in slats (Moanaco's: Crossing.hidden) shows the car between them, and its lamps
+  were out there (render/light.ts lampsHidden: now lit, clipped off the slats). Measured in every
+  tunnel kind at night with tools/scratch/_tunnellights.mjs before touching it.
 - A CAR ON A ROAD'S EDGE MUST CLEAR A PORTAL (11-12, owner: "the tunnel still just touches some
   barriers"): drives at the edge (tools/scratch/_portalcheck.mjs EDGES=6,6.5) found two. The cut
   was 0.6 m wider than the road each side - a car on the lane's edge out of the bend met the end of

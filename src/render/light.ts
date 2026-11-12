@@ -278,6 +278,17 @@ function clipToCut(ctx: CanvasRenderingContext2D, car: RenderCar, toX: (x: numbe
   return true;
 }
 
+/**
+ * Whether a car's lamps are out of sight: under a tunnel's cover where it hides the whole stretch
+ * (a straight one's, lintel to lintel). Under a cover in slats (a bent tunnel's: Crossing.hidden)
+ * the car is seen between them, so its lamps light there too - clipToCut keeps them off the slats.
+ * @param car the car
+ * @returns true when its lamps are hidden
+ */
+function lampsHidden(car: RenderCar): boolean {
+  return isUnderground(car) && !crossingOf(car)?.hidden;
+}
+
 /** Which cars a pass lights: every car, those on the ground (or in a tunnel), those on a deck. */
 type CarLevel = 'all' | 'ground' | 'deck';
 
@@ -339,7 +350,7 @@ function glowAt(painter: GlowPainter, car: RenderCar, along: number, across: num
  * @param isBlinkOn the indicators are in the lit half of their blink
  */
 function drawCarGlows(painter: GlowPainter, car: RenderCar, isBlinkOn: boolean) {
-  if (isUnderground(car)) return;
+  if (lampsHidden(car)) return;
   if (isBlinkOn) drawIndicatorGlows(painter, car);
   drawRearGlows(painter, car);
   // a chasing police car's lit lamps glow blue - the bar's half, a grille and a back-window
@@ -543,9 +554,9 @@ function drawBeams(painter: PoolPainter, beam: HTMLCanvasElement, car: RenderCar
 function drawFieldBeams(painter: PoolPainter, beam: HTMLCanvasElement, game: RenderGame,
   level: CarLevel = 'all') {
   const each = (car: RenderCar) => {
-    // a car in a tunnel lights nothing up here (world/crossings.ts), and in its open cut only the
-    // cut
-    if (isUnderground(car) || !isOnLevel(car, level)) return;
+    // a car under a tunnel's whole cover lights nothing up here (world/crossings.ts), and in its
+    // open cut - or between a cover's slats - only the cut
+    if (lampsHidden(car) || !isOnLevel(car, level)) return;
     const clipped = clipToCut(painter.lightCtx, car, painter.artX, painter.artY);
     drawBeams(painter, beam, car);
     drawReverseBeams(painter, beam, car);

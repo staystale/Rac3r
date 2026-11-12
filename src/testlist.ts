@@ -13,6 +13,16 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'tunnellights',
+    added: '2026-11-12',
+    name: 'Lights in a slatted tunnel: your lamps and the cars\' seen between the slats',
+    where: 'TEST MODE > a night (or ?night=0.8) > Moanaco, through the tunnel; any other tunnel',
+    try: 'Drive through Moanaco\'s tunnel at night, headlights on, and watch the gaps between the'
+      + ' slats; then any crossover or road tunnel.',
+    wrong: 'A car seen between the slats with its lamps out, light on top of a slat, a car\'s light'
+      + ' showing through a solid tunnel\'s cover.',
+  },
+  {
     id: 'stadeprancebarriers',
     added: '2026-11-12',
     name: 'Stadium crossovers: room at the portals, the Armco flared into each mouth',
