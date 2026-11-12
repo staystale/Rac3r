@@ -86,11 +86,22 @@ jobs:
           node-version: 24
       - run: npm ci
       - run: npx playwright install --with-deps chromium
-      - name: Pixel reference from the base commit (this shard's levels)
+      - name: The base commit
         run: |
           BASE=$(git merge-base origin/main HEAD)
           if [ "$BASE" = "$(git rev-parse HEAD)" ]; then BASE=$(git rev-parse HEAD~1); fi
           echo "base: $BASE"
+          echo "BASE=$BASE" >> "$GITHUB_ENV"
+      # (main's reference, rendered once when main moved: renderref.yml - half this job's time)
+      - name: Pixel reference made on main, if there is one
+        id: reference
+        uses: actions/cache/restore@v4
+        with:
+          path: tools/.renderhash
+          key: renderref-${{ env.BASE }}-${{ hashFiles('tools/renderhash.mjs') }}-${{ matrix.shard }}of12
+      - name: Pixel reference from the base commit (this shard's levels)
+        if: steps.reference.outputs.cache-hit != 'true'
+        run: |
           git worktree add ../base "$BASE"
           ln -s "$PWD/node_modules" ../base/node_modules
           # this commit's renderhash.mjs, so a base from before --shard splits the levels the same

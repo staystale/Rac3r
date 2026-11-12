@@ -128,10 +128,10 @@ ROUND 5, LOADING AND SPEED:
 
 ### 3b. Tracks (the venue helper builds, the foreman reviews, the owner passes; one switch each)
 
-- THE REST OF THE ROC STADIUMS (names approved 11-10): THE BIRD'S MESS (Beijing 2009: BUILT 11-12
-  behind ?birdsmess=1, section 1), ACCORDION STADIUM (Sydney 2025), DUSSELDORK ARENA (2010-11). The format as Wobbly's: two interwoven lanes
-  side by side, one crossover bridge (one path crossing itself: world/trackunder.ts), tarmac with
-  gravel in the same places on both lanes; the stadium round it, "creative license allowed".
+- THE ROC STADIUMS ARE ENOUGH (owner 11-12: "I think that's enough stadiums haha unless the track
+  is really special - we have enough for a short championship or two"): Wobbly, Stade de Prance and
+  The Bird's Mess built; ACCORDION STADIUM (Sydney 2025) and DUSSELDORK ARENA (2010-11) not built
+  unless their track is really special.
 - X GAYMS RALLYCROSS, the course L.A. LIVELY (Los Angeles 2012; names approved 11-10): tarmac and
   dirt round the streets, the joker's 52 ft (16 m) dirt-to-dirt GAP JUMP (terrain ramps: the game's
   airtime and landings) - "tarmac plus dirt x games make 52 gap version".

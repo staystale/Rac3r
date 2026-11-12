@@ -426,7 +426,10 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
 - CI runners have no GPU: the WebGL2 ground runs in SwiftShader, 3-6 min a level for renderhash
   and the menu / guide checks several times slower than the laptop. Fixed sleeps time out there:
   wait for the condition. renderhash runs as 12 parallel shards (`--shard k/12`; 4 ran into the
-  60 min job limit with the world circuits, 11-10, and 8 with The Bird's Mess, 11-12).
+  60 min job limit with the world circuits, 11-10, and 8 with The Bird's Mess, 11-12). Main's pixel
+  reference is rendered once when main moves (renderref.yml) and kept in the Actions cache; a
+  branch's shard reuses it (owner 11-12: "50 mins seems excessive"), rendering its base itself only
+  when there is none yet or the branch changed tools/renderhash.mjs.
 - framecheck A/B: alternate the order (on, off, on, off). The first run after a pause painted 3x
   the tiles (385 vs 120) whichever side it was.
 - Wear cells cost per cell where code walks them all (pruneWear each highway rebuild, the worn
