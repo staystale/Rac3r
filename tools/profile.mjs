@@ -1,4 +1,5 @@
 // profile.mjs — CPU profile of an autodrive lap at CPU x4; prints self-time per function (top 25). node tools/profile.mjs <level>
+// PROFILE_OUT=<file> keeps the whole profile for tools/cpuprof.mjs (totals by caller).
 // Built 2026-10-04 when four A/B guesses in a row failed to find a frame-cost regression on Thruston: measure, don't guess.
 import { startServer, launchBrowser } from './lib/browser.mjs';
 const lv = process.argv[2] || 'thruston';
@@ -14,6 +15,8 @@ await cdp.send('Profiler.enable'); await cdp.send('Profiler.setSamplingInterval'
 await p.evaluate(() => new Promise(async (res) => { const g = window.__game; const A = await import('/src/ai/autodrive.ts'); const drv = A.createAutoDriver(g.level.subtrack);
   g.input.update = () => ({ ...drv.drive(g.car), reverse: 0, shiftUp: false, shiftDown: false }); setTimeout(res, 10000); }));
 const { profile } = await cdp.send('Profiler.stop');
+// PROFILE_OUT=<file>: the whole profile kept, for totals by caller (tools/cpuprof.mjs)
+if (process.env.PROFILE_OUT) (await import('node:fs')).writeFileSync(process.env.PROFILE_OUT, JSON.stringify(profile));
 const dt = {}; const byId = new Map(profile.nodes.map((n) => [n.id, n]));
 for (let i = 0; i < profile.samples.length; i++) { const n = byId.get(profile.samples[i]); const k = (n.callFrame.functionName || '(anon)') + ' ' + (n.callFrame.url.split('/').pop() || '') + ':' + n.callFrame.lineNumber; dt[k] = (dt[k] || 0) + (profile.timeDeltas[i] || 0); }
 const tot = Object.values(dt).reduce((a, x) => a + x, 0);
