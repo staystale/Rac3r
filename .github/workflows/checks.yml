@@ -6,7 +6,7 @@ name: checks
 # data), [look] (pixels) - and that hash is then REPORTED, not failed (the next push compares
 # against it). An untagged difference fails: something changed that was not meant to. The
 # runners have no GPU: the WebGL2 ground runs in software (SwiftShader), ~3-6 min a level, so
-# the pixel check (renderhash) is its own job split over 8 machines (--shard): every level on
+# the pixel check (renderhash) is its own job split over 12 machines (--shard): every level on
 # every push. Not on a push to main (owner 11-08: "30mins is too long"): main takes only a commit
 # already checked on its branch (the same commit, the same result). The screen checks (menus, the
 # guide, input, the layout: ~11 of ~18 min) run only when a push touches the screens; the code
@@ -72,9 +72,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # (8, was 4 - 11-10: with the world circuits each 4th of the levels took 35-60 min, saved
-        # and checked, and shards ran into the 60 min limit and were cancelled)
-        shard: [1, 2, 3, 4, 5, 6, 7, 8]
+        # (12, was 8 - 11-12: with The Bird's Mess an 8th of the levels, saved and checked, ran past
+        # the 60 min limit and was cancelled; was 4 before 11-10 for the same reason)
+        shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
     env:
       CHECK_BROWSER: chromium
     steps:
@@ -95,7 +95,7 @@ jobs:
           ln -s "$PWD/node_modules" ../base/node_modules
           # this commit's renderhash.mjs, so a base from before --shard splits the levels the same
           cp tools/renderhash.mjs ../base/tools/renderhash.mjs
-          (cd ../base && node tools/renderhash.mjs save --shard ${{ matrix.shard }}/8)
+          (cd ../base && node tools/renderhash.mjs save --shard ${{ matrix.shard }}/12)
           cp ../base/tools/.renderhash tools/
       - name: Intended change (a [look] tag in the pushed commits)
         run: |
@@ -104,4 +104,4 @@ jobs:
           if git log --format=%B "$BASE..HEAD" | grep -qF "[look]"; then echo "TAG_look=1" >> "$GITHUB_ENV"; echo "[look]: reported only"; fi
       - name: renderhash
         continue-on-error: ${{ env.TAG_look == '1' }}
-        run: node tools/renderhash.mjs --shard ${{ matrix.shard }}/8
+        run: node tools/renderhash.mjs --shard ${{ matrix.shard }}/12

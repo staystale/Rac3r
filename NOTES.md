@@ -425,8 +425,8 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   Cum in snow, 10-18: 0.10 % slow frames).
 - CI runners have no GPU: the WebGL2 ground runs in SwiftShader, 3-6 min a level for renderhash
   and the menu / guide checks several times slower than the laptop. Fixed sleeps time out there:
-  wait for the condition. renderhash runs as 8 parallel shards (`--shard k/8`; 4 ran into the
-  60 min job limit with the world circuits, 11-10).
+  wait for the condition. renderhash runs as 12 parallel shards (`--shard k/12`; 4 ran into the
+  60 min job limit with the world circuits, 11-10, and 8 with The Bird's Mess, 11-12).
 - framecheck A/B: alternate the order (on, off, on, off). The first run after a pause painted 3x
   the tiles (385 vs 120) whichever side it was.
 - Wear cells cost per cell where code walks them all (pruneWear each highway rebuild, the worn
@@ -801,7 +801,7 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   update froze 37-49 s on the laptop painting all of them).
 - CI IS FREE BUT QUEUED (owner 11-11: "note that in any handover"): the repo is public, so GitHub
   Actions minutes cost nothing, but a free account runs ~20 jobs at once and EVERY push to any
-  branch starts ~10 (verify, checks, 8 renderhash shards). On 11-11, 93 runs in a day with three
+  branch starts ~14 (verify, checks, 12 renderhash shards). On 11-11, 93 runs in a day with three
   workers pushing: the suite took ~1 h queued instead of ~15 min. So: push a foreman branch only
   when the work is ready for main; stack several workers' commits on one branch and run CI once
   (cherry-pick, resolve the FIX / testlist / TODO joins); cancel the runs of superseded branches
@@ -812,7 +812,7 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   verify`, `simhash`, `worldhash --highway 20` on the branch (~20 min; one heavy browser run at a
   time; the laptop can run out of memory - watch it) - or re-run the failed jobs later.
 - To main: commit, `git push origin HEAD:refs/heads/foreman/<name>`, wait for EVERY check-run - `verify`,
-  `checks` (the suite: menucheck, barriercheck ...) and the 8 renderhash shards (GitHub API
+  `checks` (the suite: menucheck, barriercheck ...) and the 12 renderhash shards (GitHub API
   `repos/staystale/Rac3r/commits/<sha>/check-runs`; 11-10: `verify` alone passed a commit whose
   `checks` failed), `git push origin HEAD:refs/heads/main`,
   delete the branch, then move the served clone: `git fetch -q origin && git checkout -q --detach
