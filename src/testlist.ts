@@ -13,22 +13,6 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
-    id: 'carcache',
-    added: '2026-11-12',
-    name: 'Faster car drawing: the suspension arms of open-wheelers painted once, not every frame',
-    where: 'Test link + &carcache=1: any race with F1 / F2 cars, a full grid (20 AI)',
-    try: 'Race with a full grid; look at the arms and drive shafts by each wheel while steering.',
-    wrong: 'Arms missing, in the wrong place, not turning with the steering, a lower frame rate.',
-  },
-  {
-    id: 'carcull',
-    added: '2026-11-12',
-    name: 'Faster full grids: AI cars off the screen are not drawn',
-    where: 'Test link + &carcull=1: a race with a full grid (20 AI), Spa or any big track',
-    try: 'Race a few laps; watch cars come onto the screen at its edges as you catch or lose them.',
-    wrong: 'A car popping in at the edge, lamps or wheels odd as it arrives, a lower frame rate.',
-  },
-  {
     id: 'tunnellights',
     added: '2026-11-12',
     name: 'Lights in a slatted tunnel: your lamps and the cars\' seen between the slats',
@@ -37,15 +21,5 @@ export const TEST_LIST: TestEntry[] = [
       + ' slats; then any crossover or road tunnel.',
     wrong: 'A car seen between the slats with its lamps out, light on top of a slat, a car\'s light'
       + ' showing through a solid tunnel\'s cover.',
-  },
-  {
-    id: 'stadeprancebarriers',
-    added: '2026-11-12',
-    name: 'Stadium crossovers: room at the portals, the Armco flared into each mouth',
-    where: 'TEST MODE > RALLYCROSS > Stade de Prance (and Wobbly Stadium)',
-    try: 'Drive under the bridge both ways with your wheels on each edge line, and along both edges'
-      + ' of the bridge road past the portals; look where the Armco meets each portal.',
-    wrong: 'A car on the road touching a portal or its Armco, Armco across a portal or overlapping'
-      + ' it, a gap or pocket beside a portal.',
   },
 ];

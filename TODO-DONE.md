@@ -13,6 +13,53 @@ rolls - OWNER 11-07; the AI rework - Where we are 11-04; the driving root fix, t
 LIST 11-01; TypeScript, mud, grass, lamps - Queue; weather, surfaces, car systems, damage,
 lighting, bushes and trees - OWNER LIST 10-24; the checking tools - Tools that are wrong.
 
+## PASSED 11-12 (owner: "mostly pass"; the slatted tunnel's lights failed, still open) - the
+performance round and the stadium crossovers
+
+- CARCACHE (`?carcache=1`; ROUND 5's performance pass, owner 11-12 "Ok" to the plan; testlist
+  carcache): with a grid of open-wheelers the cars' painting was 28% of a frame and their
+  suspension arms, a pixel at a time, half of that (MEASURED, Spa 20 AI, CPU x4, CDP profile).
+  Each wheel's fixed arms (the arms, a driven wheel's shaft and joints) painted once per car type
+  and stamped; only the track rod drawn live (render/cars.ts stampFixedArms). MEASURED: the arms
+  951 -> 528 ms of a 10 s profile; our work a frame 29.4 / 28.5 -> 25.9 / 25.8 ms (median, two
+  runs each), p95 43 -> 39 ms. The pixels: the same where the car's picture sits on whole pixel
+  blocks; at zooms where the arms fall half a pixel off them the stamp draws them crisp where
+  fillRect blurred their edges (0.007% of a frame's pixels, renderhash with RAC3R_CAR=track-rwd).
+  WRONG: arms missing or misplaced, not turning with the steering, a lower frame rate.
+
+- TEXTURE WARM-UP NEVER ENDED (the same pass; a fix, no switch, no look - CI's renderhash on every
+  level is its proof; no testlist entry, nothing to see): the texture cache held 24 of the 27
+  surfaces, so the idle warm-up evicted what it painted and repainted one every 60 ms all session
+  (render/textures.ts createTextureCache: its capacity now every surface's). MEASURED, Spa at CPU
+  x4: the warm-up 1371 -> 288 ms of a 10 s profile (its last textures, then done); with
+  ?carcull=1, frame median 34.7 -> 18.1 ms, frames over 33 ms 290 -> 237 of 570. Watch the phone
+  report's "slow with GPU uploads" on the next run: some were these repaints.
+
+- CARCULL (`?carcull=1`; the same pass; testlist carcull): what the "AI cost" of a full grid
+  really was - not the AI's driving (outside the profile's top 40) but its cars' drawing: every
+  AI car's picture painted afresh each frame, the ones off the view too (highway traffic was
+  culled, the AI was not; CDP profile, test track 20 AI, CPU x4: the cars' drawing 3.9 s of an
+  8.2 s loop). An AI car more than 12 m off the view is not drawn (render/screen.ts
+  forEachDrawnCar isNearView). MEASURED, Spa 20 AI, CPU x4: our work a frame 29.3 -> 19.9 ms
+  (median), p95 42.0 -> 31.6 ms. The pixels: renderhash SAME (Spa, Thruston) once a car's lamps
+  have their own random numbers (render/carlamps.ts lampRandom; before, a car's first lamp read
+  took the looks' shared stream, so a car not drawn shifted every later puff - Spa's dust only,
+  shotdiff 0.3-1.1%). That stream of its own is on for everyone: the puffs' random numbers moved
+  ([look], no change in kind). WRONG: an AI car popping in at the screen's edge, a car's lamps or
+  wheels odd as it comes into view.
+
+- STADIUM CROSSOVERS, ROOM AT THE PORTALS (owner 11-12: "the tunnel still just touches some
+  barriers"; testlist stadeprancebarriers; Stade de Prance and Wobbly): a car on a road's edge
+  met the end of a portal's wall (the cut 0.6 m wider than the road) and the barrier at a lintel's
+  corner (1.05 m past the bridge road's edge). The cut now 1.5 m wider each side, the lintels
+  2.4 m further out (VenueSpec.crossover spareM / clearM; Snoozuka unchanged), the lane gap at
+  the crossover 32 m; each barrier meets a portal at its wall's inner mouth corner (flared in) or
+  its lintel corner, no connector or V left beside a wall. MEASURED: the walls 8.56-8.65 m from
+  the road under's centre (2.1 m past its edge), the lintel corners 2.49 m past the bridge road's
+  edge; 24 drives at 15 m/s (centre, +-5 m) and 16 at +-6 m clean on both; portals 0.14-1.76 deg
+  off their lane; sealing 0 escapes; worldhash: only the two stadiums change. WRONG: a car on the
+  road touching a portal or its Armco, Armco across a portal, a gap or pocket by a portal.
+
 ## PASSED 11-12 (owner: "All / Pass") - the 11-11 test round
 
 Every switch below made the default and deleted 11-12 (roadparity, bridgecars, railbridges,

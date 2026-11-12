@@ -3,7 +3,6 @@
 // sharp cars (the default) and,, the skid marks. Everything here is the 2D
 // canvas: never copy pixels between it and WebGL per frame (NOTES.md).
 import { SPRITE_PPM } from "./shared.ts";
-import { FIX } from "../core/fixes.ts";
 import { drawWetTrails } from "../wettrail.ts";
 import { drawStingers } from "./stingers.ts";
 import { drawFlipRamps } from "./flipramps.ts";
@@ -59,12 +58,10 @@ export function forEachDrawnCar(ctx: ScreenCtx, game: RenderGame,
   if (game.traffic && !skip('traffic')) {
     for (const car of game.traffic.cars) if (isNearView(ctx, car)) draw(car);
   }
-  // AI cars under the player's (?carcull=1: only the ones near the view, as the traffic - each
-  // drawn car's picture is painted afresh each frame)
+  // AI cars under the player's, only the ones near the view as the traffic (each drawn car's
+  // picture is painted afresh each frame)
   if (!skip('ai')) {
-    for (const rival of game.ai || []) if (!FIX.carcull || isNearView(ctx, rival.car)) {
-      draw(rival.car);
-    }
+    for (const rival of game.ai || []) if (isNearView(ctx, rival.car)) draw(rival.car);
   }
   if (!skip('car')) draw(game.car);
 }

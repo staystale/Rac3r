@@ -20,7 +20,7 @@
 // bushflat passed 11-10; trafficeven, speeders, breakdowns, vergereset, desertmore, bathurst,
 // medianlamps, hwstations, desertroads, drivebridges passed 11-11; roadparity, bridgecars,
 // railbridges, roadtunnels, wobbly, stadeprance, police, trainlights, moveover, roadrage,
-// stationstops passed 11-12.)
+// stationstops, carcache, carcull passed 11-12.)
 import { envValue } from './debug.ts';
 
 /**
@@ -51,12 +51,4 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
-  // ?carcache=1: an open-wheeler's fixed suspension arms (the arms, a driven wheel's shaft and
-  // joints) painted once per wheel of a car type and stamped each frame; only the track rod drawn
-  // live (render/cars.ts stampFixedArms). The same pixels; half the cars' painting with a grid of
-  // open-wheelers (MEASURED, Spa 20 AI, CPU x4)
-  carcache: atLoad('carcache'),
-  // ?carcull=1: an AI car off the view (past a car's reach) is not drawn, as highway traffic is
-  // not (render/screen.ts forEachDrawnCar): each drawn car's picture is painted afresh each frame
-  carcull: atLoad('carcull'),
 };

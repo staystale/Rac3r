@@ -5,7 +5,6 @@ import {
   partRegion, cutPart, flatPart, withoutParts, isBare, drawnBit,
 } from "./carparts.ts";
 import { SPRITE_PPM } from "./shared.ts";
-import { FIX } from "../core/fixes.ts";
 import { DAYLIGHT } from "../world/daylight.ts";
 import { REVERSE_LAMP, isReversing } from "./reverselights.ts";
 import { settledLampLevel } from "./carlamps.ts";
@@ -186,9 +185,8 @@ function pixelLine(ctx: CanvasRenderingContext2D, from: number[], dest: number[]
  */
 function drawWishbones(ctx: CanvasRenderingContext2D, spec: RenderCarSpec, axleX: number,
   side: number, steer: number, halfWidth: number): void {
-  // (?carcache=1: the arms that never move stamped from their own picture - stampFixedArms)
-  if (FIX.carcache) stampFixedArms(ctx, spec, axleX, side, halfWidth);
-  else drawFixedArms(ctx, spec, axleX, side, halfWidth);
+  // (the arms that never move stamped from their own picture - stampFixedArms)
+  stampFixedArms(ctx, spec, axleX, side, halfWidth);
   if (axleX <= 0) return;
   const hubX = axleX * SPRITE_PPM, hubY = side * halfWidth, body = side * 2;
   ctx.fillStyle = WISHBONE;
