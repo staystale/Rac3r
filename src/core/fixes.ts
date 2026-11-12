@@ -20,7 +20,7 @@
 // bushflat passed 11-10; trafficeven, speeders, breakdowns, vergereset, desertmore, bathurst,
 // medianlamps, hwstations, desertroads, drivebridges passed 11-11; roadparity, bridgecars,
 // railbridges, roadtunnels, wobbly, stadeprance, police, trainlights, moveover, roadrage,
-// stationstops, carcache, carcull passed 11-12.)
+// stationstops, carcache, carcull, coverlight passed 11-12.)
 import { envValue } from './debug.ts';
 
 /**
@@ -51,9 +51,6 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
-  // ?coverlight=1: a car outside a slatted tunnel (before its mouth, past it, beside its walls)
-  // lights none of its cover's slats - its light clipped off them (render/coverlight.ts)
-  coverlight: atLoad('coverlight'),
   // ?birdsmess=1: The Bird's Mess, the Race of Champions' track in the Bird's Nest (Beijing 2009)
   // - as the other stadiums', two lanes interwoven round an elliptical bowl, one crossover bridge;
   // a night race (world/levels/birdsmess-venue.ts)
@@ -62,4 +59,7 @@ export const FIX = {
   // and in the infield (tools/scratch/_rocdata.mjs <id>: the venues' _DRESS), and their barriers
   // made even (world/stadiumtidy.ts: Armco and fences eased, free ends met)
   stadiumprops: atLoad('stadiumprops'),
+  // ?thumbfill=1: a menu screen opened while the shipped track thumbnails are still being read
+  // fills each one in as it arrives (before, it showed only what had come; menu/tracks.ts addThumb)
+  thumbfill: atLoad('thumbfill'),
 };

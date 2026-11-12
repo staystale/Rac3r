@@ -38,13 +38,13 @@ export const TEST_LIST: TestEntry[] = [
       + ' touching a portal on the road, a way off the lanes, a lower frame rate than the others.',
   },
   {
-    id: 'tunnellights',
+    id: 'thumbfill',
     added: '2026-11-12',
-    name: 'Lights in a slatted tunnel: your lamps and the cars\' seen between the slats',
-    where: 'Test link + &coverlight=1: a night (or ?night=0.8) > Moanaco, the tunnel; any tunnel',
-    try: 'Drive into and out of Moanaco\'s tunnel at night, headlights on, with AI cars; watch the'
-      + ' slats and gaps as you and they approach, pass under and leave; then any other tunnel.',
-    wrong: 'Light on top of a slat (from a car in, before or beside the tunnel), a car between the'
-      + ' slats with its lamps out, light through a solid tunnel\'s cover.',
+    name: 'Menu track pictures fill in as they load (not left blank)',
+    where: 'Test link + &thumbfill=1: open TEST MODE straight after the page loads',
+    try: 'Load the link, tap through to TEST MODE at once; watch the category list and a track'
+      + ' list.',
+    wrong: 'A category or track card still without its picture after a few seconds, a jump or'
+      + ' flicker.',
   },
 ];

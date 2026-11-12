@@ -4,9 +4,8 @@
 // rubbed out of it (destination-out, with pictures drawn once: no gradient is made per frame),
 // then the glows' colour is laid in as a tint; then it is laid over the screen canvas once, under
 // the HUD. The cost is one extra full-screen image a frame.
-import { crossingOf, isUnderground } from "../world/crossinggeo.ts";
+import { crossingOf } from "../world/crossinggeo.ts";
 import { clipToCut } from './coverlight.ts';
-import { FIX } from '../core/fixes.ts';
 import { DAYLIGHT } from '../world/daylight.ts';
 import { lampHeads, activeLamps, lampsLit } from '../world/lamps.ts';
 import { hazardsOn, indicatorBlinkOn, lampLevel } from './cars.ts';
@@ -221,20 +220,6 @@ function paintCarGlows(painter: GlowPainter, game: RenderGame, level: CarLevel =
   each(game.car);
 }
 
-/**
- * Whether a car's lamps are out of sight: under a tunnel's cover where it hides the whole stretch
- * (a straight one's, lintel to lintel). Under a cover in slats (a bent tunnel's: Crossing.hidden)
- * the car is seen between them, so its lamps light there too - clipToCut keeps them off the slats.
- * ?coverlight=1: never - a car under a whole cover still throws its light out of the mouths
- * and into the open cuts, as in a real tunnel seen from above; clipToCut keeps it off the cover
- * (before, a car under a stadium crossover's short bridge lit nothing past it).
- * @param car the car
- * @returns true when its lamps are hidden
- */
-function lampsHidden(car: RenderCar): boolean {
-  return !FIX.coverlight && isUnderground(car) && !crossingOf(car)?.hidden;
-}
-
 /** Which cars a pass lights: every car, those on the ground (or in a tunnel), those on a deck. */
 type CarLevel = 'all' | 'ground' | 'deck';
 
@@ -296,7 +281,6 @@ function glowAt(painter: GlowPainter, car: RenderCar, along: number, across: num
  * @param isBlinkOn the indicators are in the lit half of their blink
  */
 function drawCarGlows(painter: GlowPainter, car: RenderCar, isBlinkOn: boolean) {
-  if (lampsHidden(car)) return;
   if (isBlinkOn) drawIndicatorGlows(painter, car);
   drawRearGlows(painter, car);
   // a chasing police car's lit lamps glow blue - the bar's half, a grille and a back-window
@@ -500,9 +484,9 @@ function drawBeams(painter: PoolPainter, beam: HTMLCanvasElement, car: RenderCar
 function drawFieldBeams(painter: PoolPainter, beam: HTMLCanvasElement, game: RenderGame,
   level: CarLevel = 'all') {
   const each = (car: RenderCar) => {
-    // a car under a tunnel's whole cover lights nothing up here (world/crossings.ts), and in its
-    // open cut - or between a cover's slats - only the cut
-    if (lampsHidden(car) || !isOnLevel(car, level)) return;
+    // a car in a tunnel lights only its cut, never its cover (render/coverlight.ts clipToCut): a
+    // car under a whole cover still throws its light out of the mouths, as seen from above
+    if (!isOnLevel(car, level)) return;
     const clipped = clipToCut(painter.lightCtx, car, painter.artX, painter.artY,
       LIGHT_CLIP);
     drawBeams(painter, beam, car);

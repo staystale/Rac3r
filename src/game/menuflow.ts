@@ -19,6 +19,7 @@ import {
 } from '../hud/minimap.ts';
 import { setTrackTempSetting, trackTempSetting } from '../hud/tracktemp.ts';
 import { loadShippedThumbs } from '../menu/thumbfiles.ts';
+import { categoryThumbIds } from '../menu/tracks.ts';
 import { loadProfile } from '../menu/profile.ts';
 import type { Level } from '../world/types.ts';
 import type { HwLevel } from '../highway/hwtypes.ts';
@@ -322,7 +323,8 @@ export function paintThumbsNow(ids: string[]): Record<string, HTMLCanvasElement>
  * they arrive shows what has; one that will not come is painted when a list asks).
  */
 export function prepareThumbs() {
-  loadShippedThumbs(thumbs).then((ids) => { shipped = ids; }).catch(() => { shipped = new Set(); });
+  loadShippedThumbs(thumbs, categoryThumbIds()).then((ids) => { shipped = ids; })
+    .catch(() => { shipped = new Set(); });
 }
 // RESULTS: 1.6 s after the race ends (the flag sweep), the podium then the table (menu.ts results)
 export function stepResults() {

@@ -6,7 +6,6 @@
 // light's reach costs one box test).
 import { LEVEL } from '../world/state.ts';
 import { crossingOf } from '../world/crossinggeo.ts';
-import { FIX } from '../core/fixes.ts';
 import { lineBox, isBeyondBox } from '../world/venuegeo.ts';
 import type { LineBox } from '../world/venuegeo.ts';
 import type { Crossing, Point } from '../world/types.ts';
@@ -93,10 +92,8 @@ const WALL_LINE_M = 0.45;
 export function clipToCut(ctx: CanvasRenderingContext2D, car: RenderCar,
   toX: (x: number) => number, toY: (y: number) => number, reach: LightReach): boolean {
   const way = crossingOf(car);
-  // (?coverlight=1: a car outside a tunnel lights no slatted cover's slats - render/coverlight.ts)
-  if (!way || way.kind !== 'tunnel') {
-    return FIX.coverlight && clipOffCovers(ctx, car, toX, toY, reach.lightM);
-  }
+  // (a car outside a tunnel lights no slatted cover's slats)
+  if (!way || way.kind !== 'tunnel') return clipOffCovers(ctx, car, toX, toY, reach.lightM);
   const point = ([x, y]: Point, first: boolean) => {
     if (first) ctx.moveTo(toX(x), toY(y));
     else ctx.lineTo(toX(x), toY(y));
@@ -116,21 +113,18 @@ export function clipToCut(ctx: CanvasRenderingContext2D, car: RenderCar,
     const faces = [...face(left, right), ...face(right, left).reverse()];
     faces.forEach((pts, i) => point(pts, !i));
     ctx.closePath();
-    // (?coverlight=1: the walls clipped first, then the slats off it - in one even-odd path a
-    // slat's end out past a wall was inside the slat and outside the walls, so it was lit; and,
-    // as a straight one's, the open ground past each mouth a beam reaches, wound as the walls -
-    // without it a car leaving lit nothing past the mouth until it was out)
-    if (FIX.coverlight) {
-      const wound = Math.sign(signedArea(faces));
-      const ends = faces.length / 2, open = 2 * reach.beamM;
-      traceMouthOpen(point, [faces[0], faces[faces.length - 1]],
-        [faces[1], faces[faces.length - 2]], wound, open);
-      traceMouthOpen(point, [faces[ends - 1], faces[ends]], [faces[ends - 2], faces[ends + 1]],
-        wound, open);
-      ctx.clip('nonzero');
-      ctx.beginPath();
-      ctx.rect(0, 0, ctx.canvas.width, ctx.canvas.height);
-    }
+    // (the walls and, as a straight one's, the open ground past each mouth a beam reaches, wound
+    // as the walls, clipped first - then the slats off that: in one even-odd path a slat's end out
+    // past a wall was inside the slat and outside the walls, so it was lit)
+    const wound = Math.sign(signedArea(faces));
+    const ends = faces.length / 2, open = 2 * reach.beamM;
+    traceMouthOpen(point, [faces[0], faces[faces.length - 1]],
+      [faces[1], faces[faces.length - 2]], wound, open);
+    traceMouthOpen(point, [faces[ends - 1], faces[ends]], [faces[ends - 2], faces[ends + 1]],
+      wound, open);
+    ctx.clip('nonzero');
+    ctx.beginPath();
+    ctx.rect(0, 0, ctx.canvas.width, ctx.canvas.height);
     for (const outline of way.hidden) {
       outline.forEach((pts, i) => point(pts, !i));
       ctx.closePath();

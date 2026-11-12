@@ -13,6 +13,45 @@ rolls - OWNER 11-07; the AI rework - Where we are 11-04; the driving root fix, t
 LIST 11-01; TypeScript, mud, grass, lamps - Queue; weather, surfaces, car systems, damage,
 lighting, bushes and trees - OWNER LIST 10-24; the checking tools - Tools that are wrong.
 
+## PASSED 11-12 (owner: "The rest is pass") - the tunnel lights (coverlight)
+
+- LIGHTS IN A SLATTED TUNNEL (owner 11-12: "lights seem to turn off in tunnels they shouldn't";
+  testlist tunnellights): measured at night (tools/scratch/_tunnellights.mjs, headlights on,
+  stopped on the road, in the first cut, under the cover, in the last cut) in every tunnel kind:
+  the stadium crossovers, Snoozuka's crossover and its four road tunnels (the highway's side-road
+  underpass is the same straight tunnel) light their open cuts and hide the car and its lamps
+  under the whole cover - right. Moanaco's tunnel, covered in slats with gaps the car is seen
+  through, put out every lamp of a car under it (render/light.ts: underground, no beams and no
+  glows). Now a car's lamps are hidden only under a cover that hides the whole stretch; under
+  slats they light, clipped off the slats (clipToCut). MEASURED (Moanaco, under the slats): the
+  tail-light glow 31.2 -> 37.3 and the road ahead 37.7 -> 40.1 (brightness); Snoozuka's 20 stops
+  the same within 2. WRONG: a car seen between the slats with its lamps out, light on a slat or
+  through a solid cover.
+  FAILED 11-12 ("Lights show thru the side of tunnels tho / on top monaco"): a car OUTSIDE the
+  tunnel was never clipped - on the road before the mouth its headlights ran on over the slats
+  (tools/scratch/_tunnelleak.mjs: the car stopped, a photo lamps off and lamps on, the difference
+  is its light). COVERLIGHT (`?coverlight=1`): a car not in a tunnel has its light clipped off
+  every slat of a slatted cover within its light's reach (render/coverlight.ts clipOffCovers; one
+  box test per cover out of reach). The photo before the mouth: the beam stops at the slats, the
+  open cut before them still lit. And (owner 11-12, a photo: "still happening on the side of
+  moanaco tunnel") a car IN the tunnel turned toward a wall lit slat-shaped patches past it: its
+  clip was one even-odd path of the walls and the slats, and a slat's end out past a wall was
+  inside the slat and outside the walls - so lit. Now the walls are clipped first, then the slats
+  off that (render/light.ts clipToCut). The photo turned 0.9 rad at five stops: the beam ends at
+  the wall. And a car in a bent tunnel's last cut lit nothing past its mouth (tools/lightleak.mjs:
+  0% of the road ahead lit) - the straight ones' open ground past each mouth was missing: now
+  from each mouth's own line out (render/coverlight.ts traceMouthOpen): 100%. lightleak on Moanaco
+  (the tunnel, both footbridges; 45 stops): 0 leaks with the switch, 6 without. WRONG as above,
+  and light on the slats from a car approaching, leaving or beside the tunnel, or past its side,
+  or the road ahead dark as a car leaves the tunnel.
+  And (owner 11-12, a photo of The Bird's Mess: "Lights don't show in tunnel ... surely we can
+  make it work n look like real life") a car under a straight tunnel's whole cover put every lamp
+  out (render/light.ts lampsHidden), so under a stadium crossover's short bridge it lit nothing,
+  not even the road past the far mouth. Now its light is never put out, only clipped
+  (clipToCut: off the cover, out of both mouths and into the open cuts) - as a real tunnel seen
+  from above. lightleak gains DARK (a car in a tunnel lighting almost none of the open road 4-28 m
+  ahead) and a 6 m band past a tunnel's walls (a barrier 25 m off flagged as a leak before).
+
 ## PASSED 11-12 (owner: "mostly pass"; the slatted tunnel's lights failed, still open) - the
 performance round and the stadium crossovers
 

@@ -14,7 +14,7 @@
 // kept). And DARK: a car in a tunnel, facing along, lighting almost none of the open road 4-16 m
 // ahead (in a cut, between slats) or behind it (its brake lights' glow in the cut it is leaving) -
 // its lamps out where they should show.
-// node tools/lightleak.mjs [level ...] [query]   (no level: every level; query: e.g. coverlight=1)
+// node tools/lightleak.mjs [level ...] [query]   (no level: every level; query: e.g. birdsmess=1)
 // (CHECK_PORT; one browser; memory: one page at a time)
 import fs from 'node:fs';
 import { startServer, launchBrowser } from './lib/browser.mjs';

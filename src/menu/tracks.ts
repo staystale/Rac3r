@@ -7,6 +7,8 @@ import { THEMES, LENGTHS } from '../stagegen.ts';
 const THEME_NAMES = THEMES as Record<string, { name: string }>;
 import { saveProfile } from './profile.ts';
 import { addPane, addButton, addElement, copyThumb } from './widgets.ts';
+import { whenThumbArrives } from './thumbfiles.ts';
+import { FIX } from '../core/fixes.ts';
 import { showSetup } from './setup.ts';
 import { showSettings } from './settings.ts';
 import { showCredits } from './credits.ts';
@@ -150,6 +152,60 @@ export function showMainMenu(menu: Menu) {
   addButton(menu, buttons, 'CREDITS', () => showCredits(menu, () => showMainMenu(menu)));
 }
 
+// thumbnails a category's card in the TEST MODE list shows (its first levels')
+const CAT_THUMBS = 3;
+
+/**
+ * A TEST MODE category's levels, in the menu's order.
+ * @param catId the category ('all': every level)
+ * @returns its levels
+ */
+function levelsOfCat(catId: string): Level[] {
+  return LEVELS.filter((entry) => catId === 'all' || menuCatOf(entry) === catId);
+}
+
+/**
+ * The levels whose thumbnails the TEST MODE category list shows - read first (menu/thumbfiles.ts),
+ * so the first screen fills before the rest have come.
+ * @returns the level ids
+ */
+export function categoryThumbIds(): string[] {
+  const ids = CATS.flatMap((category) => levelsOfCat(category.id).slice(0, CAT_THUMBS))
+    .map((level) => level.id);
+  return [...new Set(ids)];
+}
+
+// px of a thumbnail's empty place (as the thumbnails: game/menuflow.ts paints them 320 wide, 16:10)
+const THUMB_W = 320, THUMB_H = 200;
+
+/**
+ * Adds a level's thumbnail. ?thumbfill=1: one not read yet (the shipped ones are read in the
+ * background at load - a screen opened before showed only what had come, and stayed so) holds its
+ * place, filled as it arrives (menu/thumbfiles.ts whenThumbArrives).
+ * @param parent where it goes
+ * @param thumbs level id -> thumbnail
+ * @param levelId the level
+ */
+function addThumb(parent: HTMLElement, thumbs: Record<string, HTMLCanvasElement>,
+  levelId: string) {
+  const thumb = thumbs[levelId];
+  if (thumb) {
+    parent.appendChild(copyThumb(thumb));
+    return;
+  }
+  if (!FIX.thumbfill) return;
+  const slot = document.createElement('canvas');
+  slot.width = THUMB_W;
+  slot.height = THUMB_H;
+  parent.appendChild(slot);
+  whenThumbArrives(levelId, (arrived) => {
+    if (!slot.isConnected) return;
+    slot.width = arrived.width;
+    slot.height = arrived.height;
+    slot.getContext('2d')!.drawImage(arrived, 0, 0);
+  });
+}
+
 /**
  * TEST MODE step 1: CATEGORY LIST (requirement: a menu layer for circuit type, stick appropriate
  * tracks in the correct category — "a BIG LIST", Grass Track in OVALS), then step 1b: that
@@ -163,8 +219,7 @@ export function showTrackSelect(menu: Menu) {
   menu.thumbs = menu.api.thumbs();
   const list = addElement(panel, 'div', '', 'cats');
   for (const category of CATS) {
-    const lvs = LEVELS.filter((entry) => category.id === 'all'
-      || menuCatOf(entry) === category.id);
+    const lvs = levelsOfCat(category.id);
     if (!lvs.length) continue;
     const button = addButton(menu, list, '', () => {
       profile.lastCat = category.id;
@@ -172,11 +227,7 @@ export function showTrackSelect(menu: Menu) {
       showTrackList(menu, category.id);
     }, 'cat' + (category.id === profile.lastCat ? ' on' : ''));
     const strip = addElement(button, 'div', '', 'strip');
-    for (const level of lvs.slice(0, 3)) {
-      const thumb = menu.thumbs![level.id];
-      if (!thumb) continue;
-      strip.appendChild(copyThumb(thumb));
-    }
+    for (const level of lvs.slice(0, CAT_THUMBS)) addThumb(strip, menu.thumbs!, level.id);
     const text = addElement(button, 'div', '', 'tx');
     addElement(text, 'span', category.name, 'nm');
     addElement(text, 'span', category.sub, 'k');
@@ -212,8 +263,7 @@ function addTrackCard(menu: Menu, grid: HTMLElement, level: Level) {
     addElement(button, 'span', 'RALLY STAGE · NEW EVERY TIME', 'k');
     return;
   }
-  const thumb = menu.thumbs![level.id];
-  if (thumb) button.appendChild(copyThumb(thumb));
+  addThumb(button, menu.thumbs!, level.id);
   addElement(button, 'span', level.name, 'nm');
   addElement(button, 'span', level.endless ? 'ENDLESS MOTORWAY' : level.fixed ? 'RALLY STAGE · '
     + THEME_NAMES[level.gen!.theme].name.split(' ')[0] : KIND[level.id] || 'TRACK', 'k');
@@ -263,8 +313,7 @@ function addVenueCard(menu: Menu, grid: HTMLElement, cat: string, layouts: Level
     kinds = new Set(layouts.map((entry) => (KIND[entry.id] || 'TRACK').split(' · ')[0]));
   const button = addButton(menu, grid, '', () => showLayoutList(menu, cat, layouts[0].venue!),
     'card' + (last ? ' on' : ''));
-  const thumb = menu.thumbs![(last || layouts[0]).id];
-  if (thumb) button.appendChild(copyThumb(thumb));
+  addThumb(button, menu.thumbs!, (last || layouts[0]).id);
   addElement(button, 'span', layouts[0].venue!, 'nm');
   addElement(button, 'span', (kinds.size === 1 ? [...kinds][0] + ' · ' : '') + layouts.length
     + ' LAYOUTS', 'k');
