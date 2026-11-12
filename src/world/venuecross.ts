@@ -265,6 +265,20 @@ export function crossoverAt(sub: Subtrack, dist: number): boolean {
   return !!span || overCap(sub, dist) < Infinity;
 }
 
+/**
+ * An underpass portal's four wall corners: the outer face's ends of each side wall, the open
+ * end's two first (where a barrier along the road comes to the mouth), then the lintel end's.
+ * @param portal the portal (w its length along its road, h its width between the walls)
+ * @returns the corners
+ */
+export function portalCorners(portal: Prop): Point[] {
+  const cosR = Math.cos(portal.rot || 0), sinR = Math.sin(portal.rot || 0);
+  const out = portal.h! / 2 + PORTAL_WALL_M;
+  return [[-1, -1], [-1, 1], [1, -1], [1, 1]].map(([along, across]): Point => [
+    portal.x + cosR * along * portal.w! / 2 - sinR * across * out,
+    portal.y + sinR * along * portal.w! / 2 + cosR * across * out]);
+}
+
 // m a parapet's end keeps off an underpass portal's walls (it stops at their outer face)
 const PARAPET_CLEAR_M = 0.5;
 

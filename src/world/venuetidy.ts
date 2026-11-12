@@ -7,8 +7,10 @@
 // (Moanaco's, the stadiums') runs its passes over the Armco and walls: a loop cut out at its
 // crossing, a run's fold back along itself dropped, a short run doubling another dropped, a run's
 // end along another trimmed (the stadiums'), two ends that nearly meet joined where the join
-// keeps clear of the road and every lane (a pit lane's mouth stays open).
+// keeps clear of the road and every lane (a pit lane's mouth stays open); a stadium's barrier
+// ends by a crossover's portals carried on to the portals' wall corners.
 import { distToLine } from "./venuegeo.ts";
+import { portalCorners, underPortals } from "./venuecross.ts";
 import { onGroundQuery, querySubtrack } from "./tyrewall.ts";
 import type { Barrier, Lane, Point, Subtrack } from "./types.ts";
 
@@ -22,6 +24,10 @@ const STUB_M = 14, DOUBLE_M = 3, JOIN_M = 7, JOIN_ROAD_M = 9, JOIN_LANE_M = 1;
 const FOLD_COS = -0.6, FOLD_PTS = 3, FOLD_M = 30, FOLD_DOUBLE_M = 6;
 // points (about a metre apart) back from the joint a fold's end comes back beside
 const FOLD_BACK_PTS = 8;
+// m: a free barrier end this near an underpass portal's wall corner is carried on to it; the
+// carried stretch keeps this far off the race road's centre on the ground (half the road and half
+// a car: the corner itself stands 7.7 m off its own road)
+const TUCK_M = 9, TUCK_ROAD_M = 7.2;
 // a joined run's point its neighbours turn back on sharper than this (cos) is a spike
 const SPIKE_COS = -0.8;
 // the barrier kinds tidied (a catch fence, a pit wall or a building's outline are left as laid)
@@ -163,23 +169,48 @@ function isStub(run: Barrier, others: Barrier[]): boolean {
  * @param lanes the lanes
  * @returns true when it does
  */
-function joinClear(from: Point, until: Point, sub: Subtrack, lanes: Lane[]): boolean {
+function joinClear(from: Point, until: Point, sub: Subtrack, lanes: Lane[],
+  roadM = JOIN_ROAD_M): boolean {
   for (let share = 0; share <= 1.0001; share += 0.1) {
     const x = from[0] + (until[0] - from[0]) * share, y = from[1] + (until[1] - from[1]) * share;
-    if (onGroundQuery(() => querySubtrack(sub, x, y)).dist < JOIN_ROAD_M) return false;
+    if (onGroundQuery(() => querySubtrack(sub, x, y)).dist < roadM) return false;
     if (lanes.some((lane) => distToLine(lane.pts, x, y) < lane.width / 2 + JOIN_LANE_M))
       return false;
   }
   return true;
 }
 
+// m from a portal's corner within which two ends are not joined into a sharp V
+const V_CLEAR_M = TUCK_M + 2;
+
 /**
- * Joins the runs whose ends nearly meet (the nearest pair first), each end joined once.
+ * Whether joining two ends would turn the barrier back sharper than a right angle (a V) near a
+ * portal's corner.
+ * @param one an end
+ * @param two the other
+ * @param corners the portals' wall corners
+ * @returns true when it would
+ */
+function makesV(one: RunEnd, two: RunEnd, corners: Point[]): boolean {
+  const tipOf = (end: RunEnd) => (end.first ? end.run.pts[0] : end.run.pts[end.run.pts.length - 1]);
+  const nextOf = (end: RunEnd) => (end.first ? end.run.pts[1] : end.run.pts[end.run.pts.length
+    - 2]);
+  if (!nextOf(one) || !nextOf(two)) return false;
+  const [x, y] = tipOf(one), [inX, inY] = nextOf(one), [outX, outY] = nextOf(two);
+  if (!corners.some(([atX, atY]) => Math.hypot(atX - x, atY - y) < V_CLEAR_M)) return false;
+  return (x - inX) * (outX - tipOf(two)[0]) + (y - inY) * (outY - tipOf(two)[1]) < 0;
+}
+
+/**
+ * Joins the runs whose ends nearly meet (the nearest pair first), each end joined once - not into
+ * a sharp V near a crossover portal's corner (a stadium's: each end is carried on to a corner of
+ * its own there, tuckToPortals).
  * @param runs the tidied runs (changed: an end gets the other's end added)
  * @param sub the race road
  * @param lanes the lanes
+ * @param corners the portals' wall corners a V keeps off (none: any join)
  */
-function joinEnds(runs: Barrier[], sub: Subtrack, lanes: Lane[]): void {
+function joinEnds(runs: Barrier[], sub: Subtrack, lanes: Lane[], corners: Point[] = []): void {
   const ends = runs.flatMap((run) => [{ run, first: true }, { run, first: false }]);
   // (the run carried on to meet the other: a tidied one - a fence keeps its own ends)
   const ownsJoin = (one: number, two: number) => (TIDIED.has(ends[one].run.kind) ? [one, two]
@@ -198,6 +229,7 @@ function joinEnds(runs: Barrier[], sub: Subtrack, lanes: Lane[]): void {
   for (const { one, two } of pairs.sort((first, second) => first.gap - second.gap)) {
     if (used.has(one) || used.has(two)) continue;
     if (!joinClear(endOf(ends[one]), endOf(ends[two]), sub, lanes)) continue;
+    if (corners.length && makesV(ends[one], ends[two], corners)) continue;
     used.add(one);
     used.add(two);
     const [own, met] = ownsJoin(one, two)!, end = ends[own], other = endOf(ends[met]);
@@ -227,6 +259,143 @@ function trimDoubledEnds(run: Barrier, others: Barrier[]): void {
       else run.pts.pop();
     }
   }
+}
+
+/** One end of a barrier run. */
+interface RunEnd { run: Barrier; first: boolean }
+
+/**
+ * A run's end carried on to a point: cut back first while the point lies behind its last step
+ * (down to one point, the corner then its second: an end run on past the corner turned back to
+ * it - a fold), then the point added.
+ * @param end the end (its run changed)
+ * @param corner the point
+ */
+function carryEndTo(end: RunEnd, corner: Point): void {
+  const pts = end.run.pts;
+  const behind = (tip: Point, before: Point) => (corner[0] - tip[0]) * (tip[0] - before[0])
+    + (corner[1] - tip[1]) * (tip[1] - before[1]) < 0;
+  if (end.first) {
+    while (pts.length > 1 && behind(pts[0], pts[1])) pts.shift();
+    pts.unshift([corner[0], corner[1]]);
+  } else {
+    while (pts.length > 1 && behind(pts[pts.length - 1], pts[pts.length - 2])) pts.pop();
+    pts.push([corner[0], corner[1]]);
+  }
+}
+
+/**
+ * The end meeting this one at a sharp V (two runs that meet turning back more than a right angle:
+ * the apex of the wedge between two roads parting), or null.
+ * @param end the end
+ * @param ends every end
+ * @returns the other end at the apex
+ */
+function apexPartner(end: RunEnd, ends: RunEnd[]): RunEnd | null {
+  const tipOf = (item: RunEnd) => (item.first ? item.run.pts[0] : item.run.pts[item.run.pts.length
+    - 1]);
+  const nextOf = (item: RunEnd) => (item.first ? item.run.pts[1] : item.run.pts[item.run.pts.length
+    - 2]);
+  const [x, y] = tipOf(end);
+  const other = ends.find((item) => item !== end && item.run !== end.run
+    && Math.hypot(tipOf(item)[0] - x, tipOf(item)[1] - y) < 0.01);
+  if (!other || !nextOf(end) || !nextOf(other)) return null;
+  // (into the joint along one, out of it along the other)
+  const [inX, inY] = nextOf(end), [outX, outY] = nextOf(other);
+  return (x - inX) * (outX - x) + (y - inY) * (outY - y) < 0 ? other : null;
+}
+
+/**
+ * A stadium's barriers tucked into its crossover's portals (where they stopped short, a car caught
+ * on the wall's corner and the gap let it out): each wall corner takes the nearest free barrier end
+ * (one meeting no other run's end) or V apex (two runs meeting sharply: both its arms) within
+ * TUCK_M, carried on to the corner where the stretch keeps TUCK_ROAD_M off the road - so the
+ * barrier ends against the wall, no gap or pocket between. A run then under STUB_M from a corner
+ * to an end meeting nothing is a leftover sticking out.
+ * @param runs the barriers (changed)
+ * @param sub the race road
+ * @param lanes the lanes (a join keeps off them)
+ * @returns the leftovers (to drop)
+ */
+function tuckToPortals(runs: Barrier[], sub: Subtrack, lanes: Lane[]): Barrier[] {
+  const ends: RunEnd[] = runs.flatMap((run) => [{ run, first: true }, { run, first: false }]);
+  const endOf = (end: RunEnd) => (end.first ? end.run.pts[0] : end.run.pts[end.run.pts.length - 1]);
+  const meets = (point: Point, self: RunEnd) => ends.some((other) =>
+    other !== self && Math.hypot(endOf(other)[0] - point[0], endOf(other)[1] - point[1]) < 0.01);
+  // (each candidate: a free end, or a V apex's two ends)
+  const candidates = ends.map((end) => (meets(endOf(end), end)
+    ? (apexPartner(end, ends) ? [end, apexPartner(end, ends)!] : null) : [end]))
+    .filter((group): group is RunEnd[] => !!group);
+  const used = new Set<RunEnd>(), tuckedRuns = new Set<Barrier>();
+  for (const corner of underPortals(sub).flatMap(portalCorners)) {
+    let best: RunEnd[] | null = null, bestGap = TUCK_M;
+    for (const group of candidates) {
+      const [x, y] = endOf(group[0]), gap = Math.hypot(x - corner[0], y - corner[1]);
+      if (group.some((end) => used.has(end)) || gap >= bestGap) continue;
+      if (!joinClear([x, y], corner, sub, lanes, TUCK_ROAD_M)) continue;
+      best = group;
+      bestGap = gap;
+    }
+    if (!best) continue;
+    // (a V between a wall's two corners: the arm heading away from this corner cut back to it, the
+    // other left free for the wall's other corner - each arm to the corner on its own side, so the
+    // two never cross)
+    const heading = (end: RunEnd) => {
+      const tip = endOf(end);
+      const next = end.first ? end.run.pts[1] : end.run.pts[end.run.pts.length - 2];
+      const stepX = tip[0] - next[0], stepY = tip[1] - next[1];
+      const toX = corner[0] - tip[0], toY = corner[1] - tip[1];
+      return (stepX * toX + stepY * toY) / ((Math.hypot(stepX, stepY) * Math.hypot(toX, toY)) || 1);
+    };
+    const carried = best.length > 1 && heading(best[1]) < heading(best[0]) ? best[1] : best[0];
+    used.add(carried);
+    tuckedRuns.add(carried.run);
+    carryEndTo(carried, corner);
+    if (best.length > 1) candidates.push([best[0] === carried ? best[1] : best[0]]);
+  }
+  const loose = (run: Barrier) => ends.filter((end) => end.run === run && !used.has(end)
+    && !meets(endOf(end), end)).length > 0;
+  return [...tuckedRuns].filter((run) => lengthOf(run.pts) < STUB_M && loose(run));
+}
+
+/**
+ * Runs of one kind whose ends meet made one run (a stadium's: its corner joins one line with the
+ * barrier they meet, not a short run of their own), until none meet - not where they meet at a
+ * sharp V (the apex of the wedge between two roads parting: two barriers, rightly).
+ * @param runs the barriers
+ * @returns the barriers, merged
+ */
+function mergeMeeting(runs: Barrier[]): Barrier[] {
+  // (a step turning more than a right angle from the one before at the joint)
+  const foldsAt = (pts: Point[], index: number) => index > 0 && index + 1 < pts.length
+    && (pts[index][0] - pts[index - 1][0]) * (pts[index + 1][0] - pts[index][0])
+    + (pts[index][1] - pts[index - 1][1]) * (pts[index + 1][1] - pts[index][1]) < 0;
+  const out = runs.map((run) => ({ ...run, pts: run.pts.slice() }));
+  const meet = (first: Point, second: Point) => Math.hypot(first[0] - second[0],
+    first[1] - second[1]) < 0.01;
+  for (let one = 0; one < out.length; one++) {
+    for (let two = 0; two < out.length; two++) {
+      const run = out[one], other = out[two];
+      if (one === two || run.kind !== other.kind || !TIDIED.has(run.kind)) continue;
+      const head = run.pts[0], tail = run.pts[run.pts.length - 1], kept = run.pts;
+      const joint = meet(tail, other.pts[0]) || meet(tail, other.pts[other.pts.length - 1])
+        ? run.pts.length - 1 : other.pts.length - 1;
+      const start = other.pts[0], end = other.pts[other.pts.length - 1];
+      if (meet(tail, start)) run.pts = [...run.pts, ...other.pts.slice(1)];
+      else if (meet(tail, end)) run.pts = [...run.pts, ...other.pts.slice(0, -1).reverse()];
+      else if (meet(head, end)) run.pts = [...other.pts, ...run.pts.slice(1)];
+      else if (meet(head, start)) run.pts = [...other.pts.slice(1).reverse(), ...run.pts];
+      else continue;
+      if (foldsAt(run.pts, joint)) {
+        run.pts = kept;
+        continue;
+      }
+      out.splice(two, 1);
+      if (two < one) one--;
+      two = -1;
+    }
+  }
+  return out;
 }
 
 /**
@@ -263,10 +432,22 @@ export function tidyBarriers(barriers: Barrier[], sub: Subtrack, lanes: Lane[],
   const kept = tidied.filter((barrier) => !TIDIED.has(barrier.kind) || !isStub(barrier, tidied));
   // (an Armco end carried on to a catch fence's too where the venue asks: a stadium's)
   joinEnds(kept.filter((barrier) => TIDIED.has(barrier.kind)
-    || (joinFences && barrier.kind === 'catchfence')), sub, lanes);
+    || (joinFences && barrier.kind === 'catchfence')), sub, lanes,
+  joinFences ? underPortals(sub).flatMap(portalCorners) : []);
   // (a stadium's abutment ends trimmed where they lie along a parapet; Moanaco's edge as it was)
   const trimmed = joinFences ? kept.filter((barrier) => TIDIED.has(barrier.kind)) : [];
   for (const barrier of trimmed) trimDoubledEnds(barrier, kept);
-  for (const barrier of kept) if (TIDIED.has(barrier.kind)) despike(barrier.pts);
-  return kept;
+  // (and its ends by a crossover's portals carried on to their walls - before the spikes go: an
+  // end that ran on past the corner turned back to it - once a join has left no stub doubling
+  // another)
+  // (the runs that meet made one first, so a cut back runs along the whole line)
+  const joined = joinFences ? mergeMeeting(kept.filter((barrier) => !TIDIED.has(barrier.kind)
+    || !isStub(barrier, kept))) : kept;
+  const tucked = joinFences ? joined.filter((barrier) => TIDIED.has(barrier.kind)
+    || barrier.kind === 'catchfence') : [];
+  const leftovers = new Set(tuckToPortals(tucked, sub, lanes));
+  const done = joined.filter((barrier) => !leftovers.has(barrier));
+  for (const barrier of done) if (TIDIED.has(barrier.kind) || tucked.includes(barrier))
+    despike(barrier.pts);
+  return done;
 }

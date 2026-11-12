@@ -93,6 +93,15 @@ build's full record (what was built, every number) is in `TODO-DONE.md` under it
   PRACTICE / HEAD-TO-HEADBUTT · 1 LAP row (the event sets 1 rival and 1 lap, both still
   adjustable). MEASURED (_rocrace.mjs): the cars 20 m apart side by side on the gravel, Wobbly
   46.39 / 46.54 s, Stade de Prance 56.87 / 56.96 s, each one lap back to its own line.
+  THE CROSSOVER FIXED 11-11 (owner: "the tunnel is wonky now"; branch foreman/portals): a
+  straight X - two straight diagonals 25 deg off the lanes, the inner lane 30 m in along that
+  straight, the underpass straight from mouth to mouth (NOTES: A STADIUM'S CROSSOVER IS A
+  STRAIGHT X); the abutment slats gone, every barrier end by a portal carried on to its wall
+  corner. Wobbly 782 m, Stade de Prance 949 m. MEASURED (tools/scratch/_portalcheck.mjs): the 4
+  portals 0.05-0.45 deg off their lane at the mouth, centred (0.00 m); 24 drives at 15 m/s
+  through the tunnel both ways and along the bridge road's edges, 0 hits; sealing 0 escapes.
+  WRONG: a portal askew of its lane or opening onto grass, Armco sticking out past a portal, a
+  car caught on a portal's corner.
 
 - POLICE LIVERY (in ?police=1; owner 11-11 "police liveries / hi-vis strips ... like real cars";
   render/carsprite.ts paintPolice): the Battenberg check (blue / fluorescent yellow) down both

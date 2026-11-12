@@ -10,10 +10,11 @@
 // lanes' north straight; the stands in two tiers round the bowl, the roof behind them. BUILT AT
 // FULL SIZE, not 1/2: at the venues' 13 m road a half-size bowl (Wembley's pitch and surrounds are
 // about 140 x 100 m) holds no two lanes side by side - the lanes are 20 m apart, the bowl ~210 x
-// 170 m (creative licence: wider than the real pitch), the path 772 m (the real ~1 km), each corner
-// its own (a wide south-east sweep, a tight north-east hairpin, the north straight bowed out, a
-// wider north-west). Dressed as an event: tyre rows round the hairpins and at the crossover, boards
-// on the stands' catch fence and the infield, a row of flags before the stands. North up.
+// 170 m (creative licence: wider than the real pitch), the path 782 m (the real ~1 km), each corner
+// its own (a tight south-east hairpin, a wider north-east, the north straight bowed out, a wider
+// north-west), the crossover two straight diagonals over straight lanes. Dressed as an event:
+// tyre rows round the hairpins and at the crossover, boards on the stands' catch fence and the
+// infield, a row of flags before the stands. North up.
 import { WOBBLY_VENUE, WOBBLY_FLAGS } from "./venues/wobbly.ts";
 import { venueLap, venueLevel } from "../venue.ts";
 import type { VenueSpec } from "../venue.ts";
@@ -28,7 +29,7 @@ export const WOBBLY_SPEC: VenueSpec = {
   // (laid in game m: the path's own length calibrates it to itself)
   share: 1,
   realRoadM: 13,
-  calibrate: { layout: 'roc', realLapM: 772 },
+  calibrate: { layout: 'roc', realLapM: 782 },
   // the start line on the outer lane's east straight, the grid back toward its south-east corner
   // (on the gravel of the north straight - the owner: "start on the gravel facing the same way but
   // on different lanes"; the inner lane's gravel alongside, 20 m in, the same way)
@@ -38,6 +39,9 @@ export const WOBBLY_SPEC: VenueSpec = {
   // lap from its own line (Level.splitStart)
   splitStart: true,
   minR: 10,
+  // the trace smoothed lightly (world/subtrack.ts traceTrack: 10 passes by default): the data is
+  // laid as arcs and straights, and the default spread the crossover's bends 4 deg into its portals
+  trace: { roc: { passes: 2, kern: 2 } },
   hills: [],
   banks: [],
   // the boards (the register's brands; the event's name - HEAD-TO-HEADBUTT, approved 11-10 -
@@ -75,12 +79,8 @@ export const WOBBLY_SPEC: VenueSpec = {
   tidyEdge: 'fences',
   // the crossover: the inner lane's way back out runs under the outer lane's way in
   crossover: { under: 'Crossover under' },
-  // the crossover bridge's abutment walls (stone slats, world/venuecross.ts's kind): where the
-  // edge's barrier ends short of an underpass portal's wall, in the X between the four arms
-  // (and the flags along the front of the bowl: the generator's)
+  // the flags along the front of the bowl (the generator's)
   landmarks: [
-    { at: [-18.2, 23.2], kind: 'slat', size: 2, len: 6.6, rot: 0.73 },
-    { at: [14.4, 60], kind: 'slat', size: 2, len: 9.5, rot: -2.15 },
     ...WOBBLY_FLAGS,
   ],
   // a stadium: no trees, no bushes on its pitch
@@ -88,8 +88,9 @@ export const WOBBLY_SPEC: VenueSpec = {
   bushless: true,
   // no kerbs: the lanes were laid on plates over the pitch, edged by the barriers
   kerbless: true,
-  // the pitch's mown stripes inside the inner lane (6 m bands)
-  mown: [{ at: [0, 0], pxM: 6, rows: Array.from({ length: 7 }, () => '#.#.#.#.#.#.#.#') }],
+  // the pitch's mown stripes inside the inner lane (6 m bands; its south side 30 m in from the
+  // outer lane's, where the crossover is)
+  mown: [{ at: [0, -5], pxM: 6, rows: Array.from({ length: 5 }, () => '#.#.#.#.#.#.#.#') }],
 };
 
 // the one layout - built on first use (world/load.ts buildLevel)

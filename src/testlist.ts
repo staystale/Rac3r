@@ -37,6 +37,16 @@ export const TEST_LIST: TestEntry[] = [
     wrong: 'A car stopping in the road, driving into the pumps, pulling out into a car.',
   },
   {
+    id: 'stadiumportals',
+    added: '2026-11-11',
+    name: 'ROC stadiums: the crossover a straight X, its portals square with their lanes',
+    where: 'Test link + &wobbly=1&stadeprance=1: TEST MODE > RALLYCROSS, either stadium',
+    try: 'Drive under the bridge both ways, on the centre and along both edges, and along both'
+      + ' edges of the bridge road past the portals; look at where the Armco meets each portal.',
+    wrong: 'A portal turned to its road or opening onto grass, a step at a mouth, Armco or a slat'
+      + ' sticking out past a portal, a car caught on a portal corner, a gap by a portal.',
+  },
+  {
     id: 'stadiums2',
     added: '2026-11-11',
     name: 'ROC stadiums reworked: the real start, softer corners, tyres, boards and flags',

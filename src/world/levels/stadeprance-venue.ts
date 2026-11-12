@@ -12,7 +12,7 @@
 // CLOSE TO, NOT TRACED: no plan of the Paris tracks was found - the shape is the press's: a long
 // rounded rectangle with tight ends (the hairpins, 10 m), each its own (a double apex at the east
 // end, the north straight kinked, a tight north-west, a wide south-west), the crossover east of
-// the south straight's middle so a long straight leads to it, 951 m (the real 1-1.2 km). At FULL
+// the south straight's middle so a long straight leads to it, 950 m (the real 1-1.2 km). At FULL
 // SIZE as Wobbly's (two lanes at the 13 m road need 20 m between centres); the bowl the Stade de
 // France's oval, ~380 x 245 m with its roof ring (creative licence). Dressed as Wobbly's. North up.
 import { STADEPRANCE_FLAGS, STADEPRANCE_VENUE }
@@ -30,7 +30,7 @@ export const STADEPRANCE_SPEC: VenueSpec = {
   // (laid in game m: the path's own length calibrates it to itself)
   share: 1,
   realRoadM: 13,
-  calibrate: { layout: 'roc', realLapM: 951 },
+  calibrate: { layout: 'roc', realLapM: 950 },
   // the start line on the outer lane's north straight, the grid back toward its north-east hairpin
   // (on the gravel of the south-west straight - the owner: "start on the gravel facing the same
   // way but on different lanes"; the inner lane's gravel alongside, 20 m in, the same way)
@@ -40,6 +40,9 @@ export const STADEPRANCE_SPEC: VenueSpec = {
   // lap from its own line (Level.splitStart)
   splitStart: true,
   minR: 10,
+  // the trace smoothed lightly (world/subtrack.ts traceTrack: 10 passes by default): the data is
+  // laid as arcs and straights, and the default spread the crossover's bends 4 deg into its portals
+  trace: { roc: { passes: 2, kern: 2 } },
   hills: [],
   banks: [],
   // the boards (the register's brands; the event's name - HEAD-TO-HEADBUTT, approved 11-10 -
@@ -76,20 +79,17 @@ export const STADEPRANCE_SPEC: VenueSpec = {
   tidyEdge: 'fences',
   // the crossover: the inner lane's way back out runs under the outer lane's way in
   crossover: { under: 'Crossover under' },
-  // the crossover bridge's abutment walls (as Wobbly's: stone slats where the edge's barrier ends
-  // short of an underpass portal's wall, in the X between the four arms)
-  // (and the flags along the front of the bowl: the generator's)
+  // the flags along the front of the bowl (the generator's)
   landmarks: [
-    { at: [16.8, 19.2], kind: 'slat', size: 2, len: 6.6, rot: 0.73 },
-    { at: [49.4, 56], kind: 'slat', size: 2, len: 9.5, rot: -2.15 },
     ...STADEPRANCE_FLAGS,
   ],
   // a stadium: no trees, no bushes on its pitch, no kerbs (the lanes laid on plates)
   trees: 0,
   bushless: true,
   kerbless: true,
-  // the pitch's mown stripes inside the inner lane (6 m bands)
-  mown: [{ at: [0, 0], pxM: 6, rows: Array.from({ length: 5 }, () => '#.#.#.#.#.#.#.#.#.#.#.#') }],
+  // the pitch's mown stripes inside the inner lane (6 m bands; its south side 30 m in from the
+  // outer lane's, where the crossover is)
+  mown: [{ at: [0, -5], pxM: 6, rows: Array.from({ length: 4 }, () => '#.#.#.#.#.#.#.#.#.#.#.#') }],
 };
 
 // the one layout - built on first use (world/load.ts buildLevel)

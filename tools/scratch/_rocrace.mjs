@@ -18,7 +18,7 @@ try {
   const errors = [];
   page.on('pageerror', (error) => errors.push(String(error)));
   await page.goto(`${server.url}/?menu=1&guide=0&${query}`);
-  await page.waitForTimeout(3000);
+  await page.waitForFunction(() => window.__game && window.__game.menu, null, { timeout: 90000 });
   await page.evaluate(async ([levelId, count, lapCount]) => {
     const game = window.__game;
     game.menu.hide();
