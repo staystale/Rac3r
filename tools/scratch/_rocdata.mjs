@@ -164,12 +164,16 @@ function laneSides(corners, inset, southY, southInset = inset) {
     return { side: corners[i][3], pts };
   });
   // (a straight between two corners that runs backward: the corners' arcs overlap - the lane
-  // folds; reported with its length, m, below)
+  // folds back on itself, a notch in its edge; reported with its length, m, below, and closed:
+  // the next corner's arc starts past where this one ends, its points behind that dropped)
   fillets.forEach((fillet, i) => {
     const next = fillets[(i + 1) % count], end = fillet.pts[fillet.pts.length - 1];
-    const ahead = (next.pts[0][0] - end[0]) * dirs[i][0] + (next.pts[0][1] - end[1]) * dirs[i][1];
-    if (i < count - 1 && ahead < 0) FOLDS.push(`${inset ? 'inner' : 'outer'} after corner ${i}`
-      + ` ${ahead.toFixed(1)} m`);
+    const along = (point) => (point[0] - end[0]) * dirs[i][0] + (point[1] - end[1]) * dirs[i][1];
+    const ahead = along(next.pts[0]);
+    if (i < count - 1 && ahead < 0) {
+      FOLDS.push(`${inset ? 'inner' : 'outer'} after corner ${i} ${ahead.toFixed(1)} m (closed)`);
+      next.pts = next.pts.filter((point) => along(point) > 1);
+    }
   });
   const sides = [['south east', line([AT + CROSS_X, southY], fillets[0].pts[0])]];
   const add = (side, pts) => {

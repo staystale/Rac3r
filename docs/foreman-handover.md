@@ -17,10 +17,11 @@ not repeated here), then `TODO.md`, then this page. The 11-07 version of this pa
   - Push to main when every check-run is green (Routine), then move the served clone.
   - thumbfill and tyrelights PASSED (owner 11-12: "Pass"): the default, switches gone.
 - **The test list is EMPTY**; FIX has no switches.
-- **Owner report:** "some dodgey line / track tarmac corner" on a stadium. FOUND (asked to confirm
-  and fix): Stade de Prance, 117 m into the lap (86.4, 7.2), the lap path turns 18.9 deg in 1.5 m
-  (every other point on both stadiums 9 deg or less): the inner lane's edge has a hard angle
-  (`tools/scratch/_kinkshots.mjs`). kerbside's fold check (smoothed) misses it.
+- **Stade de Prance's notch FIXED** (owner 11-12: "Yes that was the corner! No switch just you
+  fix it"): the inner lane's east-end hairpin and the bend out after it overlapped by 4.5 m, so the
+  lane doubled back (18.9 deg in 1.5 m). The generator (`tools/scratch/_rocdata.mjs`) now closes a
+  fold; the worst kink there is 9.6 deg (the lap's others to 9.0). Its Armco was bent by the same
+  fold and is now even. lapdriver 63.8 s (64.0 before), 0 s off.
 - **itch.io:** behind. Push only when the owner says (recipe below).
 
 ## In progress
