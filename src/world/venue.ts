@@ -155,7 +155,11 @@ export interface VenueSpec {
   trees?: number;
   // a figure of eight (Snoozuka): the piece whose stretch runs under the road where the layout's
   // loop crosses itself, in a cut and under the road over it (world/venuecross.ts)
-  crossover?: { under: string };
+  // (spareM: m wider its cut each side than the 0.6 m by the road - a stadium's, where a car on the
+  // lane's edge still turning out of the bend met the portal wall's end; clearM: m further its
+  // lintels stand from the road over - where the roads cross at a shallow angle the cut's corner
+  // came within a metre of the bridge road's edge)
+  crossover?: { under: string; spareM?: number; clearM?: number };
   // the race road's own tunnel under the ground, no road over it: the piece mapped as the tunnel
   // (Moanaco's under the shore's hotels; world/venuecross.ts tunnelSpans) - a drivable underpass
   // of the race road whose walls follow its bend
@@ -393,7 +397,9 @@ export function venueBuild(rawSpec: VenueSpec): VenueBuild {
   const under = spec.crossover && pieces.find((piece) => piece.name === spec.crossover!.under);
   const tunnel = spec.tunnel && pieces.find((piece) => piece.name === spec.tunnel!.under);
   for (const loop of Object.values(loops))
-    markUnder(loop, [...underSpans(loop, under?.pts), ...tunnelSpans(loop, tunnel?.pts)]);
+    markUnder(loop, [...underSpans(loop, under?.pts, spec.crossover?.spareM,
+      spec.crossover?.clearM),
+      ...tunnelSpans(loop, tunnel?.pts)]);
   const build = { spec, scale, loops, pieces };
   builds.set(rawSpec, build);
   return build;

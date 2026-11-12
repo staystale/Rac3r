@@ -48,7 +48,7 @@ portals.forEach((portal, index) => {
 function driveAlong(from, to, offset) {
   const sign = Math.sign(to - from), car = makeCar('hatch-rwd'), start = at(from, offset);
   reset(car, start.x, start.y, start.rot + (sign < 0 ? Math.PI : 0));
-  const speed0 = 15;
+  const speed0 = +(process.env.SPEED || 15);
   car.vx = Math.cos(car.heading) * speed0;
   car.vy = Math.sin(car.heading) * speed0;
   let along = from, hits = 0, solids = 0, least = Infinity, stray = 0, time = 0;
@@ -63,7 +63,8 @@ function driveAlong(from, to, offset) {
       if (gap < bestGap) { bestGap = gap; best = sign > 0 ? probe : along - (probe - along); }
     }
     along = best;
-    const target = at(along + sign * 8, offset), road = at(along, 0);
+    const road = at(along, 0);
+    const target = at(along + sign * 8, offset);
     const want = Math.atan2(target.y - car.y, target.x - car.x);
     const now = Math.hypot(car.vx, car.vy);
     const control = { steer: Math.max(-1, Math.min(1, turnBetween(want, car.heading) * 2.5)),
@@ -76,7 +77,7 @@ function driveAlong(from, to, offset) {
       || Math.round(time * 120) % 30 === 0)) {
       console.log('  t', time.toFixed(2), 'along', along.toFixed(1), 'at', car.x.toFixed(1),
         car.y.toFixed(1), 'level', car.crossing, 'v', Math.hypot(car.vx, car.vy).toFixed(1),
-        'hit', car._hitKind || '');
+        'hit', car._hitKind || '', 'off', ((car.x - road.x) * -Math.sin(road.rot) + (car.y - road.y) * Math.cos(road.rot)).toFixed(2));
     }
     if (car._hitKind) {
       if (car._hitKind === 'tunnel' || car._hitKind === 'slat' || car._hitKind === 'block') solids++;
@@ -105,7 +106,8 @@ const runs = [
 ];
 let snags = 0;
 for (const [name, from, to] of runs) {
-  for (const offset of [0, EDGE_M, -EDGE_M]) {
+  const offsets = process.env.EDGES ? process.env.EDGES.split(",").map(Number) : [0, EDGE_M, -EDGE_M];
+  for (const offset of offsets) {
     const met = driveAlong(from, to, offset);
     const snag = !met.through || met.hits + met.solids > 0 || +met.least < 10 || +met.strayDeg > 25;
     if (snag) snags++;

@@ -724,7 +724,19 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   meeting in a V by a wall, each to the corner on its own side - else they crossed): no gap, no
   pocket, no corner to catch (tools/scratch/_portalcheck.mjs: 24 drives at 15 m/s, 0 hits;
   tools/scratch/_crossplan.mjs draws the plan). barriercheck lets a barrier's point stand on a
-  portal's wall corner (7.7 m off the road, where the wall itself stands).
+  portal's wall corner (where the wall itself stands).
+- A CAR ON A ROAD'S EDGE MUST CLEAR A PORTAL (11-12, owner: "the tunnel still just touches some
+  barriers"): drives at the edge (tools/scratch/_portalcheck.mjs EDGES=6,6.5) found two. The cut
+  was 0.6 m wider than the road each side - a car on the lane's edge out of the bend met the end of
+  the wall - and the lintel's corner stood 1.05 m past the bridge road's edge, where the barrier
+  met it. A crossover may ask for more of both (VenueSpec.crossover spareM: its cut wider each
+  side; clearM: its lintels further out; Snoozuka asks for neither): the stadiums 1.5 m and 2.4 m,
+  the lane gap there 32 m - the walls 2.1 m past the road's edge, the corner 2.49 m past the bridge
+  road's. A barrier meets a portal's open end at the wall's inner corner (it flares into the
+  mouth: a car sliding along is led in, never onto the wall's end), its lintel end at the outer.
+  Steeper (34 deg, 15 m bends) was worse: cars on the edges strayed out of the tight bends. A
+  test driver holding an offset line drifts outward on a bend at 15 m/s past ~6 m: read edge
+  drives beyond that with care.
 - A STADIUM'S BOWL NEEDS ROOM AT THE HAIRPINS (11-11, Stade de Prance): the catch fence stands
   10 m past the edge where the stands watch; an ellipse round a long lane box came within 25 m of
   the hairpins' outside, the fence had no room and left 16 escapes. The bowl is a superellipse

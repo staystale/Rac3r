@@ -10,7 +10,7 @@
 // lanes' north straight; the stands in two tiers round the bowl, the roof behind them. BUILT AT
 // FULL SIZE, not 1/2: at the venues' 13 m road a half-size bowl (Wembley's pitch and surrounds are
 // about 140 x 100 m) holds no two lanes side by side - the lanes are 20 m apart, the bowl ~210 x
-// 170 m (creative licence: wider than the real pitch), the path 782 m (the real ~1 km), each corner
+// 170 m (creative licence: wider than the real pitch), the path 779 m (the real ~1 km), each corner
 // its own (a tight south-east hairpin, a wider north-east, the north straight bowed out, a wider
 // north-west), the crossover two straight diagonals over straight lanes. Dressed as an event:
 // tyre rows round the hairpins and at the crossover, boards on the stands' catch fence and the
@@ -29,7 +29,7 @@ export const WOBBLY_SPEC: VenueSpec = {
   // (laid in game m: the path's own length calibrates it to itself)
   share: 1,
   realRoadM: 13,
-  calibrate: { layout: 'roc', realLapM: 782 },
+  calibrate: { layout: 'roc', realLapM: 779 },
   // the start line on the outer lane's east straight, the grid back toward its south-east corner
   // (on the gravel of the north straight - the owner: "start on the gravel facing the same way but
   // on different lanes"; the inner lane's gravel alongside, 20 m in, the same way)
@@ -77,8 +77,10 @@ export const WOBBLY_SPEC: VenueSpec = {
   // the barriers tidied, an Armco end carried on to the catch fence's round the crossover
   // (world/venuetidy.ts)
   tidyEdge: 'fences',
-  // the crossover: the inner lane's way back out runs under the outer lane's way in
-  crossover: { under: 'Crossover under' },
+  // the crossover: the inner lane's way back out runs under the outer lane's way in, its cut 1.5 m
+  // wider each side than the road's own and its lintels 2.4 m further from the bridge road (room
+  // for a car on either road's edge at the portals; the generator's CUT_SPARE, LINTEL_EXTRA)
+  crossover: { under: 'Crossover under', spareM: 1.5, clearM: 2.4 },
   // the flags along the front of the bowl (the generator's)
   landmarks: [
     ...WOBBLY_FLAGS,
@@ -88,9 +90,9 @@ export const WOBBLY_SPEC: VenueSpec = {
   bushless: true,
   // no kerbs: the lanes were laid on plates over the pitch, edged by the barriers
   kerbless: true,
-  // the pitch's mown stripes inside the inner lane (6 m bands; its south side 30 m in from the
+  // the pitch's mown stripes inside the inner lane (6 m bands; its south side 32 m in from the
   // outer lane's, where the crossover is)
-  mown: [{ at: [0, -5], pxM: 6, rows: Array.from({ length: 5 }, () => '#.#.#.#.#.#.#.#') }],
+  mown: [{ at: [0, -7], pxM: 6, rows: Array.from({ length: 4 }, () => '#.#.#.#.#.#.#.#') }],
 };
 
 // the one layout - built on first use (world/load.ts buildLevel)
