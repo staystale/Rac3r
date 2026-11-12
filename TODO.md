@@ -24,10 +24,21 @@ The 11-11 round (14 entries, 11 switches) passed 11-12, its record in `TODO-DONE
   off their lane; sealing 0 escapes; worldhash: only the two stadiums change. WRONG: a car on the
   road touching a portal or its Armco, Armco across a portal, a gap or pocket by a portal.
 
+- LIGHTS IN A SLATTED TUNNEL (owner 11-12: "lights seem to turn off in tunnels they shouldn't";
+  testlist tunnellights): measured at night (tools/scratch/_tunnellights.mjs, headlights on,
+  stopped on the road, in the first cut, under the cover, in the last cut) in every tunnel kind:
+  the stadium crossovers, Snoozuka's crossover and its four road tunnels (the highway's side-road
+  underpass is the same straight tunnel) light their open cuts and hide the car and its lamps
+  under the whole cover - right. Moanaco's tunnel, covered in slats with gaps the car is seen
+  through, put out every lamp of a car under it (render/light.ts: underground, no beams and no
+  glows). Now a car's lamps are hidden only under a cover that hides the whole stretch; under
+  slats they light, clipped off the slats (clipToCut). MEASURED (Moanaco, under the slats): the
+  tail-light glow 31.2 -> 37.3 and the road ahead 37.7 -> 40.1 (brightness); Snoozuka's 20 stops
+  the same within 2. WRONG: a car seen between the slats with its lamps out, light on a slat or
+  through a solid cover.
+
 ## 2. BEING BUILT
 
-- LIGHTS IN TUNNELS (owner 11-12: "lights seem to turn off in tunnels they shouldn't"): find which
-  lights go out under a tunnel (your headlights, the lamps, the cars' lamps) and keep them lit.
 
 
 ## 3. OPEN, IN THE OWNER'S ORDER
