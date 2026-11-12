@@ -261,6 +261,16 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   the cars' lamp glows (a tint in the light map; owner: close is fine "so long as it's clear").
   The pause menu's gold alarm clock beside MUTE (the game time; glows after dark): 10-18.
   Their switches are deleted (the one-system clean-up).
+- NOTHING CHANGED THAT THE OWNER HAS NOT ASKED FOR (owner 11-12: "don't change the ai let it run
+  naturally let me test before changing anything I haven't asked for never do that always check"):
+  a new level gets no AI tuning; measure what the AI does, report it, and ask before any fix.
+  Car-to-car contact ignores height on jumps (contact.ts; bridges use crossing layers): left as
+  is until the owner has tested and asks.
+- No level fixes its own time or weather (owner 11-12: "all levels run on game time / tests
+  forced time weather"): a level follows the global clock and weather; only TEST MODE forces them.
+  A new level must read by day and at night. (The Bird's Mess still has Level.eventHour - asked.)
+- The ROC stadiums are enough (owner 11-12): Wobbly, Stade de Prance, The Bird's Mess; another only
+  if the track is really special.
 - Code (owner, 10-18): new modules are TypeScript (.ts); the remaining .js files are older.
 - Mud (10-24, owner "all pass"): mud thickens only with water; a level's own mud and the
   highway's ploughed fields (random blocks) dry in the heat; worn dirt goes to mud less and to
