@@ -63,9 +63,11 @@ export function addButton(menu: MenuCtx, parent: HTMLElement, label: string, onC
       menuTaps.ignored++;
       return;
     }
+    // the handler's own time, not the press blink before it (that wait is wanted, owner 11-03)
     const act = () => {
+      const actAt = performance.now();
       onClick();
-      menuTaps.handlerMs = Math.max(menuTaps.handlerMs, performance.now() - tapAt);
+      menuTaps.handlerMs = Math.max(menuTaps.handlerMs, performance.now() - actAt);
     };
     // the press shows - electric blue, two blinks - then the button acts (owner 11-03)
     if (button.classList.contains('hit')) return;
