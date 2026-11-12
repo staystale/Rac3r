@@ -62,4 +62,8 @@ export const FIX = {
   // and in the infield (tools/scratch/_rocdata.mjs <id>: the venues' _DRESS), and their barriers
   // made even (world/stadiumtidy.ts: Armco and fences eased, free ends met)
   stadiumprops: atLoad('stadiumprops'),
+  // ?tyrelights=1: the lamp plan keeps off a level's own floodlight pylons (world/lampplan.ts):
+  // a corner floodlight's tyre ring stood over The Bird's Mess's pylon, a plan pylon 6 m from
+  // Naffcar's
+  tyrelights: atLoad('tyrelights'),
 };
