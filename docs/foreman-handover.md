@@ -42,9 +42,9 @@ not repeated here), then `TODO.md`, then this page. The 11-07 version of this pa
   cherry-picked onto round9 as branch `foreman/round10`). A 942 m figure of eight on a street grid,
   one crossover bridge (clearM 3.5), 43% dirt, the joker with the 16 m gap jump (ramp and table
   pieces, five side by side so the whole road is the jump). AI clears it 19 of 20; no AI change.
-  Night frames: 17.5 ms work vs Knobhill's 16.1. The worker's open questions for the owner: the
-  joker's cost (5.4-5.9 s, real about 1-2 s), tyre stacks at the joker's split, night frame cost,
-  no street lamps (pylons only), clearM 3.5, no kerbs. The thumbnail is in index.json with
+  Night frames: 17.5 ms work vs Knobhill's 16.1. The owner's answers (11-12): joker cost "fine";
+  "street lamps please"; night frame cost "yes" (look into it); the rest OK. The worker is on that
+  as `foreman/xgayms2` (from round10). The thumbnail is in index.json with
   birdsmess (`XGAYMS=1 node tools/thumbs.mjs --webp`: a switched level is seen only with its env).
 - **The Bird's Mess follows the world clock** (owner 11-12: "World clock all levels like I asked"):
   Level.eventHour removed, so no level fixes its own hour; only TEST MODE's START HOUR does. In
