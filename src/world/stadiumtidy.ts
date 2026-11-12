@@ -7,8 +7,10 @@
 // but its ends and those by a crossover's portals, where the flares are laid exactly) and each free
 // end carried on to the nearest run beside it.
 import { joinClear } from "./venuetidy.ts";
+import { portalCorners } from "./venuecross.ts";
+import { flareToMouths, portalMouths } from "./portalflare.ts";
 import { onGroundQuery, querySubtrack } from "./tyrewall.ts";
-import type { Barrier, Lane, Point, Subtrack } from "./types.ts";
+import type { Barrier, Lane, Point, Prop, Subtrack } from "./types.ts";
 
 // the runs eased (Taubin's smoothing, the points about a metre apart): EASE_PASSES pairs of passes,
 // each a share EASE_LAMBDA toward the neighbours' middle and EASE_MU back - its pass band about a
@@ -191,18 +193,21 @@ function joinFreeEnds(runs: Barrier[], sub: Subtrack, lanes: Lane[], corners: Po
 }
 
 /**
- * A stadium's barriers made even (VenueSpec.evenEdge): every Armco run and catch fence eased, then
- * each free end carried on to the run beside it.
+ * A stadium's barriers made even (VenueSpec.evenEdge): every Armco run and catch fence eased, each
+ * free end carried on to the run beside it, and each run's end at a portal's mouth laid along
+ * the road out of the mouth (world/portalflare.ts).
  * @param barriers the tidied barriers (changed in place)
  * @param sub the race road
  * @param lanes the lanes (a join keeps off them)
- * @param corners the crossover portals' wall corners
+ * @param portals the race road's underpass portals
  * @returns the barriers
  */
 export function evenStadiumEdge(barriers: Barrier[], sub: Subtrack, lanes: Lane[],
-  corners: Point[]): Barrier[] {
+  portals: Prop[]): Barrier[] {
+  const corners = portals.flatMap(portalCorners), mouths = portalMouths(sub, portals);
   // (eased first: a join's end lies on the run as it stays)
   for (const run of barriers) if (EASED.has(run.kind)) easeRun(run.pts, sub, corners);
   joinFreeEnds(barriers, sub, lanes, corners);
+  for (const run of barriers) if (EASED.has(run.kind)) flareToMouths(run, mouths, sub);
   return barriers;
 }

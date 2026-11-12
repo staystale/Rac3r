@@ -15,7 +15,7 @@ import { splitLineDist } from "./splitstart.ts";
 import { solidsFromProps } from "./barriers.ts";
 import { venueCrossings } from "./crossings.ts";
 import { markUnder } from "./trackunder.ts";
-import { pitTunnelPortals, portalCorners, tunnelSpans, underParapets, underPortals, underSpans }
+import { pitTunnelPortals, tunnelSpans, underParapets, underPortals, underSpans }
   from "./venuecross.ts";
 import { tidyBarriers } from "./venuetidy.ts";
 import { evenStadiumEdge } from "./stadiumtidy.ts";
@@ -622,7 +622,7 @@ function venueBarriers(spec: VenueSpec, sub: Subtrack, laid: Barrier[], lanes: L
   if (!spec.tidyEdge) return all;
   const tidied = tidyBarriers(all, sub, lanes, spec.tidyEdge === 'fences');
   return spec.evenEdge
-    ? evenStadiumEdge(tidied, sub, lanes, underPortals(sub).flatMap(portalCorners)) : tidied;
+    ? evenStadiumEdge(tidied, sub, lanes, underPortals(sub)) : tidied;
 }
 
 /**
