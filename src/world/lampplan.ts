@@ -302,7 +302,8 @@ function streetLight(level: Level, placed: Prop[], dist: number, side: number): 
 }
 
 /**
- * Street lights both sides of the start / finish straight, and pylons round the outside.
+ * Street lights both sides of the start / finish straight (a street course, Level.streetLamps:
+ * along every straight of the lap), and pylons round the outside.
  * @param level the level (with a subtrack)
  * @param placed the lamps so far (added to)
  * @param floodGap the pylons' spacing, m (0: none)
@@ -310,7 +311,13 @@ function streetLight(level: Level, placed: Prop[], dist: number, side: number): 
  */
 function lightLap(level: Level, placed: Prop[], floodGap: number, withStraight: boolean): void {
   const sub = level.subtrack!;
-  if (withStraight) {
+  if (level.streetLamps) {
+    // (streetLight keeps them to the straights: none where the road bends)
+    for (let along = 0; along < sub.totalDist; along += STREET_GAP_M) {
+      streetLight(level, placed, along, 1);
+      streetLight(level, placed, along + STREET_GAP_M / 2, -1);
+    }
+  } else if (withStraight) {
     for (let along = -STRAIGHT_BEFORE_M; along <= STRAIGHT_AFTER_M; along += STREET_GAP_M) {
       streetLight(level, placed, along, 1);
       streetLight(level, placed, along + STREET_GAP_M / 2, -1);

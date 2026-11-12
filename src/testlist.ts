@@ -19,9 +19,10 @@ export const TEST_LIST: TestEntry[] = [
     where: 'Test link + &xgayms=1: TEST MODE > RALLYCROSS > L.A. Lively',
     try: 'A race with a full grid: the dirt lots, under and over the bridge, and the joker'
       + ' (north-east, past the north street) over the gap jump - flat out, then lifting; by day'
-      + ' and at night (START HOUR).',
+      + ' and at night (START HOUR): the street lamps along the straights.',
     wrong: 'A jump you cannot see coming, landing short being unfair, a car stuck in the gap, a'
-      + ' way off the course, anything over the track, a dark stretch you cannot read, a lower'
+      + ' way off the course, anything over the track, a lamp on the road or over it, a dark'
+      + ' stretch you cannot read, a lower'
       + ' frame rate than the other rallycross levels.',
   },
 ];

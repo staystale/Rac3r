@@ -542,6 +542,9 @@ export interface Level {
   bumps: Bump[];
   props?: Prop[];
   lamps?: Prop[];   // hand-placed lamps (streetlight / floodlight; world/lampplan.ts adds more)
+  // a street course: street lights along every straight of the lap, not only the start / finish
+  // straight (world/lampplan.ts; L.A. Lively)
+  streetLamps?: boolean;
   bounds?: Rect;
   floor?: number;
   subtrack?: Subtrack;

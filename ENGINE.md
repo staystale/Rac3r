@@ -176,7 +176,9 @@ the night light map (`render/light.ts drawSparkGlows`).
   (`game/sim.ts updateFieldHeadlights`; the player's LIGHTS are their own).
 - Lamps: `world/lamps.ts` makes the level's street lights (`lamps` data) and floodlight pylons
   into lamps with a solid post (`barriers.ts solidClamp`), lit from dusk; the night layer draws
-  their pools, `render/props/lamps.ts` the street lights (overhead layer). The highway lays its
+  their pools, `render/props/lamps.ts` the street lights (overhead layer). A street course
+  (`Level.streetLamps`, L.A. Lively) gets the plan's street lights along every straight of the
+  lap, not only the start straight (`world/lampplan.ts`). The highway lays its
   own as the road grows (`highway/roadlamps.ts`: one every 34 m on alternating sides, kept
   in `level.lamps` by road distance and dropped behind with the window);
   `lamps.ts` keeps each streamed entry the same lamp, damage and all, while it is loaded.

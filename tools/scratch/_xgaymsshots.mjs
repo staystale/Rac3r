@@ -92,6 +92,7 @@ const SPOTS = [
   ['corner-east-jog', 82, -14, -Math.PI / 2], ['corner-east-lot', 150, -60, -Math.PI / 2],
   ['joker-split', 150, -95, -Math.PI / 2], ['corner-north', 8, -106, Math.PI / 2],
   ['joker-merge', 0, -100, Math.PI / 2], ['corner-south', -6, 86, Math.PI],
+  ['street-avenue', -70, 0, 0], ['street-south', -60, 90, Math.PI],
 ];
 
 /** One time of day: launch at that hour, then every shot. */

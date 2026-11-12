@@ -20,8 +20,9 @@
 // ITS OWN LOOK: the arena, the convention halls, offices, shops, a hotel tower, a parking deck and
 // studios round the course (flat-roofed blocks), bleachers at the start, the jump, the avenue and
 // the east lot with the event's orange, black and white flags in front, floodlight pylons every
-// 50 m (it races at the game's own hour: lit by night, the city by day), litter in the event's
-// colours behind the barriers. North up.
+// 50 m and street lights along every straight (Level.streetLamps: it races at the game's own
+// hour - lit by night, the city by day), litter in the event's colours behind the barriers.
+// North up.
 import { LALIVELY_FLAGS, LALIVELY_FLOODS, LALIVELY_JUMP, LALIVELY_LITTER, LALIVELY_VENUE }
   from "./venues/lalively.ts";
 import { venueLap } from "../venue.ts";
@@ -91,7 +92,9 @@ export const LALIVELY_SPEC: VenueSpec = {
  */
 function laLivelyLevel(): Level {
   const level = rallycrossLevel(LALIVELY_SPEC, 'rx', 'xgayms', LA_LIVELY);
-  return { ...level, bumps: prepBumps([...(level.bumps || []), ...LALIVELY_JUMP]) };
+  // (a city street course: street lights along every straight - world/lampplan.ts)
+  return { ...level, bumps: prepBumps([...(level.bumps || []), ...LALIVELY_JUMP]),
+    streetLamps: true };
 }
 
 // the one layout - built on first use (world/load.ts buildLevel)

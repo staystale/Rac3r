@@ -43,6 +43,23 @@ records in `TODO-DONE.md` (PASSED 11-12). On the phone now:
   (framecheck CPU x4, 20 AI, our work a frame, median; Knobhill RX the same session): day 13.0
   (12.5), night 17.5 (16.1); frames over 33 ms at night 122 / 570 (66). Worldhash with the switch
   off: SAME.
+  ROUND 2 (owner 11-12: "Nah it's fine" to the joker's cost; "street lamps please"; the night cost
+  "yes", look into it): STREET LAMPS - the lamp plan's street lights along every straight of the
+  lap (Level.streetLamps, world/lampplan.ts: the start straight's rule run round the whole lap,
+  every 34 m, the sides in turn, none where the road bends) - 22 on L.A. Lively, 12.5-16.5 m off
+  the road's centre behind the barriers (their arms 10 m off it at the nearest), with the 15
+  pylons and 6 plan floodlights; propcheck: nothing on a light. NIGHT COST, MEASURED (framecheck
+  CPU x4, 20 AI, our work a frame, median, Knobhill back to back; this session's laptop slower
+  than the first round's): before the lamps night 25.7 / 26.0 (Knobhill 19.8 / 21.3), frames over
+  33 ms 398 / 429 (253 / 292); day 20.4 / 21.5 (17.9 / 17.2). After: night 23.6 / 23.8 (19.4 /
+  20.6), over 33 ms 355 / 355 (238 / 265); day 20.9 / 21.3 (16.6 / 17.1) - the lamps cost
+  nothing measurable. THE CAUSE IS THE BARRIERS' DRAWING: with ?skip=barriers X Gayms is 19.9 at
+  night, 16.1 by day (Knobhill's), and the profile has drawBarriers at 4.5 % of the loop (Knobhill
+  0). Its 1723 m of Armco (1234 points, a post every 2 m) lies in 7 runs, each round a whole block
+  - render/props/fence.ts culls a barrier only when its whole box is off the screen, so all of it
+  is stroked and posted every frame (The Bird's Mess: 1016 m, skip=barriers saves 0.9 ms). Shared
+  rendering code: not changed - a question for the owner (cull by stretch, which every venue
+  would gain from).
 
 ## 2. BEING BUILT
 
