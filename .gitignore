@@ -22,3 +22,4 @@ bigeon.config.json
 .worldhash
 .renderhash
 .simhash
+.simhash-extra-*

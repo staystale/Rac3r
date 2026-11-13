@@ -22,6 +22,9 @@
 // node tools/simhash.mjs --only a,b     run only those run ids (a partial save merges into the
 //                                       reference; the verdict covers just those runs)
 // On DIFFERENT it names the run, the first sample frame that differs, the car and the field.
+// SIMHASH_LEVELS=spa,lemans adds a drive run per level (SIMHASH_AI racers, default 5) and
+// SIMHASH_SEED=0x1234 sets the seed; either one saves to its own tools/.simhash-extra-<seed>, so
+// the plain run and its reference are unchanged.
 // Not covered: drawing (renderhash does that), menus, input from a real finger, other car
 // models than the hatch (the player) and the AI's own car choice, other screen sizes.
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
@@ -37,8 +40,12 @@ import {
 addStageLevels();
 addHighwayLevel();
 
-const SAVE_FILE = fileURLToPath(new URL('./.simhash', import.meta.url));
-const SEED = 0x5eed;
+const EXTRA_LEVELS = (process.env.SIMHASH_LEVELS || '').split(',').filter(Boolean);
+const EXTRA_AI = Number(process.env.SIMHASH_AI || 5);
+const SEED = Number(process.env.SIMHASH_SEED || 0x5eed);
+const IS_EXTRA = EXTRA_LEVELS.length > 0 || !!process.env.SIMHASH_SEED;
+const SAVE_FILE = fileURLToPath(new URL(IS_EXTRA ? './.simhash-extra-' + SEED.toString(16)
+  : './.simhash', import.meta.url));
 const SAMPLE_EVERY = 30;
 // RAC3R_QUERY=<switches> (tools/lib/browser.mjs) runs it with a switch, e.g. an old path
 const SKIP = '&skip=world,ground,car' + extraQuery();
@@ -62,6 +69,7 @@ function runList() {
     drive('highway-traffic', 'highway', HIGHWAY_TRAFFIC),
     { id: 'crash-thruston', level: 'thruston', opts: { ai: 3 }, mode: 'held', frames: 1200 },
     { id: 'cones-lab', level: 'bowling-alley', opts: { ai: 0 }, mode: 'cones', frames: 1200 },
+    ...EXTRA_LEVELS.map((id) => drive(id, id, { ai: EXTRA_AI })),
   ];
 }
 

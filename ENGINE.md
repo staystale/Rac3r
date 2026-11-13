@@ -196,6 +196,12 @@ the night light map (`render/light.ts drawSparkGlows`).
 - Lane lookups: `world/zones.ts laneAt` files each lane's segments by 8 m cell over its box (built
   on first use, again when the highway rebuilds a lane's segments), so a lookup tests only its
   cell's segments, in order (identical answers: `tools/scratch/_cclaneat.mjs`).
+- PERFPASS (`?perfpass=1`, PERFPASS=1 for the tools; under test): the same game, quicker on big
+  grids. The track-cut test `game/order.ts onLane` (every car, every step) asks
+  `game/lanereach.ts`: each lane's segments filed by 16 m cell over its box grown by the lane's
+  reach (half width + 1 m), built per lane on first use, again when its points or width change
+  (a highway cut shortens them); a point tests its cell's segments with the walk's own test
+  (identical answers on 39 levels, 332 544 edge points: `tools/scratch/_lanereach.mjs`).
 - The game clock: `world/clock.ts` - a global time of day / season / moon
   (1 game day = 1 real hour, a season 7 days), saved in its own storage key, run by the sim step
   in events (`game/loop.ts`); it sets the sky (`daylight.ts setSky`: darkness and the dark's

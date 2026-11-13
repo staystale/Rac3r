@@ -7,6 +7,8 @@ import { createAIDriver } from '../ai/circuit.ts';
 import { aiTraits } from '../ai/traits.ts';
 
 import { LEVEL } from "../world/state.ts";
+import { FIX } from "../core/fixes.ts";
+import { onLaneGrid } from "./lanereach.ts";
 import { onTrack, queriesAt, querySubtrack } from "../world/tyrewall.ts";
 import { inTrackUnderpass, queryLevelOf } from "../world/trackunder.ts";
 import { onGround } from "../world/crossinggeo.ts";
@@ -147,6 +149,7 @@ export function progressOf(car: GameCar) {
 // at 8-10 m (~0.3 s), MEASURED (racecheck4) — not a cut
 export const CUT_OFF = 1.0, CUT_MIN = 15, CUT_RESET = 25, CUT_PER_S = 5;
 export function onLane(x: number, y: number) {
+  if (FIX.perfpass) return onLaneGrid(LEVEL.lanes || [], x, y);
   for (const lane of LEVEL.lanes || []) {
     const pts = lane.pts, reach2 = (lane.width / 2 + 1) ** 2;
     for (let i = 0; i < pts.length - 1; i++) {
