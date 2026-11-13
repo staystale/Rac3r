@@ -450,6 +450,9 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   reference is rendered once when main moves (renderref.yml) and kept in the Actions cache; a
   branch's shard reuses it (owner 11-12: "50 mins seems excessive"), rendering its base itself only
   when there is none yet or the branch changed tools/renderhash.mjs.
+- framecheck numbers from before the live-race fix were DRAW-ONLY: a tap never started the race,
+  so it timed a frozen grid (no sim steps, no AI moving). It now starts the race with a key press
+  and prints the sim steps and AI moving; a run whose sim never stepped fails. CPU=1 for x1.
 - framecheck A/B: alternate the order (on, off, on, off). The first run after a pause painted 3x
   the tiles (385 vs 120) whichever side it was.
 - Wear cells cost per cell where code walks them all (pruneWear each highway rebuild, the worn
