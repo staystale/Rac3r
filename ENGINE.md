@@ -247,15 +247,15 @@ START (`Level.splitStart`): its cars on the path's two halves, each timed over i
 `game/order.ts` progressOf). A stadium may dress its own bowl (`VenueSpec.bowlLook`: the stands' seat colours, the roof ring's
 steel lattice - `world/venuebowl.ts`, drawn by `drawGrandstand` / `drawBlock`), lay litter by hand (`VenueSpec.litter`: loose
 debris kinds, tidied as every loose object) and floodlight pylons (landmarks of kind `pylon`, lamps as any level's).
-Under `?stadiumprops=1` a stadium's tidied edge is made even (`VenueSpec.evenEdge`, `world/stadiumtidy.ts`: Armco and catch
+A stadium's tidied edge is made even (`VenueSpec.evenEdge`, `world/stadiumtidy.ts`: Armco and catch
 fences eased by Taubin smoothing, free ends carried on to the run beside them, each end at a tunnel mouth laid
 along the road out of it, `world/portalflare.ts`) and it gets a dressing pass (`VenueSpec.dress`:
 props and loose objects from the kits in `tools/scratch/_dresskits.mjs`, laid after the boards and kept clear of them and the barriers).
 A run the tidy carried round a portal's wall to its lintel corner, with no run on that wall's mouth corner, is laid to the
 mouth instead (`portalflare.ts mouthFor`: L.A. Lively's south portal). Under `?xgaymsprops=1` L.A. Lively gets the same
 pass: `evenEdge` and its own dressing from `_lalivelydata.mjs` (a paddock in the lot east of the convention hall, a TV
-platform and fans by the jump, fans by the start, show cars in the infield). A level may
-start its events at an hour of its own (`Level.eventHour`, a night race: used when the setup's TIME is LIVE, `game/menuflow.ts`).
+platform and fans by the jump, fans by the start, show cars in the infield). No level fixes its
+own hour: every event runs on the world clock, or TEST MODE's START HOUR (`game/menuflow.ts`).
 A venue's RALLYCROSS layout (`world/levels/rallycross-venue.ts` rallycrossLevel: the joker rule, the bales, the rallycross bushes
 unless the venue is `bushless`) takes its joker from another layout's loop (`VenueSpec.joker`, `world/venuejoker.ts`), the lane on
 that loop's own surface at its middle (a dirt joker: L.A. Lively's). L.A. Lively (`tools/scratch/_lalivelydata.mjs`)
