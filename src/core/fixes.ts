@@ -51,6 +51,10 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
+  // ?jokerarrow=1: a venue joker's arrow on the lap points at the joker's mouth (the 0.35 rad tilt
+  // toward its side aimed L.A. Lively's into the barrier beside it;
+  // world/levels/rallycross-venue.ts)
+  jokerarrow: atLoad('jokerarrow'),
   // ?jokerclear=1: no hay bale or tyre on a venue joker lane's road (the corner bales went round
   // the lap's outside where the joker branches off: L.A. Lively's way in and out;
   // world/levels/rallycross-venue.ts)

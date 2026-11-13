@@ -41,4 +41,12 @@ export const TEST_LIST: TestEntry[] = [
     wrong: 'A bale or tyre where you go into or out of the joker, a gap in the bales'
       + ' between the joker and the lap you could cut through.',
   },
+  {
+    id: 'jokerarrow',
+    added: '2026-11-13',
+    name: 'The arrow before the joker points into it (X Gayms)',
+    where: 'Test link + &jokerarrow=1: TEST MODE > RALLYCROSS > L.A. Lively',
+    try: 'Drive up to the joker (north-east, past the north street) and follow the arrows.',
+    wrong: 'An arrow pointing at a barrier, the lap or off the road, either arrow hard to see.',
+  },
 ];

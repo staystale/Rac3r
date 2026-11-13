@@ -13,6 +13,14 @@ The 11-11 round (14 entries, 11 switches) passed 11-12, and the performance roun
 carcull, the texture warm-up) and the stadium crossovers passed 11-12 ("mostly pass"), their
 records in `TODO-DONE.md` (PASSED 11-12). On the phone now:
 
+- JOKER ARROW (`?jokerarrow=1`; owner 11-13: "the first joker arrow is a bit wonky not pointing
+  correctly", X Gayms): the arrow on the lap before the joker (slidden-hill.ts jokerApproach) is
+  tilted 0.35 rad toward the joker's side - Slidden Hill's, where the joker leaves at an angle. On
+  L.A. Lively the joker runs straight on (-90 deg) and the lap turns away, so the tilt aimed it at
+  -70 deg, into the barrier beside the mouth. Now a venue joker's lap arrow points at the mouth's
+  arrow (-97 deg there). Worldhash with it on: only xgayms differs (Knobhill and Slidden Hill keep
+  their own).
+  HAY BALES (?jokerclear=1): owner 11-13 on the shots, "yes hay bales look better after your change".
 - JOKER WAY CLEAR (`?jokerclear=1`; owner 11-13: "Hay bales are blocking the entrance and exit
   of the joker", X Gayms): the corner bales (kit.ts rxDress) go round the lap's outside where no
   wall stands, and where the joker branches off a corner that outside is its way in or out. MEASURED

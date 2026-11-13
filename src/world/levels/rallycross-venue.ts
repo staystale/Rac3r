@@ -12,7 +12,7 @@ import { jokerApproach, jokerArrow } from "./slidden-hill.ts";
 import { jokerBales, rxDress } from "./kit.ts";
 import { RX_BUSHES } from "./bushes.ts";
 import type { VenueSpec } from "../venue.ts";
-import type { Cone, Lane, Level, Point, Solid } from "../types.ts";
+import type { Cone, JokerRule, Lane, Level, Point, Solid, Subtrack } from "../types.ts";
 
 // the joker rule (the old Knobhill's and Slidden Hill's: 30 s for a missed or a second joker, 5
 // laps a race), and the gate's reach at the joker lane's middle
@@ -78,5 +78,22 @@ export function rallycrossLevel(spec: VenueSpec, layout: string, levelId: string
     cones: FIX.jokerclear ? clearJokerLane(kept, lane) : kept,
     joker: { gate: { x: mid[0], y: mid[1], r: JOKER_GATE_R }, penalty: JOKER_PENALTY_S,
       laps: JOKER_LAPS,
-      arrows: [jokerArrow(sub, lane.pts), jokerApproach(sub, lane.pts)].filter(Boolean) } };
+      arrows: jokerArrows(sub, lane) } };
+}
+
+/**
+ * The joker's painted arrows: one in its mouth along the lane, one on the lap before it. The lap's
+ * one is tilted 0.35 rad toward the joker's side (Slidden Hill's, where the joker leaves at an
+ * angle); with ?jokerarrow=1 it points at the mouth's arrow instead - where the joker runs
+ * straight on and the lap turns away (L.A. Lively), the tilt aimed it 20 deg into the barrier
+ * beside the mouth (-70 deg against the lane's -90).
+ * @param sub the raced road
+ * @param lane the joker lane
+ * @returns the arrows
+ */
+function jokerArrows(sub: Subtrack, lane: Lane): JokerRule['arrows'] {
+  const mouth = jokerArrow(sub, lane.pts), approach = jokerApproach(sub, lane.pts);
+  if (FIX.jokerarrow && mouth && approach)
+    approach.rot = Math.atan2(mouth.y - approach.y, mouth.x - approach.x);
+  return [mouth, approach].filter(Boolean);
 }
