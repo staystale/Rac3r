@@ -6,8 +6,8 @@ not repeated here), then `TODO.md`, then this page. The 11-07 version of this pa
 
 ## Where we are
 
-- **Main** is at `d6ba2d8` (round8, all 14 checks green): tunnel lights the default,
-  `?thumbfill=1`, `?tyrelights=1`. The served clone `Desktop/G/rac3r` is detached on it.
+- **Main** is at `dccfb95` (round11, all 14 checks green, 11-13): everything below except the
+  HUD cache. The served clone `Desktop/G/rac3r` is detached on it. Only `?xgayms=1` is under test.
 - **Branch `foreman/round9`** holds round8, plus:
   - CI: main's pixel reference is rendered once and reused (`.github/workflows/renderref.yml`).
   - The Bird's Mess and the stadium dressing PASSED (owner 11-12: "That's all pass"). `birdsmess`
@@ -44,8 +44,7 @@ not repeated here), then `TODO.md`, then this page. The 11-07 version of this pa
   pieces, five side by side so the whole road is the jump). AI clears it 19 of 20; no AI change.
   Night frames: 17.5 ms work vs Knobhill's 16.1. The owner's answers (11-12): joker cost "fine";
   "street lamps please"; night frame cost "yes" (look into it); the rest OK. The worker is on that
-  as `foreman/xgayms2`, DONE: a5f626b, stacked as `foreman/round11` (de7ba95), to push when
-  round10 is on main. 22 street lamps (Level.streetLamps: the lamp plan's street-light rule round
+  as `foreman/xgayms2`, DONE: a5f626b, on main (round11). 22 street lamps (Level.streetLamps: the lamp plan's street-light rule round
   the whole lap). The lamps cost nothing measurable. X Gayms' extra frame cost (night 23.6 vs
   Knobhill 19.4 ms, CPU x4, 20 AI) is BARRIER DRAWING: 1723 m of Armco in 7 long runs, and
   render/props/fence.ts skips a barrier only when its whole box is off screen (`?skip=barriers`
