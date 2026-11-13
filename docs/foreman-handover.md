@@ -10,9 +10,12 @@ not repeated here), then `TODO.md`, then this page. The 11-07 version of this pa
   jokerarrow and cutroad PASSED ("Pass"), all now the default with their switches gone
   (worldhash old+switches vs new: SAME; renderhash xgayms the same). Main had the X Gayms re-lay
   as d750afa before this pass.
-- **Under test: `?xgaymsloose=1` only** (L.A. Lively re-laid less boxy, TODO section 1). The
-  owner accepted the open points (joker strip fold-backs, AI on the jump, hairpin point) and will
-  test; the night frame cost (+2.5 ms) is to be checked again after that test.
+- **xgaymsloose PASSED** (owner "Loose layout is a pass"): L.A. Lively's one layout (round22).
+- **Under test: ** (the venue build's distance questions indexed, the same level:
+  worldhash SAME on all 53, about 29 % less build time in node). On the owner's phone Spa loads in
+  0.2-0.3 s on or off (report 11-13): the phone is far faster than CPU x4, so the gain does not
+  show there. Asked: pass it (helps slower devices) or delete it.
+- **Open: menu judder** (owner 11-13, seen waiting at the menu): read from the phone report.
 - **Worker** (agent a6cc304d1dadeede5, worktree `.claude/worktrees/barriercull`): idle.
 - **Branch `foreman/round9`** holds round8, plus:
   - CI: main's pixel reference is rendered once and reused (`.github/workflows/renderref.yml`).
