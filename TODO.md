@@ -18,7 +18,9 @@ records in `TODO-DONE.md` (PASSED 11-12). On the phone now:
   tilted 0.35 rad toward the joker's side - Slidden Hill's, where the joker leaves at an angle. On
   L.A. Lively the joker runs straight on (-90 deg) and the lap turns away, so the tilt aimed it at
   -70 deg, into the barrier beside the mouth. Now a venue joker's lap arrow points at the mouth's
-  arrow (-97 deg there). Worldhash with it on: only xgayms differs (Knobhill and Slidden Hill keep
+  arrow (-97 deg there). The mouth's arrow (owner: "Can we tip the second arrow to remind you it
+  is a corner tho") is tipped 0.35 rad toward the way the joker bends in its next 30 m (-90 ->
+  -110 deg: L.A. Lively's turns left). Worldhash with it on: only xgayms differs (Knobhill and Slidden Hill keep
   their own).
   HAY BALES (?jokerclear=1): owner 11-13 on the shots, "yes hay bales look better after your change".
 - JOKER WAY CLEAR (`?jokerclear=1`; owner 11-13: "Hay bales are blocking the entrance and exit

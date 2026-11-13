@@ -17,6 +17,9 @@ import type { Cone, JokerRule, Lane, Level, Point, Solid, Subtrack } from "../ty
 // the joker rule (the old Knobhill's and Slidden Hill's: 30 s for a missed or a second joker, 5
 // laps a race), and the gate's reach at the joker lane's middle
 const JOKER_PENALTY_S = 30, JOKER_LAPS = 5, JOKER_GATE_R = 7;
+// (?jokerarrow=1) the mouth's arrow tipped this far toward the way the joker bends (rad, the lap
+// arrow's old tilt), judged this far along it (m), and a bend under this is straight on (rad)
+const JOKER_ARROW_TIP_RAD = 0.35, JOKER_TURN_AHEAD_M = 30, JOKER_TURN_MIN_RAD = 0.3;
 // m past a prop's solid box a dressing tyre or bale keeps
 const SOLID_PAD_M = 0.5;
 
@@ -82,7 +85,8 @@ export function rallycrossLevel(spec: VenueSpec, layout: string, levelId: string
 }
 
 /**
- * The joker's painted arrows: one in its mouth along the lane, one on the lap before it. The lap's
+ * The joker's painted arrows: one in its mouth along the lane (with ?jokerarrow=1 tipped toward the
+ * way it bends next: it is a corner), one on the lap before it. The lap's
  * one is tilted 0.35 rad toward the joker's side (Slidden Hill's, where the joker leaves at an
  * angle); with ?jokerarrow=1 it points at the mouth's arrow instead - where the joker runs
  * straight on and the lap turns away (L.A. Lively), the tilt aimed it 20 deg into the barrier
@@ -93,7 +97,33 @@ export function rallycrossLevel(spec: VenueSpec, layout: string, levelId: string
  */
 function jokerArrows(sub: Subtrack, lane: Lane): JokerRule['arrows'] {
   const mouth = jokerArrow(sub, lane.pts), approach = jokerApproach(sub, lane.pts);
-  if (FIX.jokerarrow && mouth && approach)
+  if (FIX.jokerarrow && mouth && approach) {
     approach.rot = Math.atan2(mouth.y - approach.y, mouth.x - approach.x);
+    mouth.rot += JOKER_ARROW_TIP_RAD * jokerTurnSide(lane.pts, mouth);
+  }
   return [mouth, approach].filter(Boolean);
+}
+
+/**
+ * Which way the joker lane bends after its mouth: the sign of the heading change from the mouth to
+ * JOKER_TURN_AHEAD_M along it (L.A. Lively's turns left, -90 to -164 deg over 36 m).
+ * @param pts the joker lane's points
+ * @param mouth the mouth's arrow (on one of them)
+ * @returns +1, -1, or 0 where it runs straight
+ */
+function jokerTurnSide(pts: Point[], mouth: { x: number; y: number; rot: number }): number {
+  let start = 0;
+  pts.forEach(([x, y], i) => {
+    if (Math.hypot(x - mouth.x, y - mouth.y) < Math.hypot(pts[start][0] - mouth.x,
+      pts[start][1] - mouth.y)) start = i;
+  });
+  let along = 0, end = start;
+  while (end < pts.length - 1 && along < JOKER_TURN_AHEAD_M) {
+    along += Math.hypot(pts[end + 1][0] - pts[end][0], pts[end + 1][1] - pts[end][1]);
+    end++;
+  }
+  const last = pts[end], before = pts[Math.max(start, end - 1)];
+  const heading = Math.atan2(last[1] - before[1], last[0] - before[0]);
+  const turn = Math.atan2(Math.sin(heading - mouth.rot), Math.cos(heading - mouth.rot));
+  return Math.abs(turn) < JOKER_TURN_MIN_RAD ? 0 : Math.sign(turn);
 }
