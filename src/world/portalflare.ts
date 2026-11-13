@@ -26,8 +26,9 @@ const MOUTH_MEET_M = 0.5, FLARE_ROAD_M = 8.5;
 // crosses itself: the road over the cut is not this one)
 const FOOT_WINDOW_M = 60;
 
-/** A portal mouth's wall corner: its foot on the road below, its offset and the way out. */
-interface Mouth { corner: Point; dist: number; offset: number; way: number }
+/** A portal mouth's wall corner: its foot on the road below, its offset and the way out, and the
+ * same wall's corner at the lintel (the bridge's end of the wall). */
+interface Mouth { corner: Point; lintel: Point; dist: number; offset: number; way: number }
 
 /** A point's foot on the road: metres along it and the signed offset off its centre. */
 interface RoadFoot { dist: number; offset: number }
@@ -68,10 +69,12 @@ export function portalMouths(sub: Subtrack, portals: Prop[]): Mouth[] {
     const outX = portal.x - cosR * (portal.w! / 2 + FLARE_LEAD_M);
     const outY = portal.y - sinR * (portal.w! / 2 + FLARE_LEAD_M);
     const out = onGroundQuery(() => querySubtrack(sub, outX, outY)).trackDist;
-    return portalCorners(portal).slice(0, 2).map((corner): Mouth => {
+    const corners = portalCorners(portal);
+    return corners.slice(0, 2).map((corner, side): Mouth => {
       const foot = footNear(sub, corner, out), total = sub.totalDist;
       const ahead = ((out - foot.dist + total * 1.5) % total) - total / 2;
-      return { corner, dist: foot.dist, offset: foot.offset, way: ahead >= 0 ? 1 : -1 };
+      return { corner, lintel: corners[side + 2], dist: foot.dist, offset: foot.offset,
+        way: ahead >= 0 ? 1 : -1 };
     });
   });
 }
@@ -182,17 +185,41 @@ function taperPoints(mouth: Mouth, end: TaperEnd, sub: Subtrack): Point[] | null
 }
 
 /**
+ * Whether a point is within MOUTH_MEET_M of another.
+ * @param one a point
+ * @param two another
+ * @returns true when it is
+ */
+const meets = (one: Point, two: Point): boolean =>
+  Math.hypot(one[0] - two[0], one[1] - two[1]) < MOUTH_MEET_M;
+
+/**
+ * The mouth a run's end is laid to: the one whose corner it is on, or - where the tidy carried a
+ * run round the wall to its lintel corner and no run ends on that wall's mouth corner (L.A.
+ * Lively's south portal: the run hooked 45 deg in behind the wall, the wall's end left standing
+ * 1.2 m nearer the road than the run) - that wall's mouth.
+ * @param end the run's end
+ * @param mouths the portals' mouths
+ * @param runs every barrier (whose ends take a mouth corner)
+ * @returns the mouth, or none
+ */
+function mouthFor(end: Point, mouths: Mouth[], runs: Barrier[]): Mouth | undefined {
+  return mouths.find(({ corner }) => meets(corner, end))
+    ?? mouths.find(({ corner, lintel }) => meets(lintel, end) && !runs.some(({ pts }) =>
+      meets(pts[0], corner) || meets(pts[pts.length - 1], corner)));
+}
+
+/**
  * A run's ends on a portal's mouth corners laid as tapers along the road (none fits: as it was).
  * @param run the run (changed)
  * @param mouths the portals' mouths
  * @param sub the race road
+ * @param runs every barrier (a lintel's end goes to its mouth only while no run ends there)
  */
-export function flareToMouths(run: Barrier, mouths: Mouth[], sub: Subtrack): void {
+export function flareToMouths(run: Barrier, mouths: Mouth[], sub: Subtrack, runs: Barrier[]): void {
   for (const first of [true, false]) {
     const pts = first ? run.pts.slice().reverse() : run.pts.slice();
-    const [endX, endY] = pts[pts.length - 1];
-    const mouth = mouths.find(({ corner }) => Math.hypot(corner[0] - endX, corner[1] - endY)
-      < MOUTH_MEET_M);
+    const mouth = mouthFor(pts[pts.length - 1], mouths, runs);
     const end = mouth && taperEnd(pts, mouth, sub);
     const taper = mouth && end && taperPoints(mouth, end, sub);
     if (!taper) continue;

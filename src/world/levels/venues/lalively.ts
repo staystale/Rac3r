@@ -357,6 +357,44 @@ export const LALIVELY_LITTER: NonNullable<VenueSpec['litter']> = [
   {"at": [-117.5, 22.9], "kind": "barrel", "col": "#1d1f24"},
 ];
 
+// the dressing pass's props, in the lots off the course (
+// VenueSpec.landmarks)
+export const LALIVELY_DRESS: NonNullable<VenueSpec['landmarks']> = [
+  {"at": [140, 5], "kind": "truck", "size": 2.5, "len": 14, "rot": 0, "col": "#f07a1a"},
+  {"at": [140, 9.5], "kind": "truck", "size": 2.5, "len": 14, "rot": 0, "col": "#1d1f24"},
+  {"at": [129, 6], "kind": "parkedcar", "size": 1.8, "len": 4.2, "rot": 0, "col": "#e8e6e0"},
+  {"at": [129, 8.6], "kind": "parkedcar", "size": 1.8, "len": 4.2, "rot": 0, "col": "#f07a1a"},
+  {"at": [105, -8], "kind": "truck", "size": 2.5, "len": 14, "rot": 0, "col": "#f07a1a"},
+  {"at": [121, -8], "kind": "truck", "size": 2.5, "len": 14, "rot": 0, "col": "#1d1f24"},
+  {"at": [176.5, 8.5], "kind": "parkedcar", "size": 1.8, "len": 4.2, "rot": 0, "col": "#1d1f24"},
+  {"at": [30, -160], "kind": "tower", "size": 4, "rot": 0},
+  {"at": [118, -158], "kind": "crowd", "size": 3, "len": 9, "rot": 0, "seed": 1},
+  {"at": [129, -157.6], "kind": "crowd", "size": 3, "len": 7, "rot": 0, "seed": 2},
+  {"at": [-113, 111], "kind": "crowd", "size": 3, "len": 9, "rot": 3.142, "seed": 1},
+  {"at": [-124, 110.6], "kind": "crowd", "size": 3, "len": 7, "rot": 3.142, "seed": 2},
+  {"at": [-100, 30], "kind": "parkedcar", "size": 1.8, "len": 4.2, "rot": 0, "col": "#f07a1a"},
+  {"at": [-94.5, 30], "kind": "parkedcar", "size": 1.8, "len": 4.2, "rot": 0, "col": "#1d1f24"},
+  {"at": [-89, 30], "kind": "parkedcar", "size": 1.8, "len": 4.2, "rot": 0, "col": "#e8e6e0"},
+];
+
+// and its loose objects (VenueSpec.litter)
+export const LALIVELY_DRESS_LITTER: NonNullable<VenueSpec['litter']> = [
+  {"at": [150, 12.5], "kind": "crate", "rot": 0},
+  {"at": [151.2, 12.6], "kind": "box", "rot": 0},
+  {"at": [152.4, 12.4], "kind": "crate", "rot": 0},
+  {"at": [128, 11.5], "kind": "tyre", "rot": 0},
+  {"at": [128.9, 11.7], "kind": "tyre", "rot": 0},
+  {"at": [129.8, 11.4], "kind": "tyre", "rot": 0},
+  {"at": [128.4, 12.4], "kind": "tyre", "rot": 0},
+  {"at": [170, 8], "kind": "caravan", "rot": 0},
+  {"at": [165.5, 8.3], "kind": "bin", "rot": 0},
+  {"at": [164.7, 8.2], "kind": "bin", "rot": 0},
+  {"at": [163.9, 8.4], "kind": "bin", "rot": 0},
+  {"at": [23.5, -159.5], "kind": "box", "rot": 0},
+  {"at": [22.7, -160.3], "kind": "crate", "rot": 0},
+  {"at": [23.3, -161.1], "kind": "box", "rot": 0},
+];
+
 // the joker's gap jump: the kicker (a ramp) and the landing (a table), game m
 export const LALIVELY_JUMP: Bump[] = [
   {"kind": "ramp", "x": 90, "y": -147, "rot": 3.141593, "len": 10, "wid": 7, "h": 2},

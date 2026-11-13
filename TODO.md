@@ -34,13 +34,36 @@ records in `TODO-DONE.md` (PASSED 11-12). On the phone now:
   WRONG: a barrier missing, cut short or flickering at the screen edge, posts jumping, a gap or
   kink in a rail, a slower frame than without the switch.
 
+- X GAYMS DRESSING (`?xgaymsprops=1`; owner 11-13: "Can we finish jazzing up the xgaymes like
+  we did other stadiums"): L.A. Lively gets the stadiums' pass. EVEN EDGE (VenueSpec.evenEdge):
+  free ends 2 -> 2 (both ends of the joker strip's U of Armco by the north corner, 7.8 m apart,
+  the bales between: past the 6 m join), kink points 4 -> 5 (all where the north street's rail
+  meets the joker's at its inside corner, an L by design), jog points 53 -> 49; the barriers by
+  the jump moved 0.16 m at most. TUNNEL MOUTHS (portalflare): the south portal's runs had been
+  tidied round its walls to the lintel corners (a 45 deg hook, the wall's end 1.2 m nearer the
+  road than the run) - such a run now goes to the wall's mouth corner when no run ends there
+  (portalflare.ts mouthFor; no stadium has one: worldhash SAME). Sharpest turn over the last 20 m
+  74 / 46 / 61 / 61 -> 9 / 9 / 10 / 10 deg, 3.0-3.2 m from the walls (2.1-2.7), no barrier in a
+  wall (portaltouch). DRESSING (the stadiums' kits, now tools/scratch/_dresskits.mjs, in orange,
+  black and white): the paddock in the lot east of the convention hall (4 transporters, 2 team
+  cars, flight cases, spare tyres, a motorhome with a car and bins), a TV camera platform west of
+  the jump's stand, fans at its east end and at the start's stand's west end, 3 show cars in the
+  infield; 15 props, 14 loose, none left out; one joker bale (-9, -102) is dropped by the eased
+  Armco (the even edge keeps loose objects off it). CHECKS (on): barriercheck, propcheck (nothing
+  on a light), crossingcheck, portal drives OK; venueaudit and sealing as with it off (3 Armco ends
+  by a road; 17 escape blocks, the joker strip); lap rally-4x4 59.4 -> 59.3 s, rx-super 58.0 ->
+  57.9; the gap jump (held speeds) the same; AI over it (20 AI, seeds 1-12) short landings 16 ->
+  29, 9 of them one pile-up on seed 6 (seeds 7-12: 10 / 10). FRAMES (framecheck CPU x4, 20 AI,
+  barriercull on both sides, work median off / on / off / on, then on / off / on / off): night
+  17.2 / 19.4 / 16.7 / 22.1, 19.4 / 19.1 / 16.6 / 19.2; day 18.5 / 17.3 / 12.2 / 20.3, 16.7 /
+  15.2 / 16.5 / 15.9 - about +1 ms, not consistent; profile drawProps +0.2 ms a frame.
+  Worldhash with it off SAME (every level).
+  WRONG: a kink or step in the Armco, an end meeting nothing, a wall end sticking out at a tunnel
+  mouth, a prop on the road, a barrier, a lamp or a flag, a slower frame.
+
 ## 2. BEING BUILT
 
-- X GAYMS DRESSING (owner 11-13: "Can we finish jazzing up the xgaymes like we did other
-  stadiums"): the stadium pass on L.A. Lively, behind a switch - its Armco made even and free ends
-  met (VenueSpec.evenEdge, world/stadiumtidy.ts), the crossover mouths tidied (portalflare), and
-  its own dressing in the event's colours (VenueSpec.dress kits: transporters, a paddock, a TV
-  platform, show cars, fans, bins), off the road and the barriers. With the worker.
+- Nothing.
 
 ## 3. OPEN, IN THE OWNER'S ORDER
 

@@ -55,4 +55,8 @@ export const FIX = {
   // of it whenever any of its box was: X Gayms' 1723 m of Armco round whole blocks every frame;
   // render/props/fence.ts)
   barriercull: atLoad('barriercull'),
+  // ?xgaymsprops=1: L.A. Lively gets the stadiums' pass - its Armco and fences made even
+  // (world/stadiumtidy.ts, the crossover's mouths world/portalflare.ts) and its own dressing in
+  // the event's colours (world/levels/lalively-venue.ts)
+  xgaymsprops: atLoad('xgaymsprops'),
 };

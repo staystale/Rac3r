@@ -208,6 +208,6 @@ export function evenStadiumEdge(barriers: Barrier[], sub: Subtrack, lanes: Lane[
   // (eased first: a join's end lies on the run as it stays)
   for (const run of barriers) if (EASED.has(run.kind)) easeRun(run.pts, sub, corners);
   joinFreeEnds(barriers, sub, lanes, corners);
-  for (const run of barriers) if (EASED.has(run.kind)) flareToMouths(run, mouths, sub);
+  for (const run of barriers) if (EASED.has(run.kind)) flareToMouths(run, mouths, sub, barriers);
   return barriers;
 }

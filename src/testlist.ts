@@ -22,4 +22,14 @@ export const TEST_LIST: TestEntry[] = [
     wrong: 'A barrier missing, cut short or flickering at the screen edge, posts jumping, a'
       + ' gap or a kink in a rail, a lower frame rate than without the switch.',
   },
+  {
+    id: 'xgaymsprops',
+    added: '2026-11-13',
+    name: 'L.A. Lively dressed like the stadiums: even Armco, tidy tunnel mouths, a paddock',
+    where: 'Test link + &xgaymsprops=1: TEST MODE > RALLYCROSS > L.A. Lively',
+    try: 'A race with a full grid, day and night: the tunnel mouths both ways, the jump, the'
+      + ' paddock east of the hall, fans and a TV tower by the jump, fans at the start.',
+    wrong: 'A kink or step in the Armco, an end meeting nothing, a wall end sticking out at a'
+      + ' tunnel mouth, a prop on the road, a barrier, a lamp or a flag, a slower frame.',
+  },
 ];

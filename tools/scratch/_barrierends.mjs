@@ -53,6 +53,9 @@ for (const levelId of process.argv.slice(2)) {
       // (a real bend's sagitta over the chord is allowed: a 10 m radius over a 6 m chord, 0.45 m)
       const bend = chord * chord / (8 * 10);
       if (turn > KINK_DEG) kinks++;
+      // (env KINKS=1: where each kink is)
+      if (turn > KINK_DEG && process.env.KINKS) console.log(`${levelId} KINK ${bar.kind} ${index}`
+        + ` at ${bx.toFixed(1)},${by.toFixed(1)}: ${turn.toFixed(0)} deg`);
       else if (off > Math.max(JOG_M, bend)) jogs++;
     }
   });

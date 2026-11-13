@@ -9,6 +9,7 @@
 // off every road but the crossover's, none within 9.5 m of another road). node
 // tools/scratch/_lalivelydata.mjs (scratch)
 import fs from 'node:fs';
+import { dressLines, layKit } from './_dresskits.mjs';
 
 const STEP = 2;
 const r1 = (v) => Math.round(v * 10) / 10;
@@ -221,6 +222,33 @@ const HEAPS = [[118, -78, 'tyres'], [40, -78, 'barrels'], [-118, 45, 'tyres'], [
 const litter = HEAPS.flatMap(([x, y, kit]) => KITS[kit].map(([dx, dy, kind, col]) =>
   ({ at: [r1(x + dx), r1(y + dy)], kind, ...(col ? { col } : {}) })));
 const litterReport = HEAPS.map(([x, y, kit]) => `${kit}@${x},${y}: road ${roadGap([x, y]).toFixed(1)} rail ${Math.min(...rails.map((rail) => segGap(rail, [x, y]))).toFixed(1)}`);
+// THE DRESSING (VenueSpec.dress; the switch xgaymsprops): the shared kits (_dresskits.mjs) in the
+// event's orange, black and white, each [x, y, heading deg, kit] (the kit laid along the heading,
+// out to its right), where a street event has them: the PADDOCK in the lot east of the convention
+// hall, off the course (its transporters, the teams' cars, flight cases, spare tyres, a motorhome
+// with its bins); a TV CAMERA platform and FANS either end of the jump's stand; fans at the
+// start's stand's west end; show cars in the infield by the avenue's stand. Each item kept
+// DRESS_ROAD_M off every road's centre and DRESS_KEEP_M off a block, a stand's own keep-off, a
+// flag or pylon (the kits' DRESS_*_M) and the litter; one that is not is left out and reported
+const DRESS = [
+  [140, 5, 0, 'paddock'], [105, -8, 0, 'transporters'], [170, 8, 0, 'motorhome'],
+  [30, -160, 0, 'tvcamera'], [118, -158, 0, 'fans'], [-113, 111, 180, 'fans'],
+  [-100, 30, 0, 'showcars'],
+];
+const DRESS_ROAD_M = 9.5, DRESS_KEEP_M = 2, DRESS_LITTER_M = 1.5;
+const dressDropped = [];
+const dressSite = { rails, stands, marks: [...flags, ...floods], isFree: (at, reach) =>
+  roadGap(at) > DRESS_ROAD_M + reach
+  && !BLOCKS.some((box) => insideBox(box, at, DRESS_KEEP_M + reach))
+  && litter.every((item) => Math.hypot(item.at[0] - at[0], item.at[1] - at[1])
+    > DRESS_LITTER_M + reach) };
+const dressItems = DRESS.flatMap(([x, y, headingDeg, kit]) => {
+  const heading = headingDeg * Math.PI / 180;
+  const along = [Math.cos(heading), Math.sin(heading)], across = [-along[1], along[0]];
+  const rot = Math.round(Math.atan2(along[1], along[0]) * 1000) / 1000;
+  return layKit(kit, { origin: [x, y], along, across, rot, cols: FLAG_COLS }, dressSite,
+    dressDropped);
+});
 // the jump as terrain (the level adds them: world/levels/lalively-venue.ts)
 const across = Array.from({ length: JUMP_PIECES }, (_, i) => (i - (JUMP_PIECES - 1) / 2) * JUMP_STEP);
 const jump = [
@@ -259,7 +287,8 @@ for (const flag of flags) lines.push(`  ${json(flag)},`);
 lines.push('];', '', '// the litter behind the barriers (VenueSpec.litter)',
   "export const LALIVELY_LITTER: NonNullable<VenueSpec['litter']> = [");
 for (const item of litter) lines.push(`  ${json(item)},`);
-lines.push('];', '', "// the joker's gap jump: the kicker (a ramp) and the landing (a table), game m",
+lines.push('];', '', ...dressLines('LALIVELY', dressItems, json, 'in the lots off the course'));
+lines.push("// the joker's gap jump: the kicker (a ramp) and the landing (a table), game m",
   'export const LALIVELY_JUMP: Bump[] = [');
 for (const bump of jump) lines.push(`  ${json({ ...bump, rot: Math.round(bump.rot * 1e6) / 1e6 })},`);
 lines.push('];', '');
@@ -275,3 +304,6 @@ console.log('blocks:', blockReport.join('; '));
 console.log('stands:', standReport.join('; '));
 console.log('litter:', litterReport.join('; '));
 console.log('jump', JSON.stringify(jump));
+console.log('dressing:', dressItems.filter((item) => item.prop).length, 'props,',
+  dressItems.filter((item) => !item.prop).length, 'loose; left out',
+  dressDropped.length ? dressDropped.join('; ') : 'none');
