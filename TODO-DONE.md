@@ -13,6 +13,39 @@ rolls - OWNER 11-07; the AI rework - Where we are 11-04; the driving root fix, t
 LIST 11-01; TypeScript, mud, grass, lamps - Queue; weather, surfaces, car systems, damage,
 lighting, bushes and trees - OWNER LIST 10-24; the checking tools - Tools that are wrong.
 
+## PASSED 11-13 (owner: "Pass") - the road in a crossover's cut (cutroad) and the joker arrows (jokerarrow), both now the default
+
+Switches and their old paths deleted; the plain link draws and lays them as `?cutroad=1&jokerarrow=1`
+did (worldhash SAME, renderhash xgayms SAME against the switches-on reference). The records as
+they stood under test:
+
+- THE ROAD IN A CROSSOVER'S CUT (`?cutroad=1`; owner 11-13 on X Gayms: "strange road terrain on
+  tunnel cross over area", "very uniform and not like the rest of the track"). CAUSE: the open
+  cut is the portal's ramp (8 m of each 9 m portal), and render/props/venueprops.ts drawTunnel
+  painted it in five OPAQUE shades over the ground - the road's texture, wear and edge lines
+  hidden down the whole cut, the first shade (#3b3e45) lighter than race tarmac (#2d303a): a step
+  where the road met it. (The crossing's own wear and tyre marks were drawn over it already.) Now
+  the race road's part of the ramp is darkened by black at 0 / 17 / 33 / 50 / 67 % (to the old
+  darkest shade over race tarmac at the mouth), the floor beside the road to the walls in the old
+  opaque shades. Every race-road crossover: X Gayms, The Bird's Mess, Stade de Prance, Wobbly,
+  Snoozuka, Moanaco - all showed it (shots/cutroad, each cut both lanes and 30 m outside, day,
+  night, wet, 844x390 and 390x844, off and on). Road tunnels and the pit tunnel unchanged.
+  Renderhash with it off (those six levels) SAME, worldhash SAME. FRAMES (framecheck CPU x4, 20
+  AI, night, barriercull and xgaymsprops on, work median off / on / off / on): X Gayms 20.6 /
+  17.4 / 17.1 / 19.6, The Bird's Mess 19.3 / 19.7 / 20.0 / 19.5 - noise.
+  WRONG: flat bands across the road in the cut, a step or seam where it starts, the lines or wear
+  stopping at the cut, grass or pavement showing in it.
+
+- JOKER ARROW (`?jokerarrow=1`; owner 11-13: "the first joker arrow is a bit wonky not pointing
+  correctly", X Gayms): the arrow on the lap before the joker (slidden-hill.ts jokerApproach) is
+  tilted 0.35 rad toward the joker's side - Slidden Hill's, where the joker leaves at an angle. On
+  L.A. Lively the joker runs straight on (-90 deg) and the lap turns away, so the tilt aimed it at
+  -70 deg, into the barrier beside the mouth. Now a venue joker's lap arrow points at the mouth's
+  arrow (-97 deg there). The mouth's arrow (owner: "Can we tip the second arrow to remind you it
+  is a corner tho") is tipped 0.35 rad toward the way the joker bends in its next 30 m (-90 ->
+  -110 deg: L.A. Lively's turns left). Worldhash with it on: only xgayms differs (Knobhill and Slidden Hill keep
+  their own).
+
 ## PASSED 11-13 (owner: "Ok pass") - barrier culling, X Gayms' dressing and its joker way clear, now the default
 
 - JOKER WAY CLEAR (`?jokerclear=1`; owner 11-13: "Hay bales are blocking the entrance and exit

@@ -242,7 +242,7 @@ glass look, grip and dry as on any ground), and is drawn over the bridge or, in 
 A lap that crosses itself (Snoozuka, the ROC stadiums: `world/venuecross.ts`) runs under in a cut whose portals are turned along
 the road at each end and whose walls follow the road's own path (the bent-tunnel crossing, as Moanaco's tunnel); the bridge's
 parapets stop at the portals' walls. The open cut is the portal's ramp (`render/props/venueprops.ts drawTunnel`, 8 m of
-its 9 m): its floor in five shades darkening to the mouth, painted over the ground; under `?cutroad=1` the race road's
+its 9 m): its floor in five shades darkening to the mouth, painted over the ground beside the road; the race road's
 part of it is darkened by black at rising shares instead, so the road's own surface, wear and lines show through
 (`drawRampOverRoad`; the floor beside the road keeps the opaque shades). A ROC stadium (`tools/scratch/_rocdata.mjs`, one generator for all) crosses on a straight
 X (its portals square with their lane; its barrier ends carried on to the portals' wall corners, `world/venuetidy.ts`) and races on a SPLIT

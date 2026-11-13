@@ -5,7 +5,6 @@
 // between the joker and the lap where they run apart - and the rallycross bushes.
 import { looseRadius, tidyLoose, venueBuild, venueLevel } from "../venue.ts";
 import { isNearLine } from "../venuegeo.ts";
-import { FIX } from "../../core/fixes.ts";
 import { venueJoker } from "../venuejoker.ts";
 import { SURFACES } from "../surfaces.ts";
 import { jokerApproach, jokerArrow } from "./slidden-hill.ts";
@@ -17,7 +16,7 @@ import type { Cone, JokerRule, Lane, Level, Point, Solid, Subtrack } from "../ty
 // the joker rule (the old Knobhill's and Slidden Hill's: 30 s for a missed or a second joker, 5
 // laps a race), and the gate's reach at the joker lane's middle
 const JOKER_PENALTY_S = 30, JOKER_LAPS = 5, JOKER_GATE_R = 7;
-// (?jokerarrow=1) the mouth's arrow tipped this far toward the way the joker bends (rad, the lap
+// the mouth's arrow tipped this far toward the way the joker bends (rad, the lap
 // arrow's old tilt), judged this far along it (m), and a bend under this is straight on (rad)
 const JOKER_ARROW_TIP_RAD = 0.35, JOKER_TURN_AHEAD_M = 30, JOKER_TURN_MIN_RAD = 0.3;
 // m past a prop's solid box a dressing tyre or bale keeps
@@ -85,11 +84,10 @@ export function rallycrossLevel(spec: VenueSpec, layout: string, levelId: string
 }
 
 /**
- * The joker's painted arrows: one in its mouth along the lane (with ?jokerarrow=1 tipped toward the
- * way it bends next: it is a corner), one on the lap before it. The lap's
- * one is tilted 0.35 rad toward the joker's side (Slidden Hill's, where the joker leaves at an
- * angle); with ?jokerarrow=1 it points at the mouth's arrow instead - where the joker runs
- * straight on and the lap turns away (L.A. Lively), the tilt aimed it 20 deg into the barrier
+ * The joker's painted arrows: one in its mouth along the lane, tipped toward the way it bends
+ * next (it is a corner), and one on the lap before it pointing at the mouth's arrow. Slidden
+ * Hill's own tilted the lap's 0.35 rad toward the joker's side; where the joker
+ * runs straight on and the lap turns away (L.A. Lively), that aimed it 20 deg into the barrier
  * beside the mouth (-70 deg against the lane's -90).
  * @param sub the raced road
  * @param lane the joker lane
@@ -97,7 +95,7 @@ export function rallycrossLevel(spec: VenueSpec, layout: string, levelId: string
  */
 function jokerArrows(sub: Subtrack, lane: Lane): JokerRule['arrows'] {
   const mouth = jokerArrow(sub, lane.pts), approach = jokerApproach(sub, lane.pts);
-  if (FIX.jokerarrow && mouth && approach) {
+  if (mouth && approach) {
     approach.rot = Math.atan2(mouth.y - approach.y, mouth.x - approach.x);
     mouth.rot += JOKER_ARROW_TIP_RAD * jokerTurnSide(lane.pts, mouth);
   }

@@ -6,11 +6,14 @@ not repeated here), then `TODO.md`, then this page. The 11-07 version of this pa
 
 ## Where we are
 
-- **Branch `foreman/round17`** (11-13): the jokerarrow switch (round16) plus barriercull,
-  xgaymsprops and jokerclear PASSED (owner "Ok pass"), the default; worldhash old+3 switches vs
-  new: SAME. Tagged [look] (stretch culling's anti-aliasing) and [world]. Main is at 72f746c.
-- **Worker**: cutroad (?cutroad=1, the crossover cut's road drawn as a deck). Next for it: X Gayms
-  looser (?xgaymsloose=1, TODO section 2; the owner's "Ok" to the shape).
+- **11-13, latest:** barriercull, xgaymsprops and jokerclear PASSED ("Ok pass"); then
+  jokerarrow and cutroad PASSED ("Pass"), all now the default with their switches gone
+  (worldhash old+switches vs new: SAME; renderhash xgayms the same). Main had the X Gayms re-lay
+  as d750afa before this pass.
+- **Under test: `?xgaymsloose=1` only** (L.A. Lively re-laid less boxy, TODO section 1). The
+  owner accepted the open points (joker strip fold-backs, AI on the jump, hairpin point) and will
+  test; the night frame cost (+2.5 ms) is to be checked again after that test.
+- **Worker** (agent a6cc304d1dadeede5, worktree `.claude/worktrees/barriercull`): idle.
 - **Branch `foreman/round9`** holds round8, plus:
   - CI: main's pixel reference is rendered once and reused (`.github/workflows/renderref.yml`).
   - The Bird's Mess and the stadium dressing PASSED (owner 11-12: "That's all pass"). `birdsmess`

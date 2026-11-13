@@ -3,7 +3,6 @@
 // mouth, a lintel over it) and a PARKED CAR in the car parks. Drawn in the props' frame: x along
 // the prop's rot, metres times ppm.
 import { COL } from '../../world/colours.ts';
-import { FIX } from '../../core/fixes.ts';
 import { LEVEL } from '../../world/state.ts';
 import { PORTAL_LINTEL_M, PORTAL_WALL_M, VENUE_DECK, rampsOf } from '../../world/crossinggeo.ts';
 import type { Prop } from '../../world/types.ts';
@@ -11,10 +10,10 @@ import type { PropCtx } from './types.ts';
 
 // the ramp's shades, from the road at the open end to the dark at the mouth
 const RAMP_SHADES = ['#3b3e45', '#2f3238', '#24262b', '#191a1e', '#0f1013'];
-// (?cutroad=1) on the race road down a crossover's cut, the same darkening laid OVER the road
-// instead of painted in its place: the opaque shades hid the road's own texture, wear and lines
+// on the race road down a crossover's cut, the same darkening laid OVER the road instead of
+// painted in its place: the opaque shades would hide the road's own texture, wear and lines
 // down the whole open cut (the cut is the ramp: 8 m of a 9 m portal), and the first, #3b3e45,
-// stood lighter than race tarmac (#2d303a) - a step where the road met it. Black at these
+// stands lighter than race tarmac (#2d303a) - a step where the road met it. Black at these
 // shares takes race tarmac from its own colour at the open end to the old shades' darkest
 // (#0f1013, a third of it) at the mouth. The floor beside the road, to the walls, keeps the
 // opaque shades (under it lies the venue's own ground: a stadium's grass).
@@ -39,7 +38,7 @@ export function drawTunnel(propCtx: PropCtx, prop: Prop, ppm: number) {
   };
   // the ramp in bands, darker toward the mouth
   const band = (prop.w! - LINTEL_M) / RAMP_SHADES.length;
-  if (FIX.cutroad && prop.track && LEVEL.subtrack) {
+  if (prop.track && LEVEL.subtrack) {
     drawRampOverRoad(paint, -halfL, band, halfW, Math.min(halfW, LEVEL.subtrack.width / 2));
   } else {
     RAMP_SHADES.forEach((shade, i) =>
@@ -56,7 +55,7 @@ export function drawTunnel(propCtx: PropCtx, prop: Prop, ppm: number) {
 }
 
 /**
- * A race road's ramp down a crossover's cut (?cutroad=1): the road's own surface darkened toward
+ * A race road's ramp down a crossover's cut: the road's own surface darkened toward
  * the mouth, the floor beside it to the walls in the opaque shades.
  * @param paint fills a box in the portal's frame (x, y, length, width, colour), m
  * @param from the ramp's open end, m along
