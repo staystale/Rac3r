@@ -64,12 +64,29 @@ try {
     const total = Object.values(r.by).reduce((a, x) => a + x.mb, 0);
     console.log(`${label}: canvases+bitmaps ${total.toFixed(0)} MB ${JSON.stringify(Object.fromEntries(Object.entries(r.by).map(([k, v]) => [k, `${v.n} / ${v.mb.toFixed(0)}MB`])))}, JS heap ${r.heap.toFixed(0)} MB, ${r.ai} AI`);
     console.log('   biggest: ' + r.biggest.join(', '));
+    const own = await page.evaluate(async () => {
+      const budget = await import('/src/core/memorybudget.ts');
+      return { held: budget.heldMb(), drops: budget.DROPS.splice(0) };
+    });
+    console.log(`   the game's count ${own.held.toFixed(0)} MB; dropped: ${own.drops.join(', ') || '-'}`);
   };
   await page.goto(srv.url + '/?touch=1&guide=0&menu=0&rules=0&drycover=1&rimsoft=1&bushmark=1&leafpop=1&level=thruston' + (process.env.QUERY || ''));
   await page.waitForFunction(() => window.__game && window.__game.launch, null, { timeout: 60000 });
   await snap('loaded');
-  for (const lv of (process.env.LEVELS || 'thruston,knobhill').split(',')) {
-    await page.evaluate(([l, c]) => window.__game.launch(l, 'hatch-fwd', { ai: c, laps: 9 }), [lv, n]);
+  // (env CPU: a throttle for the launches' times; env REVISIT=1: the first level played again at
+  // the end - a level the memory budget dropped is built again; the game's own count and drops
+  // are printed when ?perfpass=1 is on)
+  if (process.env.CPU) await cdp.send('Emulation.setCPUThrottlingRate', { rate: +process.env.CPU });
+  const visits = (process.env.LEVELS || 'thruston,knobhill').split(',');
+  if (process.env.REVISIT) visits.push(visits[0]);
+  for (const lv of visits) {
+    const launch = await page.evaluate(async ([l, c]) => {
+      const level = (await import('/src/lab.ts')).LEVELS.find((entry) => entry.id === l);
+      const unbuilt = !!(level && level._build), began = performance.now();
+      window.__game.launch(l, 'hatch-fwd', { ai: c, laps: 9 });
+      return { ms: performance.now() - began, unbuilt };
+    }, [lv, n]);
+    console.log(`${lv} launch ${launch.ms.toFixed(0)} ms (${launch.unbuilt ? 'built now' : 'already built'})`);
     await page.waitForTimeout(1500); await page.touchscreen.tap(220, 375); await page.waitForTimeout(500);
     await page.evaluate(async () => {
       const game = window.__game, auto = await import('/src/ai/autodrive.ts');

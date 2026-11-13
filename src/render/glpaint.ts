@@ -10,6 +10,7 @@
 import { TEX_M, TEX_PPM } from "./textures.ts";
 import { WET_GLSL } from "./glprogram.ts";
 import { WEATHER } from "../world/weather.ts";
+import { trackCanvas } from '../core/memorybudget.ts';
 
 /** One shape of flat ground: a rectangle, maybe rotated and rounded, of one surface. */
 export interface GroundPatch {
@@ -242,7 +243,7 @@ const snapPixel = (lookup: Uint32Array, pixel: number) => lookup[(((pixel & 255)
  * @returns the pixels, opaque
  */
 function bakeSurface(source: HTMLCanvasElement, base: string, lookup: Uint32Array) {
-  const canvas = document.createElement('canvas');
+  const canvas = trackCanvas(document.createElement('canvas'));
   canvas.width = source.width;
   canvas.height = source.height;
   const gfx = canvas.getContext('2d', { willReadFrequently: true })!;

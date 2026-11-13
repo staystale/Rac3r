@@ -5,6 +5,7 @@ import { LOOKS } from "./carlooks.ts";
 import { readSoon } from "./spritepixels.ts";
 import { COL } from "../world/colours.ts";
 import type { CarSprite, RenderCarSpec } from "./types.ts";
+import { trackCanvas } from '../core/memorybudget.ts';
 
 // A sprite per car, GENERATED on an integer grid in the reference style
 // (art/reference/car-ref-*.jpg):
@@ -55,7 +56,7 @@ function makeSpriteCtx(spec: RenderCarSpec): SpriteCtx {
   // odd width: a centre row
   const lengthPx = Math.round(spec.len * SPRITE_PPM),
     widthPx = Math.round(spec.wid * SPRITE_PPM) | 1;
-  const canvas = document.createElement('canvas');
+  const canvas = trackCanvas(document.createElement('canvas'));
   canvas.width = lengthPx + 4;
   canvas.height = widthPx + 4;
   const ctx = canvas.getContext('2d')!;   // a new canvas always gives a 2d context

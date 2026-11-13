@@ -3,6 +3,7 @@
 // queued before it: in a 20-car pile-up the cars were re-dented several times a frame and the
 // reads were ~22 % of the frame (tools/scratch/_benchprof.mjs). A sprite canvas is never painted
 // again once it is built (a new look is a new canvas), so its pixels stay what was read.
+import { trackCanvas } from '../core/memorybudget.ts';
 
 // the pixels a copy of each sprite canvas read back as
 const READ = new WeakMap<HTMLCanvasElement, ImageData>();
@@ -16,7 +17,7 @@ const WAITING: HTMLCanvasElement[] = [];
  * @returns its pixels
  */
 function readSprite(source: HTMLCanvasElement): ImageData {
-  const copy = document.createElement('canvas');
+  const copy = trackCanvas(document.createElement('canvas'));
   copy.width = source.width;
   copy.height = source.height;
   const copyCtx = copy.getContext('2d')!;
@@ -92,7 +93,7 @@ export interface SpriteWork {
  * @returns the canvas, its context and the pixels
  */
 export function spriteToWork(source: HTMLCanvasElement): SpriteWork {
-  const canvas = document.createElement('canvas');
+  const canvas = trackCanvas(document.createElement('canvas'));
   canvas.width = source.width;
   canvas.height = source.height;
   const ctx = canvas.getContext('2d')!, read = READ.get(source) || readSprite(source);

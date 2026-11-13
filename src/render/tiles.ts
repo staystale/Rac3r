@@ -15,6 +15,7 @@ import type {
 } from "./types.ts";
 // ZOOM_MIN: read only inside functions (draw time), so the import cycle is harmless
 import { ZOOM_MIN } from "../render.ts";
+import { trackCanvas } from '../core/memorybudget.ts';
 
 // what createTiles destructures from the renderer
 interface TilesHelpers {
@@ -154,7 +155,7 @@ function startTile(tcx: TilesCtx, step: number, i: number, j: number): TileJob {
   const startedAt = performance.now();      // start of the layers stage
   const tileWidth = TILE_PX / (view.PPM * zOfStep(step));     // world metres per tile
   const size = Math.round(TILE_PX * view.dpr);
-  const canvas = document.createElement('canvas'); canvas.width = canvas.height = size;
+  const canvas = trackCanvas(document.createElement('canvas')); canvas.width = canvas.height = size;
   const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
   ctx.setTransform(view.dpr, 0, 0, view.dpr, 0, 0);
   return {

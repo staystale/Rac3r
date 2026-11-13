@@ -40,6 +40,7 @@ import { WEATHER } from "./world/weather.ts";
 import { noteBodies } from "./render/leafpop.ts";
 import { onGround } from "./world/crossinggeo.ts";
 import { LEVEL } from "./world/state.ts";
+import { trackCanvas } from './core/memorybudget.ts';
 
 // PPM is derived from the SHORT side of the viewport, so the car is a consistent fraction of the
 // screen everywhere (a flat PPM of 16 put a 4 m car at 64 px on a 1280 px desktop, too small
@@ -449,7 +450,7 @@ function paintFlat(
   const { view, cam } = ctx;
   const outW = Math.round((maxX - minX) * ppm),
     outH = Math.round((maxY - minY) * ppm);
-  const flatCanvas = document.createElement('canvas');
+  const flatCanvas = trackCanvas(document.createElement('canvas'));
   flatCanvas.width = outW;
   flatCanvas.height = outH;
   const keep = { ctx: view.ctx, W: view.W, H: view.H, zoom: view.zoom, cx: cam.x, cy: cam.y };
@@ -672,7 +673,7 @@ export function createRenderer(canvas: HTMLCanvasElement, settings: Settings) {
   const view: View = { ctx: mainCtx, W: 0, H: 0, dpr: 1, PPM: 22, zoom: 1, noPatterns: false,
     fillsOnGpu: false };
   // pixel mode: the world buffer, its device-px block size, the real dpr of the screen canvas
-  const pcanvas = document.createElement('canvas');
+  const pcanvas = trackCanvas(document.createElement('canvas'));
   const pctx = pcanvas.getContext('2d')!;   // likewise
   const state = newRenderState();
   const gpu = createGpuGround(canvas);

@@ -22,6 +22,7 @@ import type { Point, Prop } from '../world/types.ts';
 import type { RenderCone, RenderGame } from './types.ts';
 import { trackEnds, trainClock } from './props/bridges.ts';
 import { trainAt } from '../world/trains.ts';
+import { trackCanvas } from '../core/memorybudget.ts';
 
 /** What the event glows paint with: the light map and its art-px mapping (light.ts). */
 export interface EventPainter {
@@ -70,7 +71,7 @@ const frontEdges = new WeakMap<Prop, Point[]>();
 function glowPicture(rgb: string): HTMLCanvasElement {
   let picture = pictures.get(rgb);
   if (!picture) {
-    picture = document.createElement('canvas');
+    picture = trackCanvas(document.createElement('canvas'));
     picture.width = picture.height = 64;
     const ctx = picture.getContext('2d')!;
     const gradient = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);

@@ -21,6 +21,7 @@ import { MARK_GOUGE } from "./world/metalscrape.ts";
 import { addTrailPoint, clearWetTrails } from "./wettrail.ts";
 import { acrossOf, alongOf } from "./world/crossinggeo.ts";
 import type { Crossing, Mark, Spray, Surface, WheelGround } from './world/types.ts';
+import { trackCanvas } from './core/memorybudget.ts';
 
 // EXTENT is the FENCE, not the floor, so what happens in the run-off (gravel tracks) is
 // recorded too. The resolution is kept at 4.2 px/m so memory stays flat: a finer layer over this
@@ -480,7 +481,7 @@ const CROSSING_MARKS = new Map<Crossing, MarkCtx>();
 function crossingLayer(way: Crossing): MarkCtx {
   let markCtx = CROSSING_MARKS.get(way);
   if (markCtx) return markCtx;
-  const margin = CROSSING_MARK_MARGIN_M, layer = document.createElement('canvas');
+  const margin = CROSSING_MARK_MARGIN_M, layer = trackCanvas(document.createElement('canvas'));
   layer.width = Math.ceil((way.length + 2 * margin) * MARK_PPM);
   layer.height = Math.ceil((way.maxAcross - way.minAcross + 2 * margin) * MARK_PPM);
   const ctx = layer.getContext('2d')!;
@@ -631,7 +632,7 @@ function listWheels(car: MarkCar): MarkWheel[] {
  *   fade / stamp / wheelsOf methods
  */
 export function createMarks() {
-  const layer = document.createElement('canvas');
+  const layer = trackCanvas(document.createElement('canvas'));
   layer.width = SIZE;
   layer.height = SIZE;
   const ctx = layer.getContext('2d')!;

@@ -10,6 +10,7 @@
 //    at 4 x 4 px bottom-left so the GPU uploads it, as the game does with every tile.
 //  'objects': per event about 350 KB of small objects { x, y, a, b } (9000 of them), kept in
 //    a ring of 60 (5 s at 12 a second, the "mid-life" pattern).
+import { trackCanvas } from './memorybudget.ts';
 
 export type ChurnKind = 'pictures' | 'objects';
 
@@ -23,7 +24,7 @@ const OBJECT_RING = 60;
 interface Bits { x: number; y: number; a: number; b: number }
 
 function makeCanvas(): HTMLCanvasElement {
-  const canvas = document.createElement('canvas');
+  const canvas = trackCanvas(document.createElement('canvas'));
   canvas.width = TILE; canvas.height = TILE;
   return canvas;
 }

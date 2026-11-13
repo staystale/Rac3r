@@ -27,6 +27,7 @@ import { tyreBox } from './cars.ts';
 import { SPRITE_PPM } from './shared.ts';
 import { readSoon, spritePixels } from './spritepixels.ts';
 import type { CarSprite, RenderCar, RenderCarSpec } from './types.ts';
+import { trackCanvas } from '../core/memorybudget.ts';
 
 // 12 pictures a turn; the light in BANDS steps, from above and AHEAD a little (the windscreen and
 // the rear screen shade apart from the roof); above the waist the cabin leans in, CABIN_IN of its
@@ -507,10 +508,10 @@ function frameAt(body: Body, phi: number): BodyFrame {
     data[idx] = (rgb >> 16) * light; data[idx + 1] = ((rgb >> 8) & 255) * light;
     data[idx + 2] = (rgb & 255) * light; data[idx + 3] = 255;
   }
-  const canvas = document.createElement('canvas');
+  const canvas = trackCanvas(document.createElement('canvas'));
   canvas.width = out.width; canvas.height = height;
   canvas.getContext('2d')!.putImageData(out, 0, 0);
-  const shadow = document.createElement('canvas');
+  const shadow = trackCanvas(document.createElement('canvas'));
   shadow.width = out.width; shadow.height = height;
   const shadowCtx = shadow.getContext('2d')!;
   shadowCtx.drawImage(canvas, 0, 0);

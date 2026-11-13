@@ -16,6 +16,7 @@ import type { GlField } from "./glfield.ts";
 import { buildProgram, WET_GLSL } from "./glprogram.ts";
 import { WEATHER } from "../world/weather.ts";
 import type { GlShade, ShadeRect } from "./glshade.ts";
+import { trackCanvas } from '../core/memorybudget.ts';
 
 /** Where the ground pass draws: the 2D art buffer or the GPU canvas. CSS px of the view. */
 export interface GroundSink {
@@ -118,7 +119,7 @@ interface ColourCache {
  */
 function colourProbe(cache: ColourCache) {
   if (!cache.probe) {
-    const canvas = document.createElement('canvas');
+    const canvas = trackCanvas(document.createElement('canvas'));
     canvas.width = canvas.height = 1;
     cache.probe = canvas.getContext('2d')!;
   }
@@ -411,7 +412,7 @@ function watchContext(canvas: HTMLCanvasElement, state: SinkState, rebuild: () =
  * @returns the GPU ground, or null
  */
 export function createGlGround(screen: HTMLCanvasElement) {
-  const canvas = document.createElement('canvas');
+  const canvas = trackCanvas(document.createElement('canvas'));
   canvas.id = 'glground';
   // preserveDrawingBuffer: the test tools read the finished frame back after it is shown. It looks
   // like a copy per frame, but turning it off made the owner's iPhone WORSE (?report=1, Lab, home

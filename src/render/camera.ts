@@ -5,6 +5,7 @@ import { meterEvent } from "../ui/meter.ts";
 // LOOKAHEAD, ZOOM_MIN: read only inside functions (draw time), so the import cycle is harmless
 import { LOOKAHEAD, ZOOM_MIN } from "../render.ts";
 import type { Cam, CamCar, CamState, TileBudget, View } from "./types.ts";
+import { trackCanvas } from '../core/memorybudget.ts';
 
 // what createCamera destructures from the renderer
 interface CameraHelpers {
@@ -157,7 +158,8 @@ function paintOverview(
     height = OVERVIEW_MAX_PX;
     width = Math.max(1, Math.round(OVERVIEW_MAX_PX / tallness));
   }
-  const canvas = document.createElement('canvas'); canvas.width = width; canvas.height = height;
+  const canvas = trackCanvas(document.createElement('canvas'));
+  canvas.width = width; canvas.height = height;
   const c2d = canvas.getContext('2d')!;   // a fresh canvas always gives a 2d context
   const keep = { ctx: view.ctx, W: view.W, H: view.H, zoom: view.zoom, cx: cam.x, cy: cam.y };
   view.ctx = c2d; view.W = width; view.H = height;

@@ -10,6 +10,7 @@ import { addPane, addButton, addElement } from './widgets.ts';
 import { showSetup } from './setup.ts';
 import { showTrackSelect } from './tracks.ts';
 import type { Menu } from '../menu.ts';
+import { trackCanvas } from '../core/memorybudget.ts';
 
 // a card's painting, px (the card canvas's 16:10), and each scenery's colours
 const CARD_W = 320, CARD_H = 200;
@@ -84,7 +85,7 @@ function paintRoad(ctx: CanvasRenderingContext2D, road: string,
  * @returns the canvas
  */
 function paintCard(scenery: string, road: string | null): HTMLCanvasElement {
-  const canvas = document.createElement('canvas');
+  const canvas = trackCanvas(document.createElement('canvas'));
   canvas.width = CARD_W;
   canvas.height = CARD_H;
   const ctx = canvas.getContext('2d')!, kind = road || 'motorway';

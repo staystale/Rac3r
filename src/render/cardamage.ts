@@ -6,6 +6,7 @@ import { notePutPixels, spriteToWork } from "./spritepixels.ts";
 import type {
   CarSprite, RenderCar, RenderCarSpec, SilCanvas,
 } from "./types.ts";
+import { trackCanvas } from '../core/memorybudget.ts';
 
 /** Geometry of the top-view crush pass. */
 interface CrushGeo {
@@ -251,7 +252,7 @@ function damagedSprite(car: RenderCar, sprite: CarSprite) {
  */
 function silhouette(source: SilCanvas) {
   if (source._sil) return source._sil;
-  const copy = document.createElement('canvas');
+  const copy = trackCanvas(document.createElement('canvas'));
   copy.width = source.width;
   copy.height = source.height;
   const copyCtx = copy.getContext('2d')!;

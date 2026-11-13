@@ -15,6 +15,7 @@ import type { Menu } from '../menu.ts';
 import type { Level, StageRecipe } from '../world/types.ts';
 import { MENU_COL } from './palette.ts';
 import { showSceneryList, showRoadList } from './roadpick.ts';
+import { trackCanvas } from '../core/memorybudget.ts';
 
 export const KIND: Record<string, string> = { lab: 'TEST GROUND', 'test-track': 'CIRCUIT',
   thruston: 'UK CIRCUIT',
@@ -192,7 +193,7 @@ function addThumb(parent: HTMLElement, thumbs: Record<string, HTMLCanvasElement>
     parent.appendChild(copyThumb(thumb));
     return;
   }
-  const slot = document.createElement('canvas');
+  const slot = trackCanvas(document.createElement('canvas'));
   slot.width = THUMB_W;
   slot.height = THUMB_H;
   parent.appendChild(slot);
@@ -252,7 +253,7 @@ function addTrackCard(menu: Menu, grid: HTMLElement, level: Level) {
   }, 'card' + (level.id === profile.lastLevel ? ' on' : ''));
   if (level.gen && !level.fixed) {
     buildLevel(level);   // the generator's stage is generated on first use: its road map below
-    const canvas = document.createElement('canvas');
+    const canvas = trackCanvas(document.createElement('canvas'));
     canvas.width = 320;
     canvas.height = 200;
     drawRoadMap(canvas, level);
@@ -393,7 +394,7 @@ export function backToTracks(menu: Menu, level: Level) {
  */
 export function addGenRows(menu: Menu, panel: HTMLElement, level: Level) {
   const gen = { ...level.gen! };
-  const map = document.createElement('canvas');
+  const map = trackCanvas(document.createElement('canvas'));
   map.width = 320;
   map.height = 200;
   map.style.cssText = 'width:100%;border:2px solid #000;image-rendering:pixelated;margin:4px 0';

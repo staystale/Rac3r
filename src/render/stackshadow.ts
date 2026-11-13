@@ -2,6 +2,7 @@
 // cones/coneConsts.ts heightenStack). From above a stack shows only its top tyre, so its
 // height is in its shadow: the taller, the further the shadow falls down-right, as a car's ride
 // height moves its shadow (render/cars.ts).
+import { trackCanvas } from '../core/memorybudget.ts';
 
 // sprite px: the stack sprite's size and its outer disc (render/objects.ts tyreSprite)
 const STACK_SIZE = 17, STACK_RADIUS = 8.2;
@@ -18,7 +19,7 @@ let shadowSprite: HTMLCanvasElement | null = null;
  */
 function shadowDisc(): HTMLCanvasElement {
   if (shadowSprite) return shadowSprite;
-  const canvas = document.createElement('canvas');
+  const canvas = trackCanvas(document.createElement('canvas'));
   canvas.width = canvas.height = STACK_SIZE;
   const ctx = canvas.getContext('2d')!, mid = (STACK_SIZE - 1) / 2;
   ctx.fillStyle = '#000';

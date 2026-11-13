@@ -14,6 +14,7 @@ import { drawRolledBody, prepareBody } from "./rollbody.ts";
 import type {
   Cam, CarSprite, RenderCar, RenderCarSpec, RenderCone, SilCanvas, View,
 } from "./types.ts";
+import { trackCanvas } from '../core/memorybudget.ts';
 
 // an open-wheeler's suspension arms
 const WISHBONE = '#2a2d34', DRIVE_SHAFT = '#4a4f57', CV_JOINT = '#16181d';
@@ -253,7 +254,7 @@ function stampFixedArms(ctx: CanvasRenderingContext2D, spec: RenderCarSpec, axle
     const cornerX = Math.floor(hubX - spread) - ARMS_PAD_PX;
     const cornerY = Math.floor(Math.min(body, hubY))
       - ARMS_PAD_PX;
-    const canvas = document.createElement('canvas');
+    const canvas = trackCanvas(document.createElement('canvas'));
     canvas.width = Math.ceil(hubX + spread) + ARMS_PAD_PX - cornerX;
     canvas.height = Math.ceil(Math.max(body, hubY)) + ARMS_PAD_PX - cornerY;
     const paint = canvas.getContext('2d')!;
@@ -495,7 +496,7 @@ function pixelCarWithWheels(carsCtx: CarsContext, spec: RenderCarSpec) {
   const halfWidth = Math.max((carSpec.trackWidth || 1.5) / 2 * SPRITE_PPM, sprite.Wp / 2)
     + (carSpec.kind === 'track' ? 1 : 0);
   const padY = Math.max(0, Math.ceil(halfWidth + 4 - sprite.Wp / 2)),
-    canvas = document.createElement('canvas');
+    canvas = trackCanvas(document.createElement('canvas'));
   canvas.width = sprite.c.width + 4;
   canvas.height = sprite.c.height + padY * 2;
   const gctx = canvas.getContext('2d')!, midX = canvas.width / 2, midY = canvas.height / 2;
@@ -593,7 +594,7 @@ export function createCars(view: View, cam: Cam, helpers: CarsHelpers) {
     paintCarPicture(car: RenderCar, enlarge: number): CarPicture {
       let picture = pictures.get(car);
       if (!picture) {
-        const canvas = document.createElement('canvas');
+        const canvas = trackCanvas(document.createElement('canvas'));
         const ctx = canvas.getContext('2d')!;
         picture = { canvas, ctx, originX: 0, originY: 0 };
         pictures.set(car, picture);

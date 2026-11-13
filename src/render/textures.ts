@@ -12,6 +12,7 @@
 // count, and redraw the marks that cross an edge from the cells just outside it.
 import { SPRITE_PPM } from "./shared.ts";
 import type { ArtLayer } from "./types.ts";
+import { trackCanvas } from '../core/memorybudget.ts';
 
 export const TEX_M = 24;        // the repeat distance in metres (owner judges it on the phone)
 export const TEX_PPM = SPRITE_PPM;  // art px per metre of every texture (as the car sprites)
@@ -182,7 +183,7 @@ export type BladeMasks = Map<string, HTMLCanvasElement>;
  * @returns the canvas
  */
 function cpuCanvas(width: number, height: number) {
-  const canvas = document.createElement('canvas');
+  const canvas = trackCanvas(document.createElement('canvas'));
   canvas.width = width;
   canvas.height = height;
   canvas.getContext('2d', { willReadFrequently: true });
@@ -274,7 +275,7 @@ export function createTextureCache(capacity: number) {
     const hit = cache.get(key);
     if (hit) { cache.delete(key); cache.set(key, hit); return hit; }
     const size = Math.round(TEX_M * TEX_PPM);
-    const canvas = document.createElement('canvas');
+    const canvas = trackCanvas(document.createElement('canvas'));
     canvas.width = canvas.height = size;
     // CPU-backed on purpose - the tiles are painted on a CPU scratch, and a GPU texture would be
     // read back on every pattern fill (MEASURED: rally stage tile 24 -> 10 ms at CPU x4).

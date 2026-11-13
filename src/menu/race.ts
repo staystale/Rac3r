@@ -8,6 +8,7 @@ import type { Menu } from '../menu.ts';
 import type { PauseActions, ResultsActions, ResultRow, ResultsFlow } from './menutypes.ts';
 import { MENU_COL } from './palette.ts';
 import { finishLabel } from '../highway/finish.ts';
+import { trackCanvas } from '../core/memorybudget.ts';
 
 /**
  * IN-SESSION PAUSE (spec §4 step 3): the track and car stay loaded until you leave. Car swap
@@ -339,7 +340,7 @@ function addPodiumStep(menu: Menu, pod: HTMLElement, flow: ResultsFlow, racer: R
   // WAS: the body-only sprite (drawn nose-RIGHT, no wheels) squeezed into a 40 x 64 portrait box
   // -> squashed sideways.
   const spr = menu.api.carSprite(racer.car.spec, null, true),
-    canvas = document.createElement('canvas');
+    canvas = trackCanvas(document.createElement('canvas'));
   canvas.width = spr.c.height;
   canvas.height = spr.c.width;
   const ctx = canvas.getContext('2d')!;

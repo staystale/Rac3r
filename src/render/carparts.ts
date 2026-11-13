@@ -13,6 +13,7 @@ import { bitsOf, type CarBits } from "../carbits.ts";
 const CHROME = '#c9ccd4', STEEL_GREY = '#3a3d45', HEAD_LAMP = '#fff3c4', TAIL_LAMP = '#c8342a';
 const WISHBONE_STEEL = '#4a4f58';
 import type { CarSprite, RenderCarSpec } from "./types.ts";
+import { trackCanvas } from '../core/memorybudget.ts';
 
 // an open car - the single-seaters, the autograss buggy: its wings / nose and its side pods come
 // off, not bumpers and door skins, and nothing is under them
@@ -109,7 +110,7 @@ function damage(ctx: CanvasRenderingContext2D, width: number, height: number, se
  */
 export function cutPart(sprite: CarSprite, region: Region, seed: number): HTMLCanvasElement {
   const width = region.x1 - region.x0 + 1, height = region.y1 - region.y0 + 1;
-  const canvas = document.createElement('canvas');
+  const canvas = trackCanvas(document.createElement('canvas'));
   canvas.width = width; canvas.height = height;
   const ctx = canvas.getContext('2d')!;
   ctx.drawImage(sprite.c, -(region.x0 + 2), -(region.y0 + 2));
@@ -131,7 +132,7 @@ interface FlatCanvas {
  * @returns the canvas and its painter
  */
 function flatCanvas(wide: number, tall: number, col: string): FlatCanvas {
-  const canvas = document.createElement('canvas');
+  const canvas = trackCanvas(document.createElement('canvas'));
   canvas.width = wide; canvas.height = tall;
   const ctx = canvas.getContext('2d')!;
   const block = (x: number, y: number, across: number, down: number, fill: string) => {
@@ -224,7 +225,7 @@ export function flatPart(spec: RenderCarSpec, kind: string, corner: number,
  * @returns the canvas and its painter
  */
 function bitCanvas(wide: number, tall: number): FlatCanvas {
-  const canvas = document.createElement('canvas');
+  const canvas = trackCanvas(document.createElement('canvas'));
   canvas.width = wide; canvas.height = tall;
   const ctx = canvas.getContext('2d')!;
   const block = (x: number, y: number, across: number, down: number, fill: string) => {

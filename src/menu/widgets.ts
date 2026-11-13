@@ -1,5 +1,6 @@
 import { GHOST_MS } from './style.ts';
 import { MENU_COL } from './palette.ts';
+import { trackCanvas } from '../core/memorybudget.ts';
 
 // MENU TAPS for the phone report (?report=1, game/loop.ts): taps a new screen ignored (inside its
 // GHOST_MS window) and the slowest button handler, since the last frame took them
@@ -105,7 +106,7 @@ export function addElement(parent: HTMLElement, tag: string, html: string,
  * @returns a canvas holding a copy of the thumbnail
  */
 export function copyThumb(thumb: HTMLCanvasElement): HTMLCanvasElement {
-  const canvas = document.createElement('canvas');
+  const canvas = trackCanvas(document.createElement('canvas'));
   canvas.width = thumb.width;
   canvas.height = thumb.height;
   canvas.getContext('2d')!.drawImage(thumb, 0, 0);

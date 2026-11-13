@@ -19,6 +19,7 @@ import { addPane, addButton, addElement, drawLift } from './widgets.ts';
 import { showMainMenu } from './tracks.ts';
 import type { Menu } from '../menu.ts';
 import { MENU_COL } from './palette.ts';
+import { trackCanvas } from '../core/memorybudget.ts';
 
 
 /**
@@ -125,7 +126,7 @@ export function showGarage(menu: Menu, back?: () => void) {
   addElement(panel, 'div', 'TEST GARAGE · free to try', 'sub');
   const box = addElement(panel, 'div', '', 'garage');
   const left = addElement(box, 'div', ''), right = addElement(box, 'div', '');
-  const lift = document.createElement('canvas');
+  const lift = trackCanvas(document.createElement('canvas'));
   lift.className = 'lift';
   lift.width = 360;
   lift.height = 150;
@@ -243,7 +244,7 @@ function showPaintShop(menu: Menu, rimsMode = false) {
   addElement(panel, 'h2', (rimsMode ? 'RIMS · ' : 'PAINT · ') + car.name);
   const box = addElement(panel, 'div', '', 'garage'), left = addElement(box, 'div', ''),
     right = addElement(box, 'div', '');
-  const lift = rimsMode ? null : document.createElement('canvas');
+  const lift = rimsMode ? null : trackCanvas(document.createElement('canvas'));
   if (lift) {
     lift.className = 'lift';
     lift.width = 360;
@@ -345,7 +346,8 @@ function wheelGeo(carId: string): WheelGeo {
 function wheelPreview(left: HTMLElement, geo: WheelGeo) {
   const holder = addElement(left, 'div', '', 'row');
   holder.style.cssText = 'align-items:center;gap:12px;flex-direction:column';
-  const wheel = document.createElement('canvas'), size = geo === OLD_WHEEL ? 17 : faceSize(geo);
+  const wheel = trackCanvas(document.createElement('canvas'));
+  const size = geo === OLD_WHEEL ? 17 : faceSize(geo);
   wheel.width = wheel.height = size;
   wheel.style.cssText = 'width:' + size * 9 + 'px;height:' + size * 9
     + 'px;image-rendering:pixelated;background:#17141b';

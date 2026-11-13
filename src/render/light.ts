@@ -24,6 +24,7 @@ import {
 import type { RenderCar, RenderGame, View } from './types.ts';
 import { isAngryFlashOn, litPoliceLamps } from './lightbar.ts';
 import { COL } from '../world/colours.ts';
+import { trackCanvas } from '../core/memorybudget.ts';
 
 // the night's dark at darkness 1 this opaque (the darkest patches still show the track's shape
 // faintly); its colour is the sky's (world/daylight.ts: blue-black, or a sunrise / sunset)
@@ -86,7 +87,7 @@ export interface NightLock {
  * @returns the picture
  */
 function makePicture(paint: (pictureCtx: CanvasRenderingContext2D) => void) {
-  const canvas = document.createElement('canvas');
+  const canvas = trackCanvas(document.createElement('canvas'));
   canvas.width = PICTURE_PX;
   canvas.height = PICTURE_PX;
   paint(canvas.getContext('2d')!);
@@ -649,7 +650,7 @@ function paintUnderDecks(painter: DeckPainter, game: RenderGame) {
  * @returns draw(game, lock): lays this frame's night over the screen (nothing in daylight)
  */
 export function createNight(parts: NightParts) {
-  const canvas = document.createElement('canvas');
+  const canvas = trackCanvas(document.createElement('canvas'));
   const lightCtx = canvas.getContext('2d')!;
   const beam = makePicture(paintBeam), pool = makePicture(paintPool);
   const tint = makePicture(paintPoolTint);

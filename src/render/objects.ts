@@ -8,6 +8,7 @@ import { drawBanger, drawCaravan, drawPodium, drawLooseProp } from "./objectsPro
 import { drawStackShadow } from "./stackshadow.ts";
 import { pdisc, tyreSprite } from "./tyresprite.ts";
 import type { ObjSprite } from "./tyresprite.ts";
+import { trackCanvas } from '../core/memorybudget.ts';
 import { shade } from "../render.ts";   // read only at draw time (no load-time cycle)
 
 // what createObjects destructures from the renderer and the particles
@@ -62,7 +63,8 @@ function objSprite(
 ): ObjSprite {
   let sprite = env.state.objCache.get(key);
   if (!sprite) {
-    const canvas = document.createElement('canvas'); canvas.width = canvas.height = size;
+    const canvas = trackCanvas(document.createElement('canvas'));
+    canvas.width = canvas.height = size;
     // ! : a fresh canvas always has a 2d context
     paint(canvas.getContext('2d')!, size);
     sprite = { c: canvas, size };

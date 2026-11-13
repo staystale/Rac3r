@@ -228,6 +228,16 @@ the night light map (`render/light.ts drawSparkGlows`).
   lamp, and a head glow wholly off the map is not drawn (its alpha still set, in order). The prop
   grid files a prop by its drawn size, which a prop's lights outreach (a pit wall's lamps run
   110 m from its centre), so the light props are listed by kind rather than by the grid.
+  The memory budget (`core/memorybudget.ts`): every canvas and bitmap the game makes is counted
+  (`trackCanvas` at each of the 40 places one is made; width x height x 4 of those still held,
+  summed when asked), plus LEVEL_MB for each lazy level built. Before `world/load.ts setLevel`
+  builds a new level for play (not a thumbnail's light build), while the count is over
+  MEMORY_BUDGET_MB the least recently played built level (not the one being left, not the one
+  coming) goes back to its stub (its keys deleted, the stub's - `_build` with them - put back:
+  built again on its next use), then any cached pictures registered with `onMemoryShort`; the
+  drops are kept for the tools (`DROPS`). A dropped level rebuilds identically: all 49 lazy
+  levels played twice through the budget, worldhash's fingerprint SAME but for the tape ids (a
+  counter across builds) (`tools/scratch/_droprun.mjs`, `_droplevel.mjs`).
 - The game clock: `world/clock.ts` - a global time of day / season / moon
   (1 game day = 1 real hour, a season 7 days), saved in its own storage key, run by the sim step
   in events (`game/loop.ts`); it sets the sky (`daylight.ts setSky`: darkness and the dark's
