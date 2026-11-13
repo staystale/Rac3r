@@ -6,13 +6,10 @@ not repeated here), then `TODO.md`, then this page. The 11-07 version of this pa
 
 ## Where we are
 
-- **Main** is at `7833d82` (round12): X Gayms PASSED (owner 11-13: "Pass"), the default. The
-  served clone is on it.
-- **Branch `foreman/round13`**: barrier culling by stretch (`?barriercull=1`, worker fcc8078),
-  X Gayms night 22.5 -> ~18 ms; pixels differ only by anti-aliasing (<= 5/255 on rail edges).
-  CI, then main, then the owner's link.
-- **X Gayms dressing** (owner 11-13: "finish jazzing up the xgaymes like we did other
-  stadiums"): with the worker, behind a switch (TODO section 2).
+- **Main** is at `3095b72` (round14, all green, 11-13); the served clone is on it. UNDER TEST:
+  `?barriercull=1` (barrier culling by stretch) and `?xgaymsprops=1` (X Gayms dressing: evenEdge,
+  both portals flared, paddock / trucks / TV platform / fans / show cars). Asked the owner: the
+  joker bale lost to the eased Armco, the AI's short landings (16 -> 29 over 12 seeds, 9 one pile-up).
 - **Branch `foreman/round9`** holds round8, plus:
   - CI: main's pixel reference is rendered once and reused (`.github/workflows/renderref.yml`).
   - The Bird's Mess and the stadium dressing PASSED (owner 11-12: "That's all pass"). `birdsmess`
