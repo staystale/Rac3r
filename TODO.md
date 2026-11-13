@@ -55,7 +55,9 @@ ROUND 5, LOADING AND SPEED:
   11-13: the REAL ONES FIRST - Holjes, Croft's RX layout, Pembrey, Blyton - then a NITRO-STYLE one
   OUTDOORS (not a stadium: a gap jump over the track, a crossover bridge, banked dirt turns), then
   the HEAD-TO-HEAD SWAP-OVER (two parallel lanes crossing on a bridge, mixed tarmac and gravel).
-  PARODY NAMES, each approved by the owner before it goes in. Real (traced, real tarmac / gravel
+  NAMES (owner 11-13: "Ok yea names work"): Holjes = HOLY JEEZ, Croft RX = CROUGHED RX (its own
+  full-size level of the Croughed venue; the half-size circuit unchanged), Pembrey = PEMBREEZY, Blyton
+  Park = BLIGHTY PARK, the Nitro-style one (after Glen Helen) = GLEN HELLISH, the swap-over = SWAPSIES. Real (traced, real tarmac / gravel
   split, real jumps, real joker), at FULL SIZE as the other short courses (NOTES: track scale), not
   stiff or boring, with the props pass and the barrier check in the first hand-over (NOTES: every
   new track). One switch each.
