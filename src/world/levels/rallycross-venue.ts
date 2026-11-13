@@ -3,20 +3,37 @@
 // venue's level (world/venue.ts) with the joker rule, the rallycross dressing - hay bales round the
 // corners where no wall stands and both sides of the loose stretches lined, bales
 // between the joker and the lap where they run apart - and the rallycross bushes.
-import { tidyLoose, venueBuild, venueLevel } from "../venue.ts";
+import { looseRadius, tidyLoose, venueBuild, venueLevel } from "../venue.ts";
+import { isNearLine } from "../venuegeo.ts";
+import { FIX } from "../../core/fixes.ts";
 import { venueJoker } from "../venuejoker.ts";
 import { SURFACES } from "../surfaces.ts";
 import { jokerApproach, jokerArrow } from "./slidden-hill.ts";
 import { jokerBales, rxDress } from "./kit.ts";
 import { RX_BUSHES } from "./bushes.ts";
 import type { VenueSpec } from "../venue.ts";
-import type { Level, Point, Solid } from "../types.ts";
+import type { Cone, Lane, Level, Point, Solid } from "../types.ts";
 
 // the joker rule (the old Knobhill's and Slidden Hill's: 30 s for a missed or a second joker, 5
 // laps a race), and the gate's reach at the joker lane's middle
 const JOKER_PENALTY_S = 30, JOKER_LAPS = 5, JOKER_GATE_R = 7;
 // m past a prop's solid box a dressing tyre or bale keeps
 const SOLID_PAD_M = 0.5;
+
+/**
+ * The loose objects with none on the joker lane's road: the corner bales go round the lap's
+ * outside where no wall stands, and where the joker branches off a corner that outside is the
+ * joker's way in or out (L.A. Lively: 3 bales on its lane, one 4.1 m off its centre). The bales
+ * between the joker and the lap are laid 0.9 m or more clear of it, so they stay.
+ * @param cones the loose objects
+ * @param lane the joker lane
+ * @returns the objects kept
+ */
+function clearJokerLane(cones: Cone[], lane: Lane): Cone[] {
+  const half = lane.width / 2;
+  return cones.filter((cone) => !looseRadius(cone)
+    || !isNearLine(lane.pts, cone.x, cone.y, half + looseRadius(cone)));
+}
 
 /**
  * Whether a point lies in (or within SOLID_PAD_M of) a solid prop's turned box.
@@ -55,9 +72,10 @@ export function rallycrossLevel(spec: VenueSpec, layout: string, levelId: string
   const mid = lane.pts[Math.floor(lane.pts.length / 2)];
   // (tidied as the venue's own: none on another or on a barrier)
   // (the rallycross bushes, but on a venue with none: a street course's)
+  const kept = tidyLoose([...cones, ...jokerBales(sub, lane, cones)], level.barriers || [], sub,
+    level.covers || []);
   return { ...level, ...(spec.bushless ? {} : { bushes: RX_BUSHES }),
-    cones: tidyLoose([...cones, ...jokerBales(sub, lane, cones)], level.barriers || [], sub,
-      level.covers || []),
+    cones: FIX.jokerclear ? clearJokerLane(kept, lane) : kept,
     joker: { gate: { x: mid[0], y: mid[1], r: JOKER_GATE_R }, penalty: JOKER_PENALTY_S,
       laps: JOKER_LAPS,
       arrows: [jokerArrow(sub, lane.pts), jokerApproach(sub, lane.pts)].filter(Boolean) } };

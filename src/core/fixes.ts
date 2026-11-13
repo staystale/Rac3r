@@ -51,6 +51,10 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
+  // ?jokerclear=1: no hay bale or tyre on a venue joker lane's road (the corner bales went round
+  // the lap's outside where the joker branches off: L.A. Lively's way in and out;
+  // world/levels/rallycross-venue.ts)
+  jokerclear: atLoad('jokerclear'),
   // ?barriercull=1: a long barrier is drawn only where its stretches are on screen (before, all
   // of it whenever any of its box was: X Gayms' 1723 m of Armco round whole blocks every frame;
   // render/props/fence.ts)

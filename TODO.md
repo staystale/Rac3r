@@ -13,6 +13,15 @@ The 11-11 round (14 entries, 11 switches) passed 11-12, and the performance roun
 carcull, the texture warm-up) and the stadium crossovers passed 11-12 ("mostly pass"), their
 records in `TODO-DONE.md` (PASSED 11-12). On the phone now:
 
+- JOKER WAY CLEAR (`?jokerclear=1`; owner 11-13: "Hay bales are blocking the entrance and exit
+  of the joker", X Gayms): the corner bales (kit.ts rxDress) go round the lap's outside where no
+  wall stands, and where the joker branches off a corner that outside is its way in or out. MEASURED
+  (the joker lane's centreline, its half width 6.5 m + a bale's 0.8 m): 3 bales on L.A. Lively's
+  lane, at (145.9, -116.1) 4.1 m off its centre, (143.8, -118.5) and (9.7, -118.5) at its edge.
+  Now (world/levels/rallycross-venue.ts clearJokerLane) no loose object stands on a venue joker
+  lane's road; the bales between the joker and the lap (laid 0.9 m or more clear of it) stay.
+  Worldhash with it on: only xgayms differs (every other rallycross venue had none there).
+  Shots: shots/jokermouth-before and -clear (tools/scratch/_jokermouthshots.mjs, AT=14,132).
 - BARRIER CULLING BY STRETCH (`?barriercull=1`; owner 11-13: "sure"): render/props/fence.ts
   skipped a barrier only when its whole box was off screen, so X Gayms' 1723 m of Armco in 7 runs
   round whole blocks was stroked and posted every frame. Now each barrier is cut into ~30 m

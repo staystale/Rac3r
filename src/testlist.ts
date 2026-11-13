@@ -32,4 +32,13 @@ export const TEST_LIST: TestEntry[] = [
     wrong: 'A kink or step in the Armco, an end meeting nothing, a wall end sticking out at a'
       + ' tunnel mouth, a prop on the road, a barrier, a lamp or a flag, a slower frame.',
   },
+  {
+    id: 'jokerclear',
+    added: '2026-11-13',
+    name: 'No hay bales blocking the joker, in or out (X Gayms)',
+    where: 'Test link + &jokerclear=1: TEST MODE > RALLYCROSS > L.A. Lively',
+    try: 'Take the joker a few times, flat out in and out, and watch the AI take it.',
+    wrong: 'A bale or tyre where you go into or out of the joker, a gap in the bales'
+      + ' between the joker and the lap you could cut through.',
+  },
 ];

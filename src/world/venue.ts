@@ -461,7 +461,8 @@ function closedPieces(build: VenueBuild, layout: string,
 // Malarkey, laid along the lake's shore, stood its back row in the lake).
 const LOOSE_R: Record<string, number> = { tyrestack: 0.48, tyre: 0.35, bale: 0.8, cone: 0.2 };
 const STACKED_SHARE = 0.9, ON_RAIL_SHARE = 0.8, ON_KERB_SHARE = 0.5, LOOSE_CELL_M = 2;
-const looseRadius = (cone: Cone): number => LOOSE_R[cone.kind || 'cone'] || 0;
+/** A loose object's radius, m (0: one with no size, a tape post). */
+export const looseRadius = (cone: Cone): number => LOOSE_R[cone.kind || 'cone'] || 0;
 const looseCell = (x: number, y: number): number =>
   Math.floor(x / LOOSE_CELL_M) * 65536 + Math.floor(y / LOOSE_CELL_M);
 
