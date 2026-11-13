@@ -17,19 +17,46 @@ const r1 = (v) => Math.round(v * 10) / 10;
 // bridge, the east jog into the east lot, north up it, west along the north street, south down the
 // street under the bridge, west along the south street (the start), north up the west lot, east
 // onto the avenue
-const LAP = [
+const TIGHT_LAP = [
   [-150, 0, 16], [80, 0, 16], [80, -35, 16], [150, -35, 16], [150, -110, 18], [0, -110, 18],
   [0, 90, 16], [-150, 90, 18],
 ];
 // THE JOKER's corners: on north from the east lot past the north street's corner, west along the
 // joker straight, south onto the street after its corner
-const JOKER = { from: [150, -80], corners: [[150, -140, 20], [0, -140, 35]], to: [0, -70] };
+const TIGHT_JOKER = { from: [150, -80], corners: [[150, -140, 20], [0, -140, 35]], to: [0, -70] };
 // where the lap is cut into pieces [x, y, name of the piece that starts there, surface]
-const CUTS = [
+const TIGHT_CUTS = [
   [-40, 0, 'Crossover over'], [40, 0, 'Avenue east'], [64, 0, 'East lot', 'dirt'],
   [150, -80, 'North lot', 'dirt'], [40, -110, 'North corner'], [0, -70, 'Street north'], [0, -40, 'Crossover under'],
   [0, 40, 'South street'], [-132, 90, 'West lot', 'dirt'], [-120, 0, 'Avenue west'],
 ];
+// THE LOOSE LAYOUT (node tools/scratch/_lalivelydata.mjs loose: venues/lalivelyloose.ts, the
+// switch xgaymsloose) - the same figure of eight, crossing, lots, joker and jump, laid less boxy:
+// out of the west lot a fast sweep onto the lot's diagonal, a tight HAIRPIN in its far corner and
+// back across it onto the avenue, the avenue bending a little before the crossing; out of it a
+// fast SWEEPER into the east lot, straight across the lot on the diagonal, a sweep north up to
+// the joker's branch; a corner that TIGHTENS onto the north street (wide, then tight), a KINK
+// along it; the north corner, the street under the bridge, the south corner and the south street
+// bending a little to the start. Corners [x, y, radius m] in driving order, as the lap's; none
+// under LOOSE_MIN_R_M (half the road, 6.5 m, + no kerb + a car's width of margin, CLAUDE.md 5)
+const LOOSE_LAP = [
+  [-70, 0, 40], [118, 0, 38], [150, -58, 36], [150, -96, 28], [128, -114, 14], [72, -101, 30],
+  [0, -110, 18], [0, 94, 24], [-60, 87, 150], [-128, 92, 26], [-206, 20, 15], [-122, 44, 28],
+];
+const LOOSE_MIN_R_M = 10;
+// its cuts [straight after corner i, share along it, piece name, surface]: each on a straight, so
+// the piece's end lies on the road's own line (the joker leaves from the north lot's)
+const LOOSE_CUTS = [
+  [0, 0.12, 'Crossover over'], [0, 0.6, 'Avenue east'], [0, 0.95, 'East lot', 'dirt'],
+  [2, 0.45, 'North lot', 'dirt'], [5, 0.45, 'North corner'], [6, 0.136, 'Street north'],
+  [6, 0.321, 'Crossover under'], [6, 0.815, 'South street'], [8, 0.9, 'West lot', 'dirt'],
+  [11, 0.55, 'Avenue west'],
+];
+// its joker: from the north lot's cut to the street north's, round the tight layout's corners
+// (the jump on its straight as there)
+const LOOSE_JOKER = { corners: TIGHT_JOKER.corners };
+const IS_LOOSE = process.argv[2] === 'loose';
+const LAP = IS_LOOSE ? LOOSE_LAP : TIGHT_LAP;
 // THE GAP JUMP on the joker straight (heading west, rot PI): the kicker's lip at LIP_X, the gap
 // GAP_M to the landing deck - the kicker a ramp (world/terrain.ts: t^2, steepest at its lip, the
 // ground falling away there) KICK_H high over KICK_LEN, the landing a table (its rising face in
@@ -83,6 +110,29 @@ const arcs = LAP.map((corner, i) => fillet(lapVerts[(i - 1 + count) % count], la
 const loopParts = [];
 for (let i = 0; i < count; i++) loopParts.push(arcs[i], line(arcs[i].at(-1), arcs[(i + 1) % count][0]));
 let loop = join(loopParts);
+// (the loose layout's checks: no corner under its least radius, no two corners' arcs overlapping;
+// its cuts on the straights)
+const straightOf = (i) => [arcs[i].at(-1), arcs[(i + 1) % count][0]];
+if (IS_LOOSE) {
+  LAP.forEach(([x, y, radius], i) => {
+    if (radius < LOOSE_MIN_R_M) throw new Error(`corner ${x},${y}: radius ${radius} m`);
+    const [from, to] = straightOf(i), [prevFrom, prevTo] = straightOf((i - 1 + count) % count);
+    const heading = Math.atan2(to[1] - from[1], to[0] - from[0]);
+    const before = Math.atan2(prevTo[1] - prevFrom[1], prevTo[0] - prevFrom[0]);
+    if (Math.cos(heading - before) < -0.99) throw new Error(`corner ${x},${y}: folds`);
+    const ahead = [LAP[(i + 1) % count][0] - x, LAP[(i + 1) % count][1] - y];
+    if ((to[0] - from[0]) * ahead[0] + (to[1] - from[1]) * ahead[1] < 0)
+      throw new Error(`corners ${x},${y} and the next overlap`);
+  });
+}
+const CUTS = IS_LOOSE ? LOOSE_CUTS.map(([i, share, name, surface]) => {
+  const [from, to] = straightOf(i);
+  return [from[0] + (to[0] - from[0]) * share, from[1] + (to[1] - from[1]) * share, name,
+    ...(surface ? [surface] : [])];
+}) : TIGHT_CUTS;
+const JOKER = IS_LOOSE
+  ? { ...LOOSE_JOKER, from: CUTS.find((cut) => cut[2] === 'North lot').slice(0, 2),
+    to: CUTS.find((cut) => cut[2] === 'Street north').slice(0, 2) } : TIGHT_JOKER;
 // densified: every STEP m, then the cuts' points put in
 const nearestIdx = (pts, [x, y]) => { let best = 0, bd = Infinity; pts.forEach(([px, py], i) => { const d = Math.hypot(px - x, py - y); if (d < bd) [bd, best] = [d, i]; }); return [best, bd]; };
 // (each cut on the loop's line: a straight's point; insert it exactly)
@@ -135,7 +185,10 @@ for (const piece of pieces.filter((entry) => !/Crossover/.test(entry.name))) {
   for (const side of [1, -1]) {
     let run = [];
     for (const point of offset(piece.pts, side, RAIL_M)) {
-      if (roadGap(point) > KEEP_M && !inStrip(point)) { run.push(point); continue; }
+      // (the loose layout keeps the lap's own rails along the strip: its north street bends out
+      // from the joker, and without them the strip lay open to the street, bales only)
+      const stripped = (!IS_LOOSE || piece.name !== 'North lot') && inStrip(point);
+      if (roadGap(point) > KEEP_M && !stripped) { run.push(point); continue; }
       if (run.length >= MIN_PTS) rails.push(run);
       run = [];
     }
@@ -146,7 +199,7 @@ for (const piece of pieces.filter((entry) => !/Crossover/.test(entry.name))) {
 // crossing, in the block the course leaves out), the convention halls (south-east), offices and
 // shops on the corners outside; the kinds the venue's own (world/venuescenery.ts: a flat-roofed
 // block)
-const BLOCKS = [
+const TIGHT_BLOCKS = [
   ['L.A. Lively Arena', -85, -75, 80, 70, 0, 'public'],
   ['Convention hall', 75, 50, 90, 50, 0, 'commercial'],
   ['Convention hall west', 22, 62, 14, 30, 0, 'commercial'],
@@ -160,6 +213,13 @@ const BLOCKS = [
   ['Studios west', -75, -200, 100, 26, 0, 'office'],
   ['Theatre', 205, 30, 34, 60, 0, 'public'],
 ];
+// the loose layout moves what its line comes near: the offices west of the hairpin out of its way
+// [name, x, y]
+const LOOSE_BLOCK_MOVES = [['Offices', -228, 72]];
+const BLOCKS = TIGHT_BLOCKS.map((box) => {
+  const moved = IS_LOOSE && LOOSE_BLOCK_MOVES.find(([name]) => name === box[0]);
+  return moved ? [box[0], moved[1], moved[2], ...box.slice(3)] : box;
+});
 // (each box kept BLOCK_KEEP_M off every road's centre: its corners and edges' middles)
 const BLOCK_KEEP_M = 15;
 const boxPts = ([, x, y, w, h]) => [[x - w / 2, y - h / 2], [x + w / 2, y - h / 2], [x + w / 2, y + h / 2], [x - w / 2, y + h / 2], [x, y - h / 2], [x, y + h / 2], [x - w / 2, y], [x + w / 2, y], [x, y]];
@@ -185,7 +245,10 @@ const floods = [];
 const floodClear = (at) => roadGap(at) > FLOOD_KEEP_M
   && ![...BLOCKS, ...STANDS].some((box) => insideBox(box, at, 3))
   && rails.every((rail) => segGap(rail, at) > 6) && Math.hypot(at[0], at[1]) > FLOOD_CROSS_M
-  && floods.every((flood) => Math.hypot(flood.at[0] - at[0], flood.at[1] - at[1]) > FLOOD_APART_M);
+  && floods.every((flood) => Math.hypot(flood.at[0] - at[0], flood.at[1] - at[1]) > FLOOD_APART_M)
+  // (the loose layout: none in the joker's strip either - its bales and tape run down it, and the
+  // wider strip there put a pylon on a tape post)
+  && (!IS_LOOSE || !inStrip(at));
 for (const road of allRoads) {
   let run = FLOOD_EVERY / 2;
   for (let i = 1; i < road.length; i++) {
@@ -217,8 +280,13 @@ const KITS = {
   pallets: [[0, 0, 'pallet'], [1.6, 0.3, 'pallet'], [0.8, 1.5, 'box'], [2.6, 1.2, 'crate']],
   tarp: [[0, 0, 'tarp', '#f07a1a'], [1.7, 0.4, 'sandbag'], [1.9, -0.6, 'sandbag']],
 };
-const HEAPS = [[118, -78, 'tyres'], [40, -78, 'barrels'], [-118, 45, 'tyres'], [-40, 55, 'pallets'],
+const TIGHT_HEAPS = [[118, -78, 'tyres'], [40, -78, 'barrels'], [-118, 45, 'tyres'], [-40, 55, 'pallets'],
   [128, -172, 'barrels'], [-40, 112, 'tarp'], [40, 22, 'pallets'], [-118, 22, 'barrels']];
+// the loose layout's: the west lot's two heaps (its hairpin's legs run where they lay) into the
+// infield [x, y, kit] in their place
+const LOOSE_HEAP_MOVES = { '-118,45': [-100, 65, 'tyres'], '-118,22': [-75, 30, 'barrels'] };
+const HEAPS = TIGHT_HEAPS.map((heap) => (IS_LOOSE && LOOSE_HEAP_MOVES[`${heap[0]},${heap[1]}`])
+  || heap);
 const litter = HEAPS.flatMap(([x, y, kit]) => KITS[kit].map(([dx, dy, kind, col]) =>
   ({ at: [r1(x + dx), r1(y + dy)], kind, ...(col ? { col } : {}) })));
 const litterReport = HEAPS.map(([x, y, kit]) => `${kit}@${x},${y}: road ${roadGap([x, y]).toFixed(1)} rail ${Math.min(...rails.map((rail) => segGap(rail, [x, y]))).toFixed(1)}`);
@@ -230,11 +298,20 @@ const litterReport = HEAPS.map(([x, y, kit]) => `${kit}@${x},${y}: road ${roadGa
 // start's stand's west end; show cars in the infield by the avenue's stand. Each item kept
 // DRESS_ROAD_M off every road's centre and DRESS_KEEP_M off a block, a stand's own keep-off, a
 // flag or pylon (the kits' DRESS_*_M) and the litter; one that is not is left out and reported
-const DRESS = [
+const TIGHT_DRESS = [
   [140, 5, 0, 'paddock'], [105, -8, 0, 'transporters'], [170, 8, 0, 'motorhome'],
   [30, -160, 0, 'tvcamera'], [118, -158, 0, 'fans'], [-113, 111, 180, 'fans'],
   [-100, 30, 0, 'showcars'],
 ];
+// the loose layout's moves [kit, x, y, heading deg]: the transporters off the east lot's
+// diagonal (east, by the paddock), the TV platform past the pylon the joker's corner now
+// has, the show cars off the hairpin's legs
+const LOOSE_DRESS_MOVES = [['transporters', 158, -12, 0], ['tvcamera', 8, -160, 0],
+  ['showcars', -85, 60, 0]];
+const DRESS = TIGHT_DRESS.map((item) => {
+  const moved = IS_LOOSE && LOOSE_DRESS_MOVES.find(([kit]) => kit === item[3]);
+  return moved ? [moved[1], moved[2], moved[3], item[3]] : item;
+});
 const DRESS_ROAD_M = 9.5, DRESS_KEEP_M = 2, DRESS_LITTER_M = 1.5;
 const dressDropped = [];
 const dressSite = { rails, stands, marks: [...flags, ...floods], isFree: (at, reach) =>
@@ -258,7 +335,10 @@ const jump = [
 // WRITE
 const json = (value) => JSON.stringify(value).replace(/,(?=["[{\d-])/g, ', ').replace(/":(?=["[{\d-]|true|false)/g, '": ');
 const lines = [
-  '// lalively.ts - written by tools/scratch/_lalivelydata.mjs (laid by hand: the X Gayms',
+  ...(IS_LOOSE ? ['// lalivelyloose.ts - written by tools/scratch/_lalivelydata.mjs loose (the LOOSE',
+    "// layout, ?xgaymsloose=1: the X Gayms course re-laid less boxy - mixed corners, bending streets,",
+    '// free lines across the lots; laid by hand: the X Gayms'] : [
+    '// lalively.ts - written by tools/scratch/_lalivelydata.mjs (laid by hand: the X Gayms']),
   "// rallycross course round the arena's streets and lots, Los Angeles 2012, a figure of eight with",
   '// one crossover bridge and the joker\'s gap jump). Game m (share 1). Edit the generator, not this',
   '// file.',
@@ -292,8 +372,16 @@ lines.push("// the joker's gap jump: the kicker (a ramp) and the landing (a tabl
   'export const LALIVELY_JUMP: Bump[] = [');
 for (const bump of jump) lines.push(`  ${json({ ...bump, rot: Math.round(bump.rot * 1e6) / 1e6 })},`);
 lines.push('];', '');
+// (the loose layout: its lap's length as laid, m - the venue calibrates its lap to it, so a
+// metre here is a metre in the game as the tight layout's 942.5)
+const laidLapM = pieces.filter((piece) => CUTS.some((cut) => cut[2] === piece.name))
+  .reduce((sum, piece) => sum + piece.pts.slice(1).reduce((run, point, i) =>
+    run + Math.hypot(point[0] - piece.pts[i][0], point[1] - piece.pts[i][1]), 0), 0);
+if (IS_LOOSE) lines.push("// the lap's length as laid, m (VenueSpec.calibrate)",
+  `export const LALIVELY_LAP_M = ${laidLapM.toFixed(1)};`, '');
 const wrapped = lines.flatMap((text) => { if (text.length <= 100) return [text]; const parts = []; let rest = text; while (rest.length > 100) { const cut = rest.lastIndexOf(', ', 98); if (cut < 12) break; parts.push(rest.slice(0, cut + 1)); rest = `      ${rest.slice(cut + 2)}`; } parts.push(rest); return parts; });
-fs.writeFileSync('src/world/levels/venues/lalively.ts', wrapped.join(String.fromCharCode(10)));
+fs.writeFileSync(`src/world/levels/venues/${IS_LOOSE ? 'lalivelyloose' : 'lalively'}.ts`,
+  wrapped.join(String.fromCharCode(10)));
 const len = (pts) => pts.slice(1).reduce((s, p, i) => s + Math.hypot(p[0] - pts[i][0], p[1] - pts[i][1]), 0);
 const lapLen = pieces.filter((piece) => lapNames.includes(piece.name)).reduce((s, p) => s + len(p.pts), 0);
 const dirtLen = pieces.filter((piece) => lapNames.includes(piece.name) && piece.surface).reduce((s, p) => s + len(p.pts), 0);
@@ -304,6 +392,13 @@ console.log('blocks:', blockReport.join('; '));
 console.log('stands:', standReport.join('; '));
 console.log('litter:', litterReport.join('; '));
 console.log('jump', JSON.stringify(jump));
+// (each corner's turn and radius: the loose layout's mix)
+console.log('corners:', LAP.map(([x, y, radius], i) => {
+  const prev = LAP[(i - 1 + count) % count], next = LAP[(i + 1) % count];
+  const turn = Math.atan2(next[1] - y, next[0] - x) - Math.atan2(y - prev[1], x - prev[0]);
+  const deg = Math.round(((turn * 180 / Math.PI + 540) % 360) - 180);
+  return `${x},${y} r${radius} ${deg > 0 ? 'R' : 'L'}${Math.abs(deg)}`;
+}).join('; '));
 console.log('dressing:', dressItems.filter((item) => item.prop).length, 'props,',
   dressItems.filter((item) => !item.prop).length, 'loose; left out',
   dressDropped.length ? dressDropped.join('; ') : 'none');

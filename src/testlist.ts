@@ -30,4 +30,14 @@ export const TEST_LIST: TestEntry[] = [
     wrong: 'Flat dark bands across the road in the cut, a step or seam where it starts, the'
       + ' lines or the wear stopping at the cut, grass or pavement showing in it.',
   },
+  {
+    id: 'xgaymsloose',
+    added: '2026-11-13',
+    name: 'L.A. Lively re-laid looser: mixed corners, bending streets, free lines on the dirt',
+    where: 'Test link + &xgaymsloose=1: TEST MODE > RALLYCROSS > L.A. Lively',
+    try: 'A race with a full grid, day and night: the west lot hairpin, the fast sweep into the'
+      + ' east lot, the corner that tightens onto the north street, the joker and its jump.',
+    wrong: 'A corner that still reads square, a kink or fold in the road, a car stuck, Armco'
+      + ' ending in the open, anything on the road, the jump not cleared from 60 km/h.',
+  },
 ];

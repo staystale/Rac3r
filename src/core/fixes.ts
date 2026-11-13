@@ -59,4 +59,7 @@ export const FIX = {
   // lines - with the ramp's darkening laid over it (before, flat bands were painted in its place;
   // render/props/venueprops.ts drawTunnel)
   cutroad: atLoad('cutroad'),
+  // ?xgaymsloose=1: L.A. Lively re-laid less boxy - mixed corners, bending streets, free lines
+  // across the dirt lots (world/levels/venues/lalivelyloose.ts; the plain link keeps today's)
+  xgaymsloose: atLoad('xgaymsloose'),
 };

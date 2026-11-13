@@ -13,6 +13,34 @@ The 11-11 round (14 entries, 11 switches) passed 11-12, and the performance roun
 carcull, the texture warm-up) and the stadium crossovers passed 11-12 ("mostly pass"), their
 records in `TODO-DONE.md` (PASSED 11-12). On the phone now:
 
+- X GAYMS LOOSER (`?xgaymsloose=1`; owner 11-13: "loosen up the track so it's more natural and
+  unique and less boxy n precise"; the shape agreed): L.A. Lively re-laid from the same generator
+  (`tools/scratch/_lalivelydata.mjs loose` -> venues/lalivelyloose.ts; the plain link's lalively.ts
+  byte for byte as it was). Kept: the figure of eight, the bridge at 90 deg, the joker and its
+  jump, the blocks, stands, flags, dressing. CORNERS (vertex turn, radius): out of the avenue a
+  fast SWEEPER into the east lot (L61, r38) and up it (L29, r36); a corner that TIGHTENS onto the
+  north street (L51 r28, then L52 r14); a KINK along it (R20, r30); the north corner (L97, r18);
+  the south corner (R97, r24); the south street bending (L11, r150) to the start; into the west
+  lot (R47, r26), a HAIRPIN (R153, r15), back across the lot (L56, r28) and the avenue's bend
+  (R40, r40). 923 m (942), dirt 43 % (43). Moved: the offices west of the hairpin (-205,45 ->
+  -228,72), two litter heaps, the transporters, the TV platform and the show cars (off the new
+  line); nothing left out; least radius 10 m (VenueSpec.minR: the venues' 15.5 opened the
+  hairpin across its own legs). CHECKS (on vs today's): lap rally-4x4 58.8 s (59.3), rx-super
+  57.5 (58.0), 0 s off the road; worst kink 7.3 deg over 1.5 m (6.9), no fold, kerbside none
+  too tight; crossingcheck OK; crossover 20 AI seeds 1 / 2: 0 on the wrong level (the flagged
+  cars are the joker's branch, as today's); portal drives clean; barriercheck OK, propcheck
+  nothing on a light; venueaudit 2 fold-backs at the strip's west end and 4 Armco ends by the
+  joker (today's 3), sealing 20 escape blocks (17: all the joker's strip, as today's); free ends
+  1 (2); portalflare 9-11 deg, no barrier in a wall; jokercost 3.9 s (5.1); aijokercheck 5
+  seeds, one gate each (seed 3 never jokers, as today's); gap jump cleared from 60 km/h (the
+  same); AI over it 20 AI seed 1 18 cleared / 2 short (17 / 3), seed 2 16 / 5 short / 2 no
+  flight (19 / 1), none stuck. FRAMES (framecheck CPU x4, 20 AI, work median off / on / off /
+  on): night 20.2 / 22.2 / 18.4 / 21.6 (frames over 33 ms 242 / 292 / 174 / 278), day 20.7 /
+  13.3 / 14.4 / 17.5 - night about +2.5 ms both pairs; the CPU profile's loop is not slower
+  (9.0 vs 9.2 s). Worldhash and renderhash with it off SAME.
+  WRONG: a corner that still reads square, a kink or fold in the road, a car stuck, Armco ending
+  in the open, anything on the road, the jump not cleared from 60 km/h.
+
 - THE ROAD IN A CROSSOVER'S CUT (`?cutroad=1`; owner 11-13 on X Gayms: "strange road terrain on
   tunnel cross over area", "very uniform and not like the rest of the track"). CAUSE: the open
   cut is the portal's ramp (8 m of each 9 m portal), and render/props/venueprops.ts drawTunnel
@@ -42,12 +70,7 @@ records in `TODO-DONE.md` (PASSED 11-12). On the phone now:
 
 ## 2. BEING BUILT
 
-- X GAYMS LOOSER (owner 11-13: "loosen up the track so it's more natural and unique and less boxy
-  n precise"; the shape agreed, "Ok"): L.A. Lively re-laid behind `?xgaymsloose=1`, today's kept
-  to compare - the figure of eight, the bridge, the three dirt lots, the joker and its gap jump,
-  ~940 m and the blocks kept; the corners mixed (a fast sweeper, a tight hairpin, one that
-  tightens, a kink) instead of square 90s, the straights bending as streets do, the dirt lines
-  free across the lots, barriers and lamps following. No AI change. Next for the worker.
+- Nothing.
 
 ## 3. OPEN, IN THE OWNER'S ORDER
 

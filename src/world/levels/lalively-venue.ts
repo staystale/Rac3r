@@ -23,13 +23,19 @@
 // 50 m and street lights along every straight (Level.streetLamps: it races at the game's own
 // hour - lit by night, the city by day), litter in the event's colours behind the barriers.
 // North up.
-import { LALIVELY_DRESS, LALIVELY_DRESS_LITTER, LALIVELY_FLAGS, LALIVELY_FLOODS, LALIVELY_JUMP,
-  LALIVELY_LITTER, LALIVELY_VENUE } from "./venues/lalively.ts";
+import * as TIGHT from "./venues/lalively.ts";
+import * as LOOSE from "./venues/lalivelyloose.ts";
+import { FIX } from "../../core/fixes.ts";
 import { venueLap } from "../venue.ts";
 import { prepBumps } from "../terrain.ts";
 import { rallycrossLevel } from "./rallycross-venue.ts";
 import type { VenueSpec } from "../venue.ts";
 import type { Level } from "../types.ts";
+
+// the layout raced: today's, or with ?xgaymsloose=1 the loose one (the generator's two outputs,
+// the same names in each)
+const { LALIVELY_DRESS, LALIVELY_DRESS_LITTER, LALIVELY_FLAGS, LALIVELY_FLOODS, LALIVELY_JUMP,
+  LALIVELY_LITTER, LALIVELY_VENUE } = FIX.xgaymsloose ? LOOSE : TIGHT;
 
 // the course's name and the event's (parodies approved by the owner 11-10), in one place
 export const LA_LIVELY = 'L.A. Lively';
@@ -40,13 +46,16 @@ export const LALIVELY_SPEC: VenueSpec = {
   // (laid in game m: the lap's own length calibrates it to itself)
   share: 1,
   realRoadM: 13,
-  calibrate: { layout: 'rx', realLapM: 942.5 },
+  calibrate: { layout: 'rx', realLapM: FIX.xgaymsloose ? LOOSE.LALIVELY_LAP_M : 942.5 },
   // the start line on the south street, the grid back east along it toward the street's corner
   start: [-100, 90],
   startOnLine: true,
   // the lap laid as arcs and straights: smoothed lightly (as the stadiums', so the crossover's
   // streets stay straight to their portals)
   trace: { rx: { passes: 2, kern: 2 }, joker: { passes: 2, kern: 2 } },
+  // (the loose layout: its hairpin's 12 m and the tightening corner's 14 m traced as laid - the
+  // venues' least radius, 15.5 m, opened the hairpin out across its own legs, 10 m off its line)
+  ...(FIX.xgaymsloose ? { minR: 10 } : {}),
   hills: [],
   banks: [],
   // the boards (the event's and the register's brands): on the barriers along the tarmac streets
