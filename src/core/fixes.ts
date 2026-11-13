@@ -54,4 +54,8 @@ export const FIX = {
   // ?xgaymsloose=1: L.A. Lively re-laid less boxy - mixed corners, bending streets, free lines
   // across the dirt lots (world/levels/venues/lalivelyloose.ts; the plain link keeps today's)
   xgaymsloose: atLoad('xgaymsloose'),
+  // ?fastbuild=1: a level builds faster, the same level - the builders' hottest nearest-point
+  // questions read an index of what is near instead of every line and point (world/venuegeo.ts,
+  // world/venueedge.ts, world/venueroads.ts)
+  fastbuild: atLoad('fastbuild'),
 };

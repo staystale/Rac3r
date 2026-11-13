@@ -2,8 +2,9 @@
 // the page opening ?level=<id> to the level built (window.__game.level is it) and to its first 30
 // frames drawn (the ground tiles, sprites and images the first frames paint), and the worst frame
 // in the 3 s after (the load's tail: tiles still painting). One browser, a fresh page per level.
-// node tools/browserload.mjs [level ...] [--cpu 4] [--ai 0]   (no level: every registered level)
-import { startServer, launchBrowser } from './lib/browser.mjs';
+// node tools/browserload.mjs [level ...] [--cpu 4] [--ai 0]   (no level: every registered level;
+// env RAC3R_QUERY: switches on the page)
+import { startServer, launchBrowser, extraQuery } from './lib/browser.mjs';
 
 const args = process.argv.slice(2);
 const option = (name, fallback) => {
@@ -44,7 +45,9 @@ async function timeLevel(browser, url, levelId) {
       });
     });
     const started = Date.now();
-    await page.goto(`${url}/?touch=1&guide=0&ai=${aiCount}&level=${levelId}&car=track-rwd`);
+    // (RAC3R_QUERY: switches on the page, e.g. fastbuild=1)
+    await page.goto(`${url}/?touch=1&guide=0&ai=${aiCount}&level=${levelId}&car=track-rwd`
+      + extraQuery());
     await page.waitForFunction((id) => window.__game?.level?.id === id, levelId,
       { timeout: LEVEL_TIMEOUT_MS, polling: 50 });
     const builtMs = Date.now() - started;

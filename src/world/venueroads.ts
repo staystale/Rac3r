@@ -4,7 +4,8 @@
 // lane, a paddock, a building, the track - or run off the map; a dangling spur is trimmed back to
 // its last junction, a road joining nothing goes.
 import { SURFACES } from "./surfaces.ts";
-import { KART_W, centreAt, clearRuns, distToLine, isClosedLoop, lineLength, nearestLoop,
+import { KART_W, centreAt, clearRuns, distToLine, isClosedLoop, isWithinLine, lineLength,
+  nearestLoop,
   isBeyondBox, isNearLine, lineBox, resample, roadDistance, smoothLine } from "./venuegeo.ts";
 import { inZones, pastRim } from "./venueedge.ts";
 import { joinFrom } from "./venuejoin.ts";
@@ -117,7 +118,7 @@ function joinedUp(site: Site, lanes: Lane[]): Lane[] {
     const others = [...site.lanes, ...kept];
     const meets = (run: Lane) => [run.pts[0], run.pts[run.pts.length - 1]].some(([x, y]) =>
       others.some((other) => other !== run
-        && distToLine(other.pts, x, y) < (other.width + run.width) / 2 + JOIN_M)
+        && isWithinLine(other.pts, x, y, (other.width + run.width) / 2 + JOIN_M))
       || inSolid(site, x, y, run.width / 2 + JOIN_M));
     const next = kept.filter((run) => lineLength(run.pts) >= LONE_ROAD_M || meets(run));
     if (next.length === kept.length) break;
@@ -150,7 +151,7 @@ function endMeets(site: Site, road: Lane, end: Point, ends: RoadEnds): boolean {
   const before = (step: number) => road.pts[atStart ? Math.min(count - 1, step)
     : Math.max(0, count - 1 - step)];
   const reach = (other: Lane, point: Point) =>
-    distToLine(other.pts, point[0], point[1]) < (other.width + road.width) / 2 + TOUCH_M;
+    isWithinLine(other.pts, point[0], point[1], (other.width + road.width) / 2 + TOUCH_M);
   const metBefore = (other: Lane) => {
     for (let step = STUB_FROM; step <= STUB_PTS; step++)
       if (reach(other, before(step))) return true;
@@ -240,7 +241,7 @@ function firstJunction(site: Site, road: Lane, fromStart: boolean): number {
   for (let step = 1; step < count; step++) {
     const i = fromStart ? step : count - 1 - step, [x, y] = road.pts[i];
     if (site.lanes.some((other) => other !== road
-      && distToLine(other.pts, x, y) < (other.width + road.width) / 2 + 1)) return i;
+      && isWithinLine(other.pts, x, y, (other.width + road.width) / 2 + 1))) return i;
   }
   return -1;
 }
@@ -293,7 +294,7 @@ export function tidyRoads(site: Site, roads: Lane[], ends: RoadEnds): Lane[] {
 function isBypass(site: Site, road: Lane): boolean {
   if (isClosedLoop(road.pts)) return false;
   const joined = (end: Point) => site.lanes.filter((other) => other !== road
-    && distToLine(other.pts, end[0], end[1]) < (other.width + road.width) / 2 + JOIN_GAP_M);
+    && isWithinLine(other.pts, end[0], end[1], (other.width + road.width) / 2 + JOIN_GAP_M));
   const first = joined(road.pts[0]), last = joined(road.pts[road.pts.length - 1]);
   return first.some((lane) => last.includes(lane));
 }
@@ -391,7 +392,7 @@ export function withoutDuplicates(site: Site, roads: Lane[], fixed: Lane[]): Lan
 export function handFinish(site: Site, roads: Lane[]): Lane[] {
   const finish = site.build.spec.finish;
   if (!finish) return roads;
-  const near = (road: Lane, [x, y]: Point) => distToLine(road.pts, x, y) < FINISH_REACH_M;
+  const near = (road: Lane, [x, y]: Point) => isWithinLine(road.pts, x, y, FINISH_REACH_M);
   const miss = (what: string, [x, y]: Point) =>
     console.warn(`venue ${site.build.spec.id}: finish ${what} at ${x},${y} meets no road`);
   let kept = roads.filter((road) => !(finish.drop || []).some((spot) => near(road, spot)));

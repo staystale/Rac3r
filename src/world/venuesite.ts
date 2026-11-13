@@ -7,6 +7,7 @@ import { HALF_ROAD, centreAt, distToLine, isNearLine, nearestLoop, roadDistance 
 import { pastRim } from "./venueedge.ts";
 import { insidePolygon } from "./zones.ts";
 import { gridKey } from "../core/pointgrid.ts";
+import { FIX } from "../core/fixes.ts";
 import type { Rim } from "./venueedge.ts";
 import type { VenueBuild } from "./venue.ts";
 import type { Lane, Point, Prop, Subtrack } from "./types.ts";
@@ -60,13 +61,22 @@ function rowOutline(prop: Prop): RowOutline {
  * @returns true when in or that near one
  */
 export function inBuilding(buildings: Prop[], x: number, y: number, pad: number): boolean {
-  const grid = buildingGrid(buildings);
   // (a box building is within pad only inside its circle grown by pad x sqrt 2: so near its box)
   const reach = Math.max(0, pad) * BOX_PAD_SHARE;
   const fromX = Math.floor((x - reach) / BUILDING_CELL_M);
   const toX = Math.floor((x + reach) / BUILDING_CELL_M);
   const fromY = Math.floor((y - reach) / BUILDING_CELL_M);
   const toY = Math.floor((y + reach) / BUILDING_CELL_M);
+  // (?fastbuild=1: one building asked about - a list made for the one question - by its own cells:
+  // what its grid would answer, without filing it; MEASURED, Sillystone's buildings asked one at a
+  // time against each other built a grid per question, ~0.15 s)
+  if (FIX.fastbuild && buildings.length === 1) {
+    const box = buildingBox(buildings[0]);
+    const cell = (value: number) => Math.floor(value / BUILDING_CELL_M);
+    return !!box && cell(box[0]) <= toX && cell(box[2]) >= fromX && cell(box[1]) <= toY
+      && cell(box[3]) >= fromY && isInOne(buildings[0], x, y, pad);
+  }
+  const grid = buildingGrid(buildings);
   for (let cellX = fromX; cellX <= toX; cellX++) {
     for (let cellY = fromY; cellY <= toY; cellY++) {
       const cell = grid.cells.get(gridKey(cellX, cellY));

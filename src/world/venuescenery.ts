@@ -11,7 +11,8 @@ import { SURFACES } from "./surfaces.ts";
 import { querySubtrack } from "./tyrewall.ts";
 import { parkMiller } from "../core/random.ts";
 import { isAnyPointInBox, isAnyPointWithin, makePointGrid } from "../core/pointgrid.ts";
-import { HALF_ROAD, VENUE_ROAD_M, centreAt, distToLine, evenly, isNearLine, kerbOut,
+import { HALF_ROAD, VENUE_ROAD_M, centreAt, distToLine, evenly, isBeyondLine, isNearLine,
+  isWithinLine, kerbOut,
   lineLength, makePlacer, nearestLoop, pointAlong, resample, smoothLine } from "./venuegeo.ts";
 import { WALL_REACH_M, boxedLine, buildEdge, railLines, buildRims, inZones, outlineZone, pastRim,
   trapZones } from "./venueedge.ts";
@@ -391,7 +392,7 @@ function rowSlots(site: Site, box: Prop, zone: Zone, spacing: [number, number, n
       if (slots.length >= most || site.rnd() > share) continue;
       const x = box.x + cosR * bay - sinR * row, y = box.y + sinR * bay + cosR * row;
       // never on the pit apron (between the pit lane and the garage doors)
-      if (fits(x, y) && site.pitPts.every((line) => distToLine(line, x, y) > PIT_APRON_M))
+      if (fits(x, y) && site.pitPts.every((line) => isBeyondLine(line, x, y, PIT_APRON_M)))
         slots.push({ x, y });
     }
   return slots;
@@ -564,7 +565,7 @@ function edgeNeeds(site: Site, bridges: Prop[], portals: Prop[],
   const spots = spectatorSpots(site, site.buildings);
   return {
     ...(lines.walls.length ? { walled: (x: number, y: number) =>
-      lines.walls.some((wall) => distToLine(wall.pts, x, y) < WALL_REACH_M) } : {}),
+      lines.walls.some((wall) => isWithinLine(wall.pts, x, y, WALL_REACH_M)) } : {}),
     ...(lines.rails.length ? { rails: lines.rails, mix: lines.mix } : {}),
     hazard: (x, y) => inBuilding(solids, x, y, 1) || inBuilding(decks, x, y, 0),
     watched: (x, y) => spots.some(([spotX, spotY]) => Math.abs(spotX - x) < SPECTATOR_REACH_M
@@ -742,8 +743,8 @@ export function buildVenueScenery(build: VenueBuild, sub: Subtrack, closed: Lane
   const outerWall = ovalWall(site), walls = [...pitWalls, ...(outerWall ? [outerWall] : [])];
   const edge = buildEdge(site.rims, { loops, lanes: site.lanes,
     blocked: (x, y) => inBuilding(site.buildings, x, y, 1)
-      || pitWalls.some((wall) => distToLine(wall.pts, x, y) < PIT_WALL_CLEAR_M)
-      || (!!outerWall && distToLine(outerWall.pts, x, y) < OVAL_WALL_CLEAR_M),
+      || pitWalls.some((wall) => isWithinLine(wall.pts, x, y, PIT_WALL_CLEAR_M))
+      || (!!outerWall && isWithinLine(outerWall.pts, x, y, OVAL_WALL_CLEAR_M)),
     roads: pitLanes }, traps,
   edgeNeeds(site, bridges.props, tunnels.props, lines));
   for (const rail of edge.barriers)

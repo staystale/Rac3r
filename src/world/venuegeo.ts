@@ -4,6 +4,7 @@
 // race road so the game's wider road (13 m against the real one at scale) keeps the real gaps
 // between the road and what stands beside it.
 import { querySubtrack } from "./tyrewall.ts";
+import { FIX } from "../core/fixes.ts";
 import type { Point, Subtrack, SubtrackHit, TrackPoint } from "./types.ts";
 
 // m (game): the game's road on every circuit
@@ -150,6 +151,41 @@ const distToChunk = (pts: Point[], x: number, y: number, chunk: number, start: n
  */
 export const isNearLine = (pts: Point[], x: number, y: number, reach: number): boolean =>
   !isBeyondBox(lineBox(pts), x, y, reach) && distToLine(pts, x, y) < reach;
+
+/**
+ * Whether a point is farther from a line than reach (distToLine > reach), the line's box first: a
+ * point more than reach outside the box is farther from every segment in it.
+ * @param pts the line
+ * @param x world x
+ * @param y world y
+ * @param reach metres
+ * @returns true when farther
+ */
+export const isFarFromLine = (pts: Point[], x: number, y: number, reach: number): boolean =>
+  isBeyondBox(lineBox(pts), x, y, reach) || distToLine(pts, x, y) > reach;
+
+/**
+ * Whether a point is nearer a line than reach: the builders' question, asked with the line's box
+ * first under ?fastbuild=1 (the same answer: the box only skips lines too far to be nearer).
+ * @param pts the line
+ * @param x world x
+ * @param y world y
+ * @param reach metres
+ * @returns true when nearer
+ */
+export const isWithinLine = (pts: Point[], x: number, y: number, reach: number): boolean =>
+  (FIX.fastbuild ? isNearLine(pts, x, y, reach) : distToLine(pts, x, y) < reach);
+
+/**
+ * Whether a point is farther from a line than reach, the line's box first under ?fastbuild=1.
+ * @param pts the line
+ * @param x world x
+ * @param y world y
+ * @param reach metres
+ * @returns true when farther
+ */
+export const isBeyondLine = (pts: Point[], x: number, y: number, reach: number): boolean =>
+  (FIX.fastbuild ? isFarFromLine(pts, x, y, reach) : distToLine(pts, x, y) > reach);
 
 /** A line's bounding box. */
 export interface LineBox { minX: number; minY: number; maxX: number; maxY: number }

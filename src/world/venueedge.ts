@@ -10,8 +10,12 @@
 // outside each corner, boards on it (world/venueposts.ts).
 import { TRAP_NEAR_M, inZones } from "./venuetraps.ts";
 import { insidePolygon } from "./zones.ts";
-import { HALF_ROAD, centreAt, clearRuns, distToLine, evenly, joinEnds, lineLength, nearestLoop,
-  trimEnds } from "./venuegeo.ts";
+import { querySubtrack } from "./tyrewall.ts";
+import { FIX } from "../core/fixes.ts";
+import { isAnyPointNear } from "../core/pointgrid.ts";
+import { dropFacingByGrid, usedGrid } from "./edgegrid.ts";
+import { HALF_ROAD, centreAt, clearRuns, distToLine, evenly, isBeyondLine, isWithinLine, joinEnds,
+  lineLength, nearestLoop, trimEnds } from "./venuegeo.ts";
 import { crossoverAt, overCap, underSpan, underground } from "./venuecross.ts";
 import { EDGE_ARMCO, EDGE_BARRIERS, EDGE_CATCH, EDGE_NONE, EDGE_WOOD, FENCE_KINDS, WOOD_RUNOFF_M,
   fillGaps, growRuns, kindRuns, railEdge, woodOnOpen } from "./venuefences.ts";
@@ -54,6 +58,7 @@ const MIDLINE_APART_M = 40;
 const MIDLINE_MERGE_M = 4;
 // m within which two samples on the midline are one barrier's
 const FACING_M = 1.5;
+const FACING_TERMS = { none: EDGE_NONE, apart: MIDLINE_APART_M / RIM_STEP_M, facingM: FACING_M };
 // m (game): a rim point nearer another road's centre than its half width + this is left out
 const ROAD_CLEAR_M = 2.5;
 // m: the longest single Armco run (collision and drawing skip far runs by their box)
@@ -182,7 +187,8 @@ function insideReach(sub: Subtrack, dist: number, side: number): number {
 function midline(sub: Subtrack, centre: TrackPoint, side: number): number {
   for (let out = HALF_ROAD + 1; out <= HALF_ROAD + RUNOFF_M + MIDLINE_MERGE_M; out += 0.25) {
     const x = centre.x + centre.nx * side * out, y = centre.y + centre.ny * side * out;
-    const { hit } = nearestLoop([sub], x, y);
+    // (one road: its own lookup, as nearestLoop of it alone answers)
+    const hit = FIX.fastbuild ? querySubtrack(sub, x, y) : nearestLoop([sub], x, y).hit;
     const along = Math.abs(hit.trackDist - centre.dist);
     // (never the road below a crossover: it runs under this one, world/venuecross.ts)
     const apart = Math.min(along, sub.totalDist - along) > MIDLINE_APART_M
@@ -255,12 +261,12 @@ function wallDepth(centre: TrackPoint, side: number, walls: WallLine[]): number 
   if (!near.length) return 0;
   for (let out = HALF_ROAD + 0.5; out <= HALF_ROAD + WALL_LOOK_M; out += 0.5) {
     const x = centre.x + centre.nx * side * out, y = centre.y + centre.ny * side * out;
-    if (near.some((wall) => distToLine(wall.pts, x, y) < WALL_HIT_M))
+    if (near.some((wall) => isWithinLine(wall.pts, x, y, WALL_HIT_M)))
       return Math.max(out, HALF_ROAD + WALL_RUNOFF_M);
   }
   const rimX = centre.x + centre.nx * side * (HALF_ROAD + RUNOFF_M);
   const rimY = centre.y + centre.ny * side * (HALF_ROAD + RUNOFF_M);
-  return near.some((wall) => distToLine(wall.pts, rimX, rimY) < WALL_REACH_M)
+  return near.some((wall) => isWithinLine(wall.pts, rimX, rimY, WALL_REACH_M))
     ? HALF_ROAD + WALL_RUNOFF_M : 0;
 }
 
@@ -276,7 +282,7 @@ function railBeside(centre: TrackPoint, side: number, rails: WallLine[]): WallLi
   const near = linesNear(rails, centre.x, centre.y, HALF_ROAD + RAIL_LOOK_M);
   for (let out = HALF_ROAD + 0.5; near.length && out <= HALF_ROAD + RAIL_LOOK_M; out += 1) {
     const x = centre.x + centre.nx * side * out, y = centre.y + centre.ny * side * out;
-    const hit = near.find((rail) => distToLine(rail.pts, x, y) < WALL_HIT_M);
+    const hit = near.find((rail) => isWithinLine(rail.pts, x, y, WALL_HIT_M));
     if (hit) return hit;
   }
   return null;
@@ -389,7 +395,7 @@ function edgeClear(keep: EdgeClear, x: number, y: number): boolean {
     const { hit } = nearestLoop([sub], x, y);
     if (hit.dist < HALF_ROAD + ROAD_CLEAR_M && !underground(sub, hit.trackDist)) return false;
   }
-  return keep.lanes.every((lane) => distToLine(lane.pts, x, y) > lane.width / 2 + 1)
+  return keep.lanes.every((lane) => isBeyondLine(lane.pts, x, y, lane.width / 2 + 1))
     && !keep.blocked(x, y);
 }
 
@@ -437,9 +443,13 @@ export function awayFrom(loops: Subtrack[], point: Point): Point {
 function withoutDoubles(pts: Point[], used: Point[], gapM: number): Point[][] {
   const runs: Point[][] = [];
   let run: Point[] = [];
+  const near = (point: Point) => ([x, y]: Point) => Math.abs(x - point[0]) < gapM
+    && Math.abs(y - point[1]) < gapM && Math.hypot(x - point[0], y - point[1]) < gapM;
+  // (?fastbuild=1: only the used points in the cells within gapM - the same test decides)
+  const grid = FIX.fastbuild ? usedGrid(used) : null;
   for (const point of pts) {
-    const doubled = used.some(([x, y]) => Math.abs(x - point[0]) < gapM
-      && Math.abs(y - point[1]) < gapM && Math.hypot(x - point[0], y - point[1]) < gapM);
+    const doubled = grid ? isAnyPointNear(grid, point[0], point[1], gapM, near(point))
+      : used.some(near(point));
     if (doubled) { if (run.length > 1) runs.push(run); run = []; } else run.push(point);
   }
   if (run.length > 1) runs.push(run);
@@ -454,6 +464,9 @@ function withoutDoubles(pts: Point[], used: Point[], gapM: number): Point[][] {
  * @param kinds what stands at each sample (changed)
  */
 function dropFacing(line: Point[], kinds: Uint8Array): void {
+  if (FIX.fastbuild) {
+    return dropFacingByGrid(line, kinds, FACING_TERMS);
+  }
   const count = kinds.length, apart = MIDLINE_APART_M / RIM_STEP_M;
   for (let i = 0; i < count; i++) {
     if (kinds[i] === EDGE_NONE) continue;
@@ -467,7 +480,6 @@ function dropFacing(line: Point[], kinds: Uint8Array): void {
     }
   }
 }
-
 
 /**
  * What decides the edge beside a road: hazards beyond it, where spectators stand, and the real
@@ -596,7 +608,7 @@ export function buildEdge(rims: Rim[], keep: EdgeClear, traps: Zone[], needs: Ed
   const clear = (x: number, y: number) => edgeClear(keep, x, y);
   const midlined = rims.some((rim) => MIDLINED.has(rim.left) || MIDLINED.has(rim.right));
   const nearRoad = (x: number, y: number) => (keep.roads || []).some((road) =>
-    distToLine(road.pts, x, y) < road.width / 2 + END_ROAD_M);
+    isWithinLine(road.pts, x, y, road.width / 2 + END_ROAD_M));
   for (const rim of rims) {
     // one barrier round the run-off of every layout: none inside another layout's run-off
     const others = rims.filter((other) => other !== rim);

@@ -231,7 +231,9 @@ A circuit is its real venue (`world/venue.ts` and `venue*.ts`, from OpenStreetMa
 is the spec of one, `levels/castle-cum-venue.ts` another): `venuescenery.ts` the
 scenery, `venueedge.ts` the barriers (traps, real tyre walls, a venue's real rails where it follows them,
 catch fences), `venueroads.ts` / `venuejoin.ts` the roads, `venuepit.ts` the pit lane, `tools/venueaudit.mjs`
-and `tools/venueplan.mjs` the checks. Its road bridges and tunnels are LEVELS a car can drive:
+and `tools/venueplan.mjs` the checks (`venuegeo.ts` the shared geometry: a line's distance pruned by
+its chunks' boxes; under `?fastbuild=1` the builders' near / far questions ask the line's box first, the edge's
+all-against-all ones a grid - `edgegrid.ts` - and one building by its own cells: the same answers). Its road bridges and tunnels are LEVELS a car can drive:
 `world/crossings.ts` `clampWorld` (every car's step, before `applyGround`) puts a car on a crossing when
 its centre comes in over an end between the walls and off when it passes an end; on one it meets only the
 crossing's walls, drives on its deck (`crossinggeo.ts`: tarmac, straight from end height to end height, no
