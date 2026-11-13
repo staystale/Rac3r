@@ -9,7 +9,9 @@
 import { calendarAt, CLOCK } from '../world/clock.ts';
 import { FIELD } from '../world/coverfield.ts';
 import { WEATHER, weatherSeason } from '../world/weather.ts';
+import { propsNear, screenBox } from './propgrid.ts';
 import type { Prop } from '../world/types.ts';
+import type { View } from './types.ts';
 
 // the share of trees that are firs (by seed)
 const FIR_SHARE = 0.4;
@@ -137,6 +139,74 @@ export function traceCanopies(ctx: CanvasRenderingContext2D, props: Prop[], map:
     // WHOLE light-map px (owner 11-01: "a lit edge round the canopy"): the dark goes back in
     // two fills (light.ts darkenCanopies: rub out, then fill); a part-covered edge px came out
     // LESS dark than either, a pale rim the smooth scale-up widened
+    const left = Math.round(x - side / 2), top = Math.round(y - side / 2);
+    ctx.rect(left, top, Math.round(x + side / 2) - left, Math.round(y + side / 2) - top);
+    count++;
+  }
+  return count;
+}
+
+// THE CANOPY WALK BY THE PROP GRID (FIX.perfpass): traceCanopies' answer from the trees the prop
+// grid (render/propgrid.ts) holds round the light map, the season looked up once a call and each
+// tree's kind (a fixed thing of its seed and palette) kept - the same squares in the same order.
+const TREE_KINDS = new WeakMap<Prop, 'scrub' | 'fir' | 'leafy'>();
+// the props list the largest canopy side was found for, its length then, and the side, m
+const LARGEST = { props: null as Prop[] | null, count: 0, sideM: 0 };
+
+/**
+ * A tree's kind, kept.
+ * @param prop the tree
+ * @returns scrub, fir or leafy
+ */
+function treeKind(prop: Prop): 'scrub' | 'fir' | 'leafy' {
+  let kind = TREE_KINDS.get(prop);
+  if (!kind) {
+    kind = kindOf(prop);
+    TREE_KINDS.set(prop, kind);
+  }
+  return kind;
+}
+
+/**
+ * The largest canopy side of a props list, m (found again when the list changes).
+ * @param props the props
+ * @returns the side
+ */
+function largestSideM(props: Prop[]): number {
+  if (LARGEST.props !== props || LARGEST.count !== props.length) {
+    let sideM = 0;
+    for (const prop of props) if (prop.kind === 'tree') sideM = Math.max(sideM, prop.s || 4);
+    LARGEST.props = props; LARGEST.count = props.length; LARGEST.sideM = sideM;
+  }
+  return LARGEST.sideM;
+}
+
+/**
+ * traceCanopies by the prop grid: the trees whose centre lies within the largest canopy side of
+ * the light map, tested as traceCanopies tests every tree (useGrid false: the whole list).
+ * @param ctx the light map's context (identity transform)
+ * @param props the level's props
+ * @param map the world-to-art-px mapping (as traceCanopies)
+ * @param map.artX world x to art px
+ * @param map.artY world y to art px
+ * @param map.artPerMetre art px a metre
+ * @param map.isNear whether a point is on the map, with a reach
+ * @param useGrid false on a level whose props stream (the whole list is walked)
+ * @returns how many canopies were added
+ */
+export function traceCanopiesNear(ctx: CanvasRenderingContext2D, props: Prop[], map: {
+  artX: (x: number) => number; artY: (y: number) => number; artPerMetre: () => number;
+  isNear: (x: number, y: number, reach: number) => boolean; }, useGrid: boolean): number {
+  const scale = map.artPerMetre(), isBareSeason = seasonNow() === 0;
+  const box = useGrid ? screenBox({ W: ctx.canvas.width, H: ctx.canvas.height } as View,
+    map.artX, map.artY, (largestSideM(props) + 1) * scale) : null;
+  const near = box ? propsNear(props, box) : null, total = near ? near.length : props.length;
+  let count = 0;
+  for (let i = 0; i < total; i++) {
+    const prop = props[near ? near[i] : i];
+    if (prop.kind !== 'tree' || (treeKind(prop) === 'leafy' && isBareSeason)) continue;
+    const side = (prop.s || 4) * scale, x = map.artX(prop.x), y = map.artY(prop.y);
+    if (!map.isNear(x, y, side)) continue;
     const left = Math.round(x - side / 2), top = Math.round(y - side / 2);
     ctx.rect(left, top, Math.round(x + side / 2) - left, Math.round(y + side / 2) - top);
     count++;

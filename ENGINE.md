@@ -219,6 +219,15 @@ the night light map (`render/light.ts drawSparkGlows`).
   tumbleweed with a breeze never sleeps. The movers are gathered from it. Identical objects and
   cars, 21 cars ploughing through 216-3 575 objects (`tools/scratch/_conebench.mjs`); Spa at
   rest 125 -> ~17 us a step in node.
+  The night layer: the canopies' dark (`render/light.ts darkenCanopies`) traces the trees the
+  prop grid holds round the light map grown by the level's largest canopy side
+  (`render/trees.ts traceCanopiesNear`; the streaming highway walks the whole list), the season
+  looked up once a call and each tree's kind kept; the event lights walk only the props of the
+  kinds that light and the caravans among the loose objects (`render/eventglows.ts`, lists kept
+  until the list changes, each kind still checked); the lamp pools and head glows make no list a
+  lamp, and a head glow wholly off the map is not drawn (its alpha still set, in order). The prop
+  grid files a prop by its drawn size, which a prop's lights outreach (a pit wall's lamps run
+  110 m from its centre), so the light props are listed by kind rather than by the grid.
 - The game clock: `world/clock.ts` - a global time of day / season / moon
   (1 game day = 1 real hour, a season 7 days), saved in its own storage key, run by the sim step
   in events (`game/loop.ts`); it sets the sky (`daylight.ts setSky`: darkness and the dark's

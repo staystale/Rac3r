@@ -13,8 +13,9 @@ import { traceDecks } from './lightdecks.ts';
 import { drawEventGlows } from './eventglows.ts';
 import { BRAKE_GLOW, BRAKE_GLOW_HOT, BRAKE_GLOW_M, hotBrakes } from './brakeglow.ts';
 import { HALO_X, STREAK_S } from './particles.ts';
-import { traceCanopies } from './trees.ts';
-import { PROPS } from '../world/state.ts';
+import { traceCanopies, traceCanopiesNear } from './trees.ts';
+import { LEVEL, PROPS } from '../world/state.ts';
+import { FIX } from '../core/fixes.ts';
 import {
   REVERSE_BEAM_HALF_M, REVERSE_BEAM_REACH_M, REVERSE_BEAM_STRENGTH, REVERSE_GLOW,
   REVERSE_GLOW_LEVEL,
@@ -49,6 +50,8 @@ const HEAD_GLOW_M = 1.1;
 // frame's sub-pixel shift (up to an art px either way), which left an undarkened strip along one
 // edge that jumped from side to side as the camera moved (owner: "light edges dancing")
 const MAP_MARGIN = 2;
+// map px past its edge a street light head glow is still drawn (FIX.perfpass): rounding only
+const HEAD_CULL_PX = 2;
 // a lamp pool's warm tint: its colour, 'r,g,b', its strength in the middle and its radius as a
 // share of the pool's (a floodlight's 34 m pool is tinted out to ~18 m)
 const POOL_TINT_RGB = '255,246,214', POOL_TINT_ALPHA = 0.16, POOL_TINT_SHARE = 0.53;
@@ -243,6 +246,7 @@ function isOnLevel(car: RenderCar, level: CarLevel): boolean {
 function drawHeadGlows(painter: GlowPainter) {
   painter.strength = GLOW_STRENGTH * DAYLIGHT.darkness;
   const size = 2 * HEAD_GLOW_M * painter.perMetre();
+  if (FIX.perfpass) { drawHeadGlowsNear(painter, size); return; }
   for (const lamp of activeLamps()) {
     if (lamp.kind !== 'street' || lamp.down || lamp.shown <= 0) continue;
     painter.ctx.globalAlpha = painter.strength * lamp.shown;
@@ -251,6 +255,36 @@ function drawHeadGlows(painter: GlowPainter) {
       painter.ctx.drawImage(painter.headGlow, painter.mapX(headX) - size / 2,
         painter.mapY(headY) - size / 2, size, size);
   }
+}
+
+/**
+ * drawHeadGlows (FIX.perfpass): the same heads in the same order, each with the same alpha set,
+ * but a head wholly off the map is not drawn (it would paint nothing) and no list is made a lamp.
+ * @param painter the light map and the mapping
+ * @param size the head glow's side, map px
+ */
+function drawHeadGlowsNear(painter: GlowPainter, size: number) {
+  for (const lamp of activeLamps()) {
+    if (lamp.kind !== 'street' || lamp.down || lamp.shown <= 0) continue;
+    painter.ctx.globalAlpha = painter.strength * lamp.shown;
+    drawHeadGlowAt(painter, lamp.headX, lamp.headY, size);
+    if (lamp.twin) drawHeadGlowAt(painter, lamp.twinX, lamp.twinY, size);
+  }
+}
+
+/**
+ * One street light head's glow, unless it lies wholly off the map.
+ * @param painter the light map and the mapping
+ * @param headX the head, world x, m
+ * @param headY the head, world y, m
+ * @param size the glow's side, map px
+ */
+function drawHeadGlowAt(painter: GlowPainter, headX: number, headY: number, size: number) {
+  const left = painter.mapX(headX) - size / 2, top = painter.mapY(headY) - size / 2;
+  const canvas = painter.ctx.canvas;
+  if (left + size < -HEAD_CULL_PX || top + size < -HEAD_CULL_PX
+    || left > canvas.width + HEAD_CULL_PX || top > canvas.height + HEAD_CULL_PX) return;
+  painter.ctx.drawImage(painter.headGlow, left, top, size, size);
 }
 
 /**
@@ -401,6 +435,13 @@ function drawPools(painter: PoolPainter, isTint: boolean) {
   for (const lamp of activeLamps()) {
     if (lamp.shown <= 0) continue;
     lightCtx.globalAlpha = lamp.shown * (isTint ? POOL_TINT_ALPHA : 1);
+    if (FIX.perfpass) {
+      // (the switch: the same heads in the same order, no list made a lamp)
+      const size = 2 * lamp.poolM * share * artPerMetre();
+      drawPool(painter, picture, artX(lamp.headX), artY(lamp.headY), size);
+      if (lamp.twin) drawPool(painter, picture, artX(lamp.twinX), artY(lamp.twinY), size);
+      continue;
+    }
     for (const [headX, headY] of lampHeads(lamp))
       drawPool(painter, picture, artX(headX), artY(headY), 2 * lamp.poolM * share * artPerMetre());
   }
@@ -540,7 +581,10 @@ function darkenCanopies(pools: PoolPainter, darkFill: string) {
   lightCtx.setTransform(1, 0, 0, 1, 0, 0);
   lightCtx.globalAlpha = 1;
   lightCtx.beginPath();
-  if (!traceCanopies(lightCtx, PROPS, pools)) return;
+  // (the switch: the trees the prop grid holds round the map - trees.ts traceCanopiesNear)
+  const traced = FIX.perfpass ? traceCanopiesNear(lightCtx, PROPS, pools, !LEVEL.endless)
+    : traceCanopies(lightCtx, PROPS, pools);
+  if (!traced) return;
   lightCtx.globalCompositeOperation = 'destination-out';
   lightCtx.fillStyle = '#000';
   lightCtx.fill();

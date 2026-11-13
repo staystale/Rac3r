@@ -24,6 +24,22 @@ records in `TODO-DONE.md` (PASSED 11-12). On the phone now:
   ranks the inefficiencies. No code change until the owner picks; each fix then behind its own
   switch, proven the same (renderhash / worldhash / simhash). The owner's phone (report 11-13):
   the MENU judders on big tracks (X Gayms, Le Mans: 11-16 missed frames in 5 s, our JS 5-12 ms).
+- PERFPASS (owner 11-13: "Yes to all"), behind ONE switch `?perfpass=1`, a commit each, each proven the
+  same (simhash on/off both seeds, worldhash, renderhash at night, a deliberate break each):
+  1 onLane by a lane reach grid; 2 the loose objects sleep on an awake list; 3 the barrier clamp by
+  a segment grid; 4 the night layer (canopies by the prop grid, the season once a call, tree
+  kinds kept, the light props and caravans listed, off-map head glows skipped, no lists a lamp);
+  5 a memory budget (dropping least-used built levels before a new build: owner-approved, next).
+  framecheck fixed first (it never started the race). The audit's findings (live race, 20 AI):
+  - framecheck timed a frozen grid: every framecheck number before the fix was draw only.
+  - CPU x1 median day / night ms: Sillystone 23.9 / 26.4, Brands Snatch 16.7 / 28.1, Spa 19.6 /
+    16.7, Snoozuka 19.2 / 18.2; the menu view 3.5-7. CPU x4: every level spiralled to 12 sim
+    steps a frame (137-344 ms); the menu view 80-127 ms.
+  - The sim is 64-75 % of a frame: the AI 33-38 %, onLane 17.8 % (Spa) / 6.8 % (Snoozuka), the
+    world clamps 10-12 %, the ground samples 10-11 %, the loose objects 8-10 %, the barrier clamp
+    5-7 %; the night layer walks every prop (Spa: 8 000 trees) several times a frame.
+  - Not in this pass: the ground-sample share, the AI index, car pictures, menu tiles, HUD text.
+    The step cap (MAX_STEPS 12) stays as it is (owner: removed).
 
 ## 3. OPEN, IN THE OWNER'S ORDER
 

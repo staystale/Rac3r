@@ -12,4 +12,12 @@ export interface TestEntry {
 }
 
 export const TEST_LIST: TestEntry[] = [
+  {
+    id: 'perfpass',
+    added: '2026-11-13',
+    name: 'The same game, smoother on big grids',
+    where: 'Test link + &perfpass=1: Spa, Sillystone, Snoozuka, Le Manky, X Gayms; day and night',
+    try: 'Race a full grid, hit cones, tyre walls and armco, drive at night under trees and lamps.',
+    wrong: 'Anything that behaves differently is wrong: a cut, a hit, a light, a tree, a reload.',
+  },
 ];
