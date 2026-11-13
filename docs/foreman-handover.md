@@ -11,7 +11,7 @@ not repeated here), then `TODO.md`, then this page. The 11-07 version of this pa
   (worldhash old+switches vs new: SAME; renderhash xgayms the same). Main had the X Gayms re-lay
   as d750afa before this pass.
 - **xgaymsloose PASSED** (owner "Loose layout is a pass"): L.A. Lively's one layout (round22).
-- **Under test: ** (the venue build's distance questions indexed, the same level:
+- **Under test: `?fastbuild=1`** (the venue build's distance questions indexed, the same level:
   worldhash SAME on all 53, about 29 % less build time in node). On the owner's phone Spa loads in
   0.2-0.3 s on or off (report 11-13): the phone is far faster than CPU x4, so the gain does not
   show there. Asked: pass it (helps slower devices) or delete it.
