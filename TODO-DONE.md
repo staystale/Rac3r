@@ -13,6 +13,37 @@ rolls - OWNER 11-07; the AI rework - Where we are 11-04; the driving root fix, t
 LIST 11-01; TypeScript, mud, grass, lamps - Queue; weather, surfaces, car systems, damage,
 lighting, bushes and trees - OWNER LIST 10-24; the checking tools - Tools that are wrong.
 
+## PASSED 11-13 (owner: "Ok keep it / For fast loading") - the faster level build (fastbuild), now the default
+
+The switch and the old code paths deleted; worldhash of the old code with FASTBUILD=1 against the new
+code: SAME on every level. The owner's phone (report 11-13): Spa from LAUNCH to driving 0.31 / 0.20 s
+with it, 0.18 s without - the phone builds a level far faster than CPU x4 predicted (10-12 s), so the
+gain is for slower devices. The record as it stood under test:
+
+- FASTBUILD (`?fastbuild=1`; the foreman's shape, owner "Ok"): a level builds faster, the same
+  level. The venue builders' hottest questions (node --cpu-prof, Sillystone: distToLine 0.77 s, of
+  it the edge's lane check 0.31 s, the roads' junction / join / bypass checks 0.34 s) ask the
+  line's box first (venuegeo.ts isWithinLine / isBeyondLine: a line too far to be nearer skipped);
+  the edge's two all-against-all questions use a grid (world/edgegrid.ts: withoutDoubles' used
+  points, dropFacing's rim samples - the Nordschleife's 20 km rim, ~0.9 s); one building asked
+  about alone is tested by its own cells (venuesite.ts inBuilding: a grid was built for each,
+  ~0.15 s); a lone road's lookup straight (edgeClear). The same answers: worldhash with it on SAME
+  on every level (and L.A. Lively loose, ?xgaymsloose=1); with it off worldhash SAME and
+  renderhash (Sillystone, X Gayms) SAME. BUILD (node tools/loadtime.mjs, cold, off -> on, ms):
+  Sillystone National 2063 -> 1191, Nordschleife 1871 -> 881, Sillystone 1813 -> 1117, Spa 1719
+  -> 1293, Yas Marina 1078 -> 764, Dieatona 1024 -> 811, Suzuka 1014 -> 722, Le Manky 1006 ->
+  627, Bathworst 996 -> 648, Monza 931 -> 681, Stade de Prance 934 -> 375, The Bird's Mess 909 ->
+  398, X Gayms 481 -> 417; every level 32.3 -> 22.9 s (-29 %), none slower. IN THE BROWSER
+  (tools/browserload.mjs, CPU x4, opening to drawn, off / on twice): Sillystone 13.3 / 13.2 ->
+  10.6 / 10.7 s, Spa 12.1 / 12.1 -> 10.5 / 10.7, Nordschleife 12.2 / 12.0 -> 8.9 / 8.8, Yas
+  Marina 9.9 / 10.2 -> 8.6 / 8.7, X Gayms 6.1 / 6.0 -> 5.8 / 5.7. MEMORY: the build's peak JS heap
+  (node, young space 1 MB, two runs each) Sillystone 136 / 129 -> 73 / 67 MB, Spa 80 / 79 -> 70 /
+  73, Nordschleife 93 / 94 -> 89 / 82; held after the build the same (41.6, 45.0, 52.1-52.2 MB):
+  the grids are not kept. Browser (tools/scratch/_memprobe.mjs 20 60, Spa, Sillystone,
+  Nordschleife, X Gayms, The Bird's Mess, Knobhill, with it on): canvases 79-112 MB, JS heap 62 ->
+  97-99 MB flat after the third level (the foreman's run without it: 82-114, 63 -> ~100).
+  WRONG: anything different on the track, a slower load, a crash or a reload.
+
 ## PASSED 11-13 (owner: "Loose layout is a pass") - X Gayms' loose layout (xgaymsloose), now the default
 
 - X GAYMS LOOSER (`?xgaymsloose=1`; owner 11-13: "loosen up the track so it's more natural and

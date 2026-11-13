@@ -13,33 +13,17 @@ The 11-11 round (14 entries, 11 switches) passed 11-12, and the performance roun
 carcull, the texture warm-up) and the stadium crossovers passed 11-12 ("mostly pass"), their
 records in `TODO-DONE.md` (PASSED 11-12). On the phone now:
 
-- FASTBUILD (`?fastbuild=1`; the foreman's shape, owner "Ok"): a level builds faster, the same
-  level. The venue builders' hottest questions (node --cpu-prof, Sillystone: distToLine 0.77 s, of
-  it the edge's lane check 0.31 s, the roads' junction / join / bypass checks 0.34 s) ask the
-  line's box first (venuegeo.ts isWithinLine / isBeyondLine: a line too far to be nearer skipped);
-  the edge's two all-against-all questions use a grid (world/edgegrid.ts: withoutDoubles' used
-  points, dropFacing's rim samples - the Nordschleife's 20 km rim, ~0.9 s); one building asked
-  about alone is tested by its own cells (venuesite.ts inBuilding: a grid was built for each,
-  ~0.15 s); a lone road's lookup straight (edgeClear). The same answers: worldhash with it on SAME
-  on every level (and L.A. Lively loose, ?xgaymsloose=1); with it off worldhash SAME and
-  renderhash (Sillystone, X Gayms) SAME. BUILD (node tools/loadtime.mjs, cold, off -> on, ms):
-  Sillystone National 2063 -> 1191, Nordschleife 1871 -> 881, Sillystone 1813 -> 1117, Spa 1719
-  -> 1293, Yas Marina 1078 -> 764, Dieatona 1024 -> 811, Suzuka 1014 -> 722, Le Manky 1006 ->
-  627, Bathworst 996 -> 648, Monza 931 -> 681, Stade de Prance 934 -> 375, The Bird's Mess 909 ->
-  398, X Gayms 481 -> 417; every level 32.3 -> 22.9 s (-29 %), none slower. IN THE BROWSER
-  (tools/browserload.mjs, CPU x4, opening to drawn, off / on twice): Sillystone 13.3 / 13.2 ->
-  10.6 / 10.7 s, Spa 12.1 / 12.1 -> 10.5 / 10.7, Nordschleife 12.2 / 12.0 -> 8.9 / 8.8, Yas
-  Marina 9.9 / 10.2 -> 8.6 / 8.7, X Gayms 6.1 / 6.0 -> 5.8 / 5.7. MEMORY: the build's peak JS heap
-  (node, young space 1 MB, two runs each) Sillystone 136 / 129 -> 73 / 67 MB, Spa 80 / 79 -> 70 /
-  73, Nordschleife 93 / 94 -> 89 / 82; held after the build the same (41.6, 45.0, 52.1-52.2 MB):
-  the grids are not kept. Browser (tools/scratch/_memprobe.mjs 20 60, Spa, Sillystone,
-  Nordschleife, X Gayms, The Bird's Mess, Knobhill, with it on): canvases 79-112 MB, JS heap 62 ->
-  97-99 MB flat after the third level (the foreman's run without it: 82-114, 63 -> ~100).
-  WRONG: anything different on the track, a slower load, a crash or a reload.
+- Nothing.
 
 ## 2. BEING BUILT
 
-- Nothing.
+- PERFORMANCE AUDIT (owner 11-13: "we need to hit 60fps on every track on most devices - We must
+  have major inefficiencies in our raw code? Can we fix them and keep it within our rules and
+  working the same"): the worker measures every level (framecheck CPU x4 and x1, 20 AI, day and
+  night, and the menu view), the drawing per layer (drawload) and the per-frame CPU profile, and
+  ranks the inefficiencies. No code change until the owner picks; each fix then behind its own
+  switch, proven the same (renderhash / worldhash / simhash). The owner's phone (report 11-13):
+  the MENU judders on big tracks (X Gayms, Le Mans: 11-16 missed frames in 5 s, our JS 5-12 ms).
 
 ## 3. OPEN, IN THE OWNER'S ORDER
 

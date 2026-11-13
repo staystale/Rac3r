@@ -11,10 +11,9 @@ not repeated here), then `TODO.md`, then this page. The 11-07 version of this pa
   (worldhash old+switches vs new: SAME; renderhash xgayms the same). Main had the X Gayms re-lay
   as d750afa before this pass.
 - **xgaymsloose PASSED** (owner "Loose layout is a pass"): L.A. Lively's one layout (round22).
-- **Under test: `?fastbuild=1`** (the venue build's distance questions indexed, the same level:
-  worldhash SAME on all 53, about 29 % less build time in node). On the owner's phone Spa loads in
-  0.2-0.3 s on or off (report 11-13): the phone is far faster than CPU x4, so the gain does not
-  show there. Asked: pass it (helps slower devices) or delete it.
+- **fastbuild PASSED** (owner "Ok keep it"): the default (round23). The test list is empty.
+- **Worker: PERFORMANCE AUDIT** (measure only; TODO section 2): the owner wants 60 fps on every
+  track on most devices. Its ranked findings go to the owner before any fix.
 - **Open: menu judder** (owner 11-13, seen waiting at the menu): read from the phone report.
 - **Worker** (agent a6cc304d1dadeede5, worktree `.claude/worktrees/barriercull`): idle.
 - **Branch `foreman/round9`** holds round8, plus:

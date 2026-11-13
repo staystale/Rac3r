@@ -1,4 +1,4 @@
-// world/edgegrid.ts - THE EDGE BUILDER'S INDEXES (?fastbuild=1; world/venueedge.ts buildEdge): its
+// world/edgegrid.ts - THE EDGE BUILDER'S INDEXES (world/venueedge.ts buildEdge): its
 // two all-against-all questions asked of a uniform grid instead - is any point already standing
 // this near (withoutDoubles), does an earlier rim sample face this one (dropFacing). MEASURED
 // (node --cpu-prof, a cold build): the Nordschleife's 20 km rim spent ~0.9 s in them, every

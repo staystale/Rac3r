@@ -7,7 +7,6 @@ import { HALF_ROAD, centreAt, distToLine, isNearLine, nearestLoop, roadDistance 
 import { pastRim } from "./venueedge.ts";
 import { insidePolygon } from "./zones.ts";
 import { gridKey } from "../core/pointgrid.ts";
-import { FIX } from "../core/fixes.ts";
 import type { Rim } from "./venueedge.ts";
 import type { VenueBuild } from "./venue.ts";
 import type { Lane, Point, Prop, Subtrack } from "./types.ts";
@@ -67,10 +66,10 @@ export function inBuilding(buildings: Prop[], x: number, y: number, pad: number)
   const toX = Math.floor((x + reach) / BUILDING_CELL_M);
   const fromY = Math.floor((y - reach) / BUILDING_CELL_M);
   const toY = Math.floor((y + reach) / BUILDING_CELL_M);
-  // (?fastbuild=1: one building asked about - a list made for the one question - by its own cells:
+  // (one building asked about - a list made for the one question - by its own cells:
   // what its grid would answer, without filing it; MEASURED, Sillystone's buildings asked one at a
   // time against each other built a grid per question, ~0.15 s)
-  if (FIX.fastbuild && buildings.length === 1) {
+  if (buildings.length === 1) {
     const box = buildingBox(buildings[0]);
     const cell = (value: number) => Math.floor(value / BUILDING_CELL_M);
     return !!box && cell(box[0]) <= toX && cell(box[2]) >= fromX && cell(box[1]) <= toY

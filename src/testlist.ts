@@ -12,12 +12,4 @@ export interface TestEntry {
 }
 
 export const TEST_LIST: TestEntry[] = [
-  {
-    id: 'fastbuild',
-    added: '2026-11-13',
-    name: 'Levels build faster: the same track, a shorter wait to drive',
-    where: 'Test link + &fastbuild=1: any circuit, Sillystone and Spa first',
-    try: 'Time a level from tap to driving with and without it.',
-    wrong: 'Anything different on the track, a slower load, a crash or a reload.',
-  },
 ];

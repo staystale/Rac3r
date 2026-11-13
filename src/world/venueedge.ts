@@ -11,7 +11,6 @@
 import { TRAP_NEAR_M, inZones } from "./venuetraps.ts";
 import { insidePolygon } from "./zones.ts";
 import { querySubtrack } from "./tyrewall.ts";
-import { FIX } from "../core/fixes.ts";
 import { isAnyPointNear } from "../core/pointgrid.ts";
 import { dropFacingByGrid, usedGrid } from "./edgegrid.ts";
 import { HALF_ROAD, centreAt, clearRuns, distToLine, evenly, isBeyondLine, isWithinLine, joinEnds,
@@ -188,7 +187,7 @@ function midline(sub: Subtrack, centre: TrackPoint, side: number): number {
   for (let out = HALF_ROAD + 1; out <= HALF_ROAD + RUNOFF_M + MIDLINE_MERGE_M; out += 0.25) {
     const x = centre.x + centre.nx * side * out, y = centre.y + centre.ny * side * out;
     // (one road: its own lookup, as nearestLoop of it alone answers)
-    const hit = FIX.fastbuild ? querySubtrack(sub, x, y) : nearestLoop([sub], x, y).hit;
+    const hit = querySubtrack(sub, x, y);
     const along = Math.abs(hit.trackDist - centre.dist);
     // (never the road below a crossover: it runs under this one, world/venuecross.ts)
     const apart = Math.min(along, sub.totalDist - along) > MIDLINE_APART_M
@@ -445,11 +444,10 @@ function withoutDoubles(pts: Point[], used: Point[], gapM: number): Point[][] {
   let run: Point[] = [];
   const near = (point: Point) => ([x, y]: Point) => Math.abs(x - point[0]) < gapM
     && Math.abs(y - point[1]) < gapM && Math.hypot(x - point[0], y - point[1]) < gapM;
-  // (?fastbuild=1: only the used points in the cells within gapM - the same test decides)
-  const grid = FIX.fastbuild ? usedGrid(used) : null;
+  // (only the used points in the cells within gapM: the same test decides)
+  const grid = usedGrid(used);
   for (const point of pts) {
-    const doubled = grid ? isAnyPointNear(grid, point[0], point[1], gapM, near(point))
-      : used.some(near(point));
+    const doubled = isAnyPointNear(grid, point[0], point[1], gapM, near(point));
     if (doubled) { if (run.length > 1) runs.push(run); run = []; } else run.push(point);
   }
   if (run.length > 1) runs.push(run);
@@ -464,21 +462,7 @@ function withoutDoubles(pts: Point[], used: Point[], gapM: number): Point[][] {
  * @param kinds what stands at each sample (changed)
  */
 function dropFacing(line: Point[], kinds: Uint8Array): void {
-  if (FIX.fastbuild) {
-    return dropFacingByGrid(line, kinds, FACING_TERMS);
-  }
-  const count = kinds.length, apart = MIDLINE_APART_M / RIM_STEP_M;
-  for (let i = 0; i < count; i++) {
-    if (kinds[i] === EDGE_NONE) continue;
-    for (let j = 0; j < i; j++) {
-      if (kinds[j] === EDGE_NONE || Math.min(i - j, count - i + j) <= apart) continue;
-      const [dx, dy] = [line[i][0] - line[j][0], line[i][1] - line[j][1]];
-      if (Math.abs(dx) < FACING_M && Math.abs(dy) < FACING_M) {
-        kinds[i] = EDGE_NONE;
-        break;
-      }
-    }
-  }
+  dropFacingByGrid(line, kinds, FACING_TERMS);
 }
 
 /**

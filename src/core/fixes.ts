@@ -51,8 +51,4 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
-  // ?fastbuild=1: a level builds faster, the same level - the builders' hottest nearest-point
-  // questions read an index of what is near instead of every line and point (world/venuegeo.ts,
-  // world/venueedge.ts, world/venueroads.ts)
-  fastbuild: atLoad('fastbuild'),
 };
