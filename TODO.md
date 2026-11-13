@@ -13,14 +13,30 @@ The 11-11 round (14 entries, 11 switches) passed 11-12, and the performance roun
 carcull, the texture warm-up) and the stadium crossovers passed 11-12 ("mostly pass"), their
 records in `TODO-DONE.md` (PASSED 11-12). On the phone now:
 
-- Nothing: the test list is empty.
+- BARRIER CULLING BY STRETCH (`?barriercull=1`; owner 11-13: "sure"): render/props/fence.ts
+  skipped a barrier only when its whole box was off screen, so X Gayms' 1723 m of Armco in 7 runs
+  round whole blocks was stroked and posted every frame. Now each barrier is cut into ~30 m
+  stretches with their own boxes; only those on screen are stroked (each run of them as one line)
+  and posted (from the whole line's running distance). Pit wall and rock wall drawn whole.
+  MEASURED (framecheck CPU x4, 20 AI, our work a frame, median, off / on / off / on; frames over
+  33 ms): X Gayms night 22.8 / 18.7 / 22.2 / 17.0 (284 / 160 / 281 / 105), day 15.8 / 16.0 /
+  14.1 / 14.7 (63 / 74 / 49 / 44); The Bird's Mess night 20.4 / 20.1 / 20.6 / 20.3, day 17.8 /
+  17.2 / 17.8 / 17.3; Knobhill night 17.8 / 17.0 / 17.5 / 17.0, day 15.3 / 15.2 / 14.0 / 12.1;
+  Nordschlep night 20.7 / 22.8 / 22.5 / 21.3, day 15.2 / 18.6 / 19.9 / 19.5 (noise both ways).
+  CPU profile, X Gayms night: drawBarriers 468 -> 63 ms of a ~12 s run (5.3 -> 0.7 % of the loop).
+  PIXELS: the same frame drawn off / on in one frozen page, 64 shots (X Gayms, The Bird's Mess,
+  Dieatona, Le Manky; 844x390 and 390x844, two zooms): 37 identical, the rest differ on <= 0.25 %
+  of pixels by at most 5 levels of 255 along rail edges (the browser's anti-aliasing of a shorter
+  path: a plain canvas test stroking a line whole and only its on-screen part differs the same
+  way); a deliberate fault (posts out of phase) differs by 140 levels. Renderhash (X Gayms, The
+  Bird's Mess, Knobhill, Dieatona): the plain link SAME as the base; with the switch 15 of 20
+  captures the same, 5 by that anti-aliasing. Worldhash with it on SAME.
+  WRONG: a barrier missing, cut short or flickering at the screen edge, posts jumping, a gap or
+  kink in a rail, a slower frame than without the switch.
 
 ## 2. BEING BUILT
 
-- BARRIER CULLING BY STRETCH (owner 11-13: "sure"): render/props/fence.ts skips a barrier only
-  when its whole box is off screen, so X Gayms' 1723 m of Armco in 7 long runs is stroked every
-  frame (night 23.6 vs Knobhill 19.4 ms, CPU x4, 20 AI; ?skip=barriers brings it level). Skip
-  the off-screen stretches of a barrier, behind a switch; every venue gains. Measured, then tested.
+- Nothing.
 
 ## 3. OPEN, IN THE OWNER'S ORDER
 

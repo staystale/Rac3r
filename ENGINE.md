@@ -168,6 +168,12 @@ the night light map (`render/light.ts drawSparkGlows`).
   `objects.ts` (cones, tyres, tape, debris), `props.ts` + `props/` (fence, barriers, buildings, scenery,
   bridges), `cars.ts` with `carsprite.ts` (one cached sprite per livery) and `cardamage.ts`,
   `particles.ts`.
+- Barriers (`render/props/fence.ts drawPropsBarriers`): one off-screen by its whole box (cached,
+  `_rbb`) is skipped. Under `?barriercull=1` each is also cut into stretches of ~30 m with their
+  own boxes (`_stretches`, cut again when a dent or tear gives it new points); only the stretches
+  on screen are stroked (each run of them as one line, so the joins are the whole line's) and
+  posted (each from the running distance the whole line has there: the same posts). Drawn whole:
+  the pit wall (its painted blocks are one dash pattern along the line) and the rock wall.
 - `render/light.ts`: the night layer, the ONLY light system (cars and props paint lamps, never
   light) - a light map the art buffer's size, the dark filled, headlight beams, lamp pools and the
   cars' lamp glows rubbed out, then the pools' warm tint and the glows' colour laid in; laid over

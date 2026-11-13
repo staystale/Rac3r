@@ -51,4 +51,8 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
+  // ?barriercull=1: a long barrier is drawn only where its stretches are on screen (before, all
+  // of it whenever any of its box was: X Gayms' 1723 m of Armco round whole blocks every frame;
+  // render/props/fence.ts)
+  barriercull: atLoad('barriercull'),
 };

@@ -478,6 +478,19 @@ export interface Barrier {
   // a canyon's rock wall (highway/canyon.ts): the rock behind its face, and its strata lines
   band?: Point[]; strata?: Point[][];
   _rbb?: [number, number, number, number];   // render/props/fence.ts caches the padded box
+  _stretches?: BarrierStretches;   // render/props/fence.ts: its stretches' boxes (?barriercull=1)
+}
+
+/** A barrier cut into stretches for drawing (render/props/fence.ts): a stretch's last point is
+ * the next one's first, so the drawn line runs on through it. */
+export interface BarrierStretches {
+  pts: Point[];   // the points they were cut from (a dent or a tear puts in a new array)
+  firsts: Int32Array;   // each stretch's first point index; one more entry: the last point
+  boxes: Float64Array;   // min x, min y, max x, max y of each stretch, padded, m
+  shown: Uint8Array;   // 1 where the stretch is on screen this frame
+  shownCount: number;   // how many are
+  postEvery: number;   // the post spacing postAcc was walked at, m (0: not walked yet)
+  postAcc: Float64Array;   // the posts' running distance at each stretch's first point, m
 }
 
 // A rotated solid box (what solidsFromProps returns); r is its bounding radius.

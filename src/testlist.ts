@@ -12,4 +12,14 @@ export interface TestEntry {
 }
 
 export const TEST_LIST: TestEntry[] = [
+  {
+    id: 'barriercull',
+    added: '2026-11-13',
+    name: 'Barriers drawn only where on screen: a faster frame on long Armco runs',
+    where: 'Test link + &barriercull=1: any level, X Gayms (L.A. Lively) at night most',
+    try: 'A race with a full grid, by day and at night; drive along the Armco and catch'
+      + ' fences, crash into a rail to dent and tear it.',
+    wrong: 'A barrier missing, cut short or flickering at the screen edge, posts jumping, a'
+      + ' gap or a kink in a rail, a lower frame rate than without the switch.',
+  },
 ];
