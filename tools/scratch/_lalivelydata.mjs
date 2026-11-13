@@ -222,7 +222,7 @@ const HEAPS = [[118, -78, 'tyres'], [40, -78, 'barrels'], [-118, 45, 'tyres'], [
 const litter = HEAPS.flatMap(([x, y, kit]) => KITS[kit].map(([dx, dy, kind, col]) =>
   ({ at: [r1(x + dx), r1(y + dy)], kind, ...(col ? { col } : {}) })));
 const litterReport = HEAPS.map(([x, y, kit]) => `${kit}@${x},${y}: road ${roadGap([x, y]).toFixed(1)} rail ${Math.min(...rails.map((rail) => segGap(rail, [x, y]))).toFixed(1)}`);
-// THE DRESSING (VenueSpec.dress; the switch xgaymsprops): the shared kits (_dresskits.mjs) in the
+// THE DRESSING (VenueSpec.dress): the shared kits (_dresskits.mjs) in the
 // event's orange, black and white, each [x, y, heading deg, kit] (the kit laid along the heading,
 // out to its right), where a street event has them: the PADDOCK in the lot east of the convention
 // hall, off the course (its transporters, the teams' cars, flight cases, spare tyres, a motorhome

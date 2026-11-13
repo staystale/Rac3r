@@ -55,16 +55,4 @@ export const FIX = {
   // toward its side aimed L.A. Lively's into the barrier beside it;
   // world/levels/rallycross-venue.ts)
   jokerarrow: atLoad('jokerarrow'),
-  // ?jokerclear=1: no hay bale or tyre on a venue joker lane's road (the corner bales went round
-  // the lap's outside where the joker branches off: L.A. Lively's way in and out;
-  // world/levels/rallycross-venue.ts)
-  jokerclear: atLoad('jokerclear'),
-  // ?barriercull=1: a long barrier is drawn only where its stretches are on screen (before, all
-  // of it whenever any of its box was: X Gayms' 1723 m of Armco round whole blocks every frame;
-  // render/props/fence.ts)
-  barriercull: atLoad('barriercull'),
-  // ?xgaymsprops=1: L.A. Lively gets the stadiums' pass - its Armco and fences made even
-  // (world/stadiumtidy.ts, the crossover's mouths world/portalflare.ts) and its own dressing in
-  // the event's colours (world/levels/lalively-venue.ts)
-  xgaymsprops: atLoad('xgaymsprops'),
 };

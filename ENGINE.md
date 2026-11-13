@@ -169,7 +169,7 @@ the night light map (`render/light.ts drawSparkGlows`).
   bridges), `cars.ts` with `carsprite.ts` (one cached sprite per livery) and `cardamage.ts`,
   `particles.ts`.
 - Barriers (`render/props/fence.ts drawPropsBarriers`): one off-screen by its whole box (cached,
-  `_rbb`) is skipped. Under `?barriercull=1` each is also cut into stretches of ~30 m with their
+  `_rbb`) is skipped. Each is also cut into stretches of ~30 m with their
   own boxes (`_stretches`, cut again when a dent or tear gives it new points); only the stretches
   on screen are stroked (each run of them as one line, so the joins are the whole line's) and
   posted (each from the running distance the whole line has there: the same posts). Drawn whole:
@@ -252,13 +252,13 @@ fences eased by Taubin smoothing, free ends carried on to the run beside them, e
 along the road out of it, `world/portalflare.ts`) and it gets a dressing pass (`VenueSpec.dress`:
 props and loose objects from the kits in `tools/scratch/_dresskits.mjs`, laid after the boards and kept clear of them and the barriers).
 A run the tidy carried round a portal's wall to its lintel corner, with no run on that wall's mouth corner, is laid to the
-mouth instead (`portalflare.ts mouthFor`: L.A. Lively's south portal). Under `?xgaymsprops=1` L.A. Lively gets the same
+mouth instead (`portalflare.ts mouthFor`: L.A. Lively's south portal). L.A. Lively gets the same
 pass: `evenEdge` and its own dressing from `_lalivelydata.mjs` (a paddock in the lot east of the convention hall, a TV
 platform and fans by the jump, fans by the start, show cars in the infield). No level fixes its
 own hour: every event runs on the world clock, or TEST MODE's START HOUR (`game/menuflow.ts`).
 A venue's RALLYCROSS layout (`world/levels/rallycross-venue.ts` rallycrossLevel: the joker rule, the bales, the rallycross bushes
 unless the venue is `bushless`) takes its joker from another layout's loop (`VenueSpec.joker`, `world/venuejoker.ts`), the lane on
-that loop's own surface at its middle (a dirt joker: L.A. Lively's). Under `?jokerclear=1` no bale or tyre stands on the
+that loop's own surface at its middle (a dirt joker: L.A. Lively's). No bale or tyre stands on the
 joker lane's road (clearJokerLane: the corner bales went round the lap's outside where the joker branches off). L.A. Lively (`tools/scratch/_lalivelydata.mjs`)
 is the first: a street figure of eight crossing at 90 deg, its joker's gap jump the terrain's ramp and table pieces laid five side
 by side across the road (cos^2 pieces half their width apart sum to a flat full height).

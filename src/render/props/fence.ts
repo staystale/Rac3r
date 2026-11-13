@@ -4,7 +4,6 @@ import { LEVEL } from '../../world/state.ts';
 import { BARRIER_HALF } from '../../world/barriers.ts';
 import { isTornAfter } from '../../world/armcodent.ts';
 import type { Barrier, BarrierStretches, Point } from '../../world/types.ts';
-import { FIX } from '../../core/fixes.ts';
 import type { PropCtx } from './types.ts';
 import { drawRockWall } from './desert.ts';
 
@@ -235,7 +234,7 @@ function isBarrierOffscreen(propCtx: PropCtx, barrier: Barrier) {
   );
 }
 
-// STRETCHES (?barriercull=1): a barrier is cut into stretches of about this many metres, each
+// STRETCHES: a barrier is cut into stretches of about this many metres, each
 // with its own box, and only those on screen are stroked and posted. MEASURED: X Gayms' Armco
 // (1723 m in 7 runs round whole blocks, ~1.4 m between points) was all drawn every frame
 // because each run's box held the screen. 30 m is about a quarter of the narrowest view across.
@@ -459,7 +458,7 @@ export function drawPropsBarriers(propCtx: PropCtx) {
     const half = BARRIER_HALF[barrier.kind] ?? 0.2;
     if (barrier.kind === 'building') continue;
     if (isBarrierOffscreen(propCtx, barrier)) continue;
-    const stretches = FIX.barriercull ? markShownStretches(propCtx, barrier) : null;
+    const stretches = markShownStretches(propCtx, barrier);
     if (stretches && !stretches.shownCount) continue;
     drawBarrierKind(propCtx, barrier, half, ppm, stretches);
   }

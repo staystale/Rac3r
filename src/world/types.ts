@@ -478,7 +478,7 @@ export interface Barrier {
   // a canyon's rock wall (highway/canyon.ts): the rock behind its face, and its strata lines
   band?: Point[]; strata?: Point[][];
   _rbb?: [number, number, number, number];   // render/props/fence.ts caches the padded box
-  _stretches?: BarrierStretches;   // render/props/fence.ts: its stretches' boxes (?barriercull=1)
+  _stretches?: BarrierStretches;   // render/props/fence.ts: its stretches' boxes
 }
 
 /** A barrier cut into stretches for drawing (render/props/fence.ts): a stretch's last point is

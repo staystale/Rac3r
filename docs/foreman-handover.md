@@ -6,10 +6,11 @@ not repeated here), then `TODO.md`, then this page. The 11-07 version of this pa
 
 ## Where we are
 
-- **Main** is at `3095b72` (round14, all green, 11-13); the served clone is on it. UNDER TEST:
-  `?barriercull=1` (barrier culling by stretch) and `?xgaymsprops=1` (X Gayms dressing: evenEdge,
-  both portals flared, paddock / trucks / TV platform / fans / show cars). Asked the owner: the
-  joker bale lost to the eased Armco, the AI's short landings (16 -> 29 over 12 seeds, 9 one pile-up).
+- **Branch `foreman/round17`** (11-13): the jokerarrow switch (round16) plus barriercull,
+  xgaymsprops and jokerclear PASSED (owner "Ok pass"), the default; worldhash old+3 switches vs
+  new: SAME. Tagged [look] (stretch culling's anti-aliasing) and [world]. Main is at 72f746c.
+- **Worker**: cutroad (?cutroad=1, the crossover cut's road drawn as a deck). Next for it: X Gayms
+  looser (?xgaymsloose=1, TODO section 2; the owner's "Ok" to the shape).
 - **Branch `foreman/round9`** holds round8, plus:
   - CI: main's pixel reference is rendered once and reused (`.github/workflows/renderref.yml`).
   - The Bird's Mess and the stadium dressing PASSED (owner 11-12: "That's all pass"). `birdsmess`

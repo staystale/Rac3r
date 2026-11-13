@@ -78,7 +78,7 @@ export function rallycrossLevel(spec: VenueSpec, layout: string, levelId: string
   const kept = tidyLoose([...cones, ...jokerBales(sub, lane, cones)], level.barriers || [], sub,
     level.covers || []);
   return { ...level, ...(spec.bushless ? {} : { bushes: RX_BUSHES }),
-    cones: FIX.jokerclear ? clearJokerLane(kept, lane) : kept,
+    cones: clearJokerLane(kept, lane),
     joker: { gate: { x: mid[0], y: mid[1], r: JOKER_GATE_R }, penalty: JOKER_PENALTY_S,
       laps: JOKER_LAPS,
       arrows: jokerArrows(sub, lane) } };

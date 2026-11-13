@@ -26,7 +26,6 @@
 import { LALIVELY_DRESS, LALIVELY_DRESS_LITTER, LALIVELY_FLAGS, LALIVELY_FLOODS, LALIVELY_JUMP,
   LALIVELY_LITTER, LALIVELY_VENUE } from "./venues/lalively.ts";
 import { venueLap } from "../venue.ts";
-import { FIX } from "../../core/fixes.ts";
 import { prepBumps } from "../terrain.ts";
 import { rallycrossLevel } from "./rallycross-venue.ts";
 import type { VenueSpec } from "../venue.ts";
@@ -71,20 +70,20 @@ export const LALIVELY_SPEC: VenueSpec = {
   followRails: true,
   // tidied, an Armco end carried on to the catch fence's and round the crossover's portals
   tidyEdge: 'fences',
-  // (?xgaymsprops=1) and made even, as the stadiums': its Armco and fences eased, its free ends
+  // and made even, as the stadiums': its Armco and fences eased, its free ends
   // met, the runs at the crossover's mouths laid along the road (world/stadiumtidy.ts)
-  ...(FIX.xgaymsprops ? { evenEdge: true } : {}),
+  evenEdge: true,
   // the crossover: the street under the avenue, its cut and lintels given the stadiums' room
   crossover: { under: 'Crossover under', spareM: 1.5, clearM: 3.5 },
   // the joker: the joker loop's way round the north lot that the lap does not race
   joker: { layout: 'rx', loop: 'joker', near: [75, -140] },
   // the floodlight pylons round the lap and the joker, the event's flags before the stands
   landmarks: [...LALIVELY_FLOODS, ...LALIVELY_FLAGS],
-  // with ?xgaymsprops=1 its dressing (the generator's, the stadiums' kits) in the event's orange,
+  // its dressing (the generator's, the stadiums' kits) in the event's orange,
   // black and white: the paddock in the lot east of the convention hall (transporters, the teams'
   // cars, flight cases, spare tyres, a motorhome with its bins), a TV camera platform and fans by
   // the jump's stand, fans by the start's, show cars in the infield
-  ...(FIX.xgaymsprops ? { dress: { props: LALIVELY_DRESS, litter: LALIVELY_DRESS_LITTER } } : {}),
+  dress: { props: LALIVELY_DRESS, litter: LALIVELY_DRESS_LITTER },
   litter: LALIVELY_LITTER,
   // the city: concrete off the road (pavements, lots), no trees, no bushes, no kerbs (a course laid
   // for a weekend on the streets)
