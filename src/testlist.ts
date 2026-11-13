@@ -20,4 +20,14 @@ export const TEST_LIST: TestEntry[] = [
     try: 'Drive up to the joker (north-east, past the north street) and follow the arrows.',
     wrong: 'An arrow pointing at a barrier, the lap or off the road, either arrow hard to see.',
   },
+  {
+    id: 'cutroad',
+    added: '2026-11-13',
+    name: 'The road under a crossover bridge looks like the rest of the track',
+    where: 'Test link + &cutroad=1: X Gayms (L.A. Lively) and the stadiums, under the bridge',
+    try: 'Race through the cut under the bridge, both ways, day, night and in the wet: the'
+      + ' road going down to the tunnel.',
+    wrong: 'Flat dark bands across the road in the cut, a step or seam where it starts, the'
+      + ' lines or the wear stopping at the cut, grass or pavement showing in it.',
+  },
 ];

@@ -13,6 +13,23 @@ The 11-11 round (14 entries, 11 switches) passed 11-12, and the performance roun
 carcull, the texture warm-up) and the stadium crossovers passed 11-12 ("mostly pass"), their
 records in `TODO-DONE.md` (PASSED 11-12). On the phone now:
 
+- THE ROAD IN A CROSSOVER'S CUT (`?cutroad=1`; owner 11-13 on X Gayms: "strange road terrain on
+  tunnel cross over area", "very uniform and not like the rest of the track"). CAUSE: the open
+  cut is the portal's ramp (8 m of each 9 m portal), and render/props/venueprops.ts drawTunnel
+  painted it in five OPAQUE shades over the ground - the road's texture, wear and edge lines
+  hidden down the whole cut, the first shade (#3b3e45) lighter than race tarmac (#2d303a): a step
+  where the road met it. (The crossing's own wear and tyre marks were drawn over it already.) Now
+  the race road's part of the ramp is darkened by black at 0 / 17 / 33 / 50 / 67 % (to the old
+  darkest shade over race tarmac at the mouth), the floor beside the road to the walls in the old
+  opaque shades. Every race-road crossover: X Gayms, The Bird's Mess, Stade de Prance, Wobbly,
+  Snoozuka, Moanaco - all showed it (shots/cutroad, each cut both lanes and 30 m outside, day,
+  night, wet, 844x390 and 390x844, off and on). Road tunnels and the pit tunnel unchanged.
+  Renderhash with it off (those six levels) SAME, worldhash SAME. FRAMES (framecheck CPU x4, 20
+  AI, night, barriercull and xgaymsprops on, work median off / on / off / on): X Gayms 20.6 /
+  17.4 / 17.1 / 19.6, The Bird's Mess 19.3 / 19.7 / 20.0 / 19.5 - noise.
+  WRONG: flat bands across the road in the cut, a step or seam where it starts, the lines or wear
+  stopping at the cut, grass or pavement showing in it.
+
 - JOKER ARROW (`?jokerarrow=1`; owner 11-13: "the first joker arrow is a bit wonky not pointing
   correctly", X Gayms): the arrow on the lap before the joker (slidden-hill.ts jokerApproach) is
   tilted 0.35 rad toward the joker's side - Slidden Hill's, where the joker leaves at an angle. On
@@ -25,9 +42,6 @@ records in `TODO-DONE.md` (PASSED 11-12). On the phone now:
 
 ## 2. BEING BUILT
 
-- CUT ROAD (`?cutroad=1`; owner 11-13 on X Gayms: "The terrain on the road is very uniform and not
-  like the rest of the track"): the road down in a crossover's cut is drawn as a bridge deck, not
-  as the lap's own surface. With the worker; every crossover level checked.
 - X GAYMS LOOSER (owner 11-13: "loosen up the track so it's more natural and unique and less boxy
   n precise"; the shape agreed, "Ok"): L.A. Lively re-laid behind `?xgaymsloose=1`, today's kept
   to compare - the figure of eight, the bridge, the three dirt lots, the joker and its gap jump,

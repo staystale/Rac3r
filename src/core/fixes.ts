@@ -55,4 +55,8 @@ export const FIX = {
   // toward its side aimed L.A. Lively's into the barrier beside it;
   // world/levels/rallycross-venue.ts)
   jokerarrow: atLoad('jokerarrow'),
+  // ?cutroad=1: the road down a crossover's open cut keeps its own surface - its texture, wear and
+  // lines - with the ramp's darkening laid over it (before, flat bands were painted in its place;
+  // render/props/venueprops.ts drawTunnel)
+  cutroad: atLoad('cutroad'),
 };
