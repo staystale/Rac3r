@@ -36,7 +36,11 @@ records in `TODO-DONE.md` (PASSED 11-12). On the phone now:
 
 ## 2. BEING BUILT
 
-- Nothing.
+- X GAYMS DRESSING (owner 11-13: "Can we finish jazzing up the xgaymes like we did other
+  stadiums"): the stadium pass on L.A. Lively, behind a switch - its Armco made even and free ends
+  met (VenueSpec.evenEdge, world/stadiumtidy.ts), the crossover mouths tidied (portalflare), and
+  its own dressing in the event's colours (VenueSpec.dress kits: transporters, a paddock, a TV
+  platform, show cars, fans, bins), off the road and the barriers. With the worker.
 
 ## 3. OPEN, IN THE OWNER'S ORDER
 

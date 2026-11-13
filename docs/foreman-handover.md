@@ -6,11 +6,13 @@ not repeated here), then `TODO.md`, then this page. The 11-07 version of this pa
 
 ## Where we are
 
-- **Main** is at `dccfb95` (round11). Branch `foreman/round12`: X Gayms PASSED (owner 11-13:
-  "Pass"), the default, switch and testlist entry gone; worldhash old+XGAYMS=1 vs new: SAME.
-  Push it with the barrier work, or alone if that takes long.
-- **Barrier culling by stretch**: owner 11-13 "sure". The worker builds it behind a switch
-  (render/props/fence.ts); measure X Gayms, The Bird's Mess and Knobhill before and after.
+- **Main** is at `7833d82` (round12): X Gayms PASSED (owner 11-13: "Pass"), the default. The
+  served clone is on it.
+- **Branch `foreman/round13`**: barrier culling by stretch (`?barriercull=1`, worker fcc8078),
+  X Gayms night 22.5 -> ~18 ms; pixels differ only by anti-aliasing (<= 5/255 on rail edges).
+  CI, then main, then the owner's link.
+- **X Gayms dressing** (owner 11-13: "finish jazzing up the xgaymes like we did other
+  stadiums"): with the worker, behind a switch (TODO section 2).
 - **Branch `foreman/round9`** holds round8, plus:
   - CI: main's pixel reference is rendered once and reused (`.github/workflows/renderref.yml`).
   - The Bird's Mess and the stadium dressing PASSED (owner 11-12: "That's all pass"). `birdsmess`
