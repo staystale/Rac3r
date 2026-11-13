@@ -2,14 +2,17 @@
 // approved by the owner 11-10), a NEW venue (world/venue.ts) laid by hand (venues/lalively.ts:
 // tools/scratch/_lalivelydata.mjs): the X Gayms rallycross course in the streets and lots round the
 // arena - not traced (no plan was supplied: the real street grid round an arena, creative
-// licence), 942 m, a FIGURE OF EIGHT of two blocks on the street grid. Clockwise from the start:
-// the south street west (the grid, tarmac) into the WEST LOT (dirt: its two corners), the
-// avenue east OVER THE CROSSOVER BRIDGE, the east jog into the EAST LOT (dirt), north up it, west
-// along the NORTH LOT (dirt) to the north corner (back on tarmac), south down the street UNDER THE
-// BRIDGE (world/venuecross.ts: the street at 90 deg under the avenue, the stadiums' crossover
-// system) and back round to the line. SURFACES: the streets race tarmac; the lots dirt laid over
-// the street (a piece's surface, as every rallycross lap's loose stretch - the base under the
-// dirt the street's tarmac); off the road the city's concrete. 43 % dirt.
+// licence), 923 m, a FIGURE OF EIGHT laid loose - mixed corners, bending streets, free lines across
+// the lots. Clockwise from the start: the south street west (the grid, tarmac), bending a little,
+// into the WEST LOT (dirt): a sweep onto its diagonal (r26), a 15 m HAIRPIN in its far corner,
+// back across it (r28) onto the avenue, bending (r40) to run east OVER THE CROSSOVER BRIDGE; a
+// fast SWEEPER (r38) into the EAST LOT (dirt), across it on the diagonal and north (r36) past the
+// joker's branch, a corner that TIGHTENS (r28, then r14) onto the NORTH LOT (dirt), a KINK (r30)
+// along it to the north corner (r18, back on tarmac), south down the street UNDER THE BRIDGE
+// (world/venuecross.ts: the street at 90 deg under the avenue, the stadiums' crossover system) to
+// the south corner (r24) and back round to the line. SURFACES: the streets race tarmac; the lots
+// dirt laid over the street (a piece's surface, as every rallycross lap's loose stretch - the base
+// under the dirt the street's tarmac); off the road the city's concrete. 43 % dirt.
 // THE JOKER (the real rules: once a race, the shared joker rule): a dirt lane round the north
 // lot's outside - on north past the lot's corner, west along the joker straight, south onto the
 // street - 52 m longer than the lap's way, with THE GAP JUMP on its straight: a 2 m kicker (the
@@ -23,19 +26,13 @@
 // 50 m and street lights along every straight (Level.streetLamps: it races at the game's own
 // hour - lit by night, the city by day), litter in the event's colours behind the barriers.
 // North up.
-import * as TIGHT from "./venues/lalively.ts";
-import * as LOOSE from "./venues/lalivelyloose.ts";
-import { FIX } from "../../core/fixes.ts";
+import { LALIVELY_DRESS, LALIVELY_DRESS_LITTER, LALIVELY_FLAGS, LALIVELY_FLOODS, LALIVELY_JUMP,
+  LALIVELY_LAP_M, LALIVELY_LITTER, LALIVELY_VENUE } from "./venues/lalively.ts";
 import { venueLap } from "../venue.ts";
 import { prepBumps } from "../terrain.ts";
 import { rallycrossLevel } from "./rallycross-venue.ts";
 import type { VenueSpec } from "../venue.ts";
 import type { Level } from "../types.ts";
-
-// the layout raced: today's, or with ?xgaymsloose=1 the loose one (the generator's two outputs,
-// the same names in each)
-const { LALIVELY_DRESS, LALIVELY_DRESS_LITTER, LALIVELY_FLAGS, LALIVELY_FLOODS, LALIVELY_JUMP,
-  LALIVELY_LITTER, LALIVELY_VENUE } = FIX.xgaymsloose ? LOOSE : TIGHT;
 
 // the course's name and the event's (parodies approved by the owner 11-10), in one place
 export const LA_LIVELY = 'L.A. Lively';
@@ -46,16 +43,16 @@ export const LALIVELY_SPEC: VenueSpec = {
   // (laid in game m: the lap's own length calibrates it to itself)
   share: 1,
   realRoadM: 13,
-  calibrate: { layout: 'rx', realLapM: FIX.xgaymsloose ? LOOSE.LALIVELY_LAP_M : 942.5 },
+  calibrate: { layout: 'rx', realLapM: LALIVELY_LAP_M },
   // the start line on the south street, the grid back east along it toward the street's corner
   start: [-100, 90],
   startOnLine: true,
   // the lap laid as arcs and straights: smoothed lightly (as the stadiums', so the crossover's
   // streets stay straight to their portals)
   trace: { rx: { passes: 2, kern: 2 }, joker: { passes: 2, kern: 2 } },
-  // (the loose layout: its hairpin's 12 m and the tightening corner's 14 m traced as laid - the
-  // venues' least radius, 15.5 m, opened the hairpin out across its own legs, 10 m off its line)
-  ...(FIX.xgaymsloose ? { minR: 10 } : {}),
+  // (its hairpin's 15 m and the tightening corner's 14 m traced as laid: the venues' least radius,
+  // 15.5 m, opened the hairpin out across its own legs, 10 m off its line)
+  minR: 10,
   hills: [],
   banks: [],
   // the boards (the event's and the register's brands): on the barriers along the tarmac streets

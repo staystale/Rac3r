@@ -265,10 +265,8 @@ A venue's RALLYCROSS layout (`world/levels/rallycross-venue.ts` rallycrossLevel:
 unless the venue is `bushless`) takes its joker from another layout's loop (`VenueSpec.joker`, `world/venuejoker.ts`), the lane on
 that loop's own surface at its middle (a dirt joker: L.A. Lively's). No bale or tyre stands on the
 joker lane's road (clearJokerLane: the corner bales went round the lap's outside where the joker branches off). L.A. Lively (`tools/scratch/_lalivelydata.mjs`)
-is the first: a street figure of eight crossing at 90 deg, its joker's gap jump the terrain's ramp and table pieces laid five side
+is the first: a street figure of eight crossing at 90 deg, 923 m laid loose (`venues/lalively.ts`): the corners mixed (a fast
+sweeper, a 15 m hairpin, a corner that tightens 28 -> 14 m, a kink), the streets bending, the lines free across the lots;
+its lap length as laid (`LALIVELY_LAP_M`) calibrates it, its least radius 10 m (`VenueSpec.minR`: the venues' 15.5 m
+opened the hairpin across its own legs); its joker's gap jump the terrain's ramp and table pieces laid five side
 by side across the road (cos^2 pieces half their width apart sum to a flat full height).
-Under `?xgaymsloose=1` it races a second layout from the same generator (`_lalivelydata.mjs loose` writes
-`venues/lalivelyloose.ts`, the same export names; `lalively-venue.ts` picks one): the figure of eight, the crossing, the lots,
-the joker and its jump kept, the corners mixed (a fast sweeper, a 15 m hairpin, a corner that tightens 28 -> 14 m, a kink),
-the streets bending, the lines free across the lots; its lap length as laid (`LALIVELY_LAP_M`) calibrates it, its least
-radius 10 m (`VenueSpec.minR`: the venues' 15.5 m opened the hairpin across its own legs).
