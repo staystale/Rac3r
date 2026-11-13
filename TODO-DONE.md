@@ -13,6 +13,57 @@ rolls - OWNER 11-07; the AI rework - Where we are 11-04; the driving root fix, t
 LIST 11-01; TypeScript, mud, grass, lamps - Queue; weather, surfaces, car systems, damage,
 lighting, bushes and trees - OWNER LIST 10-24; the checking tools - Tools that are wrong.
 
+## PASSED 11-13 (owner: "Pass") - X Gayms / L.A. Lively, now the default
+
+- X GAYMS / L.A. LIVELY (`?xgayms=1`; owner 11-12: "the worker can move on to the next levels / tracks";
+  testlist xgayms; TEST MODE > RALLYCROSS). The X Gayms rallycross course in the streets round an
+  arena, laid by hand (tools/scratch/_lalivelydata.mjs; not traced): a 942 m figure of eight on the
+  street grid, the north-south street UNDER the avenue at 90 deg (the stadiums' crossover system,
+  spareM 1.5, clearM 3.5 - at 2.4 two corners by the south portal stayed open), tarmac streets and
+  three dirt lots (43 % dirt, the dirt a piece's surface over the street, as every rallycross lap),
+  concrete off the road. THE JOKER (the shared rule: once a race, 30 s): a dirt lane round the north
+  lot's outside, 52 m longer, with the 16 m (52 ft) GAP JUMP on its straight - a 2 m kicker over
+  10 m (terrain ramp, red lip), the gap, a 2 m landing deck (terrain table), each five pieces side
+  by side so the whole road is the jump (one piece was full height only on the lane's middle: the
+  AI, on its line, 0-3 of 20 cleared it). No new physics, no AI change. Its look: blocks round it
+  (the arena, halls, offices, shops, a hotel, a parking deck, studios), bleachers at the start, the
+  jump and the avenue with orange / black / white flags, 15 floodlight pylons, litter; the world's
+  clock and weather (no eventHour). MEASURED: the jump held at a speed (tools/scratch/_gapjump.mjs,
+  on the middle and 5 m off it) - rally-4x4 / rx-super clear from 60 km/h, hatch-fwd / muscle-rwd
+  from 70; at 100 km/h 31-40 m (to the end of the landing's run down); short ones land 10-15 m
+  past the lip, in the gap or on the landing's face: no damage, none stuck. The AI (20 cars on
+  their last lap, tools/scratch/_aigapcheck.mjs): 19 / 19 / 19 of 20 cleared (seeds 1 / 2, and
+  rx-super), landing 15-22 m past the lip, 1 / 0 / 1 short, none stuck. Joker cost (jokercost,
+  the careful autodriver): 5.4-5.9 s (real ones ~1-2 s). lapdriver: rally-4x4 59.3 s, rx-super
+  58.0 s, 0.0 s off. aijokercheck: 5 seeds, the gate once each. crossovercheck (20 AI, seeds 1 / 2):
+  43 / 42 passes under, 43 / 45 over, 0 on the wrong level, 0 wall hits by the crossover; the 5 / 3
+  cars it flags (progress jump 114-117 m) are joker cars (line index jump 147: the AI's joker
+  branch) - the lap's nearest point skips along while a car is off on the joker. Portals 0.00 deg
+  off their lane, 12 drives clean; crossingcheck, barriercheck, propcheck, solidcheck OK; sealing
+  (_moseal FAR 25) 0 escapes but the joker's own run-off (the tool reads distance off the lap
+  only); venueaudit: 3 Armco ends by a road - the noses between the joker and the lap. Frames
+  (framecheck CPU x4, 20 AI, our work a frame, median; Knobhill RX the same session): day 13.0
+  (12.5), night 17.5 (16.1); frames over 33 ms at night 122 / 570 (66). Worldhash with the switch
+  off: SAME.
+  ROUND 2 (owner 11-12: "Nah it's fine" to the joker's cost; "street lamps please"; the night cost
+  "yes", look into it): STREET LAMPS - the lamp plan's street lights along every straight of the
+  lap (Level.streetLamps, world/lampplan.ts: the start straight's rule run round the whole lap,
+  every 34 m, the sides in turn, none where the road bends) - 22 on L.A. Lively, 12.5-16.5 m off
+  the road's centre behind the barriers (their arms 10 m off it at the nearest), with the 15
+  pylons and 6 plan floodlights; propcheck: nothing on a light. NIGHT COST, MEASURED (framecheck
+  CPU x4, 20 AI, our work a frame, median, Knobhill back to back; this session's laptop slower
+  than the first round's): before the lamps night 25.7 / 26.0 (Knobhill 19.8 / 21.3), frames over
+  33 ms 398 / 429 (253 / 292); day 20.4 / 21.5 (17.9 / 17.2). After: night 23.6 / 23.8 (19.4 /
+  20.6), over 33 ms 355 / 355 (238 / 265); day 20.9 / 21.3 (16.6 / 17.1) - the lamps cost
+  nothing measurable. THE CAUSE IS THE BARRIERS' DRAWING: with ?skip=barriers X Gayms is 19.9 at
+  night, 16.1 by day (Knobhill's), and the profile has drawBarriers at 4.5 % of the loop (Knobhill
+  0). Its 1723 m of Armco (1234 points, a post every 2 m) lies in 7 runs, each round a whole block
+  - render/props/fence.ts culls a barrier only when its whole box is off the screen, so all of it
+  is stroked and posted every frame (The Bird's Mess: 1016 m, skip=barriers saves 0.9 ms). Shared
+  rendering code: not changed - a question for the owner (cull by stretch, which every venue
+  would gain from).
+  PASSED 11-13 (owner: "Pass"): the default, the switch and testlist entry gone.
+
 ## PASSED 11-12 (owner: "Pass") - menu pictures fill in (thumbfill) and lights clear of tyres (tyrelights), both now the default
 
 - THUMBFILL (`?thumbfill=1`; owner 11-12, a photo of TEST MODE with half the category pictures

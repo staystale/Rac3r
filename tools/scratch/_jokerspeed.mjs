@@ -1,7 +1,7 @@
 // _jokerspeed.mjs - the autodriver's speed along a rallycross level's joker (scratch): laps the
 // lap with the joker lane swapped in (as tools/jokercost.mjs) and prints the car's speed, airtime
 // and height every 10 m of the joker lane, and on the lap's own way between the same points.
-// XGAYMS=1 node tools/scratch/_jokerspeed.mjs [level] [car]
+// node tools/scratch/_jokerspeed.mjs [level] [car]
 import { makeCar, step, reset, PHYSICS_STEP_SECONDS } from '../../src/vehicle.ts';
 import * as L from '../../src/lab.ts';
 import { createAutoDriver } from '../../src/ai/autodrive.ts';

@@ -5,7 +5,7 @@
 // straight: its speed at the kicker's foot, where it touched down (m past the lip: the deck starts
 // 16 m past it), cleared or short, its airtime, the hardest landing load, its time from the
 // joker's first corner to the merge, and any car stuck on the joker (under 1 m/s for 3 s).
-// XGAYMS=1 SEED=1 node tools/scratch/_aigapcheck.mjs [ai n] [car] (env SECONDS)
+// SEED=1 node tools/scratch/_aigapcheck.mjs [ai n] [car] (env SECONDS)
 import { makeCar, step, reset, PHYSICS_STEP_SECONDS } from '../../src/vehicle.ts';
 import * as L from '../../src/lab.ts';
 import { carContacts } from '../../src/contact.ts';

@@ -4,7 +4,7 @@
 // lip: the deck starts 16 m past it), its airtime, the hardest landing load, whether it cleared
 // the gap, and its time over the straight (the cost of landing short). No browser.
 // (env OFF: the line held that many m off the joker's middle)
-// XGAYMS=1 node tools/scratch/_gapjump.mjs [cars, comma separated] [speeds km/h]
+// node tools/scratch/_gapjump.mjs [cars, comma separated] [speeds km/h]
 import { makeCar, step, reset, PHYSICS_STEP_SECONDS } from '../../src/vehicle.ts';
 import * as L from '../../src/lab.ts';
 import { LALIVELY_JUMP } from '../../src/world/levels/venues/lalively.ts';

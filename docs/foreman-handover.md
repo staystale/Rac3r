@@ -1,13 +1,16 @@
 # Foreman handover
 
 Kept current as the work goes (owner 11-12: "update the handover as we go"). Last updated
-2026-11-12, late. Read `CLAUDE.md`, then `NOTES.md` (the owner's rules and the Routine at its end,
+2026-11-13. Read `CLAUDE.md`, then `NOTES.md` (the owner's rules and the Routine at its end,
 not repeated here), then `TODO.md`, then this page. The 11-07 version of this page is in git.
 
 ## Where we are
 
-- **Main** is at `dccfb95` (round11, all 14 checks green, 11-13): everything below except the
-  HUD cache. The served clone `Desktop/G/rac3r` is detached on it. Only `?xgayms=1` is under test.
+- **Main** is at `dccfb95` (round11). Branch `foreman/round12`: X Gayms PASSED (owner 11-13:
+  "Pass"), the default, switch and testlist entry gone; worldhash old+XGAYMS=1 vs new: SAME.
+  Push it with the barrier work, or alone if that takes long.
+- **Barrier culling by stretch**: owner 11-13 "sure". The worker builds it behind a switch
+  (render/props/fence.ts); measure X Gayms, The Bird's Mess and Knobhill before and after.
 - **Branch `foreman/round9`** holds round8, plus:
   - CI: main's pixel reference is rendered once and reused (`.github/workflows/renderref.yml`).
   - The Bird's Mess and the stadium dressing PASSED (owner 11-12: "That's all pass"). `birdsmess`
@@ -16,7 +19,7 @@ not repeated here), then `TODO.md`, then this page. The 11-07 version of this pa
   - NOTES: the game-time rule; the stadium list closed. This page.
   - Push to main when every check-run is green (Routine), then move the served clone.
   - thumbfill and tyrelights PASSED (owner 11-12: "Pass"): the default, switches gone.
-- **The test list is EMPTY**; FIX has no switches.
+- **The test list is EMPTY**; FIX has no switches (round12).
 - **Stade de Prance's notch FIXED** (owner 11-12: "Yes that was the corner! No switch just you
   fix it"): the inner lane's east-end hairpin and the bend out after it overlapped by 4.5 m, so the
   lane doubled back (18.9 deg in 1.5 m). The generator (`tools/scratch/_rocdata.mjs`) now closes a

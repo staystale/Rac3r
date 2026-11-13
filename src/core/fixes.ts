@@ -51,8 +51,4 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
-  // ?xgayms=1: L.A. Lively, the X Gayms rallycross course in the streets round the arena (Los
-  // Angeles 2012) - a figure of eight with one crossover bridge, tarmac and dirt, the joker's
-  // 16 m gap jump (world/levels/lalively-venue.ts)
-  xgayms: atLoad('xgayms'),
 };

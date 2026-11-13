@@ -7,7 +7,7 @@
 // OUT, JUMP_KMH; CHECK_PORT)
 import fs from 'node:fs';
 import { startServer, launchBrowser, gotoGame } from '../lib/browser.mjs';
-const level = 'xgayms', query = 'xgayms=1';
+const level = 'xgayms', query = 'x=0';
 const ZOOM = +(process.env.ZOOM || 0.6), JUMP_KMH = +(process.env.JUMP_KMH || 80);
 const JUMP_SHOT_S = 0.22, JUMP_SHOTS = 11;
 const OUT = process.env.OUT || 'shots/xgayms';

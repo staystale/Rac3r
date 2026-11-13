@@ -248,6 +248,6 @@ props and loose objects from `tools/scratch/_rocdata.mjs`'s kits, laid after the
 start its events at an hour of its own (`Level.eventHour`, a night race: used when the setup's TIME is LIVE, `game/menuflow.ts`).
 A venue's RALLYCROSS layout (`world/levels/rallycross-venue.ts` rallycrossLevel: the joker rule, the bales, the rallycross bushes
 unless the venue is `bushless`) takes its joker from another layout's loop (`VenueSpec.joker`, `world/venuejoker.ts`), the lane on
-that loop's own surface at its middle (a dirt joker: L.A. Lively's). L.A. Lively (`?xgayms=1`, `tools/scratch/_lalivelydata.mjs`)
+that loop's own surface at its middle (a dirt joker: L.A. Lively's). L.A. Lively (`tools/scratch/_lalivelydata.mjs`)
 is the first: a street figure of eight crossing at 90 deg, its joker's gap jump the terrain's ramp and table pieces laid five side
 by side across the road (cos^2 pieces half their width apart sum to a flat full height).
