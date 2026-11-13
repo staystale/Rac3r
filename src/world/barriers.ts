@@ -5,6 +5,10 @@ import { hoodooSpires, archShape } from './formations.ts';
 import { WRECK_M, SHACK_M, GAS_SHOP, GAS_PUMPS, GAS_POSTS } from './desertjunk.ts';
 import { SERVICES_HALL } from './stationbrands.ts';
 import { LEVEL } from "./state.ts";
+import { FIX } from "../core/fixes.ts";
+import {
+  GRID_REACH_M, barrierCellOf, barriersNear, noteBarrierBuilt, refileBarrier, segsNear,
+} from "./barriergrid.ts";
 import { activeLamps, resetLamps, type Lamp } from "./lamps.ts";
 import { driveOverPost, hitLamp } from "./lampdamage.ts";
 import { solidsNear } from "./solidgrid.ts";
@@ -24,7 +28,7 @@ import {
   applyRailHit, dents, isTornAfter, railBounce, railContact, railScrape, straightenRails,
 } from "./armcodent.ts";
 import type {
-  Barrier, BarrierKind, BarrierSeg, CarBody, Point, Prop, Solid, Subtrack,
+  Barrier, BarrierKind, BarrierSeg, CarBody, Prop, Solid,
 } from "./types.ts";
 
 // =============================================================================================
@@ -46,48 +50,8 @@ export const BARRIER_HALF: Record<BarrierKind, number> = { armco: 0.3, wall: 0.4
 const BARRIER_E = 0.3;           // restitution off a barrier (obstacles use 0.35)
 // share of the along-the-wall speed kept per contact step... (scrape)
 const BARRIER_SCRAPE = 0.85;
-// polyline offset from the subtrack centreline, startDist -> endDist (wrapping past the line),
-// `step` metres apart; offset may be a function of the distance (pit-lane entry / exit ramps). + =
-// the +normal side. INTERPOLATED point + SMOOTHED normal for paths offset from the track
-// (photographed: the pit lane's edges wobbled). onTrack snaps to the sample before dist
-// and uses that sample's own direction; at a 17 m offset the sample-to-sample jitter in direction
-// became metres of sideways wobble. Here: position lerped between samples, normal averaged over +-4
-// samples (~12 m).
-export function smoothOnTrack(sub: Subtrack, dist: number, off: number): { x: number; y: number } {
-  const pts = sub.pts, count = pts.length;
-  dist = ((dist % sub.totalDist) + sub.totalDist) % sub.totalDist;
-  let low = 0, high = count - 1;
-  while (low < high) {
-    const mid = (low + high + 1) >> 1;
-    if (pts[mid].dist <= dist) low = mid; else high = mid - 1;
-  }
-  const before = pts[low], after = pts[(low + 1) % count], seg = (after.dist > before.dist
-      ? after.dist : sub.totalDist) - before.dist, frac = seg > 0 ? (dist - before.dist) / seg : 0;
-  let nx = 0, ny = 0;
-  for (let near = -4; near <= 4; near++) {
-    const sample = pts[(low + near + count) % count];
-    nx += sample.nx;
-    ny += sample.ny;
-  }
-  const norm = Math.hypot(nx, ny) || 1;
-  return { x: before.x + (after.x - before.x) * frac + (nx / norm) * off,
-      y: before.y + (after.y - before.y) * frac + (ny / norm) * off };
-}
-export function alongTrack(
-  sub: Subtrack, startDist: number, endDist: number,
-  offset: number | ((t: number, len: number) => number), step = 4,
-): Point[] {
-  const total = sub.totalDist, pts: Point[] = [];
-  let len = endDist - startDist;
-  if (len < 0) len += total;
-  for (let along = 0; along <= len + 1e-6; along += step) {
-    const dist = (startDist + Math.min(along, len)) % total;
-    const off = typeof offset === 'function' ? offset(along, len) : offset;
-    const point = smoothOnTrack(sub, dist, off);
-    pts.push([+point.x.toFixed(2), +point.y.toFixed(2)]);
-  }
-  return pts;
-}
+// (the paths offset from the track: world/trackalong.ts)
+export { alongTrack, smoothOnTrack } from "./trackalong.ts";
 /**
  * Builds a barrier's segments again after its points changed (an armco dent or tear).
  * @param barrier the barrier
@@ -95,7 +59,8 @@ export function alongTrack(
 function rebuildSegs(barrier: Barrier): void {
   barrier._segs = undefined;
   barrier._rbb = undefined;
-  prepBarriers({ barriers: [barrier] });
+  buildSegs(barrier);
+  if (FIX.perfpass) refileBarrier(barrier);
 }
 /**
  * The barrier as an armco rail that dents (world/armcodent.ts), or null.
@@ -133,19 +98,27 @@ export const PLANE_SPAN_M = 9;
 export function prepBarriers(level: { barriers?: Barrier[] }): void {
   for (const barrier of level.barriers || []) {
     if (barrier._segs) continue;
-    barrier._segs = [];
-    delete barrier._cbb;
-    delete barrier._runs;
-    for (let i = 0; i < barrier.pts.length - 1; i++) {
-      const [startX, startY] = barrier.pts[i], [endX, endY] = barrier.pts[i + 1];
-      const dx = endX - startX, dy = endY - startY, lenSq = dx * dx + dy * dy;
-      // a stretch an armco rail is torn open on is not there (world/armcodent.ts)
-      if (lenSq < 1e-6 || isTornAfter(barrier.pts[i])) continue;
-      barrier._segs.push({ ax: startX, ay: startY, dx, dy, l2: lenSq,
-          minX: Math.min(startX, endX) - SEG_BOX_PAD, maxX: Math.max(startX, endX) + SEG_BOX_PAD,
-          minY: Math.min(startY, endY) - SEG_BOX_PAD, maxY: Math.max(startY, endY) + SEG_BOX_PAD,
-          i0: i });
-    }
+    buildSegs(barrier);
+    noteBarrierBuilt();
+  }
+}
+/**
+ * Builds a barrier's segments from its points (each boxed SEG_BOX_PAD past its ends).
+ * @param barrier the barrier
+ */
+function buildSegs(barrier: Barrier): void {
+  barrier._segs = [];
+  delete barrier._cbb;
+  delete barrier._runs;
+  for (let i = 0; i < barrier.pts.length - 1; i++) {
+    const [startX, startY] = barrier.pts[i], [endX, endY] = barrier.pts[i + 1];
+    const dx = endX - startX, dy = endY - startY, lenSq = dx * dx + dy * dy;
+    // a stretch an armco rail is torn open on is not there (world/armcodent.ts)
+    if (lenSq < 1e-6 || isTornAfter(barrier.pts[i])) continue;
+    barrier._segs.push({ ax: startX, ay: startY, dx, dy, l2: lenSq,
+        minX: Math.min(startX, endX) - SEG_BOX_PAD, maxX: Math.max(startX, endX) + SEG_BOX_PAD,
+        minY: Math.min(startY, endY) - SEG_BOX_PAD, maxY: Math.max(startY, endY) + SEG_BOX_PAD,
+        i0: i });
   }
 }
 // SOLID PROPS (requirement: make sure trees, planes etc are collidable objects).
@@ -702,6 +675,7 @@ function hitBarrier(car: CarBody, barrier: Barrier, vx0: number, vy0: number): v
  */
 export function clampToBarriers(car: CarBody, list: Barrier[] | undefined): void {
   if (!list || !list.length) return;
+  if (clampByGrid(car, list)) return;
   const spec = car.spec, cosHead = Math.cos(car.heading), sinHead = Math.sin(car.heading);
   const halfLen = spec.len * 0.48, halfWid = spec.wid * 0.48, open = hasOpenWheels(car);
   for (const barrier of list) {
@@ -721,6 +695,67 @@ export function clampToBarriers(car: CarBody, list: Barrier[] | undefined): void
     if (car.vx !== vx0 || car.vy !== vy0) hitBarrier(car, barrier, vx0, vy0);
     settleRail(rail);
   }
+}
+
+// the car's box for the grid's clamp (reused: no allocation a call)
+const GRID_POSE = { half: 0, halfLen: 0, halfWid: 0, cosHead: 0, sinHead: 0 };
+
+/**
+ * clampToBarriers by the barrier grid (world/barriergrid.ts): the barriers and segments within
+ * reach of the car's cell, in list order, with the same tests and clamps as the walk. A barrier
+ * met with no segment in reach is left out: nothing in the walk would change it (no clamp, no
+ * hit, no dent). Once a push takes the car out of its cell, the rest is walked whole.
+ * @param car the car body
+ * @param list the barriers
+ * @returns true when it clamped (the switch on and the car within the grid's reach)
+ */
+function clampByGrid(car: CarBody, list: Barrier[]): boolean {
+  const spec = car.spec;
+  if (!FIX.perfpass || !(spec.len < GRID_REACH_M)) return false;
+  GRID_POSE.halfLen = spec.len * 0.48; GRID_POSE.halfWid = spec.wid * 0.48;
+  GRID_POSE.cosHead = Math.cos(car.heading); GRID_POSE.sinHead = Math.sin(car.heading);
+  const open = hasOpenWheels(car), cell = barrierCellOf(car.x, car.y);
+  let near: number[] | null = barriersNear(list, cell), slot = 0, index = -1;
+  for (;;) {
+    if (near && barrierCellOf(car.x, car.y) !== cell) near = null;
+    index = near ? (slot < near.length ? near[slot++] : list.length) : index + 1;
+    if (index >= list.length) return true;
+    const barrier = list[index];
+    if (!meetsBarrier(car, barrier)) continue;
+    clampBarrierSegs(car, barrier, open, near ? segsNear(barrier, cell) : null, cell);
+  }
+}
+
+/**
+ * One barrier's segments against the car (those of a cell, or all of them), then its hit and
+ * dent, as the walk does.
+ * @param car the car body
+ * @param barrier the barrier
+ * @param open whether it has open wheels
+ * @param segsInCell the segments within reach of the car's cell by index, or null for all
+ * @param cell the car's cell
+ */
+function clampBarrierSegs(car: CarBody, barrier: Barrier, open: boolean,
+    segsInCell: number[] | null, cell: number): void {
+  const half = BARRIER_HALF[barrier.kind], vx0 = car.vx, vy0 = car.vy, rail = railOf(barrier);
+  const segs = barrier._segs!, len = car.spec.len, pose = GRID_POSE;
+  pose.half = half;
+  let near = segsInCell, slot = 0, index = -1;
+  for (;;) {
+    if (near && barrierCellOf(car.x, car.y) !== cell) near = null;
+    index = near ? (slot < near.length ? near[slot++] : segs.length) : index + 1;
+    if (index >= segs.length) break;
+    const seg = segs[index];
+    if (car.x < seg.minX - len || car.x > seg.maxX + len
+        || car.y < seg.minY - len || car.y > seg.maxY + len) continue;
+    clampCornersToSeg(car, seg, half, pose.halfLen, pose.halfWid, pose.cosHead, pose.sinHead,
+      rail);
+    if (open) clampWheelsToSeg(car, seg, half, rail);
+    clampPointToCar(car, seg, 0, pose, rail);
+    clampPointToCar(car, seg, 1, pose, rail);
+  }
+  if (car.vx !== vx0 || car.vy !== vy0) hitBarrier(car, barrier, vx0, vy0);
+  settleRail(rail);
 }
 
 // Painted floor figures — all data, all in metres. `kind` picks how render.ts draws it.

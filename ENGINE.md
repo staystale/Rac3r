@@ -202,6 +202,15 @@ the night light map (`render/light.ts drawSparkGlows`).
   reach (half width + 1 m), built per lane on first use, again when its points or width change
   (a highway cut shortens them); a point tests its cell's segments with the walk's own test
   (identical answers on 39 levels, 332 544 edge points: `tools/scratch/_lanereach.mjs`).
+  The barrier clamp (`world/barriers.ts clampToBarriers`) asks `world/barriergrid.ts`: a list's
+  barriers by 16 m cell (a barrier in every cell one of its segments reaches, grown 8 m), and per
+  barrier its segments by cell, both in order; the same meet test, box test, clamps, hit and dent
+  as the walk, in the same order (a barrier met with no segment in reach changes nothing). Once a
+  push takes the car out of its cell the rest of the call is walked whole; a car of 8 m or more
+  is walked. A barrier's segment cells are built again with its segments (a dent, a tear, a
+  restart: keyed on the segment list) and it is filed into any new cells at once; a list is
+  filed again when its length changes or a new barrier is built. Identical: 252 000 clamps,
+  62 111 hits, dents and tears (`tools/scratch/_barriergrid.mjs`, switch off vs on).
 - The game clock: `world/clock.ts` - a global time of day / season / moon
   (1 game day = 1 real hour, a season 7 days), saved in its own storage key, run by the sim step
   in events (`game/loop.ts`); it sets the sky (`daylight.ts setSky`: darkness and the dark's
