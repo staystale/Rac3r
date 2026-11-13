@@ -15,7 +15,8 @@ not repeated here), then `TODO.md`, then this page. The 11-07 version of this pa
 - **Worker: PERFORMANCE AUDIT** (measure only; TODO section 2): the owner wants 60 fps on every
   track on most devices. Its ranked findings go to the owner before any fix.
 - **Open: menu judder** (owner 11-13, seen waiting at the menu): read from the phone report.
-- **Worker** (agent a6cc304d1dadeede5, worktree `.claude/worktrees/barriercull`): idle.
+- **Worker** (agent a6cc304d1dadeede5, worktree `.claude/worktrees/barriercull`): the audit. QUEUED for
+  it after: the new rallycross tracks (TODO 3b; names to approve; NOTES "every new track").
 - **Branch `foreman/round9`** holds round8, plus:
   - CI: main's pixel reference is rendered once and reused (`.github/workflows/renderref.yml`).
   - The Bird's Mess and the stadium dressing PASSED (owner 11-12: "That's all pass"). `birdsmess`

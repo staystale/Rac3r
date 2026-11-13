@@ -50,11 +50,15 @@ ROUND 5, LOADING AND SPEED:
   real (378 yd), so built at its size (Wembley's shape, a ~550 m lap) in the old stadium's bowl
   with its twin towers ("it can size match with the current stock car circuit or relative if it's
   bigger irl").
-- NEW RALLYCROSS TRACKS (owner 11-10: "keep the originals" - the old stages stay as they are): from
-  the map - Pembrey, Blyton, Croft's RX layout (on the Croughed venue); a US stadium / Nitro RX one
-  (gap jumps over the track, crossovers on a bridge - both systems exist); a World RX one or two
-  (Holjes); a HEAD-TO-HEAD SWAP-OVER (two parallel lanes crossing on a bridge, mixed tarmac and
-  gravel). "Side by side ace make them all or at least 4+". Names to agree.
+- NEW RALLYCROSS TRACKS (owner 11-10: "keep the originals" - the old stages stay as they are; "Side by
+  side ace make them all or at least 4+"). QUEUED for the worker after the performance audit. Owner
+  11-13: the REAL ONES FIRST - Holjes, Croft's RX layout, Pembrey, Blyton - then a NITRO-STYLE one
+  OUTDOORS (not a stadium: a gap jump over the track, a crossover bridge, banked dirt turns), then
+  the HEAD-TO-HEAD SWAP-OVER (two parallel lanes crossing on a bridge, mixed tarmac and gravel).
+  PARODY NAMES, each approved by the owner before it goes in. Real (traced, real tarmac / gravel
+  split, real jumps, real joker), at FULL SIZE as the other short courses (NOTES: track scale), not
+  stiff or boring, with the props pass and the barrier check in the first hand-over (NOTES: every
+  new track). One switch each.
 - DEMOLITION DERBY (owner 11-10: "Demolition derby levels classic tarmac circle - and we can reuse
   stock car tracks ect for that too"): a classic tarmac circle arena, and a derby mode on the stock
   car tracks (Stock Car, Grass Track, Old Wobbly). Questions when we come to it (the AI ramming, how

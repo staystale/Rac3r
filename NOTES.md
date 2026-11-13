@@ -11,6 +11,16 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   and then let me approve" - the venue helper builds them, the foreman reviews (photos, numbers,
   CI) and merges behind a switch, then the owner passes it.
 
+- EVERY NEW TRACK, STANDARD STEPS (owner 11-13: "remember not to make them too stiff n boring and
+  remember to do a props pass ect and check for barrier issues - these should become standard parts
+  of this process"): (1) a natural, unique line - mixed corners, no boxy squares (X Gayms' loose
+  re-lay is the bar); (2) a PROPS PASS - the venue dressed like the stadiums and X Gayms (paddock,
+  fans, flags, litter, its own look), propcheck clean; (3) a BARRIER CHECK - barriercheck,
+  venueaudit (fold-backs, free ends, sealing), portal mouths; all in the first hand-over, not later.
+- TRACK SCALE (owner 11-13: "make sure it fits with how we've done other tracks I know some are half
+  but smaller tracks are bigger"): a road circuit at 1/2 scale (VenueSpec share 0.5); a short course
+  (rallycross, stadium, about 1 km real) at full size (share 1), as the ROC stadiums and X Gayms.
+
 - Discuss before anything non-trivial: find the root cause, propose the fix with a size (S / M / L, a
   total for a plan), wait for a yes. No chains of experiments without telling the owner.
 - One step at a time, then pause for the owner's phone verdict. Give tap-able links.
