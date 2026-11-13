@@ -8,6 +8,8 @@ import { CONES, LEVEL } from "./world/state.ts";
 import { cornerTyres } from "./world/lampplan.ts";
 import { fileAtRest, rebuildRestGrid } from "./cones/coneGrid.ts";
 import { stepCones } from "./cones/coneStep.ts";
+import { joinAwake, wakeAll } from "./cones/coneSleep.ts";
+import { FIX } from "./core/fixes.ts";
 import { CONE_R, DEBRIS, TOPPLES, heightenStack } from "./cones/coneConsts.ts";
 import type { ConesCtx, Loose, LevelObj, ConeCar, TapeSection } from './cones/coneTypes.ts';
 
@@ -134,11 +136,14 @@ export function createCones({ objectHits = true }: { objectHits?: boolean } = {}
     list: [], clock: 0, sections: [], puffs: [], nextN: 0, objectHits,
     hits: [],           // {x, y, speed, kind} drained by render.ts each frame for dust
     restGrid: new Map(),        // cell key -> objects at rest in it
-    movers: [], prevMovers: [],
+    movers: [], prevMovers: [], awake: [],
     burst: [],                  // reused every step
   };
   const { hits } = ctx;
-  const reset = () => resetCones(ctx);
+  const reset = () => {
+    resetCones(ctx);
+    if (FIX.perfpass) wakeAll(ctx);
+  };
   const step = (carOrCars: ConeCar | ConeCar[], dt: number) => stepCones(ctx, carOrCars, dt);
 
   reset();
@@ -169,8 +174,14 @@ export function createCones({ objectHits = true }: { objectHits?: boolean } = {}
       ctx.list.push({ kind: 'tyre', mode: 'roll', mass: 12, r: 0.42, hx: extra.x,
         hy: extra.y, moved: true, hitCount: 1, down: 0, ang: 0, spin: 0,
       flipPhase: 0, flipSpeed: 0, wobblePhase: 0, wobbleAmp: 0, rollDist: 0, ...extra,
-        _n: ctx.nextN++ }); },
-    rebuildGrid: () => rebuildRestGrid(ctx),   // for harnesses that add objects by hand
+        _n: ctx.nextN++ });
+      if (FIX.perfpass) joinAwake(ctx, ctx.list[ctx.list.length - 1]);
+    },
+    // for harnesses that add objects by hand
+    rebuildGrid: () => {
+      rebuildRestGrid(ctx);
+      if (FIX.perfpass) wakeAll(ctx);
+    },
     // STREAMED objects (the endless highway: "littered with tyres and cones, chevrons
     // for the corners"): spawn adds level objects as the road grows ahead; cull(keep) drops every
     // object keep rejects (the road behind) and refiles the rest grid
@@ -180,11 +191,13 @@ export function createCones({ objectHits = true }: { objectHits?: boolean } = {}
         obj._n = ctx.nextN++;
         ctx.list.push(obj);
         fileAtRest(ctx, obj);
+        if (FIX.perfpass) joinAwake(ctx, obj);
       }
     },
     cull(keep: (obj: Loose) => boolean) {
       const before = ctx.list.length;
       ctx.list = ctx.list.filter(keep);
+      if (FIX.perfpass && ctx.list.length !== before) ctx.awake = ctx.awake.filter(keep);
       if (ctx.list.length !== before) rebuildRestGrid(ctx);
       return before - ctx.list.length;
     },

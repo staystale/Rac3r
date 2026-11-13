@@ -4,6 +4,8 @@
 import {
   BROKEN, OBJ_REST, TOPPLE_V, TOPPLES, burstStack, mayBurst, stackBursts,
 } from "./coneConsts.ts";
+import { joinAwake, wakeIfStirred } from "./coneSleep.ts";
+import { FIX } from "../core/fixes.ts";
 import type { ConesCtx, Loose } from './coneTypes.ts';
 
 export const OBJ_CELL = 2.5;              // m; larger than any moving object's diameter
@@ -146,7 +148,9 @@ function pairWithResting(ctx: ConesCtx, mover: Loose) {
     if (!cell) continue;
     for (let slot = 0; slot < cell.length; slot++) {
       const other = cell[slot];
-      if (other !== mover && !other.vx && !other.vy) pair(ctx, mover, other);
+      if (other === mover || other.vx || other.vy) continue;
+      pair(ctx, mover, other);
+      if (FIX.perfpass) wakeIfStirred(ctx, other);
     }
   }
 }
@@ -263,6 +267,24 @@ function pairInCrowd(ctx: ConesCtx, movers: Loose[], index: number) {
 }
 
 /**
+ * This step's movers, in list order, into ctx.movers.
+ * @param ctx the cones context
+ */
+function gatherMovers(ctx: ConesCtx) {
+  const { list, movers } = ctx;
+  movers.length = 0;
+  // (the switch: every mover is awake - coneSleep.ts - and the awake list is in list order)
+  if (FIX.perfpass) {
+    for (const obj of ctx.awake) if (obj.vx || obj.vy) movers.push(obj);
+    return;
+  }
+  for (let i = 0; i < list.length; i++) {
+    const obj = list[i];
+    if (obj.vx || obj.vy) { obj._i = i; movers.push(obj); }
+  }
+}
+
+/**
  * OBJECT-OBJECT COLLISIONS (requirement: tyres should hit other tyres and cones or objects etc and
  * pass impact onto them if necessary). Every object is a circle of radius r and mass m.
  * Only objects that are MOVING are tested, each against the resting grid cells around it and
@@ -271,11 +293,7 @@ function pairInCrowd(ctx: ConesCtx, movers: Loose[], index: number) {
  */
 export function collideObjects(ctx: ConesCtx) {
   const { list, movers, prevMovers } = ctx;
-  movers.length = 0;
-  for (let i = 0; i < list.length; i++) {
-    const obj = list[i];
-    if (obj.vx || obj.vy) { obj._i = i; movers.push(obj); }
-  }
+  gatherMovers(ctx);
   // anything that was moving last step and has now stopped is filed where it stopped
   for (let i = 0; i < prevMovers.length; i++) {
     const obj = prevMovers[i];
@@ -300,5 +318,6 @@ export function collideObjects(ctx: ConesCtx) {
   if (ctx.burst.length) {
     for (const tyre of ctx.burst) tyre._n = ctx.nextN++;
     list.push(...ctx.burst);
+    if (FIX.perfpass) for (const tyre of ctx.burst) joinAwake(ctx, tyre);
   }
 }

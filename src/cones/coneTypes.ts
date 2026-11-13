@@ -24,6 +24,7 @@ export interface Loose {
   rollDist: number; flipPhase: number; flipSpeed: number; wobblePhase: number; wobbleAmp: number;
   _s?: number;   // the road distance it belongs to (streamed levels drop it with that stretch)
   _n?: number;   // a fixed creation index (hits are taken in list order)
+  _awake?: boolean;   // on the awake list (cones/coneSleep.ts)
   _ck?: number;   // the rest-grid cell it is filed in
   _i?: number;   // its list index this step (a mover)
   tyres?: number;   // a tyre stack's height in tyres (coneConsts.ts heightenStack)
@@ -86,5 +87,6 @@ export interface ConesCtx {
   hits: ConeHit[];   // drained by render.ts each frame for dust
   restGrid: Map<number, Loose[]>;   // cell key -> objects at rest in it
   movers: Loose[]; prevMovers: Loose[];
+  awake: Loose[];   // the objects a step walks, in list order (FIX.perfpass: cones/coneSleep.ts)
   burst: Loose[];   // reused every step
 }

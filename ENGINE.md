@@ -211,6 +211,14 @@ the night light map (`render/light.ts drawSparkGlows`).
   restart: keyed on the segment list) and it is filed into any new cells at once; a list is
   filed again when its length changes or a new barrier is built. Identical: 252 000 clamps,
   62 111 hits, dents and tears (`tools/scratch/_barriergrid.mjs`, switch off vs on).
+  The loose objects (`cones/coneStep.ts stepCones`) walk an awake list (`cones/coneSleep.ts`) in
+  list order (by `_n`) instead of the whole list: an object at rest (`stillAtRest`, the gate the
+  step already skipped on) sleeps at the end of the step; a car meeting it
+  (`hitRestingObjects`) or a mover striking it (`coneGrid.ts pairWithResting`) wakes it if it
+  stirred; new, spawned and burst objects join awake, a cull filters it, a restart wakes all; a
+  tumbleweed with a breeze never sleeps. The movers are gathered from it. Identical objects and
+  cars, 21 cars ploughing through 216-3 575 objects (`tools/scratch/_conebench.mjs`); Spa at
+  rest 125 -> ~17 us a step in node.
 - The game clock: `world/clock.ts` - a global time of day / season / moon
   (1 game day = 1 real hour, a season 7 days), saved in its own storage key, run by the sim step
   in events (`game/loop.ts`); it sets the sky (`daylight.ts setSky`: darkness and the dark's

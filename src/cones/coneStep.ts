@@ -7,6 +7,8 @@ import { hitWalls } from "./coneWalls.ts";
 import { hitByCar } from "./coneCar.ts";
 import { stepTape } from "./coneTape.ts";
 import { OBJ_CELL, cellKey, collideObjects } from "./coneGrid.ts";
+import { joinAwake, sleepRested, stillAtRest, wakeIfStirred } from "./coneSleep.ts";
+import { FIX } from "../core/fixes.ts";
 import type { ConesCtx, Loose, ConeCar } from './coneTypes.ts';
 
 /**
@@ -134,18 +136,6 @@ function integrate(ctx: ConesCtx, obj: Loose, dt: number, speed: number) {
 }
 
 /**
- * AT REST since its last step - still, not spinning or settling, the same spot and the
- * same filed cell - so this step would change nothing and test no car (MEASURED, 20 AI on
- * Thruston: ~1100 objects stepped for nothing were 0.2 ms of a 4.6 ms physics step).
- * @param obj the object
- * @returns true when its step can be skipped
- */
-function stillAtRest(obj: Loose) {
-  return obj._restX === obj.x && obj._restY === obj.y && obj._restCk === obj._ck
-    && !obj.vx && !obj.vy && !obj.spin && !(obj.down > 0 && obj.down < 1);
-}
-
-/**
  * Move one object for the step and test it against every car if it is moving.
  * @param ctx the cones context
  * @param obj the object
@@ -203,7 +193,10 @@ function hitRestingObjects(ctx: ConesCtx, cars: ConeCar[], newTyres: Loose[]) {
     // slows the car — and a Stock Car wall
     // crash knocked on 9-11 objects instead of 15, tools/objcheck). _n = a fixed creation index.
     cand.sort((left, right) => left._n! - right._n!);
-    for (const other of cand) hitByCar(ctx, other, car, newTyres);
+    for (const other of cand) {
+      hitByCar(ctx, other, car, newTyres);
+      if (FIX.perfpass) wakeIfStirred(ctx, other);
+    }
   }
 }
 
@@ -226,13 +219,16 @@ export function stepCones(ctx: ConesCtx, carOrCars: ConeCar | ConeCar[], dt: num
   if (ctx.sections.length) stepTape(ctx, cars);
   const newTyres: Loose[] = [];
 
-  for (const obj of ctx.list) stepObject(ctx, obj, cars, dt, newTyres);
+  // (the switch: the awake objects only - coneSleep.ts)
+  for (const obj of FIX.perfpass ? ctx.awake : ctx.list) stepObject(ctx, obj, cars, dt, newTyres);
 
   hitRestingObjects(ctx, cars, newTyres);
   if (newTyres.length > 0) {
     for (const tyre of newTyres) tyre._n = ctx.nextN++;
     ctx.list.push(...newTyres);
+    if (FIX.perfpass) for (const tyre of newTyres) joinAwake(ctx, tyre);
   }
   if (ctx.objectHits) collideObjects(ctx);
+  if (FIX.perfpass) sleepRested(ctx);
 }
 
