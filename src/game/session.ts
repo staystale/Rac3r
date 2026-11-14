@@ -27,6 +27,9 @@ import { gridPos, spawnAI } from './grid.ts';
 import { shared, game } from './state.ts';
 import { saveProfile } from '../menu/profile.ts';
 import { restartPoliceGame } from './police.ts';
+import {
+  loadScreenOn, loadingNow, noteFieldDone, noteFieldQueued, readyStages, runLoading,
+} from './loading.ts';
 import type { GameCar, PlaceCar } from './state.ts';
 import type { TrackPoint } from '../world/types.ts';
 
@@ -372,7 +375,20 @@ function startField() {
   startFlow();
 }
 
+/**
+ * RESTART: the event from its start. Behind the loading screen (?loadscreen=1, in a session)
+ * unless a load is under way already (a START's own restart runs in its stages).
+ */
 export function doRestart() {
+  if (loadScreenOn() && !loadingNow()) {
+    runLoading(LEVEL.name, [{ key: 'restart', weight: 0.5, work: restartNow }, ...readyStages()]);
+    return;
+  }
+  restartNow();
+}
+
+/** The restart's work: the weather, the car, the cones, the marks, the field, the fly-in. */
+function restartNow() {
   saveRecords();
   // the event's weather from its start (before the cars' tyres take the track temperature and the
   // AI plans its speeds for the wetness)
@@ -404,8 +420,12 @@ export function doRestart() {
   // recoverAI threw on every step
   game.ai = [];
   // the field: the crash bench's (game/crashbench.ts, you in it), else the race grid
-  setTimeout(() => { if (!lineUpCrashBench()) startField(); }, 0);   // after this function has put
-  // the player on the spawn
+  // (counted for the loading screen, which paints the ground round the grid once it is done)
+  noteFieldQueued();
+  setTimeout(() => {
+    noteFieldDone();
+    if (!lineUpCrashBench()) startField();
+  }, 0);   // after this function has put the player on the spawn
   game.car.prevWheels = null;
   game.car.simTime = 0;
   shared.lapState.lap = 0;
@@ -424,8 +444,10 @@ export function doRestart() {
   // open on the whole level, then ease in to the car. Not behind the menu:
   // MEASURED on the owner's phone (?report=1, the menu's first 1.5 s) the fly-in nobody sees there
   // cost a 113 ms frame (the whole-level picture) and a 121 ms one (28 GPU uploads at the handover)
+  // (behind the loading screen it starts once the work is done: game/loading.ts)
   const behindMenu = shared.mode === 'menu';
-  if (shared.renderer && shared.renderer.flyIn && !behindMenu) shared.renderer.flyIn();
+  if (shared.renderer && shared.renderer.flyIn && !behindMenu && !loadingNow())
+    shared.renderer.flyIn();
   shared.trackProgress = 0;
   shared.lastOnTrack = null;
   resetRace(game);

@@ -654,6 +654,25 @@ const newRenderState = (): RenderState =>
   ({ blockPx: 1, realDpr: 1, gpuOn: false, screenBegun: false, wallDt: 0 });
 
 /**
+ * What the loading screen asks of the renderer (game/loading.ts).
+ * @param ctx the render context
+ * @returns paintStartGround: the ground of the fly-in's hand-over view round the car painted a
+ * slice at a time (true while some may be left); readyFlyIn: the fly-in started with its
+ * whole-level picture already on the GPU, so its first frame neither makes nor uploads it
+ */
+function loadingHelpers(ctx: RenderCtx) {
+  return {
+    paintStartGround: (car: CamCar, maxTiles: number) =>
+      ctx.prepareAround(car.x, car.y, ctx.FLY_HANDOVER, maxTiles),
+    readyFlyIn() {
+      ctx.flyIn();
+      const overview = ctx.camState.fly && ctx.camState.fly.ov;
+      if (overview && ctx.state.gpuOn) ctx.gpu.sink.preload(overview.c, true);
+    },
+  };
+}
+
+/**
  * Builds the renderer for a canvas.
  *
  * @param canvas the screen canvas
@@ -737,7 +756,7 @@ export function createRenderer(canvas: HTMLCanvasElement, settings: Settings) {
     pixelCar,                           // for tools/spritesheet.mjs
     pixelCarWithWheels: ctx.pixelCarWithWheels,   // for the garage
     get tileCount() { return ctx.tiles.size; },
-    ...makeDebugTools(ctx),
+    ...makeDebugTools(ctx), ...loadingHelpers(ctx),
   };
 }
 

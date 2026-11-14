@@ -14,6 +14,7 @@ import { stepStart } from './order.ts';
 import { stepAI } from './ai.ts';
 import { updateRecoveryTracking } from './session.ts';
 import { stepResults } from './menuflow.ts';
+import { holdRace, loadingNow } from './loading.ts';
 import { takeMenuTaps } from '../menu/widgets.ts';
 import { readNextSprite } from '../render/spritepixels.ts';
 import { newBodyFrame } from '../render/rollbody.ts';
@@ -133,9 +134,13 @@ export interface Frame { now: number; wallDt: number; frameMs: number; meterSim:
  */
 export function runSimSteps(inp: CarInput, wallDt: number) {
   let meterSim = 0;
-  openGuideOnLanding();
-  if (shared.guide.active || shared.paused) shared.acc = 0;
-  if (shared.started && !shared.guide.active && !shared.paused) {
+  // the loading screen and its fly-in hold the race: no step, no race time, the AI still; the
+  // walkthroughs wait for the fly-in to land (game/loading.ts)
+  const held = holdRace();
+  if (!held) openGuideOnLanding();
+  const stopped = shared.guide.active || shared.paused || held;
+  if (stopped) shared.acc = 0;
+  if (shared.started && !stopped) {
     shared.acc += wallDt;
     let steps = 0;
     const simT0 = performance.now();   // tools: game.simMs / game.drawMs (smoothed ms per frame)
@@ -271,6 +276,8 @@ export function loop(now: number) {
   // ---- fixed-step sim
   const meterSim = runSimSteps(inp, wallDt);
   updateAudio();
+  // nothing to draw behind the loading screen (the level is being built under it)
+  if (loadingNow()) return;
 
   const drawT0 = renderFrame({ now, wallDt, frameMs, meterSim });
   game.drawMs = (game.drawMs || 0) * 0.9 + (performance.now() - drawT0) * 0.1;

@@ -521,5 +521,20 @@ export function createTiles(view: View, cam: Cam, settings: Settings, helpers: T
     drawGround: (wallDt = 0, car: CamCar | null = null) => drawGround(tcx, wallDt, car),
     prefetch: (step: number, centreX: number, centreY: number, z: number, budget: TileBudget) =>
       prefetch(tcx, step, centreX, centreY, z, budget),
+    /**
+     * Paints up to maxTiles of the tiles a view at zoom z round a spot shows, before any frame
+     * draws them (game/loading.ts: behind the loading screen); a new level's cache emptied first.
+     * @param centreX the spot, m
+     * @param centreY the spot, m
+     * @param z the zoom
+     * @param maxTiles the most to paint now
+     * @returns true when it painted its most (some may be left)
+     */
+    prepareAround: (centreX: number, centreY: number, z: number, maxTiles: number) => {
+      resetOnChange(tcx);
+      const budget = { n: maxTiles };
+      prefetch(tcx, FIXED_STEP, centreX, centreY, z, budget);
+      return budget.n === 0;
+    },
   };
 }

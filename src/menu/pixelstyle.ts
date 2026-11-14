@@ -16,8 +16,9 @@
 
 const FONT = 'assets/fonts/';
 
-// each family: its own face for everything but 0-9, Silkscreen's digits for 0-9
-const FACES = `
+// each family: its own face for everything but 0-9, Silkscreen's digits for 0-9 (the loading
+// screen, menu/loadscreen.ts, takes them too: it can show before the menu has)
+export const MENU_FACES = `
 @font-face { font-family: R3Digits; src: url(${FONT}silkscreen-700.woff2) format("woff2");
   unicode-range: U+0030-0039; font-display: swap; }
 @font-face { font-family: R3Small; src: url(${FONT}silkscreen-700.woff2) format("woff2");
@@ -58,7 +59,7 @@ const ZAP = `linear-gradient(#ffffff, #ffffff) left 4px top 3px / 6px 2px no-rep
 const DULL = `linear-gradient(180deg, #3a2a2c 0 2px, #2c2128 2px calc(100% - 4px), \
 #1a1418 calc(100% - 4px))`;
 
-export const MENU_PIXEL_CSS = FACES + `
+export const MENU_PIXEL_CSS = MENU_FACES + `
 #menu { font-family: R3Head, ui-monospace, monospace; letter-spacing: .03em; color: #f6eee6; }
 #menu .pane { background: rgba(12,11,16,.95); box-shadow: inset 0 0 0 2px #3a2018,
   6px 6px 0 rgba(0,0,0,.6); }

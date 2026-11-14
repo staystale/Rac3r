@@ -8,6 +8,7 @@ import { spawnAI } from './grid.ts';
 import { armStart } from './order.ts';
 import { doReset, saveRecords, doRestart, saveTyreWear, loadTyreWear } from './session.ts';
 import { openPause } from './menuflow.ts';
+import { loadingNow } from './loading.ts';
 import { shared, game } from './state.ts';
 import type { GameCar } from './state.ts';
 import type { HudAction } from '../hud/hudtypes.ts';
@@ -113,6 +114,8 @@ export function gameKey(key: string) {
  * @param key the key
  */
 export function onKey(key: string) {
+  // (the loading screen up: no key reaches the game - no restart, reset or pause behind it)
+  if (loadingNow()) return;
   if (shared.guide.active) {
     shared.guide.key(key);
     return;
@@ -136,8 +139,22 @@ export function onKey(key: string) {
 // business appearing on the lab floor at the same coordinates.
 export function selectLevel(levelId: string) {
   if (levelId === LEVEL.id) return;
+  enterLevel(levelId);
+  settleLevel();
+}
+
+/**
+ * A level switch's first half: the records saved, the level built and made current (the long
+ * part of a new level's load: the loading screen runs it as a stage of its own).
+ * @param levelId the level
+ */
+export function enterLevel(levelId: string) {
   saveRecords();
   setLevel(levelId);
+}
+
+/** A level switch's second half: the race flag, the cones, the marks and wear, the restart. */
+export function settleLevel() {
   // MEASURED BUG (requirement: joker lap HUD warning showing on tracks it shouldn't): the RX race
   // flag survived the in-game level switch, so after an RX race on Knobhill every track showed
   // LAP n/5 + JOKER TO DO. A level without a joker has no RX race.

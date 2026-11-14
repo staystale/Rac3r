@@ -55,6 +55,23 @@ Older design notes and measurements are in the git history of this file.
 4. Draw: `renderer.frame()` (world into the art-pixel buffer, then to the screen), then the HUD.
 5. Audio update and the fps meter.
 
+THE LOADING SCREEN (`?loadscreen=1`, `FIX.loadscreen`; `game/loading.ts`, its picture
+`menu/loadscreen.ts`): a START (`menuflow.ts launch`) or RESTART (`session.ts doRestart`) in a
+session puts a DOM screen up at once - the track's name and a bar, in the menu's pane, faces and
+colours; it takes every tap and touch, and the keys are ignored while it is up (`controls.ts onKey`).
+A frame paints it, then the work runs behind it a stage a task, each after a painted frame: the level
+build (`controls.ts enterLevel`, a new level only), the rest of the switch (`settleLevel`: cones,
+marks, the restart), the session (`launchSession`: car, livery, tyres, the restart), the field lined
+up (`startField`, its own task as before), the ground of the fly-in's hand-over view round the grid
+painted a few tiles a task (`renderer.paintStartGround`, `tiles.ts prepareAround`), and the fly-in
+started with its whole-level picture painted and uploaded to the GPU (`renderer.readyFlyIn`). The bar
+moves at each stage and eases through a long one on the compositor (paced by the time that stage took
+last). The screen stays up at least 300 ms (a quick load flashed it), then fades (250 ms) over the
+fly-in's hold. While the screen or the fly-in is up, `loop.ts` steps no sim (`holdRace`: no race
+time, the AI and lights' clock still, the walkthroughs wait) and draws nothing behind the screen; the
+countdown starts on the first frame after the fly-in. The race behind the menu never shows it. Switch
+off: none of it runs.
+
 ## The car (`vehicle.ts` and `physics/`)
 
 A top-down two-axle model with four tyre temperatures. `step(car, input, dt)`, in order:

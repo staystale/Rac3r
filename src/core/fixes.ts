@@ -51,4 +51,7 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
+  // START and RESTART behind a loading screen (game/loading.ts): the work, then the fly-in, then
+  // the countdown; the race held until the fly-in is over
+  loadscreen: atLoad('loadscreen'),
 };

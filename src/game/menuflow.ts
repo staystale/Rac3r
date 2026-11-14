@@ -12,7 +12,8 @@ import { LEVEL } from "../world/state.ts";
 import { clearWear } from "../world/wear.ts";
 import { LEVELS } from "../world/levels/index.ts";
 import { saveRecords, doRestart, loadTyreWear, saveTyreWear } from './session.ts';
-import { selectLevel, selectCar } from './controls.ts';
+import { selectLevel, selectCar, enterLevel, settleLevel } from './controls.ts';
+import { loadScreenOn, readyStages, runLoading } from './loading.ts';
 import { shared, game } from './state.ts';
 import {
   minimapSetting, setMinimapSetting, progressSetting, setProgressSetting,
@@ -201,8 +202,30 @@ export function launch(levelId: string, carId: string, opts: LaunchOpts = {}) {
   shared.demo = null;
   shared.paused = false;
   applyLaunchOptions(levelId, opts);
+  // (in the tap itself: a phone's audio starts only from one)
   shared.audio.init();
-  if (LEVEL.id !== levelId) selectLevel(levelId);
+  const isNewLevel = LEVEL.id !== levelId;
+  if (loadScreenOn()) {
+    // behind the loading screen: the level's build a stage of its own (game/loading.ts)
+    const level = LEVELS.find((item) => item.id === levelId);
+    runLoading(level ? level.name : levelId, [
+      ...(isNewLevel ? [{ key: 'build', weight: 0.55, work: () => enterLevel(levelId) },
+        { key: 'settle', weight: 0.05, work: settleLevel }] : []),
+      { key: 'launch', weight: 0.12, work: () => launchSession(carId, opts) },
+      ...readyStages(),
+    ]);
+    return;
+  }
+  if (isNewLevel) selectLevel(levelId);
+  launchSession(carId, opts);
+}
+
+/**
+ * A launch's session: the car, its livery and tyres, the restart, then the first walkthroughs.
+ * @param carId the car to drive
+ * @param opts the launch options
+ */
+function launchSession(carId: string, opts: LaunchOpts) {
   if (game.car.spec.id !== carId) selectCar(carId);
   applyLivery(game.car.spec, opts.livery ?? null);
   // TYRES from the garage (none = Pre-Spun, the stock car)

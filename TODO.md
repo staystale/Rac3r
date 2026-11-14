@@ -28,7 +28,7 @@ records in `TODO-DONE.md` (PASSED 11-12). On the phone now:
 - LOADING SCREEN (owner 11-14: "Spa on start up / restart seems slow af", "a loading screen there
   to hide it while it loads and then it can drop us in when it's ready", "the race should only start
   after loading is done and the player is in so we don't get dropped in midway thru a count down").
-  QUEUED for the worker after Holy Jeez, behind `?loadscreen=1`:
+  BUILT, behind `?loadscreen=1` (worker, to review; ENGINE.md "One frame"):
   - Shown at once on START and RESTART (every level): the track's name and a progress bar.
   - Behind it: the level build, the 20 AI lined up, the cones stood up, and the ground round the
     grid painted. Then it fades into the race.
@@ -42,6 +42,17 @@ records in `TODO-DONE.md` (PASSED 11-12). On the phone now:
     0.21). A restart rebuilds nothing but resets 3 329 cones, lines up the field, draws the
     fly-in's whole-level picture and repaints the ground: time each in the browser. Fix anything
     redone needlessly as a real saving, not only hidden.
+  - MEASURED (laptop, tools/scratch/_startload.mjs, 20 AI, switch off; ms from the tap): Spa START
+    x1 - the call 1690 (setLevel 1463: buildLevel 1106, prepareLevel 357), the first frame 1943 (the
+    fly-in's, before the field exists), the field lined up 2543 (spawnAI 338, the AI's line built on
+    a level's first race), the fly-in over 4650, green 6904; RESTART x1 - the call 61 (cones reset 4,
+    the fly-in picture 36, resetPuddles 20), field 390, fly-in over 2250, green 4396. At x4: START
+    call 7776, field 11388, fly-in over 17884 (its 1.95 s at ~500 ms frames: the full field's sim runs
+    under it), green 22258; RESTART field 1686, green 12315. Knobhill RX x1 START green 4319, RESTART
+    4017; x4 8294 / 6653. Redone needlessly, not fixed (owner to decide): a START on a new level runs
+    the restart twice (selectLevel's and launch's: two cones resets, two field line-ups, the first
+    fly-in picture thrown away; Spa x1 ~70 ms, x4 ~320 ms); every RESTART repaints the fly-in's
+    whole-level picture (Spa 36 ms x1, 144 ms x4) though the level has not changed.
 
 ## 3. OPEN, IN THE OWNER'S ORDER
 
