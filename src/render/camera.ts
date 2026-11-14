@@ -4,7 +4,7 @@ import { LEVEL } from "../world/state.ts";
 import { meterEvent } from "../ui/meter.ts";
 // LOOKAHEAD, ZOOM_MIN: read only inside functions (draw time), so the import cycle is harmless
 import { LOOKAHEAD, ZOOM_MIN } from "../render.ts";
-import type { Cam, CamCar, CamState, TileBudget, View } from "./types.ts";
+import type { Cam, CamCar, CamState, Fly, TileBudget, View } from "./types.ts";
 import { trackCanvas } from '../core/memorybudget.ts';
 import { FIX } from '../core/fixes.ts';
 import { keptFlyPicture } from './flypicture.ts';
@@ -235,6 +235,29 @@ function startFlyIn(ctx: CameraCtx) {
 }
 
 /**
+ * Where a fly-in's view is at a point of its move (render/flylayers.ts reads the path ahead).
+ * @param fly the fly-in
+ * @param car the car it ends on
+ * @param progress 0 (the hold, the whole level) to 1 (on the car)
+ * @returns the view's centre (m) and zoom
+ */
+export function flyViewAt(fly: Fly, car: CamCar, progress: number) {
+  // ease-in-out cubic
+  const eased = progress < 0.5 ? 4 * progress * progress * progress
+    : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+  const lead = 0.35, targetX = car.x + car.vx * lead, targetY = car.y + car.vy * lead;
+  // the PAN leads the zoom (ease-out), so by the tile hand-over the view is already round the
+  // car, where its tiles were pre-painted
+  const pan = 1 - Math.pow(1 - progress, 3);
+  return {
+    x: fly.cx + (targetX - fly.cx) * pan,
+    y: fly.cy + (targetY - fly.cy) * pan,
+    // ease in log space: even feel
+    zoom: Math.exp(Math.log(fly.z0) + (Math.log(1) - Math.log(fly.z0)) * eased),
+  };
+}
+
+/**
  * Advance the fly-in one frame.
  * @param ctx camera context
  * @param car the followed car
@@ -246,18 +269,10 @@ function stepFly(ctx: CameraCtx, car: CamCar, wallDt: number) {
   if (!camState.fly) return false;
   camState.fly.t += wallDt;
   const progress = Math.min(1, Math.max(0, camState.fly.t - FLY_HOLD) / FLY_TIME);
-  // ease-in-out cubic
-  const eased = progress < 0.5 ? 4 * progress * progress * progress
-    : 1 - Math.pow(-2 * progress + 2, 3) / 2;
-  const lead = 0.35, targetX = car.x + car.vx * lead, targetY = car.y + car.vy * lead;
-  // the PAN leads the zoom (ease-out), so by the tile hand-over the view is already round the
-  // car, where its tiles were pre-painted
-  const pan = 1 - Math.pow(1 - progress, 3);
-  cam.x = camState.fly.cx + (targetX - camState.fly.cx) * pan;
-  cam.y = camState.fly.cy + (targetY - camState.fly.cy) * pan;
-  // ease in log space: even feel
-  view.zoom = Math.exp(Math.log(camState.fly.z0)
-    + (Math.log(1) - Math.log(camState.fly.z0)) * eased);
+  const place = flyViewAt(camState.fly, car, progress);
+  cam.x = place.x;
+  cam.y = place.y;
+  view.zoom = place.zoom;
   if (progress >= 1) camState.fly = null;
   cam.lx = undefined;
   return true;
