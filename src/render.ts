@@ -350,7 +350,7 @@ function drawFrame(ctx: RenderCtx, game: RenderGame, wallDt: number, wallT: numb
   if (!ctx.updateFly(game.car, wallDt)) {
     ctx.follow(game.car, wallDt);
     ctx.updateZoom(game.car, wallDt);
-    ctx.clearHud(game.car);
+    ctx.clearHud(game.car, wallDt);
   }
   const lock = applyViewLock(ctx, wallDt);
   ctx.state.wallDt = wallDt;

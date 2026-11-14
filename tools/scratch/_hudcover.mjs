@@ -40,7 +40,27 @@ async function installCover() {
   const { PEDAL } = await import('/src/input.ts');
   const draw = shared.hud.draw;
   const cover = { want: false, samples: 0, covered: 0, worst: 0, by: {}, where: [],
-    box: [Infinity, Infinity, -Infinity, -Infinity], fastest: 0, hudPx: 0, carPx: 0 };
+    box: [Infinity, Infinity, -Infinity, -Infinity], fastest: 0, hudPx: 0, carPx: 0,
+    drawn: 0, last: null, step: null, maxJerk: 0, jerkAt: 0, appear: 0 };
+  // THE VIEW'S SMOOTHNESS: the car's place on screen every frame; the jerk is the change of its
+  // per-frame move (px / frame / frame): a camera jump shows as a spike
+  const track = (game) => {
+    const renderer = shared.renderer;
+    const here = [renderer.toScreenX(game.car.x), renderer.toScreenY(game.car.y)];
+    if (cover.last && !shared.renderer.flying) {
+      const step = [here[0] - cover.last[0], here[1] - cover.last[1]];
+      if (cover.step && cover.drawn > 60) {
+        const jerk = Math.hypot(step[0] - cover.step[0], step[1] - cover.step[1]);
+        if (jerk > cover.maxJerk) { cover.maxJerk = jerk; cover.jerkAt = cover.drawn; }
+      }
+      cover.step = step;
+    }
+    cover.last = here;
+  };
+  // APPEAR=<draw>: the car's aid chips vanish at that drawn frame and come back 120 frames on
+  // (a piece that goes and comes, as on a car change)
+  const appearAt = window.__appear || 0;
+  const aidsKept = { value: null };
   window.__cover = cover;
   const named = (x, y, width, height) => {
     const rects = shared.hud.layout(width, height);
@@ -96,6 +116,13 @@ async function installCover() {
   };
   shared.hud.draw = (ctx, game, width, height, wallDt) => {
     draw(ctx, game, width, height, wallDt);
+    cover.drawn++;
+    if (appearAt && cover.drawn === appearAt) {
+      aidsKept.value = game.car.spec.aids;
+      game.car.spec.aids = null;
+    }
+    if (appearAt && cover.drawn === appearAt + 120) game.car.spec.aids = aidsKept.value;
+    if (game.car) track(game);
     if (!cover.want || shared.renderer.flying || !game.car) return;
     cover.want = false;
     measure(game, width, height);
@@ -128,6 +155,7 @@ async function runOne(browser, base, [width, height], modeId) {
   await page.evaluate(() => window.__rt.seed(7));
   await page.evaluate(launchLevel, [level, opts]);
   await page.waitForTimeout(SETTLE_MS);
+  await page.evaluate((at) => { window.__appear = at; }, Number(process.env.APPEAR || 0));
   await page.evaluate(installCover);
   if (level === 'lab') await page.evaluate(installCircle);
   await page.evaluate((count) => window.__rt.step(count), WARM);
@@ -182,7 +210,8 @@ try {
       console.log(`${size.join('x').padEnd(8)} ${modeId.padEnd(8)} samples ${res.samples}`
         + ` covered ${res.covered} worst ${(100 * res.worst).toFixed(0)}% (frame ${res.worstAt}) by `
         + `${JSON.stringify(res.by)} at ${JSON.stringify(res.where)} centre box ${JSON.stringify(res.box)}`
-        + ` car ${res.carPx} px, top ${res.fastest} m/s, HUD ${res.hudPx} px`
+        + ` car ${res.carPx} px, top ${res.fastest} m/s, HUD ${res.hudPx} px, jerk max ${
+          res.maxJerk.toFixed(1)} px at draw ${res.jerkAt}`
         + (res.errors.length ? ` ERRORS ${res.errors[0]}` : ''));
     }
   }
