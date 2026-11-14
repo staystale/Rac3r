@@ -41,7 +41,7 @@ async function installCover() {
   const draw = shared.hud.draw;
   const cover = { want: false, samples: 0, covered: 0, worst: 0, by: {}, where: [],
     box: [Infinity, Infinity, -Infinity, -Infinity], fastest: 0, hudPx: 0, carPx: 0,
-    drawn: 0, last: null, step: null, maxJerk: 0, jerkAt: 0, appear: 0 };
+    drawn: 0, last: null, step: null, maxJerk: 0, jerkAt: 0, appear: 0, jumps: [] };
   // THE VIEW'S SMOOTHNESS: the car's place on screen every frame; the jerk is the change of its
   // per-frame move (px / frame / frame): a camera jump shows as a spike
   const track = (game) => {
@@ -52,6 +52,8 @@ async function installCover() {
       if (cover.step && cover.drawn > 60) {
         const jerk = Math.hypot(step[0] - cover.step[0], step[1] - cover.step[1]);
         if (jerk > cover.maxJerk) { cover.maxJerk = jerk; cover.jerkAt = cover.drawn; }
+        // every jump over 4 px (a teleport - a reset - shows here on both sides of a comparison)
+        if (jerk > 4 && cover.jumps.length < 12) cover.jumps.push([cover.drawn, Math.round(jerk)]);
       }
       cover.step = step;
     }
@@ -211,7 +213,7 @@ try {
         + ` covered ${res.covered} worst ${(100 * res.worst).toFixed(0)}% (frame ${res.worstAt}) by `
         + `${JSON.stringify(res.by)} at ${JSON.stringify(res.where)} centre box ${JSON.stringify(res.box)}`
         + ` car ${res.carPx} px, top ${res.fastest} m/s, HUD ${res.hudPx} px, jerk max ${
-          res.maxJerk.toFixed(1)} px at draw ${res.jerkAt}`
+          res.maxJerk.toFixed(1)} px at draw ${res.jerkAt}, jumps >4 px ${JSON.stringify(res.jumps)}`
         + (res.errors.length ? ` ERRORS ${res.errors[0]}` : ''));
     }
   }
