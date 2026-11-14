@@ -54,9 +54,10 @@ export const HOLJES_SPEC: VenueSpec = {
   // the line where the start lane meets the lap, the grid back down the lane
   start: [118, 101],
   startLane: { layout: 'rx', pieces: ['Start Straight'] },
-  // real m: THE CREST JUMP up the start straight, and the hillside the crowd stands on
+  // real m: THE CREST JUMP up the start straight (its middle on the road's centreline, 100 m
+  // up the lap from the start lane's merge), and the hillside the crowd stands on
   hills: [
-    { kind: 'hump', x: 124, y: 8, r: 26, h: 2.6 },
+    { kind: 'hump', x: 103, y: 8, r: 26, h: 2.6 },
     { kind: 'hump', x: -120, y: -10, r: 90, h: 7 },
   ],
   // the crowd's earth bank above the hill gravel (fenced: a catch fence in front)
