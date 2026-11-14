@@ -27,6 +27,12 @@ records in `TODO-DONE.md` (PASSED 11-12). On the phone now:
     picture. See SMOOTH FLY-IN.
   - IN RACE: 0.3-0.6 % slow frames, nearly all ZOOMED OUT while new ground tiles go to the GPU.
     Measure first, then spread the uploads over frames (or paint ahead), behind its own switch.
+    READ FROM THE REPORTS (foreman, 11-14 14:00-18:00, the owner's phone, 118 674 in-race frames
+    after each run's first 600, the fly-ins and the phone's sleeps left out): 473 slow (0.40 %),
+    329 of them 26-35 ms (one refresh missed); 72 over 50 ms (one in ~1 650 frames, ~27 s): our
+    JS 32, GPU uploads 13, tiles 3, none of those 24. The one real cluster: YAS MARINA (night,
+    heavy rain) - six frames of 81-299 ms DRAW (sim 5-15 ms, 2-3 uploads); Le Manky two of 39 ms
+    draw. Next: what that Yas Marina draw is (night + rain + zoom), before any change.
   - MENU TAPS: the track lists' lengths and the rally stages' thumbnails PASSED 11-14 (TODO-DONE).
 
 - SMOOTH FLY-IN (owner 11-14 on ?loadscreen=1: "Still jerky after loading bar !?", "The loading

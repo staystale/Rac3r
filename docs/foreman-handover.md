@@ -1,68 +1,29 @@
 # Foreman handover
 
 Kept current as the work goes (owner 11-12: "update the handover as we go"). Last updated
-2026-11-13. Read `CLAUDE.md`, then `NOTES.md` (the owner's rules and the Routine at its end,
+2026-11-14. Read `CLAUDE.md`, then `NOTES.md` (the owner's rules and the Routine at its end,
 not repeated here), then `TODO.md`, then this page. The 11-07 version of this page is in git.
 
-## Where we are
+## Where we are (11-14, evening)
 
-- **11-13, latest:** barriercull, xgaymsprops and jokerclear PASSED ("Ok pass"); then
-  jokerarrow and cutroad PASSED ("Pass"), all now the default with their switches gone
-  (worldhash old+switches vs new: SAME; renderhash xgayms the same). Main had the X Gayms re-lay
-  as d750afa before this pass.
-- **xgaymsloose PASSED** (owner "Loose layout is a pass"): L.A. Lively's one layout (round22).
-- **fastbuild PASSED** (owner "Ok keep it"): the default (round23). The test list is empty.
-- **PERFORMANCE AUDIT done** (worker's b4b86d5 on `worker/perfaudit`, scratch tools only): the sim
-  is most of the frame. framecheck measured a FROZEN scene until fixed (its tap never started the
-  race). Owner 11-13 "Yes to all": **Worker: PERFPASS**, ONE switch `?perfpass=1` with four fixes:
-  onLane by grid, sleeping cones, a barrier grid, the night layer's prop walks; framecheck fixed
-  first. NO step-cap change: the owner added it, then removed it ("Ok infact remove it").
-  11-14: BUILT, all five fixes (the fifth, the memory budget: owner "1. Yes"), on
-  `worker/perfpass` (a8fa89b framecheck, a9188aa onLane, 0535163 barriers, fab4174 cones, 4e18f96
-  night, ba6a8d0 memory). Foreman code review: fixes 1-4 give the same answers in the same order.
-  For fix 5, check whether a drop frees memory: venueBuild's cache and the WeakMaps keyed by the
-  level (joker.ts, lampplan.ts) keep old builds. Claude Code's memory reaper stopped the proofs
-  three times as background jobs. Owner 11-14: run them one at a time in the FOREGROUND, checking
-  free memory first (stop under 900 MB). Do NOT SendMessage the worker while it runs a foreground
-  job: the send moves that job to the background, where the reaper can stop it.
-  PROVEN (worker, 0aab120; TODO section 2 holds the results table):
-  - simhash: SAME on both seeds.
-  - worldhash: SAME on all 63 levels, switch off and on.
-  - renderhash at night: SAME.
-  - Breaks caught: fixes 2 and 3 and the pit-lamp kinds.
-  - Fix 1 is proven by the node test (simhash never reaches a cut decision), the canopy trace by
-    `_canopycheck`.
-  - NOT caught by any break, proven only by the foreman's reading: fix 4's off-map head-glow cull
-    and its lamp heads without a list (no street lights in the renderhash captures).
-  ON MAIN (round24, e191ad6, 14 green). The owner is testing `?perfpass=1` with friends
-  (`&report=1`: iPhone 14s and PCs; read with tools/phonereport.mjs).
-- **HOLY JEEZ** (`?holyjeez=1`) BUILT, in round25 (worker/holyjeez to e82cac5). Shared code: a
-  start lane grid (game/grid.ts startLineGridPos, only on levels with a start lane: Holy Jeez);
-  every other grid slot dumped SAME on 49 levels, worldhash SAME. Open: the AI-driven player sat
-  off the road in 1 of 3 races (not reproduced); the forest is the shared 40 % firs (no setting).
-- **NEXT for the worker: the LOADING SCREEN** (TODO section 2, `?loadscreen=1`): measure first,
-  then the screen, then the fly-in, then the countdown.
-- **The owner's list of 11-13** is in TODO 3a2 (recorded only: "no need to work on this stuff yet").
-  The F1 front-tyre heat is diagnosed there.
-- **Open: menu judder** (owner 11-13, seen waiting at the menu): read from the phone report.
-- **Worker** (worktree `.claude/worktrees/barriercull`; agent a5cb8a1280a5b0416 since 11-14, the
-  old one ran out of context). QUEUED after the loading screen: the other new rallycross tracks
-  (TODO 3b).
-- **Branch `foreman/round9`** holds round8, plus:
-  - CI: main's pixel reference is rendered once and reused (`.github/workflows/renderref.yml`).
-  - The Bird's Mess and the stadium dressing PASSED (owner 11-12: "That's all pass"). `birdsmess`
-    and `stadiumprops` are now the default, their switches and old paths gone. Worldhash: the old
-    code with both on against the new code: SAME on every level.
-  - NOTES: the game-time rule; the stadium list closed. This page.
-  - Push to main when every check-run is green (Routine), then move the served clone.
-  - thumbfill and tyrelights PASSED (owner 11-12: "Pass"): the default, switches gone.
-- **The test list is EMPTY**; FIX has no switches (round12).
-- **Stade de Prance's notch FIXED** (owner 11-12: "Yes that was the corner! No switch just you
-  fix it"): the inner lane's east-end hairpin and the bend out after it overlapped by 4.5 m, so the
-  lane doubled back (18.9 deg in 1.5 m). The generator (`tools/scratch/_rocdata.mjs`) now closes a
-  fold; the worst kink there is 9.6 deg (the lap's others to 9.0). Its Armco was bent by the same
-  fold and is now even. lapdriver 63.8 s (64.0 before), 0 s off.
-- **itch.io:** behind. Push only when the owner says (recipe below).
+- **Main** = round28 (610a7602); **round29** (fb680511, lap lengths + stage thumbnails defaulted) is
+  on CI: push to main when its 14 check-runs are green, then move the served clone.
+- **PASSED today, now the default:** Holy Jeez (a normal level), PERFPASS (the speed fixes), the lap
+  lengths as data, the rally stages' shipped thumbnails. **Passed, switch still on:** `?onestart=1`
+  (remove it with the smooth fly-in, which is built on its code). **Under test:** `?loadscreen=1`
+  (owner: pass it TOGETHER with the smooth fly-in).
+- **Worker** (agent a728d032b34dfbe63, worktree `.claude/worktrees/barriercull`): the SMOOTH
+  FLY-IN on `worker/smoothfly` (from round28; `?smoothfly=1`; the big levels' fly-in drew every
+  prop and cone each frame: ~4 fps on the phone). Then, on my go: the Holy Jeez FIRS (a per-level
+  tree mix), then CROUGHED RX (answers in TODO 3b).
+- **Open, recorded:** SPEED NEXT in TODO section 2 (Yas Marina's night-rain draw spikes, the
+  zoomed-out uploads); the owner's 11-13 list in TODO 3a2 (record only).
+- **Second test PC:** see Picking up. The owner's friends may test with `&report=1` (none yet).
+- **Lessons today (NOTES has the lasting ones):** check `npm run verify`'s real result before a
+  push (a pipe hid a tsc failure once); a level's pass fails CI's worldhash once (NOTES); never
+  rerun what the worker runs (owner: "don't double do work"); SendMessage to a worker mid-run moves
+  its foreground job to the background.
+- Earlier state of this page: git history.
 
 ## In progress
 
