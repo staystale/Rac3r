@@ -10,7 +10,7 @@
 // WHAT IT IS MEANT TO FAIL YOU AT: the crest after the start taken flat (the car lands crooked
 // into the split) and the tight hairpin at the top, both at their real size.
 // ITS LOOK: pine forest round it, the crowd on the hillside above the hill gravel, the campers and
-// caravans of the summer race weekend east of the straight, the paddock by the mapped buildings.
+// caravans of the summer race weekend in the clearing west of the top hairpin, the paddock by the mapped buildings.
 // The world clock and weather set its hour and sky. North up.
 import { HOLJES_VENUE } from "./venues/holjes.ts";
 import { venueLap } from "../venue.ts";
@@ -21,9 +21,9 @@ import type { Level } from "../types.ts";
 // the course's name (the parody approved by the owner 11-13), in one place
 export const HOLY_JEEZ = 'Holy Jeez';
 
-// the campers' field east of the start straight: two rows of caravans, one a parked car beside
-// (game m; the venue's tidy keeps them off the roads and barriers)
-const CAMPERS_X = [182, 196], CAMPERS_Y0 = 20, CAMPERS_GAP_M = 11, CAMPERS_ROW = 10;
+// the campers' field in the clearing west of the top hairpin, 30-110 m off the lap and clear of
+// the service roads: two rows of caravans (game m)
+const CAMPERS_X = [-250, -232], CAMPERS_Y0 = -212, CAMPERS_GAP_M = 11, CAMPERS_ROW = 10;
 
 /**
  * The caravans of the campers' field.
