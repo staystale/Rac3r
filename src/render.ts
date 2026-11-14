@@ -41,7 +41,7 @@ import { noteBodies } from "./render/leafpop.ts";
 import { onGround } from "./world/crossinggeo.ts";
 import { LEVEL } from "./world/state.ts";
 import { trackCanvas } from './core/memorybudget.ts';
-import { createFlyLayers, NO_FLY_LAYERS } from './render/flylayers.ts';
+import { createFlyLayers, NO_FLY_LAYERS, FLY_STATS } from './render/flylayers.ts';
 import type { FlyLayers } from './render/flylayers.ts';
 
 // PPM is derived from the SHORT side of the viewport, so the car is a consistent fraction of the
@@ -753,7 +753,7 @@ export function createRenderer(canvas: HTMLCanvasElement, settings: Settings) {
       cam.ly = 0;
       cam.initialised = true;
     },
-    get flying() { return !!camState.fly; },
+    get flying() { return !!camState.fly; }, get flyStats() { return { ...FLY_STATS }; },
     get PPM() { return view.PPM * view.zoom; },
     get groundRenders() { return tileState.tilesPainted; },
     get tileMs() { return tileState.tileMs; },

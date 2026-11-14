@@ -37,10 +37,12 @@ export type ReportFrame = [number, number, number, number, number, number, numbe
  * @param query the page query (which link the owner opened)
  * @param level the level id now, read at each post
  * @param loadMs ms from the page opening to the menu shown, or null (no menu)
+ * @param flySets ?smoothfly=1: the fly-in's picture sets' counts (render/flylayers.ts FLY_STATS),
+ *   else undefined (left out of the post)
  * @returns add(frame) per frame, and flush() to post what is waiting (the page is being left)
  */
 export function createReporter(query: string, level: () => string,
-    loadMs: () => number | null = () => null) {
+    loadMs: () => number | null = () => null, flySets: () => object | undefined = () => undefined) {
   const frames: ReportFrame[] = [];
   const session = Math.random().toString(36).slice(2, 8);
   let part = 0;
@@ -54,7 +56,7 @@ export function createReporter(query: string, level: () => string,
       // opened from the home screen (a full-screen web app), not in a Safari tab
       homeScreen: matchMedia('(display-mode: fullscreen), (display-mode: standalone)').matches
         || (navigator as Navigator & { standalone?: boolean }).standalone === true,
-      weather: weatherNow(),
+      weather: weatherNow(), flySets: flySets(),
       frames: frames.splice(0, frames.length),
     });
     fetch('/__report', { method: 'POST', body, keepalive: true }).catch(() => {});

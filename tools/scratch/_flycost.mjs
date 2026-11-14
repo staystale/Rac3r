@@ -6,7 +6,7 @@
 // whole-level picture) are summed apart. Run it with ?skip=props, ?skip=cones, ... to read what a
 // layer costs in a frame including the browser's raster after our JS (a CPU profile cannot see
 // that), or with ?smoothfly=1 for the switch. Also the canvases held (core/memorybudget.ts) before
-// the launch, as the fly-in shows and after it.
+// the launch, as the fly-in shows and after it; with ?smoothfly=1 its sets (renderer.flyStats).
 // [CPU=1] [AI=20] [RX=1] [LOADSCREEN=0] [VIEW=844x390] node tools/scratch/_flycost.mjs [level]
 //   [extra query, e.g. skip=props]
 import { startServer, launchBrowser, gotoGame } from '../lib/browser.mjs';
@@ -118,11 +118,13 @@ try {
   await page.waitForTimeout(300);
   const afterMb = await canvasMb();
   const log = await page.evaluate(() => window.__flyLog);
+  const flyStats = await page.evaluate(() => window.__game.renderer.flyStats);
   const shown = log.filter((frame) => frame.flying && !frame.screen);
   console.log(`${levelId}${IS_RX ? ' RX' : ''} x${CPU} ${viewW}x${viewH}${SCREEN ? ' loadscreen'
     : ''}${extra ? ' ' + extra : ''}:`);
   console.log(`  canvases held: before the launch ${beforeMb.toFixed(1)} MB, as the fly-in shows`
     + ` ${flyMb.toFixed(1)}, after it ${afterMb.toFixed(1)}`);
+  if (/smoothfly=1/.test(extra)) console.log(`  the sets: ${JSON.stringify(flyStats)}`);
   summarise('the fly-in, shown', shown);
   summarise('of it zoomed out (the picture)', shown.filter((frame) => frame.zoom < HANDOVER));
   summarise('of it zoomed in (the tiles)', shown.filter((frame) => frame.zoom >= HANDOVER));

@@ -9,7 +9,8 @@
 // gantries) and the bridges' ground into a second, and the frame draws the two in place of those
 // layers. The fly-in's path is known (camera.ts flyViewAt), so its zooms up to LIVE_FROM are cut
 // into SETS of pictures, each covering the views of its part of the path, painted at the art
-// buffer's px a metre at its top zoom: shrunk (smoothed) by up to SET_STEP while zoomed out, 1:1
+// buffer's px a metre at its top zoom (fewer past PICTURE_MAX_PX or SETS_BUDGET_MB: softer),
+// kept as image bitmaps: shrunk (smoothed) by up to SET_STEP while zoomed out, 1:1
 // where the next set (or the live drawing) takes over, so a hand-over shows the same picture.
 // The marks and the pulsing joker arrows stay live (over the picture); the cars, the effects,
 // the night and the weather are drawn as before. Only while the field is held at the lights
@@ -31,8 +32,14 @@ const LIVE_FROM = 0.1;
 // 2.5 times shrunk lost what the live drawing keeps at a pixel or less (the barriers' lines went
 // dotted, the cones went); smoothed, 2.5 blurred the trees. Smoothed at 1.25 at most, it keeps them
 const SET_STEP = 1.25;
-// px: the longest side a picture may have (a set's top zoom is cut back to fit)
+// px: the longest side a picture may have (a bigger one is painted at fewer px a metre, softer).
+// iOS WebKit refuses a canvas over 4096 px a side or ~16.7 Mpx
 const PICTURE_MAX_PX = 2048;
+// MB all of a fly-in's pictures may take together (past it every set is painted at fewer px a
+// metre). iOS WebKit also caps all canvases together, shared with the game's ~115 MB: on the
+// owner's iPhone the sets were never drawn (the frames' JS as with the switch off)
+const SETS_BUDGET_MB = 24;
+const BYTES_MB = 1048576;
 // share of a set's views added round its pictures (the path between two samples)
 const RECT_MARGIN = 0.05;
 // points of the fly-in's path read to find each set's views
@@ -65,14 +72,25 @@ interface PictureSet {
   zoomFrom: number;
   zoomTo: number;
   rect: number[];   // [left, top, right, bottom], m
-  under: HTMLCanvasElement | null;
-  over: HTMLCanvasElement | null;
+  pxPerMetre: number;   // its pictures' px a metre (at most the art buffer's at zoomTo)
+  under: ImageBitmap | null;
+  over: ImageBitmap | null;
 }
 
 // the fly-in the sets were planned for, and the sets
 let planned: { fly: Fly; sets: PictureSet[] } | null = null;
 // the set standing in this frame (under() decides, over() follows)
 let standing: PictureSet | null = null;
+
+/** What the sets did (?report=1 posts it, tools read renderer.flyStats): no silent fallback. */
+export const FLY_STATS = {
+  sets: 0,          // the sets the last fly-in planned
+  setsMb: 0,        // MB its pictures took
+  pictured: 0,      // fly-in frames drawn from a set (counted since the page opened)
+  live: 0,          // frames of a planned fly-in below LIVE_FROM drawn live all the same (the
+  //                   view off its set, a picture not ready or refused, no set)
+  failed: '',       // why the last fly-in made no set, or ''
+};
 
 /**
  * Whether the field is still: the start armed and the lights not yet green (every car held).
@@ -84,24 +102,34 @@ function isFieldStill(game: RenderGame): boolean {
 }
 
 /**
- * Paints layers into a fresh canvas covering the fly-in's rectangle at a px a metre (the view
- * pointed at it, then put back).
+ * A picture's size in px.
+ * @param rect the world rectangle [x0, y0, x1, y1], m
+ * @param pxPerMetre its px a metre
+ * @returns [width, height]
+ */
+const pictureSize = (rect: number[], pxPerMetre: number) => [
+  Math.max(1, Math.round((rect[2] - rect[0]) * pxPerMetre)),
+  Math.max(1, Math.round((rect[3] - rect[1]) * pxPerMetre)),
+];
+
+/**
+ * Paints layers into the scratch canvas (resized and cleared) covering a rectangle at a px a
+ * metre (the view pointed at it, then put back).
  * @param ctx the painters
+ * @param scratch the canvas and its context
  * @param rect the world rectangle [x0, y0, x1, y1], m
  * @param pxPerMetre the picture's px a metre
  * @param paint draws the layers
- * @returns the canvas
  */
-function paintPicture(ctx: FlyLayersCtx, rect: number[], pxPerMetre: number,
-  paint: () => void): HTMLCanvasElement {
+function paintPicture(ctx: FlyLayersCtx, scratch: { canvas: HTMLCanvasElement;
+  c2d: CanvasRenderingContext2D }, rect: number[], pxPerMetre: number, paint: () => void) {
   const { view, cam } = ctx;
   const [left, top, right, bottom] = rect;
-  const canvas = trackCanvas(document.createElement('canvas'));
-  canvas.width = Math.max(1, Math.round((right - left) * pxPerMetre));
-  canvas.height = Math.max(1, Math.round((bottom - top) * pxPerMetre));
+  const { canvas } = scratch;
+  [canvas.width, canvas.height] = pictureSize(rect, pxPerMetre);
   const keep = { ctx: view.ctx, W: view.W, H: view.H, zoom: view.zoom, dpr: view.dpr,
     x: cam.x, y: cam.y };
-  view.ctx = canvas.getContext('2d')!;   // a fresh canvas always gives a 2d context
+  view.ctx = scratch.c2d;
   view.W = canvas.width;
   view.H = canvas.height;
   view.dpr = 1;
@@ -115,7 +143,6 @@ function paintPicture(ctx: FlyLayersCtx, rect: number[], pxPerMetre: number,
     cam.x = keep.x;
     cam.y = keep.y;
   }
-  return canvas;
 }
 
 /**
@@ -193,30 +220,55 @@ function planSets(ctx: FlyLayersCtx, fly: Fly, car: CamCar): PictureSet[] {
   const artPerMetre = view.PPM * view.dpr;
   const liveFrom = Math.min(ctx.FLY_HANDOVER, LIVE_FROM);
   const sets: PictureSet[] = [];
-  let zoomFrom = fly.z0;
-  while (zoomFrom < liveFrom) {
-    let zoomTo = Math.min(liveFrom, zoomFrom * SET_STEP);
+  for (let zoomFrom = fly.z0; zoomFrom < liveFrom; zoomFrom *= SET_STEP) {
+    const zoomTo = Math.min(liveFrom, zoomFrom * SET_STEP);
     const rect = viewsRect(ctx, path, zoomFrom, zoomTo);
     const longest = Math.max(rect[2] - rect[0], rect[3] - rect[1]);
-    zoomTo = Math.min(zoomTo, PICTURE_MAX_PX / (longest * artPerMetre));
-    // (a picture too big to gain a step: the rest is drawn live)
-    if (!(zoomTo > zoomFrom * 1.1)) break;
-    sets.push({ zoomFrom, zoomTo, rect, under: null, over: null });
-    zoomFrom = zoomTo;
+    if (!(longest > 0 && Number.isFinite(longest))) continue;
+    const pxPerMetre = Math.min(artPerMetre * zoomTo, PICTURE_MAX_PX / longest);
+    sets.push({ zoomFrom, zoomTo, rect, pxPerMetre, under: null, over: null });
   }
+  // two pictures a set; all of them within the budget
+  const bytes = sets.reduce((sum, set) => {
+    const [width, height] = pictureSize(set.rect, set.pxPerMetre);
+    return sum + 2 * width * height * 4;
+  }, 0);
+  const shrink = Math.min(1, Math.sqrt(SETS_BUDGET_MB * BYTES_MB / Math.max(1, bytes)));
+  for (const set of sets) set.pxPerMetre *= shrink;
   return sets;
 }
 
 /**
- * Paints a set's two pictures at the art buffer's px a metre at its top zoom.
+ * Paints the sets' pictures one at a time in one scratch canvas, each kept as an image bitmap
+ * (a canvas drawn into another is copied again at each draw in WebKit; a bitmap is not), then
+ * lets the canvas go: at most one picture's canvas is held. A refused canvas or bitmap is noted
+ * in FLY_STATS.failed and its set is drawn live.
  * @param ctx the painters
  * @param game the game
- * @param set the set
+ * @param plan the fly-in's sets
  */
-function paintSet(ctx: FlyLayersCtx, game: RenderGame, set: PictureSet) {
-  const pxPerMetre = ctx.view.PPM * ctx.view.dpr * set.zoomTo;
-  set.under = paintPicture(ctx, set.rect, pxPerMetre, () => paintUnder(ctx, game));
-  set.over = paintPicture(ctx, set.rect, pxPerMetre, () => paintOver(ctx));
+function paintSets(ctx: FlyLayersCtx, game: RenderGame, plan: { sets: PictureSet[] }) {
+  const canvas = trackCanvas(document.createElement('canvas'));
+  const c2d = canvas.getContext('2d');
+  if (!c2d) {
+    FLY_STATS.failed = 'the canvas was refused (memory)';
+    return;
+  }
+  const keep = (set: PictureSet, layer: 'under' | 'over') => {
+    createImageBitmap(canvas).then((bitmap) => {
+      if (planned === plan) set[layer] = trackCanvas(bitmap);
+      else bitmap.close();
+    }, () => {
+      FLY_STATS.failed = 'a picture was refused (memory)';
+    });
+  };
+  for (const set of plan.sets) {
+    paintPicture(ctx, { canvas, c2d }, set.rect, set.pxPerMetre, () => paintUnder(ctx, game));
+    keep(set, 'under');
+    paintPicture(ctx, { canvas, c2d }, set.rect, set.pxPerMetre, () => paintOver(ctx));
+    keep(set, 'over');
+  }
+  canvas.width = canvas.height = 0;
 }
 
 /**
@@ -243,20 +295,46 @@ function isViewInside(ctx: FlyLayersCtx, set: PictureSet): boolean {
 function setNow(ctx: FlyLayersCtx, game: RenderGame): PictureSet | null {
   const fly = ctx.camState.fly;
   if (!fly) {
+    if (planned) planned.sets.forEach(dropSet);
     planned = null;
     return null;
   }
   if (LEVEL.endless || !isFieldStill(game)) return null;
   if (!planned || planned.fly !== fly) {
     planned = { fly, sets: planSets(ctx, fly, game.car) };
-    for (const set of planned.sets) paintSet(ctx, game, set);
+    noteSets(planned.sets);
+    paintSets(ctx, game, planned);
   }
   const zoom = ctx.view.zoom;
   for (const set of planned.sets) {
-    if (zoom >= set.zoomTo) set.under = set.over = null;
+    if (zoom >= set.zoomTo) dropSet(set);
   }
   const set = planned.sets.find((each) => zoom < each.zoomTo);
-  return set && set.under && isViewInside(ctx, set) ? set : null;
+  return set && set.under && set.over && isViewInside(ctx, set) ? set : null;
+}
+
+/**
+ * Notes a fly-in's sets in FLY_STATS: how many, their MB, or why there are none.
+ * @param sets the sets, painted
+ */
+function noteSets(sets: PictureSet[]) {
+  const bytes = sets.reduce((sum, set) => {
+    const [width, height] = pictureSize(set.rect, set.pxPerMetre);
+    return sum + 2 * width * height * 4;
+  }, 0);
+  FLY_STATS.sets = sets.length;
+  FLY_STATS.setsMb = Math.round((bytes / BYTES_MB) * 10) / 10;
+  FLY_STATS.failed = sets.length ? '' : 'no set could be made';
+}
+
+/**
+ * Lets a set's pictures go.
+ * @param set the set
+ */
+function dropSet(set: PictureSet) {
+  if (set.under) set.under.close();
+  if (set.over) set.over.close();
+  set.under = set.over = null;
 }
 
 /**
@@ -265,7 +343,7 @@ function setNow(ctx: FlyLayersCtx, game: RenderGame): PictureSet | null {
  * @param picture the canvas
  * @param rect its world rectangle
  */
-function drawPicture(ctx: FlyLayersCtx, picture: HTMLCanvasElement, rect: number[]) {
+function drawPicture(ctx: FlyLayersCtx, picture: ImageBitmap, rect: number[]) {
   const { toScreenX, toScreenY, PPMz } = ctx;
   const target = ctx.view.ctx;
   target.imageSmoothingEnabled = true;
@@ -300,6 +378,9 @@ export function createFlyLayers(ctx: FlyLayersCtx): FlyLayers {
     },
     under(game: RenderGame): boolean {
       standing = setNow(ctx, game);
+      if (standing) FLY_STATS.pictured++;
+      else if (planned && planned.fly === ctx.camState.fly
+        && ctx.view.zoom < Math.min(ctx.FLY_HANDOVER, LIVE_FROM)) FLY_STATS.live++;
       if (standing && standing.under) drawPicture(ctx, standing.under, standing.rect);
       return !!standing;
     },
