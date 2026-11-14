@@ -41,7 +41,13 @@ interface CameraCtx {
   drawCurvedKerbs: () => void;
   // the HUD pieces the car keeps out from under (hudclear; main.ts sets it), or null
   keepout: ((width: number, height: number) => ClearRect[]) | null;
+  // the push on screen now, css px (eased toward what the HUD asks); fresh: take the next whole
+  clear: { x: number; y: number; fresh: boolean };
 }
+
+// 1/s: how fast the HUD push eases toward what the pieces ask (a piece that appears or goes
+// moves the car over ~0.2 s, not in one frame)
+const CLEAR_EASE = 12;
 
 /** What the HUD clearance reads of the followed car. */
 export interface ClearCar extends CamCar {
@@ -374,23 +380,33 @@ function springZoom(ctx: CameraCtx, target: number, wallDt: number) {
 /**
  * The car kept out from under the HUD (?hudclear=1): after the follow and the zoom, the camera
  * moves just enough that the car's box on screen (its length x width at its heading) clears
- * every HUD piece (render/hudclear.ts). Not in the fly-in or the menu's view.
+ * every HUD piece (render/hudclear.ts), eased on the wall clock (CLEAR_EASE) so a piece that
+ * appears or goes never jerks the view; taken whole on the first frame after the fly-in. Not in
+ * the fly-in or the menu's view. The push reads the car where the follow put it, never where the
+ * push moved it, so it cannot fight the look-ahead.
  * @param ctx camera context
  * @param car the followed car
+ * @param wallDt the wall-clock frame time, s
  */
-function clearHud(ctx: CameraCtx, car: ClearCar) {
-  const { view, cam, camState } = ctx;
-  if (!FIX.hudclear || !ctx.keepout || camState.fly || camState.menuView) return;
+function clearHud(ctx: CameraCtx, car: ClearCar, wallDt: number) {
+  const { view, cam, camState, clear } = ctx;
+  if (!FIX.hudclear || !ctx.keepout || camState.fly || camState.menuView) {
+    clear.fresh = true;
+    return;
+  }
   const rects = ctx.keepout(view.W, view.H);
-  if (!rects.length) return;
   const ppm = ctx.PPMz(), cos = Math.abs(Math.cos(car.heading)),
     sin = Math.abs(Math.sin(car.heading)), halfLen = car.spec.len / 2 * ppm,
     halfWid = car.spec.wid / 2 * ppm;
   const [right, down] = hudClearPush({ centreX: (car.x - cam.x) * ppm + view.W / 2,
     centreY: (car.y - cam.y) * ppm + view.H / 2, halfX: cos * halfLen + sin * halfWid,
     halfY: sin * halfLen + cos * halfWid }, rects, view.W, view.H);
-  cam.x -= right / ppm;
-  cam.y -= down / ppm;
+  const blend = clear.fresh ? 1 : 1 - Math.exp(-CLEAR_EASE * wallDt);
+  clear.fresh = false;
+  clear.x += (right - clear.x) * blend;
+  clear.y += (down - clear.y) * blend;
+  cam.x -= clear.x / ppm;
+  cam.y -= clear.y / ppm;
 }
 
 /**
@@ -410,14 +426,14 @@ export function createCamera(view: View, cam: Cam, helpers: CameraHelpers) {
   };
   const ctx: CameraCtx = {
     view, cam, camState, PPMz, drawFloor, drawZones, drawLanes, drawTrackRibbon, drawPatches,
-    drawCovers, drawCurvedKerbs, keepout: null,
+    drawCovers, drawCurvedKerbs, keepout: null, clear: { x: 0, y: 0, fresh: true },
   };
   return {
     camState,
     follow: (car: CamCar, wallDt: number) => followCar(ctx, car, wallDt),
     updateFly: (car: CamCar, wallDt: number) => stepFly(ctx, car, wallDt),
     updateZoom: (car: CamCar, wallDt: number) => stepZoom(ctx, car, wallDt),
-    clearHud: (car: ClearCar) => clearHud(ctx, car),
+    clearHud: (car: ClearCar, wallDt: number) => clearHud(ctx, car, wallDt),
     setHudKeepout: (source: (width: number, height: number) => ClearRect[]) => {
       ctx.keepout = source;
     },
