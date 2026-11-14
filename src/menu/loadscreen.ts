@@ -2,13 +2,18 @@
 // the track's name and a bar, in the menu's look - its pane (near-black, a 2 px black edge, the
 // burnt-brown inner line, the hard shadow), its title face and ember red for the name, the side
 // note face for LOADING, and a bar as the setup's (the well colour, the inner line) filled in the
-// menu's ember accent. DOM, as the menu: it is up while the canvas is not drawn, and it takes every
-// tap and touch so none reaches the world below.
-import { MENU_FACES } from './pixelstyle.ts';
+// menu's ember accent; when the work is done the bar turns the press's electric blue and blinks
+// twice, as a pressed button does. DOM, as the menu: it is up while the canvas is not drawn, and it
+// takes every tap and touch so none reaches the world below.
+import { MENU_FACES, PRESS_BLINK_CSS, PRESS_BLINK_MS } from './pixelstyle.ts';
 import { MENU_COL } from './palette.ts';
 
 // ms the screen takes to fade out over the fly-in's first frames
 const FADE_MS = 250;
+// the bar done: the press's electric blue (pixelstyle.ts ZAP's shades), a light top line and a dark
+// bottom one - ZAP's own bevel is for a button's height and reads pale on a 14 px bar
+const BAR_DONE = 'linear-gradient(180deg, #8ff2ff 0 2px, #35c4ff 2px calc(100% - 3px), '
+  + '#1e8cff calc(100% - 3px) calc(100% - 1px), #0e3aa8 calc(100% - 1px))';
 
 const CSS = `
 #loadscreen { position: fixed; inset: 0; z-index: 25; display: flex; align-items: center;
@@ -28,12 +33,16 @@ const CSS = `
   box-shadow: inset 0 0 0 2px #3a2018; overflow: hidden; }
 #loadscreen .fill { height: 100%; background: ${MENU_COL.accent}; transform-origin: 0 50%;
   transform: scaleX(0); will-change: transform; }
+#loadscreen .fill.done { background: ${BAR_DONE};
+  animation: r3blink ${PRESS_BLINK_MS}ms steps(1, end) 1; }
+${PRESS_BLINK_CSS}
 `;
 
 /** The loading screen's controls. */
 export interface LoadScreen {
   show: (name: string) => void;
   progress: (share: number, overMs: number) => void;
+  flash: () => void;
   hide: () => void;
 }
 
@@ -48,7 +57,8 @@ function swallow(event: Event): void {
 
 /**
  * Builds the screen once (hidden): its style, the pane, the name and the bar.
- * @returns show (at once, the bar empty), progress and hide (a short fade)
+ * @returns show (at once, the bar empty), progress, flash (the bar done: blue, two blinks) and
+ *   hide (a short fade)
  */
 export function createLoadScreen(): LoadScreen {
   const style = document.createElement('style');
@@ -69,6 +79,7 @@ export function createLoadScreen(): LoadScreen {
     show(name: string) {
       clearTimeout(fadeTimer);
       nameEl.textContent = name;
+      fill.className = 'fill';
       fill.style.transition = 'none';
       fill.style.transform = 'scaleX(0)';
       root.className = '';
@@ -80,6 +91,12 @@ export function createLoadScreen(): LoadScreen {
     progress(share: number, overMs: number) {
       fill.style.transition = `transform ${Math.max(0, Math.round(overMs))}ms ease-out`;
       fill.style.transform = `scaleX(${Math.max(0, Math.min(1, share))})`;
+    },
+    // the bar full and done: the press's blue and its two blinks (PRESS_BLINK_MS)
+    flash() {
+      fill.style.transition = 'none';
+      fill.style.transform = 'scaleX(1)';
+      fill.className = 'fill done';
     },
     hide() {
       root.className = 'fading';

@@ -1,5 +1,6 @@
 import { GHOST_MS } from './style.ts';
 import { MENU_COL } from './palette.ts';
+import { PRESS_BLINK_MS } from './pixelstyle.ts';
 import { trackCanvas } from '../core/memorybudget.ts';
 
 // MENU TAPS for the phone report (?report=1, game/loop.ts): taps a new screen ignored (inside its
@@ -35,9 +36,6 @@ export function addPane(menu: MenuCtx, wide: boolean): HTMLElement {
   menu.root.appendChild(panel);
   return panel;
 }
-
-// how long a pressed button blinks before it acts (menu/pixelstyle.ts .hit)
-const PRESS_BLINK_MS = 160;
 
 /**
  * Adds a menu button; its click is ignored while disabled or inside the ghost-click window.

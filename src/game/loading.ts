@@ -9,6 +9,7 @@
 // race behind the menu never shows it. Switch off: nothing here runs.
 import { FIX } from '../core/fixes.ts';
 import { createLoadScreen } from '../menu/loadscreen.ts';
+import { PRESS_BLINK_MS } from '../menu/pixelstyle.ts';
 import { shared, game } from './state.ts';
 import type { LoadScreen } from '../menu/loadscreen.ts';
 
@@ -23,6 +24,8 @@ export interface LoadStage {
 // ms the screen stays up at the least: a level that loads in a frame or two flashed it up and away
 // like a fault; this long it reads as a loading screen
 const MIN_SCREEN_MS = 300;
+// ms the bar takes to fill its last share when the work is done (then it flashes blue)
+const FILL_LAST_MS = 120;
 // ms a stage is thought to take before it has been timed (the bar's ease through it)
 const FIRST_GUESS_MS = 1500;
 // the share of its stage the bar eases to while the stage runs (the rest when it ends)
@@ -141,18 +144,28 @@ export function runLoading(name: string, stages: LoadStage[]): void {
 }
 
 /**
- * The work done: the bar full, the screen held to its least time, then faded over the fly-in's
- * start; the race stays held until the fly-in is over (holdRace).
+ * The work done: the bar full, the screen held to its least time, the bar flashed blue (as a
+ * pressed button: two blinks), then the screen faded over the fly-in's start; the race stays held
+ * until the fly-in is over (holdRace).
  * @param generation the load this is
  */
 function finishLoading(generation: number): void {
   if (generation !== state.generation) return;
-  screen!.progress(1, 120);
-  const wait = MIN_SCREEN_MS - (performance.now() - state.shownAt);
-  if (wait > 0) {
-    setTimeout(() => finishLoading(generation), wait);
-    return;
-  }
-  state.phase = 'fly';
-  screen!.hide();
+  screen!.progress(1, FILL_LAST_MS);
+  const wait = Math.max(FILL_LAST_MS, MIN_SCREEN_MS - (performance.now() - state.shownAt));
+  setTimeout(() => flashThenFly(generation), wait);
+}
+
+/**
+ * The full bar flashes blue, then the screen fades and the fly-in starts.
+ * @param generation the load this is
+ */
+function flashThenFly(generation: number): void {
+  if (generation !== state.generation) return;
+  screen!.flash();
+  setTimeout(() => {
+    if (generation !== state.generation) return;
+    state.phase = 'fly';
+    screen!.hide();
+  }, PRESS_BLINK_MS);
 }

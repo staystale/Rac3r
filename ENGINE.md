@@ -66,8 +66,9 @@ up (`startField`, its own task as before), the ground of the fly-in's hand-over 
 painted a few tiles a task (`renderer.paintStartGround`, `tiles.ts prepareAround`), and the fly-in
 started with its whole-level picture painted and uploaded to the GPU (`renderer.readyFlyIn`). The bar
 moves at each stage and eases through a long one on the compositor (paced by the time that stage took
-last). The screen stays up at least 300 ms (a quick load flashed it), then fades (250 ms) over the
-fly-in's hold. While the screen or the fly-in is up, `loop.ts` steps no sim (`holdRace`: no race
+last). The screen stays up at least 300 ms (a quick load flashed it); the full bar then turns the
+press's electric blue and blinks twice (160 ms, as a pressed menu button: `pixelstyle.ts
+PRESS_BLINK_MS / PRESS_BLINK_CSS`), then the screen fades (250 ms) over the fly-in's hold. While the screen or the fly-in is up, `loop.ts` steps no sim (`holdRace`: no race
 time, the AI and lights' clock still, the walkthroughs wait) and draws nothing behind the screen; the
 countdown starts on the first frame after the fly-in. The race behind the menu never shows it. Switch
 off: none of it runs.

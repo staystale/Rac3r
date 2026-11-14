@@ -16,6 +16,12 @@
 
 const FONT = 'assets/fonts/';
 
+// ms a press blinks (twice) before it acts: a menu button (widgets.ts), the loading bar when done
+export const PRESS_BLINK_MS = 160;
+// the press's two blinks
+export const PRESS_BLINK_CSS = `@keyframes r3blink { 0% { filter: brightness(1.9); }
+  25% { filter: none; } 50% { filter: brightness(1.9); } 75% { filter: none; } }`;
+
 // each family: its own face for everything but 0-9, Silkscreen's digits for 0-9 (the loading
 // screen, menu/loadscreen.ts, takes them too: it can show before the menu has)
 export const MENU_FACES = `
@@ -50,6 +56,7 @@ const HOT = `linear-gradient(#ffe2b8, #ffe2b8) left 6px top 4px / 8px 2px no-rep
   ${CHECK('#c8141c')} left 2px bottom 8px / 4px 4px repeat-x,
   linear-gradient(180deg, #ffb070 0 2px, #ff8a3a 2px 8px, #ff5a1a 8px calc(100% - 8px),
     #c8141c calc(100% - 8px) calc(100% - 2px), #7a0d16 calc(100% - 2px))`;
+// the PRESS fill: electric blue, pixel-shaded (a pressed menu button)
 const ZAP = `linear-gradient(#ffffff, #ffffff) left 4px top 3px / 6px 2px no-repeat,
   linear-gradient(#e0fdff, #e0fdff) left 3px top 5px / 2px 3px no-repeat,
   ${CHECK('#8ff2ff')} left 0 top 6px / 4px 4px repeat-x,
@@ -130,9 +137,8 @@ export const MENU_PIXEL_CSS = MENU_FACES + `
 /* PRESSED: electric blue at once, two blinks, then the button acts (widgets.ts addButton) */
 #menu button:active, #menu button.hit { background: ${ZAP}; color: #031230; text-shadow: none;
   box-shadow: inset 2px 0 0 #9ff6ff, inset -2px 0 0 #1250d8, 2px 2px 0 #000; }
-#menu button.hit { animation: r3blink 160ms steps(1, end) 1; }
-@keyframes r3blink { 0% { filter: brightness(1.9); } 25% { filter: none; }
-  50% { filter: brightness(1.9); } 75% { filter: none; } }
+#menu button.hit { animation: r3blink ${PRESS_BLINK_MS}ms steps(1, end) 1; }
+${PRESS_BLINK_CSS}
 /* the old sheet spaced its letters wide; the pixel faces are wide already */
 #menu button, #menu .cat .nm, #menu .card .nm, #menu .picker .val, #menu .picker .cap,
 #menu .stats b, #menu .podium .step { letter-spacing: .02em; }

@@ -17,8 +17,8 @@ export const TEST_LIST: TestEntry[] = [
     added: '2026-11-14',
     name: 'Loading screen: the track loads, then the fly-in, then the lights',
     where: 'Test link + &loadscreen=1: LAUNCH any track (Spa: the big one), then RESTART',
-    try: 'Watch the screen, the bar, the fly-in in full, then the lights count down with you on '
-      + 'the grid. Tap the screen while it loads.',
+    try: 'Watch the screen, the bar flash blue when done, the fly-in in full, then the lights '
+      + 'count down with you on the grid. Tap the screen while it loads.',
     wrong: 'A blank or frozen screen, the bar still, the lights counting during the fly-in, cars '
       + 'moving before the lights, a tap starting anything, a broken menu race.',
   },
