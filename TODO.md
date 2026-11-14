@@ -169,6 +169,15 @@ cars: the Hoonigan pink Porsche, the BMW E36.
   race runs it (once, at the gravel split); dressed with pine forest, the crowd on the hillside and
   the campers and caravans of the summer race weekend. Time and weather: the world clock (NOTES).
   The map: OSM has every piece tagged asphalt / gravel and the joker (4 pieces).
+  HOLY JEEZ FIRS (owner 11-14: "Yes, mostly firs"): a per-level tree mix (the share of firs, now
+  render/trees.ts FIR_SHARE 0.4 for every level) as level data; Holy Jeez about 85 % firs; every
+  other level unchanged (renderhash SAME). For the worker after the loading screen.
+  CROUGHED RX QUESTIONS ANSWERED (owner 11-14): the player fights the GRAVEL HAIRPIN, the
+  TARMAC-TO-GRAVEL changes (grip changing through the lap, braking on the wrong surface punished),
+  the JOKER choice; dressed like a UK round (grass banks, hospitality units, a big screen, flags).
+  Weather from the world weather only, nothing forced. The map: tools/venues/croughed.osm.json way
+  108510895 "Rallycross" (with "Club Link", "Chicane"), as knobhill.json's rx layout; the surfaces
+  from the circuit's own RX map.
   HOLY JEEZ BUILT, TO REVIEW (worker, ?holyjeez=1): traced at full size, the joker, the start
   lane; the joker island's Armco joined at the nose (tidyEdge, evenEdge: no doubled run); the crest
   hump moved onto the road (it stood 18 m off it: no car flew) - now airborne up to 0.9 s flat out;
