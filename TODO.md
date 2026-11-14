@@ -36,6 +36,12 @@ records in `TODO-DONE.md` (PASSED 11-12). On the phone now:
     Owner 11-14: "It should come from a pre measured set of data": BUILT (foreman) behind
     `?lapdata=1` - world/levels/laplengths.ts from tools/laplengths.mjs (--check in runall); with
     it no list's open takes a task over 50 ms at x4 (without: 2-3.4 s on the first list opened).
+    TEST MODE itself (foreman, profiled): the 9 rally stages had no shipped thumbnail (thumbs.mjs
+    and thumbcheck never added the stages), so its open BUILT each to paint one - 2.3 s at x4.
+    Owner 11-14 "Yes, fix it": BUILT behind `?stagethumbs=1` (0.04-0.05 s); thumbcheck now fails
+    on a stage without one. The settings / steering / credits screens' 80-120 ms is the menu
+    race behind them, no needless work found. PRE-BUILT TRACKS dropped (owner asked; measured:
+    15 MB gzipped for all, Spa 1.2 MB; the phone builds Spa in 0.2-0.3 s and works offline).
 
 - SMOOTH FLY-IN (owner 11-14 on ?loadscreen=1: "Still jerky after loading bar !?", "The loading
   screen was meant to fix this but ok if that works"). NEXT for the worker, after ?onestart=1,

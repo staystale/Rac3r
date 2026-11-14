@@ -27,6 +27,7 @@ import type { HwLevel } from '../highway/hwtypes.ts';
 import type { ResultsFlow } from '../menu/menutypes.ts';
 import type { LaunchOpts } from './state.ts';
 import { MAX_AI } from '../core/settings.ts';
+import { FIX } from "../core/fixes.ts";
 
 /**
  * Works out whether the minimap, the progress bar and the track gauge show (the pause settings
@@ -334,7 +335,12 @@ export function paintThumbsNow(ids: string[]): Record<string, HTMLCanvasElement>
  * they arrive shows what has; one that will not come is painted when a list asks).
  */
 export function prepareThumbs() {
-  loadShippedThumbs(thumbs, categoryThumbIds()).then((ids) => { shipped = ids; })
+  // the rally stages' shipped thumbnails only with ?stagethumbs=1 (without: painted, a build each,
+  // when a list first needs them - TEST MODE's open)
+  const rallyIds = new Set(LEVELS.filter((level) => catOf(level) === 'rally')
+    .map((rally) => rally.id));
+  const isWanted = (levelId: string) => FIX.stagethumbs || !rallyIds.has(levelId);
+  loadShippedThumbs(thumbs, categoryThumbIds(), isWanted).then((ids) => { shipped = ids; })
     .catch(() => { shipped = new Set(); });
 }
 // RESULTS: 1.6 s after the race ends (the flag sweep), the podium then the table (menu.ts results)

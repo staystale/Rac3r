@@ -13,6 +13,14 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'stagethumbs',
+    added: '2026-11-14',
+    name: 'TEST MODE opens at once: the rally stage pictures shipped, not built',
+    where: 'Test link + &stagethumbs=1: the main menu, then TEST MODE and RALLY STAGES',
+    try: 'Press TEST MODE straight after the page loads; look at the rally stage pictures.',
+    wrong: 'A pause after the blue blink, a stage picture missing or not as before.',
+  },
+  {
     id: 'lapdata',
     added: '2026-11-14',
     name: 'Track lists open at once: the lap lengths stored, not worked out',

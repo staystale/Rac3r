@@ -13,6 +13,10 @@ import { fileURLToPath } from 'node:url';
 import { startServer, launchBrowser, gotoGame, extraQuery } from './lib/browser.mjs';
 import { encodeThumbsWebp } from './lib/thumbwebp.mjs';
 import { LEVELS } from '../src/world/levels/index.ts';
+import { addStageLevels } from '../src/stagegen.ts';
+
+// the rally stages too, as the game adds them (main.ts): they are in the menu's lists
+addStageLevels();
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DIR = path.join(ROOT, 'assets', 'thumbs');

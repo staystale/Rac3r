@@ -7,6 +7,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { LEVELS } from '../src/world/levels/index.ts';
+import { addStageLevels } from '../src/stagegen.ts';
+
+// the rally stages too, as the game adds them (main.ts): they are in the menu's lists
+addStageLevels();
 
 const DIR = path.join(path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'), 'assets',
   'thumbs');

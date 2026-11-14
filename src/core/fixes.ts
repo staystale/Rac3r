@@ -57,4 +57,7 @@ export const FIX = {
   // the menu's lap lengths read from pre-measured data (world/levels/laplengths.ts), not traced
   // when a track list opens
   lapdata: atLoad('lapdata'),
+  // the rally stages' menu thumbnails read from the shipped files (assets/thumbs) like every other
+  // level's, not each stage built to paint one when TEST MODE opens
+  stagethumbs: atLoad('stagethumbs'),
 };

@@ -37,14 +37,15 @@ export function whenThumbArrives(levelId: string, fill: (thumb: HTMLCanvasElemen
  * needed). The first ones (the menu's first screen's) are read before the rest.
  * @param into level id -> thumbnail (filled; one already there is kept)
  * @param first the level ids to read first
+ * @param isWanted which listed level ids to read (default: all; the others are painted when needed)
  * @returns the level ids read
  */
 export async function loadShippedThumbs(into: Record<string, HTMLCanvasElement>,
-  first: string[] = []): Promise<Set<string>> {
+  first: string[] = [], isWanted: (levelId: string) => boolean = () => true): Promise<Set<string>> {
   const base = new URL(DIR, document.baseURI), done = new Set<string>();
   isReading = true;
   try {
-    return await readThumbs(into, base, done, first);
+    return await readThumbs(into, base, done, first, isWanted);
   } finally {
     isReading = false;
     waiting.clear();
@@ -57,13 +58,15 @@ export async function loadShippedThumbs(into: Record<string, HTMLCanvasElement>,
  * @param base the thumbnails' folder
  * @param done the level ids read (filled)
  * @param first the level ids read before the rest (all at once, then the rest at once)
+ * @param isWanted which listed level ids to read
  * @returns done
  */
 async function readThumbs(into: Record<string, HTMLCanvasElement>, base: URL,
-  done: Set<string>, first: string[]): Promise<Set<string>> {
+  done: Set<string>, first: string[],
+  isWanted: (levelId: string) => boolean): Promise<Set<string>> {
   const listed = await fetch(new URL('index.json', base));
   if (!listed.ok) return done;
-  const { ids } = await listed.json() as { ids: string[] };
+  const ids = (await listed.json() as { ids: string[] }).ids.filter(isWanted);
   const early = new Set(first.filter((levelId) => ids.includes(levelId)));
   await Promise.all([...early].map((levelId) => readThumb(into, base, done, levelId)));
   await Promise.all(ids.filter((levelId) => !early.has(levelId))
