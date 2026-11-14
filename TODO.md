@@ -35,15 +35,28 @@ records in `TODO-DONE.md` (PASSED 11-12). On the phone now:
     draw. Next: what that Yas Marina draw is (night + rain + zoom), before any change.
   - MENU TAPS: the track lists' lengths and the rally stages' thumbnails PASSED 11-14 (TODO-DONE).
 
-- SMOOTH FLY-IN (owner 11-14 on ?loadscreen=1: "Still jerky after loading bar !?", "The loading
-  screen was meant to fix this but ok if that works"). NEXT for the worker, after ?onestart=1,
-  before the Holy Jeez firs. The phone report (11-14, Spa, after the blue flash, both times): the
-  fly-in at ~4 fps for ~2 s - 10 frames of 180-360 ms each, our JS 19-26 ms of each (sim 0), 2 GPU
-  uploads a frame. Suspect: the fly-in's whole-level picture (camera.ts startFlyIn paintOverview,
-  2048 x 3219 on Spa, ~7x the screen's pixels) drawn scaled every frame. MEASURE what each fly-in
-  frame costs (the picture's draw, the uploads, the tiles), then draw it from a picture sized to
-  the screen (made behind the loading screen), behind `?smoothfly=1`. Pass bar: the phone's
-  report, every fly-in frame on Spa under ~20 ms. Anglesleazy National: 2-3 hiccups only.
+- SMOOTH FLY-IN (owner 11-14 on ?loadscreen=1: "Still jerky after loading bar !?"). BUILT, behind
+  `?smoothfly=1` (worker; ENGINE.md "One frame"), with or without `?loadscreen=1`.
+  - MEASURED FIRST (tools/scratch/_flycost.mjs, the second PC, CPU x1, Spa, 20 AI, loading screen):
+    the zoomed-out fly-in frames 117-133 ms apart, our drawing 97-124 ms of each; with ?skip=props
+    67 ms, props and cones 13, also fence, barriers and deck 5. The whole-level picture is not the
+    cost: the props (Spa's 8 000 trees) and loose objects (3 329 cones) drawn one by one.
+  - BUILT: those still layers painted into pictures (and the over-the-cars props into a second),
+    in sets along the fly-in's path up to zoom 0.1, 1.25x apart, at the art buffer's px a metre at
+    each set's top zoom; drawn smoothed in their place; live from 0.1. Painted behind the loading
+    screen (without it, on the fly-in's first frame); let go as the zoom passes them. Only while
+    the start is armed and not green; never on the endless road.
+  - FRAMES (PC, _flycost, the fly-in once shown, gap median / worst ms; off -> on): Spa x1 zoomed
+    out 83 / 133 -> 17 / 33 (our drawing median 50 -> 5); Spa x4 567 / 667 -> 67 / 117 (the
+    fly-in 6.5 s -> 1.8 s); Knobhill RX x1 17 / 34 -> 17 / 33 (drawing 11.8 -> 6.1); Knobhill RX x4
+    133 / 167 -> 83 / 117. Without the loading screen, Spa x1: zoomed out 150 -> 33 median, one
+    448 ms frame painting the sets (the level's own 2 s load frame comes first, both ways).
+  - MEMORY: the sets are held during the fly-in only: Spa +23 MB at 844x390 (canvases 116 -> 139
+    MB as the fly-in shows); let go as it zooms past them.
+  - LOOK (tools/scratch/_flyshots.mjs, renderhash's raster, shotdiff): Spa 844x390 5-11 % of
+    pixels differ in the pictured frames, Knobhill 3 %, all at item edges (the smoothed shrink);
+    identical once live. Photos looked at: the same trees, stands, cones and cars.
+  - PROOFS: (to follow).
 - LOADING SCREEN (owner 11-14: "Spa on start up / restart seems slow af", "a loading screen there
   to hide it while it loads and then it can drop us in when it's ready", "the race should only start
   after loading is done and the player is in so we don't get dropped in midway thru a count down").

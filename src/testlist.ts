@@ -13,6 +13,16 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'smoothfly',
+    added: '2026-11-14',
+    name: 'Smooth fly-in: the whole-track view at full speed',
+    where: 'Test link + &smoothfly=1&loadscreen=1 (also without &loadscreen=1): LAUNCH Spa, RESTART',
+    try: 'Watch the fly-in from the whole track down to your car: it should glide, and look as '
+      + 'before (trees, stands, cones, cars). Try at night and in rain too.',
+    wrong: 'A stutter in the fly-in, trees or cones popping or jumping in size as it zooms, missing '
+      + 'or doubled props, cars under a tree or bridge drawn wrongly, a slow first frame.',
+  },
+  {
     id: 'onestart',
     added: '2026-11-14',
     name: 'Quicker start and restart: nothing done twice',

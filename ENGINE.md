@@ -84,6 +84,20 @@ frozen over is an ice twin, left out of the picture), the screen's px a metre; t
 road's every time. The picture holds no weather, time of day, light or wear (laid over it as drawn),
 and a level's own mud dried in a race is put back before the fly-in. Switch off: as before.
 
+THE SMOOTH FLY-IN (`?smoothfly=1`, `FIX.smoothfly`; `render/flylayers.ts`): zoomed out, a fly-in frame
+drew every prop and loose object one by one. With the switch, the layers that hold still while the
+field waits at the lights - the deck (run-off, kerbs, bumps, paint), fence, barriers, props, the
+tunnels' ground, the loose objects and tape - are painted into pictures, and the props over the
+cars (canopies, bridge decks, gantries) and the bridges' ground into a second set; the frame draws
+those (smoothed) in their place (`render.ts drawWorldLayers`, `screen.ts drawSharpCarLayers`).
+The fly-in's path (`camera.ts flyViewAt`) up to zoom 0.1 is cut into sets 1.25x apart, each covering
+its part of the path's views at the art buffer's px a metre at its top zoom, so each hand-over
+(to the next set, then to the live drawing) shows the same picture. All are painted behind the
+loading screen (`renderer.readyFlyIn`; without it on the fly-in's first frame) and let go as the
+zoom passes them. The marks, the pulsing arrows, the cars, effects, night and weather stay live.
+Only while the start is armed and not green; never on the endless road; a frame whose view leaves
+its set's pictures is drawn live. Switch off: as before.
+
 ## The car (`vehicle.ts` and `physics/`)
 
 A top-down two-axle model with four tyre temperatures. `step(car, input, dt)`, in order:
