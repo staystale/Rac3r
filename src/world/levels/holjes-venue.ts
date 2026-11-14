@@ -70,6 +70,10 @@ export const HOLJES_SPEC: VenueSpec = {
   seed: 1976,
   runoffM: 4,
   followRails: true,
+  // tidied and made even (world/venuetidy.ts, world/stadiumtidy.ts): the lap's Armco and the
+  // joker's met at the split's nose doubled over ~8 m; joined, they close the island between them
+  tidyEdge: true,
+  evenEdge: true,
   // the joker: the joker loop's way round the outside of the split that the lap does not race
   joker: { layout: 'rx', loop: 'joker', near: [85, -100] },
   landmarks: CROWD,
