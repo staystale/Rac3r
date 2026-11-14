@@ -13,6 +13,14 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'lapdata',
+    added: '2026-11-14',
+    name: 'Track lists open at once: the lap lengths stored, not worked out',
+    where: 'Test link + &lapdata=1: TEST MODE, then each track list (ALL TRACKS, CIRCUITS...)',
+    try: 'Open the lists straight after loading the page; read the cards LAP ... KM lines.',
+    wrong: 'A list slow to appear after the blue blink, a length missing or not as before.',
+  },
+  {
     id: 'loadscreen',
     added: '2026-11-14',
     name: 'Loading screen: the track loads, then the fly-in, then the lights',

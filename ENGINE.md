@@ -293,6 +293,12 @@ parody pun (CLAUDE.md). A level is loaded by `world/load.ts`; `world/state.ts` h
 lists (zones, bumps, props, barriers), which the physics and the renderer both read, so what you see is
 what you drive on.
 
+LAP LENGTHS AS DATA (`?lapdata=1`, `FIX.lapdata`): the menu's track cards show each level's lap from
+`world/levels/laplengths.ts` (`category.ts menuLapOf`), written by `tools/laplengths.mjs` with
+`lapOf`, which traces a venue's whole road; without it a list's open traced every venue in it
+(MEASURED, CPU x4: 2-3.4 s on the first list opened; with it no task over 50 ms). Run the tool when
+a level is added or its road changes; `--check` (in `runall`, so CI) fails naming a stale length.
+
 A circuit is its real venue (`world/venue.ts` and `venue*.ts`, from OpenStreetMap; `levels/brands-venue.ts`
 is the spec of one, `levels/castle-cum-venue.ts` another): `venuescenery.ts` the
 scenery, `venueedge.ts` the barriers (traps, real tyre walls, a venue's real rails where it follows them,

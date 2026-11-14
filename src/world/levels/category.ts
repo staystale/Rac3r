@@ -3,6 +3,8 @@
 // the track list by it (menu/tracks.ts) and the lamp plan lights each kind its own way
 // (world/lampplan.ts).
 import type { Level } from '../types.ts';
+import { FIX } from '../../core/fixes.ts';
+import { LAP_METRES } from './laplengths.ts';
 
 const CAT_OF: Record<string, string> = { 'test-track': 'circuits', thruston: 'circuits',
   'castle-cum': 'circuits', 'brands-snatch': 'circuits', 'brands-snatch-indy': 'circuits',
@@ -60,4 +62,16 @@ export function lapOf(level: Level): number {
   if (level._lap) return level._lap();
   if (level.gen?.km) return level.gen.km * 1000;
   return level.subtrack?.totalDist || 0;
+}
+
+/**
+ * A level's lap for the menu's track cards: with ?lapdata=1 the pre-measured length
+ * (laplengths.ts, written by tools/laplengths.mjs from lapOf; its --check keeps it true), so
+ * opening a list traces no venue; a level not in it (no lap, or not measured yet) is measured.
+ * @param level the level
+ * @returns metres (0: none to show)
+ */
+export function menuLapOf(level: Level): number {
+  const stored = FIX.lapdata ? LAP_METRES[level.id] : undefined;
+  return stored === undefined ? lapOf(level) : stored;
 }

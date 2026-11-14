@@ -33,8 +33,9 @@ records in `TODO-DONE.md` (PASSED 11-12). On the phone now:
     CREDITS 96, SETTINGS 80. Profiled (cold): ALL TRACKS' card list asks each venue's lap LENGTH
     (menu/tracks.ts addLength -> category.ts lapOf -> venue.ts venueLap -> venueBuild -> traceLayout,
     the whole trace: tracedRadii, maskKinks) - 3.6 s of the profile at x4, only to print a length.
-    Proposed: the lap lengths as data (generated with the thumbnails) or measured after the list
-    is shown; the rally stages' list not yet traced. Owner to approve; behind its own switch.
+    Owner 11-14: "It should come from a pre measured set of data": BUILT (foreman) behind
+    `?lapdata=1` - world/levels/laplengths.ts from tools/laplengths.mjs (--check in runall); with
+    it no list's open takes a task over 50 ms at x4 (without: 2-3.4 s on the first list opened).
 
 - SMOOTH FLY-IN (owner 11-14 on ?loadscreen=1: "Still jerky after loading bar !?", "The loading
   screen was meant to fix this but ok if that works"). NEXT for the worker, after ?onestart=1,

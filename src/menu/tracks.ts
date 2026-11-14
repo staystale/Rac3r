@@ -1,5 +1,5 @@
 import { LEVELS } from '../world/levels/index.ts';
-import { catOf, lapOf, menuCatOf } from '../world/levels/category.ts';
+import { catOf, menuCatOf, menuLapOf } from '../world/levels/category.ts';
 import { buildLevel } from '../world/load.ts';
 import { THEMES, LENGTHS } from '../stagegen.ts';
 
@@ -277,7 +277,7 @@ function addTrackCard(menu: Menu, grid: HTMLElement, level: Level) {
  * @param levels the level, or the venue's layouts
  */
 function addLength(button: HTMLElement, levels: Level[]) {
-  const laps = levels.map(lapOf).filter((lap) => lap > 0);
+  const laps = levels.map(menuLapOf).filter((lap) => lap > 0);
   if (!laps.length) return;
   const inKm = (metres: number) => (metres / 1000).toFixed(2);
   const low = Math.min(...laps), high = Math.max(...laps);

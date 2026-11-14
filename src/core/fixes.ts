@@ -54,4 +54,7 @@ export const FIX = {
   // START and RESTART behind a loading screen (game/loading.ts): the work, then the fly-in, then
   // the countdown; the race held until the fly-in is over
   loadscreen: atLoad('loadscreen'),
+  // the menu's lap lengths read from pre-measured data (world/levels/laplengths.ts), not traced
+  // when a track list opens
+  lapdata: atLoad('lapdata'),
 };

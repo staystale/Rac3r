@@ -4,7 +4,7 @@
 // each press: the button's own handler (the long task after the press blink, PerformanceObserver
 // 'longtask') and the next frames' gaps. The phone report (11-14) showed menu taps answered in
 // 120-230 ms; this names the buttons.
-// [CPU=4] [DEPTH=3] [VIEW=440x738] node tools/scratch/_menutaps.mjs
+// [CPU=4] [DEPTH=3] [VIEW=440x738] [QUERY=&a=1] node tools/scratch/_menutaps.mjs
 import { startServer, launchBrowser, gotoGame } from '../lib/browser.mjs';
 
 const CPU = Number(process.env.CPU || 4), DEPTH = Number(process.env.DEPTH || 3);
@@ -66,7 +66,7 @@ try {
   const context = await browser.newContext({ viewport: { width: viewW, height: viewH },
     deviceScaleFactor: 3, isMobile: true, hasTouch: true });
   const page = await context.newPage();
-  await gotoGame(page, `${server.url}/?touch=1&menu=1&guide=0&noaudio=1`);
+  await gotoGame(page, `${server.url}/?touch=1&menu=1&guide=0&noaudio=1${process.env.QUERY || ""}`);
   await page.waitForTimeout(3000);
   const cdp = await context.newCDPSession(page);
   if (CPU > 1) await cdp.send('Emulation.setCPUThrottlingRate', { rate: CPU });
@@ -81,12 +81,12 @@ try {
       results.push({ where: [...path, label].join(' > '), ...timing });
       if (path.length + 1 < DEPTH) queue.push([...path, label]);
       // back to the screen this walk is on: reload and replay its path
-      await page.goto(`${server.url}/?touch=1&menu=1&guide=0&noaudio=1`);
+      await page.goto(`${server.url}/?touch=1&menu=1&guide=0&noaudio=1${process.env.QUERY || ""}`);
       await page.waitForTimeout(2500);
       for (const step of path) await pressAndTime(page, step);
     }
     if (queue.length) {
-      await page.goto(`${server.url}/?touch=1&menu=1&guide=0&noaudio=1`);
+      await page.goto(`${server.url}/?touch=1&menu=1&guide=0&noaudio=1${process.env.QUERY || ""}`);
       await page.waitForTimeout(2500);
       for (const step of queue[0]) await pressAndTime(page, step);
     }

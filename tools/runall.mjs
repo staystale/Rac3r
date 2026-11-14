@@ -36,6 +36,7 @@ const QUICK = [
   entry('settingscheck'),
   entry('barriercheck'),
   entry('thumbcheck'),
+  entry('laplengths', ['--check']),
   entry('propcheck'),
   entry('highwaycheck'),
   entry('stagegencheck'),
