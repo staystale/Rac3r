@@ -1,7 +1,7 @@
 // _rollholes.mjs - the rolled body's pictures (render/rollbody.ts) of EVERY car (CAR_IDS) at all 12
 // roll angles, in the stock paint, a light blue paint and damaged: counts the SEE-THROUGH pixels
 // (clear pixels with no clear path out to the picture's edge) per car and angle, and writes one
-// sheet per look (each picture x3 on magenta, so a hole shows) to OUT (default tools/scratch).
+// sheet per look (each picture x2 on magenta, so a hole shows) to OUT (default tools/scratch).
 // node tools/scratch/_rollholes.mjs [extra query]   (CHECK_PORT picks the server's port)
 import { writeFileSync } from 'node:fs';
 import { startServer, launchBrowser, gotoGame } from '../lib/browser.mjs';
