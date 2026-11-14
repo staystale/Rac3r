@@ -56,7 +56,9 @@ records in `TODO-DONE.md` (PASSED 11-12). On the phone now:
   - LOOK (tools/scratch/_flyshots.mjs, renderhash's raster, shotdiff): Spa 844x390 5-11 % of
     pixels differ in the pictured frames, Knobhill 3 %, all at item edges (the smoothed shrink);
     identical once live. Photos looked at: the same trees, stands, cones and cars.
-  - PROOFS: (to follow).
+  - PROOFS (PC, against round28): simhash SAME off and with smoothfly=1; worldhash SAME off;
+    renderhash (Spa, Knobhill; ~3 min a level there, the rest left to CI) SAME off and with the
+    switch (its captures start at 2 s, after the fly-in). _loadmenu (laptop, smoothfly=1) all OK.
 - LOADING SCREEN (owner 11-14: "Spa on start up / restart seems slow af", "a loading screen there
   to hide it while it loads and then it can drop us in when it's ready", "the race should only start
   after loading is done and the player is in so we don't get dropped in midway thru a count down").
