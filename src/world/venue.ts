@@ -23,7 +23,7 @@ import { CIRCUIT_BUSHES } from "./levels/bushes.ts";
 import { buildVenueScenery } from "./venuescenery.ts";
 import { VENUE_ROAD_M, distToLine, isNearLine, kerbOut, lineLength, pointAlong }
   from "./venuegeo.ts";
-import { laneSpawn, venueJoker, venueStartLane } from "./venuejoker.ts";
+import { laneBehindPole, laneSpawn, venueJoker, venueStartLane } from "./venuejoker.ts";
 import { nearWater } from "./venueoval.ts";
 import type { Barrier, Bump, Camber, Cone, Cover, Lane, Level, Point, Subtrack } from "./types.ts";
 
@@ -663,6 +663,7 @@ export function venueLevel(spec: VenueSpec, layout: string, levelId: string,
     camber: spec.camber?.[layout] || { maxDeg: 3, refR: 70, crown: 0.02, edge: 6, sections: [] },
     ...(spec.rollingStart ? { rollingStart: true } : {}),
     ...(spec.splitStart ? { splitStart: true } : {}),
+    ...(startLane ? { startLine: laneBehindPole(startLane) } : {}),
     ...(scenery.patches.length ? { patches: scenery.patches } : {}),
     zones: scenery.zones, covers: scenery.covers, bumps: prepBumps(venueBumps(build)), boards: [],
     seams: false, cones: loose,

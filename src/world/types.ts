@@ -527,6 +527,9 @@ export interface Level {
   // side): the cars on the path's two halves, each timed over its laps from its own line
   // (game/grid.ts splitLineDist)
   splitStart?: boolean;
+  // a venue's rallycross START LANE behind the pole, back to its dead end (world/venuejoker.ts
+  // laneBehindPole): the grid stands along it, three abreast (game/grid.ts startLineGridPos)
+  startLine?: Point[];
   snowy?: boolean;   // a snow-themed stage (weather only): its theme biases the weather
   seams?: boolean;
   randomise?: () => void;   // the Grass Track: new random patches every load

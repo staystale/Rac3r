@@ -16,6 +16,7 @@ import { onTrack, querySubtrack } from "../world/tyrewall.ts";
 import { START_STEP, ROLL_BACK } from './order.ts';
 import { shared, game } from './state.ts';
 import type { GameCar } from './state.ts';
+import type { Point } from '../world/types.ts';
 
 // AI CARS — stage 1 (user: up to 5 opponents, FULL CONTACT, the SAME car as the player
 // in different colours + numbers). Each is { car, drv }: a real car stepped by the same physics on
@@ -71,6 +72,7 @@ export function gridPos(slot: number) {
   // the highway: 2 wide in the right-hand lanes (highwayrace.js)
   if (LEVEL.endless) return hwGrid(hwLevel(), slot);
   if (LEVEL.splitStart) return splitGridPos(slot);
+  if (LEVEL.startLine) return startLineGridPos(slot, LEVEL.startLine);
   const sub = LEVEL.subtrack!, spawn = LEVEL.spawn,
     offLap = querySubtrack(sub, spawn.x, spawn.y).dist > sub.width / 2;
   if (LEVEL.stage && slot > 0) {
@@ -129,6 +131,47 @@ function splitGridPos(slot: number) {
   const point = onTrack(sub, ((dist % sub.totalDist) + sub.totalDist) % sub.totalDist,
     gridColumn(row), {});
   return { x: point.x, y: point.y, h: point.rot };
+}
+// A START LANE'S GRID (Level.startLine, a venue's rallycross start lane): a row of
+// START_ROW_CARS abreast, START_ROW_LAT m apart, every GRID_STEP m back along the lane's own line
+// from the pole, straight on past its dead end: a lane may bend, and a full field two abreast is
+// longer than the room behind the pole (world/venuejoker.ts GRID_ROOM_M, 75 m: 21 cars three
+// abreast need 42 m). A 13 m lane: the outer cars' sides 1.6 m in from its edges.
+export const START_ROW_CARS = 3, START_ROW_LAT = 4;
+// m either way along the lane over which a row's heading is read (a 2 m step of the lane's line
+// turns a few degrees: a row's heading from one step alone swung 0.4 rad row to row)
+const START_HEADING_M = 4;
+/**
+ * A point a distance back along a line, on along its last step past its end.
+ * @param line the line, its front first
+ * @param backM m back from its first point (0 or more)
+ * @returns the point
+ */
+function pointBack(line: Point[], backM: number): Point {
+  let left = Math.max(0, backM), index = 0;
+  const stepM = (i: number) => Math.hypot(line[i + 1][0] - line[i][0], line[i + 1][1] - line[i][1]);
+  while (index < line.length - 2 && left > stepM(index)) {
+    left -= stepM(index);
+    index++;
+  }
+  const [frontX, frontY] = line[index], [backX, backY] = line[Math.min(index + 1, line.length - 1)];
+  const len = Math.hypot(backX - frontX, backY - frontY) || 1;
+  return [frontX + (backX - frontX) / len * left, frontY + (backY - frontY) / len * left];
+}
+/**
+ * A grid slot on a start lane's line.
+ * @param slot the slot, 0 = pole
+ * @param line the lane behind the pole, the pole's point first
+ * @returns the position and heading
+ */
+function startLineGridPos(slot: number, line: Point[]) {
+  const backM = Math.floor(slot / START_ROW_CARS) * GRID_STEP;
+  const across = (slot % START_ROW_CARS - 1) * START_ROW_LAT;
+  const [x, y] = pointBack(line, backM);
+  const [aheadX, aheadY] = pointBack(line, backM - START_HEADING_M);
+  const [behindX, behindY] = pointBack(line, backM + START_HEADING_M);
+  const heading = Math.atan2(aheadY - behindY, aheadX - behindX);
+  return { x: x - Math.sin(heading) * across, y: y + Math.cos(heading) * across, h: heading };
 }
 // GRID_STEP: one slot back (so the same column is 2 x apart: 14 m nose to nose, ~9.5 m clear);
 // GRID_LAT: column offset from the centre

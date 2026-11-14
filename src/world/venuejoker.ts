@@ -125,6 +125,16 @@ function heldApart(pts: Point[], own: Subtrack): Point[] {
  * @returns the spot and its heading
  */
 export function laneSpawn(lane: Lane): { x: number; y: number; rot: number } {
+  const { x, y, rot } = lanePole(lane);
+  return { x, y, rot };
+}
+
+/**
+ * The pole's spot on a start lane (GRID_ROOM_M from its dead end) and the lane's point after it.
+ * @param lane the start lane
+ * @returns the spot, its heading and the index of the lane's next point
+ */
+function lanePole(lane: Lane): { x: number; y: number; rot: number; next: number } {
   let left = GRID_ROOM_M;
   for (let i = 1; i < lane.pts.length; i++) {
     const [fromX, fromY] = lane.pts[i - 1], [toX, toY] = lane.pts[i];
@@ -132,9 +142,20 @@ export function laneSpawn(lane: Lane): { x: number; y: number; rot: number } {
     if (len >= left || i === lane.pts.length - 1) {
       const frac = Math.min(1, left / (len || 1));
       return { x: fromX + (toX - fromX) * frac, y: fromY + (toY - fromY) * frac,
-        rot: Math.atan2(toY - fromY, toX - fromX) };
+        rot: Math.atan2(toY - fromY, toX - fromX), next: i };
     }
     left -= len;
   }
-  return { x: lane.pts[0][0], y: lane.pts[0][1], rot: 0 };
+  return { x: lane.pts[0][0], y: lane.pts[0][1], rot: 0, next: 0 };
+}
+
+/**
+ * The start lane's line behind the pole (Level.startLine: the grid stands along it, game/grid.ts):
+ * from the pole back to the lane's dead end.
+ * @param lane the start lane
+ * @returns the points, the pole's first
+ */
+export function laneBehindPole(lane: Lane): Point[] {
+  const pole = lanePole(lane);
+  return [[pole.x, pole.y], ...lane.pts.slice(0, pole.next).reverse()];
 }
