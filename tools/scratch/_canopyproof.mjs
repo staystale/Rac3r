@@ -3,7 +3,7 @@
 // but once the fly-in is over the player car is put 14 m from the densest clump of trees, facing it,
 // its headlights on and moving at 20 m/s, and the screen is captured at CAPTURES frames after. Prints each capture's hash and the canopy cut's counts (renderer.flyStats.canopyCut:
 // canopies darkened / on the map). Run it with and without nightfly=1 (QUERY) and compare.
-// [QUERY=nightfly=1] [NIGHT=0.94] [CAPTURES=20,60,100,140] node tools/scratch/_canopyproof.mjs [level]
+// [OPTS={"traffic":1}] [PLACE=0] [NEAR_LAMPS=1] [QUERY=nightfly=1] [NIGHT=0.94] [CAPTURES=20,60,100,140] node tools/scratch/_canopyproof.mjs [level]
 import { createHash } from 'node:crypto';
 import { startServer, launchBrowser } from '../lib/browser.mjs';
 import { openPage, launchLevel, installDriver, SETTLE_MS } from '../lib/determinism.mjs';
@@ -37,11 +37,18 @@ function grabCanvas() {
  * Page side: puts the player car 14 m from the densest clump of trees, facing it, lights on,
  * moving at 20 m/s (the demo driver then steers it back towards the track, its beams sweeping
  * across the trees).
+ * @param {boolean} nearLamps only clumps within 30 m of a lamp's head
  * @returns {Promise<object>} the clump's trees within 15 m
  */
-async function placeInTrees() {
+async function placeInTrees(nearLamps) {
   const game = window.__game, { PROPS } = await import('/src/world/state.ts');
-  const trees = PROPS.filter((prop) => prop.kind === 'tree');
+  const { activeLamps } = await import('/src/world/lamps.ts');
+  const heads = activeLamps().map((lamp) => [lamp.headX, lamp.headY]);
+  // (NEAR_LAMPS: only trees within 40 m of a lamp's head, if there are any)
+  const allTrees = PROPS.filter((prop) => prop.kind === 'tree');
+  const nearTrees = allTrees.filter((prop) => heads.some(([x, y]) =>
+    Math.hypot(prop.x - x, prop.y - y) < 40));
+  const trees = nearLamps && nearTrees.length ? nearTrees : allTrees;
   let best = trees[0], bestCount = -1;
   for (let index = 0; index < trees.length; index += 7) {
     const tree = trees[index];
@@ -55,7 +62,8 @@ async function placeInTrees() {
   const heading = 0.6, car = game.car;
   Object.assign(car, { x: best.x - Math.cos(heading) * 14, y: best.y - Math.sin(heading) * 14,
     heading, vx: Math.cos(heading) * 20, vy: Math.sin(heading) * 20, lightsOn: true });
-  return { index: Math.round(best.x) + ',' + Math.round(best.y), trees: bestCount };
+  return { index: Math.round(best.x) + ',' + Math.round(best.y), trees: bestCount,
+    lamps: heads.length, all: allTrees.length, near: nearTrees.length };
 }
 
 const server = await startServer();
@@ -68,13 +76,16 @@ try {
     window.__rt.step(10);
   });
   await page.evaluate((seed) => window.__rt.seed(seed), SEED);
-  await page.evaluate(launchLevel, [levelId, {}]);
+  await page.evaluate(launchLevel, [levelId, JSON.parse(process.env.OPTS || '{}')]);
   await page.waitForTimeout(SETTLE_MS);
   await page.evaluate(installDriver);
   await page.evaluate(() => window.__rt.step(400));
-  const placed = await page.evaluate(placeInTrees);
+  // (PLACE=0: the car left where the race has it - the endless road's own stretches)
+  const placed = process.env.PLACE === '0' ? { index: 'the road', trees: '-', all: '-', lamps: '-',
+    near: '-' } : await page.evaluate(placeInTrees, process.env.NEAR_LAMPS === '1');
   console.log(`${levelId} night ${NIGHT}${QUERY}: by the clump at ${placed.index}, ${placed.trees}`
-    + ' trees within 15 m');
+    + ` trees within 15 m (${placed.all} trees, ${placed.lamps} lamps, ${placed.near} trees within`
+    + ' 40 m of a lamp)');
   let done = 0;
   for (const frame of CAPTURES) {
     await page.evaluate((count) => window.__rt.step(count), frame - done);
@@ -83,7 +94,8 @@ try {
     const hash = createHash('sha256').update(Buffer.from(url.split(',')[1], 'base64'))
       .digest('hex').slice(0, 16);
     const cut = await page.evaluate(() => window.__game.renderer.flyStats.canopyCut);
-    console.log(`  f${frame}: ${hash}  canopies darkened ${cut.traced} / on the map ${cut.onMap}`);
+    console.log(`  f${frame}: ${hash}  canopies darkened ${cut.traced} / on the map ${cut.onMap},`
+      + ` stretch walks ${cut.walks} (last ${cut.walkMs.toFixed(2)} ms, most ${cut.walkMostMs.toFixed(2)})`);
   }
   await page.context().close();
   console.log(errors.length ? `  page errors: ${errors.slice(0, 3).join(' | ')}` : '  no page errors');

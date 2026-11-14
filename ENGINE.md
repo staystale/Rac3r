@@ -113,8 +113,15 @@ THE NIGHT FLY-IN (the default since 11-14): two parts.
   the lamps or the level change), each tree keeping its gap to the nearest; the moving lights
   (every car's beams and glows, `light.ts carLightReachM`; sparks; trains; caravans; a knocked
   lamp's head) are walked each frame. A tree within 3 light-map px of a light is traced; a canopy
-  no light reached is already exactly the dark, so the pixels are the same. Every canopy on the
-  endless road, or on a map coarser than 3 px in 64 m.
+  no light reached is already exactly the dark, so the pixels are the same. Every canopy on a map
+  coarser than 3 px in 64 m. THE ENDLESS ROAD (`?nighthw=1`, `render/canopystream.ts`; without it every canopy there): its props and lamps
+  stream, so the still lights are worked out per stretch - when the props list or the lamps change,
+  only the props and lamps not walked before are (each new tree filed in the stream's own 32 m grid
+  with its gap to the still lights near it; each new lamp pool or board filed and lowering the gaps
+  of the trees near it, `eventglows.ts noteStillLightsOf`), and what left the list is dropped
+  from the grids; a dropped light leaves its trees' gaps (traced the more, never left dark). The
+  moving lights as on any level (`canopycut.ts noteMovingLights`). `canopyCut.walks`,
+  `walkMs`, `walkMostMs`: the stretch walks and their time.
 - THE NIGHT PICTURES (the fly-in only): while the lamps are lit when a fly-in
   is planned, each set also gets two night pictures at its px a metre (`flylayers.ts paintNight`;
   all of them within their own 12 MB beside the sets' 24, past it fewer px a metre): the lamps' pools and heads and the still event lights, white (the rub-out) and tinted

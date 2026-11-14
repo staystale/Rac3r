@@ -53,4 +53,7 @@ export function dialAtLoad(name: string): number {
 export const FIX = {
   // the countryside highway's exit signs: the four real towns as parody puns (highway/extras.ts)
   exitpuns: atLoad('exitpuns'),
+  // the night's canopy cut on the endless road too, worked out stretch by stretch as its props
+  // stream (render/canopystream.ts)
+  nighthw: atLoad('nighthw'),
 };

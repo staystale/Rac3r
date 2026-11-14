@@ -3,7 +3,7 @@
 // under the screen canvas; the page's own level launched, the fly-in's frames FRAMES in written as
 // PNGs to <out>/off and <out>/on, each frame's px a metre), at night (&night=NIGHT) with
 // ?smoothfly=1 both ways. Compare: node tools/shotdiff.mjs <out>/off <out>/on. DPR=3 by default.
-// [VIEW=844x390] [DPR=3] [NIGHT=0.94] [FRAMES=3,20,35,45,55,70] node tools/scratch/_nightflyshots.mjs
+// [QUERY=hw=canyon] [VIEW=844x390] [DPR=3] [NIGHT=0.94] [FRAMES=3,20,35,45,55,70] node tools/scratch/_nightflyshots.mjs
 //   <out> [level ...]
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -52,7 +52,8 @@ async function runOne(browser, base, level, isOn) {
   page.on('pageerror', (err) => errors.push(String(err)));
   await page.addInitScript(installDeterminism);
   await gotoGame(page, `${base}/?touch=1&guide=0&menu=0&rules=0&level=${level}`
-    + `&smoothfly=1&night=${NIGHT}` + (isOn ? '&nightfly=1' : ''), 'window.__rt');
+    + `&smoothfly=1&night=${NIGHT}` + (isOn ? '&nightfly=1' : '')
+    + (process.env.QUERY ? '&' + process.env.QUERY : ''), 'window.__rt');
   await page.waitForTimeout(SETTLE_MS);
   await page.evaluate(() => {
     dispatchEvent(new KeyboardEvent('keydown', { key: 'x' }));
