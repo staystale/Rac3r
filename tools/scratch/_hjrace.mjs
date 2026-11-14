@@ -4,7 +4,8 @@
 // edge + 1.5 m and off every lane), resets (a jump of over 8 m in one frame), rolls; and every pass
 // over THE CREST JUMP (lap 80-140 m): speed going up it, seconds in the air, the landing's angle to
 // the road, the hardest load in the 0.5 s after touchdown and seconds off the road in the 3 s
-// after. Nothing in the game is changed: it only reads each frame.
+// after; the first place each car sat under 4 km/h for 5 s after the green. Nothing in the game
+// is changed: it only reads each frame.
 // [RAC3R_QUERY=...] node tools/scratch/_hjrace.mjs [ai n] [laps] [seed] [car]
 import { startServer, launchBrowser, extraQuery } from '../lib/browser.mjs';
 
@@ -85,6 +86,10 @@ async function startRace([aiCount, laps, car]) {
       rec.offBins[key] = (rec.offBins[key] || 0) + dt;
     }
     const speed = Math.hypot(car.vx, car.vy) * 3.6;
+    // (the first place, after the green, where it sat under 4 km/h for 5 s)
+    own.slowS = flowT() > 8 && speed < 4 ? (own.slowS || 0) + dt : 0;
+    if (own.slowS > 5 && !own.stuckAt) own.stuckAt = `(${car.x.toFixed(0)},${car.y.toFixed(0)}) lap `
+      + `${hit.trackDist.toFixed(0)} m, ${hit.dist.toFixed(1)} m off its centre at ${flowT().toFixed(0)} s`;
     const inWindow = hit.dist < 12 && hit.trackDist >= 80 && hit.trackDist <= 140;
     let pass = own.pass;
     if (inWindow && !pass) pass = own.pass = { up: 0, air: 0, land: null, load: 0, offAfter: 0,
@@ -142,7 +147,7 @@ function readReport() {
       const own = rec.cars[slot] || { off: 0, resets: 0, passes: [] };
       return { slot, laps: entry.lapDone ?? null, finished: entry.finish != null,
         rolls: car._rolls || 0, dmgResets: car._dmgResets || 0, off: own.off,
-        resets: own.resets, passes: own.passes };
+        resets: own.resets, passes: own.passes, stuckAt: own.stuckAt || null };
     }),
   };
 }
@@ -166,7 +171,8 @@ function printReport(report, state, errors, run) {
       + ` off ${pass.offAfter.toFixed(1)}`)).join('; ');
     console.log(`  ${car.slot ? `AI ${String(car.slot).padStart(2)}` : 'YOU  '} laps ${car.laps}`
       + ` ${car.finished ? 'finished' : 'NOT FINISHED'} off ${car.off.toFixed(1)} s resets`
-      + ` ${car.resets} (damage ${car.dmgResets}) rolls ${car.rolls} | crest: ${crest}`);
+      + ` ${car.resets} (damage ${car.dmgResets}) rolls ${car.rolls}`
+      + `${car.stuckAt ? ` | STOPPED 5 s at ${car.stuckAt}` : ''} | crest: ${crest}`);
   }
   const flown = allPasses.filter((pass) => pass.air > 0.05);
   const landed = flown.filter((pass) => pass.land != null);

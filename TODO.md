@@ -156,10 +156,10 @@ cars: the Hoonigan pink Porsche, the BMW E36.
   hump moved onto the road (it stood 18 m off it: no car flew) - now airborne up to 0.9 s flat out;
   the campers moved onto the map (they stood past its west edge), the crowd's bank 24 m nearer the
   hill gravel, flags, a TV tower, the paddock's transporters; least radius 15.3 m, the top
-  hairpin 19.5 m (no minR); the thumbnail. worldhash SAME (PC); venueaudit, barriercheck,
-  propcheck OK (laptop). OPEN: with 20 AI the grid runs straight back off the bending start lane
-  into the trees (17 of 21 cars off it, the back ones 24-64 m) - game/grid.ts, shared: the
-  foreman's call. The numbers: TODO-DONE once passed; the worker's hand-back until then.
+  hairpin 19.5 m (no minR); the thumbnail; the map's edge held 150 m past the top hairpin; the
+  grid along the start lane three abreast (game/grid.ts, Level.startLine: every other level's grid
+  slot for slot the same) - 21 of 21 on the lane. worldhash SAME (PC); venueaudit, barriercheck,
+  propcheck OK (laptop). The numbers: TODO-DONE once passed; the worker's hand-back until then.
 - DEMOLITION DERBY (owner 11-10: "Demolition derby levels classic tarmac circle - and we can reuse
   stock car tracks ect for that too"): a classic tarmac circle arena, and a derby mode on the stock
   car tracks (Stock Car, Grass Track, Old Wobbly). Questions when we come to it (the AI ramming, how

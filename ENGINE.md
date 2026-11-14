@@ -330,4 +330,9 @@ rule, the map's own corner ~15 m: no `minR`), the top hairpin 19.5 m. Its edge t
 (`tidyEdge`, `evenEdge`): the lap's and the joker's Armco joined at the split's nose. The campers'
 caravans are loose objects on a pad of grass (the trees keep off it) north of the top gravel - the
 map's west edge is 30 m past the top hairpin; a TV tower, transporters, flags and spares as the
-stadiums' dressing (`dress`); 3000 trees at most (1888 stand).
+stadiums' dressing (`dress`); 3000 trees at most (2026 stand); two firs far out in the forest hold
+the map's edge 150 m past the top hairpin (off-map ground never in view). THE START LANE'S GRID: a
+venue level with a start lane carries the lane behind the pole (`Level.startLine`,
+`venuejoker.ts laneBehindPole`); `game/grid.ts` lays that grid along it, three abreast 4 m apart, a
+row every 7 m (21 cars in 42 m of the 75 m behind the pole), on past the dead end straight. Every
+other level's grid takes the old path (all 49 grids' slots identical, `tools/scratch/_griddump.mjs`).

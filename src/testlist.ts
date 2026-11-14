@@ -25,7 +25,7 @@ export const TEST_LIST: TestEntry[] = [
     added: '2026-11-14',
     name: 'Holy Jeez: the Holjes rallycross, full size',
     where: 'Test link + &holyjeez=1: RX list, Holy Jeez',
-    try: 'Race 20 AI: the crest flat out, the top hairpin, the joker once; the campers, the crowd.',
-    wrong: 'A barrier on the road, a stuck car, joker uncounted, a thing floating, a bad landing.',
+    try: 'Race 20 AI from the 3-wide grid: the crest flat out, the top hairpin, the joker once.',
+    wrong: 'A car off the lane on the grid, a barrier on the road, a stuck car, a thing floating.',
   },
 ];
