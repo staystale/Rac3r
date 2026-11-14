@@ -1,0 +1,44 @@
+{
+  "osm": "holjes.osm.json",
+  "out": "src/world/levels/venues/holjes.ts",
+  "exportName": "HOLJES_VENUE",
+  "origin": [
+    60.91761,
+    12.55269
+  ],
+  "turnDeg": 0,
+  "clip": [
+    -450,
+    -450,
+    450,
+    450
+  ],
+  "reachM": 180,
+  "names": {
+    "599300791": "Start Straight",
+    "599300792": "Joker In",
+    "599300793": "Split Gravel",
+    "599300794": "Split Tarmac",
+    "599300795": "Top Gravel",
+    "599300796": "Top Hairpin",
+    "599300798": "Hill Gravel",
+    "599300799": "Hill Tarmac",
+    "599300800": "Bottom Gravel",
+    "599300802": "Bottom Hairpin",
+    "599300806": "Return Gravel",
+    "599300808": "Joker Gravel",
+    "599300811": "Joker Tarmac",
+    "599300815": "Joker Out",
+    "599300817": "Joker Rejoin"
+  },
+  "layouts": {
+    "rx": {
+      "through": ["Start Straight 2", "Start Straight 3", "Split Gravel", "Split Tarmac", "Top Gravel", "Top Gravel 2", "Top Hairpin", "Hill Gravel", "Hill Tarmac", "Bottom Gravel", "Bottom Hairpin", "Return Gravel"],
+      "avoid": ["Joker In", "Joker Gravel", "Joker Tarmac", "Joker Out", "Joker Rejoin"]
+    },
+    "joker": {
+      "through": ["Joker In", "Joker Gravel", "Joker Tarmac", "Joker Out", "Joker Rejoin", "Top Gravel 2", "Top Hairpin", "Bottom Hairpin", "Start Straight 2"],
+      "avoid": ["Split Gravel", "Split Tarmac"]
+    }
+  }
+}

@@ -46,6 +46,8 @@ import { WOBBLY_LEVELS } from "./wobbly-venue.ts";
 import { STADEPRANCE_LEVELS } from "./stadeprance-venue.ts";
 import { BIRDSMESS_LEVELS } from "./birdsmess-venue.ts";
 import { LALIVELY_LEVELS } from "./lalively-venue.ts";
+import { HOLJES_LEVELS } from "./holjes-venue.ts";
+import { FIX } from "../../core/fixes.ts";
 import { OP_LEVELS } from "./oultonpork-venue.ts";
 import { DT_LEVELS } from "./dieatona-venue.ts";
 import { TH_VENUE_LEVEL } from "./thruston-venue.ts";
@@ -128,6 +130,8 @@ export const LEVELS: Level[] = [
   // The Bird's Mess, the Race of Champions' track in Beijing (birdsmess-venue.ts)
   ...BIRDSMESS_LEVELS,
   ...LALIVELY_LEVELS,
+  // Holy Jeez, the Holjes rallycross (holjes-venue.ts), under test
+  ...(FIX.holyjeez ? HOLJES_LEVELS : []),
   BH_GP_LEVEL,
   BH_INDY_LEVEL,
   {
