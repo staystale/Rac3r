@@ -44,9 +44,11 @@ const PICTURE_MAX_PX = 2048;
 // owner's iPhone the sets were never drawn (the frames' JS as with the switch off)
 const SETS_BUDGET_MB = 24;
 const BYTES_MB = 1048576;
-// ?nightfly=1: a set's night pictures (the lamps' pools and heads, the still event lights: soft
-// light) at this share of its pictures' px a metre - a quarter of their memory each
-const NIGHT_SHARE = 0.5;
+// MB a fly-in's night pictures may take together (?nightfly=1: two a set, the lamps' pools and
+// heads and the still event lights), beside SETS_BUDGET_MB; past it they are painted at fewer px a
+// metre than their set's. MEASURED (_nightflyshots, Spa and Le Manky, dpr 3): at half the set's px
+// a metre the marshals' beacons and the boards' light went faint (a beacon is ~1 px there)
+const NIGHT_BUDGET_MB = 12;
 // share of a set's views added round its pictures (the path between two samples)
 const RECT_MARGIN = 0.05;
 // points of the fly-in's path read to find each set's views
@@ -83,7 +85,8 @@ interface PictureSet {
   pxPerMetre: number;   // its pictures' px a metre (at most the art buffer's at zoomTo)
   under: ImageBitmap | null;
   over: ImageBitmap | null;
-  rub: ImageBitmap | null;    // ?nightfly=1: the still night lights, white (the rub-out)
+  nightPerMetre: number;      // ?nightfly=1: its night pictures' px a metre
+  rub: ImageBitmap | null;    // the still night lights, white (the rub-out)
   tint: ImageBitmap | null;   // and their tints
 }
 
@@ -247,13 +250,17 @@ function planSets(ctx: FlyLayersCtx, fly: Fly, car: CamCar, isNight: boolean): P
     const longest = Math.max(rect[2] - rect[0], rect[3] - rect[1]);
     if (!(longest > 0 && Number.isFinite(longest))) continue;
     const pxPerMetre = Math.min(artPerMetre * zoomTo, PICTURE_MAX_PX / longest);
-    sets.push({ zoomFrom, zoomTo, rect, pxPerMetre, under: null, over: null, rub: null,
-      tint: null });
+    sets.push({ zoomFrom, zoomTo, rect, pxPerMetre, under: null, over: null, nightPerMetre: 0,
+      rub: null, tint: null });
   }
-  // two pictures a set (and two night ones); all of them within the budget
-  const bytes = setsBytes(sets, isNight);
+  // two pictures a set; all of them within the budget
+  const bytes = setsBytes(sets, false);
   const shrink = Math.min(1, Math.sqrt(SETS_BUDGET_MB * BYTES_MB / Math.max(1, bytes)));
   for (const set of sets) set.pxPerMetre *= shrink;
+  // the night pictures at the set's px a metre, all of them within their own budget
+  const nightBytes = bytes * shrink * shrink;
+  const nightShrink = Math.min(1, Math.sqrt(NIGHT_BUDGET_MB * BYTES_MB / Math.max(1, nightBytes)));
+  for (const set of sets) set.nightPerMetre = isNight ? set.pxPerMetre * nightShrink : 0;
   return sets;
 }
 
@@ -266,14 +273,14 @@ function planSets(ctx: FlyLayersCtx, fly: Fly, car: CamCar, isNight: boolean): P
 function setsBytes(sets: PictureSet[], isNight: boolean): number {
   return sets.reduce((sum, set) => {
     const [width, height] = pictureSize(set.rect, set.pxPerMetre);
-    const [nightW, nightH] = pictureSize(set.rect, set.pxPerMetre * NIGHT_SHARE);
+    const [nightW, nightH] = pictureSize(set.rect, set.nightPerMetre);
     return sum + 2 * width * height * 4 + (isNight ? 2 * nightW * nightH * 4 : 0);
   }, 0);
 }
 
 /**
  * Paints a set's night pictures in the scratch canvas (?nightfly=1): the still night lights,
- * white then tinted, at NIGHT_SHARE of its px a metre.
+ * white then tinted, at its night px a metre.
  * @param ctx the painters
  * @param game the game
  * @param scratch the canvas and its context
@@ -282,7 +289,7 @@ function setsBytes(sets: PictureSet[], isNight: boolean): number {
  */
 function paintNight(ctx: FlyLayersCtx, game: RenderGame, scratch: { canvas: HTMLCanvasElement;
   c2d: CanvasRenderingContext2D }, set: PictureSet, keep: (layer: 'rub' | 'tint') => void) {
-  const { canvas, c2d } = scratch, rect = set.rect, perMetre = set.pxPerMetre * NIGHT_SHARE;
+  const { canvas, c2d } = scratch, rect = set.rect, perMetre = set.nightPerMetre;
   const map: StillMap = {
     artX: (worldX) => (worldX - rect[0]) * perMetre,
     artY: (worldY) => (worldY - rect[1]) * perMetre,
