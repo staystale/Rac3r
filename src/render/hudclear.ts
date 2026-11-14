@@ -16,6 +16,42 @@ const PUSH = { up: 0, down: 0, left: 0, right: 0 }, MOVED = [0, 0];
 // nothing to the whole clearance, so the camera never jumps
 const CLEAR_RAMP = 32;
 
+// css px / s / s: the most the push's speed changes in a second - 3 px / frame / frame at 60 fps,
+// the size of the view's own steadiest wobble (MEASURED off, _hudcover: 0.1-3.4 px), so the push
+// never jerks the view, and a piece that appears is cleared in ~0.1-0.2 s
+const CLEAR_ACCEL = 10800;
+// 1/s: near its goal the push closes in proportion (no chatter round the goal)
+const CLEAR_SETTLE = 20;
+
+/** One axis of the push the camera applies, css px: where it is, its speed, its last goal. */
+export interface PushAxis { pos: number; vel: number; goal: number }
+
+/**
+ * Move one axis of the push toward its goal with its speed changing by at most CLEAR_ACCEL: it
+ * keeps pace with a goal that slides (the goal's own speed is fed forward) and brakes in time for
+ * one that jumps (a piece that appears or goes), so the view moves smoothly either way.
+ * @param axis the axis (moved in place)
+ * @param goal the push the pieces ask for now, css px
+ * @param dt the wall-clock frame time, s
+ * @param whole take the goal at once (after a teleport)
+ * @returns the push now, css px
+ */
+export function followPush(axis: PushAxis, goal: number, dt: number, whole: boolean): number {
+  if (whole) {
+    axis.pos = goal;
+    axis.vel = 0;
+  } else if (dt > 0) {
+    const goalSpeed = (goal - axis.goal) / dt, gap = goal - axis.pos,
+      close = Math.min(Math.sqrt(2 * CLEAR_ACCEL * Math.abs(gap)), Math.abs(gap) * CLEAR_SETTLE),
+      change = CLEAR_ACCEL * dt;
+    axis.vel += Math.max(-change, Math.min(change, goalSpeed + Math.sign(gap) * close
+      - axis.vel));
+    axis.pos += axis.vel * dt;
+  }
+  axis.goal = goal;
+  return axis.pos;
+}
+
 /** A screen rectangle, css px. */
 export interface ClearRect { x: number; y: number; w: number; h: number }
 
