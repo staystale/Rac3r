@@ -473,9 +473,8 @@ inputs and get the cars back. A SPIKE (two phones on the tunnel) before committi
   check, make them only where missing. CHECKED (foreman): the countryside list exists, with four
   plain real towns; owner "Pun them": GHOULE, SKUNKTHORPE, BRIGGADOON, HOWDY-DEN behind
   `?exitpuns=1` (highway/extras.ts SLIP_NAMES).
-- Dongington Park: the catch fence in front of the Hollywood grandstand (no source shows it; left
-  as built 11-09) - OPEN (owner 11-14: "Keep this open remind me / add it to the pause menu test
-  reminder": an entry in src/testlist.ts, id 'dongfence').
+- ANSWERED 11-14: Dongington Park's catch fence in front of the Hollywood grandstand KEPT (owner:
+  "Keep dongerton catch fence"); its test-list reminder removed.
 - ANSWERED 11-14: GitHub tidied (owner: "The 108 only"): the 109 branches whose every change is in
   main deleted; kept: experiment/hudtext and 14 old versions / October experiments (worker/091,
   093, 119, 224; foreman/birdsmess, dongington-venue, moanaco-venue, police, police2, portals,
