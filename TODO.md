@@ -84,6 +84,42 @@ BUGS (each behind its own switch, measured, then a test link):
    slip counted only past grip (spinning, locked, sliding: the heat model's own scrubs()); the same
    rule fronts and rears. Burnouts, donuts, lock-ups and hot slides keep their smoke (the owner's
    11-02 / 11-03 tuning: progressive, faint when cooler).
+1b. BUG 1 CONTINUED, THE FRONT TYRE SMOKE (owner 11-14: "there's still smoke coming from the
+   front tyres a lot do the time when their shouldn't be", "the smoke should be the same for all
+   tyres within reason as different tyres have different heat specs"). BUILT 11-14 behind
+   ?tyresmoke=1 (FIX.tyresmoke, env TYRESMOKE=1; testlist 'tyresmoke'; render/tyresmoke.ts).
+   MEASURED (tools/scratch/_tyresmoke.mjs, headless, every car, aids off and on, tarmac, 18 C;
+   per tyre: % of the time smoking, mean strength 0..1 while smoking, puffs a second):
+   - the old rule (heat from 60 C, any slip over 2 m/s, gripping or not) smokes a front tyre
+     wherever it is warm and slips: a held 1.1 g corner at 144 km/h, fronts smoking 0-76 % of the
+     time (WRZ 76 %, 67 % while gripping; estate 73, kit car 57, hatch-rwd 51, lambo 47); any
+     slide of an 85 C (in-window) front 80-100 % (understeer at full lock), faint (0.07-0.11);
+     in AI racing laps fronts 0-21 % of the time (Thruston 0-17, Spa 1-21), faint (<= 0.04),
+     ~1-2 points of it gripping, the rest gentle slides just past 2 m/s.
+   - THE RULE built, the same for all four tyres: smoke only past grip (the axle spins, locks or
+     slides, physics/tyreheat.ts scrubs); the heat share from a quarter of the window's width
+     below the top of the tyre's own window (spec.tyreOpt; stock 65-110 C: 98.75 C) to 55 C over
+     it, on the passed curve (faint and progressive when cooler, the 0.08 faintest puff, linger
+     and smoke over the car unchanged); a locked or spinning tyre's surface counts up to 30 C
+     hotter by its slip share (the same rubber rubs round through the patch: without it a 4 s
+     lock-up from 85 C did not smoke at all, the burnouts at 5-70 % of their puffs).
+   - OLD -> NEW, means over every car (front pair | rear pair, % of time, puffs/s):
+     racing Thruston F 5 % 0.03 -> 1 % 0.02 | R 6 % 0.14 -> 5 % 0.10; Spa F 8 % 0.06 -> 1 % 0.01 |
+     R 10 % 0.19 -> 5 % 0.08; fast 1.1 g corner F 20 % 1.2 -> 5 % 0.5 (gripping fronts none);
+     steady 0.7 g corner none either way; understeer at 85 C F 97 % 3.4 -> 37 % 2.0 (smoke left
+     only where the driven fronts spin or run over the window); ten hard stops F 22 % 0.73 ->
+     14 % 0.78 | R 32 % 3.6 -> 29 % 4.4; lock-up F 87 % 3.05 -> 79 % 2.69 | R 85 % 2.66 -> 68 %
+     2.15; burnout (8 s from cold) F 13 % 1.24 -> 12 % 1.88 | R 27 % 2.84 -> 24 % 4.10; donut
+     F 38 % 4.9 -> 33 % 6.2 | R 50 % 11.7 -> 45 % 12.9; hot slide (130 C) F 88 % 10.4 -> 88 %
+     10.4 | R 85 % 12.1 -> 83 % 16.8. Aids on: the same pattern (ABS cars barely lock: lock-up
+     F 55 % 1.85 -> 48 % 1.63).
+   - Other windows follow the tyre: Wet (40-85) on a dry road smokes more (lock-up 4x), Drift
+     (80-150) much less (hot slide fronts 10.0 -> 1.0 puffs/s), Semi-Slick (75-120) a little less.
+   - Burnouts start ~0.5 s later and run thicker (each car 5-9 points less of the time, 20-60 %
+     more puffs: the muscle car 50 % 2.0 -> 41 % 2.4, the F2 72 % 11.7 -> 67 % 16.3). A full
+     throttle launch's light wheelspin barely smokes now (old 0-47 % of the time at <= 0.03,
+     new 0-6 %). The 4x4s, the saloon and the RX car do not spin up held by the brake: no burnout
+     smoke under either rule.
 3. THE HUD COVERS THE PLAYER'S CAR on the highways: the car must never be under a control or HUD.
 4. RESETS: never put you ahead of where you were (inline or behind only); a car in the way: the
    next free spot BEHIND; a reset does not clear the police (they go only when too damaged, or
