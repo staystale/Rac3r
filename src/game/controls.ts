@@ -153,8 +153,11 @@ export function enterLevel(levelId: string) {
   setLevel(levelId);
 }
 
-/** A level switch's second half: the race flag, the cones, the marks and wear, the restart. */
-export function settleLevel() {
+/**
+ * A level switch's second half: the race flag, the cones, the marks and wear, the restart.
+ * @param withRestart false when the caller runs the restart itself next (a launch's session)
+ */
+export function settleLevel(withRestart = true) {
   // MEASURED BUG (requirement: joker lap HUD warning showing on tracks it shouldn't): the RX race
   // flag survived the in-game level switch, so after an RX race on Knobhill every track showed
   // LAP n/5 + JOKER TO DO. A level without a joker has no RX race.
@@ -162,7 +165,7 @@ export function settleLevel() {
   game.cones = createCones();     // cones are per-level, so the field is rebuilt from the new list
   game.marks.clear();
   clearWear();
-  doRestart();
+  if (withRestart) doRestart();
 }
 // Switching car RESETS the car but KEEPS THE MARKS (PLAN.md): driving the same corner in two cars
 // and comparing the two signatures side by side is the whole point of the selector. The roster is

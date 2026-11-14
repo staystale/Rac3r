@@ -93,6 +93,15 @@ records in `TODO-DONE.md` (PASSED 11-12). On the phone now:
     step is the same with the switch on (tools/scratch/_loadsimcmp.mjs: Thruston, Knobhill RX, Spa,
     SAME).
 
+- NOTHING REDONE AT A START (owner 11-14 on the two redos above: "Yes, fix both"). BUILT, behind
+  `?onestart=1` (worker; ENGINE.md "One frame"), with or without `?loadscreen=1`:
+  - A START on a new level runs the restart ONCE (the launch's; the level switch's is skipped).
+  - A RESTART reuses the fly-in's whole-level picture (render/flypicture.ts), painted again only
+    when what it shows can differ: another level or layout, a rebuilt patch list, the scenery water
+    (a pond frozen or thawed at the start), the screen's scale; the endless road's every time. It
+    holds no weather, time of day, light or wear. tools/scratch/_flykeep.mjs walks those cases.
+  - MEASURED: (to follow).
+
 ## 3. OPEN, IN THE OWNER'S ORDER
 
 ### 3a. The owner's list (11-10: "Add this to the todo and work thru it logically"), round 5

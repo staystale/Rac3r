@@ -60,4 +60,8 @@ export const FIX = {
   // the rally stages' menu thumbnails read from the shipped files (assets/thumbs) like every other
   // level's, not each stage built to paint one when TEST MODE opens
   stagethumbs: atLoad('stagethumbs'),
+  // nothing redone at a start: a START on a new level runs the restart once (menuflow.ts launch),
+  // and a RESTART keeps the fly-in's whole-level picture while nothing it shows has changed
+  // (render/camera.ts flyPicture)
+  onestart: atLoad('onestart'),
 };

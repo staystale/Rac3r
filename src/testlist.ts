@@ -27,6 +27,14 @@ export const TEST_LIST: TestEntry[] = [
     where: 'Test link + &lapdata=1: TEST MODE, then each track list (ALL TRACKS, CIRCUITS...)',
     try: 'Open the lists straight after loading the page; read the cards LAP ... KM lines.',
     wrong: 'A list slow to appear after the blue blink, a length missing or not as before.',
+    id: 'onestart',
+    added: '2026-11-14',
+    name: 'Quicker start and restart: nothing done twice',
+    where: 'Test link + &onestart=1 (with or without &loadscreen=1): LAUNCH Spa, then RESTART',
+    try: 'Start a new track, restart it a few times, change the weather or the track and start '
+      + 'again. The fly-in should show the track as before.',
+    wrong: 'A fly-in showing the wrong track or layout, a frozen pond drawn as water (or the '
+      + 'other way), a missing or doubled field, a slower start.',
   },
   {
     id: 'loadscreen',

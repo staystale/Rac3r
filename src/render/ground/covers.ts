@@ -471,9 +471,16 @@ export function drawCovers(groundCtx: GroundCtx) {
   drawCoversMerged(groundCtx, sceneryWater(list));
 }
 
-/** The scenery water of a covers list (cached on the list: a new list when covers change). */
+// the scenery water of each covers list (a new list when covers change)
 const sceneryWaterOf = new WeakMap<Cover[], Cover[]>();
-function sceneryWater(list: Cover[]): Cover[] {
+
+/**
+ * The scenery water of a covers list: the covers drawCovers paints (frozen water is an ice twin,
+ * not water, so it is left out). Cached on the list.
+ * @param list the level's covers
+ * @returns its scenery water
+ */
+export function sceneryWater(list: Cover[]): Cover[] {
   let water = sceneryWaterOf.get(list);
   if (!water) sceneryWaterOf.set(list, (water = list.filter((cover) => cover.water)));
   return water;

@@ -14,6 +14,7 @@ import { LEVELS } from "../world/levels/index.ts";
 import { saveRecords, doRestart, loadTyreWear, saveTyreWear } from './session.ts';
 import { selectLevel, selectCar, enterLevel, settleLevel } from './controls.ts';
 import { loadScreenOn, readyStages, runLoading } from './loading.ts';
+import { FIX } from '../core/fixes.ts';
 import { shared, game } from './state.ts';
 import {
   minimapSetting, setMinimapSetting, progressSetting, setProgressSetting,
@@ -206,18 +207,24 @@ export function launch(levelId: string, carId: string, opts: LaunchOpts = {}) {
   // (in the tap itself: a phone's audio starts only from one)
   shared.audio.init();
   const isNewLevel = LEVEL.id !== levelId;
+  // the level switch's own restart: ?onestart=1 leaves it to launchSession's (the one that
+  // counts: the car, its tyres and the field are set up for it), so it runs once
+  const settle = () => settleLevel(!FIX.onestart);
   if (loadScreenOn()) {
     // behind the loading screen: the level's build a stage of its own (game/loading.ts)
     const level = LEVELS.find((item) => item.id === levelId);
     runLoading(level ? level.name : levelId, [
       ...(isNewLevel ? [{ key: 'build', weight: 0.55, work: () => enterLevel(levelId) },
-        { key: 'settle', weight: 0.05, work: settleLevel }] : []),
+        { key: 'settle', weight: 0.05, work: settle }] : []),
       { key: 'launch', weight: 0.12, work: () => launchSession(carId, opts) },
       ...readyStages(),
     ]);
     return;
   }
-  if (isNewLevel) selectLevel(levelId);
+  if (isNewLevel) {
+    enterLevel(levelId);
+    settle();
+  }
   launchSession(carId, opts);
 }
 

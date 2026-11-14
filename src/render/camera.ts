@@ -6,6 +6,8 @@ import { meterEvent } from "../ui/meter.ts";
 import { LOOKAHEAD, ZOOM_MIN } from "../render.ts";
 import type { Cam, CamCar, CamState, TileBudget, View } from "./types.ts";
 import { trackCanvas } from '../core/memorybudget.ts';
+import { FIX } from '../core/fixes.ts';
+import { keptFlyPicture } from './flypicture.ts';
 
 // what createCamera destructures from the renderer
 interface CameraHelpers {
@@ -218,8 +220,10 @@ function startFlyIn(ctx: CameraCtx) {
   // from every prop. Not measured yet = no fly-in; the tap-to-start restart runs it again with a
   // real screen.
   if (!(zFit > 0 && Number.isFinite(zFit))) { camState.fly = null; return; }
+  const paint = () => paintOverview(ctx, left, top, right, bottom);
+  // (?onestart=1: a restart on the same ground reuses the last start's: render/flypicture.ts)
   camState.fly = { t: 0, cx: (left + right) / 2, cy: (top + bottom) / 2, z0: Math.min(1, zFit),
-    ov: paintOverview(ctx, left, top, right, bottom) };
+    ov: FIX.onestart ? keptFlyPicture(view.PPM, paint) : paint() };
   cam.x = camState.fly.cx; cam.y = camState.fly.cy; cam.initialised = true;
   view.zoom = camState.fly.z0;
   // the zoom hold: a new start forgets the last car's speed. MEASURED (menu -> LAUNCH Thruston):

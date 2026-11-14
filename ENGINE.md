@@ -73,6 +73,17 @@ time, the AI and lights' clock still, the walkthroughs wait) and draws nothing b
 countdown starts on the first frame after the fly-in. The race behind the menu never shows it. Switch
 off: none of it runs.
 
+NOTHING REDONE AT A START (`?onestart=1`, `FIX.onestart`; with or without the loading screen): a
+START on a new level ran the restart twice - the level switch's (`controls.ts settleLevel`) and the
+launch's own (`menuflow.ts launchSession`): two cones resets, two field line-ups, the first fly-in
+picture thrown away. With the switch the switch's is skipped (`settleLevel(false)`) and the launch's
+is the one. A RESTART reuses the fly-in's whole-level picture (`render/flypicture.ts
+keptFlyPicture`, one kept, dropped when memory is short): it is painted afresh only when what it
+shows can differ - another level or layout, a rebuilt patch list, the scenery water drawn (a pond
+frozen over is an ice twin, left out of the picture), the screen's px a metre; the endless
+road's every time. The picture holds no weather, time of day, light or wear (laid over it as drawn),
+and a level's own mud dried in a race is put back before the fly-in. Switch off: as before.
+
 ## The car (`vehicle.ts` and `physics/`)
 
 A top-down two-axle model with four tyre temperatures. `step(car, input, dt)`, in order:
