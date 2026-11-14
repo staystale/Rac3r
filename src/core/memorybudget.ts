@@ -1,4 +1,4 @@
-// core/memorybudget.ts - THE MEMORY BUDGET (FIX.perfpass): a phone's browser shows no memory
+// core/memorybudget.ts - THE MEMORY BUDGET: a phone's browser shows no memory
 // reading and kills the tab when memory runs out, so the game keeps its own count: the bytes of
 // every canvas and bitmap it makes and still holds (width x height x 4, counted when asked), plus
 // the levels it holds built (LEVEL_MB each). Before a NEW level is built for play
@@ -7,8 +7,6 @@
 // deleted, the stub's put back with its _build - so it is built again, identically, on its next
 // use; then the cached pictures registered with onMemoryShort are dropped (painted again when
 // next needed).
-import { FIX } from './fixes.ts';
-
 // MB the game may hold in canvases and built levels before it drops some (MEASURED,
 // tools/scratch/_memprobe.mjs at the phone's size, 20 AI: the count at a race start was 90-147 MB
 // with one or two levels built - the canvases 72-113 MB of it, which drops do not change - so
@@ -20,8 +18,12 @@ export const LEVEL_MB = 7;
 const BYTES_MB = 1048576;
 
 interface Sized { width: number; height: number }
-// every canvas and bitmap made while the switch is on (a dead one is pruned when counted)
+// every canvas and bitmap made (a dead one is pruned when counted, and whenever the list passes
+// pruneAt: ground tiles are made thousands at a time, so it would otherwise only grow)
 let canvases: WeakRef<Sized>[] = [];
+// the list's length that next prunes it: twice what was live at the last prune, at least PRUNE_MIN
+const PRUNE_MIN = 1024;
+let pruneAt = PRUNE_MIN;
 // the built levels that can go back to their stub, least recently played first
 const built: { level: object; stub: Record<string, unknown> }[] = [];
 // the cached pictures that can be dropped, in the order they go
@@ -31,12 +33,13 @@ export const DROPS: string[] = [];
 const DROP_LOG = 40;
 
 /**
- * Counts a canvas or bitmap the game makes (with the switch on).
+ * Counts a canvas or bitmap the game makes.
  * @param canvas the canvas, offscreen canvas or bitmap
  * @returns the same canvas
  */
 export function trackCanvas<T extends Sized>(canvas: T): T {
-  if (FIX.perfpass) canvases.push(new WeakRef(canvas));
+  canvases.push(new WeakRef(canvas));
+  if (canvases.length > pruneAt) canvasBytes();
   return canvas;
 }
 
@@ -54,6 +57,7 @@ export function canvasBytes(): number {
     bytes += (canvas.width || 0) * (canvas.height || 0) * 4;
   }
   canvases = live;
+  pruneAt = Math.max(PRUNE_MIN, live.length * 2);
   return bytes;
 }
 
@@ -70,7 +74,6 @@ export function heldMb(): number {
  * @param level the level (still with its _build)
  */
 export function noteLevelBuilt(level: object): void {
-  if (!FIX.perfpass) return;
   built.push({ level, stub: { ...(level as Record<string, unknown>) } });
 }
 
@@ -111,7 +114,6 @@ function dropLevel(entry: { level: object; stub: Record<string, unknown> }): voi
  */
 export function makeRoom(leaving: object, coming: object): string[] {
   const dropped: string[] = [];
-  if (!FIX.perfpass) return dropped;
   let picture = 0;
   while (heldMb() > MEMORY_BUDGET_MB) {
     const oldest = built.findIndex((entry) => entry.level !== leaving && entry.level !== coming);

@@ -51,7 +51,4 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
-  // the same game, quicker on big grids: the lane reach grid (game/lanereach.ts), the loose
-  // objects' sleep list, the barrier segment grid and the night layer walked by the prop grid
-  perfpass: atLoad('perfpass'),
 };

@@ -196,8 +196,8 @@ the night light map (`render/light.ts drawSparkGlows`).
 - Lane lookups: `world/zones.ts laneAt` files each lane's segments by 8 m cell over its box (built
   on first use, again when the highway rebuilds a lane's segments), so a lookup tests only its
   cell's segments, in order (identical answers: `tools/scratch/_cclaneat.mjs`).
-- PERFPASS (`?perfpass=1`, PERFPASS=1 for the tools; under test): the same game, quicker on big
-  grids. The track-cut test `game/order.ts onLane` (every car, every step) asks
+- PERFPASS (the default since 11-14): the same game, quicker on big grids. The track-cut test
+  `game/order.ts onLane` (every car, every step) asks
   `game/lanereach.ts`: each lane's segments filed by 16 m cell over its box grown by the lane's
   reach (half width + 1 m), built per lane on first use, again when its points or width change
   (a highway cut shortens them); a point tests its cell's segments with the walk's own test

@@ -1,4 +1,4 @@
-// lanereach.ts - THE LANE REACH GRID (FIX.perfpass): onLane asked of a grid of each lane's segments
+// lanereach.ts - THE LANE REACH GRID: onLane asked of a grid of each lane's segments
 // instead of a walk of every segment of every lane, every car, every step. Each segment is filed
 // in every cell its box, grown by the lane's reach (half width + 1 m) and a small slack, touches;
 // a point meets the segments of its cell with the very test the walk uses, so the answer is the

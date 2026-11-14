@@ -26,7 +26,6 @@ export interface Loose {
   _n?: number;   // a fixed creation index (hits are taken in list order)
   _awake?: boolean;   // on the awake list (cones/coneSleep.ts)
   _ck?: number;   // the rest-grid cell it is filed in
-  _i?: number;   // its list index this step (a mover)
   tyres?: number;   // a tyre stack's height in tyres (coneConsts.ts heightenStack)
   // the crowd it moves in this step, its index there and the spot it is filed by
   _cs?: number; _ci?: number; _sx?: number; _sy?: number;
@@ -87,6 +86,6 @@ export interface ConesCtx {
   hits: ConeHit[];   // drained by render.ts each frame for dust
   restGrid: Map<number, Loose[]>;   // cell key -> objects at rest in it
   movers: Loose[]; prevMovers: Loose[];
-  awake: Loose[];   // the objects a step walks, in list order (FIX.perfpass: cones/coneSleep.ts)
+  awake: Loose[];   // the objects a step walks, in list order (cones/coneSleep.ts)
   burst: Loose[];   // reused every step
 }

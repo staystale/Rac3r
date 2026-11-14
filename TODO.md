@@ -17,37 +17,13 @@ records in `TODO-DONE.md` (PASSED 11-12). On the phone now:
 
 ## 2. BEING BUILT
 
-- PERFORMANCE AUDIT (owner 11-13: "we need to hit 60fps on every track on most devices - We must
-  have major inefficiencies in our raw code? Can we fix them and keep it within our rules and
-  working the same"): the worker measures every level (framecheck CPU x4 and x1, 20 AI, day and
-  night, and the menu view), the drawing per layer (drawload) and the per-frame CPU profile, and
-  ranks the inefficiencies. No code change until the owner picks; each fix then behind its own
-  switch, proven the same (renderhash / worldhash / simhash). The owner's phone (report 11-13):
-  the MENU judders on big tracks (X Gayms, Le Mans: 11-16 missed frames in 5 s, our JS 5-12 ms).
-- PERFPASS (owner 11-13: "Yes to all", "Give them all to me behind one switch"), behind ONE
-  switch `?perfpass=1`, a commit each, each proven the same (simhash on/off both seeds, worldhash,
-  renderhash at night, a deliberate break each):
-  1 onLane by a lane reach grid; 2 the loose objects sleep on an awake list; 3 the barrier clamp by
-  a segment grid; 4 the night layer (canopies by the prop grid, the season once a call, tree
-  kinds kept, the light props and caravans listed, off-map head glows skipped, no lists a lamp);
-  5 a memory budget (180 MB: least-played built levels go back to their stub before a new build).
-  Built and proven; handed to the foreman for the phone test. MEASURED with the switch on (fixed
-  framecheck, 20 AI, our JS work median ms off -> on): CPU x1 Spa 17.9 -> 14.7 day, 27.5 -> 15.0
-  night; Sillystone 28.7 -> 15.7, 24.4 -> 15.5; Le Manky no clear change (noise both ways). CPU x4
-  (still 12 steps a frame): Spa 388 -> 248, 351 -> 222; Sillystone 312 -> 166, 327 -> 198; Le
-  Manky 222 -> 228, 247 -> 185.
-  framecheck fixed first (it never started the race). The audit's findings (live race, 20 AI):
-  - framecheck timed a frozen grid: every framecheck number before the fix was draw only.
-  - CPU x1 median day / night ms: Sillystone 23.9 / 26.4, Brands Snatch 16.7 / 28.1, Spa 19.6 /
-    16.7, Snoozuka 19.2 / 18.2; the menu view 3.5-7. CPU x4: every level spiralled to 12 sim
-    steps a frame (137-344 ms); the menu view 80-127 ms.
-  - The sim is 64-75 % of a frame: the AI 33-38 %, onLane 17.8 % (Spa) / 6.8 % (Snoozuka), the
-    world clamps 10-12 %, the ground samples 10-11 %, the loose objects 8-10 %, the barrier clamp
-    5-7 %; the night layer walks every prop (Spa: 8 000 trees) several times a frame.
-  - Not in this pass: the ground-sample share, the AI index, car pictures, menu tiles, HUD text.
-    The step cap (MAX_STEPS 12) stays as it is (owner: removed).
-  - The memory budget: owner 11-13 "Yes" (iPhone browsers report no memory). The long-session
-    leak run was offered and declined ("No").
+- SPEED, NEXT (owner 11-14 on PERFPASS: "Still seems to drop slightly at times / starting levels
+  seems to drop / be slow"; "Pass, fix drops next"). From the phone reports (11-14, ?report=1):
+  - LEVEL STARTS: the first ~5 s hold several 150-370 ms frames (Spa 25 of them): the ground and
+    pictures made while driving. The LOADING SCREEN (below) does that work before the start.
+  - IN RACE: 0.3-0.6 % slow frames, nearly all ZOOMED OUT while new ground tiles go to the GPU.
+    Measure first, then spread the uploads over frames (or paint ahead), behind its own switch.
+  - MENU TAPS answered in 120-230 ms (six in one session): find the slow button handlers.
 
 - LOADING SCREEN (owner 11-14: "Spa on start up / restart seems slow af", "a loading screen there
   to hide it while it loads and then it can drop us in when it's ready", "the race should only start

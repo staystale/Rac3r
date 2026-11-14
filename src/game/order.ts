@@ -7,7 +7,6 @@ import { createAIDriver } from '../ai/circuit.ts';
 import { aiTraits } from '../ai/traits.ts';
 
 import { LEVEL } from "../world/state.ts";
-import { FIX } from "../core/fixes.ts";
 import { onLaneGrid } from "./lanereach.ts";
 import { onTrack, queriesAt, querySubtrack } from "../world/tyrewall.ts";
 import { inTrackUnderpass, queryLevelOf } from "../world/trackunder.ts";
@@ -148,19 +147,14 @@ export function progressOf(car: GameCar) {
 // Free practice: nothing. CUT_MIN 8 -> 15 m: normal racing clipped one Castle Kum / Thruston inside
 // at 8-10 m (~0.3 s), MEASURED (racecheck4) — not a cut
 export const CUT_OFF = 1.0, CUT_MIN = 15, CUT_RESET = 25, CUT_PER_S = 5;
+/**
+ * Whether a point is within reach (half width + 1 m) of any of the level's lanes.
+ * @param x world x, m
+ * @param y world y, m
+ * @returns true when on a lane
+ */
 export function onLane(x: number, y: number) {
-  if (FIX.perfpass) return onLaneGrid(LEVEL.lanes || [], x, y);
-  for (const lane of LEVEL.lanes || []) {
-    const pts = lane.pts, reach2 = (lane.width / 2 + 1) ** 2;
-    for (let i = 0; i < pts.length - 1; i++) {
-      const [startX, startY] = pts[i], [endX, endY] = pts[i + 1], vx = endX - startX,
-        vy = endY - startY, len2 = vx * vx + vy * vy || 1;
-      const frac = Math.max(0, Math.min(1, ((x - startX) * vx + (y - startY) * vy) / len2)),
-        missX = startX + vx * frac - x, missY = startY + vy * frac - y;
-      if (missX * missX + missY * missY < reach2) return true;
-    }
-  }
-  return false;
+  return onLaneGrid(LEVEL.lanes || [], x, y);
 }
 /**
  * Whether track cuts count for this car right now (race flow running, or the stage underway).

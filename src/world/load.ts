@@ -13,7 +13,6 @@ import { buildBlend, seededRng, buildInclusions } from "./blend.ts";
 import { LEVELS } from "./levels/index.ts";
 import { staticCovers } from "./puddles.ts";
 import { planBushes } from "./bushplan.ts";
-import { FIX } from "../core/fixes.ts";
 import { makeRoom, noteLevelBuilt, noteLevelPlayed } from "../core/memorybudget.ts";
 import type { Barrier, Cone, Lane, Level, Patch, Point, Prop, Subtrack } from "./types.ts";
 /**
@@ -284,7 +283,7 @@ function applyBounds(): void {
 export function buildLevel(level: Level): Level {
   const build = level._build;
   if (!build) return level;
-  // (the switch: its stub kept, so the memory budget can put it back - core/memorybudget.ts)
+  // its stub kept, so the memory budget can put it back (core/memorybudget.ts)
   noteLevelBuilt(level);
   delete level._build;
   Object.assign(level, build());
@@ -299,8 +298,8 @@ export function buildLevel(level: Level): Level {
 export function setLevel(levelId: string, opts: { light?: boolean } = {}): Level {
   const next = LEVELS.find((level) => level.id === levelId);
   if (!next) return LEVEL;
-  // (the switch: room made before a new level is built for play; a thumbnail's is not)
-  if (FIX.perfpass && !opts.light) {
+  // room made before a new level is built for play; a thumbnail's is not
+  if (!opts.light) {
     if (next._build) makeRoom(LEVEL, next);
     noteLevelPlayed(next);
   }

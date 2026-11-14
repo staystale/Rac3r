@@ -8,7 +8,6 @@ import { hitByCar } from "./coneCar.ts";
 import { stepTape } from "./coneTape.ts";
 import { OBJ_CELL, cellKey, collideObjects } from "./coneGrid.ts";
 import { joinAwake, sleepRested, stillAtRest, wakeIfStirred } from "./coneSleep.ts";
-import { FIX } from "../core/fixes.ts";
 import type { ConesCtx, Loose, ConeCar } from './coneTypes.ts';
 
 /**
@@ -195,7 +194,7 @@ function hitRestingObjects(ctx: ConesCtx, cars: ConeCar[], newTyres: Loose[]) {
     cand.sort((left, right) => left._n! - right._n!);
     for (const other of cand) {
       hitByCar(ctx, other, car, newTyres);
-      if (FIX.perfpass) wakeIfStirred(ctx, other);
+      wakeIfStirred(ctx, other);
     }
   }
 }
@@ -219,16 +218,16 @@ export function stepCones(ctx: ConesCtx, carOrCars: ConeCar | ConeCar[], dt: num
   if (ctx.sections.length) stepTape(ctx, cars);
   const newTyres: Loose[] = [];
 
-  // (the switch: the awake objects only - coneSleep.ts)
-  for (const obj of FIX.perfpass ? ctx.awake : ctx.list) stepObject(ctx, obj, cars, dt, newTyres);
+  // the awake objects only (coneSleep.ts)
+  for (const obj of ctx.awake) stepObject(ctx, obj, cars, dt, newTyres);
 
   hitRestingObjects(ctx, cars, newTyres);
   if (newTyres.length > 0) {
     for (const tyre of newTyres) tyre._n = ctx.nextN++;
     ctx.list.push(...newTyres);
-    if (FIX.perfpass) for (const tyre of newTyres) joinAwake(ctx, tyre);
+    for (const tyre of newTyres) joinAwake(ctx, tyre);
   }
   if (ctx.objectHits) collideObjects(ctx);
-  if (FIX.perfpass) sleepRested(ctx);
+  sleepRested(ctx);
 }
 

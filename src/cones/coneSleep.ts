@@ -1,4 +1,4 @@
-// cones/coneSleep.ts: THE AWAKE LIST (FIX.perfpass): the loose objects a step walks, in list order
+// cones/coneSleep.ts: THE AWAKE LIST: the loose objects a step walks, in list order
 // (by _n, the fixed creation index the list is in). An object AT REST (stillAtRest: the one gate
 // the step skips on) sleeps at the end of a step and leaves it; a step's walks then skip only what
 // the walk of the whole list would have skipped. Within a step only a car meeting a resting

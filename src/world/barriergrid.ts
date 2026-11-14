@@ -1,4 +1,4 @@
-// barriergrid.ts - THE BARRIER SEGMENT GRID (FIX.perfpass): which barriers of a list, and which
+// barriergrid.ts - THE BARRIER SEGMENT GRID: which barriers of a list, and which
 // segments of a barrier, a car in a cell can touch, so clampToBarriers (world/barriers.ts) tests
 // those instead of every barrier and every segment of each. A segment is filed in every cell its
 // box (already SEG_BOX_PAD past its ends), grown by GRID_REACH_M, touches; a barrier in every cell

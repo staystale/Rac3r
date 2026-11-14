@@ -75,7 +75,7 @@ try {
   await snap('loaded');
   // (env CPU: a throttle for the launches' times; env REVISIT=1: the first level played again at
   // the end - a level the memory budget dropped is built again; the game's own count and drops
-  // are printed when ?perfpass=1 is on)
+  // are printed)
   if (process.env.CPU) await cdp.send('Emulation.setCPUThrottlingRate', { rate: +process.env.CPU });
   const visits = (process.env.LEVELS || 'thruston,knobhill').split(',');
   if (process.env.REVISIT) visits.push(visits[0]);

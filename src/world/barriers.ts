@@ -5,7 +5,6 @@ import { hoodooSpires, archShape } from './formations.ts';
 import { WRECK_M, SHACK_M, GAS_SHOP, GAS_PUMPS, GAS_POSTS } from './desertjunk.ts';
 import { SERVICES_HALL } from './stationbrands.ts';
 import { LEVEL } from "./state.ts";
-import { FIX } from "../core/fixes.ts";
 import {
   GRID_REACH_M, barrierCellOf, barriersNear, noteBarrierBuilt, refileBarrier, segsNear,
 } from "./barriergrid.ts";
@@ -60,7 +59,7 @@ function rebuildSegs(barrier: Barrier): void {
   barrier._segs = undefined;
   barrier._rbb = undefined;
   buildSegs(barrier);
-  if (FIX.perfpass) refileBarrier(barrier);
+  refileBarrier(barrier);
 }
 /**
  * The barrier as an armco rail that dents (world/armcodent.ts), or null.
@@ -707,11 +706,11 @@ const GRID_POSE = { half: 0, halfLen: 0, halfWid: 0, cosHead: 0, sinHead: 0 };
  * hit, no dent). Once a push takes the car out of its cell, the rest is walked whole.
  * @param car the car body
  * @param list the barriers
- * @returns true when it clamped (the switch on and the car within the grid's reach)
+ * @returns true when it clamped (the car within the grid's reach)
  */
 function clampByGrid(car: CarBody, list: Barrier[]): boolean {
   const spec = car.spec;
-  if (!FIX.perfpass || !(spec.len < GRID_REACH_M)) return false;
+  if (!(spec.len < GRID_REACH_M)) return false;
   GRID_POSE.halfLen = spec.len * 0.48; GRID_POSE.halfWid = spec.wid * 0.48;
   GRID_POSE.cosHead = Math.cos(car.heading); GRID_POSE.sinHead = Math.sin(car.heading);
   const open = hasOpenWheels(car), cell = barrierCellOf(car.x, car.y);

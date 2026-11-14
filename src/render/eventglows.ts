@@ -12,7 +12,6 @@
 //                 track, the coaches' windows lit warm; a freight's headlight and its dim cab
 // Only from dusk (the lamps' light sensor) and only what is near the screen.
 import { lampsLit } from '../world/lamps.ts';
-import { FIX } from '../core/fixes.ts';
 import { LEVEL, PROPS } from '../world/state.ts';
 import { querySubtrack } from '../world/tyrewall.ts';
 import { stageFairyLights } from '../world/lampplan.ts';
@@ -305,7 +304,7 @@ function pitLamps(painter: EventPainter, isTint: boolean, prop: Prop): void {
   }
 }
 
-// THE LIGHTS' LISTS (FIX.perfpass): the props of the kinds propLights lights, and the caravans
+// THE LIGHTS' LISTS: the props of the kinds propLights lights, and the caravans
 // among the loose objects, each in list order, kept until the list changes (its length, its ends)
 const LIGHT_KINDS = new Set(['board', 'marshal', 'grandstand', 'stadium_grandstand', 'gantry',
   'garagerow', 'pit_wall', 'bridge']);
@@ -314,12 +313,12 @@ const LIT = { props: null as Prop[] | null, count: 0, first: null as Prop | null
 const CARAVANS = { cones: null as RenderCone[] | null, count: 0, kept: [] as RenderCone[] };
 
 /**
- * The props propLights walks: with the switch, only those of the kinds that light (a streaming
- * level walks the whole list).
+ * The props propLights walks: only those of the kinds that light (a streaming level walks the
+ * whole list).
  * @returns the props
  */
 function litPropsNow(): Prop[] {
-  return FIX.perfpass && PROPS && !LEVEL.endless ? lightProps(PROPS) : PROPS || [];
+  return PROPS && !LEVEL.endless ? lightProps(PROPS) : PROPS || [];
 }
 
 /**
@@ -380,9 +379,7 @@ function propLights(painter: EventPainter, isTint: boolean, game: RenderGame): v
  * @param cones the loose objects
  */
 function caravanLights(painter: EventPainter, isTint: boolean, cones: RenderCone[]): void {
-  // (the switch: only the caravans)
-  for (const cone of FIX.perfpass ? caravansOf(cones) : cones) {
-    if (cone.kind !== 'caravan') continue;
+  for (const cone of caravansOf(cones)) {
     glow(painter, isTint, cone.x, cone.y, CARAVAN_LONG_M, WARM, CARAVAN,
       { wideM: CARAVAN_WIDE_M, rot: cone.ang || 0 });
   }
