@@ -151,6 +151,10 @@ cars: the Hoonigan pink Porsche, the BMW E36.
   race runs it (once, at the gravel split); dressed with pine forest, the crowd on the hillside and
   the campers and caravans of the summer race weekend. Time and weather: the world clock (NOTES).
   The map: OSM has every piece tagged asphalt / gravel and the joker (4 pieces).
+  HOLY JEEZ BEING BUILT (worker, ?holyjeez=1): traced at full size, the joker, the start lane, the
+  crest, the crowd bank, campers; worldhash SAME on every existing level, barriercheck and propcheck
+  OK; to finish: the doubled Armco at the joker mouth, crestcheck, the AI 20 of 20, framecheck
+  against Knobhill RX (the PC calibrated), screenshots, the thumbnail.
 - DEMOLITION DERBY (owner 11-10: "Demolition derby levels classic tarmac circle - and we can reuse
   stock car tracks ect for that too"): a classic tarmac circle arena, and a derby mode on the stock
   car tracks (Stock Car, Grass Track, Old Wobbly). Questions when we come to it (the AI ramming, how

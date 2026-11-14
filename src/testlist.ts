@@ -20,4 +20,12 @@ export const TEST_LIST: TestEntry[] = [
     try: 'Race a full grid, hit cones, tyre walls and armco, drive at night under trees and lamps.',
     wrong: 'Anything that behaves differently is wrong: a cut, a hit, a light, a tree, a reload.',
   },
+  {
+    id: 'holyjeez',
+    added: '2026-11-14',
+    name: 'Holy Jeez: the Holjes rallycross, full size',
+    where: 'Test link + &holyjeez=1: RX list, Holy Jeez',
+    try: 'Race it with the AI: the crest after the start, the top hairpin, the joker once.',
+    wrong: 'A barrier on the road, a car stuck, the joker not counted, cars thrown off the crest.',
+  },
 ];
