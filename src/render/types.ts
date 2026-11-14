@@ -79,6 +79,7 @@ export interface RenderWheel {
   y: number;
   heat: number;
   slip: number;
+  front?: boolean;   // on the front axle
   spray?: Spray | null;   // what the ground under this wheel throws (marks.ts)
 }
 
@@ -86,9 +87,11 @@ export interface RenderWheel {
 export interface ParticleCar extends CamCar {
   heading: number;
   spec: { len: number; wid: number; paint?: string; lf?: number; lr?: number;
-    trackWidth?: number };
+    trackWidth?: number; tyreOpt?: [number, number] };
   surface: { spray?: Spray | null };
-  t: { slipSpeedF: number; slipSpeedR: number; loadKF: number; loadKR: number };
+  t: { slipSpeedF: number; slipSpeedR: number; loadKF: number; loadKR: number;
+    spinF?: boolean; spinR?: boolean; lockedF?: boolean; lockedR?: boolean;
+    slidingF?: boolean; slidingR?: boolean };
   tyreT?: unknown;   // truthy when the tyre temperatures are simulated
   dmgEvents?: { scrape?: boolean; amt: number; c: number; metal?: boolean; aim?: number;
     speed?: number }[];
