@@ -216,6 +216,13 @@ the night light map (`render/light.ts drawSparkGlows`).
   `objects.ts` (cones, tyres, tape, debris), `props.ts` + `props/` (fence, barriers, buildings, scenery,
   bridges), `cars.ts` with `carsprite.ts` (one cached sprite per livery) and `cardamage.ts`,
   `particles.ts`.
+- A rolled car (`render/rollbody.ts`) is drawn as a body: each column of the car a rounded
+  cross-section (a superellipse as round as `physics/rollshape.ts` says), turned to one of 12
+  angles, each picture row the nearest point of the turned outline. Under `?rollside=1`
+  (`closeRing`) the outline gets points along each straight between two of its own, no more than
+  0.45 px apart: a boxy car's superellipse bunches its points at the corners, and the rows between
+  two far-apart points on a flat side or roof were left clear, the ground showing through
+  (`tools/scratch/_rollholes.mjs`: every car, 12 angles, see-through pixels 11312 -> 4).
 - Barriers (`render/props/fence.ts drawPropsBarriers`): one off-screen by its whole box (cached,
   `_rbb`) is skipped. Each is also cut into stretches of ~30 m with their
   own boxes (`_stretches`, cut again when a dent or tear gives it new points); only the stretches

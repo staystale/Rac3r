@@ -195,6 +195,16 @@ BUGS (each behind its own switch, measured, then a test link):
    braking heat and no smoke. Fix to agree: braking work warms a gripping axle; flex against the
    static load.
 2. ROLLED CAR'S SIDE SEE-THROUGH (should be the paint, here light blue): which car to find.
+   BUILT 11-14 behind ?rollside=1 (testlist 'rollside'). EVERY car, not one: a rolled body's
+   cross-section (render/rollbody.ts, a superellipse) bunched its points at the corners, so on
+   a boxy car's flat side and roof the picture rows between two far-apart points were left clear
+   and the ground showed through as thin lines. Fix: points added along each straight of the
+   outline, no more than 0.45 px apart (closeRing). MEASURED (tools/scratch/_rollholes.mjs, all
+   19 cars x 12 roll angles, see-through pixels stock / light blue paint / damaged): off 11312 /
+   11312 / 10670, worst the muscle car (200 a picture side-on), the Naffcar and the saloon;
+   on 4 / 4 / 14 (single pixels between the F2's wing and tub, the damaged WRZ, Maxi and S13).
+   Photos (game, Test Lab, held on its side, 844x390 and 390x844): the off ones show the white
+   ground through the muscle car's and the hatch's sides; the on ones are solid paint.
 3. THE HUD COVERS THE PLAYER'S CAR on the highways: the car must never be under a control or HUD.
 4. RESETS: never put you ahead of where you were (inline or behind only); a car in the way: the
    next free spot BEHIND; a reset does not clear the police (they go only when too damaged, or
