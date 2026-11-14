@@ -1,6 +1,7 @@
 // highway extras: the off-slip signs, slip roads, bridges and the other cheeky extras.
 // Split out of highway.ts.
 import { SURFACES } from "../world/surfaces.ts";
+import { FIX } from "../core/fixes.ts";
 import { STEP } from "./presets.ts";
 import { straightAt, ease } from "./road.ts";
 import { blocked, isSignClear, keepOut, addCut, sideStep, approaches, river, SLIP_EVERY,
@@ -652,13 +653,14 @@ export function extras(level: HwLevel, i: number, dist: number, pointAt: (i: num
 // Deaf Valley's exits: its real places as the game names them, and a joke or two
 const DESERT_SLIP_NAMES = ['SADWATER', 'FURNACE CREAK', 'STOVEPIPE HELLS', 'ZABRISKIE POINTLESS',
   "DEVIL'S GOLF CORSE", 'LAST CHANCE (REALLY)', 'NOTHING FOR 200 MI', 'HULL (STILL NOT)'];
+// (?exitpuns=1: the real towns as parody puns, the naming rule - NOTES)
 const SLIP_NAMES = [
-  "GOOLE",
-  "SCUNTHORPE",
+  FIX.exitpuns ? "GHOULE" : "GOOLE",
+  FIX.exitpuns ? "SKUNKTHORPE" : "SCUNTHORPE",
   "NOWHERE",
-  "BRIGG",
+  FIX.exitpuns ? "BRIGGADOON" : "BRIGG",
   "SERVICES (SHUT)",
-  "HOWDEN",
+  FIX.exitpuns ? "HOWDY-DEN" : "HOWDEN",
   "A NICE FIELD",
   "SOMEWHERE",
   "HULL (NOT REALLY)",

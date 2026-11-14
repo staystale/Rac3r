@@ -61,4 +61,6 @@ export const FIX = {
   // the fly-in zoomed out draws its still layers (props, cones, fence ...) from two pictures
   // painted once, not item by item (render/flylayers.ts)
   smoothfly: atLoad('smoothfly'),
+  // the countryside highway's exit signs: the four real towns as parody puns (highway/extras.ts)
+  exitpuns: atLoad('exitpuns'),
 };

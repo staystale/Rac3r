@@ -13,6 +13,14 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'exitpuns',
+    added: '2026-11-14',
+    name: 'Countryside exit signs as puns: GHOULE, SKUNKTHORPE, BRIGGADOON, HOWDY-DEN',
+    where: 'Test link + &exitpuns=1: a countryside highway, the exit signs',
+    try: 'Drive past a few exits and read the signs.',
+    wrong: 'A real town left (GOOLE, SCUNTHORPE, BRIGG, HOWDEN), a sign cut off or overlapping.',
+  },
+  {
     id: 'dongfence',
     added: '2026-11-14',
     name: 'QUESTION: Dongington Park - keep the catch fence by the Hollywood grandstand?',

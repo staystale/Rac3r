@@ -395,12 +395,17 @@ inputs and get the cars back. A SPIKE (two phones on the tunnel) before committi
 
 - ANSWERED 11-14: Deaf Valley's exit names KEPT ("There ok for Death Valley"); the countryside
   highway levels: names in the same style if they lack them ("I think it has them tho already") -
-  check, make them only where missing.
+  check, make them only where missing. CHECKED (foreman): the countryside list exists, with four
+  plain real towns; owner "Pun them": GHOULE, SKUNKTHORPE, BRIGGADOON, HOWDY-DEN behind
+  `?exitpuns=1` (highway/extras.ts SLIP_NAMES).
 - Dongington Park: the catch fence in front of the Hollywood grandstand (no source shows it; left
   as built 11-09) - OPEN (owner 11-14: "Keep this open remind me / add it to the pause menu test
   reminder": an entry in src/testlist.ts, id 'dongfence').
-- ANSWERED 11-14: delete `experiment/hudtext` on GitHub, and tidy other dead branches ("feel free
-  to tidy up some other bits if needed"): the foreman lists them first.
-- ANSWERED 11-14: the black wire / rope fence REPLACED on the old levels too ("Replace it there
-  too"), their layouts unchanged, behind its own switch. Queued after the bugs.
+- ANSWERED 11-14: GitHub tidied (owner: "The 108 only"): the 109 branches whose every change is in
+  main deleted; kept: experiment/hudtext and 14 old versions / October experiments (worker/091,
+  093, 119, 224; foreman/birdsmess, dongington-venue, moanaco-venue, police, police2, portals,
+  snotterton-venue, stadiumtyres, thruston-venue, wobbly-venue).
+- ANSWERED 11-14: the black wire / rope fence replaced on the old levels too ("Replace it there
+  too"; "Oh is that not already done"). CHECKED (foreman): it IS already done - no level builds a
+  'fence' barrier any more (all 63 levels and the stages built and counted: 0). Closed.
 - ANSWERED 11-14: a police SIREN, "With sound". Queued after the bugs.
