@@ -56,6 +56,15 @@ const FLAGS: NonNullable<VenueSpec['landmarks']> = [[-140, -54], [-120, -35], [-
   [-80, 2], [-60, 20]].map(([x, y], i) => ({ at: [x, y] as [number, number], kind: 'flag',
   size: 1, col: i % 2 ? '#f2a900' : '#1d3f9a' }));
 
+// two firs (their seeds draw firs) out in the forest that hold the map's edge (its bounds: the
+// props' box + 30 m) 150 m past the top hairpin west and north - the widest view the game draws
+// (ZOOM_MIN on a phone, the camera leading the car) never reaches the dark ground off the map
+// (real m)
+const MAP_EDGE_TREES: NonNullable<VenueSpec['landmarks']> = [
+  { at: [-280, -150], kind: 'tree', size: 5, seed: 1 },
+  { at: [-120, -327], kind: 'tree', size: 5, seed: 6 },
+];
+
 // the dressing (as the stadiums'): a TV tower over the crest; the teams' transporters, cars and
 // spares in the paddock behind the grandstands (real m)
 const DRESS: NonNullable<VenueSpec['landmarks']> = [
@@ -112,7 +121,7 @@ export const HOLJES_SPEC: VenueSpec = {
   evenEdge: true,
   // the joker: the joker loop's way round the outside of the split that the lap does not race
   joker: { layout: 'rx', loop: 'joker', near: [85, -100] },
-  landmarks: [...CROWD, ...FLAGS],
+  landmarks: [...CROWD, ...FLAGS, ...MAP_EDGE_TREES],
   dress: { props: DRESS, litter: DRESS_LITTER },
   litter: campers(),
   // a pine forest
