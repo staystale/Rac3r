@@ -238,6 +238,12 @@ the night light map (`render/light.ts drawSparkGlows`).
   drops are kept for the tools (`DROPS`). A dropped level rebuilds identically: all 49 lazy
   levels played twice through the budget, worldhash's fingerprint SAME but for the tape ids (a
   counter across builds) (`tools/scratch/_droprun.mjs`, `_droplevel.mjs`).
+  MEASURED (`_memprobe.mjs`, 440 x 751 dpr 3, 20 AI, CPU x1; the budget forced to 0 to make every
+  new build drop): five venue levels end at a 71 MB heap with drops vs 93 MB without (79 vs 94
+  after a revisit); five stages / non-venue circuits 60 vs 65 MB. The canvases (72-113 MB) do not
+  change with drops. A dropped level is built again in 1.1 s (Spa, CPU x1; 6.3 s at x4, its first
+  build 1.8 / 8.9 s) and 0.3 s (Castle Kum). The venue cache (`world/venue.ts` builds) and the
+  WeakMaps keyed by a level's parts keep some of a venue level's build after a drop.
 - The game clock: `world/clock.ts` - a global time of day / season / moon
   (1 game day = 1 real hour, a season 7 days), saved in its own storage key, run by the sim step
   in events (`game/loop.ts`); it sets the sky (`daylight.ts setSky`: darkness and the dark's

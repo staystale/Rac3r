@@ -9,12 +9,14 @@
 // next needed).
 import { FIX } from './fixes.ts';
 
-// MB the game may hold in canvases and built levels before it drops some: chosen from
-// tools/scratch/_memprobe.mjs at the phone's size (see ENGINE.md for the measured session)
-export const MEMORY_BUDGET_MB = 240;
-// MB a built level holds in the JS heap (MEASURED, _memprobe.mjs: the heap's growth a level
-// visited, after a forced collection)
-export const LEVEL_MB = 9;
+// MB the game may hold in canvases and built levels before it drops some (MEASURED,
+// tools/scratch/_memprobe.mjs at the phone's size, 20 AI: the count at a race start was 90-147 MB
+// with one or two levels built - the canvases 72-113 MB of it, which drops do not change - so
+// about five more venue levels stay built before the oldest goes)
+export const MEMORY_BUDGET_MB = 180;
+// MB a built level holds in the JS heap (MEASURED, _memprobe.mjs, after a forced collection: a
+// venue level ~7, the heap 66 -> 93 MB over four after Spa; a stage or a non-venue circuit ~2)
+export const LEVEL_MB = 7;
 const BYTES_MB = 1048576;
 
 interface Sized { width: number; height: number }
