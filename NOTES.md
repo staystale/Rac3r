@@ -879,6 +879,21 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   lock file `Desktop/G/.browser-busy` (who, what, when) around it. While the helper
   works, laptop frame times are noise: compare shares in a CPU profile, or wait.
 
+## Machines
+
+- THE LAPTOP (6 GB): builds, verify, photos, propcheck, barriercheck, venueaudit, crestcheck,
+  thumbnails; it runs short of memory (check free memory before a browser run; under 900 MB stop).
+- THE SECOND PC (8 GB, `billj@192.168.1.13`, key login, cmd; the game in
+  `C:Usersilljworkac3r-proofepo`, commits sent as a git bundle): the heavy checks -
+  worldhash, AI fields, lapdriver, framecheck. Its Edge runs in the services session with no GPU:
+  its frames are slow to show (Knobhill no AI, x4: frame median 66.6 ms with work 25.9).
+- CALIBRATED 11-14 (framecheck, Knobhill RX, day, work median per frame): with 20 AI the laptop
+  at x4 200.9 ms, the PC at x4 214.5 (x6 had not finished after 16 min and was stopped, x8 not
+  run) - both in the catch-up loop (12 steps a frame); with no AI the laptop at x4 20.2, the PC at
+  x4 25.9. So the PC's x4 stands for the laptop's x4 (the slow-phone throttle): the PC does 1.07x
+  (full grid) to 1.28x (no AI) the laptop's work there; its x1 (20 AI: 16.7-17.8 ms) is no phone.
+  Compare timings only between runs on one machine.
+
 ## Tools worth knowing
 
 - `tools/lightleak.mjs [level ...] [query]` (11-12): a car's light where it must not fall, at every
