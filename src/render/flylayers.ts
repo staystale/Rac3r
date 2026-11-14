@@ -26,6 +26,9 @@ const PICTURE_REACH = 5;
 // px: the longest side a picture may have (its reach is cut back to fit; two are held during the
 // fly-in, ~16 MB each at most)
 const PICTURE_MAX_PX = 2048;
+// share of the opening view added round the pictures: the pan toward the car can take the view a
+// little past the opening one (a frame whose view leaves the pictures is drawn live)
+const RECT_MARGIN = 0.3;
 
 /** What the pictures painter draws with (the renderer's painters and view). */
 export interface FlyLayersCtx {
@@ -150,7 +153,10 @@ function paintOver(ctx: FlyLayersCtx) {
  */
 function paintPictures(ctx: FlyLayersCtx, game: RenderGame, fly: Fly): FlyPictures {
   const { view } = ctx;
-  const rect = [fly.ov.x0, fly.ov.y0, fly.ov.x1, fly.ov.y1];
+  // what the opening view shows (the level fitted, and past its ends the other way), and a margin
+  const halfW = (view.W / 2 / (view.PPM * fly.z0)) * (1 + RECT_MARGIN);
+  const halfH = (view.H / 2 / (view.PPM * fly.z0)) * (1 + RECT_MARGIN);
+  const rect = [fly.cx - halfW, fly.cy - halfH, fly.cx + halfW, fly.cy + halfH];
   const longest = Math.max(rect[2] - rect[0], rect[3] - rect[1]);
   // art px a metre at zoom 1 (view.dpr: art px a CSS px)
   const artPerMetre = view.PPM * view.dpr;
@@ -162,6 +168,19 @@ function paintPictures(ctx: FlyLayersCtx, game: RenderGame, fly: Fly): FlyPictur
     under: paintPicture(ctx, rect, pxPerMetre, () => paintUnder(ctx, game)),
     over: paintPicture(ctx, rect, pxPerMetre, () => paintOver(ctx)),
   };
+}
+
+/**
+ * Whether the view lies within the pictures.
+ * @param ctx the view and camera
+ * @param shown the pictures
+ * @returns true when every screen pixel falls on them
+ */
+function isViewInside(ctx: FlyLayersCtx, shown: FlyPictures): boolean {
+  const { view, cam, PPMz } = ctx;
+  const halfW = view.W / 2 / PPMz(), halfH = view.H / 2 / PPMz();
+  return cam.x - halfW >= shown.x0 && cam.x + halfW <= shown.x1 && cam.y - halfH >= shown.y0
+    && cam.y + halfH <= shown.y1;
 }
 
 /**
@@ -180,7 +199,7 @@ function picturesNow(ctx: FlyLayersCtx, game: RenderGame): FlyPictures | null {
   }
   if (LEVEL.endless || !isFieldStill(game)) return null;
   if (!pictures || pictures.fly !== fly) pictures = paintPictures(ctx, game, fly);
-  return ctx.view.zoom < pictures.reachZoom ? pictures : null;
+  return ctx.view.zoom < pictures.reachZoom && isViewInside(ctx, pictures) ? pictures : null;
 }
 
 /**
@@ -195,8 +214,7 @@ function drawPicture(ctx: FlyLayersCtx, target: CanvasRenderingContext2D,
   picture: HTMLCanvasElement, shown: FlyPictures) {
   const { toScreenX, toScreenY, PPMz } = ctx;
   target.save();
-  target.imageSmoothingEnabled = true;
-  target.imageSmoothingQuality = 'high';
+  target.imageSmoothingEnabled = false;
   target.drawImage(picture, toScreenX(shown.x0), toScreenY(shown.y0),
     (shown.x1 - shown.x0) * PPMz(), (shown.y1 - shown.y0) * PPMz());
   target.restore();
