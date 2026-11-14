@@ -62,6 +62,6 @@ export const FIX = {
   stagethumbs: atLoad('stagethumbs'),
   // nothing redone at a start: a START on a new level runs the restart once (menuflow.ts launch),
   // and a RESTART keeps the fly-in's whole-level picture while nothing it shows has changed
-  // (render/camera.ts flyPicture)
+  // (render/flypicture.ts)
   onestart: atLoad('onestart'),
 };
