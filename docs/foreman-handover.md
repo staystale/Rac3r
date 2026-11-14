@@ -34,12 +34,20 @@ not repeated here), then `TODO.md`, then this page. The 11-07 version of this pa
     `_canopycheck`.
   - NOT caught by any break, proven only by the foreman's reading: fix 4's off-map head-glow cull
     and its lamp heads without a list (no street lights in the renderhash captures).
-  In round24, with the CI to run and the `?perfpass=1` link to send.
+  ON MAIN (round24, e191ad6, 14 green). The owner is testing `?perfpass=1` with friends
+  (`&report=1`: iPhone 14s and PCs; read with tools/phonereport.mjs).
+- **HOLY JEEZ** (`?holyjeez=1`) BUILT, in round25 (worker/holyjeez to e82cac5). Shared code: a
+  start lane grid (game/grid.ts startLineGridPos, only on levels with a start lane: Holy Jeez);
+  every other grid slot dumped SAME on 49 levels, worldhash SAME. Open: the AI-driven player sat
+  off the road in 1 of 3 races (not reproduced); the forest is the shared 40 % firs (no setting).
+- **NEXT for the worker: the LOADING SCREEN** (TODO section 2, `?loadscreen=1`): measure first,
+  then the screen, then the fly-in, then the countdown.
 - **The owner's list of 11-13** is in TODO 3a2 (recorded only: "no need to work on this stuff yet").
   The F1 front-tyre heat is diagnosed there.
 - **Open: menu judder** (owner 11-13, seen waiting at the menu): read from the phone report.
-- **Worker** (agent a6cc304d1dadeede5, worktree `.claude/worktrees/barriercull`): the audit. QUEUED for
-  it after: the new rallycross tracks (TODO 3b; names to approve; NOTES "every new track").
+- **Worker** (worktree `.claude/worktrees/barriercull`; agent a5cb8a1280a5b0416 since 11-14, the
+  old one ran out of context). QUEUED after the loading screen: the other new rallycross tracks
+  (TODO 3b).
 - **Branch `foreman/round9`** holds round8, plus:
   - CI: main's pixel reference is rendered once and reused (`.github/workflows/renderref.yml`).
   - The Bird's Mess and the stadium dressing PASSED (owner 11-12: "That's all pass"). `birdsmess`

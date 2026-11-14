@@ -49,6 +49,24 @@ records in `TODO-DONE.md` (PASSED 11-12). On the phone now:
   - The memory budget: owner 11-13 "Yes" (iPhone browsers report no memory). The long-session
     leak run was offered and declined ("No").
 
+- LOADING SCREEN (owner 11-14: "Spa on start up / restart seems slow af", "a loading screen there
+  to hide it while it loads and then it can drop us in when it's ready", "the race should only start
+  after loading is done and the player is in so we don't get dropped in midway thru a count down").
+  QUEUED for the worker after Holy Jeez, behind `?loadscreen=1`:
+  - Shown at once on START and RESTART (every level): the track's name and a progress bar.
+  - Behind it: the level build, the 20 AI lined up, the cones stood up, and the ground round the
+    grid painted. Then it fades into the race.
+  - The FLY-IN (the whole track, then easing in to the car) plays only AFTER loading is done, in
+    full (owner 11-14: "it's a cool asthetic that shows you the track too"). The order: loading
+    screen, then the fly-in, then the player on the grid, then the countdown. Its whole-level picture
+    is made behind the loading screen, not in the fly-in's first frame.
+  - The COUNTDOWN starts only after the fly-in, with the player in.
+  - MEASURE FIRST where start and restart time goes. Spa's cold build is 1.3-1.8 s of JS on the
+    laptop at CPU x1 (loadtime: scenery 1.13 s, of it bushes 0.28, the edge 0.24, trees 0.21, roads
+    0.21). A restart rebuilds nothing but resets 3 329 cones, lines up the field, draws the
+    fly-in's whole-level picture and repaints the ground: time each in the browser. Fix anything
+    redone needlessly as a real saving, not only hidden.
+
 ## 3. OPEN, IN THE OWNER'S ORDER
 
 ### 3a. The owner's list (11-10: "Add this to the todo and work thru it logically"), round 5
