@@ -104,6 +104,14 @@ function moments(event) {
       && frame.startT > 0),
     'green': at((frame) => armed(frame) && frame.on && frame.green),
     'worst frame ms': Math.round(Math.max(0, ...gaps.slice(1))),
+    // the fly-in's frames once it shows (the screen gone): its first, and its worst
+    'fly-in first frame ms': (() => {
+      const at = frames.findIndex((frame, i) => i > 0 && frame.flying && !frame.screen);
+      return at > 0 && at + 1 < frames.length ? Math.round(frames[at + 1].wall - frames[at].wall)
+        : null;
+    })(),
+    'worst fly-in frame ms': Math.round(Math.max(0, ...gaps.filter((gap, i) => i > 0
+      && frames[i - 1].flying && !frames[i - 1].screen))),
   };
 }
 
