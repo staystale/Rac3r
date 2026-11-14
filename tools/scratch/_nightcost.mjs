@@ -151,12 +151,10 @@ try {
   await page.waitForTimeout(300);
   const log = await page.evaluate(() => window.__flyLog);
   const flyStats = await page.evaluate(() => window.__game.renderer.flyStats);
-  const canopy = await page.evaluate(async () =>
-    ({ ...(await import('/src/render/canopycut.ts')).CANOPY_STATS }));
   const shown = log.filter((frame) => frame.flying && !frame.screen);
   console.log(`${levelId} AI ${AI} x${CPU} ${viewW}x${viewH} dpr ${DPR} night ${NIGHT}`
     + `${extra ? ' ' + extra : ''}${OFF ? ' OFF=' + OFF : ''}${process.env.SOFT === '1' ? ' SOFT' : ''}:`);
-  console.log(`  flyStats ${JSON.stringify(flyStats)}; canopy cut (last frame) ${JSON.stringify(canopy)}`);
+  console.log(`  flyStats ${JSON.stringify(flyStats)}`);
   summarise('the fly-in, shown', shown);
   summarise('of it zoomed out (zoom < 0.28)', shown.filter((frame) => frame.zoom < HANDOVER));
   summarise('of it zoomed in', shown.filter((frame) => frame.zoom >= HANDOVER));

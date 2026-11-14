@@ -80,6 +80,55 @@ records in `TODO-DONE.md` (PASSED 11-12). On the phone now:
   - PROOFS (PC, against round28): simhash SAME off and with smoothfly=1; worldhash SAME off;
     renderhash (Spa, Knobhill; ~3 min a level there, the rest left to CI) SAME off and with the
     switch (its captures start at 2 s, after the fly-in). _loadmenu (laptop, smoothfly=1) all OK.
+  - NIGHT FLY-IN (owner's phone 11-14, Spa, 20 AI: by day 16-17 ms a frame from the sets; at
+    night (dark 0.94) the same sets, our JS 5-6 ms, yet the zoomed-out frames 230-320 ms apart:
+    the browser rasterising what the night layer asks for). BUILT, behind `?nightfly=1` (worker;
+    ENGINE.md "One frame"):
+    - MEASURED (laptop, tools/scratch/_nightcost.mjs, Spa 440x738 dpr 3, 20 AI, night 0.94,
+      loading screen, smoothfly=1; per zoomed-out fly-in frame, median / most): the light map got
+      1 582 / 2 246 canopy squares (the path filled twice) and 704 / 744 pictures drawn (pools,
+      heads, event glows: rub-out and tint, the cars' glows and beams). The laptop's GPU (and its
+      CPU raster, SOFT=1) hides the cost: gaps 18 ms either way; the counts are the evidence.
+    - THE CANOPY CUT (asked first; `render/canopycut.ts`): a canopy no light reached is already
+      exactly the dark, so only the canopies within reach of a light are traced - the still
+      lights walked once per level, the moving ones (cars' beams and glows, sparks, trains,
+      caravans, knocked lamps) each frame through the prop grid. GAME-WIDE: every level, in race and
+      in the fly-in, every night frame (not the endless highway: its props stream, the whole list
+      is walked as before). Spa's fly-in: 2 242 -> 99 squares a frame (96 % fewer); the pictures
+      unchanged (744). Per level (tools/scratch/_canopycount.mjs, 440x738, the zoomed-out fly-in,
+      darkened of on the map): Spa 87 of 2 154, Holy Jeez 49 / 325, Thruston 26 / 117, Cadwallop 24
+      / 106, Dongington 21 / 108, Goodwoody 29 / 90, Nordschlep 27 / 97, Le Manky 9 / 108, Yas
+      Marina 6 / 60, the rest under 100 on the map; in race at the grid 0-1 (few trees there).
+    - THE NIGHT PICTURES (FLY-IN ONLY, with ?smoothfly=1; every level's fly-in): each set also holds the lamps' pools and heads and
+      the still event lights, white (the rub-out) and tinted; the light map draws two pictures in
+      place of them; cars, trains, caravans and the start lights stay live. Spa: 744 -> 122
+      pictures a frame (2 of them the night pictures, the rest the 21 cars' glows and beams),
+      squares 99. ?report=1 flySets: nightMade (Spa 14: 7 sets x 2), nightDrawn (= pictured),
+      nightFailed, canopyCut.
+    - MEMORY: the night pictures in their own 12 MB beside the sets' 24 (at the set's px a metre;
+      at half, the beacons and boards went faint): Spa 440x738 18.8 -> 31 MB with the switch, Spa
+      844x390 and Le Manky 24 -> 36; let go as the fly-in zooms past them, as the sets.
+    - LOOK (_nightflyshots, dpr 3, the CPU raster, night 0.94, off vs on): Spa 440x738 0.08-0.27 %
+      of pixels differ while pictured, 844x390 0.04-0.10 %; Le Manky 440x738 0.03-0.21 %, 844x390
+      0.02-0.33 %; all at the lamps' pools, the gantry bar and the boards' edges (resampled);
+      identical once live (the hand-over at zoom 0.1). Looked at: the same pools, beacons, boards,
+      festoons and start lights.
+    - PROOFS (laptop, against main dcbfb223 at night 0.94: renderhash --only, its cars driving):
+      switch off SAME on spa, lemans, xgayms, gen-forest-medium-mixed-1001; switch on
+      (smoothfly=1&nightfly=1) SAME on those and yasmarina, brands-snatch (its decks), moanaco,
+      naffcar, knobhill, stage-sahara-sandpants, highway - 11 of 51; the rest left to CI (which
+      runs by day). Under moving headlights (tools/scratch/_canopyproof.mjs, Spa, the player's car
+      put by the densest clump of trees, lit, driving; 11-13 canopies on the map): off and on the
+      same 4 capture hashes; with the cars left out of the cut (a deliberate break) all 4 differ.
+    - SMOOTHFLY'S OWN BUG (fixed with ?smoothfly=1, coordinator 11-14): the owner's 11:00 Spa
+      fly-in (session nqp6op, part 12) drew live, uncounted - a START with no AI by the look of it
+      (sim 1 ms a frame after it vs 2-3 with 20): a solo practice has no start lights, so the field
+      never counted as still and no set was planned. REPRODUCED (laptop, _nightcost, Spa by day, 0 AI,
+      loading screen): main - 0 sets, pictured 0, live 0, the zoomed-out frames' JS 23.7 ms, gap 36;
+      now - 7 sets, pictured 121, live 0, JS 2.9 ms, gap 18. The field now counts as still while the
+      loading screen's fly-in holds the race (no step runs), and `live` counts every zoomed-out
+      fly-in frame drawn live, with `liveWhy`.
+    - SIMHASH (laptop, against main dcbfb223): SAME off and with smoothfly=1&nightfly=1.
 - LOADING SCREEN (owner 11-14: "Spa on start up / restart seems slow af", "a loading screen there
   to hide it while it loads and then it can drop us in when it's ready", "the race should only start
   after loading is done and the player is in so we don't get dropped in midway thru a count down").

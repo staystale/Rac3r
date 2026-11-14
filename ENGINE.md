@@ -106,7 +106,8 @@ counted). The field counts as still while the start is armed and not green, or w
 screen's fly-in holds the race (a solo practice has no lights). Switch off: as before.
 
 THE NIGHT FLY-IN (`?nightfly=1`, `FIX.nightfly`): two parts.
-- THE CANOPY CUT (`render/canopycut.ts`; with or without `?smoothfly=1`): the night layer puts its
+- THE CANOPY CUT (`render/canopycut.ts`; game-wide: every level, in race and in the fly-in, with or
+  without `?smoothfly=1`): the night layer puts its
   dark back only over the canopies a light may reach. The still lights (lamp pools and heads, the
   event lights that stay put, `eventglows.ts noteStillEventLights` through a probe painter) are
   walked once per level through the prop grid (`propgrid.ts visitPropsInBox`; again when the props,
@@ -115,9 +116,9 @@ THE NIGHT FLY-IN (`?nightfly=1`, `FIX.nightfly`): two parts.
   lamp's head) are walked each frame. A tree within 3 light-map px of a light is traced; a canopy
   no light reached is already exactly the dark, so the pixels are the same. Every canopy on the
   endless road, or on a map coarser than 3 px in 64 m.
-- THE NIGHT PICTURES (with `?smoothfly=1`): while the lamps are lit when a fly-in is planned, each
-  set also gets two night pictures at half its px a metre (`flylayers.ts paintNight`, inside the
-  24 MB): the lamps' pools and heads and the still event lights, white (the rub-out) and tinted
+- THE NIGHT PICTURES (the fly-in only, with `?smoothfly=1`): while the lamps are lit when a fly-in
+  is planned, each set also gets two night pictures at its px a metre (`flylayers.ts paintNight`;
+  all of them within their own 12 MB beside the sets' 24, past it fewer px a metre): the lamps' pools and heads and the still event lights, white (the rub-out) and tinted
   (`light.ts makeLampLights paintStill`; `lamppools.ts`). While a set stands, the light map
   rubs out with the white picture and tints with the other (`paintFromStill`, or the decks' order
   with `fromStill`); the moving and changing lights (cars, a train, caravans, the start lights:
