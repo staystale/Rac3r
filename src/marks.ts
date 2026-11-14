@@ -69,6 +69,7 @@ export interface MarkWheel {
   key: string; x: number; y: number; slip: number; width: number;
   mark?: Mark | null;   // set only by loose surfaces (undefined = ordinary skid marks), or a rim
   spray?: Spray | null; heat: number;
+  front: boolean;   // on the front axle (render/tyresmoke.ts)
 }
 
 /** What the marks read of a car. */
@@ -620,6 +621,7 @@ function listWheels(car: MarkCar): MarkWheel[] {
       mark: gouge ? MARK_GOUGE : bare ? null : markOf(ground),
       spray: gone ? undefined : ground.spray,
       heat: car.tyreT ? car.tyreT[(along > 0 ? 0 : 2) + (side > 0 ? 0 : 1)] : 60,
+      front: along > 0,
     });
   }
   return out;

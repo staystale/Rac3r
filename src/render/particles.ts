@@ -6,6 +6,7 @@ import type { Spray } from "../world/types.ts";
 import { airOf, windNow, type AirCar } from './airflow.ts';
 import type { Cam, Chip, ParticleCar, Puff, PuffHit, RenderMarks, View } from "./types.ts";
 import { dropChip, drawPuffsCheap } from './fxroom.ts';
+import { tyreSmokeStrength } from './tyresmoke.ts';
 
 // what createParticles destructures from the renderer
 interface ParticleHelpers {
@@ -80,18 +81,14 @@ const FLUFF_PUFF = { rgb: '248,247,240', size: 0.5, lift: 3.2, life: 1.5, grow: 
 // and how hard - the silent twin of a squeal (CLAUDE.md §4).
 const SMOKE = { rgb: '225,225,230', size: 0.45, lift: 0.9, life: 1.3, grow: 1.9 };
 // SMOKE STRENGTH (passed 11-02; owner: smoke "should perhaps have its amount and opacity
-// controlled by speed / tyre heat"): each tyre's strength is its heat share x its slide share
-// (SMOKE_SLIP_MIN -> SMOKE_SLIP_FULL m/s); the puffs a second (up to SMOKE_RATE), their opacity
-// and how long a strong one lives (up to SMOKE_LINGER longer: owner "full burn out with hot tyres
-// should make slightly more smoke too / longer") all follow it.
-const SMOKE_SLIP_MIN = 2, SMOKE_SLIP_FULL = 14;
+// controlled by speed / tyre heat"): each tyre's strength, 0..1 (render/tyresmoke.ts, from its
+// heat and its slide); the puffs a second (up to SMOKE_RATE), their opacity and how long a strong
+// one lives (up to SMOKE_LINGER longer: owner "full burn out with hot tyres should make slightly
+// more smoke too / longer") all follow it.
 const SMOKE_RATE = 38, SMOKE_LINGER = 0.6;
 // SMOKE EARLY (passed 11-03; owner: "can tyre smoke begin more progressively so less smoke and
-// less opaque when tyres cooler but starting earlier, rather than only at like 110 C plus"; it
-// had started at 115 C at 30 % strength): smoke from SMOKE_T_EARLY, its heat share rising as a
-// curve (SMOKE_EARLY_POW) to full at SMOKE_T_FULL, the faintest puff SMOKE_ALPHA_EARLY: a hard
-// slide at 80 C ~7 % of full, 110 C ~36 %, 140 C ~67 %.
-const SMOKE_T_EARLY = 60, SMOKE_T_FULL = 165, SMOKE_EARLY_POW = 1.6, SMOKE_ALPHA_EARLY = 0.08;
+// less opaque when tyres cooler but starting earlier"): the faintest puff, SMOKE_ALPHA_EARLY
+const SMOKE_ALPHA_EARLY = 0.08;
 // SMOKE OVER (passed 11-02; owner: "can some of the tyre smoke go over the players car"): this
 // share of the smoke puffs drift OVER the cars (the bonnet-steam pool), the rest under them as
 // before
@@ -105,19 +102,6 @@ const SMOKE_OVER = 0.35;
  */
 function overShare(state: ParticleState, share: number | undefined): Puff[] {
   return share && fxRandom() < share ? state.overPuffs : state.puffs;
-}
-
-/**
- * How hard a tyre smokes, 0..1.
- * @param heat the tyre's heat, C
- * @param slip its slide speed, m/s
- * @returns the strength
- */
-function smokeStrength(heat: number, slip: number): number {
-  const heatK = Math.min(1, Math.max(0, (heat - SMOKE_T_EARLY)
-      / (SMOKE_T_FULL - SMOKE_T_EARLY))) ** SMOKE_EARLY_POW;
-  return heatK * Math.max(0, Math.min(1, (slip - SMOKE_SLIP_MIN)
-    / (SMOKE_SLIP_FULL - SMOKE_SLIP_MIN)));
 }
 
 // SMOKE LINGERS (owner 11-03: "tyre smoke vanishes sometimes ... when easing off or changing
@@ -250,7 +234,7 @@ function emitSpray(ctx: ParticleCtx, car: ParticleCar, marks: RenderMarks, wallD
 }
 
 /**
- * Puff white-grey smoke from every hot, slipping tyre.
+ * Puff white-grey smoke from every hot, slipping tyre (render/tyresmoke.ts: how hard).
  * @param ctx particle context
  * @param car the car
  * @param marks the marks layer (wheel positions)
@@ -261,8 +245,8 @@ function emitTyreSmoke(ctx: ParticleCtx, car: ParticleCar, marks: RenderMarks, w
   if (!car.tyreT) return;
   const wheels = marks.wheelsOf(car);
   for (const wheel of wheels) {
-    if (wheel.heat < SMOKE_T_EARLY || wheel.slip < 1.5) continue;
-    const strength = smokeStrength(wheel.heat, wheel.slip);
+    const strength = tyreSmokeStrength(wheel, car);
+    if (strength <= 0) continue;
     state.smokeDebt += strength * SMOKE_RATE * wallDt;
     while (state.smokeDebt >= 1) { state.smokeDebt--;
       const pool = overShare(state, SMOKE_OVER);

@@ -78,9 +78,10 @@ function flexWork(axleState: AxleForce, locked: boolean, load: number, FzNom: nu
 
 /**
  * Whether an axle's tyres scrub (spin, lock or slide) rather than roll: the heat model's switch
- * between its two friction-work laws.
+ * between its two friction-work laws (render/tyresmoke.ts reads it too).
  */
-export function scrubs(axleState: AxleForce, locked: boolean): boolean {
+export function scrubs(axleState: Pick<AxleForce, 'spinning' | 'sliding' | 'slipSpeed'>,
+    locked: boolean): boolean {
   return axleState.spinning || locked || (axleState.sliding && axleState.slipSpeed > 2);
 }
 
