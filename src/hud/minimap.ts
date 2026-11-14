@@ -21,6 +21,7 @@ import { jokerLane } from '../world/joker.ts';
 import { inTrackUnderpass } from '../world/trackunder.ts';
 import type { HudState, HudGame } from './hudtypes.ts';
 import type { HudRects } from './layout.ts';
+import type { HudRect } from './widgets.ts';
 import type { Level, TrackPoint } from '../world/types.ts';
 
 const SIZE = 120;            // css px, the window's diameter
@@ -345,6 +346,20 @@ export function drawHudMinimap(ctx: CanvasRenderingContext2D, hud: HudState, rec
   const { x, y } = minimapAt(rects);
   if (mapShown) drawWindow(ctx, game, x, y, idx, wallDt);
   if (barShown) drawProgress(ctx, x, mapShown ? y + SIZE + 5 : y, sub.pts[idx].dist, sub.totalDist);
+}
+
+/**
+ * The screen box the minimap and its progress bar take now (the car keeps out of it, hud/
+ * keepclear.ts), or null while neither is drawn - the same test as drawHudMinimap.
+ * @param rects the layout rectangles
+ * @returns the box, css px, or null
+ */
+export function minimapBox(rects: HudRects): HudRect | null {
+  const sub = LEVEL.subtrack;
+  const mapShown = shownNow(), barShown = progressNow ? progressNow() : mapShown;
+  if ((!mapShown && !barShown) || !sub || !sub.pts || sub.pts.length < 2) return null;
+  const { x, y } = minimapAt(rects), bar = barShown && !LEVEL.endless ? 4 : 0;
+  return { x, y, w: SIZE, h: (mapShown ? SIZE + 5 : 0) + bar };
 }
 
 /**
