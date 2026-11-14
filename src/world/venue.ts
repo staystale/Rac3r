@@ -144,8 +144,11 @@ export interface VenueSpec {
   splitStart?: boolean;
   ovalWall?: { layout: string; gapM: number; kind: Barrier['kind'] };
   // a rallycross layout's START LANE: its pieces in driving order from the dead end of the start
-  // straight to where it meets the lap (the grid stands on it, off the lap; ai/line.ts startLane)
-  startLane?: { layout: string; pieces: string[] };
+  // straight to where it meets the lap (the grid stands on it, off the lap; ai/line.ts startLane);
+  // back: the lane laid on back past the map's dead end (real m, its far end first, its last point
+  // the dead end) where the map's is too short for a full grid; gridRoomM: m of the lane behind
+  // the pole (world/venuejoker.ts)
+  startLane?: { layout: string; pieces: string[]; back?: Point[]; gridRoomM?: number };
   // a rallycross layout's JOKER: the part of another layout's loop (`loop`) round `near` (real m)
   // that this layout does not race, a lane a car must take once in a race (game/rules.ts)
   joker?: { layout: string; loop: string; near: Point };
@@ -647,7 +650,8 @@ export function venueLevel(spec: VenueSpec, layout: string, levelId: string,
   // a figure of eight's underpass portals, first (world/crossings.ts pairs the portals in order)
   const props = [...underPortals(sub), ...pitTunnelPortals(spec.pitTunnel), ...scenery.props];
   // on the grid near the start lane's dead end, facing along it; else 15 m before the line
-  const start = startLane ? laneSpawn(startLane) : onTrack(sub, sub.totalDist - 15, 0, {});
+  const roomM = spec.startLane?.gridRoomM;
+  const start = startLane ? laneSpawn(startLane, roomM) : onTrack(sub, sub.totalDist - 15, 0, {});
   const lanes = [...jokerLanes, ...scenery.lanes, ...closed.lanes];
   const barriers = venueBarriers(spec, sub, scenery.barriers, lanes);
   // (a closing row's tyre on another road - a pit lane easing in by the junction - left out;
@@ -663,7 +667,7 @@ export function venueLevel(spec: VenueSpec, layout: string, levelId: string,
     camber: spec.camber?.[layout] || { maxDeg: 3, refR: 70, crown: 0.02, edge: 6, sections: [] },
     ...(spec.rollingStart ? { rollingStart: true } : {}),
     ...(spec.splitStart ? { splitStart: true } : {}),
-    ...(startLane ? { startLine: laneBehindPole(startLane) } : {}),
+    ...(startLane ? { startLine: laneBehindPole(startLane, roomM) } : {}),
     ...(scenery.patches.length ? { patches: scenery.patches } : {}),
     zones: scenery.zones, covers: scenery.covers, bumps: prepBumps(venueBumps(build)), boards: [],
     seams: false, cones: loose,

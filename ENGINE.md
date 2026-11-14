@@ -333,6 +333,10 @@ map's west edge is 30 m past the top hairpin; a TV tower, transporters, flags an
 stadiums' dressing (`dress`); 3000 trees at most (2026 stand); two firs far out in the forest hold
 the map's edge 150 m past the top hairpin (off-map ground never in view). THE START LANE'S GRID: a
 venue level with a start lane carries the lane behind the pole (`Level.startLine`,
-`venuejoker.ts laneBehindPole`); `game/grid.ts` lays that grid along it, three abreast 4 m apart, a
-row every 7 m (21 cars in 42 m of the 75 m behind the pole), on past the dead end straight. Every
-other level's grid takes the old path (all 49 grids' slots identical, `tools/scratch/_griddump.mjs`).
+`venuejoker.ts laneBehindPole`); `game/grid.ts` lays the grid every level has along it - two
+abreast, the columns `gridColumn` either side, a slot every 7 m - as a circuit's along its road.
+The room behind the pole is the venue's (`VenueSpec.startLane.gridRoomM`, 75 m when not given), and
+`startLane.back` lays the lane on back past the map's dead end (real m): Holy Jeez's runs 89 m on,
+bending up to 17 m east clear of the stand and the building west of it, 162 m behind the pole (21
+cars need 140 m). Every other level's grid takes the old path (all 49 grids' slots identical,
+`tools/scratch/_griddump.mjs`).

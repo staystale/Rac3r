@@ -56,7 +56,8 @@ export function venueJoker(build: VenueBuild, layout: string): Lane | null {
   return { pts: lane, width: VENUE_ROAD_M, surface: sector?.surface || SURFACES.racetarmac };
 }
 
-// m of the start lane behind the pole's slot (the grid's rows, 7 m apart, two by two: 20 cars)
+// m of the start lane behind the pole's slot where the venue does not say (VenueSpec.startLane
+// gridRoomM): the grid's slots 7 m apart, two abreast
 const GRID_ROOM_M = 75;
 // m between the start lane's centre and the lap's where they run side by side (the two roads and
 // a strip of grass for the wall between: the game's 13 m road at half scale ran a real start
@@ -75,7 +76,9 @@ const START_EASE_REACH = 10, START_EASE_ROUNDS = 4;
 export function venueStartLane(build: VenueBuild, layout: string): Lane | null {
   const start = build.spec.startLane;
   if (!start || start.layout !== layout) return null;
-  const pts: [number, number][] = [];
+  // (the lane laid on back past the map's dead end first, where the venue lays one)
+  const pts: [number, number][] = (start.back || [])
+    .map(([x, y]) => [x * build.scale, y * build.scale]);
   for (const name of start.pieces) {
     const piece = build.pieces.find((entry) => entry.name === name);
     if (!piece) throw new Error(`venue: no start lane piece ${name}`);
@@ -119,23 +122,25 @@ function heldApart(pts: Point[], own: Subtrack): Point[] {
 }
 
 /**
- * The pole's spot on a start lane: GRID_ROOM_M from its dead end (the rows behind it on the
- * lane), facing along it.
+ * The pole's spot on a start lane: the room behind it from its dead end (the grid behind it on
+ * the lane), facing along it.
  * @param lane the start lane
+ * @param roomM m of the lane behind the pole (GRID_ROOM_M when not given)
  * @returns the spot and its heading
  */
-export function laneSpawn(lane: Lane): { x: number; y: number; rot: number } {
-  const { x, y, rot } = lanePole(lane);
+export function laneSpawn(lane: Lane, roomM = GRID_ROOM_M): { x: number; y: number; rot: number } {
+  const { x, y, rot } = lanePole(lane, roomM);
   return { x, y, rot };
 }
 
 /**
- * The pole's spot on a start lane (GRID_ROOM_M from its dead end) and the lane's point after it.
+ * The pole's spot on a start lane (roomM from its dead end) and the lane's point after it.
  * @param lane the start lane
+ * @param roomM m of the lane behind the pole
  * @returns the spot, its heading and the index of the lane's next point
  */
-function lanePole(lane: Lane): { x: number; y: number; rot: number; next: number } {
-  let left = GRID_ROOM_M;
+function lanePole(lane: Lane, roomM: number): { x: number; y: number; rot: number; next: number } {
+  let left = roomM;
   for (let i = 1; i < lane.pts.length; i++) {
     const [fromX, fromY] = lane.pts[i - 1], [toX, toY] = lane.pts[i];
     const len = Math.hypot(toX - fromX, toY - fromY);
@@ -153,9 +158,10 @@ function lanePole(lane: Lane): { x: number; y: number; rot: number; next: number
  * The start lane's line behind the pole (Level.startLine: the grid stands along it, game/grid.ts):
  * from the pole back to the lane's dead end.
  * @param lane the start lane
+ * @param roomM m of the lane behind the pole (GRID_ROOM_M when not given)
  * @returns the points, the pole's first
  */
-export function laneBehindPole(lane: Lane): Point[] {
-  const pole = lanePole(lane);
+export function laneBehindPole(lane: Lane, roomM = GRID_ROOM_M): Point[] {
+  const pole = lanePole(lane, roomM);
   return [[pole.x, pole.y], ...lane.pts.slice(0, pole.next).reverse()];
 }

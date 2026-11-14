@@ -132,14 +132,13 @@ function splitGridPos(slot: number) {
     gridColumn(row), {});
   return { x: point.x, y: point.y, h: point.rot };
 }
-// A START LANE'S GRID (Level.startLine, a venue's rallycross start lane): a row of
-// START_ROW_CARS abreast, START_ROW_LAT m apart, every GRID_STEP m back along the lane's own line
-// from the pole, straight on past its dead end: a lane may bend, and a full field two abreast is
-// longer than the room behind the pole (world/venuejoker.ts GRID_ROOM_M, 75 m: 21 cars three
-// abreast need 42 m). A 13 m lane: the outer cars' sides 1.6 m in from its edges.
-export const START_ROW_CARS = 3, START_ROW_LAT = 4;
-// m either way along the lane over which a row's heading is read (a 2 m step of the lane's line
-// turns a few degrees: a row's heading from one step alone swung 0.4 rad row to row)
+// A START LANE'S GRID (Level.startLine, a venue's rallycross start lane): the same two-abreast
+// grid as every level's (GRID_STEP m a slot, the columns gridColumn either side), laid back along
+// the lane's own line from the pole, as a circuit's along its road: a lane may bend. The room
+// behind the pole is the venue's (world/venuejoker.ts, VenueSpec.startLane gridRoomM): 21 cars
+// need 140 m.
+// m either way along the lane over which a slot's heading is read (a 2 m step of the lane's line
+// turns a few degrees: a slot's heading from one step alone swung 0.4 rad slot to slot)
 const START_HEADING_M = 4;
 /**
  * A point a distance back along a line, on along its last step past its end.
@@ -165,8 +164,7 @@ function pointBack(line: Point[], backM: number): Point {
  * @returns the position and heading
  */
 function startLineGridPos(slot: number, line: Point[]) {
-  const backM = Math.floor(slot / START_ROW_CARS) * GRID_STEP;
-  const across = (slot % START_ROW_CARS - 1) * START_ROW_LAT;
+  const backM = slot * GRID_STEP, across = gridColumn(slot);
   const [x, y] = pointBack(line, backM);
   const [aheadX, aheadY] = pointBack(line, backM - START_HEADING_M);
   const [behindX, behindY] = pointBack(line, backM + START_HEADING_M);

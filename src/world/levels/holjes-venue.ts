@@ -95,7 +95,12 @@ export const HOLJES_SPEC: VenueSpec = {
   calibrate: { layout: 'rx', realLapM: 1204 },
   // the line where the start lane meets the lap, the grid back down the lane
   start: [118, 101],
-  startLane: { layout: 'rx', pieces: ['Start Straight'] },
+  // the map's start straight is 112 m, and 21 cars two abreast need 140 m behind the pole: the
+  // lane runs on 89 m back past its dead end, bending east (up to 17 m) to keep 5 m between its
+  // edge and the stand and the building west of it (real m, its far end first)
+  startLane: { layout: 'rx', pieces: ['Start Straight'], gridRoomM: 162,
+    back: [[206, 278.2], [198.8, 270.2], [188.9, 258], [179.9, 245.4], [171.9, 232.4], [165, 219.1],
+      [159, 205.3]] },
   // real m: THE CREST JUMP up the start straight (its middle on the road's centreline, 100 m
   // up the lap from the start lane's merge), and the hillside the crowd stands on
   hills: [
