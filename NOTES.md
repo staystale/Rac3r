@@ -504,10 +504,11 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   run ids come from one counter across every level built (world/load.ts tapeId), so a level with
   more or fewer tape runs shifts the ids of every stage and rx level after it. Compare their cones
   without the tape id before calling it a change (Knobhill venue: the same, ids apart).
-- A LEVEL'S PASS FAILS CI's worldhash ONCE (11-14, Holy Jeez): CI compares against main, where the
-  level was hidden, so the level and the later stages' tape ids read DIFFERENT. The proof is that
-  CI's worldhash total equals main's with the level's switch on (`HOLYJEEZ=1 worldhash save`), and
-  the old code with the switch against the new code plain is SAME. Push with that said.
+- A PASS THAT CHANGES WHAT MAIN DOES (a level shown, the race or the pictures moved: 11-14 Holy
+  Jeez, the front tyre heat) fails CI's hashes against main ONCE. TAG the commit [world] / [sim] /
+  [look] (.github/workflows/checks.yml: a tagged hash is reported, not failed), and prove it the
+  switch's own way: the old code WITH the switch against the new code plain, SAME. Switches reach
+  the browser tools through RAC3R_QUERY (`RAC3R_QUERY=frontheat=1`), not an env NAME=1.
 - aidrivecheck counts a car on the joker lane as off (it is off the lap's road): JOKERROAD=1 counts
   it as road, to see a rallycross level's real offs.
 - A VENUE'S START IS THE MAP'S POINT NEAREST spec.start (11-09): a straight the map draws as its two

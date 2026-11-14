@@ -187,6 +187,19 @@ passed, with solid features only (owner: "Only after all bugs").
 
 BUGS (each behind its own switch, measured, then a test link):
 1-2. FRONT TYRES and the ROLLED CAR'S SIDE: PASSED 11-14 (TODO-DONE).
+1b. BUG 1 CONTINUED - FRONT TYRE SMOKE TOO OFTEN (owner 11-14: "I think it's part of the same bug but
+   check obviously"; after passing bug 1: "there's still smoke coming from
+   the front tyres a lot do the time when their shouldn't be !? The smoke should be the same for
+   all tyres within reason as different tyres have different heat specs be logical and fit what's
+   there"). NEXT after bug 3. Read (foreman): render/particles.ts emitTyreSmoke - one rule for
+   every tyre: heat from SMOKE_T_EARLY 60 C (full at 165), slip over 2 m/s; the fronts now sit in
+   their window (62-93 C) and a gripping tyre's normal slip at speed passes 2 m/s, so fronts
+   working normally puff faint smoke. To build (measure first: when each tyre smokes now, every
+   car, laps / braking / cornering / burnouts / donuts), behind its own switch: the heat share
+   RELATIVE TO EACH TYRE'S OWN WINDOW (carSpec.tyreOpt), from near its top, full well above it;
+   slip counted only past grip (spinning, locked, sliding: the heat model's own scrubs()); the same
+   rule fronts and rears. Burnouts, donuts, lock-ups and hot slides keep their smoke (the owner's
+   11-02 / 11-03 tuning: progressive, faint when cooler).
 3. THE HUD COVERS THE PLAYER'S CAR on the highways: the car must never be under a control or HUD.
 4. RESETS: never put you ahead of where you were (inline or behind only); a car in the way: the
    next free spot BEHIND; a reset does not clear the police (they go only when too damaged, or
