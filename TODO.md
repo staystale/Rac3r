@@ -179,7 +179,8 @@ cars: the Hoonigan pink Porsche, the BMW E36.
   abreast", "2 abreast, longer lane"): the lane run on 89 m back past the map's dead end, bending
   east clear of the stand and the building (VenueSpec.startLane back, gridRoomM 162 m; every other
   level's grid slot for slot the same) - 21 of 21 on the lane, the nearest tree 11 m from a car's
-  centre. worldhash SAME (PC); venueaudit, barriercheck, propcheck OK (laptop). The numbers: TODO-DONE once passed; the worker's hand-back until then.
+  centre; the 20-AI race on both seeds (PC): no car off the road or stopped in the first 12 s after
+  the green, 20 of 21 finished. worldhash SAME (PC); venueaudit, barriercheck, propcheck OK (laptop). The numbers: TODO-DONE once passed; the worker's hand-back until then.
 - DEMOLITION DERBY (owner 11-10: "Demolition derby levels classic tarmac circle - and we can reuse
   stock car tracks ect for that too"): a classic tarmac circle arena, and a derby mode on the stock
   car tracks (Stock Car, Grass Track, Old Wobbly). Questions when we come to it (the AI ramming, how

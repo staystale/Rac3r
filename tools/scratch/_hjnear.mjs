@@ -1,5 +1,6 @@
-// _hjnear.mjs - WHAT STANDS NEAR A LINE AT HOLY JEEZ (scratch): every mapped building, stand and
-// road piece (real m, the map's data) within REACH m of the segment from A to B, nearest first.
+// _hjnear.mjs - WHAT LIES NEAR A LINE AT HOLY JEEZ (scratch): every mapped item drawn as points (road
+// pieces, roads, paddocks; real m, the map's data) within REACH m of the segment from A to B,
+// nearest first. Buildings and stands are boxes: tools/scratch/_hjslots.mjs measures those.
 // node tools/scratch/_hjnear.mjs ax ay bx by [reach]
 import { HOLJES_VENUE } from '../../src/world/levels/venues/holjes.ts';
 
