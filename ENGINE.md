@@ -231,6 +231,19 @@ Drawing uses its own random numbers (`render/shared.ts fxRandom`, a hashed count
 `Math.random`, so no look can shift the physics' random stream. Sparks (`render/particles.ts`) glow in
 the night light map (`render/light.ts drawSparkGlows`).
 
+Tyre smoke: `render/particles.ts emitTyreSmoke` puffs from each tyre at a rate, opacity and life
+set by its strength, 0..1, from `render/tyresmoke.ts tyreSmokeStrength` (drawing only: the sim
+never reads it). The default (the early rule): heat share from 60 C to full at 165 C on a curve,
+times the axle's slip share (2 -> 14 m/s), gripping or not. Under test, `?tyresmoke=1`
+(`FIX.tyresmoke`; `TYRESMOKE=1` for the node tools), the window rule, the same for all four tyres:
+smoke only while the axle scrubs by the heat model's own test (`physics/tyreheat.ts scrubs`:
+spinning, locked, or sliding over 2 m/s; `car.t` flags); the heat share from a quarter of the
+window's width below the top of the tyre's window (`spec.tyreOpt`, stock 65-110 C: 98.75 C) to
+55 C over it; a locked or spinning tyre counts up to 30 C hotter by its slip share (the same
+rubber rubs round through the patch). Measured (`tools/scratch/_tyresmoke.mjs`, every car, aids
+off / on): racing laps fronts smoke 5-8 % -> 1 % of the time; a held 1.1 g corner's fronts 20 % ->
+5 % (gripping ones none); burnouts, donuts, lock-ups and hot slides at -12 to +45 % of the puffs.
+
 ## Drawing (`render.ts` and `render/`)
 
 - Pixel art: the world is drawn into a low-resolution art-pixel buffer (about 15 art px per metre at
