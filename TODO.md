@@ -153,7 +153,7 @@ cars: the Hoonigan pink Porsche, the BMW E36.
   11-13: the REAL ONES FIRST - Holjes, Croft's RX layout, Pembrey, Blyton - then a NITRO-STYLE one
   OUTDOORS (not a stadium: a gap jump over the track, a crossover bridge, banked dirt turns), then
   the HEAD-TO-HEAD SWAP-OVER (two parallel lanes crossing on a bridge, mixed tarmac and gravel).
-  NAMES (owner 11-13: "Ok yea names work"): Holjes = HOLY JEEZ, Croft RX = CROUGHED RX (its own
+  NAMES (owner 11-13: "Ok yea names work"): Holjes = HOLY JEEZ (PASSED), Croft RX = CROUGHED RX (its own
   full-size level of the Croughed venue; the half-size circuit unchanged), Pembrey = PEMBREEZY, Blyton
   Park = BLIGHTY PARK, the Nitro-style one (after Glen Helen) = GLEN HELLISH, the swap-over = SWAPSIES. Real (traced, real tarmac / gravel
   split, real jumps, real joker), at FULL SIZE as the other short courses (NOTES: track scale), not
@@ -164,11 +164,7 @@ cars: the Hoonigan pink Porsche, the BMW E36.
   possible to save reloading / rebuilding"): a venue's layouts at the SAME scale share one build
   (world/venue.ts venueBuild), and each level, once built, is kept for the session; a short course
   at full size (share 1) beside a half-size circuit is its own build of the same map data.
-  HOLY JEEZ QUESTIONS ANSWERED (owner 11-13: "Yes"): the fail points are the big crest jump after
-  the start and the tight gravel hairpin at the top, both at their real size; the joker as the real
-  race runs it (once, at the gravel split); dressed with pine forest, the crowd on the hillside and
-  the campers and caravans of the summer race weekend. Time and weather: the world clock (NOTES).
-  The map: OSM has every piece tagged asphalt / gravel and the joker (4 pieces).
+  HOLY JEEZ PASSED 11-14: TODO-DONE.
   HOLY JEEZ FIRS (owner 11-14: "Yes, mostly firs"): a per-level tree mix (the share of firs, now
   render/trees.ts FIR_SHARE 0.4 for every level) as level data; Holy Jeez about 85 % firs; every
   other level unchanged (renderhash SAME). For the worker after the loading screen.
@@ -178,18 +174,6 @@ cars: the Hoonigan pink Porsche, the BMW E36.
   Weather from the world weather only, nothing forced. The map: tools/venues/croughed.osm.json way
   108510895 "Rallycross" (with "Club Link", "Chicane"), as knobhill.json's rx layout; the surfaces
   from the circuit's own RX map.
-  HOLY JEEZ BUILT, TO REVIEW (worker, ?holyjeez=1): traced at full size, the joker, the start
-  lane; the joker island's Armco joined at the nose (tidyEdge, evenEdge: no doubled run); the crest
-  hump moved onto the road (it stood 18 m off it: no car flew) - now airborne up to 0.9 s flat out;
-  the campers moved onto the map (they stood past its west edge), the crowd's bank 24 m nearer the
-  hill gravel, flags, a TV tower, the paddock's transporters; least radius 15.3 m, the top
-  hairpin 19.5 m (no minR); the thumbnail; the map's edge held 150 m past the top hairpin; the
-  grid along the start lane two abreast like every level's (owner 11-14: "Race grids arnt 3
-  abreast", "2 abreast, longer lane"): the lane run on 89 m back past the map's dead end, bending
-  east clear of the stand and the building (VenueSpec.startLane back, gridRoomM 162 m; every other
-  level's grid slot for slot the same) - 21 of 21 on the lane, the nearest tree 11 m from a car's
-  centre; the 20-AI race on both seeds (PC): no car off the road or stopped in the first 12 s after
-  the green, 20 of 21 finished. worldhash SAME (PC); venueaudit, barriercheck, propcheck OK (laptop). The numbers: TODO-DONE once passed; the worker's hand-back until then.
 - DEMOLITION DERBY (owner 11-10: "Demolition derby levels classic tarmac circle - and we can reuse
   stock car tracks ect for that too"): a classic tarmac circle arena, and a derby mode on the stock
   car tracks (Stock Car, Grass Track, Old Wobbly). Questions when we come to it (the AI ramming, how

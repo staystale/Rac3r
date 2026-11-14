@@ -54,6 +54,4 @@ export const FIX = {
   // the same game, quicker on big grids: the lane reach grid (game/lanereach.ts), the loose
   // objects' sleep list, the barrier segment grid and the night layer walked by the prop grid
   perfpass: atLoad('perfpass'),
-  // Holy Jeez, the Holjes rallycross traced from the map at full size (holjes-venue.ts)
-  holyjeez: atLoad('holyjeez'),
 };

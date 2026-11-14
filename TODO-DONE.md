@@ -13,6 +13,30 @@ rolls - OWNER 11-07; the AI rework - Where we are 11-04; the driving root fix, t
 LIST 11-01; TypeScript, mud, grass, lamps - Queue; weather, surfaces, car systems, damage,
 lighting, bushes and trees - OWNER LIST 10-24; the checking tools - Tools that are wrong.
 
+## PASSED 11-14 (owner: "Ok pass") - HOLY JEEZ, the Holjes rallycross, now a normal level
+
+The switch `?holyjeez=1` removed; worldhash of the old code with HOLYJEEZ=1 against the new code: SAME
+on every level. The owner's phone (report 11-14, 20 AI, night): 21 761 frames, dt median 17 ms,
+0.36 % slow. The answers and the build as recorded in TODO 3b:
+
+HOLY JEEZ QUESTIONS ANSWERED (owner 11-13: "Yes"): the fail points are the big crest jump after
+the start and the tight gravel hairpin at the top, both at their real size; the joker as the real
+race runs it (once, at the gravel split); dressed with pine forest, the crowd on the hillside and
+the campers and caravans of the summer race weekend. Time and weather: the world clock (NOTES).
+The map: OSM has every piece tagged asphalt / gravel and the joker (4 pieces).
+HOLY JEEZ BUILT, TO REVIEW (worker, ?holyjeez=1): traced at full size, the joker, the start
+lane; the joker island's Armco joined at the nose (tidyEdge, evenEdge: no doubled run); the crest
+hump moved onto the road (it stood 18 m off it: no car flew) - now airborne up to 0.9 s flat out;
+the campers moved onto the map (they stood past its west edge), the crowd's bank 24 m nearer the
+hill gravel, flags, a TV tower, the paddock's transporters; least radius 15.3 m, the top
+hairpin 19.5 m (no minR); the thumbnail; the map's edge held 150 m past the top hairpin; the
+grid along the start lane two abreast like every level's (owner 11-14: "Race grids arnt 3
+abreast", "2 abreast, longer lane"): the lane run on 89 m back past the map's dead end, bending
+east clear of the stand and the building (VenueSpec.startLane back, gridRoomM 162 m; every other
+level's grid slot for slot the same) - 21 of 21 on the lane, the nearest tree 11 m from a car's
+centre; the 20-AI race on both seeds (PC): no car off the road or stopped in the first 12 s after
+the green, 20 of 21 finished. worldhash SAME (PC); venueaudit, barriercheck, propcheck OK (laptop). The numbers: TODO-DONE once passed; the worker's hand-back until then.
+
 ## PASSED 11-13 (owner: "Ok keep it / For fast loading") - the faster level build (fastbuild), now the default
 
 The switch and the old code paths deleted; worldhash of the old code with FASTBUILD=1 against the new

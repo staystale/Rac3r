@@ -318,7 +318,7 @@ sweeper, a 15 m hairpin, a corner that tightens 28 -> 14 m, a kink), the streets
 its lap length as laid (`LALIVELY_LAP_M`) calibrates it, its least radius 10 m (`VenueSpec.minR`: the venues' 15.5 m
 opened the hairpin across its own legs); its joker's gap jump the terrain's ramp and table pieces laid five side
 by side across the road (cos^2 pieces half their width apart sum to a flat full height).
-HOLY JEEZ (`world/levels/holjes-venue.ts`, `?holyjeez=1`, under test): Holjes traced from the
+HOLY JEEZ (`world/levels/holjes-venue.ts`): Holjes traced from the
 map (`tools/venues/holjes.json` -> `venues/holjes.ts`, every piece tagged tarmac or gravel) at
 full size (share 1): the lap 1204 m over 12 pieces, 37 % gravel; the joker the mapped joker
 loop's way round the outside of the split (`joker`, 24 m longer); the first venue with a START
