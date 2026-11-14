@@ -30,7 +30,8 @@ const MODES = {
 };
 const modeIds = (process.argv[3] || Object.keys(MODES).join(',')).split(',');
 // fake frames a run (60 a s); the highways longer (FRAMES_HW): their bends come every km or so
-const FRAMES = Number(process.env.FRAMES || 2700), SAMPLE = 6, WARM = 420,
+const FRAMES = Number(process.env.FRAMES || 2700), SAMPLE = Number(process.env.SAMPLE || 6),
+  WARM = 420,
   FRAMES_HW = Number(process.env.FRAMES_HW || 5400);
 
 /** Page side: wrap the HUD's draw so a sample can be asked for (window.__cover). */
@@ -85,10 +86,13 @@ async function installCover() {
     cover.hudPx = Math.max(cover.hudPx, opaque);
     if (!hit) return;
     cover.covered++;
+    if (hit / total > cover.worst) cover.worstAt = cover.frame;
     cover.worst = Math.max(cover.worst, hit / total);
     const name = named(first[0], first[1], width, height);
     cover.by[name] = (cover.by[name] || 0) + 1;
-    if (cover.where.length < 4) cover.where.push([Math.round(centreX), Math.round(centreY), name]);
+    if (cover.where.length < 4) {
+      cover.where.push([Math.round(centreX), Math.round(centreY), name, cover.frame]);
+    }
   };
   shared.hud.draw = (ctx, game, width, height, wallDt) => {
     draw(ctx, game, width, height, wallDt);
@@ -127,15 +131,40 @@ async function runOne(browser, base, [width, height], modeId) {
   await page.evaluate(installCover);
   if (level === 'lab') await page.evaluate(installCircle);
   await page.evaluate((count) => window.__rt.step(count), WARM);
-  const frames = level === 'highway' ? FRAMES_HW : FRAMES;
+  const frames = process.env.AT ? Number(process.env.AT) : level === 'highway' ? FRAMES_HW
+    : FRAMES;
   for (let frame = WARM; frame < frames; frame += SAMPLE) {
-    await page.evaluate((count) => {
+    await page.evaluate(([count, at]) => {
       window.__cover.want = true;
+      window.__cover.frame = at;
       window.__rt.step(count);
-    }, SAMPLE);
+    }, [SAMPLE, frame + SAMPLE]);
+  }
+  // AT=<frame> with SHOT: the world drawn again for a photo at that frame
+  if (process.env.AT) {
+    await page.evaluate(async () => {
+      const { shared } = await import('/src/game/state.ts');
+      shared.settings.skipLayers.clear();
+      window.__rt.step(40);
+      // the player's car outlined (magenta) so the photo shows which car and where
+      const car = window.__game.car, renderer = shared.renderer, ppm = renderer.PPM;
+      const cos = Math.cos(car.heading), sin = Math.sin(car.heading);
+      const corners = [[1, 1], [1, -1], [-1, -1], [-1, 1]].map(([along, across]) => {
+        const dx = along * car.spec.len / 2, dy = across * car.spec.wid / 2;
+        return `${renderer.toScreenX(car.x + dx * cos - dy * sin)},${
+          renderer.toScreenY(car.y + dx * sin + dy * cos)}`;
+      });
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('style', 'position:fixed;left:0;top:0;width:100vw;height:100vh;'
+        + 'pointer-events:none;z-index:9');
+      svg.innerHTML = `<polygon points="${corners.join(' ')}" fill="none" stroke="#ff00ff"
+        stroke-width="2"/>`;
+      document.body.appendChild(svg);
+    });
   }
   if (process.env.SHOT) {
-    await page.screenshot({ path: `${process.env.SHOT}/_hudcover-${modeId}-${width}x${height}.png` });
+    const tag = process.env.AT ? `-${process.env.AT}${extraQuery() ? '-on' : '-off'}` : '';
+    await page.screenshot({ path: `${process.env.SHOT}/_hudcover-${modeId}-${width}x${height}${tag}.png` });
   }
   const result = await page.evaluate(() => window.__cover);
   await context.close();
@@ -151,7 +180,7 @@ try {
       const res = await runOne(browser, server.url, size, modeId);
       anyCovered += res.covered;
       console.log(`${size.join('x').padEnd(8)} ${modeId.padEnd(8)} samples ${res.samples}`
-        + ` covered ${res.covered} worst ${(100 * res.worst).toFixed(0)}% by `
+        + ` covered ${res.covered} worst ${(100 * res.worst).toFixed(0)}% (frame ${res.worstAt}) by `
         + `${JSON.stringify(res.by)} at ${JSON.stringify(res.where)} centre box ${JSON.stringify(res.box)}`
         + ` car ${res.carPx} px, top ${res.fastest} m/s, HUD ${res.hudPx} px`
         + (res.errors.length ? ` ERRORS ${res.errors[0]}` : ''));
