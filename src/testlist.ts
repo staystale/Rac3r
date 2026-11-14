@@ -13,6 +13,14 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'dongfence',
+    added: '2026-11-14',
+    name: 'QUESTION: Dongington Park - keep the catch fence by the Hollywood grandstand?',
+    where: 'Dongington Park (any layout): the Hollywood grandstand',
+    try: 'Look at the catch fence in front of the grandstand; no photo of the real one shows it.',
+    wrong: 'Say KEEP or REMOVE (a reminder, not a change: nothing is under test here).',
+  },
+  {
     id: 'smoothfly',
     added: '2026-11-14',
     name: 'Smooth fly-in: the whole-track view at full speed',

@@ -158,6 +158,12 @@ ROUND 5, LOADING AND SPEED:
 
 ### 3a2. The owner's list of 11-13 (bugs first, then tracks: "Do all tracks first", then cars)
 
+GO 11-14 (owner: "yes ok to all", "bugs first"): the BUGS (1-10) now, in order, each behind its
+own switch; EVERY FIX CHECKED GAME WIDE (owner: "F1 bug jsut f1 cars or all cars make sure fixes
+like this get checked game wide / Same for the next"): a car fix on every car, a reset or HUD fix
+in every mode (circuit, RX, stage, highway). ITCH.IO: only when ALL these bugs are fixed and
+passed, with solid features only (owner: "Only after all bugs").
+
 BUGS (each behind its own switch, measured, then a test link):
 1. FRONT TYRES DO NOT HEAT (seen on the F1 car, Test Lab; "they should heat up the same as rear
    tyres"). MEASURED (headless, aids off and on, tarmac, 18 C): Formula Won, 20 s full-lock circle
@@ -387,13 +393,14 @@ inputs and get the cars back. A SPIKE (two phones on the tunnel) before committi
 
 ## 5. QUESTIONS FOR THE OWNER
 
-- Deaf Valley's exit names (12b, passed 11-11 with them in, "names to approve"): SADWATER, FURNACE
-  CREAK, STOVEPIPE HELLS, ZABRISKIE POINTLESS, DEVIL'S GOLF CORSE, LAST CHANCE (REALLY), NOTHING
-  FOR 200 MI, HULL (STILL NOT) - approved?
+- ANSWERED 11-14: Deaf Valley's exit names KEPT ("There ok for Death Valley"); the countryside
+  highway levels: names in the same style if they lack them ("I think it has them tho already") -
+  check, make them only where missing.
 - Dongington Park: the catch fence in front of the Hollywood grandstand (no source shows it; left
-  as built 11-09; asked, no answer yet) - keep it?
-- The binned HUD text experiment (10-25): delete its branch `experiment/hudtext` on GitHub?
-- The black wire / rope fence: the rule (11-07) is never to use it and to replace it as each old
-  level gets its venue pass, but NO MORE CONVERSIONS (11-09: "keep the originals") leaves it on the
-  old levels kept as they are - replace it there anyway, or leave them?
-- A SIREN for the police (none yet): build one for your approval?
+  as built 11-09) - OPEN (owner 11-14: "Keep this open remind me / add it to the pause menu test
+  reminder": an entry in src/testlist.ts, id 'dongfence').
+- ANSWERED 11-14: delete `experiment/hudtext` on GitHub, and tidy other dead branches ("feel free
+  to tidy up some other bits if needed"): the foreman lists them first.
+- ANSWERED 11-14: the black wire / rope fence REPLACED on the old levels too ("Replace it there
+  too"), their layouts unchanged, behind its own switch. Queued after the bugs.
+- ANSWERED 11-14: a police SIREN, "With sound". Queued after the bugs.
