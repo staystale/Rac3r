@@ -12,8 +12,31 @@ not repeated here), then `TODO.md`, then this page. The 11-07 version of this pa
   as d750afa before this pass.
 - **xgaymsloose PASSED** (owner "Loose layout is a pass"): L.A. Lively's one layout (round22).
 - **fastbuild PASSED** (owner "Ok keep it"): the default (round23). The test list is empty.
-- **Worker: PERFORMANCE AUDIT** (measure only; TODO section 2): the owner wants 60 fps on every
-  track on most devices. Its ranked findings go to the owner before any fix.
+- **PERFORMANCE AUDIT done** (worker's b4b86d5 on `worker/perfaudit`, scratch tools only): the sim
+  is most of the frame. framecheck measured a FROZEN scene until fixed (its tap never started the
+  race). Owner 11-13 "Yes to all": **Worker: PERFPASS**, ONE switch `?perfpass=1` with four fixes:
+  onLane by grid, sleeping cones, a barrier grid, the night layer's prop walks; framecheck fixed
+  first. NO step-cap change: the owner added it, then removed it ("Ok infact remove it").
+  11-14: BUILT, all five fixes (the fifth, the memory budget: owner "1. Yes"), on
+  `worker/perfpass` (a8fa89b framecheck, a9188aa onLane, 0535163 barriers, fab4174 cones, 4e18f96
+  night, ba6a8d0 memory). Foreman code review: fixes 1-4 give the same answers in the same order.
+  For fix 5, check whether a drop frees memory: venueBuild's cache and the WeakMaps keyed by the
+  level (joker.ts, lampplan.ts) keep old builds. Claude Code's memory reaper stopped the proofs
+  three times as background jobs. Owner 11-14: run them one at a time in the FOREGROUND, checking
+  free memory first (stop under 900 MB). Do NOT SendMessage the worker while it runs a foreground
+  job: the send moves that job to the background, where the reaper can stop it.
+  PROVEN (worker, 0aab120; TODO section 2 holds the results table):
+  - simhash: SAME on both seeds.
+  - worldhash: SAME on all 63 levels, switch off and on.
+  - renderhash at night: SAME.
+  - Breaks caught: fixes 2 and 3 and the pit-lamp kinds.
+  - Fix 1 is proven by the node test (simhash never reaches a cut decision), the canopy trace by
+    `_canopycheck`.
+  - NOT caught by any break, proven only by the foreman's reading: fix 4's off-map head-glow cull
+    and its lamp heads without a list (no street lights in the renderhash captures).
+  In round24, with the CI to run and the `?perfpass=1` link to send.
+- **The owner's list of 11-13** is in TODO 3a2 (recorded only: "no need to work on this stuff yet").
+  The F1 front-tyre heat is diagnosed there.
 - **Open: menu judder** (owner 11-13, seen waiting at the menu): read from the phone report.
 - **Worker** (agent a6cc304d1dadeede5, worktree `.claude/worktrees/barriercull`): the audit. QUEUED for
   it after: the new rallycross tracks (TODO 3b; names to approve; NOTES "every new track").
@@ -91,6 +114,10 @@ not repeated here), then `TODO.md`, then this page. The 11-07 version of this pa
 - A session cut off mid-task: read the tail of the newest large transcript in
   `~/.claude/projects/C--Users-Admin/`, then `gh run list`, the lock, and `git status` here.
 - gh: `C:/Users/Admin/tools/gh/bin/gh.exe -R staystale/Rac3r`.
+- **Second test PC** (owner 11-14 OK; on only when the owner turns it on): `ssh billj@192.168.1.13`
+  (key, cmd shell). It has 8 GB, Node 24, Git and Edge. The game is cloned from a git bundle at
+  `C:\Users\billj\work\rac3r-proof\repo`, with `npm ci` done. Touch nothing else there. Use it for
+  jobs SPLIT from the worker's list, never copies of them (owner: "don't double do work").
 
 ## itch.io push (owner says when)
 

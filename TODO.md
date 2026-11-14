@@ -24,8 +24,9 @@ records in `TODO-DONE.md` (PASSED 11-12). On the phone now:
   ranks the inefficiencies. No code change until the owner picks; each fix then behind its own
   switch, proven the same (renderhash / worldhash / simhash). The owner's phone (report 11-13):
   the MENU judders on big tracks (X Gayms, Le Mans: 11-16 missed frames in 5 s, our JS 5-12 ms).
-- PERFPASS (owner 11-13: "Yes to all"), behind ONE switch `?perfpass=1`, a commit each, each proven the
-  same (simhash on/off both seeds, worldhash, renderhash at night, a deliberate break each):
+- PERFPASS (owner 11-13: "Yes to all", "Give them all to me behind one switch"), behind ONE
+  switch `?perfpass=1`, a commit each, each proven the same (simhash on/off both seeds, worldhash,
+  renderhash at night, a deliberate break each):
   1 onLane by a lane reach grid; 2 the loose objects sleep on an awake list; 3 the barrier clamp by
   a segment grid; 4 the night layer (canopies by the prop grid, the season once a call, tree
   kinds kept, the light props and caravans listed, off-map head glows skipped, no lists a lamp);
@@ -45,6 +46,8 @@ records in `TODO-DONE.md` (PASSED 11-12). On the phone now:
     5-7 %; the night layer walks every prop (Spa: 8 000 trees) several times a frame.
   - Not in this pass: the ground-sample share, the AI index, car pictures, menu tiles, HUD text.
     The step cap (MAX_STEPS 12) stays as it is (owner: removed).
+  - The memory budget: owner 11-13 "Yes" (iPhone browsers report no memory). The long-session
+    leak run was offered and declined ("No").
 
 ## 3. OPEN, IN THE OWNER'S ORDER
 
@@ -59,6 +62,62 @@ ROUND 5, LOADING AND SPEED:
     Owner 11-10: "loading is only if we need it hopefully our performance pass will solve this and
     frame rate dropping below 60 on some tracks with large grids" - so the performance pass FIRST
     (the load times and the big-grid frame rate), the loading bar (14) only if a wait is left.
+
+### 3a2. The owner's list of 11-13 (bugs first, then tracks: "Do all tracks first", then cars)
+
+BUGS (each behind its own switch, measured, then a test link):
+1. FRONT TYRES DO NOT HEAT (seen on the F1 car, Test Lab; "they should heat up the same as rear
+   tyres"). MEASURED (headless, aids off and on, tarmac, 18 C): Formula Won, 20 s full-lock circle
+   fronts 37 / 51 C, rears 175 / 260; five stops from 60 m/s fronts 18 C for the first 6 s, 42 C at
+   the end, rears 165 (throttle wheelspin). The hatch's fronts reach 110. Cause: a gripping axle
+   warms only by cornering flex (physics/tyreheat.ts: braking force left out, and the work is read
+   against the load, which downforce inflates), so a front that never locks or slides gets no
+   braking heat and no smoke. Fix to agree: braking work warms a gripping axle; flex against the
+   static load.
+2. ROLLED CAR'S SIDE SEE-THROUGH (should be the paint, here light blue): which car to find.
+3. THE HUD COVERS THE PLAYER'S CAR on the highways: the car must never be under a control or HUD.
+4. RESETS: never put you ahead of where you were (inline or behind only); a car in the way: the
+   next free spot BEHIND; a reset does not clear the police (they go only when too damaged, or
+   having caught someone).
+5. WRONG WAY ON HIGHWAYS too quick (highway.ts BACK_T 1.2 s, BACK_M 30 m): time to turn round,
+   to spin or crash, to roll back a little.
+6. A HIGHWAY RACE WON BY PULLING AWAY while OFF THE ROAD: not allowed (owner 11-13). Off the road
+   still counts in a race to a line or against the clock.
+7. ROLLING STARTS: the AI holds a SPEED, not a throttle (faster cars bump slower ones).
+8. STUCK AI AND TRAFFIC: reset or vanish after 5-10 s stuck.
+9. AI SLOW ON SLIPPERY SURFACES (measure first: an AI change).
+10. HIGHWAY AI NOT DODGING ONCOMING TRAFFIC: back on (owner 11-13). Before: "ai don't dodge
+    properly", to measure what they miss (traffic, the player, wrecks); parked 11-10 ("let's leave
+    it for now").
+
+HIGHWAYS:
+11. MINIMAP: fuel stations, exits / road splits / slip roads, police.
+12. CHEVRON SIGNS in the country highways' lay-bys; on Deaf Valley too, fewer.
+13. BARRELS (impact attenuators) at the ends of central reservations, walled edges and slip-road
+    barriers, as in real life; infinite highways only. A barrel hit sprays water 2-6 squares.
+14. PARKED POLICE wake when passed with a wanted level on.
+15. TRAFFIC (and unaggravated police) stop for fuel now and then and take slip roads (the petrol
+    station stops exist, ai/trafficFuel.ts, 11-11: check how often); aggravated police as now.
+
+RACE TRACKS:
+16. PIT STOPS as in real life, cheap or free: each car its own box; stopped 30 %+ in the box opens
+    a picture menu (damage, tyres: same again / wets / slicks, the car's own choices as quick
+    buttons); the race goes on. Fuel: to agree. Questions first.
+17. LITTER / JUNK on race tracks: very light (props we have). To discuss.
+18. F1 vs WORLD CIRCUITS in the menu (split where a level opens a sub-menu).
+
+TRACKS (after the RX queue in 3b): DRIFT tracks (none yet; the drift cars exist), PIKES PEAK, other
+hill climbs and time attacks.
+
+CARS (after the tracks; FIRST: every car's updated pictures, its rolls and its damage, checked;
+"Don't build new cars until that's settled"). A few of each type, real-life copies with parody
+names: lorries and artics with CARGO a separate option (flatbed, box, haulage, military, fuel,
+milk: fuel and milk spill), a car transporter (loaded and empty), vans, 4x4 trucks, trophy trucks,
+Dakar support trucks, a monster truck, Land Rovers, Range Rovers, touring cars, more rally / RX /
+Group B, the Toyota TS010 and the Rebellion (Le Mans prototypes), a Porsche 911 GT3 R, a Caterham,
+Clio Cup, Saxo Max; buses (school bus, bus, double decker) and everyday cars (Focus, Ibiza, a
+"Freeari", Mercedes, Audi, electric: Tesla, BYD and worse) as TRAFFIC and drivable. The Pikes Peak
+cars: the Hoonigan pink Porsche, the BMW E36.
 
 ### 3b. Tracks (the venue helper builds, the foreman reviews, the owner passes; one switch each)
 
@@ -81,7 +140,17 @@ ROUND 5, LOADING AND SPEED:
   Park = BLIGHTY PARK, the Nitro-style one (after Glen Helen) = GLEN HELLISH, the swap-over = SWAPSIES. Real (traced, real tarmac / gravel
   split, real jumps, real joker), at FULL SIZE as the other short courses (NOTES: track scale), not
   stiff or boring, with the props pass and the barrier check in the first hand-over (NOTES: every
-  new track). One switch each.
+  new track). One switch each. PEMBREEZY ALSO AS A ROAD CIRCUIT (owner 11-13: "Pembreezy for an all
+  tarmac race track too"): the Pembrey circuit, all tarmac, at share 0.5 like the other circuits,
+  from the same map download as its RX lap. SHARE THE BUILD (owner 11-13: "use the same track where
+  possible to save reloading / rebuilding"): a venue's layouts at the SAME scale share one build
+  (world/venue.ts venueBuild), and each level, once built, is kept for the session; a short course
+  at full size (share 1) beside a half-size circuit is its own build of the same map data.
+  HOLY JEEZ QUESTIONS ANSWERED (owner 11-13: "Yes"): the fail points are the big crest jump after
+  the start and the tight gravel hairpin at the top, both at their real size; the joker as the real
+  race runs it (once, at the gravel split); dressed with pine forest, the crowd on the hillside and
+  the campers and caravans of the summer race weekend. Time and weather: the world clock (NOTES).
+  The map: OSM has every piece tagged asphalt / gravel and the joker (4 pieces).
 - DEMOLITION DERBY (owner 11-10: "Demolition derby levels classic tarmac circle - and we can reuse
   stock car tracks ect for that too"): a classic tarmac circle arena, and a derby mode on the stock
   car tracks (Stock Car, Grass Track, Old Wobbly). Questions when we come to it (the AI ramming, how
