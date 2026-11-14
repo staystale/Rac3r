@@ -7,6 +7,8 @@ import { LOOKAHEAD, ZOOM_MIN } from "../render.ts";
 import type { Cam, CamCar, CamState, Fly, TileBudget, View } from "./types.ts";
 import { trackCanvas } from '../core/memorybudget.ts';
 import { keptFlyPicture } from './flypicture.ts';
+import { hudClearPush } from './hudclear.ts';
+import type { ClearRect } from './hudclear.ts';
 
 // what createCamera destructures from the renderer
 interface CameraHelpers {
@@ -37,6 +39,14 @@ interface CameraCtx {
   drawPatches: () => void;
   drawCovers: () => void;
   drawCurvedKerbs: () => void;
+  // the HUD pieces the car keeps out from under (hudclear; main.ts sets it), or null
+  keepout: ((width: number, height: number) => ClearRect[]) | null;
+}
+
+/** What the HUD clearance reads of the followed car. */
+export interface ClearCar extends CamCar {
+  heading: number;
+  spec: { len: number; wid: number };
 }
 
 // SPEED ZOOM. Asked for by the user and by the playtesters: above ~120 km/h the car was running
@@ -362,6 +372,28 @@ function springZoom(ctx: CameraCtx, target: number, wallDt: number) {
 }
 
 /**
+ * The car kept out from under the HUD (?hudclear=1): after the follow and the zoom, the camera
+ * moves just enough that the car's box on screen (its length x width at its heading) clears
+ * every HUD piece (render/hudclear.ts). Not in the fly-in or the menu's view.
+ * @param ctx camera context
+ * @param car the followed car
+ */
+function clearHud(ctx: CameraCtx, car: ClearCar) {
+  const { view, cam, camState } = ctx;
+  if (!FIX.hudclear || !ctx.keepout || camState.fly || camState.menuView) return;
+  const rects = ctx.keepout(view.W, view.H);
+  if (!rects.length) return;
+  const ppm = ctx.PPMz(), cos = Math.abs(Math.cos(car.heading)),
+    sin = Math.abs(Math.sin(car.heading)), halfLen = car.spec.len / 2 * ppm,
+    halfWid = car.spec.wid / 2 * ppm;
+  const [right, down] = hudClearPush({ centreX: (car.x - cam.x) * ppm + view.W / 2,
+    centreY: (car.y - cam.y) * ppm + view.H / 2, halfX: cos * halfLen + sin * halfWid,
+    halfY: sin * halfLen + cos * halfWid }, rects, view.W, view.H);
+  cam.x -= right / ppm;
+  cam.y -= down / ppm;
+}
+
+/**
  * Build the camera layer.
  * @param view the canvas view
  * @param cam the camera
@@ -378,13 +410,17 @@ export function createCamera(view: View, cam: Cam, helpers: CameraHelpers) {
   };
   const ctx: CameraCtx = {
     view, cam, camState, PPMz, drawFloor, drawZones, drawLanes, drawTrackRibbon, drawPatches,
-    drawCovers, drawCurvedKerbs,
+    drawCovers, drawCurvedKerbs, keepout: null,
   };
   return {
     camState,
     follow: (car: CamCar, wallDt: number) => followCar(ctx, car, wallDt),
     updateFly: (car: CamCar, wallDt: number) => stepFly(ctx, car, wallDt),
     updateZoom: (car: CamCar, wallDt: number) => stepZoom(ctx, car, wallDt),
+    clearHud: (car: ClearCar) => clearHud(ctx, car),
+    setHudKeepout: (source: (width: number, height: number) => ClearRect[]) => {
+      ctx.keepout = source;
+    },
     flyIn: () => startFlyIn(ctx),
     thumbnail: (size = 320) => paintThumbnail(ctx, size),
     levelOverview: () => getLevelOverview(ctx),

@@ -350,6 +350,7 @@ function drawFrame(ctx: RenderCtx, game: RenderGame, wallDt: number, wallT: numb
   if (!ctx.updateFly(game.car, wallDt)) {
     ctx.follow(game.car, wallDt);
     ctx.updateZoom(game.car, wallDt);
+    ctx.clearHud(game.car);
   }
   const lock = applyViewLock(ctx, wallDt);
   ctx.state.wallDt = wallDt;
@@ -744,7 +745,7 @@ export function createRenderer(canvas: HTMLCanvasElement, settings: Settings) {
     get H() { return view.H; },
     get dpr() { return view.dpr; },
     cam, toScreenX, toScreenY, roundRect, flyIn: ctx.flyIn, thumbnail: ctx.thumbnail,
-    resize: () => resizeRenderer(ctx),
+    resize: () => resizeRenderer(ctx), setHudKeepout: ctx.setHudKeepout,
     frame: (game: RenderGame, wallDt: number, wallT: number) =>
       drawFrame(ctx, game, wallDt, wallT),
     snap(car: CamCar) {

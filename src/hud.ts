@@ -19,6 +19,7 @@
 
 import { layoutHud, hitHud, setHudMph, setHudTempF, setHudTyreHud, TYRE_HUD_KEY }
   from './hud/layout.ts';
+import { hudKeepout } from './hud/keepclear.ts';
 import { drawHudTrackTemp } from './hud/tracktemp.ts';
 import {
   drawHudLights,
@@ -165,6 +166,9 @@ export function createHud() {
 
   return {
     draw, hit, layout,
+    // the pieces drawn now, for the camera (?hudclear=1, hud/keepclear.ts)
+    keepout: (game: HudGame, width: number, height: number) => hudKeepout(state, game, width,
+      height),
     get tyreHud() { return state.tyreHud; }, setTyreHud,
     get mph() { return state.mph; }, setMph: (mph: boolean) => setHudMph(state, mph),
     get tempF() { return state.tempF; }, setTempF: (fahrenheit: boolean) => setHudTempF(state,
