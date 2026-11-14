@@ -10,8 +10,8 @@
 // WHAT IT IS MEANT TO FAIL YOU AT: the crest after the start taken flat (the car lands crooked
 // into the split) and the tight hairpin at the top, both at their real size.
 // ITS LOOK: pine forest round it, the crowd on the hillside above the hill gravel, the campers and
-// caravans of the summer race weekend in the clearing west of the top hairpin, the paddock by the mapped buildings.
-// The world clock and weather set its hour and sky. North up.
+// caravans of the summer race weekend in the clearing west of the top hairpin, the paddock by the
+// mapped buildings. The world clock and weather set its hour and sky. North up.
 import { HOLJES_VENUE } from "./venues/holjes.ts";
 import { venueLap } from "../venue.ts";
 import { rallycrossLevel } from "./rallycross-venue.ts";
