@@ -7,6 +7,11 @@
 
 // css px kept between the car and a HUD piece
 const CLEAR_MARGIN = 6;
+// passes: a push can move the car alongside another piece (MEASURED, 360x740: the R pedal's push
+// up took the car beside the ABS chip, whose push left had been worked out for where it was)
+const CLEAR_PASSES = 4;
+// reused each frame: the pushes of a pass, and the move so far
+const PUSH = { up: 0, down: 0, left: 0, right: 0 }, MOVED = [0, 0];
 // css px: as the car comes this near to passing under a piece from the side, its push builds from
 // nothing to the whole clearance, so the camera never jumps
 const CLEAR_RAMP = 32;
@@ -31,21 +36,20 @@ function rampAcross(carLow: number, carHigh: number, low: number, high: number):
 }
 
 /**
- * How far the car must move on screen to be clear of every HUD piece. Each piece pushes along one
- * axis, toward the screen's middle: up / down for a piece nearer the top or bottom edge than the
- * sides (by share of the screen), else left / right; a piece's push is the depth the car reaches
- * into it, scaled as the car comes alongside (rampAcross). The pushes each way are the largest
- * asked; opposite pushes cancel (a screen too small for the car).
+ * One pass: the pushes the pieces ask for with the car moved by the passes before.
  * @param box the car on screen
+ * @param moved [right, down] the passes before moved it, css px
  * @param rects the HUD pieces
  * @param width the screen's width, css px
  * @param height the screen's height, css px
  * @returns [right, down]: the move, css px
  */
-export function hudClearPush(box: ClearBox, rects: ClearRect[], width: number,
+function clearPass(box: ClearBox, moved: number[], rects: ClearRect[], width: number,
   height: number): [number, number] {
-  const { centreX, centreY, halfX, halfY } = box;
-  const push = { up: 0, down: 0, left: 0, right: 0 };
+  const centreX = box.centreX + moved[0], centreY = box.centreY + moved[1],
+    { halfX, halfY } = box;
+  const push = PUSH;
+  push.up = push.down = push.left = push.right = 0;
   for (const rect of rects) {
     const low = rect.x - CLEAR_MARGIN, high = rect.x + rect.w + CLEAR_MARGIN,
       top = rect.y - CLEAR_MARGIN, bottom = rect.y + rect.h + CLEAR_MARGIN;
@@ -61,4 +65,30 @@ export function hudClearPush(box: ClearBox, rects: ClearRect[], width: number,
     }
   }
   return [push.right - push.left, push.down - push.up];
+}
+
+/**
+ * How far the car must move on screen to be clear of every HUD piece. Each piece pushes along one
+ * axis, toward the screen's middle: up / down for a piece nearer the top or bottom edge than the
+ * sides (by share of the screen), else left / right; a piece's push is the depth the car reaches
+ * into it, scaled as the car comes alongside (rampAcross). The pushes each way are the largest
+ * asked; opposite pushes cancel (a screen too small for the car). Worked out again where the car
+ * was moved to, up to CLEAR_PASSES times, as a push can bring it alongside another piece.
+ * @param box the car on screen
+ * @param rects the HUD pieces
+ * @param width the screen's width, css px
+ * @param height the screen's height, css px
+ * @returns [right, down]: the move, css px
+ */
+export function hudClearPush(box: ClearBox, rects: ClearRect[], width: number,
+  height: number): [number, number] {
+  const moved = MOVED;
+  moved[0] = moved[1] = 0;
+  for (let pass = 0; pass < CLEAR_PASSES; pass++) {
+    const [moveX, moveY] = clearPass(box, moved, rects, width, height);
+    moved[0] += moveX;
+    moved[1] += moveY;
+    if (Math.abs(moveX) + Math.abs(moveY) < 0.5) break;
+  }
+  return [moved[0], moved[1]];
 }
