@@ -7,8 +7,8 @@ import { LOOKAHEAD, ZOOM_MIN } from "../render.ts";
 import type { Cam, CamCar, CamState, Fly, TileBudget, View } from "./types.ts";
 import { trackCanvas } from '../core/memorybudget.ts';
 import { keptFlyPicture } from './flypicture.ts';
-import { hudClearPush } from './hudclear.ts';
-import type { ClearRect } from './hudclear.ts';
+import { followPush, hudClearPush } from './hudclear.ts';
+import type { ClearRect, PushAxis } from './hudclear.ts';
 
 // what createCamera destructures from the renderer
 interface CameraHelpers {
@@ -43,15 +43,9 @@ interface CameraCtx {
   keepout: ((width: number, height: number) => ClearRect[]) | null;
   // the push on screen now, css px (eased toward what the HUD asks); the car's place last frame,
   // m (NaN before the first: a teleport - RESET, RESTART - takes the push whole)
-  clear: { x: number; y: number; carX: number; carY: number };
+  clear: { x: PushAxis; y: PushAxis; carX: number; carY: number };
 }
 
-// 1/s: how fast the HUD push eases toward what the pieces ask (a piece that appears or goes
-// moves the car over ~0.2 s, not in one frame)
-const CLEAR_EASE = 12;
-// css px / s the push always keeps up with: the car sliding toward a piece as the view leads
-// (MEASURED, _hudcover 390x844: eased alone, the push lagged a sliding car into the ABS chip)
-const CLEAR_FOLLOW = 600;
 // m in one frame: further than any car drives, so the car was put somewhere (a teleport)
 const CLEAR_TELEPORT_M = 15;
 
@@ -386,11 +380,10 @@ function springZoom(ctx: CameraCtx, target: number, wallDt: number) {
 /**
  * The car kept out from under the HUD (?hudclear=1): after the follow and the zoom, the camera
  * moves just enough that the car's box on screen (its length x width at its heading) clears
- * every HUD piece (render/hudclear.ts): a steady change followed at once (up to CLEAR_FOLLOW), a
- * sudden one (a piece that appears or goes) eased on the wall clock (CLEAR_EASE) so it never
- * jerks the view (the fly-in's hand-over too: MEASURED, taken whole there it jumped 33 px at
- * 667x375); taken whole after a teleport. Not in
- * the fly-in or the menu's view. The push reads the car where the follow put it, never where the
+ * every HUD piece (render/hudclear.ts), moved toward that with its speed changing smoothly
+ * (followPush: the fly-in's hand-over and a piece that appears too - MEASURED, taken whole at the
+ * hand-over it jumped 33 px at 667x375); taken whole after a teleport. Not in the fly-in or the
+ * menu's view. The push reads the car where the follow put it, never where the
  * push moved it, so it cannot fight the look-ahead.
  * @param ctx camera context
  * @param car the followed car
@@ -406,20 +399,11 @@ function clearHud(ctx: CameraCtx, car: ClearCar, wallDt: number) {
   const [right, down] = hudClearPush({ centreX: (car.x - cam.x) * ppm + view.W / 2,
     centreY: (car.y - cam.y) * ppm + view.H / 2, halfX: cos * halfLen + sin * halfWid,
     halfY: sin * halfLen + cos * halfWid }, rects, view.W, view.H);
-  const moved = Math.hypot(car.x - clear.carX, car.y - clear.carY) > CLEAR_TELEPORT_M;
-  const whole = moved, ease = 1 - Math.exp(-CLEAR_EASE * wallDt),
-    follow = CLEAR_FOLLOW * wallDt;
-  const toward = (now: number, goal: number) => {
-    const gap = goal - now;
-    return whole ? goal : now + Math.sign(gap) * Math.min(Math.abs(gap),
-      Math.max(follow, Math.abs(gap) * ease));
-  };
+  const whole = Math.hypot(car.x - clear.carX, car.y - clear.carY) > CLEAR_TELEPORT_M;
   clear.carX = car.x;
   clear.carY = car.y;
-  clear.x = toward(clear.x, right);
-  clear.y = toward(clear.y, down);
-  cam.x -= clear.x / ppm;
-  cam.y -= clear.y / ppm;
+  cam.x -= followPush(clear.x, right, wallDt, whole) / ppm;
+  cam.y -= followPush(clear.y, down, wallDt, whole) / ppm;
 }
 
 /**
@@ -440,7 +424,8 @@ export function createCamera(view: View, cam: Cam, helpers: CameraHelpers) {
   const ctx: CameraCtx = {
     view, cam, camState, PPMz, drawFloor, drawZones, drawLanes, drawTrackRibbon, drawPatches,
     drawCovers, drawCurvedKerbs, keepout: null,
-    clear: { x: 0, y: 0, carX: NaN, carY: NaN },
+    clear: { x: { pos: 0, vel: 0, goal: 0 }, y: { pos: 0, vel: 0, goal: 0 }, carX: NaN,
+      carY: NaN },
   };
   return {
     camState,
