@@ -19,6 +19,8 @@ export const TEST_LIST: TestEntry[] = [
     where: 'Test link + &exitpuns=1: a countryside highway, the exit signs',
     try: 'Drive past a few exits and read the signs.',
     wrong: 'A real town left (GOOLE, SCUNTHORPE, BRIGG, HOWDEN), a sign cut off or overlapping.',
+  },
+  {
     id: 'rollside',
     added: '2026-11-14',
     name: 'A rolled car is solid: no see-through lines on its sides or roof',
@@ -28,6 +30,8 @@ export const TEST_LIST: TestEntry[] = [
       + 'rests on its side or roof. Try a damaged car too.',
     wrong: 'Ground showing through the body (thin lines or gaps), a wrong colour on a side, '
       + 'wheels or wings drawn where they were not before, a jerky roll.',
+  },
+  {
     id: 'frontheat',
     added: '2026-11-14',
     name: 'Front tyres warm when you brake (every car)',
