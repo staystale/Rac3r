@@ -56,7 +56,8 @@ async function startRace([aiCount, laps, car]) {
     entry.car), lap: 1, laps }), reverse: 0, shiftUp: false, shiftDown: false });
   const sub = lab.LEVEL.subtrack, lanes = lab.LEVEL.lanes;
   const half = sub.width / 2;
-  const rec = window.__hjrec = { cars: [], lastT: performance.now() };
+  const rec = window.__hjrec = { cars: [], lastT: performance.now(), offBins: {}, resetAt: [] };
+  const flowT = () => (game.flow ? game.flow.t : 0);
   const onAnyLane = (x, y) => lanes.some((lane) => {
     for (let i = 1; i < lane.pts.length; i++) {
       const [ax, ay] = lane.pts[i - 1], [bx, by] = lane.pts[i];
@@ -68,12 +69,21 @@ async function startRace([aiCount, laps, car]) {
   });
   const sample = (car, slot, dt) => {
     const own = rec.cars[slot] ??= { off: 0, resets: 0, passes: [], pass: null, x: car.x, y: car.y };
-    if (Math.hypot(car.x - own.x, car.y - own.y) > 8) own.resets++;
+    const hit = lab.querySubtrack(sub, car.x, car.y);
+    if (Math.hypot(car.x - own.x, car.y - own.y) > 8) {
+      own.resets++;
+      const was = lab.querySubtrack(sub, own.x, own.y);
+      rec.resetAt.push(`${slot}@${was.trackDist.toFixed(0)}m(${was.dist.toFixed(0)} off)`);
+    }
     own.x = car.x;
     own.y = car.y;
-    const hit = lab.querySubtrack(sub, car.x, car.y);
     const off = hit.dist > half + 1.5 && !onAnyLane(car.x, car.y);
-    if (off) own.off += dt;
+    if (off) {
+      own.off += dt;
+      // (the first seconds after the green apart: the grid stands back down the start lane)
+      const key = (flowT() < 12 ? 'start ' : '') + String(Math.floor(hit.trackDist / 50) * 50);
+      rec.offBins[key] = (rec.offBins[key] || 0) + dt;
+    }
     const speed = Math.hypot(car.vx, car.vy) * 3.6;
     const inWindow = hit.dist < 12 && hit.trackDist >= 80 && hit.trackDist <= 140;
     let pass = own.pass;
@@ -124,6 +134,8 @@ function readReport() {
   const entries = flow ? flow.entries : [];
   return {
     flowState: flow && flow.state,
+    offBins: rec.offBins,
+    resetAt: rec.resetAt,
     raceT: flow && flow.t,
     cars: cars.map((car, slot) => {
       const entry = entries.find((one) => one.car === car) || {};
@@ -164,5 +176,9 @@ function printReport(report, state, errors, run) {
     + ` airborne ${flown.length} (most ${Math.max(0, ...flown.map((pass) => pass.air)).toFixed(2)}`
     + ` s), landed ${landed.length}, worst landing angle ${worstLand.toFixed(0)} deg, off the road`
     + ` after a landing ${offAfter}`);
+  const bins = Object.entries(report.offBins).sort((one, two) => two[1] - one[1]);
+  console.log('seconds off the road by lap metre (all cars):', bins.map(([key, secs]) =>
+    `${key}: ${secs.toFixed(1)}`).join(', '));
+  console.log('resets (car@lap m, m off the centreline before):', report.resetAt.join(' '));
   console.log(errors.length ? `PAGE ERRORS ${errors.slice(0, 3).join(' | ')}` : 'no page errors');
 }
