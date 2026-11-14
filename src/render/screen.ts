@@ -33,6 +33,9 @@ export interface ScreenCtx {
   drawMarks: (marks: RenderMarks) => void;
   drawRain: () => void;
   drawOverPuffs: (wallDt: number) => void;
+  // ?smoothfly=1, zoomed out in the fly-in: the over-the-cars layers' picture drawn (true) in place
+  // of the live props and bridges' ground (render/flylayers.ts)
+  flyLayers: { over: () => boolean };
   drawSparks: (wallDt: number, target: CanvasRenderingContext2D) => void;
 }
 
@@ -122,9 +125,11 @@ export function drawSharpCarLayers(ctx: ScreenCtx, game: RenderGame, lock: Scree
   // steam and engine smoke rise off the bonnets, over the cars (render/enginesmoke.ts) - but under
   // what is overhead: a bridge's deck, a gantry, a tree's canopy covers the smoke beneath it
   if (!ctx.skip('fx')) ctx.drawOverPuffs(state.wallDt);
-  if (!ctx.skip('props')) ctx.drawProps(true);
-  // a bridge's own ground (its water, oil, glass) on its deck and ramps (world/deckwear.ts)
-  if (LEVEL.crossings && !ctx.skip('ground')) ctx.drawCrossingGround('bridge');
+  if (!ctx.flyLayers.over()) {
+    if (!ctx.skip('props')) ctx.drawProps(true);
+    // a bridge's own ground (its water, oil, glass) on its deck and ramps (world/deckwear.ts)
+    if (LEVEL.crossings && !ctx.skip('ground')) ctx.drawCrossingGround('bridge');
+  }
   if (!ctx.skip('rain')) ctx.drawRain();
   blitArt(ctx, lock);
   if (!LEVEL.crossings) return;

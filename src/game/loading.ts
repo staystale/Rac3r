@@ -12,6 +12,7 @@ import { createLoadScreen } from '../menu/loadscreen.ts';
 import { PRESS_BLINK_MS } from '../menu/pixelstyle.ts';
 import { shared, game } from './state.ts';
 import type { LoadScreen } from '../menu/loadscreen.ts';
+import type { RenderGame } from '../render/types.ts';
 
 /** One piece of the work behind the screen. */
 export interface LoadStage {
@@ -92,7 +93,8 @@ export function readyStages(): LoadStage[] {
       if (state.fieldsQueued === 0)
         state.groundLeft = shared.renderer.paintStartGround(game.car, TILES_A_SLICE);
     }, more: () => state.fieldsQueued > 0 || state.groundLeft },
-    { key: 'picture', weight: 0.08, work: () => shared.renderer.readyFlyIn() },
+    { key: 'picture', weight: 0.08,
+      work: () => shared.renderer.readyFlyIn(game as unknown as RenderGame) },
   ];
 }
 

@@ -41,6 +41,8 @@ import { noteBodies } from "./render/leafpop.ts";
 import { onGround } from "./world/crossinggeo.ts";
 import { LEVEL } from "./world/state.ts";
 import { trackCanvas } from './core/memorybudget.ts';
+import { createFlyLayers, NO_FLY_LAYERS } from './render/flylayers.ts';
+import type { FlyLayers } from './render/flylayers.ts';
 
 // PPM is derived from the SHORT side of the viewport, so the car is a consistent fraction of the
 // screen everywhere (a flat PPM of 16 put a 4 m car at 64 px on a 1280 px desktop, too small
@@ -105,6 +107,8 @@ type RenderCtx = {
   toScreenY: (worldY: number) => number;
   drawRain: () => void;           // the falling rain, into the art buffer (render/rain.ts)
   drawNight: (game: RenderGame, lock: ViewLock) => void;   // ?night= (render/light.ts)
+  // ?smoothfly=1: the fly-in's still layers as two pictures (render/flylayers.ts)
+  flyLayers: FlyLayers;
 } & ReturnType<typeof createGround> & ReturnType<typeof createRoad>
   & ReturnType<typeof createParticles> & ReturnType<typeof createCars>
   & ReturnType<typeof createProps> & ReturnType<typeof createObjects>
@@ -228,16 +232,32 @@ function drawWorldLayers(ctx: RenderCtx, game: RenderGame, lock: ViewLock, wallT
     ctx.gpu.drawField(ctx.gpuCamera);
     ctx.gpu.drawShade(ctx.gpuCamera);
   }
+  // (?smoothfly=1, zoomed out in the fly-in: the still layers from one picture; the arrows pulse
+  // and the marks stay live, over it)
+  const isPictured = ctx.flyLayers.under(game);
   if (!skip('deck')) {
-    ctx.drawRunoff();
-    ctx.drawKerb();
-    ctx.drawBumps();
-    ctx.drawPaint();
+    if (!isPictured) {
+      ctx.drawRunoff();
+      ctx.drawKerb();
+      ctx.drawBumps();
+      ctx.drawPaint();
+    }
     ctx.drawArrows(game, wallT);
   }
   if (!skip('marks')) {
     drawMarksOnScreen(ctx, game, lock);
   }
+  if (!isPictured) drawStillLayers(ctx, game);
+}
+
+/**
+ * The layers that hold still at a start: the fence, barriers, props, the tunnels' ground, the
+ * loose objects and the tape.
+ * @param ctx the renderer context
+ * @param game the game to draw
+ */
+function drawStillLayers(ctx: RenderCtx, game: RenderGame) {
+  const { skip } = ctx;
   if (!skip('fence')) ctx.drawFence();
   if (!skip('barriers')) ctx.drawBarriers();
   if (!skip('props')) ctx.drawProps();
@@ -664,10 +684,12 @@ function loadingHelpers(ctx: RenderCtx) {
   return {
     paintStartGround: (car: CamCar, maxTiles: number) =>
       ctx.prepareAround(car.x, car.y, ctx.FLY_HANDOVER, maxTiles),
-    readyFlyIn() {
+    readyFlyIn(game?: RenderGame) {
       ctx.flyIn();
       const overview = ctx.camState.fly && ctx.camState.fly.ov;
       if (overview && ctx.state.gpuOn) ctx.gpu.sink.preload(overview.c, true);
+      // (?smoothfly=1: its still layers' pictures too)
+      if (game) ctx.flyLayers.ready(game);
     },
   };
 }
@@ -705,14 +727,14 @@ export function createRenderer(canvas: HTMLCanvasElement, settings: Settings) {
     buildModules(view, cam, settings, { PPMz, toScreenX, toScreenY, ...gpuHelpers(state, gpu) });
   const ctx: RenderCtx = {
     canvas, view, cam, state, skip, mainCtx, pcanvas, pctx, gpu, PPMz,
-    drawRain: rainDrawer(pctx, state),
+    drawRain: rainDrawer(pctx, state), flyLayers: NO_FLY_LAYERS,
     groundPatches: [], toScreenX, toScreenY, noShade: settings.noShade, maxDpr: settings.maxDpr,
     gpuCamera: { x: 0, y: 0, devPerMetre: 1, screenX: 0, screenY: 0 },
     ...ground, ...road, ...particles, ...cars, ...props, ...objects, ...camera, ...tiles,
     drawNight: createNight({ view, pcanvas, mainCtx, state, PPMz, toScreenX, toScreenY,
       sparks: particles.sparks }),
   };
-  const { camState, tileState } = ctx;
+  const { camState, tileState } = Object.assign(ctx, { flyLayers: createFlyLayers(ctx) });
   return {
     // the HUD draws on the full-resolution screen, even in pixel mode
     get ctx() { return mainCtx; },

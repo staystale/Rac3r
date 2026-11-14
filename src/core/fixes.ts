@@ -58,4 +58,7 @@ export const FIX = {
   // and a RESTART keeps the fly-in's whole-level picture while nothing it shows has changed
   // (render/flypicture.ts)
   onestart: atLoad('onestart'),
+  // the fly-in zoomed out draws its still layers (props, cones, fence ...) from two pictures
+  // painted once, not item by item (render/flylayers.ts)
+  smoothfly: atLoad('smoothfly'),
 };
