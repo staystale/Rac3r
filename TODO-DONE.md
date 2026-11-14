@@ -13,6 +13,50 @@ rolls - OWNER 11-07; the AI rework - Where we are 11-04; the driving root fix, t
 LIST 11-01; TypeScript, mud, grass, lamps - Queue; weather, surfaces, car systems, damage,
 lighting, bushes and trees - OWNER LIST 10-24; the checking tools - Tools that are wrong.
 
+## PASSED 11-14 (owner: "Pass on both") - BUGS 1 and 2: the front tyres warm from braking, a rolled car solid; now the default
+
+The switches `?frontheat=1` and `?rollside=1` and their old paths removed (tyreheat.ts utilOf is
+flexWork alone; rollbody.ts always closeRing). Old code with ?frontheat=1 against the new code: simhash SAME on all 13 runs
+(its hash 441c130c...; it differs from main's, as the passed switch changes the tyre heat). As recorded in TODO 3a2:
+
+1. FRONT TYRES DO NOT HEAT (seen on the F1 car, Test Lab; "they should heat up the same as rear
+   tyres"). MEASURED (headless, aids off and on, tarmac, 18 C): Formula Won, 20 s full-lock circle
+   fronts 37 / 51 C, rears 175 / 260; five stops from 60 m/s fronts 18 C for the first 6 s, 42 C at
+   the end, rears 165 (throttle wheelspin). The hatch's fronts reach 110. Cause: a gripping axle
+   warms only by cornering flex (physics/tyreheat.ts: braking force left out, and the work is read
+   against the load, which downforce inflates), so a front that never locks or slides gets no
+   braking heat and no smoke. Fix to agree: braking work warms a gripping axle; flex against the
+   static load.
+   BUILT 11-14 behind ?frontheat=1 (testlist 'frontheat'; the rule R1 the foreman chose, owner's
+   aim "like real life"): the flex warm-up reads the brake pedal's force with the cornering force
+   against the STATIC load, on a locked axle too (braking only; the handbrake left out), toward
+   85 C as before; slip work (sliding, spin, lock, rolling scrub) unchanged and uncapped, so hard
+   cornering still overheats a tyre as now. MEASURED (laptop, headless, every car, aids off/on):
+   - tools/scratch/_frontheat.mjs, five hard stops (the phone's brake ramp) from up to 60 m/s,
+     fronts must end >= 60 C: OLD FAILS 12 (aids on: hatch-rwd 37, saloon 33, wrz 45, estate 41,
+     muscle 34, lambo 50, banger 53; aids off: 51-57), NEW PASSES all (lowest: saloon 62 aids on).
+     The F1 (it locks its fronts at the brake's first bite) 76 -> 93.
+   - _heatlaps.mjs (one racing AI, difficulty 4, laps 2-4): Thruston fronts 76-107 C, Spa 70-100 C,
+     every car but the tractor; NEW within -5..+3 C of OLD, the same as two runs of one code (the
+     lap runs are not repeatable to the degree: the drift car moves 5 C run to run).
+   - _heatcases.mjs: launches and donuts within 1 C (FWD / 4WD fronts heat from wheelspin as
+     before: donut hatch-fwd 126/61, Maxi 153/62, WRZ 119/75, rally 106/98, RX 121/94); ten stops
+     ABS cars aids on 34-68 -> 62-78 C; 90 s arcs within 3 C, the Naffcar's limit arc aside (its
+     rears 259 -> 121: on the limit the car stops sliding with warmer fronts).
+   FINDING (left, foreman 11-14): the tractor's tyres stay under the window in racing (Thruston
+   58 / 56 C, Spa 60 / 59) whatever the rule.
+2. ROLLED CAR'S SIDE SEE-THROUGH (should be the paint, here light blue): which car to find.
+   BUILT 11-14 behind ?rollside=1 (testlist 'rollside'). EVERY car, not one: a rolled body's
+   cross-section (render/rollbody.ts, a superellipse) bunched its points at the corners, so on
+   a boxy car's flat side and roof the picture rows between two far-apart points were left clear
+   and the ground showed through as thin lines. Fix: points added along each straight of the
+   outline, no more than 0.45 px apart (closeRing). MEASURED (tools/scratch/_rollholes.mjs, all
+   19 cars x 12 roll angles, see-through pixels stock / light blue paint / damaged): off 11312 /
+   11312 / 10670, worst the muscle car (200 a picture side-on), the Naffcar and the saloon;
+   on 4 / 4 / 14 (single pixels between the F2's wing and tub, the damaged WRZ, Maxi and S13).
+   Photos (game, Test Lab, held on its side, 844x390 and 390x844): the off ones show the white
+   ground through the muscle car's and the hatch's sides; the on ones are solid paint.
+
 ## PASSED 11-14 (owner: "Pass all three") - THE LAP LENGTHS AS DATA and THE RALLY STAGES' THUMBNAILS, now the default
 
 The switches `?lapdata=1` and `?stagethumbs=1` and their old paths removed (the menu always reads

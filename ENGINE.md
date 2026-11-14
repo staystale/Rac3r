@@ -126,8 +126,8 @@ A top-down two-axle model with four tyre temperatures. `step(car, input, dt)`, i
 6. `bodyAccelerations`, `integrateYaw`, `lowSpeedBlend` - body motion; a blend near standstill.
 7. `updateTyreTemps` (`physics/tyreheat.ts`), `advanceCar`, `writeTelemetry`. A tyre heats by slip
    work (uncapped: sliding, spinning, locking, and a gripping axle's rolling scrub) and by FLEX, a
-   warm-up toward 85 C read from how hard its axle works. Under `?frontheat=1` (`flexWork`) the
-   flex reads the brake pedal's force with the cornering force, against the axle's static load
+   warm-up toward 85 C read from how hard its axle works. The flex (`flexWork`, the default since
+   11-14) reads the brake pedal's force with the cornering force, against the axle's static load
    (downforce no longer hides the work), on a locked axle too (its braking only); the handbrake
    stays out. Measured (`tools/scratch/_frontheat.mjs`, `_heatcases.mjs`, `_heatlaps.mjs`): five
    hard stops leave every car's fronts at 60 C or more (ABS cars 33-50 -> 62-76), racing laps
@@ -225,8 +225,8 @@ the night light map (`render/light.ts drawSparkGlows`).
   `particles.ts`.
 - A rolled car (`render/rollbody.ts`) is drawn as a body: each column of the car a rounded
   cross-section (a superellipse as round as `physics/rollshape.ts` says), turned to one of 12
-  angles, each picture row the nearest point of the turned outline. Under `?rollside=1`
-  (`closeRing`) the outline gets points along each straight between two of its own, no more than
+  angles, each picture row the nearest point of the turned outline. The outline (`closeRing`, the
+  default since 11-14) gets points along each straight between two of its own, no more than
   0.45 px apart: a boxy car's superellipse bunches its points at the corners, and the rows between
   two far-apart points on a flat side or roof were left clear, the ground showing through
   (`tools/scratch/_rollholes.mjs`: every car, 12 angles, see-through pixels 11312 -> 4).

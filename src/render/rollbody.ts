@@ -28,7 +28,6 @@ import { SPRITE_PPM } from './shared.ts';
 import { readSoon, spritePixels } from './spritepixels.ts';
 import type { CarSprite, RenderCar, RenderCarSpec } from './types.ts';
 import { trackCanvas } from '../core/memorybudget.ts';
-import { FIX } from '../core/fixes.ts';
 
 // 12 pictures a turn; the light in BANDS steps, from above and AHEAD a little (the windscreen and
 // the rear screen shade apart from the roof); above the waist the cabin leans in, CABIN_IN of its
@@ -41,7 +40,7 @@ const BLUR: [number, number][] = [[0.07, 0.12], [0.035, 0.25]], BLUR_W = 4, WHOO
 // m: an open car's sidepods' top
 const POD_M = 0.55;
 const TYRE_RGB = 0x16171c, OPENING = [29, 30, 35], GREY = 0x8a8d96;
-// px: the widest step between two points of a cross-section's outline (rollside): under half a
+// px: the widest step between two points of a cross-section's outline (closeRing): under half a
 // picture row, so a turned outline reaches every row it spans
 const RING_GAP = 0.45;
 
@@ -426,7 +425,7 @@ function section(samples: Samples, x: number, col: Column,
   // (each point once; its normal from its neighbours either side)
   const turns: number[][] = [];
   for (let i = 0; i < count; i++) turns.push(point((i / count) * 2 * Math.PI));
-  const ring = FIX.rollside ? closeRing(turns) : turns, points = ring.length;
+  const ring = closeRing(turns), points = ring.length;
   for (let i = 0; i < points; i++) {
     const [y, z] = ring[i], [backY, backZ] = ring[(i + points - 1) % points],
       [nextY, nextZ] = ring[(i + 1) % points];
