@@ -13,6 +13,17 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'nightfly',
+    added: '2026-11-14',
+    name: 'Night fly-in as smooth as by day (the dark over the trees, the lamps as pictures)',
+    where: 'Test link + &loadscreen=1&onestart=1&smoothfly=1&nightfly=1&report=1: TEST MODE, '
+      + 'TIME OF DAY night, LAUNCH Spa (20 AI), then RESTART; also a solo practice by day',
+    try: 'Watch the fly-in at night: it should glide as by day and look as before (lamp '
+      + 'pools, signs, stands, the trees dark over the light). Drive under trees at night.',
+    wrong: 'A stutter at night, a lamp pool or sign light popping or shifting as it zooms in, '
+      + 'a tree top lit by a lamp or headlight, a dark square where light should be.',
+  },
+  {
     id: 'exitpuns',
     added: '2026-11-14',
     name: 'Countryside exit signs as puns: GHOULE, SKUNKTHORPE, BRIGGADOON, HOWDY-DEN',

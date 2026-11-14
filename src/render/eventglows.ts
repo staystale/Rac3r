@@ -32,7 +32,19 @@ export interface EventPainter {
   isNear: (x: number, y: number, reach: number) => boolean;
   // a probe (the canopy cut, render/canopycut.ts): each light's reach noted, nothing painted
   note?: NoteLight;
+  // ?nightfly=1: only the lights that stay put (painted once into the fly-in's pictures) or only
+  // those that move or change (a train, a caravan, the start lights); unset: every light
+  part?: 'still' | 'moving';
 }
+
+/**
+ * Whether a painter paints this part's lights.
+ * @param painter the painter
+ * @param isStill the lights stay put
+ * @returns true when they are painted
+ */
+const paintsPart = (painter: EventPainter, isStill: boolean) =>
+  !painter.part || painter.part === (isStill ? 'still' : 'moving');
 
 /** Notes a light's reach: its centre, world m, and a radius, m, that holds all it paints. */
 export type NoteLight = (x: number, y: number, radiusM: number) => void;
@@ -297,9 +309,22 @@ function gantryLights(painter: EventPainter, isTint: boolean, prop: Prop, game: 
     noteGantry(painter.note, prop);
     return;
   }
-  glow(painter, isTint, prop.x, prop.y, width / 2 + 2, WHITE, BAR,
-    { wideM: BAR_DEPTH_M, rot });
-  const start = game.start;
+  if (paintsPart(painter, true)) {
+    glow(painter, isTint, prop.x, prop.y, width / 2 + 2, WHITE, BAR, { wideM: BAR_DEPTH_M, rot });
+  }
+  if (paintsPart(painter, false)) startLights(painter, isTint, prop, game);
+}
+
+/**
+ * A start gantry's start lights: reds one a second while the start is held, then all green for a
+ * few seconds.
+ * @param painter the light map
+ * @param isTint the tint pass
+ * @param prop the gantry
+ * @param game the game (its start)
+ */
+function startLights(painter: EventPainter, isTint: boolean, prop: Prop, game: RenderGame) {
+  const rot = prop.rot || 0, width = prop.wid || 26, start = game.start;
   if (!start || !start.on || LEVEL.endless) return;
   const sinceGreen = start.t - start.tGreen;
   const isGreen = start.green && sinceGreen < GREEN_HOLD_S;
@@ -390,12 +415,15 @@ function caravansOf(cones: RenderCone[]): RenderCone[] {
 function propLights(painter: EventPainter, isTint: boolean, game: RenderGame): void {
   for (const prop of litPropsNow()) {
     if (prop.kind === 'marshal') {
-      if (!isHutWrecked(prop)) glow(painter, isTint, prop.x, prop.y, BEACON_M, AMBER, BEACON);
+      if (!isHutWrecked(prop) && paintsPart(painter, true)) {
+        glow(painter, isTint, prop.x, prop.y, BEACON_M, AMBER, BEACON);
+      }
     }
     else if (prop.kind === 'bridge') {
-      if (prop.carries === 'rail') trainLights(painter, isTint, prop);
+      if (prop.carries === 'rail' && paintsPart(painter, false)) trainLights(painter, isTint, prop);
     }
-    else propLightOf(painter, prop, game, isTint);
+    else if (prop.kind === 'gantry') gantryLights(painter, isTint, prop, game);
+    else if (paintsPart(painter, true)) propLightOf(painter, prop, game, isTint);
   }
 }
 
@@ -438,8 +466,10 @@ function caravanLights(painter: EventPainter, isTint: boolean, cones: RenderCone
 export function drawEventGlows(painter: EventPainter, isTint: boolean, game: RenderGame): void {
   if (!lampsLit()) return;
   propLights(painter, isTint, game);
-  for (const bulbs of stageFairyLights(LEVEL)) fairyString(painter, isTint, bulbs);
-  caravanLights(painter, isTint, game.cones.list);
+  if (paintsPart(painter, true)) {
+    for (const bulbs of stageFairyLights(LEVEL)) fairyString(painter, isTint, bulbs);
+  }
+  if (paintsPart(painter, false)) caravanLights(painter, isTint, game.cones.list);
   painter.lightCtx.globalAlpha = 1;
 }
 

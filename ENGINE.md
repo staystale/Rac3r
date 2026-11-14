@@ -101,7 +101,29 @@ kept as image bitmaps (a WebKit canvas drawn into another is copied at each draw
 picture's canvas is held), within 24 MB together and 2048 px a side (past either, fewer px a
 metre: softer); a refused canvas or bitmap is noted, never thrown. `renderer.flyStats` and the
 `?report=1` post's `flySets` (with the switch) count the sets, their MB, the frames drawn from a set
-and those of a planned fly-in drawn live. Switch off: as before.
+and those of a fly-in drawn live (`live`, and `liveWhy`: every zoomed-out frame drawn live is
+counted). The field counts as still while the start is armed and not green, or while the loading
+screen's fly-in holds the race (a solo practice has no lights). Switch off: as before.
+
+THE NIGHT FLY-IN (`?nightfly=1`, `FIX.nightfly`): two parts.
+- THE CANOPY CUT (`render/canopycut.ts`; with or without `?smoothfly=1`): the night layer puts its
+  dark back only over the canopies a light may reach. The still lights (lamp pools and heads, the
+  event lights that stay put, `eventglows.ts noteStillEventLights` through a probe painter) are
+  walked once per level through the prop grid (`propgrid.ts visitPropsInBox`; again when the props,
+  the lamps or the level change), each tree keeping its gap to the nearest; the moving lights
+  (every car's beams and glows, `light.ts carLightReachM`; sparks; trains; caravans; a knocked
+  lamp's head) are walked each frame. A tree within 3 light-map px of a light is traced; a canopy
+  no light reached is already exactly the dark, so the pixels are the same. Every canopy on the
+  endless road, or on a map coarser than 3 px in 64 m.
+- THE NIGHT PICTURES (with `?smoothfly=1`): while the lamps are lit when a fly-in is planned, each
+  set also gets two night pictures at half its px a metre (`flylayers.ts paintNight`, inside the
+  24 MB): the lamps' pools and heads and the still event lights, white (the rub-out) and tinted
+  (`light.ts makeLampLights paintStill`; `lamppools.ts`). While a set stands, the light map
+  rubs out with the white picture and tints with the other (`paintFromStill`, or the decks' order
+  with `fromStill`); the moving and changing lights (cars, a train, caravans, the start lights:
+  `eventglows.ts part`) stay live; the canopy cut follows. The heads' tint goes in before the
+  cars' tints (live: after). `flyStats` / `?report=1` `flySets`: `nightMade`, `nightDrawn`,
+  `nightFailed`, and `canopyCut` (canopies darkened / on the map, the last night frame).
 
 ## The car (`vehicle.ts` and `physics/`)
 

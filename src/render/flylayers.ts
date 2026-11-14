@@ -22,7 +22,11 @@ import { LEVEL } from '../world/state.ts';
 import { trackCanvas } from '../core/memorybudget.ts';
 import { FIX } from '../core/fixes.ts';
 import { flyViewAt } from './camera.ts';
+import { lampsLit } from '../world/lamps.ts';
+import { DAYLIGHT } from '../world/daylight.ts';
+import { CANOPY_STATS } from './canopycut.ts';
 import type { Cam, CamCar, CamState, Fly, RenderGame, View } from './types.ts';
+import type { PaintStill, StillMap, StillNight } from './light.ts';
 
 // the zoom from which the props and loose objects are drawn live. MEASURED (_flycost, Spa, CPU
 // x1, the second PC): live, the frame's drawing took 48 ms at zoom 0.04, 25 at 0.07, 9-15 at
@@ -40,6 +44,9 @@ const PICTURE_MAX_PX = 2048;
 // owner's iPhone the sets were never drawn (the frames' JS as with the switch off)
 const SETS_BUDGET_MB = 24;
 const BYTES_MB = 1048576;
+// ?nightfly=1: a set's night pictures (the lamps' pools and heads, the still event lights: soft
+// light) at this share of its pictures' px a metre - a quarter of their memory each
+const NIGHT_SHARE = 0.5;
 // share of a set's views added round its pictures (the path between two samples)
 const RECT_MARGIN = 0.05;
 // points of the fly-in's path read to find each set's views
@@ -65,6 +72,7 @@ export interface FlyLayersCtx {
   drawCrossingGround: (kind: 'bridge' | 'tunnel') => void;
   drawCones: (cones: RenderGame['cones']['list']) => void;
   drawTape: (game: RenderGame) => void;
+  paintStillNight: PaintStill;   // ?nightfly=1 (render/light.ts)
 }
 
 /** One set: the zooms it stands in for, its world rectangle and its pictures (once painted). */
@@ -75,10 +83,13 @@ interface PictureSet {
   pxPerMetre: number;   // its pictures' px a metre (at most the art buffer's at zoomTo)
   under: ImageBitmap | null;
   over: ImageBitmap | null;
+  rub: ImageBitmap | null;    // ?nightfly=1: the still night lights, white (the rub-out)
+  tint: ImageBitmap | null;   // and their tints
 }
 
-// the fly-in the sets were planned for, and the sets
-let planned: { fly: Fly; sets: PictureSet[] } | null = null;
+// the fly-in the sets were planned for, the sets, and whether they hold night pictures (the
+// lamps lit when planned)
+let planned: { fly: Fly; sets: PictureSet[]; isNight: boolean } | null = null;
 // the set standing in this frame (under() decides, over() follows)
 let standing: PictureSet | null = null;
 
@@ -91,6 +102,10 @@ export const FLY_STATS = {
   //                   held, the view off its set, a picture not ready or refused, no set)
   liveWhy: '',      // why the last of those was drawn live
   failed: '',       // why the last fly-in made no set, or ''
+  nightMade: 0,     // ?nightfly=1: night pictures made for the last fly-in (two a set)
+  nightDrawn: 0,    // frames whose night layer drew its still lights from them (since opened)
+  nightFailed: '',  // why a night picture was not made, or ''
+  canopyCut: CANOPY_STATS,   // ?nightfly=1: canopies darkened / on the map, the last night frame
 };
 
 // why setNow found no set this frame
@@ -215,9 +230,10 @@ function viewsRect(ctx: FlyLayersCtx, path: { x: number; y: number; zoom: number
  * @param ctx the view and the hand-over zoom
  * @param fly the fly-in
  * @param car the car it ends on
+ * @param isNight the sets hold night pictures too (in the budget)
  * @returns the sets (not yet painted)
  */
-function planSets(ctx: FlyLayersCtx, fly: Fly, car: CamCar): PictureSet[] {
+function planSets(ctx: FlyLayersCtx, fly: Fly, car: CamCar, isNight: boolean): PictureSet[] {
   const { view } = ctx;
   const path = Array.from({ length: PATH_SAMPLES + 1 },
     (_unused, index) => flyViewAt(fly, car, index / PATH_SAMPLES));
@@ -231,16 +247,54 @@ function planSets(ctx: FlyLayersCtx, fly: Fly, car: CamCar): PictureSet[] {
     const longest = Math.max(rect[2] - rect[0], rect[3] - rect[1]);
     if (!(longest > 0 && Number.isFinite(longest))) continue;
     const pxPerMetre = Math.min(artPerMetre * zoomTo, PICTURE_MAX_PX / longest);
-    sets.push({ zoomFrom, zoomTo, rect, pxPerMetre, under: null, over: null });
+    sets.push({ zoomFrom, zoomTo, rect, pxPerMetre, under: null, over: null, rub: null,
+      tint: null });
   }
-  // two pictures a set; all of them within the budget
-  const bytes = sets.reduce((sum, set) => {
-    const [width, height] = pictureSize(set.rect, set.pxPerMetre);
-    return sum + 2 * width * height * 4;
-  }, 0);
+  // two pictures a set (and two night ones); all of them within the budget
+  const bytes = setsBytes(sets, isNight);
   const shrink = Math.min(1, Math.sqrt(SETS_BUDGET_MB * BYTES_MB / Math.max(1, bytes)));
   for (const set of sets) set.pxPerMetre *= shrink;
   return sets;
+}
+
+/**
+ * The bytes a fly-in's pictures take: two a set, and its two night pictures.
+ * @param sets the sets
+ * @param isNight with the night pictures
+ * @returns the bytes
+ */
+function setsBytes(sets: PictureSet[], isNight: boolean): number {
+  return sets.reduce((sum, set) => {
+    const [width, height] = pictureSize(set.rect, set.pxPerMetre);
+    const [nightW, nightH] = pictureSize(set.rect, set.pxPerMetre * NIGHT_SHARE);
+    return sum + 2 * width * height * 4 + (isNight ? 2 * nightW * nightH * 4 : 0);
+  }, 0);
+}
+
+/**
+ * Paints a set's night pictures in the scratch canvas (?nightfly=1): the still night lights,
+ * white then tinted, at NIGHT_SHARE of its px a metre.
+ * @param ctx the painters
+ * @param game the game
+ * @param scratch the canvas and its context
+ * @param set the set
+ * @param keep keeps the canvas as the set's rub or tint picture
+ */
+function paintNight(ctx: FlyLayersCtx, game: RenderGame, scratch: { canvas: HTMLCanvasElement;
+  c2d: CanvasRenderingContext2D }, set: PictureSet, keep: (layer: 'rub' | 'tint') => void) {
+  const { canvas, c2d } = scratch, rect = set.rect, perMetre = set.pxPerMetre * NIGHT_SHARE;
+  const map: StillMap = {
+    artX: (worldX) => (worldX - rect[0]) * perMetre,
+    artY: (worldY) => (worldY - rect[1]) * perMetre,
+    artPerMetre: () => perMetre,
+    isNear: (x, y, reach) => x > -reach && y > -reach && x < canvas.width + reach
+      && y < canvas.height + reach,
+  };
+  for (const layer of ['rub', 'tint'] as const) {
+    [canvas.width, canvas.height] = pictureSize(rect, perMetre);
+    ctx.paintStillNight(c2d, map, layer === 'tint', game);
+    keep(layer);
+  }
 }
 
 /**
@@ -252,19 +306,23 @@ function planSets(ctx: FlyLayersCtx, fly: Fly, car: CamCar): PictureSet[] {
  * @param game the game
  * @param plan the fly-in's sets
  */
-function paintSets(ctx: FlyLayersCtx, game: RenderGame, plan: { sets: PictureSet[] }) {
+function paintSets(ctx: FlyLayersCtx, game: RenderGame, plan: { sets: PictureSet[];
+  isNight: boolean }) {
   const canvas = trackCanvas(document.createElement('canvas'));
   const c2d = canvas.getContext('2d');
   if (!c2d) {
     FLY_STATS.failed = 'the canvas was refused (memory)';
     return;
   }
-  const keep = (set: PictureSet, layer: 'under' | 'over') => {
+  const keep = (set: PictureSet, layer: 'under' | 'over' | 'rub' | 'tint') => {
+    const isNight = layer === 'rub' || layer === 'tint';
     createImageBitmap(canvas).then((bitmap) => {
       if (planned === plan) set[layer] = trackCanvas(bitmap);
       else bitmap.close();
+      if (isNight) FLY_STATS.nightMade++;
     }, () => {
-      FLY_STATS.failed = 'a picture was refused (memory)';
+      if (isNight) FLY_STATS.nightFailed = 'a night picture was refused (memory)';
+      else FLY_STATS.failed = 'a picture was refused (memory)';
     });
   };
   for (const set of plan.sets) {
@@ -272,6 +330,7 @@ function paintSets(ctx: FlyLayersCtx, game: RenderGame, plan: { sets: PictureSet
     keep(set, 'under');
     paintPicture(ctx, { canvas, c2d }, set.rect, set.pxPerMetre, () => paintOver(ctx));
     keep(set, 'over');
+    if (plan.isNight) paintNight(ctx, game, { canvas, c2d }, set, (layer) => keep(set, layer));
   }
   canvas.width = canvas.height = 0;
 }
@@ -310,8 +369,10 @@ function setNow(ctx: FlyLayersCtx, game: RenderGame): PictureSet | null {
     return null;
   }
   if (!planned || planned.fly !== fly) {
-    planned = { fly, sets: planSets(ctx, fly, game.car) };
-    noteSets(planned.sets);
+    // (the night's still lights pictured too while the lamps are lit: ?nightfly=1)
+    const isNight = FIX.nightfly && DAYLIGHT.darkness > 0 && lampsLit();
+    planned = { fly, sets: planSets(ctx, fly, game.car, isNight), isNight };
+    noteSets(planned.sets, isNight);
     paintSets(ctx, game, planned);
   }
   const zoom = ctx.view.zoom;
@@ -329,12 +390,14 @@ function setNow(ctx: FlyLayersCtx, game: RenderGame): PictureSet | null {
 /**
  * Notes a fly-in's sets in FLY_STATS: how many, their MB, or why there are none.
  * @param sets the sets, painted
+ * @param isNight with night pictures
  */
-function noteSets(sets: PictureSet[]) {
-  const bytes = sets.reduce((sum, set) => {
-    const [width, height] = pictureSize(set.rect, set.pxPerMetre);
-    return sum + 2 * width * height * 4;
-  }, 0);
+function noteSets(sets: PictureSet[], isNight: boolean) {
+  const bytes = setsBytes(sets, isNight);
+  if (isNight) {
+    FLY_STATS.nightMade = 0;
+    FLY_STATS.nightFailed = '';
+  }
   FLY_STATS.sets = sets.length;
   FLY_STATS.setsMb = Math.round((bytes / BYTES_MB) * 10) / 10;
   FLY_STATS.failed = sets.length ? '' : 'no set could be made';
@@ -347,7 +410,9 @@ function noteSets(sets: PictureSet[]) {
 function dropSet(set: PictureSet) {
   if (set.under) set.under.close();
   if (set.over) set.over.close();
-  set.under = set.over = null;
+  if (set.rub) set.rub.close();
+  if (set.tint) set.tint.close();
+  set.under = set.over = set.rub = set.tint = null;
 }
 
 /**
@@ -371,17 +436,39 @@ export interface FlyLayers {
   ready: (game: RenderGame) => void;
   under: (game: RenderGame) => boolean;
   over: () => boolean;
+  night: () => StillNight | null;
 }
 
 // the switch off: nothing painted, every layer drawn live
-export const NO_FLY_LAYERS: FlyLayers = { ready: () => {}, under: () => false, over: () => false };
+export const NO_FLY_LAYERS: FlyLayers = { ready: () => {}, under: () => false, over: () => false,
+  night: () => null };
+
+// the night pictures handed to the night layer (made once, reused each frame)
+let stillNow: StillNight | null = null;
+
+/**
+ * The night pictures of the set standing this frame (?nightfly=1), while the lamps are lit as
+ * when they were painted.
+ * @returns the pictures and their world rectangle, or null (the night layer draws them live)
+ */
+function nightNow(): StillNight | null {
+  if (!standing || !standing.rub || !standing.tint || !planned || !planned.isNight
+    || !lampsLit()) return null;
+  stillNow ??= { rub: standing.rub, tint: standing.tint, rect: standing.rect };
+  stillNow.rub = standing.rub;
+  stillNow.tint = standing.tint;
+  stillNow.rect = standing.rect;
+  FLY_STATS.nightDrawn++;
+  return stillNow;
+}
 
 /**
  * Builds the fly-in's pictures layer (?smoothfly=1; off: NO_FLY_LAYERS).
  * @param ctx the painters, the view, the camera state and the tiles' hand-over zoom
  * @returns ready (plan and paint the sets: behind the loading screen), under (the picture of
  * the layers under the cars drawn in the art buffer: true when it stood in for them) and over
- * (the same over them)
+ * (the same over them); night (?nightfly=1: the standing set's night pictures, for the night
+ * layer)
  */
 export function createFlyLayers(ctx: FlyLayersCtx): FlyLayers {
   if (!FIX.smoothfly) return NO_FLY_LAYERS;
@@ -404,5 +491,6 @@ export function createFlyLayers(ctx: FlyLayersCtx): FlyLayers {
       if (standing && standing.over) drawPicture(ctx, standing.over, standing.rect);
       return !!standing;
     },
+    night: nightNow,
   };
 }

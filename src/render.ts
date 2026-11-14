@@ -34,7 +34,7 @@ import type { ShadeRect } from "./render/glshade.ts";
 import type { GroundPatch, PaintCamera } from "./render/glpaint.ts";
 import type { Cam, CamCar, RenderGame, TileBudget, View } from "./render/types.ts";
 import { createRain } from "./render/rain.ts";
-import { createNight } from "./render/light.ts";
+import { createNight, type PaintStill } from "./render/light.ts";
 import { updateLampLight } from "./world/lamps.ts";
 import { WEATHER } from "./world/weather.ts";
 import { noteBodies } from "./render/leafpop.ts";
@@ -107,6 +107,8 @@ type RenderCtx = {
   toScreenY: (worldY: number) => number;
   drawRain: () => void;           // the falling rain, into the art buffer (render/rain.ts)
   drawNight: (game: RenderGame, lock: ViewLock) => void;   // ?night= (render/light.ts)
+  // ?nightfly=1: the still night lights painted into a fly-in picture (render/light.ts)
+  paintStillNight: PaintStill;
   // ?smoothfly=1: the fly-in's still layers as two pictures (render/flylayers.ts)
   flyLayers: FlyLayers;
 } & ReturnType<typeof createGround> & ReturnType<typeof createRoad>
@@ -725,15 +727,15 @@ export function createRenderer(canvas: HTMLCanvasElement, settings: Settings) {
   const toScreenY = (worldY: number) => (worldY - cam.y) * PPMz() + view.H / 2;
   const { ground, road, particles, pixelCar, cars, props, objects, camera, tiles } =
     buildModules(view, cam, settings, { PPMz, toScreenX, toScreenY, ...gpuHelpers(state, gpu) });
+  const night = createNight({ view, pcanvas, mainCtx, state, PPMz, toScreenX, toScreenY,
+    sparks: particles.sparks, stillNight: () => ctx.flyLayers.night() });
   const ctx: RenderCtx = {
     canvas, view, cam, state, skip, mainCtx, pcanvas, pctx, gpu, PPMz,
     drawRain: rainDrawer(pctx, state), flyLayers: NO_FLY_LAYERS,
     groundPatches: [], toScreenX, toScreenY, noShade: settings.noShade, maxDpr: settings.maxDpr,
     gpuCamera: { x: 0, y: 0, devPerMetre: 1, screenX: 0, screenY: 0 },
     ...ground, ...road, ...particles, ...cars, ...props, ...objects, ...camera, ...tiles,
-    drawNight: createNight({ view, pcanvas, mainCtx, state, PPMz, toScreenX, toScreenY,
-      sparks: particles.sparks }),
-  };
+    drawNight: night.draw, paintStillNight: night.paintStill };
   const { camState, tileState } = Object.assign(ctx, { flyLayers: createFlyLayers(ctx) });
   return {
     // the HUD draws on the full-resolution screen, even in pixel mode

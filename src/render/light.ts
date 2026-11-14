@@ -8,9 +8,12 @@ import { crossingOf } from "../world/crossinggeo.ts";
 import { clipToCut } from './coverlight.ts';
 import { DAYLIGHT } from '../world/daylight.ts';
 import { activeLamps, lampsLit } from '../world/lamps.ts';
+import { drawPools, paintPool, paintPoolTint } from './lamppools.ts';
+import type { PoolPainter } from './lamppools.ts';
 import { hazardsOn, indicatorBlinkOn, lampLevel } from './cars.ts';
 import { traceDecks } from './lightdecks.ts';
 import { drawEventGlows } from './eventglows.ts';
+import type { EventPainter } from './eventglows.ts';
 import { BRAKE_GLOW, BRAKE_GLOW_HOT, BRAKE_GLOW_M, hotBrakes } from './brakeglow.ts';
 import { HALO_X, STREAK_S } from './particles.ts';
 import { traceCanopiesNear } from './trees.ts';
@@ -55,9 +58,6 @@ const HEAD_GLOW_M = 1.1;
 const MAP_MARGIN = 2;
 // map px past its edge a street light head glow is still drawn: rounding only
 const HEAD_CULL_PX = 2;
-// a lamp pool's warm tint: its colour, 'r,g,b', its strength in the middle and its radius as a
-// share of the pool's (a floodlight's 34 m pool is tinted out to ~18 m)
-const POOL_TINT_RGB = '255,246,214', POOL_TINT_ALPHA = 0.16, POOL_TINT_SHARE = 0.53;
 // the side of the beam and pool pictures, px
 const PICTURE_PX = 128;
 
@@ -71,6 +71,8 @@ export interface NightParts {
   toScreenX: (worldX: number) => number;
   toScreenY: (worldY: number) => number;
   sparks: SparkLight[];   // render/particles.ts: the sparks flying now
+  // ?nightfly=1: the fly-in's still night pictures standing this frame (render/flylayers.ts)
+  stillNight?: () => StillNight | null;
 }
 
 /** A spark as the night reads it (render/particles.ts). */
@@ -365,80 +367,6 @@ function drawRearGlows(painter: GlowPainter, car: RenderCar) {
 }
 
 /**
- * A round pool of light, full in the middle, fading to its rim.
- * @param pictureCtx the picture's context
- */
-function paintPool(pictureCtx: CanvasRenderingContext2D) {
-  const mid = PICTURE_PX / 2;
-  const glow = pictureCtx.createRadialGradient(mid, mid, 0, mid, mid, mid);
-  glow.addColorStop(0, 'rgba(255,255,255,1)');
-  glow.addColorStop(0.4, 'rgba(255,255,255,0.8)');
-  glow.addColorStop(1, 'rgba(255,255,255,0)');
-  pictureCtx.fillStyle = glow;
-  pictureCtx.fillRect(0, 0, PICTURE_PX, PICTURE_PX);
-}
-
-/**
- * A pool's warm tint, full in the middle, fading to its rim.
- * @param pictureCtx the picture's context
- */
-function paintPoolTint(pictureCtx: CanvasRenderingContext2D) {
-  const mid = PICTURE_PX / 2;
-  const glow = pictureCtx.createRadialGradient(mid, mid, 0, mid, mid, mid);
-  glow.addColorStop(0, 'rgba(' + POOL_TINT_RGB + ',1)');
-  glow.addColorStop(0.5, 'rgba(' + POOL_TINT_RGB + ',0.5)');
-  glow.addColorStop(1, 'rgba(' + POOL_TINT_RGB + ',0)');
-  pictureCtx.fillStyle = glow;
-  pictureCtx.fillRect(0, 0, PICTURE_PX, PICTURE_PX);
-}
-
-/** What the pools are painted with: the light map, the pool pictures and the art-px mapping. */
-interface PoolPainter {
-  lightCtx: CanvasRenderingContext2D;
-  pool: HTMLCanvasElement;
-  tint: HTMLCanvasElement;
-  artX: (worldX: number) => number;
-  artY: (worldY: number) => number;
-  artPerMetre: () => number;
-  isNear: (x: number, y: number, reach: number) => boolean;
-}
-
-/**
- * Rubs one pool of light out of the dark when it reaches the light map.
- * @param painter the light map and the mapping
- * @param x the pool's centre, art px
- * @param y the pool's centre, art px
- * @param size its diameter, art px
- */
-function drawPool(painter: PoolPainter, picture: HTMLCanvasElement, x: number, y: number,
-    size: number) {
-  if (!painter.isNear(x, y, size / 2)) return;
-  painter.lightCtx.drawImage(picture, x - size / 2, y - size / 2, size, size);
-}
-
-/**
- * The pools of light below each lit lamp (world/lamps.ts; the light is where its head is): in
- * the rub-out blend the pool lights the dark; in source-over its warm tint colours it.
- * @param painter the light map and the mapping
- * @param isTint true for the warm tint (source-over), false for the rub-out
- */
-function drawPools(painter: PoolPainter, isTint: boolean) {
-  const { lightCtx, artX, artY, artPerMetre } = painter;
-  if (!lampsLit()) return;
-  const picture = isTint ? painter.tint : painter.pool;
-  const share = isTint ? POOL_TINT_SHARE : 1;
-  for (const lamp of activeLamps()) {
-    if (lamp.shown <= 0) continue;
-    lightCtx.globalAlpha = lamp.shown * (isTint ? POOL_TINT_ALPHA : 1);
-    // a twin-arm street light's two heads (no list made a lamp)
-    const size = 2 * lamp.poolM * share * artPerMetre();
-    drawPool(painter, picture, artX(lamp.headX), artY(lamp.headY), size);
-    if (lamp.twin) drawPool(painter, picture, artX(lamp.twinX), artY(lamp.twinY), size);
-  }
-  lightCtx.globalAlpha = 1;
-}
-
-/**
  * The light map's glows: the glow's shape in white rubs the dark out, then the tighter coloured
  * pictures tint it. Art px, no shift: the map is laid at the shift.
  * @param pools the light map and its art-px mapping
@@ -473,7 +401,43 @@ function makeMapGlows(pools: PoolPainter, sparks: SparkLight[]) {
     tintCars: (game: RenderGame, level: CarLevel) => paintCarGlows(tint, game, level),
     tintHeads: () => lampsLit() && drawHeadGlows(tint),
   };
-  return { paint, parts };
+  /**
+   * The lamps' head glows painted into another canvas at its own mapping (a fly-in picture).
+   * @param target the canvas's context
+   * @param map its mapping
+   * @param isTint the tint (coloured) or the rub-out (white) glows
+   */
+  const headsInto = (target: CanvasRenderingContext2D, map: StillMap, isTint: boolean) => {
+    if (!lampsLit()) return;
+    drawHeadGlows({ ...(isTint ? tint : out), ctx: target, mapX: map.artX, mapY: map.artY,
+      perMetre: map.artPerMetre, sparks: undefined });
+  };
+  return { paint, parts, headsInto };
+}
+
+/** A canvas's world mapping: world m to its px, its px a metre, whether a point is on it. */
+export interface StillMap {
+  artX: (worldX: number) => number;
+  artY: (worldY: number) => number;
+  artPerMetre: () => number;
+  isNear: (x: number, y: number, reach: number) => boolean;
+}
+
+/**
+ * The fly-in's still night pictures standing this frame (?nightfly=1, render/flylayers.ts): the
+ * lamps' pools and heads and the still event lights, rubbed out (white) and tinted, over rect.
+ */
+export interface StillNight { rub: ImageBitmap; tint: ImageBitmap; rect: number[] }
+
+/** Paints the still night lights into a fly-in picture (createNight's paintStill). */
+export type PaintStill = (target: CanvasRenderingContext2D, map: StillMap, isTint: boolean,
+  game: RenderGame) => void;
+
+/** The lamps' and still event lights' passes in the decks' order (live, or from a picture). */
+interface LampPasses {
+  rub: (game: RenderGame) => void;
+  tint: (game: RenderGame) => void;
+  tintHeads: () => void;
 }
 
 /**
@@ -630,6 +594,7 @@ interface DeckPainter {
   mapGlows: ReturnType<typeof makeMapGlows>;
   darkFill: string;
   drawAllBeams: (game: RenderGame, level?: CarLevel) => void;
+  lamps: LampPasses;
 }
 
 /**
@@ -653,15 +618,12 @@ function paintUnderDecks(painter: DeckPainter, game: RenderGame) {
   lightCtx.fillStyle = painter.darkFill;
   lightCtx.fill();
   lightCtx.globalCompositeOperation = 'destination-out';
-  drawPools(pools, false);
-  drawEventGlows(pools, false, game);
-  mapGlows.parts.rubHeads();
+  painter.lamps.rub(game);
   // (a car up on a deck lights the deck it is on, and on past its edges)
   painter.drawAllBeams(game, 'deck');
   mapGlows.parts.rubCars(game, 'deck');
   lightCtx.globalCompositeOperation = 'source-over';
-  drawPools(pools, true);
-  drawEventGlows(pools, true, game);
+  painter.lamps.tint(game);
   lightCtx.save();
   lightCtx.beginPath();
   lightCtx.rect(0, 0, canvas.width, canvas.height);
@@ -670,14 +632,84 @@ function paintUnderDecks(painter: DeckPainter, game: RenderGame) {
   mapGlows.parts.tintCars(game, 'ground');
   lightCtx.restore();
   mapGlows.parts.tintCars(game, 'deck');
-  mapGlows.parts.tintHeads();
+  painter.lamps.tintHeads();
   lightCtx.globalAlpha = 1;
+}
+
+/**
+ * The lamps' and still event lights' passes in the decks' order, live and from the fly-in's still
+ * pictures (?nightfly=1); the light map with no deck painted from them; and the still lights
+ * painted into a fly-in picture.
+ * @param pools the light map and its mapping
+ * @param mapGlows the cars' and heads' glows
+ * @param drawAllBeams draws the cars' beams
+ * @returns live, fromStill (the passes), use (the still pictures this frame), paintFromStill,
+ *   paintStill
+ */
+function makeLampLights(pools: PoolPainter, mapGlows: ReturnType<typeof makeMapGlows>,
+  drawAllBeams: (game: RenderGame, level?: CarLevel) => void) {
+  const lightCtx = pools.lightCtx;
+  const live: LampPasses = {
+    rub: (game) => {
+      drawPools(pools, false);
+      drawEventGlows(pools, false, game);
+      mapGlows.parts.rubHeads();
+    },
+    tint: (game) => {
+      drawPools(pools, true);
+      drawEventGlows(pools, true, game);
+    },
+    tintHeads: () => mapGlows.parts.tintHeads(),
+  };
+  const movingLights: EventPainter = { ...pools, part: 'moving' };
+  let still: StillNight | null = null;
+  const drawStill = (picture: ImageBitmap, rect: number[]) => {
+    const scale = pools.artPerMetre();
+    lightCtx.globalAlpha = 1;
+    lightCtx.drawImage(picture, pools.artX(rect[0]), pools.artY(rect[1]),
+      (rect[2] - rect[0]) * scale, (rect[3] - rect[1]) * scale);
+  };
+  const fromStill: LampPasses = {
+    rub: (game) => {
+      drawStill(still!.rub, still!.rect);
+      drawEventGlows(movingLights, false, game);
+    },
+    tint: (game) => {
+      drawStill(still!.tint, still!.rect);
+      drawEventGlows(movingLights, true, game);
+    },
+    tintHeads: () => {},
+  };
+  // the light map with no deck, as mapGlows.paint, the lamps' heads in the pictures
+  const paintFromStill = (game: RenderGame) => {
+    fromStill.rub(game);
+    drawAllBeams(game);
+    mapGlows.parts.rubCars(game, 'all');
+    lightCtx.globalCompositeOperation = 'source-over';
+    fromStill.tint(game);
+    mapGlows.parts.tintCars(game, 'all');
+    lightCtx.globalAlpha = 1;
+  };
+  // the still lights into a transparent picture at its own mapping: white, or their tints
+  const paintStill: PaintStill = (target, map, isTint, game) => {
+    const painter: PoolPainter = { ...pools, lightCtx: target, ...map };
+    target.globalCompositeOperation = 'source-over';
+    drawPools(painter, isTint);
+    drawEventGlows({ ...painter, part: 'still' }, isTint, game);
+    mapGlows.headsInto(target, map, isTint);
+    target.globalAlpha = 1;
+  };
+  const use = (now: StillNight | null) => {
+    still = now;
+  };
+  return { live, fromStill, use, paintFromStill, paintStill };
 }
 
 /**
  * Builds the night layer.
  * @param parts what it reads from the renderer
- * @returns draw(game, lock): lays this frame's night over the screen (nothing in daylight)
+ * @returns draw(game, lock): lays this frame's night over the screen (nothing in daylight);
+ *   paintStill: the still lights into a fly-in picture (?nightfly=1)
  */
 export function createNight(parts: NightParts) {
   const canvas = trackCanvas(document.createElement('canvas'));
@@ -701,6 +733,7 @@ export function createNight(parts: NightParts) {
   const cutInput: CanopyCutInput = { props: [], game: null as unknown as RenderGame,
     sparks: parts.sparks, artPerMetre: 0, carReachM: carLightReachM, streakS: STREAK_S,
     haloX: HALO_X };
+  const lamps = makeLampLights(pools, mapGlows, drawAllBeams);
 
   function paintLightMap(game: RenderGame) {
     const { pcanvas } = parts;
@@ -720,8 +753,13 @@ export function createNight(parts: NightParts) {
     lightCtx.fillRect(0, 0, canvas.width, canvas.height);
     lightCtx.globalCompositeOperation = 'destination-out';
     lightCtx.beginPath();
+    const still = FIX.nightfly && parts.stillNight ? parts.stillNight() : null;
+    lamps.use(still);
     if (traceDecks(lightCtx, pools) > 0) {
-      paintUnderDecks({ pools, mapGlows, darkFill, drawAllBeams }, game);
+      paintUnderDecks({ pools, mapGlows, darkFill, drawAllBeams,
+        lamps: still ? lamps.fromStill : lamps.live }, game);
+    } else if (still) {
+      lamps.paintFromStill(game);
     } else {
       drawPools(pools, false);
       drawEventGlows(pools, false, game);
@@ -734,7 +772,7 @@ export function createNight(parts: NightParts) {
     darkenCanopies(pools, darkFill, canopyCutNow(cutInput, game, pools));
   }
 
-  return (game: RenderGame, lock: NightLock) => {
+  const draw = (game: RenderGame, lock: NightLock) => {
     if (DAYLIGHT.darkness <= 0) return;
     paintLightMap(game);
     const { mainCtx, state } = parts;
@@ -749,4 +787,5 @@ export function createNight(parts: NightParts) {
       canvas.width * state.blockPx, canvas.height * state.blockPx);
     mainCtx.restore();
   };
+  return { draw, paintStill: lamps.paintStill };
 }
