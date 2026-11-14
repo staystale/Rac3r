@@ -37,7 +37,7 @@ export type ReportFrame = [number, number, number, number, number, number, numbe
  * @param query the page query (which link the owner opened)
  * @param level the level id now, read at each post
  * @param loadMs ms from the page opening to the menu shown, or null (no menu)
- * @param flySets ?smoothfly=1: the fly-in's picture sets' counts (render/flylayers.ts FLY_STATS),
+ * @param flySets the fly-in's picture sets' counts (render/flylayers.ts FLY_STATS),
  *   else undefined (left out of the post)
  * @returns add(frame) per frame, and flush() to post what is waiting (the page is being left)
  */

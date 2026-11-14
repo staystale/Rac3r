@@ -51,19 +51,6 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
-  // START and RESTART behind a loading screen (game/loading.ts): the work, then the fly-in, then
-  // the countdown; the race held until the fly-in is over
-  loadscreen: atLoad('loadscreen'),
-  // nothing redone at a start: a START on a new level runs the restart once (menuflow.ts launch),
-  // and a RESTART keeps the fly-in's whole-level picture while nothing it shows has changed
-  // (render/flypicture.ts)
-  onestart: atLoad('onestart'),
-  // the fly-in zoomed out draws its still layers (props, cones, fence ...) from two pictures
-  // painted once, not item by item (render/flylayers.ts)
-  smoothfly: atLoad('smoothfly'),
-  // the night layer in the fly-in as light as by day: the dark put back only over the canopies a
-  // light may reach (render/canopycut.ts)
-  nightfly: atLoad('nightfly'),
   // the countryside highway's exit signs: the four real towns as parody puns (highway/extras.ts)
   exitpuns: atLoad('exitpuns'),
 };

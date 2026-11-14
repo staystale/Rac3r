@@ -27,7 +27,6 @@ import type { RenderCar, RenderGame, View } from './types.ts';
 import { BAR_GLOW_M, FLASHER_GLOW_M, isAngryFlashOn, litPoliceLamps } from './lightbar.ts';
 import { CANOPY_STATS, canopiesLit } from './canopycut.ts';
 import type { CanopyCutInput } from './canopycut.ts';
-import { FIX } from '../core/fixes.ts';
 import { COL } from '../world/colours.ts';
 import { trackCanvas } from '../core/memorybudget.ts';
 
@@ -71,7 +70,7 @@ export interface NightParts {
   toScreenX: (worldX: number) => number;
   toScreenY: (worldY: number) => number;
   sparks: SparkLight[];   // render/particles.ts: the sparks flying now
-  // ?nightfly=1: the fly-in's still night pictures standing this frame (render/flylayers.ts)
+  // the fly-in's still night pictures standing this frame (render/flylayers.ts)
   stillNight?: () => StillNight | null;
 }
 
@@ -424,7 +423,7 @@ export interface StillMap {
 }
 
 /**
- * The fly-in's still night pictures standing this frame (?nightfly=1, render/flylayers.ts): the
+ * The fly-in's still night pictures standing this frame (render/flylayers.ts): the
  * lamps' pools and heads and the still event lights, rubbed out (white) and tinted, over rect.
  */
 export interface StillNight { rub: ImageBitmap; tint: ImageBitmap; rect: number[] }
@@ -539,14 +538,14 @@ function carLightReachM(car: RenderCar): number {
 }
 
 /**
- * The canopy cut's test this frame (?nightfly=1: render/canopycut.ts), or null (every canopy).
+ * The canopy cut's test this frame (render/canopycut.ts), or null (every canopy).
  * @param cut the cut's input, reused
  * @param game the game drawn
  * @param pools the light map's mapping
  * @returns the test and the canopies on the map, or null
  */
 function canopyCutNow(cut: CanopyCutInput, game: RenderGame, pools: PoolPainter) {
-  if (!FIX.nightfly || !PROPS) return null;
+  if (!PROPS) return null;
   cut.props = PROPS;
   cut.game = game;
   cut.artPerMetre = pools.artPerMetre();
@@ -564,7 +563,7 @@ const CUT_TEST = { isLit: (index: number) => index < 0, onMap: 0 };
  * canopy hangs above the cars, the lamps' and signs' light below it never reaches its top.
  * @param pools the light map and its art-px mapping
  * @param darkFill the night's dark this frame
- * @param cut ?nightfly=1: only the canopies a light may reach (null: every one)
+ * @param cut only the canopies a light may reach (null: every one)
  */
 function darkenCanopies(pools: PoolPainter, darkFill: string,
   cut: { isLit: (index: number) => boolean; onMap: number } | null) {
@@ -638,7 +637,7 @@ function paintUnderDecks(painter: DeckPainter, game: RenderGame) {
 
 /**
  * The lamps' and still event lights' passes in the decks' order, live and from the fly-in's still
- * pictures (?nightfly=1); the light map with no deck painted from them; and the still lights
+ * pictures; the light map with no deck painted from them; and the still lights
  * painted into a fly-in picture.
  * @param pools the light map and its mapping
  * @param mapGlows the cars' and heads' glows
@@ -709,7 +708,7 @@ function makeLampLights(pools: PoolPainter, mapGlows: ReturnType<typeof makeMapG
  * Builds the night layer.
  * @param parts what it reads from the renderer
  * @returns draw(game, lock): lays this frame's night over the screen (nothing in daylight);
- *   paintStill: the still lights into a fly-in picture (?nightfly=1)
+ *   paintStill: the still lights into a fly-in picture
  */
 export function createNight(parts: NightParts) {
   const canvas = trackCanvas(document.createElement('canvas'));
@@ -729,7 +728,7 @@ export function createNight(parts: NightParts) {
   const mapGlows = makeMapGlows(pools, parts.sparks);
   const drawAllBeams = (game: RenderGame, level?: CarLevel) => drawFieldBeams(pools, beam, game,
     level);
-  // ?nightfly=1: the canopy cut's input, filled each frame
+  // the canopy cut's input, filled each frame
   const cutInput: CanopyCutInput = { props: [], game: null as unknown as RenderGame,
     sparks: parts.sparks, artPerMetre: 0, carReachM: carLightReachM, streakS: STREAK_S,
     haloX: HALO_X };
@@ -753,7 +752,7 @@ export function createNight(parts: NightParts) {
     lightCtx.fillRect(0, 0, canvas.width, canvas.height);
     lightCtx.globalCompositeOperation = 'destination-out';
     lightCtx.beginPath();
-    const still = FIX.nightfly && parts.stillNight ? parts.stillNight() : null;
+    const still = parts.stillNight ? parts.stillNight() : null;
     lamps.use(still);
     if (traceDecks(lightCtx, pools) > 0) {
       paintUnderDecks({ pools, mapGlows, darkFill, drawAllBeams,

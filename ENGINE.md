@@ -55,7 +55,7 @@ Older design notes and measurements are in the git history of this file.
 4. Draw: `renderer.frame()` (world into the art-pixel buffer, then to the screen), then the HUD.
 5. Audio update and the fps meter.
 
-THE LOADING SCREEN (`?loadscreen=1`, `FIX.loadscreen`; `game/loading.ts`, its picture
+THE LOADING SCREEN (the default since 11-14; `game/loading.ts`, its picture
 `menu/loadscreen.ts`): a START (`menuflow.ts launch`) or RESTART (`session.ts doRestart`) in a
 session puts a DOM screen up at once - the track's name and a bar, in the menu's pane, faces and
 colours; it takes every tap and touch, and the keys are ignored while it is up (`controls.ts onKey`).
@@ -70,10 +70,9 @@ last). The screen stays up at least 300 ms (a quick load flashed it); the full b
 press's electric blue and blinks twice (160 ms, as a pressed menu button: `pixelstyle.ts
 PRESS_BLINK_MS / PRESS_BLINK_CSS`), then the screen fades (250 ms) over the fly-in's hold. While the screen or the fly-in is up, `loop.ts` steps no sim (`holdRace`: no race
 time, the AI and lights' clock still, the walkthroughs wait) and draws nothing behind the screen; the
-countdown starts on the first frame after the fly-in. The race behind the menu never shows it. Switch
-off: none of it runs.
+countdown starts on the first frame after the fly-in. The race behind the menu never shows it.
 
-NOTHING REDONE AT A START (`?onestart=1`, `FIX.onestart`; with or without the loading screen): a
+NOTHING REDONE AT A START (the default since 11-14): a
 START on a new level ran the restart twice - the level switch's (`controls.ts settleLevel`) and the
 launch's own (`menuflow.ts launchSession`): two cones resets, two field line-ups, the first fly-in
 picture thrown away. With the switch the switch's is skipped (`settleLevel(false)`) and the launch's
@@ -82,9 +81,9 @@ keptFlyPicture`, one kept, dropped when memory is short): it is painted afresh o
 shows can differ - another level or layout, a rebuilt patch list, the scenery water drawn (a pond
 frozen over is an ice twin, left out of the picture), the screen's px a metre; the endless
 road's every time. The picture holds no weather, time of day, light or wear (laid over it as drawn),
-and a level's own mud dried in a race is put back before the fly-in. Switch off: as before.
+and a level's own mud dried in a race is put back before the fly-in.
 
-THE SMOOTH FLY-IN (`?smoothfly=1`, `FIX.smoothfly`; `render/flylayers.ts`): zoomed out, a fly-in frame
+THE SMOOTH FLY-IN (the default since 11-14; `render/flylayers.ts`): zoomed out, a fly-in frame
 drew every prop and loose object one by one. With the switch, the layers that hold still while the
 field waits at the lights - the deck (run-off, kerbs, bumps, paint), fence, barriers, props, the
 tunnels' ground, the loose objects and tape - are painted into pictures, and the props over the
@@ -103,11 +102,11 @@ metre: softer); a refused canvas or bitmap is noted, never thrown. `renderer.fly
 `?report=1` post's `flySets` (with the switch) count the sets, their MB, the frames drawn from a set
 and those of a fly-in drawn live (`live`, and `liveWhy`: every zoomed-out frame drawn live is
 counted). The field counts as still while the start is armed and not green, or while the loading
-screen's fly-in holds the race (a solo practice has no lights). Switch off: as before.
+screen's fly-in holds the race (a solo practice has no lights).
 
-THE NIGHT FLY-IN (`?nightfly=1`, `FIX.nightfly`): two parts.
+THE NIGHT FLY-IN (the default since 11-14): two parts.
 - THE CANOPY CUT (`render/canopycut.ts`; game-wide: every level, in race and in the fly-in, with or
-  without `?smoothfly=1`): the night layer puts its
+  without the fly-in): the night layer puts its
   dark back only over the canopies a light may reach. The still lights (lamp pools and heads, the
   event lights that stay put, `eventglows.ts noteStillEventLights` through a probe painter) are
   walked once per level through the prop grid (`propgrid.ts visitPropsInBox`; again when the props,
@@ -116,7 +115,7 @@ THE NIGHT FLY-IN (`?nightfly=1`, `FIX.nightfly`): two parts.
   lamp's head) are walked each frame. A tree within 3 light-map px of a light is traced; a canopy
   no light reached is already exactly the dark, so the pixels are the same. Every canopy on the
   endless road, or on a map coarser than 3 px in 64 m.
-- THE NIGHT PICTURES (the fly-in only, with `?smoothfly=1`): while the lamps are lit when a fly-in
+- THE NIGHT PICTURES (the fly-in only): while the lamps are lit when a fly-in
   is planned, each set also gets two night pictures at its px a metre (`flylayers.ts paintNight`;
   all of them within their own 12 MB beside the sets' 24, past it fewer px a metre): the lamps' pools and heads and the still event lights, white (the rub-out) and tinted
   (`light.ts makeLampLights paintStill`; `lamppools.ts`). While a set stands, the light map

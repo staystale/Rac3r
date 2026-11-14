@@ -33,7 +33,7 @@ export interface ScreenCtx {
   drawMarks: (marks: RenderMarks) => void;
   drawRain: () => void;
   drawOverPuffs: (wallDt: number) => void;
-  // ?smoothfly=1, zoomed out in the fly-in: the over-the-cars layers' picture drawn (true) in place
+  // zoomed out in the fly-in: the over-the-cars layers' picture drawn (true) in place
   // of the live props and bridges' ground (render/flylayers.ts)
   flyLayers: { over: () => boolean };
   drawSparks: (wallDt: number, target: CanvasRenderingContext2D) => void;

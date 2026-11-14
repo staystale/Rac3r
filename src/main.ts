@@ -20,7 +20,6 @@ import {
 } from './hud/minimap.ts';
 import { createMeter } from './ui/meter.ts';
 import { createReporter } from './ui/report.ts';
-import { FIX } from './core/fixes.ts';
 import { createFramePacer } from './game/pacing.ts';
 import { createChurn } from './core/churn.ts';
 import { createCones } from './cones.ts';
@@ -303,8 +302,8 @@ shared.pacer = createFramePacer();   // whole display refreshes (pacing.ts)
 // ?report=1: the meter's frames also go to the test server (ui/report.ts)
 shared.reporter = shared.settings.report
   ? createReporter(location.search, () => (LEVEL ? LEVEL.id : ''), () => shared.loadMs ?? null,
-    // (?smoothfly=1: the fly-in's picture sets, render/flylayers.ts)
-    () => (FIX.smoothfly ? shared.renderer.flyStats : undefined))
+    // (the fly-in's picture sets, render/flylayers.ts)
+    () => shared.renderer.flyStats)
   : null;
 // the last part-batch goes too when the page is left (a short run used to send nothing)
 const reporter = shared.reporter;

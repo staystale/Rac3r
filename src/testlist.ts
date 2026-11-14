@@ -13,54 +13,11 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
-    id: 'nightfly',
-    added: '2026-11-14',
-    name: 'Night fly-in as smooth as by day (the dark over the trees, the lamps as pictures)',
-    where: 'Test link + &loadscreen=1&onestart=1&smoothfly=1&nightfly=1&report=1: TEST MODE, '
-      + 'TIME OF DAY night, LAUNCH Spa (20 AI), then RESTART; also a solo practice by day',
-    try: 'Watch the fly-in at night: it should glide as by day and look as before (lamp '
-      + 'pools, signs, stands, the trees dark over the light). Drive under trees at night.',
-    wrong: 'A stutter at night, a lamp pool or sign light popping or shifting as it zooms in, '
-      + 'a tree top lit by a lamp or headlight, a dark square where light should be.',
-  },
-  {
     id: 'exitpuns',
     added: '2026-11-14',
     name: 'Countryside exit signs as puns: GHOULE, SKUNKTHORPE, BRIGGADOON, HOWDY-DEN',
     where: 'Test link + &exitpuns=1: a countryside highway, the exit signs',
     try: 'Drive past a few exits and read the signs.',
     wrong: 'A real town left (GOOLE, SCUNTHORPE, BRIGG, HOWDEN), a sign cut off or overlapping.',
-  },
-  {
-    id: 'smoothfly',
-    added: '2026-11-14',
-    name: 'Smooth fly-in: the whole-track view at full speed',
-    where: 'Test link + &smoothfly=1&loadscreen=1 (also without &loadscreen=1): LAUNCH Spa, '
-      + 'then RESTART',
-    try: 'Watch the fly-in from the whole track down to your car: it should glide and look as '
-      + 'before (trees, stands, cones, cars). Try night and rain. With &report=1 the report '
-      + 'says whether the pictures were drawn.',
-    wrong: 'A stutter in the fly-in, trees or cones popping or jumping in size as it zooms, '
-      + 'missing or doubled props, cars under a tree or bridge drawn wrongly, a slow first frame.',
-  },
-  {
-    id: 'onestart',
-    added: '2026-11-14',
-    name: 'Quicker start and restart: nothing done twice',
-    where: 'Test link + &onestart=1 (with or without &loadscreen=1): LAUNCH Spa, then RESTART',
-    try: 'Start a new track, restart it a few times, change the weather or the track and start '
-      + 'again. The fly-in should show the track as before.',
-    wrong: 'A fly-in showing the wrong track or layout, a frozen pond drawn as water (or the '
-      + 'other way), a missing or doubled field, a slower start.',
-  },
-  {
-    id: 'loadscreen',
-    added: '2026-11-14',
-    name: 'Loading screen: the track loads, then the fly-in, then the lights',
-    where: 'Test link + &loadscreen=1: LAUNCH any track (Spa: the big one), then RESTART',
-    try: 'Watch the screen, the bar flash blue when done, the fly-in in full, then the lights '
-      + 'count down with you on the grid. Tap the screen while it loads.',
-    wrong: 'A blank or frozen screen, the bar still, the lights counting during the fly-in, cars '
-      + 'moving before the lights, a tap starting anything, a broken menu race.',
   },
 ];

@@ -32,7 +32,7 @@ export interface EventPainter {
   isNear: (x: number, y: number, reach: number) => boolean;
   // a probe (the canopy cut, render/canopycut.ts): each light's reach noted, nothing painted
   note?: NoteLight;
-  // ?nightfly=1: only the lights that stay put (painted once into the fly-in's pictures) or only
+  // only the lights that stay put (painted once into the fly-in's pictures) or only
   // those that move or change (a train, a caravan, the start lights); unset: every light
   part?: 'still' | 'moving';
 }

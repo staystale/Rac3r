@@ -1,4 +1,4 @@
-// game/loading.ts - THE LOADING SCREEN (?loadscreen=1, FIX.loadscreen): a START (menuflow.ts
+// game/loading.ts - THE LOADING SCREEN: a START (menuflow.ts
 // launch) or a RESTART (session.ts doRestart) in a session puts the screen up at once (the track's
 // name, a bar: menu/loadscreen.ts), lets a frame paint it, then does the work behind it in stages
 // - the level build, the field lined up, the cones stood up, the ground round the grid painted, the
@@ -7,7 +7,6 @@
 // plays in full, and only when it is over does the sim step: the countdown starts with the player
 // in. Race time, the AI and the sim are held while the screen or the fly-in is up (loop.ts). The
 // race behind the menu never shows it. Switch off: nothing here runs.
-import { FIX } from '../core/fixes.ts';
 import { createLoadScreen } from '../menu/loadscreen.ts';
 import { PRESS_BLINK_MS } from '../menu/pixelstyle.ts';
 import { shared, game } from './state.ts';
@@ -45,11 +44,11 @@ const stageMs = new Map<string, number>();
 let screen: LoadScreen | null = null;
 
 /**
- * Whether a start or restart goes behind the loading screen: the switch on, in a session.
+ * Whether a start or restart goes behind the loading screen: in a session.
  * @returns true to load behind the screen
  */
 export function loadScreenOn(): boolean {
-  return FIX.loadscreen && shared.started && shared.mode === 'session';
+  return shared.started && shared.mode === 'session';
 }
 
 /**

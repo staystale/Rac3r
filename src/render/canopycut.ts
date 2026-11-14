@@ -1,4 +1,4 @@
-// render/canopycut.ts - THE CANOPY CUT (?nightfly=1, FIX.nightfly): the night layer puts its dark
+// render/canopycut.ts - THE CANOPY CUT: the night layer puts its dark
 // back over every tree canopy on the light map after all the light is in (render/light.ts
 // darkenCanopies) - zoomed out over Spa's forest a path of up to ~8 000 squares, filled twice.
 // A canopy no light reached is already exactly that dark, so filling it changes no pixel: only the
@@ -178,7 +178,7 @@ function isCanopyLit(index: number): boolean {
 }
 
 /**
- * The canopies the dark must go back over this frame (?nightfly=1), as a test on a tree's index;
+ * The canopies the dark must go back over this frame, as a test on a tree's index;
  * null to trace them all (a streaming level, a map too coarse for the still lights' walk).
  * @param input the frame's input
  * @returns the test, or null

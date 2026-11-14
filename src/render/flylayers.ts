@@ -1,4 +1,4 @@
-// render/flylayers.ts - THE SMOOTH FLY-IN (?smoothfly=1, FIX.smoothfly): zoomed out, a fly-in frame
+// render/flylayers.ts - THE SMOOTH FLY-IN: zoomed out, a fly-in frame
 // drew every prop and loose object one by one - Spa's 8 000 trees and 3 329 cones. MEASURED
 // (tools/scratch/_flycost.mjs, the second PC at CPU x1, Spa, 20 AI, behind the loading screen):
 // the zoomed-out frames 117-133 ms apart, our drawing 97-124 ms of each; without the props 67 ms,
@@ -20,7 +20,6 @@
 // the fly-in has zoomed past it.
 import { LEVEL } from '../world/state.ts';
 import { trackCanvas } from '../core/memorybudget.ts';
-import { FIX } from '../core/fixes.ts';
 import { flyViewAt } from './camera.ts';
 import { lampsLit } from '../world/lamps.ts';
 import { DAYLIGHT } from '../world/daylight.ts';
@@ -41,10 +40,10 @@ const SET_STEP = 1.25;
 const PICTURE_MAX_PX = 2048;
 // MB all of a fly-in's pictures may take together (past it every set is painted at fewer px a
 // metre). iOS WebKit also caps all canvases together, shared with the game's ~115 MB: on the
-// owner's iPhone the sets were never drawn (the frames' JS as with the switch off)
+// owner's iPhone the sets were never drawn (the frames' JS as with every layer drawn live)
 const SETS_BUDGET_MB = 24;
 const BYTES_MB = 1048576;
-// MB a fly-in's night pictures may take together (?nightfly=1: two a set, the lamps' pools and
+// MB a fly-in's night pictures may take together (two a set, the lamps' pools and
 // heads and the still event lights), beside SETS_BUDGET_MB; past it they are painted at fewer px a
 // metre than their set's. MEASURED (_nightflyshots, Spa and Le Manky, dpr 3): at half the set's px
 // a metre the marshals' beacons and the boards' light went faint (a beacon is ~1 px there)
@@ -74,7 +73,7 @@ export interface FlyLayersCtx {
   drawCrossingGround: (kind: 'bridge' | 'tunnel') => void;
   drawCones: (cones: RenderGame['cones']['list']) => void;
   drawTape: (game: RenderGame) => void;
-  paintStillNight: PaintStill;   // ?nightfly=1 (render/light.ts)
+  paintStillNight: PaintStill;   // render/light.ts
 }
 
 /** One set: the zooms it stands in for, its world rectangle and its pictures (once painted). */
@@ -85,7 +84,7 @@ interface PictureSet {
   pxPerMetre: number;   // its pictures' px a metre (at most the art buffer's at zoomTo)
   under: ImageBitmap | null;
   over: ImageBitmap | null;
-  nightPerMetre: number;      // ?nightfly=1: its night pictures' px a metre
+  nightPerMetre: number;      // its night pictures' px a metre
   rub: ImageBitmap | null;    // the still night lights, white (the rub-out)
   tint: ImageBitmap | null;   // and their tints
 }
@@ -105,10 +104,10 @@ export const FLY_STATS = {
   //                   held, the view off its set, a picture not ready or refused, no set)
   liveWhy: '',      // why the last of those was drawn live
   failed: '',       // why the last fly-in made no set, or ''
-  nightMade: 0,     // ?nightfly=1: night pictures made for the last fly-in (two a set)
+  nightMade: 0,     // night pictures made for the last fly-in (two a set)
   nightDrawn: 0,    // frames whose night layer drew its still lights from them (since opened)
   nightFailed: '',  // why a night picture was not made, or ''
-  canopyCut: CANOPY_STATS,   // ?nightfly=1: canopies darkened / on the map, the last night frame
+  canopyCut: CANOPY_STATS,   // canopies darkened / on the map, the last night frame
 };
 
 // why setNow found no set this frame
@@ -279,7 +278,7 @@ function setsBytes(sets: PictureSet[], isNight: boolean): number {
 }
 
 /**
- * Paints a set's night pictures in the scratch canvas (?nightfly=1): the still night lights,
+ * Paints a set's night pictures in the scratch canvas: the still night lights,
  * white then tinted, at its night px a metre.
  * @param ctx the painters
  * @param game the game
@@ -356,7 +355,7 @@ function isViewInside(ctx: FlyLayersCtx, set: PictureSet): boolean {
 }
 
 /**
- * The set standing in this frame: the switch on, a fly-in under way below LIVE_FROM, the field
+ * The set standing in this frame: a fly-in under way below LIVE_FROM, the field
  * still, not the endless road, the view inside the set. Planned and painted the first time asked
  * for a fly-in; a set is let go once the zoom has passed it.
  * @param ctx the painters
@@ -376,8 +375,8 @@ function setNow(ctx: FlyLayersCtx, game: RenderGame): PictureSet | null {
     return null;
   }
   if (!planned || planned.fly !== fly) {
-    // (the night's still lights pictured too while the lamps are lit: ?nightfly=1)
-    const isNight = FIX.nightfly && DAYLIGHT.darkness > 0 && lampsLit();
+    // (the night's still lights pictured too while the lamps are lit)
+    const isNight = DAYLIGHT.darkness > 0 && lampsLit();
     planned = { fly, sets: planSets(ctx, fly, game.car, isNight), isNight };
     noteSets(planned.sets, isNight);
     paintSets(ctx, game, planned);
@@ -446,7 +445,7 @@ export interface FlyLayers {
   night: () => StillNight | null;
 }
 
-// the switch off: nothing painted, every layer drawn live
+// until the renderer makes its layer: nothing painted, every layer drawn live
 export const NO_FLY_LAYERS: FlyLayers = { ready: () => {}, under: () => false, over: () => false,
   night: () => null };
 
@@ -454,7 +453,7 @@ export const NO_FLY_LAYERS: FlyLayers = { ready: () => {}, under: () => false, o
 let stillNow: StillNight | null = null;
 
 /**
- * The night pictures of the set standing this frame (?nightfly=1), while the lamps are lit as
+ * The night pictures of the set standing this frame, while the lamps are lit as
  * when they were painted.
  * @returns the pictures and their world rectangle, or null (the night layer draws them live)
  */
@@ -470,15 +469,14 @@ function nightNow(): StillNight | null {
 }
 
 /**
- * Builds the fly-in's pictures layer (?smoothfly=1; off: NO_FLY_LAYERS).
+ * Builds the fly-in's pictures layer.
  * @param ctx the painters, the view, the camera state and the tiles' hand-over zoom
  * @returns ready (plan and paint the sets: behind the loading screen), under (the picture of
  * the layers under the cars drawn in the art buffer: true when it stood in for them) and over
- * (the same over them); night (?nightfly=1: the standing set's night pictures, for the night
+ * (the same over them); night (the standing set's night pictures, for the night
  * layer)
  */
 export function createFlyLayers(ctx: FlyLayersCtx): FlyLayers {
-  if (!FIX.smoothfly) return NO_FLY_LAYERS;
   return {
     ready(game: RenderGame) {
       setNow(ctx, game);

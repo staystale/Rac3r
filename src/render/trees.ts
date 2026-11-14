@@ -162,7 +162,7 @@ function largestSideM(props: Prop[]): number {
  * @param map.artPerMetre art px a metre
  * @param map.isNear whether a point is on the map, with a reach
  * @param useGrid false on a level whose props stream (the whole list is walked)
- * @param cut ?nightfly=1 (render/canopycut.ts): only the trees whose index passes isLit are added,
+ * @param cut (render/canopycut.ts) only the trees whose index passes isLit are added,
  *   and onMap counts those on the map; null adds every one
  * @param cut.isLit whether a tree's canopy may hold light
  * @param cut.onMap set to the canopies on the map

@@ -107,9 +107,9 @@ type RenderCtx = {
   toScreenY: (worldY: number) => number;
   drawRain: () => void;           // the falling rain, into the art buffer (render/rain.ts)
   drawNight: (game: RenderGame, lock: ViewLock) => void;   // ?night= (render/light.ts)
-  // ?nightfly=1: the still night lights painted into a fly-in picture (render/light.ts)
+  // the still night lights painted into a fly-in picture (render/light.ts)
   paintStillNight: PaintStill;
-  // ?smoothfly=1: the fly-in's still layers as two pictures (render/flylayers.ts)
+  // the fly-in's still layers as two pictures (render/flylayers.ts)
   flyLayers: FlyLayers;
 } & ReturnType<typeof createGround> & ReturnType<typeof createRoad>
   & ReturnType<typeof createParticles> & ReturnType<typeof createCars>
@@ -234,7 +234,7 @@ function drawWorldLayers(ctx: RenderCtx, game: RenderGame, lock: ViewLock, wallT
     ctx.gpu.drawField(ctx.gpuCamera);
     ctx.gpu.drawShade(ctx.gpuCamera);
   }
-  // (?smoothfly=1, zoomed out in the fly-in: the still layers from one picture; the arrows pulse
+  // (zoomed out in the fly-in: the still layers from one picture; the arrows pulse
   // and the marks stay live, over it)
   const isPictured = ctx.flyLayers.under(game);
   if (!skip('deck')) {
@@ -690,7 +690,7 @@ function loadingHelpers(ctx: RenderCtx) {
       ctx.flyIn();
       const overview = ctx.camState.fly && ctx.camState.fly.ov;
       if (overview && ctx.state.gpuOn) ctx.gpu.sink.preload(overview.c, true);
-      // (?smoothfly=1: its still layers' pictures too)
+      // (its still layers' pictures too)
       if (game) ctx.flyLayers.ready(game);
     },
   };

@@ -376,7 +376,7 @@ function startField() {
 }
 
 /**
- * RESTART: the event from its start. Behind the loading screen (?loadscreen=1, in a session)
+ * RESTART: the event from its start. Behind the loading screen (in a session)
  * unless a load is under way already (a START's own restart runs in its stages).
  */
 export function doRestart() {

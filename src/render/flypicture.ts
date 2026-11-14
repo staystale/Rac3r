@@ -1,4 +1,4 @@
-// render/flypicture.ts - THE FLY-IN'S PICTURE KEPT (?onestart=1, FIX.onestart): a RESTART used to
+// render/flypicture.ts - THE FLY-IN'S PICTURE KEPT: a RESTART used to
 // paint the fly-in's whole-level picture again (MEASURED, tools/scratch/_startload.mjs: Spa 36 ms
 // at CPU x1, 144 ms at x4) though nothing on it had changed. The picture (render/camera.ts
 // paintOverview) shows the floor, the zones, the lanes, the road, the patches (blend squares,

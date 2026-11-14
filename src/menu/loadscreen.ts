@@ -1,4 +1,4 @@
-// menu/loadscreen.ts - THE LOADING SCREEN's picture (?loadscreen=1; the flow is game/loading.ts):
+// menu/loadscreen.ts - THE LOADING SCREEN's picture (the flow is game/loading.ts):
 // the track's name and a bar, in the menu's look - its pane (near-black, a 2 px black edge, the
 // burnt-brown inner line, the hard shadow), its title face and ember red for the name, the side
 // note face for LOADING, and a bar as the setup's (the well colour, the inner line) filled in the
