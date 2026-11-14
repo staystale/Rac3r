@@ -8,6 +8,7 @@ import { coolTowardC } from './tyrecool.ts';
 import type { Car } from '../vehicle.ts';
 import type { AxleForce } from './tyres.ts';
 import { wearTyres } from './tyrewear.ts';
+import { FIX } from '../core/fixes.ts';
 import type { AxleTick } from './tyres.ts';
 
 // MEASURED (tools/tyrecheck.mjs): 0.020 + 0.0022/(m/s) cooled with a ~17 s time
@@ -51,6 +52,31 @@ let ambientC = 18;
 const wheelSlip = [0, 0, 0, 0];
 
 /**
+ * How hard an axle works for its flex heat (frontheat): the cornering force and the brake pedal's
+ * force together (a friction circle) over the axle's STATIC load, so downforce does not hide the
+ * work, capped at the tyre's grip. A gripping axle counts both; a locked one (not spinning) only
+ * its braking - its slide heats it by slip work as before; a sliding or spinning one nothing (its
+ * slip work heats it). The handbrake is not in the brake force: it heats the rears by their lock
+ * alone, as before. MEASURED before (tools/scratch/_frontheat.mjs, tarmac, 18 C): five hard stops
+ * from ~216 km/h left an ABS car's fronts at 33-50 C (aids on) and the F1's at 76 (it locks them at
+ * the brake's first bite), against a 65-110 C window.
+ * @param axleState the axle's forces this step
+ * @param locked whether its wheels are locked
+ * @param load its load now, N (the airborne guard)
+ * @param FzNom its static load, N
+ * @param brakeForce the brake pedal's force on it, N
+ * @param muBase the tyre's grip coefficient here
+ * @returns the utilisation, 0..muBase
+ */
+function flexWork(axleState: AxleForce, locked: boolean, load: number, FzNom: number,
+    brakeForce: number, muBase: number): number {
+  if (axleState.spinning || (!locked && axleState.sliding) || load <= 0.05 * FzNom) return 0;
+  const braking = Math.min(Math.abs(axleState.Fx), brakeForce);
+  const force = locked ? braking : Math.hypot(axleState.Fy, braking);
+  return Math.min(muBase, force / Math.max(1, FzNom));
+}
+
+/**
  * Whether an axle's tyres scrub (spin, lock or slide) rather than roll: the heat model's switch
  * between its two friction-work laws.
  */
@@ -63,6 +89,7 @@ export interface AxleOutcome {
   frontAxle: AxleForce; rearAxle: AxleForce;
   lockedF: boolean; lockedR: boolean; FzF: number; FzR: number; FzNomF: number; FzNomR: number;
   workF: number; workR: number; gripTF: number; gripTR: number;
+  brakeF: number; brakeR: number;   // N: the brake pedal's force on each axle (not the handbrake)
 }
 
 /** Fills wheelSlip: each wheel's slip speed while its axle scrubs (0 rolling). */
@@ -135,12 +162,16 @@ export function updateTyreTemps(car: Car, carSpec: Spec, tick: AxleTick, out: Ax
   // airborne (Fz 0) but still carried 7.6 kN of lagged lateral force, so force / max(1, Fz) read
   // as ~7600 x "working hard". Now: grounded axles only, load floored at a quarter of static,
   // utilisation capped at the tyre's own grip (it cannot work harder than that).
+  // (frontheat: flexWork, the brake pedal's force too, against the static load)
   const utilOf = (
-    axleState: AxleForce, locked: boolean, load: number, FzNom: number,
-  ) => (grips(axleState, locked) && load > 0.05 * FzNom)
-    ? Math.min(muBase, Math.abs(axleState.Fy) / Math.max(0.25 * FzNom, load)) : 0;
-  const utilF = utilOf(frontAxle, lockedF, FzF, FzNomF),
-      utilR = utilOf(rearAxle, lockedR, FzR, FzNomR);
+    axleState: AxleForce, locked: boolean, load: number, FzNom: number, brakeForce: number,
+  ) => {
+    if (FIX.frontheat) return flexWork(axleState, locked, load, FzNom, brakeForce, muBase);
+    return (grips(axleState, locked) && load > 0.05 * FzNom)
+      ? Math.min(muBase, Math.abs(axleState.Fy) / Math.max(0.25 * FzNom, load)) : 0;
+  };
+  const utilF = utilOf(frontAxle, lockedF, FzF, FzNomF, out.brakeF),
+      utilR = utilOf(rearAxle, lockedR, FzR, FzNomR, out.brakeR);
   const speedFrac = Math.min(1, Math.hypot(vLong, vLat) / TYRE_FLEX.vRef);
   const flex = [utilF * frontShare, utilF * (1 - frontShare), utilR * frontShare,
       utilR * (1 - frontShare)];

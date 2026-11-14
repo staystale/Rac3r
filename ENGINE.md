@@ -124,7 +124,14 @@ A top-down two-axle model with four tyre temperatures. `step(car, input, dt)`, i
    the brake under grip - locked = ABS stops, no steering under ABS; `tools/scratch/_rootbench.mjs`.)
 5. `ploughingForces`, `stabilityControl` - understeer plough and the ESC / TCS aids.
 6. `bodyAccelerations`, `integrateYaw`, `lowSpeedBlend` - body motion; a blend near standstill.
-7. `updateTyreTemps` (`physics/tyreheat.ts`), `advanceCar`, `writeTelemetry`.
+7. `updateTyreTemps` (`physics/tyreheat.ts`), `advanceCar`, `writeTelemetry`. A tyre heats by slip
+   work (uncapped: sliding, spinning, locking, and a gripping axle's rolling scrub) and by FLEX, a
+   warm-up toward 85 C read from how hard its axle works. Under `?frontheat=1` (`flexWork`) the
+   flex reads the brake pedal's force with the cornering force, against the axle's static load
+   (downforce no longer hides the work), on a locked axle too (its braking only); the handbrake
+   stays out. Measured (`tools/scratch/_frontheat.mjs`, `_heatcases.mjs`, `_heatlaps.mjs`): five
+   hard stops leave every car's fronts at 60 C or more (ABS cars 33-50 -> 62-76), racing laps
+   within the runs' noise of before, wheelspin and donut heat unchanged.
 
 The mods seam: every car has `car.mods` (`cars.ts defaultMods`: power, shiftTime, inertia, gripLat,
 gripLong, brakeTorque, mass, rigidity), all 1.0 by default. Upgrades and tyres change these multipliers;

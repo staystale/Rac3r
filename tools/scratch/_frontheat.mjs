@@ -8,6 +8,8 @@
 //          brake ramp down (0.28 rising to 1 over 1 s):
 //          fronts at 6 s, peak front, front and rear at the end
 // JSON=path also writes the numbers there. Run with the switch set (FRONTHEAT=1) for the fix.
+// THE CHECK (exit 1 on a failure): after the five stops every car stopping from 40 m/s or more
+// ends with its fronts at 60 C or more, aids off and on.
 import { makeCar, step, reset, setAidsDefault, neutralInput, PHYSICS_STEP_SECONDS as DT }
   from '../../src/vehicle.ts';
 import { CAR_IDS } from '../../src/cars.ts';
@@ -93,3 +95,10 @@ for (const aids of [false, true]) {
   }
 }
 if (process.env.JSON) writeFileSync(process.env.JSON, JSON.stringify(rows, null, 1));
+const cold = rows.filter((row) => row.stops.target >= 40 && row.stops.endFront < 60);
+for (const row of cold) {
+  console.log(`  FAIL ${row.id} aids ${row.aids ? 'on' : 'off'}: fronts ${
+    row.stops.endFront.toFixed(0)} C after five stops`);
+}
+console.log(cold.length ? `FAIL (${cold.length})` : 'PASS: every car reaches 60 C at the front');
+process.exitCode = cold.length ? 1 : 0;

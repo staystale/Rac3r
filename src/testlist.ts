@@ -28,6 +28,15 @@ export const TEST_LIST: TestEntry[] = [
       + 'rests on its side or roof. Try a damaged car too.',
     wrong: 'Ground showing through the body (thin lines or gaps), a wrong colour on a side, '
       + 'wheels or wings drawn where they were not before, a jerky roll.',
+    id: 'frontheat',
+    added: '2026-11-14',
+    name: 'Front tyres warm when you brake (every car)',
+    where: 'Test link + &frontheat=1: Test Lab or Test Track, the F1 car, a road car (aids on), '
+      + 'a rally car; the tyre numbers on the HUD',
+    try: 'Brake hard from top speed a few times, then drive a few normal laps and corners. The '
+      + 'fronts should reach their window (green) like the rears; a long race heats as before.',
+    wrong: 'Fronts still cold after hard stops, tyres overheating in normal racing, the handbrake '
+      + 'heating the fronts, a burnout or donut heating differently from before.',
   },
   {
     id: 'dongfence',

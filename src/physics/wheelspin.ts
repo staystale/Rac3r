@@ -337,7 +337,7 @@ export function computeWheelForces(car: Car, carSpec: Spec, inp: WheelStepIn) {
       inp.vLongAbs, tick.muBase);
   const axles = { frontAxle: front.axle, rearAxle: rear.axle, lockedF: front.locked,
     lockedR: rear.locked, FzF: inp.FzF, FzR: inp.FzR, FzNomF, FzNomR, workF, workR, gripTF,
-    gripTR };
+    gripTR, brakeF: inp.FbF, brakeR: inp.FbR };
   relaxAxleForces(car, inp.dt, vLong, vLat, front.axle, rear.axle);
   return { tick, axles, absWorking: absOn && (front.released || rear.released) };
 }
