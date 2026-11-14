@@ -34,8 +34,9 @@ export const TEST_LIST: TestEntry[] = [
     name: 'Smooth fly-in: the whole-track view at full speed',
     where: 'Test link + &smoothfly=1&loadscreen=1 (also without &loadscreen=1): LAUNCH Spa, '
       + 'then RESTART',
-    try: 'Watch the fly-in from the whole track down to your car: it should glide, and look as '
-      + 'before (trees, stands, cones, cars). Try at night and in rain too.',
+    try: 'Watch the fly-in from the whole track down to your car: it should glide and look as '
+      + 'before (trees, stands, cones, cars). Try night and rain. With &report=1 the report '
+      + 'says whether the pictures were drawn.',
     wrong: 'A stutter in the fly-in, trees or cones popping or jumping in size as it zooms, '
       + 'missing or doubled props, cars under a tree or bridge drawn wrongly, a slow first frame.',
   },

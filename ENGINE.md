@@ -96,7 +96,12 @@ its part of the path's views at the art buffer's px a metre at its top zoom, so 
 loading screen (`renderer.readyFlyIn`; without it on the fly-in's first frame) and let go as the
 zoom passes them. The marks, the pulsing arrows, the cars, effects, night and weather stay live.
 Only while the start is armed and not green; never on the endless road; a frame whose view leaves
-its set's pictures is drawn live. Switch off: as before.
+its set's pictures is drawn live. The pictures are painted one at a time in one scratch canvas and
+kept as image bitmaps (a WebKit canvas drawn into another is copied at each draw; at most one
+picture's canvas is held), within 24 MB together and 2048 px a side (past either, fewer px a
+metre: softer); a refused canvas or bitmap is noted, never thrown. `renderer.flyStats` and the
+`?report=1` post's `flySets` (with the switch) count the sets, their MB, the frames drawn from a set
+and those of a planned fly-in drawn live. Switch off: as before.
 
 ## The car (`vehicle.ts` and `physics/`)
 

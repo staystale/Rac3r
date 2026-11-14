@@ -56,6 +56,27 @@ records in `TODO-DONE.md` (PASSED 11-12). On the phone now:
   - LOOK (tools/scratch/_flyshots.mjs, renderhash's raster, shotdiff): Spa 844x390 5-11 % of
     pixels differ in the pictured frames, Knobhill 3 %, all at item edges (the smoothed shrink);
     identical once live. Photos looked at: the same trees, stands, cones and cars.
+  - THE PHONE (owner 11-14, ?smoothfly=1&loadscreen=1&onestart=1: "spa is still bad rest ok"): Spa's
+    fly-ins 240-350 ms a frame, our JS 23-28 ms, as with the switch off: the sets were not drawn.
+    Not reproduced in Chromium (laptop, 440x738 at dpr 3: 6 sets made and drawn; the art buffer is
+    0.75 px a CSS px at any dpr, MAX_DPR 1.5, so dpr does not grow the pictures). Two WebKit causes
+    fit and are now handled: a canvas refused for memory (iOS caps all canvases together; a null
+    context threw in the first fly-in frame, then every frame drew live) and a canvas drawn into
+    another copied again at each draw. Now (behind the same switch): the pictures are painted one
+    at a time in ONE scratch canvas, each kept as an image bitmap, the canvas let go; all of a
+    fly-in's pictures within 24 MB (past it, painted at fewer px a metre: softer), none over 2048
+    px a side; a refused canvas or bitmap is noted, never thrown. ?report=1 posts flySets (sets,
+    MB, frames drawn from a set, frames of a planned fly-in drawn live, why none) with the switch.
+  - LAPTOP, dpr 3 (_flycost, loading screen, 20 AI; the zoomed-out fly-in frames, our drawing JS
+    median, off -> on; sets / MB / frames from a set / live): Spa 440x738 62 -> 6.3 ms (gap median
+    89 -> 18), 7 / 18.9 / 50 / 0; Le Manky 440x738 13.4 -> 3.6 (gap 36 -> 18), 11 / 24 / 61 / 0;
+    Spa 390x844 4.6 ms, 7 / 19.1 / 60 / 0; Spa 844x390 5.3, 9 / 24 / 58 / 0; Le Manky 844x390 6.4,
+    13 / 24 / 40 / 0; Spa 440x738 at dpr 2 9.6, 7 / 18.9 / 24 / 0. Canvases: they go back to the
+    off level after the fly-in (Spa 440x738: 116.9 MB off, 116.9 on).
+  - PHOTOS (dpr 3, 390x844 and 844x390, Spa and Le Manky, _flyshots): 1.7-11 % of pixels differ
+    in the pictured frames, at item edges; looked at: the same. Without the loading screen the
+    first frame or two are live while the bitmaps are made.
+  - PROOFS (smoothfly2, laptop, against round29): simhash SAME off and with smoothfly=1.
   - PROOFS (PC, against round28): simhash SAME off and with smoothfly=1; worldhash SAME off;
     renderhash (Spa, Knobhill; ~3 min a level there, the rest left to CI) SAME off and with the
     switch (its captures start at 2 s, after the fly-in). _loadmenu (laptop, smoothfly=1) all OK.
