@@ -76,7 +76,7 @@ records in `TODO-DONE.md` (PASSED 11-12). On the phone now:
     the fly-in picture 36, resetPuddles 20), field 390, fly-in over 2250, green 4396. At x4: START
     call 7776, field 11388, fly-in over 17884 (its 1.95 s at ~500 ms frames: the full field's sim runs
     under it), green 22258; RESTART field 1686, green 12315. Knobhill RX x1 START green 4319, RESTART
-    4017; x4 8294 / 6653. Redone needlessly, not fixed (owner to decide): a START on a new level runs
+    4017; x4 8294 / 6653. Redone needlessly (now behind ?onestart=1, below): a START on a new level runs
     the restart twice (selectLevel's and launch's: two cones resets, two field line-ups, the first
     fly-in picture thrown away; Spa x1 ~70 ms, x4 ~320 ms); every RESTART repaints the fly-in's
     whole-level picture (Spa 36 ms x1, 144 ms x4) though the level has not changed.
@@ -100,7 +100,39 @@ records in `TODO-DONE.md` (PASSED 11-12). On the phone now:
     when what it shows can differ: another level or layout, a rebuilt patch list, the scenery water
     (a pond frozen or thawed at the start), the screen's scale; the endless road's every time. It
     holds no weather, time of day, light or wear. tools/scratch/_flykeep.mjs walks those cases.
-  - MEASURED: (to follow).
+  - THE RACE: a launch that switches level drew the grid slot and the AI's cars (spawnAI) twice
+    from Math.random and kept the second; now once, so the same seed gives another (equally
+    random) slot and field. tools/scratch/_onestartcmp.mjs (laptop, 5 AI, 600 sim steps; lab >
+    Thruston, Thruston > Knobhill RX, and with ?loadscreen=1 also Thruston > Spa): off 4 draws, on 2;
+    the race differs from step 2 (another grid slot); with the stream moved on 2 draws first, SAME
+    at every step in all five. simhash (PC) SAME off and with onestart=1 (its runs open the page on
+    the level they launch: no level switch); worldhash SAME off and with ONESTART=1.
+  - MEMORY: the kept picture is 2048 px wide: Spa 2048x3219 (25 MB), Le Manky 31 MB, Knobhill
+    9 MB, held between races (it was let go after the fly-in); counted by the memory budget and
+    dropped after the built levels when short.
+  - PIXELS: renderhash (PC; Thruston, Spa, Grass Track, Holy Jeez, Sahara Sandpants, the highway;
+    a level takes ~3 min there, all 51 ~2.5 h: CI's shards run the rest with the switch off) SAME
+    off and with onestart=1 against round27. tools/scratch/_flypixels.mjs (PC, renderhash's raster):
+    the launch's and the restart's fly-in frames (5, 45, 95 frames in), Spa and Grass Track, SAME
+    off vs on. _loadmenu (laptop, Knobhill, ?loadscreen=1, with tools/scratch/_withquery.mjs for
+    onestart=1): all OK off and on.
+  - TIMES (PC, tools/scratch/_startload.mjs, 20 AI, ms; off -> on; Spa x1 run twice):
+    Spa x1 START: the call 1787/1772 -> 1711/1711, the restart in it 156/166 -> 91/84, paintOverview
+    (with the stand-in's 1024 px picture) 108/119 -> 66/59; first frame 2266/2242 -> 2092/2096;
+    green 7396/7396 -> 7126/7115. RESTART: the call 70/81 -> 26/23 (the picture 47/58 -> none);
+    first frame 353/374 -> 228/225; green 4835/4788 -> 4725/4739.
+    Spa x4 START: the call 7761 -> 7403, the restart in it 650 -> 401, paintOverview 435 -> 285;
+    first frame 9928 -> 9016; field 12929 -> 11820; green 26085 -> 24426. RESTART: the call 313 -> 99
+    (the picture 155 -> none); first frame 1605 -> 948; green 14187 -> 14030.
+    Knobhill RX x1 START: the call 60 -> 50, the restart in it 23 -> 13; first frame 157 -> 136; green
+    4360 -> 4268. RESTART: the call 8 -> 3; first frame 50 -> 33; green 4029 -> 4039.
+    Knobhill RX x4 START: the call 242 -> 216, the restart in it 99 -> 62; first frame 671 -> 610;
+    green 10214 -> 10161. RESTART: the call 39 -> 13; first frame 227 -> 121; green 8271 -> 8227.
+    With ?loadscreen=1 (Spa x1): START the restart 47 -> 25 (the screen already made the picture
+    once), screen gone 2740 -> 2655, green 8960 -> 8924; RESTART the picture 46 -> none, but the
+    screen's stages go a frame each and it stays 300 ms at least: gone 479 -> 494, green 6657 ->
+    6690 (no gain seen there). Single runs: green at x4 moved more than the work saved (frames).
+    Ground tiles painted during a RESTART varied (Spa x1 off 37 / 7, on 108 / 42): not explained.
 
 ## 3. OPEN, IN THE OWNER'S ORDER
 
