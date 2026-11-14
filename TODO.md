@@ -21,9 +21,20 @@ records in `TODO-DONE.md` (PASSED 11-12). On the phone now:
   seems to drop / be slow"; "Pass, fix drops next"). From the phone reports (11-14, ?report=1):
   - LEVEL STARTS: the first ~5 s hold several 150-370 ms frames (Spa 25 of them): the ground and
     pictures made while driving. The LOADING SCREEN (below) does that work before the start.
+  - THE FLY-IN (foreman, laptop CPU x4, tools/scratch/_flyprof.mjs, Spa): most of a fly-in frame
+    is drawing every prop and loose object one by one (zoomed out: Spa's 8 000 trees and 3 329
+    cones each frame; drawProps 1.76 s, drawCones 1.03 s of 4.55 s drawing), not the whole-level
+    picture. See SMOOTH FLY-IN.
   - IN RACE: 0.3-0.6 % slow frames, nearly all ZOOMED OUT while new ground tiles go to the GPU.
     Measure first, then spread the uploads over frames (or paint ahead), behind its own switch.
-  - MENU TAPS answered in 120-230 ms (six in one session): find the slow button handlers.
+  - MENU TAPS answered in 120-230 ms (six in one session). MEASURED (foreman, laptop CPU x4,
+    tools/scratch/_menutaps.mjs, every button two screens deep): the slowest open a TRACK LIST -
+    TEST MODE > ALL TRACKS 249 ms, > RALLY STAGES 240 ms; then STEERING CONTROLS 118, TEST MODE 114,
+    CREDITS 96, SETTINGS 80. Profiled (cold): ALL TRACKS' card list asks each venue's lap LENGTH
+    (menu/tracks.ts addLength -> category.ts lapOf -> venue.ts venueLap -> venueBuild -> traceLayout,
+    the whole trace: tracedRadii, maskKinks) - 3.6 s of the profile at x4, only to print a length.
+    Proposed: the lap lengths as data (generated with the thumbnails) or measured after the list
+    is shown; the rally stages' list not yet traced. Owner to approve; behind its own switch.
 
 - SMOOTH FLY-IN (owner 11-14 on ?loadscreen=1: "Still jerky after loading bar !?", "The loading
   screen was meant to fix this but ok if that works"). NEXT for the worker, after ?onestart=1,
