@@ -27,8 +27,10 @@ const MIN_SCREEN_MS = 300;
 const FIRST_GUESS_MS = 1500;
 // the share of its stage the bar eases to while the stage runs (the rest when it ends)
 const CREEP_SHARE = 0.9;
-// ground tiles painted a task (each a few ms on the laptop, ~4x that on a slow phone)
-const TILES_A_SLICE = 6;
+// ground tiles painted a task (each ~2 ms on the laptop, ~7 ms at CPU x4). MEASURED on Spa at x4
+// (tools/scratch/_startload.mjs): 6 a task, the field to the screen's end 2.45 s for 0.9 s of
+// tiles; 12 a task, 2.07 s - a frame between tasks costs as much as the painting
+const TILES_A_SLICE = 12;
 
 type Phase = 'screen' | 'fly' | null;
 // (groundLeft: tiles round the grid still to paint)

@@ -53,6 +53,18 @@ records in `TODO-DONE.md` (PASSED 11-12). On the phone now:
     the restart twice (selectLevel's and launch's: two cones resets, two field line-ups, the first
     fly-in picture thrown away; Spa x1 ~70 ms, x4 ~320 ms); every RESTART repaints the fly-in's
     whole-level picture (Spa 36 ms x1, 144 ms x4) though the level has not changed.
+  - TAP TO THE LIGHTS (laptop, 20 AI; ms from the tap: off = the first frame / the countdown begins
+    / green; on = the screen / the screen gone and the fly-in begins / the countdown / green):
+    Spa START x1 off 1943 / 2543 / 6904, on 3 / 2452 / 4483 / 8422; RESTART x1 off 196 / 390 /
+    4396, on 1 / 471 / 2385 / 6368. Knobhill RX START x1 off 145 / 404 / 4319, on 2 / 470 / 2377 /
+    6357; RESTART off 30 / 92 / 4017, on 2 / 375 / 2287 / 6255. At x4: Spa START off 8815 / 11388 /
+    22258, on 12 / 11080 / 15793 / 23460; RESTART off 978 / 1686 / 12315, on 5 / 1243 / 5194 /
+    12758. Knobhill START off 531 / 1673 / 8294, on 7 / 1522 / 3761 / 9542; RESTART off 111 / 431 /
+    6653, on 3 / 427 / 2453 / 7372. Off, the lights count during the fly-in (and the field appears
+    0.1-2.6 s into it); on, the full fly-in (1.95 s at x1) comes first, so green is ~2 s later at x1
+    and 0.4-1.2 s later at x4 (the fly-in no longer runs the field's sim). The race from its first
+    step is the same with the switch on (tools/scratch/_loadsimcmp.mjs: Thruston, Knobhill RX, Spa,
+    SAME).
 
 ## 3. OPEN, IN THE OWNER'S ORDER
 
