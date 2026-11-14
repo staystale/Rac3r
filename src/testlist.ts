@@ -30,6 +30,15 @@ export const TEST_LIST: TestEntry[] = [
       + 'a long hot slide. Fronts and rears should follow one rule.',
     wrong: 'Smoke from tyres that are gripping (a clean fast corner, a normal stop with ABS), '
       + 'or burnouts, donuts, lock-ups and hot slides with clearly less smoke than before.',
+    id: 'hudclear',
+    added: '2026-11-14',
+    name: 'Your car is never under a button, panel or pedal',
+    where: 'Test link + &hudclear=1: a highway (twisty, Deaf Valley, any), a circuit, a rally '
+      + 'stage, rallycross, the Test Lab; phone upright and on its side',
+    try: 'Drive through bends on the highway with the phone upright: the car stays clear of '
+      + 'the ABS / TCS chips and the pedals. Try every mode and both ways round.',
+    wrong: 'Any part of your car under a button, chip, pedal, panel or the minimap; the view '
+      + 'jumping or twitching near the HUD; the car pushed off the screen.',
   },
   {
     id: 'exitpuns',
