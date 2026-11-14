@@ -137,6 +137,7 @@ export function runSimSteps(inp: CarInput, wallDt: number) {
   // the loading screen and its fly-in hold the race: no step, no race time, the AI still; the
   // walkthroughs wait for the fly-in to land (game/loading.ts)
   const held = holdRace();
+  game.raceHeld = held;
   if (!held) openGuideOnLanding();
   const stopped = shared.guide.active || shared.paused || held;
   if (stopped) shared.acc = 0;

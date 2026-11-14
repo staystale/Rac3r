@@ -30,7 +30,12 @@ export interface EventPainter {
   artY: (worldY: number) => number;
   artPerMetre: () => number;
   isNear: (x: number, y: number, reach: number) => boolean;
+  // a probe (the canopy cut, render/canopycut.ts): each light's reach noted, nothing painted
+  note?: NoteLight;
 }
+
+/** Notes a light's reach: its centre, world m, and a radius, m, that holds all it paints. */
+export type NoteLight = (x: number, y: number, radiusM: number) => void;
 
 // a board's backlight: the share of the dark wiped off the board, and a faint neutral halo round
 // it (m, share; owner: the coloured 3 m spill lit nearby trees "weird" - a real sign barely spills)
@@ -99,6 +104,10 @@ function glowPicture(rgb: string): HTMLCanvasElement {
  */
 function glow(painter: EventPainter, isTint: boolean, x: number, y: number, radiusM: number,
     rgb: string, level: number, shape: { wideM?: number; rot?: number } = {}): void {
+  if (painter.note) {
+    painter.note(x, y, Math.max(radiusM, shape.wideM ?? radiusM));
+    return;
+  }
   const { lightCtx, artPerMetre } = painter, scale = artPerMetre();
   const artPx = painter.artX(x), artPy = painter.artY(y), long = radiusM * scale;
   if (!painter.isNear(artPx, artPy, long)) return;
@@ -120,7 +129,8 @@ function boardLight(painter: EventPainter, isTint: boolean, prop: Prop): void {
   const rot = prop.rot || 0;
   glow(painter, isTint, prop.x, prop.y, BOARD_W_M / 2 + BOARD_SPILL_M, WHITE, BOARD_SPILL,
     { wideM: BOARD_H_M / 2 + BOARD_SPILL_M, rot });
-  if (isTint) return;
+  // (the halo's reach holds the board's face)
+  if (isTint || painter.note) return;
   const { lightCtx, artPerMetre } = painter, scale = artPerMetre();
   const artPx = painter.artX(prop.x), artPy = painter.artY(prop.y);
   if (!painter.isNear(artPx, artPy, BOARD_W_M * scale)) return;
@@ -146,8 +156,14 @@ function boardLight(painter: EventPainter, isTint: boolean, prop: Prop): void {
  */
 function litRect(painter: EventPainter, isTint: boolean, prop: Prop,
   rect: { along: number; across: number; long: number; wide: number }, level: number): void {
-  const { lightCtx, artPerMetre } = painter, scale = artPerMetre(), rot = prop.rot || 0;
-  const cos = Math.cos(rot), sin = Math.sin(rot);
+  const rot = prop.rot || 0, cos = Math.cos(rot), sin = Math.sin(rot);
+  if (painter.note) {
+    const midAlong = rect.along + rect.long / 2, midAcross = rect.across + rect.wide / 2;
+    painter.note(prop.x + cos * midAlong - sin * midAcross, prop.y + sin * midAlong
+      + cos * midAcross, Math.hypot(rect.long, rect.wide) / 2);
+    return;
+  }
+  const { lightCtx, artPerMetre } = painter, scale = artPerMetre();
   lightCtx.globalAlpha = level;
   lightCtx.setTransform(cos * scale, sin * scale, -sin * scale, cos * scale, painter.artX(prop.x),
     painter.artY(prop.y));
@@ -256,6 +272,18 @@ function fairyString(painter: EventPainter, isTint: boolean, bulbs: Point[]): vo
 }
 
 /**
+ * A start gantry's reach: the bar, and every start light whatever the start (the pods out to two
+ * spacings from podX).
+ * @param note the probe's note
+ * @param prop the gantry
+ */
+function noteGantry(note: NoteLight, prop: Prop) {
+  const width = prop.wid || 26;
+  note(prop.x, prop.y, Math.max(Math.hypot(width / 2 + 2, BAR_DEPTH_M),
+    Math.abs(prop.podX || 0) + width / 4 + START_GLOW_M));
+}
+
+/**
  * The start gantry: a white light bar over the grid, and its start lights glowing - reds one a
  * second while the start is held, then all green for a few seconds.
  * @param painter the light map
@@ -265,6 +293,10 @@ function fairyString(painter: EventPainter, isTint: boolean, bulbs: Point[]): vo
  */
 function gantryLights(painter: EventPainter, isTint: boolean, prop: Prop, game: RenderGame) {
   const rot = prop.rot || 0, width = prop.wid || 26;
+  if (painter.note) {
+    noteGantry(painter.note, prop);
+    return;
+  }
   glow(painter, isTint, prop.x, prop.y, width / 2 + 2, WHITE, BAR,
     { wideM: BAR_DEPTH_M, rot });
   const start = game.start;
@@ -357,19 +389,31 @@ function caravansOf(cones: RenderCone[]): RenderCone[] {
  */
 function propLights(painter: EventPainter, isTint: boolean, game: RenderGame): void {
   for (const prop of litPropsNow()) {
-    const kind = prop.kind;
-    if (kind === 'board') boardLight(painter, isTint, prop);
-    else if (kind === 'marshal' && !isHutWrecked(prop)) {
-      glow(painter, isTint, prop.x, prop.y, BEACON_M, AMBER, BEACON);
+    if (prop.kind === 'marshal') {
+      if (!isHutWrecked(prop)) glow(painter, isTint, prop.x, prop.y, BEACON_M, AMBER, BEACON);
     }
-    else if (kind === 'grandstand' || kind === 'stadium_grandstand') {
-      festoon(painter, isTint, frontEdge(prop));
+    else if (prop.kind === 'bridge') {
+      if (prop.carries === 'rail') trainLights(painter, isTint, prop);
     }
-    else if (kind === 'gantry') gantryLights(painter, isTint, prop, game);
-    else if (kind === 'garagerow' || kind === 'pit_wall') pitLamps(painter, isTint, prop);
-    else if (kind === 'bridge' && prop.carries === 'rail')
-      trainLights(painter, isTint, prop);
+    else propLightOf(painter, prop, game, isTint);
   }
+}
+
+/**
+ * One prop's lights, of the kinds that stay where they are (not a marshal post or a bridge).
+ * @param painter the light map
+ * @param prop the prop
+ * @param game the game drawn
+ * @param isTint the tint pass
+ */
+function propLightOf(painter: EventPainter, prop: Prop, game: RenderGame, isTint = false): void {
+  const kind = prop.kind;
+  if (kind === 'board') boardLight(painter, isTint, prop);
+  else if (kind === 'grandstand' || kind === 'stadium_grandstand') {
+    festoon(painter, isTint, frontEdge(prop));
+  }
+  else if (kind === 'gantry') gantryLights(painter, isTint, prop, game);
+  else if (kind === 'garagerow' || kind === 'pit_wall') pitLamps(painter, isTint, prop);
 }
 
 /**
@@ -397,4 +441,47 @@ export function drawEventGlows(painter: EventPainter, isTint: boolean, game: Ren
   for (const bulbs of stageFairyLights(LEVEL)) fairyString(painter, isTint, bulbs);
   caravanLights(painter, isTint, game.cones.list);
   painter.lightCtx.globalAlpha = 1;
+}
+
+// the probe the canopy cut reads the lights' reach with (nothing is painted: note() is set)
+const PROBE: EventPainter = {
+  lightCtx: null as unknown as CanvasRenderingContext2D,
+  artX: (worldX: number) => worldX,
+  artY: (worldY: number) => worldY,
+  artPerMetre: () => 1,
+  isNear: () => true,
+};
+
+/**
+ * Notes the reach of every event light that stays where it is (boards, beacons, festoons, the
+ * gantry, the pit lamps, a stage's fairy lights), lit or not: the canopy cut's still lights.
+ * @param note called with each light's centre and radius, m
+ * @param game the game
+ */
+export function noteStillEventLights(note: NoteLight, game: RenderGame): void {
+  PROBE.note = note;
+  for (const prop of litPropsNow()) {
+    if (prop.kind === 'bridge') continue;
+    if (prop.kind === 'marshal') glow(PROBE, false, prop.x, prop.y, BEACON_M, AMBER, BEACON);
+    else propLightOf(PROBE, prop, game);
+  }
+  for (const bulbs of stageFairyLights(LEVEL)) fairyString(PROBE, false, bulbs);
+  PROBE.note = undefined;
+}
+
+/**
+ * Notes the reach of the event lights that move: a rail bridge's train, the caravans (they can be
+ * pushed).
+ * @param note called with each light's centre and radius, m
+ * @param game the game
+ */
+export function noteMovingEventLights(note: NoteLight, game: RenderGame): void {
+  PROBE.note = note;
+  for (const prop of litPropsNow()) {
+    if (prop.kind === 'bridge' && prop.carries === 'rail') trainLights(PROBE, false, prop);
+  }
+  for (const cone of caravansOf(game.cones.list)) {
+    note(cone.x, cone.y, Math.max(CARAVAN_LONG_M, CARAVAN_WIDE_M));
+  }
+  PROBE.note = undefined;
 }

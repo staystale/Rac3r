@@ -306,6 +306,8 @@ export interface RenderGame extends RoadGame, TapeGame {
   marks: RenderMarks;
   // the race start (game/order.ts armStart): the start gantry's lights glow by it
   start?: { on: boolean; t: number; tGreen: number; green: boolean };
+  // the loading screen and its fly-in hold the race this frame (game/loop.ts runSimSteps)
+  raceHeld?: boolean;
 }
 
 // One cached ground tile: its canvas, the frame it was last used, and whether wear made it stale.

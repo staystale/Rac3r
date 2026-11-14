@@ -61,6 +61,9 @@ export const FIX = {
   // the fly-in zoomed out draws its still layers (props, cones, fence ...) from two pictures
   // painted once, not item by item (render/flylayers.ts)
   smoothfly: atLoad('smoothfly'),
+  // the night layer in the fly-in as light as by day: the dark put back only over the canopies a
+  // light may reach (render/canopycut.ts)
+  nightfly: atLoad('nightfly'),
   // the countryside highway's exit signs: the four real towns as parody puns (highway/extras.ts)
   exitpuns: atLoad('exitpuns'),
 };

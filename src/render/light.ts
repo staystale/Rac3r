@@ -21,7 +21,10 @@ import {
   REVERSE_SIDE_SHARE, isReversing,
 } from './reverselights.ts';
 import type { RenderCar, RenderGame, View } from './types.ts';
-import { isAngryFlashOn, litPoliceLamps } from './lightbar.ts';
+import { BAR_GLOW_M, FLASHER_GLOW_M, isAngryFlashOn, litPoliceLamps } from './lightbar.ts';
+import { CANOPY_STATS, canopiesLit } from './canopycut.ts';
+import type { CanopyCutInput } from './canopycut.ts';
+import { FIX } from '../core/fixes.ts';
 import { COL } from '../world/colours.ts';
 import { trackCanvas } from '../core/memorybudget.ts';
 
@@ -557,19 +560,62 @@ function drawReverseBeams(painter: PoolPainter, beam: HTMLCanvasElement, car: Re
 }
 
 /**
+ * How far a car's light reaches from its centre, m: its beams' far corners, its reversing beams,
+ * the glows round its body (a police light bar's the widest) with a metre to spare.
+ * @param car the car
+ * @returns the radius
+ */
+function carLightReachM(car: RenderCar): number {
+  const halfLen = car.spec.len / 2, halfWid = car.spec.wid / 2;
+  const beams = Math.hypot(BEAM_START_M + BEAM_REACH_M, LAMP_SIDE_M + BEAM_HALF_M);
+  const reversing = Math.hypot(halfLen + REVERSE_BEAM_REACH_M, halfWid + REVERSE_BEAM_HALF_M);
+  const glows = Math.hypot(halfLen, halfWid) + 1
+    + Math.max(GLOW_M, BAR_GLOW_M, FLASHER_GLOW_M, BRAKE_GLOW_M);
+  return Math.max(beams, reversing, glows);
+}
+
+/**
+ * The canopy cut's test this frame (?nightfly=1: render/canopycut.ts), or null (every canopy).
+ * @param cut the cut's input, reused
+ * @param game the game drawn
+ * @param pools the light map's mapping
+ * @returns the test and the canopies on the map, or null
+ */
+function canopyCutNow(cut: CanopyCutInput, game: RenderGame, pools: PoolPainter) {
+  if (!FIX.nightfly || !PROPS) return null;
+  cut.props = PROPS;
+  cut.game = game;
+  cut.artPerMetre = pools.artPerMetre();
+  const isLit = canopiesLit(cut);
+  if (!isLit) return null;
+  CUT_TEST.isLit = isLit;
+  return CUT_TEST;
+}
+
+// the canopy cut's test as the canopy walk takes it (reused each frame)
+const CUT_TEST = { isLit: (index: number) => index < 0, onMap: 0 };
+
+/**
  * Puts the night's dark back over the tree canopies, after every light and tint: a
  * canopy hangs above the cars, the lamps' and signs' light below it never reaches its top.
  * @param pools the light map and its art-px mapping
  * @param darkFill the night's dark this frame
+ * @param cut ?nightfly=1: only the canopies a light may reach (null: every one)
  */
-function darkenCanopies(pools: PoolPainter, darkFill: string) {
+function darkenCanopies(pools: PoolPainter, darkFill: string,
+  cut: { isLit: (index: number) => boolean; onMap: number } | null) {
   if (!PROPS) return;
   const lightCtx = pools.lightCtx;
   lightCtx.setTransform(1, 0, 0, 1, 0, 0);
   lightCtx.globalAlpha = 1;
   lightCtx.beginPath();
   // the trees the prop grid holds round the map (trees.ts traceCanopiesNear)
-  if (!traceCanopiesNear(lightCtx, PROPS, pools, !LEVEL.endless)) return;
+  const traced = traceCanopiesNear(lightCtx, PROPS, pools, !LEVEL.endless, cut);
+  if (cut) {
+    CANOPY_STATS.traced = traced;
+    CANOPY_STATS.onMap = cut.onMap;
+  }
+  if (!traced) return;
   lightCtx.globalCompositeOperation = 'destination-out';
   lightCtx.fillStyle = '#000';
   lightCtx.fill();
@@ -651,6 +697,10 @@ export function createNight(parts: NightParts) {
   const mapGlows = makeMapGlows(pools, parts.sparks);
   const drawAllBeams = (game: RenderGame, level?: CarLevel) => drawFieldBeams(pools, beam, game,
     level);
+  // ?nightfly=1: the canopy cut's input, filled each frame
+  const cutInput: CanopyCutInput = { props: [], game: null as unknown as RenderGame,
+    sparks: parts.sparks, artPerMetre: 0, carReachM: carLightReachM, streakS: STREAK_S,
+    haloX: HALO_X };
 
   function paintLightMap(game: RenderGame) {
     const { pcanvas } = parts;
@@ -681,7 +731,7 @@ export function createNight(parts: NightParts) {
         drawEventGlows(pools, true, game);
       });
     }
-    darkenCanopies(pools, darkFill);
+    darkenCanopies(pools, darkFill, canopyCutNow(cutInput, game, pools));
   }
 
   return (game: RenderGame, lock: NightLock) => {

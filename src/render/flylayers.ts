@@ -87,18 +87,23 @@ export const FLY_STATS = {
   sets: 0,          // the sets the last fly-in planned
   setsMb: 0,        // MB its pictures took
   pictured: 0,      // fly-in frames drawn from a set (counted since the page opened)
-  live: 0,          // frames of a planned fly-in below LIVE_FROM drawn live all the same (the
-  //                   view off its set, a picture not ready or refused, no set)
+  live: 0,          // frames of a fly-in below LIVE_FROM drawn live all the same (the field not
+  //                   held, the view off its set, a picture not ready or refused, no set)
+  liveWhy: '',      // why the last of those was drawn live
   failed: '',       // why the last fly-in made no set, or ''
 };
 
+// why setNow found no set this frame
+let whyLive = '';
+
 /**
- * Whether the field is still: the start armed and the lights not yet green (every car held).
+ * Whether the field is still: the start armed and the lights not yet green (every car held), or
+ * the race held by the loading screen's fly-in (a solo practice has no lights).
  * @param game the game
  * @returns true while nothing can move a prop or a loose object
  */
 function isFieldStill(game: RenderGame): boolean {
-  return !!game.start && game.start.on && !game.start.green;
+  return (!!game.start && game.start.on && !game.start.green) || !!game.raceHeld;
 }
 
 /**
@@ -299,7 +304,11 @@ function setNow(ctx: FlyLayersCtx, game: RenderGame): PictureSet | null {
     planned = null;
     return null;
   }
-  if (LEVEL.endless || !isFieldStill(game)) return null;
+  if (LEVEL.endless) return null;
+  if (!isFieldStill(game)) {
+    whyLive = 'the field not held';
+    return null;
+  }
   if (!planned || planned.fly !== fly) {
     planned = { fly, sets: planSets(ctx, fly, game.car) };
     noteSets(planned.sets);
@@ -310,7 +319,11 @@ function setNow(ctx: FlyLayersCtx, game: RenderGame): PictureSet | null {
     if (zoom >= set.zoomTo) dropSet(set);
   }
   const set = planned.sets.find((each) => zoom < each.zoomTo);
-  return set && set.under && set.over && isViewInside(ctx, set) ? set : null;
+  if (!set) whyLive = 'no set';
+  else if (!set.under || !set.over) whyLive = 'a picture not ready or refused';
+  else if (!isViewInside(ctx, set)) whyLive = 'the view off its set';
+  else return set;
+  return null;
 }
 
 /**
@@ -379,8 +392,11 @@ export function createFlyLayers(ctx: FlyLayersCtx): FlyLayers {
     under(game: RenderGame): boolean {
       standing = setNow(ctx, game);
       if (standing) FLY_STATS.pictured++;
-      else if (planned && planned.fly === ctx.camState.fly
-        && ctx.view.zoom < Math.min(ctx.FLY_HANDOVER, LIVE_FROM)) FLY_STATS.live++;
+      else if (ctx.camState.fly && !LEVEL.endless
+        && ctx.view.zoom < Math.min(ctx.FLY_HANDOVER, LIVE_FROM)) {
+        FLY_STATS.live++;
+        FLY_STATS.liveWhy = whyLive;
+      }
       if (standing && standing.under) drawPicture(ctx, standing.under, standing.rect);
       return !!standing;
     },

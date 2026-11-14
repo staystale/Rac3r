@@ -162,26 +162,34 @@ function largestSideM(props: Prop[]): number {
  * @param map.artPerMetre art px a metre
  * @param map.isNear whether a point is on the map, with a reach
  * @param useGrid false on a level whose props stream (the whole list is walked)
+ * @param cut ?nightfly=1 (render/canopycut.ts): only the trees whose index passes isLit are added,
+ *   and onMap counts those on the map; null adds every one
+ * @param cut.isLit whether a tree's canopy may hold light
+ * @param cut.onMap set to the canopies on the map
  * @returns how many canopies were added
  */
 export function traceCanopiesNear(ctx: CanvasRenderingContext2D, props: Prop[], map: {
   artX: (x: number) => number; artY: (y: number) => number; artPerMetre: () => number;
-  isNear: (x: number, y: number, reach: number) => boolean; }, useGrid: boolean): number {
+  isNear: (x: number, y: number, reach: number) => boolean; }, useGrid: boolean,
+  cut: { isLit: (index: number) => boolean; onMap: number } | null = null): number {
   const scale = map.artPerMetre(), isBareSeason = seasonNow() === 0;
   const box = useGrid ? screenBox({ W: ctx.canvas.width, H: ctx.canvas.height } as View,
     map.artX, map.artY, (largestSideM(props) + 1) * scale) : null;
   const near = box ? propsNear(props, box) : null, total = near ? near.length : props.length;
-  let count = 0;
+  let count = 0, onMap = 0;
   for (let i = 0; i < total; i++) {
-    const prop = props[near ? near[i] : i];
+    const index = near ? near[i] : i, prop = props[index];
     if (prop.kind !== 'tree' || (treeKind(prop) === 'leafy' && isBareSeason)) continue;
     const side = (prop.s || 4) * scale, x = map.artX(prop.x), y = map.artY(prop.y);
     if (!map.isNear(x, y, side)) continue;
+    onMap++;
+    if (cut && !cut.isLit(index)) continue;
     // WHOLE light-map px: the dark goes back in two fills (light.ts darkenCanopies: rub out, then
     // fill); a part-covered edge px came out LESS dark than either, a pale rim
     const left = Math.round(x - side / 2), top = Math.round(y - side / 2);
     ctx.rect(left, top, Math.round(x + side / 2) - left, Math.round(y + side / 2) - top);
     count++;
   }
+  if (cut) cut.onMap = onMap;
   return count;
 }

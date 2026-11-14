@@ -133,6 +133,7 @@ export interface Game {
   in: CarInput | null;   // the input the sim stepped with this frame
   fps: number; fpsLow: number; fpsClear?: boolean;
   stepsLastFrame: number; simMs?: number; drawMs?: number;
+  raceHeld?: boolean;   // the loading screen and its fly-in hold the race this frame
   drawn?: { x: number; y: number; t: number };   // where the car was drawn last frame
   testMode: boolean; paused: boolean; menuMode?: boolean;
   notice?: { text: string; good?: boolean; at: number } | null;

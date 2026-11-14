@@ -145,6 +145,35 @@ export function propsNear(
 }
 
 /**
+ * Visits every prop filed in the cells under a world box, and every always-tested prop. No list is
+ * made: a prop filed in several of those cells is visited once for each (the visit must not mind).
+ * @param props the level's props (built into the grid on first use, again when the list changes)
+ * @param left the box's left world edge, m
+ * @param top the box's top world edge, m
+ * @param right the box's right world edge, m
+ * @param bottom the box's bottom world edge, m
+ * @param visit called with each prop's index in the list
+ */
+export function visitPropsInBox(props: Prop[], left: number, top: number, right: number,
+  bottom: number, visit: (index: number) => void): void {
+  if (!grid || grid.props !== props || grid.count !== props.length) grid = buildGrid(props);
+  const near = grid;
+  const col0 = Math.max(0, Math.floor((left - SLACK_M - near.left) / near.cell));
+  const col1 = Math.min(near.cols - 1, Math.floor((right + SLACK_M - near.left) / near.cell));
+  const row0 = Math.max(0, Math.floor((top - SLACK_M - near.top) / near.cell));
+  const row1 = Math.min(near.rows - 1, Math.floor((bottom + SLACK_M - near.top) / near.cell));
+  for (let j = row0; j <= row1; j++) {
+    for (let i = col0; i <= col1; i++) {
+      const into = j * near.cols + i;
+      for (let item = near.starts[into]; item < near.starts[into + 1]; item++) {
+        visit(near.items[item]);
+      }
+    }
+  }
+  for (let item = 0; item < near.always.length; item++) visit(near.always[item]);
+}
+
+/**
  * The world box of the screen grown by some pixels each side - the inverse of the renderer's
  * toScreenX / toScreenY (a scale and a shift on each axis).
  * @param view the canvas view (W, H)
