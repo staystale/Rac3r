@@ -24,8 +24,9 @@ import type { Level } from "../types.ts";
 export const HOLY_JEEZ = 'Holy Jeez';
 
 // the campers' field in the forest north of the top gravel, 40-70 m off the lap and clear of every
-// road (real m): its mown grass (the trees keep off it), and two rows of caravans along it, end to
-// end CAMPERS_GAP_M apart (the map's west edge is at -195: west of the top hairpin is off the map)
+// road (real m): its clearing (a pad of the grass round it: the trees keep off it), and two rows
+// of caravans along it, end to end CAMPERS_GAP_M apart (the map's west edge is at -195: west of
+// the top hairpin is off the map)
 const CAMPERS_FIELD = { at: [-15, -163] as [number, number], w: 116, h: 38 };
 const CAMPERS_Y = [-170, -156], CAMPERS_X0 = -64, CAMPERS_GAP_M = 11, CAMPERS_ROW = 10;
 
@@ -94,8 +95,8 @@ export const HOLJES_SPEC: VenueSpec = {
   ],
   // the crowd's earth bank above the hill gravel (fenced: a catch fence in front)
   banks: [{ pts: [[-145, -69], [-95, -24], [-45, 23]], r: 12, h: 2.5 }],
-  // the campers' field, mown
-  pads: [{ ...CAMPERS_FIELD, rot: 0, surface: 'grassShort' }],
+  // the campers' clearing (grass as round it: a mown pad drew as a pale box on the map)
+  pads: [{ ...CAMPERS_FIELD, rot: 0, surface: 'grass' }],
   boards: [
     { at: [110, 60], label: 'HOLY JEEZ' },
     { at: [135, -20], label: 'DUNFLOP' },
