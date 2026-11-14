@@ -25,6 +25,15 @@ records in `TODO-DONE.md` (PASSED 11-12). On the phone now:
     Measure first, then spread the uploads over frames (or paint ahead), behind its own switch.
   - MENU TAPS answered in 120-230 ms (six in one session): find the slow button handlers.
 
+- SMOOTH FLY-IN (owner 11-14 on ?loadscreen=1: "Still jerky after loading bar !?", "The loading
+  screen was meant to fix this but ok if that works"). NEXT for the worker, after ?onestart=1,
+  before the Holy Jeez firs. The phone report (11-14, Spa, after the blue flash, both times): the
+  fly-in at ~4 fps for ~2 s - 10 frames of 180-360 ms each, our JS 19-26 ms of each (sim 0), 2 GPU
+  uploads a frame. Suspect: the fly-in's whole-level picture (camera.ts startFlyIn paintOverview,
+  2048 x 3219 on Spa, ~7x the screen's pixels) drawn scaled every frame. MEASURE what each fly-in
+  frame costs (the picture's draw, the uploads, the tiles), then draw it from a picture sized to
+  the screen (made behind the loading screen), behind `?smoothfly=1`. Pass bar: the phone's
+  report, every fly-in frame on Spa under ~20 ms. Anglesleazy National: 2-3 hiccups only.
 - LOADING SCREEN (owner 11-14: "Spa on start up / restart seems slow af", "a loading screen there
   to hide it while it loads and then it can drop us in when it's ready", "the race should only start
   after loading is done and the player is in so we don't get dropped in midway thru a count down").
