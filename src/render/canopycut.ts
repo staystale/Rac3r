@@ -7,11 +7,13 @@
 // props list, the lamps or the level change): each tree keeps its gap, m, to the nearest. The
 // moving lights (every car's beams and glows, the sparks, a train's lights, the caravans, a lamp
 // whose head a knock moved) are walked each frame through the prop grid round each light. A tree
-// is traced when a light comes within MARGIN_PX of its canopy on the map.
+// is traced when a light comes within MARGIN_PX of its canopy on the map. The endless road, whose
+// props stream, is cut stretch by stretch instead (render/canopystream.ts).
 import { activeLamps } from '../world/lamps.ts';
 import { LEVEL } from '../world/state.ts';
 import { visitPropsInBox } from './propgrid.ts';
 import { noteMovingEventLights, noteStillEventLights } from './eventglows.ts';
+import type { NoteLight } from './eventglows.ts';
 import type { Prop } from '../world/types.ts';
 import type { RenderCar, RenderGame } from './types.ts';
 import type { Lamp } from '../world/lamps.ts';
@@ -19,12 +21,12 @@ import type { Lamp } from '../world/lamps.ts';
 // light-map px past a light's reach a canopy is still traced: the canopy squares are rounded to
 // whole px (half a px), a picture drawn smoothed reaches into the px round its edge (one) and a
 // thin spark streak is drawn a px wide; three holds them all
-const MARGIN_PX = 3;
+export const MARGIN_PX = 3;
 // m: the still lights' gaps are kept out to this; a map coarser than MARGIN_PX / STILL_SEARCH_M px
 // a metre (zoomed out past any fly-in) traces every canopy
-const STILL_SEARCH_M = 64;
+export const STILL_SEARCH_M = 64;
 // the largest canopy side looked for round a light, m (a tree's prop.s, 4 when unset)
-const DEFAULT_SIDE_M = 4;
+export const DEFAULT_SIDE_M = 4;
 
 /** A spark as the cut reads it (render/particles.ts). */
 interface SparkReach { x: number; y: number; vx: number; vy: number; sz: number }
@@ -50,7 +52,9 @@ const STILL = {
 // this frame: the trees a moving light reaches carry the frame's stamp
 const MOVING = { stamp: 0, marks: new Uint32Array(0), marginM: 0 };
 // what was traced last frame (tools, ?report=1): canopies traced, of those on the map
-export const CANOPY_STATS = { traced: 0, onMap: 0 };
+// on the endless road (render/canopystream.ts): ms the last stretch's walk took, the most, and how
+// many walks
+export const CANOPY_STATS = { traced: 0, onMap: 0, walkMs: 0, walkMostMs: 0, walks: 0 };
 
 let walkProps: Prop[] = [];
 let walkX = 0, walkY = 0, walkReach = 0;
@@ -112,7 +116,7 @@ const noteMoving = (x: number, y: number, reachM: number) =>
  * @param lamp the lamp
  * @returns the radius
  */
-const lampReachM = (lamp: Lamp) => lamp.poolM;
+export const lampReachM = (lamp: Lamp) => lamp.poolM;
 
 /**
  * Walks the still lights again when the props, the level or the lamps changed.
@@ -145,26 +149,49 @@ function refreshStill(input: CanopyCutInput) {
  * @param input the frame's input
  */
 function stampMovingLights(input: CanopyCutInput) {
-  const { game } = input;
   MOVING.stamp = (MOVING.stamp + 1) >>> 0 || 1;
   if (MOVING.stamp === 1) MOVING.marks.fill(0);
-  const eachCar = (car: RenderCar) => noteMoving(car.x, car.y, input.carReachM(car));
+  noteMovingLights(input, noteMoving, STILL.lamps || [], isHeadMoved);
+}
+
+/**
+ * Whether a lamp's head is not where the still lights' walk found it (a knock moved it).
+ * @param lamp the lamp
+ * @param index its index in the walked lamps
+ * @returns true when moved
+ */
+function isHeadMoved(lamp: Lamp, index: number): boolean {
+  const heads = STILL.heads, first = index * 4;
+  return lamp.headX !== heads[first] || lamp.headY !== heads[first + 1]
+    || lamp.twinX !== heads[first + 2] || lamp.twinY !== heads[first + 3];
+}
+
+/**
+ * Notes every moving light's reach this frame: the cars, the sparks, the moving event lights, and
+ * any lamp whose head moved.
+ * @param input the frame's input
+ * @param note called with each light's centre and radius, m
+ * @param lamps the lamps the still lights' walk took
+ * @param isMoved whether a lamp's head moved since (with its index in lamps)
+ */
+export function noteMovingLights(input: CanopyCutInput, note: NoteLight, lamps: Lamp[],
+  isMoved: (lamp: Lamp, index: number) => boolean) {
+  const { game } = input;
+  const eachCar = (car: RenderCar) => note(car.x, car.y, input.carReachM(car));
   if (game.traffic) for (const car of game.traffic.cars) eachCar(car);
   for (const rival of game.ai || []) eachCar(rival.car);
   eachCar(game.car);
   for (const spark of input.sparks) {
     const tailX = spark.x - spark.vx * input.streakS, tailY = spark.y - spark.vy * input.streakS;
-    noteMoving((spark.x + tailX) / 2, (spark.y + tailY) / 2,
+    note((spark.x + tailX) / 2, (spark.y + tailY) / 2,
       Math.hypot(spark.x - tailX, spark.y - tailY) / 2 + spark.sz * input.haloX / 2);
   }
-  noteMovingEventLights(noteMoving, game);
-  const heads = STILL.heads, lamps = STILL.lamps || [];
+  noteMovingEventLights(note, game);
   for (let index = 0; index < lamps.length; index++) {
-    const lamp = lamps[index], first = index * 4;
-    if (lamp.headX === heads[first] && lamp.headY === heads[first + 1]
-      && lamp.twinX === heads[first + 2] && lamp.twinY === heads[first + 3]) continue;
-    noteMoving(lamp.headX, lamp.headY, lampReachM(lamp));
-    if (lamp.twin) noteMoving(lamp.twinX, lamp.twinY, lampReachM(lamp));
+    const lamp = lamps[index];
+    if (!isMoved(lamp, index)) continue;
+    note(lamp.headX, lamp.headY, lampReachM(lamp));
+    if (lamp.twin) note(lamp.twinX, lamp.twinY, lampReachM(lamp));
   }
 }
 
@@ -179,7 +206,8 @@ function isCanopyLit(index: number): boolean {
 
 /**
  * The canopies the dark must go back over this frame, as a test on a tree's index;
- * null to trace them all (a streaming level, a map too coarse for the still lights' walk).
+ * null to trace them all (the endless road: canopystream.ts with ?nighthw=1; a map too coarse
+ * for the still lights' walk).
  * @param input the frame's input
  * @returns the test, or null
  */

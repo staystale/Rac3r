@@ -489,13 +489,24 @@ const PROBE: EventPainter = {
  * @param game the game
  */
 export function noteStillEventLights(note: NoteLight, game: RenderGame): void {
+  for (const prop of litPropsNow()) noteStillLightsOf(note, prop, game);
   PROBE.note = note;
-  for (const prop of litPropsNow()) {
-    if (prop.kind === 'bridge') continue;
-    if (prop.kind === 'marshal') glow(PROBE, false, prop.x, prop.y, BEACON_M, AMBER, BEACON);
-    else propLightOf(PROBE, prop, game);
-  }
   for (const bulbs of stageFairyLights(LEVEL)) fairyString(PROBE, false, bulbs);
+  PROBE.note = undefined;
+}
+
+/**
+ * Notes the reach of one prop's event lights that stay where they are (none for a bridge: its
+ * train moves; none for a prop of a kind that gives no light).
+ * @param note called with each light's centre and radius, m
+ * @param prop the prop
+ * @param game the game
+ */
+export function noteStillLightsOf(note: NoteLight, prop: Prop, game: RenderGame): void {
+  if (prop.kind === 'bridge' || !LIGHT_KINDS.has(prop.kind)) return;
+  PROBE.note = note;
+  if (prop.kind === 'marshal') glow(PROBE, false, prop.x, prop.y, BEACON_M, AMBER, BEACON);
+  else propLightOf(PROBE, prop, game);
   PROBE.note = undefined;
 }
 

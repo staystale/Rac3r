@@ -27,6 +27,8 @@ import type { RenderCar, RenderGame, View } from './types.ts';
 import { BAR_GLOW_M, FLASHER_GLOW_M, isAngryFlashOn, litPoliceLamps } from './lightbar.ts';
 import { CANOPY_STATS, canopiesLit } from './canopycut.ts';
 import type { CanopyCutInput } from './canopycut.ts';
+import { streamCanopiesLit } from './canopystream.ts';
+import { FIX } from '../core/fixes.ts';
 import { COL } from '../world/colours.ts';
 import { trackCanvas } from '../core/memorybudget.ts';
 
@@ -549,7 +551,9 @@ function canopyCutNow(cut: CanopyCutInput, game: RenderGame, pools: PoolPainter)
   cut.props = PROPS;
   cut.game = game;
   cut.artPerMetre = pools.artPerMetre();
-  const isLit = canopiesLit(cut);
+  // (the endless road's props stream: render/canopystream.ts, ?nighthw=1; without it canopiesLit
+  // leaves the endless road whole, every canopy traced)
+  const isLit = LEVEL.endless && FIX.nighthw ? streamCanopiesLit(cut) : canopiesLit(cut);
   if (!isLit) return null;
   CUT_TEST.isLit = isLit;
   return CUT_TEST;
