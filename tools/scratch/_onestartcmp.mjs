@@ -6,8 +6,10 @@
 // controls held (full throttle, straight on), and compared STEP BY STEP OF SIM TIME (the lights'
 // clock x 120): every car's pose, speeds, gear, rpm, damage, lap, the AI driver's state and its car,
 // the lights and the loose objects' hash. Also counts the Math.random draws from the launch to the
-// race's first step, and the restarts and field line-ups the launch ran. SAME or the first
-// difference.
+// race's first step, and the lights armed (seen a frame at a time). SAME or the first difference.
+// Then the switch-on run again with the seeded stream first advanced by the draws the switch-off
+// run made more (the field line-up the switch drops draws the grid slot and the AI's cars from
+// Math.random): SAME there shows that stream's place is the whole difference.
 // [FRAMES=600] [LOADSCREEN=1] node tools/scratch/_onestartcmp.mjs [from>to[:rx] ...]
 import { startServer, launchBrowser } from '../lib/browser.mjs';
 import { openPage, launchLevel } from '../lib/determinism.mjs';
@@ -86,9 +88,10 @@ async function stepOne(page) {
  * @param {string} base the server
  * @param {string} spec from>to[:rx]
  * @param {boolean} isOn ?onestart=1
+ * @param {number} [preDraws] Math.random draws made after seeding, before the launch
  * @returns {Promise<{draws: number, lineUps: number, raceAt: number, samples: Map}>} the run
  */
-async function runOne(browser, base, spec, isOn) {
+async function runOne(browser, base, spec, isOn, preDraws = 0) {
   const [from, target] = spec.split('>');
   const [level, kind] = target.split(':');
   const errors = [];
@@ -96,7 +99,10 @@ async function runOne(browser, base, spec, isOn) {
     SKIP + LOADSCREEN + (isOn ? '&onestart=1' : ''));
   await page.evaluate(() => dispatchEvent(new KeyboardEvent('keydown', { key: 'x' })));
   for (let frame = 0; frame < 120; frame++) await page.evaluate(() => window.__rt.step(1));
-  await page.evaluate((seed) => window.__rt.seed(seed), SEED);
+  await page.evaluate(([seed, count]) => {
+    window.__rt.seed(seed);
+    for (let draw = 0; draw < count; draw++) Math.random();
+  }, [SEED, preDraws]);
   await page.evaluate(installCounters);
   await page.evaluate(launchLevel, [level, { ai: 5, rx: kind === 'rx' }]);
   await page.waitForTimeout(300);
@@ -153,13 +159,18 @@ try {
     const off = await runOne(browser, server.url, spec, false);
     const on = await runOne(browser, server.url, spec, true);
     const { common, diff } = compareRuns(off.samples, on.samples);
-    if (diff || common < FRAMES / 2) bad++;
+    const extra = off.draws - on.draws;
+    const aligned = await runOne(browser, server.url, spec, true, extra);
+    const lined = compareRuns(off.samples, aligned.samples);
+    if (lined.diff || lined.common < FRAMES / 2) bad++;
     const fieldOf = (run) => Object.keys(run.samples.values().next().value)
       .filter((key) => key.startsWith('ai')).length;
     console.log(`${spec}${LOADSCREEN ? ' (loadscreen)' : ''}: launch to the race's first step -`
       + ` off ${off.draws} random draws, ${off.lineUps} line-ups, ${off.raceAt} frames, ${fieldOf(off)}`
       + ` AI; on ${on.draws} draws, ${on.lineUps} line-ups, ${on.raceAt} frames, ${fieldOf(on)} AI;`
-      + ` ${common} sim steps compared: ${diff ? 'DIFFERENT ' + diff : 'SAME'}`);
+      + ` ${common} sim steps compared: ${diff ? 'DIFFERENT ' + diff : 'SAME'};`
+      + ` on with the stream ${extra} draws on: ${lined.common} steps,`
+      + ` ${lined.diff ? 'DIFFERENT ' + lined.diff : 'SAME'}`);
   }
   console.log(bad ? `onestartcmp: DIFFERENT (${bad})` : 'onestartcmp: SAME');
   if (bad) process.exitCode = 1;
