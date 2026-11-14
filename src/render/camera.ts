@@ -49,6 +49,9 @@ interface CameraCtx {
 // 1/s: how fast the HUD push eases toward what the pieces ask (a piece that appears or goes
 // moves the car over ~0.2 s, not in one frame)
 const CLEAR_EASE = 12;
+// css px / s the push always keeps up with: the car sliding toward a piece as the view leads
+// (MEASURED, _hudcover 390x844: eased alone, the push lagged a sliding car into the ABS chip)
+const CLEAR_FOLLOW = 600;
 // m in one frame: further than any car drives, so the car was put somewhere (a teleport)
 const CLEAR_TELEPORT_M = 15;
 
@@ -383,8 +386,9 @@ function springZoom(ctx: CameraCtx, target: number, wallDt: number) {
 /**
  * The car kept out from under the HUD (?hudclear=1): after the follow and the zoom, the camera
  * moves just enough that the car's box on screen (its length x width at its heading) clears
- * every HUD piece (render/hudclear.ts), eased on the wall clock (CLEAR_EASE) so a piece that
- * appears or goes never jerks the view; taken whole after the fly-in or a teleport. Not in
+ * every HUD piece (render/hudclear.ts): a steady change followed at once (up to CLEAR_FOLLOW), a
+ * sudden one (a piece that appears or goes) eased on the wall clock (CLEAR_EASE) so it never
+ * jerks the view; taken whole after the fly-in or a teleport. Not in
  * the fly-in or the menu's view. The push reads the car where the follow put it, never where the
  * push moved it, so it cannot fight the look-ahead.
  * @param ctx camera context
@@ -405,12 +409,18 @@ function clearHud(ctx: CameraCtx, car: ClearCar, wallDt: number) {
     centreY: (car.y - cam.y) * ppm + view.H / 2, halfX: cos * halfLen + sin * halfWid,
     halfY: sin * halfLen + cos * halfWid }, rects, view.W, view.H);
   const moved = Math.hypot(car.x - clear.carX, car.y - clear.carY) > CLEAR_TELEPORT_M;
-  const blend = clear.fresh || moved ? 1 : 1 - Math.exp(-CLEAR_EASE * wallDt);
+  const whole = clear.fresh || moved, ease = 1 - Math.exp(-CLEAR_EASE * wallDt),
+    follow = CLEAR_FOLLOW * wallDt;
+  const toward = (now: number, goal: number) => {
+    const gap = goal - now;
+    return whole ? goal : now + Math.sign(gap) * Math.min(Math.abs(gap),
+      Math.max(follow, Math.abs(gap) * ease));
+  };
   clear.fresh = false;
   clear.carX = car.x;
   clear.carY = car.y;
-  clear.x += (right - clear.x) * blend;
-  clear.y += (down - clear.y) * blend;
+  clear.x = toward(clear.x, right);
+  clear.y = toward(clear.y, down);
   cam.x -= clear.x / ppm;
   cam.y -= clear.y / ppm;
 }
