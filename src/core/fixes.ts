@@ -63,4 +63,7 @@ export const FIX = {
   smoothfly: atLoad('smoothfly'),
   // the countryside highway's exit signs: the four real towns as parody puns (highway/extras.ts)
   exitpuns: atLoad('exitpuns'),
+  // a rolled car's body with no see-through rows: each cross-section's outline filled in to under
+  // half a pixel between its points (render/rollbody.ts closeRing)
+  rollside: atLoad('rollside'),
 };

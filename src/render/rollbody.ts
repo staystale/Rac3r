@@ -28,6 +28,7 @@ import { SPRITE_PPM } from './shared.ts';
 import { readSoon, spritePixels } from './spritepixels.ts';
 import type { CarSprite, RenderCar, RenderCarSpec } from './types.ts';
 import { trackCanvas } from '../core/memorybudget.ts';
+import { FIX } from '../core/fixes.ts';
 
 // 12 pictures a turn; the light in BANDS steps, from above and AHEAD a little (the windscreen and
 // the rear screen shade apart from the roof); above the waist the cabin leans in, CABIN_IN of its
@@ -40,6 +41,9 @@ const BLUR: [number, number][] = [[0.07, 0.12], [0.035, 0.25]], BLUR_W = 4, WHOO
 // m: an open car's sidepods' top
 const POD_M = 0.55;
 const TYRE_RGB = 0x16171c, OPENING = [29, 30, 35], GREY = 0x8a8d96;
+// px: the widest step between two points of a cross-section's outline (rollside): under half a
+// picture row, so a turned outline reaches every row it spans
+const RING_GAP = 0.45;
 
 /** Something standing off the body (a wheel's slice, a wing, a sidepod), px across and up. */
 interface Box {
@@ -382,6 +386,25 @@ function blend(paints: Paints, where: number[], normalY: number, normalZ: number
 }
 
 /**
+ * A cross-section's outline with no gap wider than RING_GAP px: points added along each straight
+ * between two of its points. A boxy car's superellipse puts its points at the corners and leaves
+ * its flat sides and roof a few points far apart, and every picture row between two of them was
+ * left clear (the ground showed through the side of a rolled car).
+ * @param ring the outline's points, across and up, px
+ * @returns the outline, filled in
+ */
+function closeRing(ring: number[][]): number[][] {
+  const out: number[][] = [];
+  ring.forEach(([y, z], i) => {
+    const [nextY, nextZ] = ring[(i + 1) % ring.length],
+      pieces = Math.ceil(Math.hypot(nextY - y, nextZ - z) / RING_GAP);
+    for (let piece = 0; piece < pieces; piece++)
+      out.push([y + (nextY - y) * piece / pieces, z + (nextZ - z) * piece / pieces]);
+  });
+  return out;
+}
+
+/**
  * One column's cross-section as samples: a superellipse as round as the car, the cabin leaning
  * in above the waist, the normal tipped along the car by the roof line's slope.
  * @param samples the surface so far
@@ -401,11 +424,12 @@ function section(samples: Samples, x: number, col: Column,
     return [col.half * lean * Math.sign(cos) * Math.abs(cos) ** power, z];
   };
   // (each point once; its normal from its neighbours either side)
-  const ring: number[][] = [];
-  for (let i = 0; i < count; i++) ring.push(point((i / count) * 2 * Math.PI));
-  for (let i = 0; i < count; i++) {
-    const [y, z] = ring[i], [backY, backZ] = ring[(i + count - 1) % count],
-      [nextY, nextZ] = ring[(i + 1) % count];
+  const turns: number[][] = [];
+  for (let i = 0; i < count; i++) turns.push(point((i / count) * 2 * Math.PI));
+  const ring = FIX.rollside ? closeRing(turns) : turns, points = ring.length;
+  for (let i = 0; i < points; i++) {
+    const [y, z] = ring[i], [backY, backZ] = ring[(i + points - 1) % points],
+      [nextY, nextZ] = ring[(i + 1) % points];
     let normalY = nextZ - backZ, normalZ = -(nextY - backY);
     if (normalY * y + normalZ * (z - mid) < 0) { normalY = -normalY; normalZ = -normalZ; }
     const norm = Math.hypot(normalY, normalZ) || 1;
