@@ -27,6 +27,8 @@ export const TEST_LIST: TestEntry[] = [
     where: 'Test link + &lapdata=1: TEST MODE, then each track list (ALL TRACKS, CIRCUITS...)',
     try: 'Open the lists straight after loading the page; read the cards LAP ... KM lines.',
     wrong: 'A list slow to appear after the blue blink, a length missing or not as before.',
+  },
+  {
     id: 'onestart',
     added: '2026-11-14',
     name: 'Quicker start and restart: nothing done twice',

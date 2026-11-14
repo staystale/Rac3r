@@ -28,7 +28,6 @@ import type { HwLevel } from '../highway/hwtypes.ts';
 import type { ResultsFlow } from '../menu/menutypes.ts';
 import type { LaunchOpts } from './state.ts';
 import { MAX_AI } from '../core/settings.ts';
-import { FIX } from "../core/fixes.ts";
 
 /**
  * Works out whether the minimap, the progress bar and the track gauge show (the pause settings
