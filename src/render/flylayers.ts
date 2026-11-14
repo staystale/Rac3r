@@ -9,13 +9,14 @@
 // gantries) and the bridges' ground into a second, and the frame draws the two in place of those
 // layers. The fly-in's path is known (camera.ts flyViewAt), so its zooms up to LIVE_FROM are cut
 // into SETS of pictures, each covering the views of its part of the path, painted at the art
-// buffer's px a metre at its top zoom: shrunk while zoomed out, 1:1 where the next set (or the
-// live drawing) takes over, so a hand-over shows the same picture. The marks and the pulsing
-// joker arrows stay live (over the picture); the cars, the effects, the night and the weather are
-// drawn as before. Only while the field is held at the lights (nothing can move a cone or a
-// prop), never on the endless road (its traffic moves under the fly-in); a frame whose view
-// leaves its set's pictures is drawn live. Painted behind the loading screen (without it, each set
-// the first time the fly-in reaches it); a set is let go once the fly-in has zoomed past it.
+// buffer's px a metre at its top zoom: shrunk (smoothed) by up to SET_STEP while zoomed out, 1:1
+// where the next set (or the live drawing) takes over, so a hand-over shows the same picture.
+// The marks and the pulsing joker arrows stay live (over the picture); the cars, the effects,
+// the night and the weather are drawn as before. Only while the field is held at the lights
+// (nothing can move a cone or a prop), never on the endless road (its traffic moves under the
+// fly-in); a frame whose view leaves its set's pictures is drawn live. Every set is painted at
+// once, behind the loading screen (without it, on the fly-in's first frame); a set is let go once
+// the fly-in has zoomed past it.
 import { LEVEL } from '../world/state.ts';
 import { trackCanvas } from '../core/memorybudget.ts';
 import { FIX } from '../core/fixes.ts';
@@ -26,9 +27,10 @@ import type { Cam, CamCar, CamState, Fly, RenderGame, View } from './types.ts';
 // x1, the second PC): live, the frame's drawing took 48 ms at zoom 0.04, 25 at 0.07, 9-15 at
 // 0.10-0.11, 5 from 0.16
 const LIVE_FROM = 0.1;
-// a set's top zoom over its bottom one: its pictures are about this many times the screen's size
-// (and the pan's spread) at most
-const SET_STEP = 2.5;
+// a set's top zoom over its bottom one: a picture is shrunk by this much at most. Point-sampled,
+// 2.5 times shrunk lost what the live drawing keeps at a pixel or less (the barriers' lines went
+// dotted, the cones went); smoothed, 2.5 blurred the trees. Smoothed at 1.25 at most, it keeps them
+const SET_STEP = 1.25;
 // px: the longest side a picture may have (a set's top zoom is cut back to fit)
 const PICTURE_MAX_PX = 2048;
 // share of a set's views added round its pictures (the path between two samples)
@@ -232,8 +234,8 @@ function isViewInside(ctx: FlyLayersCtx, set: PictureSet): boolean {
 
 /**
  * The set standing in this frame: the switch on, a fly-in under way below LIVE_FROM, the field
- * still, not the endless road, the view inside the set. Planned the first time asked for a
- * fly-in; a set is painted the first time it is needed and let go once the zoom has passed it.
+ * still, not the endless road, the view inside the set. Planned and painted the first time asked
+ * for a fly-in; a set is let go once the zoom has passed it.
  * @param ctx the painters
  * @param game the game
  * @returns the set, or null to draw live
@@ -245,27 +247,32 @@ function setNow(ctx: FlyLayersCtx, game: RenderGame): PictureSet | null {
     return null;
   }
   if (LEVEL.endless || !isFieldStill(game)) return null;
-  if (!planned || planned.fly !== fly) planned = { fly, sets: planSets(ctx, fly, game.car) };
+  if (!planned || planned.fly !== fly) {
+    planned = { fly, sets: planSets(ctx, fly, game.car) };
+    for (const set of planned.sets) paintSet(ctx, game, set);
+  }
   const zoom = ctx.view.zoom;
   for (const set of planned.sets) {
     if (zoom >= set.zoomTo) set.under = set.over = null;
   }
   const set = planned.sets.find((each) => zoom < each.zoomTo);
-  if (!set || !isViewInside(ctx, set)) return null;
-  if (!set.under) paintSet(ctx, game, set);
-  return set;
+  return set && set.under && isViewInside(ctx, set) ? set : null;
 }
 
 /**
- * Draws a picture over its world rectangle (point-sampled, as the art buffer draws).
+ * Draws a picture over its world rectangle, smoothed (it is shrunk by up to SET_STEP).
  * @param ctx the painters
  * @param picture the canvas
  * @param rect its world rectangle
  */
 function drawPicture(ctx: FlyLayersCtx, picture: HTMLCanvasElement, rect: number[]) {
   const { toScreenX, toScreenY, PPMz } = ctx;
-  ctx.view.ctx.drawImage(picture, toScreenX(rect[0]), toScreenY(rect[1]),
+  const target = ctx.view.ctx;
+  target.imageSmoothingEnabled = true;
+  target.drawImage(picture, toScreenX(rect[0]), toScreenY(rect[1]),
     (rect[2] - rect[0]) * PPMz(), (rect[3] - rect[1]) * PPMz());
+  // (the art buffer draws point-sampled: render.ts resizeRenderer)
+  target.imageSmoothingEnabled = false;
 }
 
 /** The fly-in's pictures layer as the frame asks it (render.ts, screen.ts). */
@@ -281,7 +288,7 @@ export const NO_FLY_LAYERS: FlyLayers = { ready: () => {}, under: () => false, o
 /**
  * Builds the fly-in's pictures layer (?smoothfly=1; off: NO_FLY_LAYERS).
  * @param ctx the painters, the view, the camera state and the tiles' hand-over zoom
- * @returns ready (plan and paint every set: behind the loading screen), under (the picture of
+ * @returns ready (plan and paint the sets: behind the loading screen), under (the picture of
  * the layers under the cars drawn in the art buffer: true when it stood in for them) and over
  * (the same over them)
  */
@@ -289,8 +296,7 @@ export function createFlyLayers(ctx: FlyLayersCtx): FlyLayers {
   if (!FIX.smoothfly) return NO_FLY_LAYERS;
   return {
     ready(game: RenderGame) {
-      if (!setNow(ctx, game) || !planned) return;
-      for (const set of planned.sets) if (!set.under) paintSet(ctx, game, set);
+      setNow(ctx, game);
     },
     under(game: RenderGame): boolean {
       standing = setNow(ctx, game);
