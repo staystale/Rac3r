@@ -27,21 +27,7 @@ records in `TODO-DONE.md` (PASSED 11-12). On the phone now:
     picture. See SMOOTH FLY-IN.
   - IN RACE: 0.3-0.6 % slow frames, nearly all ZOOMED OUT while new ground tiles go to the GPU.
     Measure first, then spread the uploads over frames (or paint ahead), behind its own switch.
-  - MENU TAPS answered in 120-230 ms (six in one session). MEASURED (foreman, laptop CPU x4,
-    tools/scratch/_menutaps.mjs, every button two screens deep): the slowest open a TRACK LIST -
-    TEST MODE > ALL TRACKS 249 ms, > RALLY STAGES 240 ms; then STEERING CONTROLS 118, TEST MODE 114,
-    CREDITS 96, SETTINGS 80. Profiled (cold): ALL TRACKS' card list asks each venue's lap LENGTH
-    (menu/tracks.ts addLength -> category.ts lapOf -> venue.ts venueLap -> venueBuild -> traceLayout,
-    the whole trace: tracedRadii, maskKinks) - 3.6 s of the profile at x4, only to print a length.
-    Owner 11-14: "It should come from a pre measured set of data": BUILT (foreman) behind
-    `?lapdata=1` - world/levels/laplengths.ts from tools/laplengths.mjs (--check in runall); with
-    it no list's open takes a task over 50 ms at x4 (without: 2-3.4 s on the first list opened).
-    TEST MODE itself (foreman, profiled): the 9 rally stages had no shipped thumbnail (thumbs.mjs
-    and thumbcheck never added the stages), so its open BUILT each to paint one - 2.3 s at x4.
-    Owner 11-14 "Yes, fix it": BUILT behind `?stagethumbs=1` (0.04-0.05 s); thumbcheck now fails
-    on a stage without one. The settings / steering / credits screens' 80-120 ms is the menu
-    race behind them, no needless work found. PRE-BUILT TRACKS dropped (owner asked; measured:
-    15 MB gzipped for all, Spa 1.2 MB; the phone builds Spa in 0.2-0.3 s and works offline).
+  - MENU TAPS: the track lists' lengths and the rally stages' thumbnails PASSED 11-14 (TODO-DONE).
 
 - SMOOTH FLY-IN (owner 11-14 on ?loadscreen=1: "Still jerky after loading bar !?", "The loading
   screen was meant to fix this but ok if that works"). NEXT for the worker, after ?onestart=1,
@@ -94,7 +80,8 @@ records in `TODO-DONE.md` (PASSED 11-12). On the phone now:
     SAME).
 
 - NOTHING REDONE AT A START (owner 11-14 on the two redos above: "Yes, fix both"). BUILT, behind
-  `?onestart=1` (worker; ENGINE.md "One frame"), with or without `?loadscreen=1`:
+  `?onestart=1` (worker; ENGINE.md "One frame"), with or without `?loadscreen=1`. PASSED 11-14
+  (owner: "Pass all three"); its switch is removed with the smooth fly-in, which builds on it:
   - A START on a new level runs the restart ONCE (the launch's; the level switch's is skipped).
   - A RESTART reuses the fly-in's whole-level picture (render/flypicture.ts), painted again only
     when what it shows can differ: another level or layout, a rebuilt patch list, the scenery water

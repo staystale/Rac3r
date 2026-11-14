@@ -54,12 +54,6 @@ export const FIX = {
   // START and RESTART behind a loading screen (game/loading.ts): the work, then the fly-in, then
   // the countdown; the race held until the fly-in is over
   loadscreen: atLoad('loadscreen'),
-  // the menu's lap lengths read from pre-measured data (world/levels/laplengths.ts), not traced
-  // when a track list opens
-  lapdata: atLoad('lapdata'),
-  // the rally stages' menu thumbnails read from the shipped files (assets/thumbs) like every other
-  // level's, not each stage built to paint one when TEST MODE opens
-  stagethumbs: atLoad('stagethumbs'),
   // nothing redone at a start: a START on a new level runs the restart once (menuflow.ts launch),
   // and a RESTART keeps the fly-in's whole-level picture while nothing it shows has changed
   // (render/flypicture.ts)

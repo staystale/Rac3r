@@ -304,18 +304,17 @@ parody pun (CLAUDE.md). A level is loaded by `world/load.ts`; `world/state.ts` h
 lists (zones, bumps, props, barriers), which the physics and the renderer both read, so what you see is
 what you drive on.
 
-LAP LENGTHS AS DATA (`?lapdata=1`, `FIX.lapdata`): the menu's track cards show each level's lap from
+LAP LENGTHS AS DATA (the default since 11-14): the menu's track cards show each level's lap from
 `world/levels/laplengths.ts` (`category.ts menuLapOf`), written by `tools/laplengths.mjs` with
 `lapOf`, which traces a venue's whole road; without it a list's open traced every venue in it
 (MEASURED, CPU x4: 2-3.4 s on the first list opened; with it no task over 50 ms). Run the tool when
 a level is added or its road changes; `--check` (in `runall`, so CI) fails naming a stale length.
 
-THE RALLY STAGES' THUMBNAILS SHIPPED (`?stagethumbs=1`, `FIX.stagethumbs`): `tools/thumbs.mjs` and
+THE RALLY STAGES' THUMBNAILS SHIPPED (the default since 11-14): `tools/thumbs.mjs` and
 `tools/thumbcheck.mjs` now take the rally stages too (`addStageLevels`, as `main.ts`), so their
-thumbnails are in `assets/thumbs` like every level's; with the switch the menu reads them
-(`menuflow.ts prepareThumbs`, `thumbfiles.ts loadShippedThumbs` isWanted), without it they are
-painted as before - each stage BUILT to paint one when TEST MODE first opens (MEASURED, CPU x4
-profile of the TEST MODE press: 2.3 s without, 0.04-0.05 s with).
+thumbnails are in `assets/thumbs` like every level's and the menu reads them; before, each stage
+was BUILT to paint one when TEST MODE first opened (MEASURED, CPU x4 profile of the TEST MODE
+press: 2.3 s before, 0.04-0.05 s now).
 
 A circuit is its real venue (`world/venue.ts` and `venue*.ts`, from OpenStreetMap; `levels/brands-venue.ts`
 is the spec of one, `levels/castle-cum-venue.ts` another): `venuescenery.ts` the
