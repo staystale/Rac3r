@@ -41,9 +41,9 @@ interface CameraCtx {
   drawCurvedKerbs: () => void;
   // the HUD pieces the car keeps out from under (hudclear; main.ts sets it), or null
   keepout: ((width: number, height: number) => ClearRect[]) | null;
-  // the push on screen now, css px (eased toward what the HUD asks); fresh: take the next whole;
-  // the car's place last frame, m (a teleport - RESET, RESTART - takes the push whole too)
-  clear: { x: number; y: number; fresh: boolean; carX: number; carY: number };
+  // the push on screen now, css px (eased toward what the HUD asks); the car's place last frame,
+  // m (NaN before the first: a teleport - RESET, RESTART - takes the push whole)
+  clear: { x: number; y: number; carX: number; carY: number };
 }
 
 // 1/s: how fast the HUD push eases toward what the pieces ask (a piece that appears or goes
@@ -388,7 +388,8 @@ function springZoom(ctx: CameraCtx, target: number, wallDt: number) {
  * moves just enough that the car's box on screen (its length x width at its heading) clears
  * every HUD piece (render/hudclear.ts): a steady change followed at once (up to CLEAR_FOLLOW), a
  * sudden one (a piece that appears or goes) eased on the wall clock (CLEAR_EASE) so it never
- * jerks the view; taken whole after the fly-in or a teleport. Not in
+ * jerks the view (the fly-in's hand-over too: MEASURED, taken whole there it jumped 33 px at
+ * 667x375); taken whole after a teleport. Not in
  * the fly-in or the menu's view. The push reads the car where the follow put it, never where the
  * push moved it, so it cannot fight the look-ahead.
  * @param ctx camera context
@@ -397,10 +398,7 @@ function springZoom(ctx: CameraCtx, target: number, wallDt: number) {
  */
 function clearHud(ctx: CameraCtx, car: ClearCar, wallDt: number) {
   const { view, cam, camState, clear } = ctx;
-  if (!FIX.hudclear || !ctx.keepout || camState.fly || camState.menuView) {
-    clear.fresh = true;
-    return;
-  }
+  if (!FIX.hudclear || !ctx.keepout || camState.fly || camState.menuView) return;
   const rects = ctx.keepout(view.W, view.H);
   const ppm = ctx.PPMz(), cos = Math.abs(Math.cos(car.heading)),
     sin = Math.abs(Math.sin(car.heading)), halfLen = car.spec.len / 2 * ppm,
@@ -409,14 +407,13 @@ function clearHud(ctx: CameraCtx, car: ClearCar, wallDt: number) {
     centreY: (car.y - cam.y) * ppm + view.H / 2, halfX: cos * halfLen + sin * halfWid,
     halfY: sin * halfLen + cos * halfWid }, rects, view.W, view.H);
   const moved = Math.hypot(car.x - clear.carX, car.y - clear.carY) > CLEAR_TELEPORT_M;
-  const whole = clear.fresh || moved, ease = 1 - Math.exp(-CLEAR_EASE * wallDt),
+  const whole = moved, ease = 1 - Math.exp(-CLEAR_EASE * wallDt),
     follow = CLEAR_FOLLOW * wallDt;
   const toward = (now: number, goal: number) => {
     const gap = goal - now;
     return whole ? goal : now + Math.sign(gap) * Math.min(Math.abs(gap),
       Math.max(follow, Math.abs(gap) * ease));
   };
-  clear.fresh = false;
   clear.carX = car.x;
   clear.carY = car.y;
   clear.x = toward(clear.x, right);
@@ -443,7 +440,7 @@ export function createCamera(view: View, cam: Cam, helpers: CameraHelpers) {
   const ctx: CameraCtx = {
     view, cam, camState, PPMz, drawFloor, drawZones, drawLanes, drawTrackRibbon, drawPatches,
     drawCovers, drawCurvedKerbs, keepout: null,
-    clear: { x: 0, y: 0, fresh: true, carX: 0, carY: 0 },
+    clear: { x: 0, y: 0, carX: NaN, carY: NaN },
   };
   return {
     camState,
