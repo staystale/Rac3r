@@ -29,7 +29,12 @@ records in `TODO-DONE.md` (PASSED 11-12). On the phone now:
   1 onLane by a lane reach grid; 2 the loose objects sleep on an awake list; 3 the barrier clamp by
   a segment grid; 4 the night layer (canopies by the prop grid, the season once a call, tree
   kinds kept, the light props and caravans listed, off-map head glows skipped, no lists a lamp);
-  5 a memory budget (dropping least-used built levels before a new build: owner-approved, next).
+  5 a memory budget (180 MB: least-played built levels go back to their stub before a new build).
+  Built and proven; handed to the foreman for the phone test. MEASURED with the switch on (fixed
+  framecheck, 20 AI, our JS work median ms off -> on): CPU x1 Spa 17.9 -> 14.7 day, 27.5 -> 15.0
+  night; Sillystone 28.7 -> 15.7, 24.4 -> 15.5; Le Manky no clear change (noise both ways). CPU x4
+  (still 12 steps a frame): Spa 388 -> 248, 351 -> 222; Sillystone 312 -> 166, 327 -> 198; Le
+  Manky 222 -> 228, 247 -> 185.
   framecheck fixed first (it never started the race). The audit's findings (live race, 20 AI):
   - framecheck timed a frozen grid: every framecheck number before the fix was draw only.
   - CPU x1 median day / night ms: Sillystone 23.9 / 26.4, Brands Snatch 16.7 / 28.1, Spa 19.6 /
