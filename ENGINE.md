@@ -323,5 +323,11 @@ map (`tools/venues/holjes.json` -> `venues/holjes.ts`, every piece tagged tarmac
 full size (share 1): the lap 1204 m over 12 pieces, 37 % gravel; the joker the mapped joker
 loop's way round the outside of the split (`joker`, 24 m longer); the first venue with a START
 LANE (`startLane`: the grid on the stub of the start straight below the merge, the lap joined at
-the merge). The crest jump up the start straight and the crowd's hillside are hills; the campers'
-caravans are loose objects in the clearing west of the top hairpin; 3000 trees.
+the merge). The crest jump is a hump (r 26 m, h 2.6 m) on the start straight's centreline 100 m
+up the lap (crest radius 56 m: weightless from 84 km/h); the crowd's hillside a hill, its earth bank
+25-35 m off the hill gravel (the edge lays its catch fence). Least radius 15.3 m (the venues' 15.5 m
+rule, the map's own corner ~15 m: no `minR`), the top hairpin 19.5 m. Its edge tidied and made even
+(`tidyEdge`, `evenEdge`): the lap's and the joker's Armco joined at the split's nose. The campers'
+caravans are loose objects on a pad of grass (the trees keep off it) north of the top gravel - the
+map's west edge is 30 m past the top hairpin; a TV tower, transporters, flags and spares as the
+stadiums' dressing (`dress`); 3000 trees at most (1888 stand).
