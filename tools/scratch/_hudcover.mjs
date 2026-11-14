@@ -112,8 +112,9 @@ async function installCover() {
     cover.worst = Math.max(cover.worst, hit / total);
     const name = named(first[0], first[1], width, height);
     cover.by[name] = (cover.by[name] || 0) + 1;
-    if (cover.where.length < 4) {
-      cover.where.push([Math.round(centreX), Math.round(centreY), name, cover.frame]);
+    if (cover.where.length < 8) {
+      cover.where.push([Math.round(centreX), Math.round(centreY), name, cover.frame,
+        Math.round((100 * hit) / total)]);
     }
   };
   shared.hud.draw = (ctx, game, width, height, wallDt) => {

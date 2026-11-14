@@ -51,7 +51,7 @@ interface CameraCtx {
 const CLEAR_EASE = 12;
 // css px / s the push always keeps up with: the car sliding toward a piece as the view leads
 // (MEASURED, _hudcover 390x844: eased alone, the push lagged a sliding car into the ABS chip)
-const CLEAR_FOLLOW = 600;
+const CLEAR_FOLLOW = 1500;
 // m in one frame: further than any car drives, so the car was put somewhere (a teleport)
 const CLEAR_TELEPORT_M = 15;
 
