@@ -7,7 +7,7 @@
 // layer costs in a frame including the browser's raster after our JS (a CPU profile cannot see
 // that), or with ?smoothfly=1 for the switch. Also the canvases held (core/memorybudget.ts) before
 // the launch, as the fly-in shows and after it; with ?smoothfly=1 its sets (renderer.flyStats).
-// [CPU=1] [AI=20] [RX=1] [LOADSCREEN=0] [VIEW=844x390] node tools/scratch/_flycost.mjs [level]
+// [CPU=1] [AI=20] [RX=1] [LOADSCREEN=0] [VIEW=844x390] [DPR=3] node tools/scratch/_flycost.mjs [level]
 //   [extra query, e.g. skip=props]
 import { startServer, launchBrowser, gotoGame } from '../lib/browser.mjs';
 
@@ -15,6 +15,7 @@ const [levelId = 'spa', extra = ''] = process.argv.slice(2);
 const CPU = Number(process.env.CPU || 1), AI = Number(process.env.AI || 20);
 const IS_RX = process.env.RX === '1', SCREEN = process.env.LOADSCREEN === '0' ? '' : '&loadscreen=1';
 const [viewW, viewH] = (process.env.VIEW || '844x390').split('x').map(Number);
+const DPR = Number(process.env.DPR || 3);
 // the tiles' hand-over zoom (render/camera.ts FLY_HANDOVER)
 const HANDOVER = 0.28;
 // ms between looks at the game while waiting
@@ -87,7 +88,7 @@ const server = await startServer();
 const browser = await launchBrowser();
 try {
   const context = await browser.newContext({ viewport: { width: viewW, height: viewH },
-    deviceScaleFactor: 3, isMobile: true, hasTouch: true });
+    deviceScaleFactor: DPR, isMobile: true, hasTouch: true });
   const page = await context.newPage();
   const errors = [];
   page.on('pageerror', (err) => errors.push(err.message));
@@ -120,7 +121,7 @@ try {
   const log = await page.evaluate(() => window.__flyLog);
   const flyStats = await page.evaluate(() => window.__game.renderer.flyStats);
   const shown = log.filter((frame) => frame.flying && !frame.screen);
-  console.log(`${levelId}${IS_RX ? ' RX' : ''} x${CPU} ${viewW}x${viewH}${SCREEN ? ' loadscreen'
+  console.log(`${levelId}${IS_RX ? ' RX' : ''} x${CPU} ${viewW}x${viewH} dpr ${DPR}${SCREEN ? ' loadscreen'
     : ''}${extra ? ' ' + extra : ''}:`);
   console.log(`  canvases held: before the launch ${beforeMb.toFixed(1)} MB, as the fly-in shows`
     + ` ${flyMb.toFixed(1)}, after it ${afterMb.toFixed(1)}`);
