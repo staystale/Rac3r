@@ -88,17 +88,6 @@ export const TEST_LIST: TestEntry[] = [
     wrong: 'A tree top lit by a lamp or headlight, a hitch as the road ahead appears.',
   },
   {
-    id: 'tyresmoke',
-    added: '2026-11-14',
-    name: 'Tyre smoke only past grip, by each tyre\'s own heat window (all four tyres alike)',
-    where: 'Test link + &tyresmoke=1: any circuit (Thruston, Spa) and the Test Lab, any car, '
-      + 'aids on and off; try it without the switch to compare',
-    try: 'Race a few fast laps hard, then a burnout, donuts, a locked-wheel stop from speed and '
-      + 'a long hot slide. Fronts and rears should follow one rule.',
-    wrong: 'Smoke from tyres that are gripping (a clean fast corner, a normal stop with ABS), '
-      + 'or burnouts, donuts, lock-ups and hot slides with clearly less smoke than before.',
-  },
-  {
     id: 'exitpuns',
     added: '2026-11-14',
     name: 'Countryside exit signs as puns: GHOULE, SKUNKTHORPE, BRIGGADOON, HOWDY-DEN',

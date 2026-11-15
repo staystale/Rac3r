@@ -25,6 +25,14 @@ code plain (simhash, worldhash, renderhash the same).
   the minimap in all 90 runs (only a moment under the passing overlays, by design). The push's
   speed changes at most 3 px / frame / frame: the car's largest per-frame move on screen 3.0-8.2
   px, as before.
+- TYRE SMOKE BY EACH TYRE'S WINDOW, ONLY PAST GRIP (was ?tyresmoke=1; render/tyresmoke.ts; the
+  owner: "there's still smoke coming from the front tyres a lot of the time when their shouldn't
+  be"). The same rule for all four tyres: smoke only while the axle spins, locks or slides; the
+  heat share from a quarter of the window's width below its top (stock 98.75 C) to 55 C over it; a
+  locked or spinning tyre counts up to 30 C hotter. MEASURED (tools/scratch/_tyresmoke.mjs, every
+  car): racing laps' fronts smoking 5-8 % -> 1 % of the time; a fast 1.1 g corner's fronts 20 % ->
+  5 % (gripping ones none); burnouts, donuts, lock-ups and hot slides kept (-12 to +45 % of the
+  puffs); Drift tyres smoke much less, Wet ones more on a dry road.
 
 ## PASSED 11-14 (owner: "Pass all four") - THE LOADING SCREEN, THE RESTART FIX, THE SMOOTH FLY-IN, THE NIGHT FLY-IN; now the default
 
