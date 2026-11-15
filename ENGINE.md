@@ -351,6 +351,20 @@ twins: the flashing light bar (`render/lightbar.ts`) and the HUD's flashing blue
 (`hud/heat.ts`). Rendered to .wav by `tools/scratch/_sirenwav.mjs`; checked live by
 `tools/scratch/_siren.mjs`.
 
+THE WAITING POLICE WAKE (`?hwparked=1`, `FIX.hwparked`, under test; `ai/policeWake.ts
+wakeWaiting`, from `ai/trafficPolice.ts runChase` while any driver has stars): a police car of our
+way waiting at the roadside (`putWaiting`: a forecourt, a lay-by, the hard shoulder) that a driver
+with heat passes - level with it or past it (4 m), within `JOIN_M` (200 m), on its level - pulls
+out `WAKE_S` (1 s) later and joins the chase as a chaser after the closest driver with heat (the
+racing AI at its wheel, `makeChaser`), up to `MAX_CHASERS` (3) whatever the stars have already
+sent (it takes a chaser owed if one is); none free within 3 s more, it stays put. `joinBySight`
+leaves waiting cars to it (without the switch a waiting car within 200 m joined at once, ahead of
+you, but only while a star's chaser was owed). With no stars nothing wakes; speeding past one
+(over 70 mph) is a star - seen by any police car within `SPEED_NEAR_M` (30 m), and with the switch
+by a waiting one out to `WITNESS_M` (60 m: `policeHeat.ts witnessedWaiting`, a forecourt stands
+back from the road) - then it wakes. The highway rules' POLICE card (`guide.ts POLICE_CARD`).
+`tools/scratch/_parkedpolice.mjs` measures both; `_policecardshots.mjs` photographs the card.
+
 ## The car (`vehicle.ts` and `physics/`)
 
 A top-down two-axle model with four tyre temperatures. `step(car, input, dt)`, in order:

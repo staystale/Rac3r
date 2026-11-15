@@ -35,6 +35,8 @@ import { seatRacer } from './trafficSpeeder.ts';
 import type { AiCar, DriveInput, TrafficCar, TrafficEnt, TrafficVehicle } from './types.ts';
 import { boxGap } from './policeHeat.ts';
 import type { Heat, Suspect } from './policeHeat.ts';
+import { FIX } from '../core/fixes.ts';
+import { wakeWaiting } from './policeWake.ts';
 
 // the share of the cars put back that are police, and the share while police are due (MEASURED,
 // tools/scratch/_police.mjs survey: at 1 / 30 an oncoming police car every 0.3-0.8 km - you sped
@@ -89,9 +91,10 @@ const STILL_MS = 2;
 const STILL_RESEND_S = 2;
 // m: a police car of our way within this of you joins a chase (it sees you: ai/policeHeat.ts
 // SIGHT_M); one sent comes from this far behind you (out of sight on screen)
-const JOIN_M = 200;
+export const JOIN_M = 200;
 // s between two tries to send a chaser; the most chasers at once
-const SEND_GAP_S = 1, MAX_CHASERS = 3;
+const SEND_GAP_S = 1;
+export const MAX_CHASERS = 3;
 // s between a chaser's looks for the closest driver with heat, and the share of the distance to
 // its own a new one must be inside to take it (no flicking between two)
 const RETARGET_S = 2, RETARGET_SHARE = 0.75;
@@ -109,7 +112,9 @@ export type PoliceMode = 'cruise' | 'wait' | 'chase';
 export interface TrafficPolice { mode: PoliceMode; seat: number; wreckT: number;
   target?: (AiCar & { crossing?: number }) | null; targetT?: number; waitT?: number;
   // an angry driver chasing as police do, no lights, and s until it calms down
-  angry?: boolean; angryT?: number }
+  angry?: boolean; angryT?: number;
+  // s since a driver with heat passed it waiting (ai/policeWake.ts)
+  wakeT?: number }
 
 /**
  * What the heat (ai/policeHeat.ts) tells the police, and their counts: every driver's stars in all
@@ -378,7 +383,7 @@ function ramAt(ram: RamCtx, seat: number, stars: number, speed: number): DriveIn
  * @param ctx the traffic
  * @param slot the police car
  */
-function makeChaser(ctx: TrafficCtx, slot: TrafficCar) {
+export function makeChaser(ctx: TrafficCtx, slot: TrafficCar) {
   seatRacer(ctx, slot, CHASE_DIFF, CHASE_AGG);
   slot.broke = null;
   slot.police!.mode = 'chase';
@@ -444,7 +449,9 @@ function joinBySight(ctx: TrafficCtx, chasers: TrafficCar[]) {
   for (const slot of ctx.list) {
     if (orders.owed <= 0) return;
     const police = slot.police;
+    // (?hwparked=1: a waiting car wakes as one passes it: ai/policeWake.ts)
     if (slot.parked || !police || police.mode === 'chase' || (slot.dir ?? 1) < 0 || slot.wreck
+      || (FIX.hwparked && police.mode === 'wait')
       || !orders.suspects.some((each) => each.car !== slot.car && sameLevel(slot.car, each.car)
         && Math.hypot(slot.car.x - each.car.x, slot.car.y - each.car.y) < JOIN_M)) continue;
     makeChaser(ctx, slot);
@@ -604,6 +611,8 @@ function runChase(ctx: TrafficCtx, dt: number, player: AiCar & { crossing?: numb
   orders.owed = Math.max(0, Math.min(orders.owed, Math.min(MAX_CHASERS, orders.stars)
     - chasers.length));
   joinBySight(ctx, chasers);
+  // (?hwparked=1: a waiting car a driver with heat passes pulls out and joins)
+  if (FIX.hwparked) wakeWaiting(ctx, dt, chasers);
   orders.sendT -= dt;
   // (a new one from behind the driver with heat nearest you: the chase you can see)
   const playerS = ctx.level!._hw.q!.s;
