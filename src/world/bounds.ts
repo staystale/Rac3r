@@ -66,6 +66,26 @@ export function setFloor(floor: number): void {
   FLOOR = floor;
   FENCE = FLOOR + RUNOFF_W;
 }
+/**
+ * Runs a level's build in the standard world - the floor BASE_FLOOR, no rectangle, as when it is
+ * the first level built - and puts the current level's floor back after. A build that reads the
+ * floor (world/levels/kit.ts trackKit clear, rxDress free: props and bales kept FLOOR - 5..6 m
+ * inside it) otherwise took the floor of the level set before it: Spa's 613 m kept 26 more
+ * trees in the forest stage than the standard 260.
+ * @param build the build
+ * @returns what the build returns
+ */
+export function inStandardFloor<T>(build: () => T): T {
+  const floor = FLOOR, rect = { x0: FX0, x1: FX1, y0: FY0, y1: FY1 };
+  setFloor(BASE_FLOOR);
+  setRect(undefined);
+  try {
+    return build();
+  } finally {
+    setFloor(floor);
+    setRect(rect);
+  }
+}
 export function setRect(rect: Rect | undefined): void {
   FX0 = rect ? rect.x0 : -FLOOR;
   FX1 = rect ? rect.x1 : FLOOR;

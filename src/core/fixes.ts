@@ -72,4 +72,8 @@ export const FIX = {
   bootbar: atLoad('bootbar'),
   // a chasing police car sounds a siren, the light bar's twin (game/sirens.ts, audiosiren.ts)
   siren: atLoad('siren'),
+  // a level built on first use is built in the standard world (bounds.ts inStandardFloor), and its
+  // tape runs numbered from 0: the same whatever level was built or played before it
+  // (world/load.ts buildLevel)
+  forestseed: atLoad('forestseed'),
 };

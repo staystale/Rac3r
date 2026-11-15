@@ -87,6 +87,26 @@ records in `TODO-DONE.md` (PASSED 11-12). On the phone now:
   - PHOTOS (tools/scratch/_bootbarshots.mjs, 844x390 and 390x844): _bootbar-1-nofonts (the pane and
     bar, the words waiting for their faces), -2-partfull, -3-flash, -4-menu.
 
+- THE FOREST STAGE'S BUILD LEAK (owner 11-15: "Eww fix that issue Forrest building"). BUILT behind
+  `?forestseed=1` (FIX.forestseed; testlist 'forestseed'; world/load.ts buildLevel, bounds.ts
+  inStandardFloor). CAUSE: a level built on first use read the floor of the level set before it -
+  kit.ts trackKit clear and rxDress free keep props and bales 5-6 m inside the live FLOOR - and the
+  tape runs were numbered on from every level taped before. Not a random seed: the stage's own
+  generator is seeded; Math.random seeded before each build changed nothing. MEASURED
+  (tools/scratch/_buildorder.mjs: each of the 50 lazily built levels built in the standard world
+  and again right after other levels, back to its stub between): OFF, 12 of 50 differ - the 8 set
+  rally stages and the forest stage gain 7-26 trees at their edge after a big venue (forest 827 ->
+  853 props after Spa or Croughed RX; 827 after Naffcar or Lab), Croughed RX gains 32-41 bales
+  and stacks round Clervaux and Hawthorn (355 loose objects alone, 367 after Croughed, 387 after
+  Thruston, 396 after Spa), and X Gayms and Holy Jeez only their tape ids. ON: 0 of 50 differ,
+  after Spa, Naffcar, Croughed RX or the highway (a 100 km floor). The level is always the
+  "built alone" one, so in the game: the stages lose the extra edge trees they had after a big
+  menu-race track (the menu race picks a random circuit, oval or RX track, or the highway), and
+  CROUGHED RX LOSES ITS 32-41 BALES AND STACKS OUTSIDE 255 M (its own floor is 546 m: built alone,
+  rxDress drops them) - see the question in the hand-over. worldhash (LEVELS order): OFF SAME as
+  db2919a2; ON differs only by the tape ids on 13 tape levels (nothing else; checked with each
+  object's tape id left out) and Croughed RX 367 -> 355 loose objects.
+
 ## 3. OPEN, IN THE OWNER'S ORDER
 
 ### 3a. The owner's list (11-10: "Add this to the todo and work thru it logically"), round 5

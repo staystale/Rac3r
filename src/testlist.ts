@@ -13,6 +13,17 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'forestseed',
+    added: '2026-11-15',
+    name: 'Forest stage and other tracks built the same whatever you raced before',
+    where: 'Test link + &forestseed=1: race a big circuit (Spa), then the stage generator\'s '
+      + 'forest stage, a set rally stage and Croughed RX; then the same with a small one first '
+      + '(Naffcar)',
+    try: 'Look at the forest\'s edge on the stage and at the bales round Clervaux and Hawthorn on '
+      + 'Croughed RX: both visits should look the same.',
+    wrong: 'Trees or bales that come and go with the track raced before; anything else changed.',
+  },
+  {
     id: 'offroadwin',
     added: '2026-11-15',
     name: 'No highway race won by pulling away off the road',

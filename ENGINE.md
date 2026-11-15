@@ -476,6 +476,16 @@ traced track), generated stages from `stagegen.ts`, and the endless highway (`hi
 parody pun (CLAUDE.md). A level is loaded by `world/load.ts`; `world/state.ts` holds the active one and its
 lists (zones, bumps, props, barriers), which the physics and the renderer both read, so what you see is
 what you drive on.
+A LEVEL BUILT ON FIRST USE (`Level._build`: the venues, the set rally stages, the generator's
+stage; `world/load.ts buildLevel`) read the floor of whatever level was set before it: `kit.ts`
+`trackKit`'s `clear` and `rxDress`'s `free` keep a prop or a bale 5-6 m inside the live
+`bounds.ts FLOOR`, so after Spa (613 m) the forest stage kept 26 more trees at its edge (853
+props, 827 alone) and Croughed RX 41 more bales and stacks round Clervaux and Hawthorn (396
+loose objects, 355 alone); and `load.ts tapePass` numbered its tape runs on from every level
+taped before it. Under test, `?forestseed=1` (`FIX.forestseed`): the build runs in the standard
+world (`bounds.ts inStandardFloor`: BASE_FLOOR, no rectangle, as when it is the first built; the
+current level's floor put back after) and each level's tape runs number from 0, so every level
+builds the same whatever came before (`tools/scratch/_buildorder.mjs`).
 
 THE ENDLESS ROAD'S GUARD (`highway.ts highwayGuard`, the player only, each step after
 `stepHighway`): WRONG WAY - moving back down the road faster than BACK_V (3 m/s) for BACK_T s, or
