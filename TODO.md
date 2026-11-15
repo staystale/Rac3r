@@ -301,6 +301,27 @@ BUGS (each behind its own switch, measured, then a test link):
       101.2 km/h.
     Of 27 touches into a stopped racer left at Knobhill (seed 3, on), 20 came in the first lap's
     jam at 3-15 km/h, most at the 3 m/s floor; the faster ones braking fully, too late.
+    THE START (owner 11-15 on the phone: "Seems better tho overall", "hesitant on grid starts and
+    maybe on highways too... Maybe adjust the start"): a car on the grid ahead, at rest or just
+    pulling away, counted as stopped and held the next row to a crawl until its own getaway was
+    read. FIXED within the switch: a car speeding up 1 m/s/s or more never counts; none at all in
+    the 2 s from my own getaway; a slow car counts only under 3 m/s or under half the racing speed
+    where it is (one braking for a corner is racing). MEASURED (tools/scratch/_gridstart.mjs, the
+    laptop, deterministic; from the green: s to 100 m mean / last, the field's spread at 10 s;
+    seeds 1, 2; off / first on / now):
+    - Knobhill RX: 100 m 8.10 / 9.68 s, 7.82 / 8.67 off; 8.55 / 11.33, 8.08 / 11.30 first; 8.10 /
+      9.68, 7.82 / 8.67 now (the same as off); spread 72, 44 m off; 104, 116 first; 72, 44 now.
+      Time judging a stopped car in the first 3 s: 7.2 car-s first, 0 now.
+    - Brands: 100 m 7.33 / 7.80, 7.38 / 8.07 off; 7.29 / 7.68, 7.42 / 7.97 first; 7.33 / 7.80,
+      7.38 / 8.07 now. Deaf Valley (a standing start, 5 AI): the same in all three.
+    RUN-INS AGAIN (_pileups, 240 s, seeds 1-3; off / first on / now): Brands touches per incident
+    3.21 / 2.65 / 2.75, into a stopped racer 56 / 12 / 23, at 15 km/h+ 109 / 78 / 77, 5+ pile-ups
+    12 / 9 / 12, lap 89.0 / 86.3 / 86.5 s; Knobhill RX 3.18 / 2.81 / 3.37, 70 / 39 / 53, 120 / 93 /
+    107, 5+ 12 / 11 / 15, lap 57.1 / 56.7 / 57.5 s; Deaf Valley 1.74 / 2.03 / 1.60, 24 / 31 / 16,
+    42 / 47 / 30, 5+ 1 / 4 / 1, 107.4 / 105.7 / 108.6 km/h. TRIED: the getaway and pulling-away
+    rules without the racing-speed one: Brands 3.02 each, 15 km/h+ 122; Knobhill 2.75, 120 - no
+    better, not kept. These fields swing 10-20 % between seeds: the start fix costs some of the
+    first version's gain at Brands and Knobhill and gains on Deaf Valley.
     NOT MEASURED: Deaf Valley's remaining run-ins traced one by one, other difficulties, stages,
     the player's own car as the stopped one, wet / loose ground.
 
