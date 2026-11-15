@@ -24,12 +24,19 @@ function installTripwire(keep) {
   console.error = (...args) => {
     const text = args.map((arg) => (typeof arg === 'string' ? arg : JSON.stringify(arg)))
       .join(' ');
+    // (this frame's input - set before the sim's steps - and its frame time, from the sampler
+    // that runs first in each frame)
+    const game = window.__game, inp = game && game.in;
     if (text.includes('car state went bad') && window.__nan.hits.length < 5)
-      window.__nan.hits.push({ text: text.slice(0, 400), ring: window.__nan.ring.slice() });
+      window.__nan.hits.push({ text: text.slice(0, 400), ring: window.__nan.ring.slice(),
+        input: inp && { steer: inp.steer, throttle: inp.throttle, brake: inp.brake,
+          handbrake: inp.handbrake }, frameMs: window.__nan.frameMs });
     original(...args);
   };
   const round = (value) => (typeof value === 'number' ? Math.round(value * 1e4) / 1e4 : value);
-  const sample = () => {
+  const sample = (now) => {
+    window.__nan.frameMs = window.__nan.lastNow == null ? null : now - window.__nan.lastNow;
+    window.__nan.lastNow = now;
     const game = window.__game;
     if (game && game.car && game.level) {
       const car = game.car, tyre = car.t || {};
@@ -39,7 +46,8 @@ function installTripwire(keep) {
         gear: car.gear, air: round(car.air || 0), z: round(car.z || 0),
         roll: car.roll ? car.roll.phase : null, vLong: round(tyre.vLong),
         vLat: round(tyre.vLat), FzF: round(tyre.FzF), FzR: round(tyre.FzR),
-        surface: car.surface && car.surface.name, wheelW: (car.wheelW || []).map(round) });
+        surface: car.surface && car.surface.name, frameMs: round(window.__nan.frameMs),
+        input: game.in && [game.in.steer, game.in.throttle, game.in.brake].map(round) });
       if (window.__nan.ring.length > window.__nan.keep) window.__nan.ring.shift();
     }
     requestAnimationFrame(sample);
@@ -83,6 +91,8 @@ try {
       + (errors.length ? ` | page errors: ${errors[0].slice(0, 120)}` : ''));
     for (const hit of seen.hits.slice(0, 1)) {
       console.log('   ' + hit.text);
+      console.log('   the bad frame: input ' + JSON.stringify(hit.input) + ', frame ms '
+        + hit.frameMs);
       for (const frame of hit.ring) console.log('   ' + JSON.stringify(frame));
     }
     await ctx.close();
