@@ -17,6 +17,7 @@ import { startHeld, carHeld, atPace, formationWant } from './order.ts';
 import { RESET_BACK, RESET_ANG } from './session.ts';
 import { shared, game } from './state.ts';
 import { activeLamps } from '../world/lamps.ts';
+import { FIX } from '../core/fixes.ts';
 import {
   behindRecord, freeLapSpot, freeShoulderSpot, stuckWatchFires,
 } from './aistuck.ts';
@@ -31,9 +32,9 @@ import type { RaceFlow } from '../raceflow.ts';
 /**
  * Puts an AI car back on the road, mended, its hazards on.
  * @param entry the AI entry
- * @param behind the stuck put-back: on a lap or stage never ahead of where the car is,
- *   the next free spot behind a car in the way; on the highway its spot past every car, the
- *   traffic too (game/aistuck.ts)
+ * @param behind the stuck put-back (and ?hwputback=1 the highway off-road one): on a lap or stage
+ *   never ahead of where the car is, the next free spot behind a car in the way; on the highway
+ *   its spot past every car, the traffic too (game/aistuck.ts)
  */
 export function aiReset(entry: HurtEntry, behind = false) {
   const car = entry.car, sub = LEVEL.subtrack!;
@@ -127,6 +128,17 @@ export function refreshAIObstacles(entry: AiEntry, dt: number) {
 }
 
 /**
+ * ?hwdodge=1 on the endless road: the racers read the cars by the road, and a two-way road's middle
+ * line keeps them to their side for oncoming cars (ai/driverOncoming.ts); else nothing.
+ * @returns the road context, or undefined
+ */
+function roadCtx(): { middleOff: number | null } | undefined {
+  if (!FIX.hwdodge || !LEVEL.endless) return undefined;
+  const geo = hwLevel()._hw.geo;
+  return { middleOff: geo.median == null && geo.oncoming.length ? geo.oppL : null };
+}
+
+/**
  * Asks an AI driver for its controls this step.
  * @param entry the AI entry
  * @param dt the step in seconds
@@ -145,7 +157,7 @@ export function aiWant(entry: AiEntry, dt: number) {
       cars: [game.car, ...game.ai.map((other) => other.car),
         ...(LEVEL.endless ? game.traffic.ourSide : [])].filter((other) => other !== car
           && sameLevel(other, car)),
-          hold: startHeld(), lap,
+          hold: startHeld(), lap, road: roadCtx(),
             laps: game.flow ? game.flow.laps : shared.race.on ? shared.race.laps
               : (LEVEL.joker && LEVEL.joker.laps) || 5 }));
   // waiting out the crash
@@ -229,7 +241,9 @@ export function stepAIStuck(entry: AiEntry, dt: number) {
   const car = entry.car;
   const held = LEVEL.stage ? carHeld(car) : startHeld();
   if (stuckWatchFires(entry, held || entry.hurtWait != null, dt)) aiReset(entry, true);
-  else if (highwayOffTooLong(entry, dt)) aiReset(entry);
+  // (?hwputback=1: the highway's off-road put-back clear of every car too - two racers put back in
+  // one step landed on one spot, the first's road frame cleared by its reset)
+  else if (highwayOffTooLong(entry, dt)) aiReset(entry, FIX.hwputback);
 }
 
 /**

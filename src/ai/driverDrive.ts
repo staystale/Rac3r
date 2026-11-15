@@ -4,6 +4,7 @@ import { profileOf } from "./line.ts";
 import { driveOut } from "./driveOut.ts";
 import { jokerStep } from "./driverJoker.ts";
 import { carsStep, obstacleAvoid } from "./driverTraffic.ts";
+import { ownSideCap } from "./driverOncoming.ts";
 import { steerSlideStep, pedalStep } from "./driverPedals.ts";
 import { coolStep, COOL_LOOK } from './driverCool.ts';
 import {
@@ -43,6 +44,9 @@ function trafficStep(drv: Drv, car: AiCar, ctx: DriveCtx, path: AiPath, nearIdx:
   const prec = traits.prec ?? 0.5;
   const latLim = path === main ? line.hw - WANDER_EDGE : 2;
   const myLat = state.dodge + latT;
+  // ?hwdodge=1 (the endless road): read the cars by the road; keep to my side for oncoming cars
+  state.roadRead = !!ctx.road;
+  const keepMax = state.keepMax = ownSideCap(drv, car, ctx, path, nearIdx, lineOff);
   const cars = carsStep(drv, car, others, path, nearIdx, idx, speed, prec, prof, lineOff, latT,
       startK, latLim, myLat);
   let dodgeT = cars.dodgeT, conflict = cars.conflict;
@@ -74,6 +78,11 @@ function trafficStep(drv: Drv, car: AiCar, ctx: DriveCtx, path: AiPath, nearIdx:
   // past the usual edge only while going round a car (above)
   const edge = state.t < (state.wideUntil || 0) ? state.wide! : latLim;
   latT = Math.max(-edge, Math.min(edge, lineOff + latT)) - lineOff;
+  // (back over at a move's rate, not a rejoin's: ai/driverOncoming.ts)
+  if (latT > keepMax - lineOff) {
+    latT = keepMax - lineOff;
+    conflict = true;
+  }
   if (path === main && cars.seen) latT = lookFirst(car, path, nearIdx, lineOff,
     latT, { hw: line.hw, speed, seen: cars.seen, state });
   return { latT, vMul, prof, followCap, conflict };

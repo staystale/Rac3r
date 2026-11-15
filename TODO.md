@@ -168,6 +168,31 @@ BUGS (each behind its own switch, measured, then a test link):
     RECOMMENDATION: A + C first (they reuse what is there), measured with _hwdodge against these
     numbers (head-ons, time in the other lane, the race's pace); B if head-ons stay above ~1 per 10
     km. Ask: may a racer still use the other lane to overtake on a clear straight?
+    OWNER 11-15: A and B, not C ("Over take when clear not when oncoming is there - driver skill
+    can say it makes mistakes or miss judges tho"). BUILT behind ?hwdodge=1 (FIX.hwdodge,
+    ai/driverOncoming.ts; testlist 'hwdodge'): A - on the endless road the racers read cars by the
+    road frames; B - on a two-way road the nearest oncoming car within 4 s of closing keeps the
+    racer inside its own lanes (back over at a move's rate), and on its side it pulls out only with
+    4 + 4 s clear; the judged time off by up to 35 % at skill 0 (the driver's own random stream),
+    exact at skill 1. MEASURED (_hwdodge, the second PC, 180 s, seeds 1 and 2, off / on; the
+    twisty single lane at traffic 1.5 and 1.0, the motorway, Deaf Valley's dual):
+    - TWISTY HEAD-ONS 47 in 88.5 racer-km (5.3 per 10 km) -> 20 in 97.0 km (2.1): runs 10.4 -> 2.7,
+      1.4 -> 3.6, 4.9 -> 2.3, 6.8 -> 0.6 per 10 km. NOT the target (well under 1). In the other
+      way's lane 19-32 % of the time -> 8-16 %; kept to its side a quarter to two thirds of the
+      time, over the middle line 5-10 % of that (up to 5.9 m: a slide wide in a bend or a car in the
+      way, not traced). Near passes (2.5 m or less at over 15 m/s, lane-to-lane passing included)
+      16-69 -> 52-132. PACE: racer-km in 180 s 88.5 -> 97.0 on the twisty runs (not crawling).
+    - THE REST: Deaf Valley and the motorway have no oncoming cars in reach (behind the median),
+      so only A applies: no head-ons either way; racer-on-racer hits on the dual 9.5 -> 12.6 and
+      11.3 -> 22.4 per 10 km (seeds 1, 2), the motorway 1.2 -> 1.6 (seed 1, the run's last road
+      timed out on the PC) and 11.2 -> 6.2. Police, same-way traffic and you: no clear change.
+    - The remaining twisty head-ons: some with the racer well in its lane 1 s before and pushed
+      or slid over in the last second, some at low closing speeds (a spun car) - not traced each.
+    ?hwputback=1 (owner: "Two racers on highway fix approved"; FIX.hwputback, testlist
+    'hwputback'): the off-road put-back through freeShoulderSpot. _stuckai hwtwisty (laptop, 180
+    s): off - two racers put back in one step onto one spot (156.6 s, 1.6 m apart) and one onto a
+    car (176.9 s); on - none from the off-road rule (the two injury put-backs near a car are not
+    this rule).
 
 HIGHWAYS:
 11. MINIMAP: fuel stations, exits / road splits / slip roads, police.
