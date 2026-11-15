@@ -49,9 +49,56 @@ records in `TODO-DONE.md` (PASSED 11-12). On the phone now:
   bales), WANTED LEVEL LOST, the weather's notices on MOBILE only, the menu race's NaN, the RX
   walkthrough line. OPEN from it (owner asked): the AI's wide-window read with a negative clock
   (ai/) and a recovery that does not clear a NaN tyre wear - plain guards, recommended yes.
+- THE GROUND AT THE ZOOM'S DENSITY + THE PC LOADING DRAW-IN (owner's friend 11-15, Windows Chrome
+  2109x1250 dpr 1, Stade de Prance: "it did the loading bar ... then i saw all the tiles slowly
+  draw in"; the foreman: the zoomed-out ground cost behind the highway jerk). BUILT behind
+  `?tiledensity=1` (FIX.tiledensity; render/tilesSteps.ts, tilesDensity.ts; testlist 'tiledensity').
+  CAUSE, MEASURED: every tile is painted at zoom 1 and shrunk by the GPU, so zoomed out at 0.30 the
+  view needs ~11x the tiles, each painted and uploaded at full density. The fly-in of a small level
+  starts above the tiles' hand-over zoom (Stade de Prance at 2109x1250: 0.315), so it draws tiles
+  from its first frame; the loading screen had painted only the hand-over view round the car (558
+  tiles) and uploaded none, so the first frame after the bar uploaded 304 at once (draw 109 ms on
+  the phone report), and the tile cache's 200 could not hold the ~430-tile view, so it painted 4
+  a frame for 2.6 s (tools/scratch/_loadtiles.mjs: 4 tiles + 4 uploads a frame, frames 1-80 after
+  the bar). The photo strip after the bar (tools/scratch/_loadtiles.mjs SHOTS) shows the outer ring
+  and the left loop missing at 0 ms off, all there on.
+  THE BUILD: tiles at the coarsest of zoom 1 / 0.5 / 0.354 still as dense as the screen (zoom
+  0.5-1 unchanged: zoom 1); a new step readied over the whole view, one paint and two uploads a
+  frame, before it is drawn; the cache sized to the real screen; behind the bar every tile of the
+  fly-in's path planned at the real screen, painted and uploaded.
+  LOADING, BEFORE -> AFTER (laptop, x1, _loadtiles: the bar's time from the tap; tiles / uploads
+  after the bar; the most uploads in one frame; the fly-in's worst frame):
+  - Stade de Prance 2109x1250: bar 1821 -> 1827 ms; after it 468 tiles / 473 uploads -> 220 / 0;
+    most uploads in a frame 304 -> 0; worst fly-in frame 263 -> 98 ms (strip runs, slowed by the
+    photos; without photos 240 -> 70-98 ms).
+  - Spa 2109x1250: bar 3367 -> 3314 ms; uploads after the bar 505 -> 28, most in a frame 332 -> 2;
+    worst 278 -> 204 ms.
+  - The owner's phone size 440x738 dpr 3: Stade de Prance bar 965 -> 1041 ms, Spa 2277 -> 2676 ms
+    (one run each; the 24-run batch below has the phone sizes 0.06-0.6 s QUICKER); uploads after
+    the bar 83-84 -> 0-6.
+  - 24 runs (Stade de Prance, Thruston, Spa, the Llanfairsheepdip stage x 844x390, 390x844 dpr 3,
+    1920x1080 and 2560x1440 at dpr 1 and 2): the most uploads in one frame after the bar 2-610 ->
+    0-4 (the PC sizes 218-610 -> 2-4); the fly-in's worst frame on the PC sizes 169-1588 ->
+    28-260 ms; the bar's time -1.4 to +0.08 s on the PC sizes, -0.6 to -0.02 s on the phone sizes.
+  THE HIGHWAY, OFF -> ON (laptop x1, _hwoffroad, two 40 s runs each): ON THE ROAD tiles painted a
+  second 31-33 -> 10-11, uploads 25-27 -> 7-8, frames with 6+ uploads 107-121 -> 1-3; OFF THE
+  ROAD tiles 22 -> 7, uploads 18 -> 7, 6+ upload frames 74-77 -> 6. (The laptop's frame gaps
+  do not show uploads: the phone judges.)
+  THE LOOK (zoomcheck Thruston, CPU raster, the same world square across the zooms: change between
+  neighbouring zooms 0.5-0.9 % off; on, the same down to 0.46, then 2.6 % at the 0 -> 0.5 step
+  (0.46 -> 0.44) and 3.7 % at the 0.5 -> 0.354 step (0.34 -> 0.32): the thin white edge lines and
+  the fine cracks on the tarmac drawn at the coarser density, no brightness flash. Real-browser
+  sweep 1 -> 0.3 -> 1 (tools/scratch/_zoomshots.mjs, 844x390 and 390x844, photos looked at): off
+  vs on at the same zoom differ 0-0.4 % at zoom 0.5-1 (the noise of a live scene), 0.4-2.4 % at
+  0.3-0.48 (the edge lines and cracks; nothing missing, nothing moved).
+  PROOFS (second PC, against round54 70e91a0a): renderhash --only highway,thruston SAME with
+  the switch off; SAME with it on too (its captures never zoom out below 0.5: the coarse steps
+  are proved by zoomcheck and the photos above, not by renderhash). simhash / worldhash not run
+  (no simulation or level code touched).
 - THE HIGHWAY OFF-ROAD JERK (owner 11-15: "seems jerky when off road on highways now ? 60 down to
-  58 regularly"). BUILT behind `?tileahead=1` (FIX.tileahead, render/tiles.ts lookAheadSpread;
-  testlist 'tileahead').
+  58 regularly"). `?tileahead=1` FAILED ON THE PHONE 11-15 (owner: "It seems worse on": 116
+  frames a minute over 20 ms with it, 31 s, night, rain, against 53-92 earlier that day without;
+  uploads 46 a second against ~31) and was REMOVED; the work goes on as `?tiledensity=1` (below).
   READ FROM THE PHONE (tools/phonereport.mjs and scratch readers, highway runs zoomed out, frames
   over 20 ms a minute after each run's first 600 frames, pauses left out): 11-12 17-30; 11-13
   40-48; 11-14 / 11-15 83-102 (11-15 11:54, hwdodge: 55). sim and draw ~4 + 3 ms, slow or not.
