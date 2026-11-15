@@ -35,4 +35,17 @@ export const TEST_LIST: TestEntry[] = [
     wrong: 'AI slower or spinning off far more on ice / snow, sliding on dry tarmac, cutting '
       + 'across the grass instead of the kerb, or no visible change on gravel.',
   },
+  {
+    id: 'hwmap',
+    added: '2026-11-15',
+    name: 'Highway minimap: slip roads, petrol pumps, police dots',
+    where: 'Test link + &hwmap=1: a highway (the motorway, and Deaf Valley) with traffic, the '
+      + 'minimap on',
+    try: 'Watch the minimap: slip roads, side roads and junctions as thin lines leaving the road; '
+      + 'a small green pump at each petrol station; police as blue dots, flashing once they chase '
+      + 'you or anyone.',
+    wrong: 'A pump or road line in the wrong place or missing; dots flashing with no chase or '
+      + 'steady in one; lines for footpaths or railways; the map harder to read or the game '
+      + 'slower.',
+  },
 ];

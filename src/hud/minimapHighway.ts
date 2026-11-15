@@ -1,16 +1,16 @@
 // hud/minimapHighway.ts - THE HIGHWAY'S MINIMAP EXTRAS (?hwmap=1, FIX.hwmap; TODO 3a2 item 11,
 // the owner's answers 11-15: "simple pixel icons"): on the endless roads the minimap window
 // (hud/minimap.ts) also shows the roads that leave the motorway - the slip roads, the side road,
-// a junction's slips and roundabouts - as thin road lines under the motorway's (sat-nav style; a
-// road bridge's road on into the country is not one: no crossing roads); each petrol station (a
-// lay-by's, a services', Deaf Valley's) as a small green pump; and the police in the window's
-// range as blue dots, flashing only while they chase someone (an angry driver chasing as police
-// do has no lights: not shown).
+// a junction's slips, roundabouts and the roads on from them - as thin road lines under the
+// motorway's (sat-nav style; a plain road bridge's road is a crossing: not one); each petrol
+// station (a lay-by's, a services', Deaf Valley's) as a small green pump; and the police in the
+// window's range as blue dots, flashing only while they chase someone (an angry driver chasing as
+// police do has no lights: not shown).
 import { LEVEL } from '../world/state.ts';
 import { COL } from '../world/colours.ts';
 import { SURFACES } from '../world/surfaces.ts';
 import type { HudGame } from './hudtypes.ts';
-import type { Lane, Prop } from '../world/types.ts';
+import type { Lane, Point, Prop } from '../world/types.ts';
 
 // the side roads' two strokes, css px wide: thinner than the motorway's (hud/minimap.ts
 // ROAD_STROKES 7 / 3.5), the same colours, so they read as smaller roads branching off it
@@ -20,6 +20,9 @@ const SIDE_STROKES: [number, string][] = [[4, 'rgba(20,20,22,0.55)'], [1.8,
 const FLASH_MS = 125;
 // css px: a police dot's radius (a rival's is 3), the pump icon's body
 const POLICE_R = 3, PUMP_W = 5, PUMP_H = 7;
+// m from a roundabout's middle a junction's approach starts within (its ring's radius 9 m plus
+// one approach step of 8 m: highway/ringgeo.ts RING_R, highway/cuts.ts APP_STEP)
+const RING_START_M = 18;
 
 // the level's petrol stations and side roads, picked out when its lists change (not every frame)
 const picked = { props: null as Prop[] | null, propCount: -1, lanes: null as Lane[] | null,
@@ -31,8 +34,10 @@ const picked = { props: null as Prop[] | null, propCount: -1, lanes: null as Lan
  */
 function pickedNow() {
   const props = LEVEL.props || [], lanes = LEVEL.lanes || [];
-  // (a bridge's approach shares its points with the cut that shortens it: highway/cuts.ts)
-  const cuts = (LEVEL as { cuts?: { pts: unknown }[] }).cuts || [];
+  // (a bridge's approach shares its points with the cut that shortens it: highway/cuts.ts addCut;
+  // both are dropped behind together, highway.ts)
+  const hwState = (LEVEL as { _hw?: { cuts?: { pts: unknown }[] } })._hw;
+  const cuts = (hwState && hwState.cuts) || [];
   if (props !== picked.props || props.length !== picked.propCount) {
     picked.props = props;
     picked.propCount = props.length;
@@ -43,13 +48,47 @@ function pickedNow() {
     picked.lanes = lanes;
     picked.laneCount = lanes.length;
     picked.cutCount = cuts.length;
-    const approaches = new Set(cuts.map((cut) => cut.pts));
-    // tarmac, not a village's street, not a bridge's approach: the slips, the side road, a
-    // junction's slips and roundabouts
-    picked.roads = lanes.filter((lane) => lane.surface === SURFACES.tarmac && lane.field == null
-      && !lane.band && lane.pts.length > 1 && !approaches.has(lane.pts));
+    picked.roads = sideRoadsOf(lanes, new Set(cuts.map((cut) => cut.pts)));
   }
   return picked;
+}
+
+/**
+ * The roads leaving the motorway: tarmac lanes not a village's street; a bridge's approach only
+ * where it leads on from a junction's roundabout (a plain road bridge's road is a crossing).
+ * @param lanes the level's lanes
+ * @param approaches the bridges' approaches' point lists (the cuts')
+ * @returns the roads
+ */
+function sideRoadsOf(lanes: Lane[], approaches: Set<unknown>) {
+  const roads = lanes.filter((lane) => lane.surface === SURFACES.tarmac && lane.field == null
+    && !lane.band && lane.pts.length > 1);
+  // a roundabout is a closed lane; a junction's approach starts at its outer edge (cuts.ts)
+  const rings = roads.filter((lane) => isClosed(lane.pts)).map((lane) => centreOf(lane.pts));
+  return roads.filter((lane) => !approaches.has(lane.pts) || rings.some((centre) => Math.hypot(
+    lane.pts[0][0] - centre[0], lane.pts[0][1] - centre[1]) < RING_START_M));
+}
+
+/**
+ * Whether a lane closes on itself (a roundabout's ring).
+ * @param pts its points
+ * @returns true when its ends meet
+ */
+const isClosed = (pts: Point[]) => pts.length > 8 && Math.hypot(pts[0][0] - pts[pts.length - 1][0],
+  pts[0][1] - pts[pts.length - 1][1]) < 1;
+
+/**
+ * The middle of a lane's points.
+ * @param pts its points
+ * @returns the mean point, m
+ */
+function centreOf(pts: Point[]): Point {
+  let sumX = 0, sumY = 0;
+  for (const [x, y] of pts) {
+    sumX += x;
+    sumY += y;
+  }
+  return [sumX / pts.length, sumY / pts.length];
 }
 
 /**

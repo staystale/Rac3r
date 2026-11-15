@@ -41,9 +41,13 @@ function inReach(reach) {
   const ring = lanes.find((lane) => lane.pts.length > 8 && Math.hypot(lane.pts[0][0]
     - lane.pts[lane.pts.length - 1][0], lane.pts[0][1] - lane.pts[lane.pts.length - 1][1]) < 1
     && lane.pts.some(([x, y]) => near(x, y)));
-  const cutPts = new Set((level.cuts || []).map((cut) => cut.pts));
+  const cutPts = new Set(((level._hw && level._hw.cuts) || []).map((cut) => cut.pts));
+  // (a plain road bridge: no roundabout within 80 m of its road)
+  const rings = lanes.filter((lane) => lane.pts.length > 8 && Math.hypot(lane.pts[0][0]
+    - lane.pts[lane.pts.length - 1][0], lane.pts[0][1] - lane.pts[lane.pts.length - 1][1]) < 1);
   const bridge = lanes.find((lane) => cutPts.has(lane.pts) && lane.width === 7
-    && lane.pts.some(([x, y]) => near(x, y)));
+    && lane.pts.some(([x, y]) => near(x, y)) && !rings.some((ringLane) => Math.hypot(
+      ringLane.pts[0][0] - lane.pts[0][0], ringLane.pts[0][1] - lane.pts[0][1]) < 80));
   return { pump: pump ? Math.round(gap(pump.x, pump.y)) : null, side: side ? side.width : null,
     cop: cop ? cop.police.mode : null, ring: ring ? 'ring' : null,
     bridge: bridge ? 'road bridge' : null };
