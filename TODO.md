@@ -311,6 +311,32 @@ cars: the Hoonigan pink Porsche, the BMW E36.
   Weather from the world weather only, nothing forced. The map: tools/venues/croughed.osm.json way
   108510895 "Rallycross" (with "Club Link", "Chicane"), as knobhill.json's rx layout; the surfaces
   from the circuit's own RX map.
+  CROUGHED RX BUILT, TO REVIEW (worker 11-15, ?croughedrx=1): its own full-size build of the
+  circuit's map (tools/venues/croughedrx.json; croughed.json and the circuit's two levels untouched:
+  worldhash SAME). THE SURFACES: the Rallycross way carried with surface=gravel (the map leaves it
+  off; the source in the config: BRX reports - "Croft's loose-surface hairpin", dust "on the gravel
+  parts" - and aerial photographs, ESRI World Imagery, showing the loose track from the chicane
+  round the hairpin to the Main Straight); Clervaux, Hawthorn and the chicane tarmac: 1255 m, tarmac
+  0-520 m, gravel 520-1255 m (59 %). THE GRAVEL HAIRPIN at its real radius (12.8 m traced, minR 10).
+  THE GRID two abreast on the Main Straight (the start lane): 21 slots on the lane 3.2 m off its
+  centre, the nearest tree 41 m. THE JOKER: none at the real Croft - a hand-laid gravel loop in the
+  infield (section 5's question), the island's Armco joined at its noses. DRESSED: grass banks with
+  catch fences (inside the hairpin, between the start lane and the return leg, inside Hawthorn),
+  crowds, Union flags, hospitality units, transporters, a TV tower, boards (the big screen a LIVE
+  board: section 5). CHECKS: lapdriver's flying lap 0.0 s off (rally-4x4 67.2 s, rx-super 65.7,
+  hatch-rwd 72.4, track-rwd 60.4; from the grid 0.5-2.3 s off where the autodriver crosses from the
+  lane to the lap, which it does not follow - the racing AI alone, 160 s on three seeds: 0.0 s off);
+  THE 20-AI RACE (4 laps): seed 1 all 20 AI finished (the test's own player car stuck at the
+  hairpin's entry), seed 2 the race closed at 251 s when that car won, every AI 2-4 laps done, none
+  stopped; the field's offs and resets in traffic at the chicane's turn onto the gravel and the
+  hairpin's entry (resets 5 and 4 there), no page errors; aijokercheck 3 seeds: one joker each;
+  jokercost 10.1-11.4 s (Holy Jeez's real joker 7.5-8.6 s by the same tool); no air anywhere
+  (crestcheck). barriercheck OK; propcheck clean; venueaudit: one Armco end at the joker's nose (as
+  Holy Jeez's), short Armco runs of 23 m (the island) and 6 m (by the Back Straight), a farm road
+  ending in its farmyard (mapped). FRAMES (laptop, 20 AI, work median, Croughed RX / Knobhill RX):
+  x1 day 11.3 / 14.6, night 12.6 / 14.3 ms; x4 day 212.5 / 195.3, night 188.5 / 206.1 (both in the
+  catch-up loop, 12 steps, as calibrated). worldhash with the switch off SAME as main's with
+  CROUGHEDRX=1 on every level. Thumbnail painted.
 - DEMOLITION DERBY (owner 11-10: "Demolition derby levels classic tarmac circle - and we can reuse
   stock car tracks ect for that too"): a classic tarmac circle arena, and a derby mode on the stock
   car tracks (Stock Car, Grass Track, Old Wobbly). Questions when we come to it (the AI ramming, how
@@ -449,6 +475,19 @@ inputs and get the cars back. A SPIKE (two phones on the tunnel) before committi
 
 ## 5. QUESTIONS FOR THE OWNER
 
+- CROUGHED RX'S JOKER (worker 11-15, `?croughedrx=1`): Croft ran NO joker (BRX reports 2017 and
+  2018: "there is no joker at Croft", "Not having a joker lap at Croft isn't ideal"), and no map
+  or source shows one. You asked for the joker choice, so one is built by hand (NOT REAL): a
+  gravel loop into the open infield east of the return leg, 23 m longer (jokercost 10-11 s with
+  the autodriver against Holy Jeez's real joker 7.5-8.6 s by the same tool). RECOMMENDED: keep
+  it (the joker choice you asked for); the other answers: no joker (the real race), or another
+  place for it.
+- CROUGHED RX'S START (worker 11-15): no source found says where Croft's rallycross grid stood.
+  Built: the grid on the circuit's Main Straight (the start lane), the line where it meets the lap
+  north of the pits, the first corner Clervaux (a 2016 report: "spun into the gravel at the first
+  corner" - Clervaux's trap). RECOMMENDED: keep it.
+- CROUGHED RX'S BIG SCREEN (worker 11-15): no screen prop exists (existing props only): a board
+  labelled LIVE stands in by the start. RECOMMENDED: a big-screen prop (new art) if you want one.
 - ANSWERED 11-14: Deaf Valley's exit names KEPT ("There ok for Death Valley"); the countryside
   highway levels: names in the same style if they lack them ("I think it has them tho already") -
   check, make them only where missing. CHECKED (foreman): the countryside list exists, with four

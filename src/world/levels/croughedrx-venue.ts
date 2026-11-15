@@ -2,7 +2,7 @@
 // owner 11-13), the Croughed venue's rallycross lap as its OWN level at FULL SIZE (share 1, as
 // the other short courses), a build of its own from the same map download as the half-size circuit
 // (venues/croughedrx.ts: tools/venues/croughedrx.json, OpenStreetMap way 108510895 "Rallycross"
-// and the circuit pieces it runs over). 1252 m, 59 % gravel. Clockwise from the grid on the Main
+// and the circuit pieces it runs over). 1255 m, 59 % gravel. Clockwise from the grid on the Main
 // Straight (the start lane, off the lap): up to the merge, along the Clervaux run to CLERVAUX
 // (tarmac, the gravel trap on its outside), HAWTHORN, into the chicane and off it left onto the
 // gravel, down the infield beside the Back Straight, round THE GRAVEL HAIRPIN at its real size, and
@@ -12,14 +12,14 @@
 // source); the circuit's pieces it runs over are tarmac.
 // THE JOKER (the shared joker rule): Croft ran none (BRX reports 2017, 2018); the owner asked for
 // the joker choice, so a gravel joker is laid by hand into the open infield off the return leg
-// (TODO 3b: the owner's question) - 23 m longer round two bends.
+// (TODO.md 5: the owner's question) - 23 m longer round two bends.
 // WHAT IT IS MEANT TO FAIL YOU AT: the gravel hairpin at its real size; the changes from tarmac to
 // gravel and back (the grip changes through the lap: brake for the chicane's exit on the tarmac,
 // not on the gravel past it); the joker's choice.
-// ITS LOOK: a UK round on the old airfield - grass banks for the crowd inside the hairpin and
-// along the return leg, hospitality units and the teams' transporters in the paddock west of the
-// Main Straight, a big screen by the crowd (a board: no screen prop), Union flags. The world clock
-// and weather set its hour and sky. North up.
+// ITS LOOK: a UK round on the old airfield - grass banks for the crowd inside the hairpin, along
+// the return leg and inside Hawthorn, hospitality units and the teams' transporters in the paddock
+// west of the Clervaux run, a big screen by the start (a LIVE board: no screen prop), Union flags.
+// The world clock and weather set its hour and sky. North up.
 import { CROUGHEDRX_VENUE } from "./venues/croughedrx.ts";
 import { venueLap } from "../venue.ts";
 import { rallycrossLevel } from "./rallycross-venue.ts";
