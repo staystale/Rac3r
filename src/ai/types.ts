@@ -108,7 +108,7 @@ export interface DriveCtx {
   laps?: number;   // main.ts, circuit driver: the race length
   obstacles?: LooseObstacle[];   // main.ts, circuit driver: loose objects near the car
   vMax?: number;   // the most it drives at, m/s (ai/trafficSpeeder.ts)
-  // ?hwdodge=1, the endless road (game/ai.ts): cars read by the road; a two-way road's middle line
+  // the endless road (game/ai.ts): cars read by the road; a two-way road's middle line
   // (road frame off, m), null on a road with a central reservation (ai/driverOncoming.ts)
   road?: { middleOff: number | null };
 }
@@ -276,8 +276,8 @@ export interface CarsEnv {
 
 // The circuit driver's state (createAIDriver). Fields without a ? are set when it is made.
 export interface CircuitState extends DriveOutState {
-  // ?hwdodge=1 (ai/driverOncoming.ts): cars read by the road; the cap on its lateral place, m; the
-  // oncoming car it is judging and how far off its judgement is (share)
+  // the endless road (ai/driverOncoming.ts): cars read by the road; the cap on its lateral place,
+  // m; the oncoming car it is judging and how far off its judgement is (share)
   roadRead?: boolean; keepMax?: number; oncomingCar?: AiCar | null; misjudge?: number;
   path: Path<DrivePoint>;
   i: number | null;   // null until the first step (and after a relocate) finds its place

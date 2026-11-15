@@ -114,7 +114,7 @@ export function followAhead(drv: Drv, acc: CarsAcc, env: CarsEnv, fwd: number, o
   const both = [otherLat + clear, otherLat - clear];
   const onRoad = both.filter((cand) => Math.abs(lineOff + cand) <= latLim);
   // (past the edge only round a car stopped or crawling - offTrackOk)
-  // (?hwdodge=1: an oncoming car close - no side in the other way's lane: ai/driverOncoming.ts)
+  // (the endless road: an oncoming car close - no side in the other way's lane: driverOncoming.ts)
   const keepMax = state.keepMax ?? Infinity;
   const cands = (onRoad.length || !offTrackOk(vAlong, speed) ? onRoad : both.filter(
       (cand) => Math.abs(lineOff + cand) <= wide)).filter((cand) => lineOff + cand <= keepMax)
@@ -283,7 +283,7 @@ const readSpeed = (speed: number, vAlong: number) => Math.max(speed, speed - vAl
 const view = { fwd: 0, lat: 0, vAlong: 0 };
 
 /**
- * Where another car is to me: by my heading (a box ahead of the car), or (?hwdodge=1 on the endless
+ * Where another car is to me: by my heading (a box ahead of the car), or (on the endless
  * road: ai/driverOncoming.ts) by the road - both road frames' distance along and offset across,
  * its speed along the road - so a car round a bend is ahead, not off to the side.
  * @param car my car
