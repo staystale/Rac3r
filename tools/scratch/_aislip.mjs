@@ -11,6 +11,8 @@
 // braking / full throttle / part throttle / coasting, the time BELOW its own target by > 1.5 m/s
 // and why (full throttle = the physics; part throttle: understeer lift, oversteer catch, slip
 // feel, ramp), mean front / rear slip in corners, and the speed at each corner's apex vs its plan.
+// JOB 1b: AIPACE=1 PACE=0..1 sets the AI DRIVERS PACE dial (ai/tune.ts paceOf); each run also
+// counts the mistakes meant to spin (spinMists) and the most the car turned while one ran.
 // BUG 9 additions: AISLIDE=1 (the game's switch, read by core/fixes.ts) turns the slide work on;
 // DIFF (difficulty 0-4, default 4), SEAT (place in the field: the persona, default 0) and TSEED
 // (the traits' seed, default 3) pick the driver; LAPS (default 1) flying laps are tallied (laps
@@ -55,8 +57,12 @@ async function runOne([level, carId, surfId, kMulText]) {
   L.clearWear();
   const line = racingLine(L.LEVEL), sub = L.LEVEL.subtrack, car = makeCar(carId);
   reset(car, line.pts[0].x, line.pts[0].y, line.pts[0].h);
-  const traits = aiTraits(Number(process.env.DIFF ?? 4), Number(process.env.SEAT ?? 0), 1,
-    Number(process.env.TSEED ?? 3));
+  // (JOB 1b: PACE=0..1 the AI DRIVERS PACE dial, with AIPACE=1 - ai/tune.ts)
+  const { tuneOf } = await import('../../src/ai/tune.ts');
+  const diff = Number(process.env.DIFF ?? 4);
+  const tune = process.env.PACE ? { ...tuneOf(diff), pace: Number(process.env.PACE) } : undefined;
+  const traits = aiTraits(diff, Number(process.env.SEAT ?? 0), 1, Number(process.env.TSEED ?? 3),
+    tune);
   const ai = createAIDriver(L.LEVEL, traits);
   const LAPS = Number(process.env.LAPS ?? 1);
   const { createAutoDriver } = await import('../../src/ai/autodrive.ts');
@@ -88,7 +94,7 @@ async function runOne([level, carId, surfId, kMulText]) {
   return { ...out, laps, slide: +acc.slide.toFixed(1),
     peakF: +(acc.peakF / Math.max(1e-6, acc.cornerN)).toFixed(3),
     peakR: +(acc.peakR / Math.max(1e-6, acc.cornerN)).toFixed(3), spins: acc.spins, offs: acc.offs, mists: acc.mists,
-    mistOut: acc.mistOut,
+    mistOut: acc.mistOut, spinMists: acc.spinMists || 0, spinDrift: +(acc.spinDrift || 0).toFixed(2),
     skill: +traits.skill.toFixed(2), persona: traits.persona, aislide: process.env.AISLIDE === '1' };
 }
 
@@ -145,6 +151,10 @@ function noteStep(acc, apex, car, drv, input, sub, querySubtrack, dt) {
   // MISTAKES (ai/driverLane.ts): each one drawn, by kind, and whether it slid (rear past its peak
   // over 0.3 s), spun or left the road before it ended
   const mist = drv.state.mist;
+  // (JOB 1b: the mistakes meant to spin, ai/driverSlide.ts spinChance, and the most the car turned
+  // from where it went while one ran, rad)
+  if (mist && mist !== acc.mist && mist.spin) acc.spinMists = (acc.spinMists || 0) + 1;
+  if (drv.state.spinUntil > drv.state.t) acc.spinDrift = Math.max(acc.spinDrift || 0, drift);
   if (mist && mist !== acc.mist) {
     acc.mists[mist.kind] = (acc.mists[mist.kind] || 0) + 1;
     acc.mistSeen = { slideT: 0, spun: false, off: false };
