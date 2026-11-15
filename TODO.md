@@ -593,7 +593,9 @@ inputs and get the cars back. A SPIKE (two phones on the tunnel) before committi
 - ANSWERED 11-14: the black wire / rope fence replaced on the old levels too ("Replace it there
   too"; "Oh is that not already done"). CHECKED (foreman): it IS already done - no level builds a
   'fence' barrier any more (all 63 levels and the stages built and counted: 0). Closed.
-- ANSWERED 11-14: a police SIREN, "With sound". BUILT 11-15 behind `?siren=1` (FIX.siren; env
+- PARKED 11-15 (owner: no siren "until we do all sound" - "With sound" meant WITH THE SOUND
+  PASS, misread as a go): off the test link and the test list; the code stays behind `?siren=1`,
+  off, for the sound pass. Was: a police SIREN. BUILT 11-15 behind `?siren=1` (FIX.siren; env
   SIREN=1), to approve: a police car chasing - its light bar flashing (`car.blues`) - sounds; a
   cruising or waiting one (and an angry driver) is silent. Synthesised as the engine is
   (`audiosiren.ts`, no files): the UK two-tone, 600 / 800 Hz, ~0.6 s each (the wail and the yelp
@@ -608,4 +610,4 @@ inputs and get the cars back. A SPIKE (two phones on the tunnel) before committi
   work with 3 chasers, off / on: x1 median 9.5 / 8.0 ms, x4 79.1 / 78.7 ms (noise). Its level
   (rendered, tools/scratch/_sirenwav.mjs): at 25 m ~11 dB under the engine at 110 km/h, ~6 dB
   under it passing at ~10 m. Switch off: worldhash, simhash (all runs), renderhash (highway) SAME.
-  OWNER TO HEAR: the pattern (two-tone / wail / yelp), its level, Doppler wanted or not.
+  AT THE SOUND PASS, OWNER TO HEAR: the pattern (two-tone / wail / yelp), its level, Doppler.
