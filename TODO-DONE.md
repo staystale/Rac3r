@@ -13,6 +13,30 @@ rolls - OWNER 11-07; the AI rework - Where we are 11-04; the driving root fix, t
 LIST 11-01; TypeScript, mud, grass, lamps - Queue; weather, surfaces, car systems, damage,
 lighting, bushes and trees - OWNER LIST 10-24; the checking tools - Tools that are wrong.
 
+## PASSED 11-15 (owner: "Pass") - THE WAITING POLICE WAKE, the default (was ?hwparked=1); any driver with heat
+wakes them, the 60 m witness kept.
+
+14. PARKED POLICE wake when passed with a wanted level on.
+    OWNER 11-15: wake when you pass within their sight with >= 1 star: pull out after ~1 s and join
+    the chase; no stars = stay parked; SPEEDING PAST a parked police car with no stars GIVES A
+    STAR, as a speed camera does ("hardly a new rule just it applied"); a walkthrough card.
+    FOUND (tools/scratch/_parkedpolice.mjs, 8 km of motorway / dual, countryside / Deaf Valley,
+    seeds 4242 / 7, on the PC): today a waiting car joins only while a star's chaser is OWED, at
+    once and from up to 200 m ahead (joinBySight); held at 1 star with its chaser out, of 11
+    waiting cars met 0 woke, 9 passed stayed put. Speeding past one at 130 km/h already gives a
+    star (any police car within 30 m sees it): 11 of 11 passed, at a median 3.3-3.9 m.
+    BUILT behind `?hwparked=1` (FIX.hwparked; ai/policeWake.ts wakeWaiting from trafficPolice.ts
+    runChase; testlist 'hwparked'; ENGINE.md THE WAITING POLICE WAKE): a waiting car of our way
+    that a driver with heat passes (level with it or past it, within its 200 m sight, on its
+    level) pulls out 1 s later and joins the chase, up to the 3 chasers at most whatever the stars
+    have sent; joinBySight leaves waiting cars to it (no more pulling out ahead of you); speeding
+    past a waiting one is seen out to 60 m (a forecourt stands back), not only 30; a POLICE card in
+    the highway rules (guide.ts, both the solo and the VS AI decks).
+    MEASURED (the same runs, switch on): held at 1 star, of 12 waiting met 8 woke for you - 1.0 s
+    after you drew level (one 0.4 s: its clock started by a speeding traffic car passing it first),
+    you 8-23 m past it - 2 woke for another driver with heat, 0 passed stayed put; at 130 km/h a
+    star from 20 of 20 passed (one 22 m off). Photos of the card: tools/scratch/_policecard/.
+
 ## PASSED 11-15 (owner: "Pass") - THE SINGLE-LANE ROLLING-START FIX AND THE AI CRASH PUT-BACKS BY YOUR RESET'S
 RULES, the default (were ?rollfix=1, ?aireset=1). Numbers: TODO 3a2 item 10 (rolling starts) and the AI extras' 2a note.
 

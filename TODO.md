@@ -265,26 +265,10 @@ BUGS (each behind its own switch, measured, then a test link):
 11. MINIMAP (fuel stations, slip roads, police): PASSED 11-15, the default (TODO-DONE).
 12. CHEVRON BOARDS by the real-life rule: PASSED 11-15, the default (TODO-DONE).
 13. BARRELS (crash cushions): PASSED 11-15, the default (TODO-DONE).
-14. PARKED POLICE wake when passed with a wanted level on.
-    OWNER 11-15: wake when you pass within their sight with >= 1 star: pull out after ~1 s and join
-    the chase; no stars = stay parked; SPEEDING PAST a parked police car with no stars GIVES A
-    STAR, as a speed camera does ("hardly a new rule just it applied"); a walkthrough card.
-    FOUND (tools/scratch/_parkedpolice.mjs, 8 km of motorway / dual, countryside / Deaf Valley,
-    seeds 4242 / 7, on the PC): today a waiting car joins only while a star's chaser is OWED, at
-    once and from up to 200 m ahead (joinBySight); held at 1 star with its chaser out, of 11
-    waiting cars met 0 woke, 9 passed stayed put. Speeding past one at 130 km/h already gives a
-    star (any police car within 30 m sees it): 11 of 11 passed, at a median 3.3-3.9 m.
-    BUILT behind `?hwparked=1` (FIX.hwparked; ai/policeWake.ts wakeWaiting from trafficPolice.ts
-    runChase; testlist 'hwparked'; ENGINE.md THE WAITING POLICE WAKE): a waiting car of our way
-    that a driver with heat passes (level with it or past it, within its 200 m sight, on its
-    level) pulls out 1 s later and joins the chase, up to the 3 chasers at most whatever the stars
-    have sent; joinBySight leaves waiting cars to it (no more pulling out ahead of you); speeding
-    past a waiting one is seen out to 60 m (a forecourt stands back), not only 30; a POLICE card in
-    the highway rules (guide.ts, both the solo and the VS AI decks).
-    MEASURED (the same runs, switch on): held at 1 star, of 12 waiting met 8 woke for you - 1.0 s
-    after you drew level (one 0.4 s: its clock started by a speeding traffic car passing it first),
-    you 8-23 m past it - 2 woke for another driver with heat, 0 passed stayed put; at 130 km/h a
-    star from 20 of 20 passed (one 22 m off). Photos of the card: tools/scratch/_policecard/.
+14. PARKED POLICE wake when passed with a star; speeding past one gives a star: PASSED 11-15, the default
+    (TODO-DONE). OWNER 11-15: the wake counts for ANY driver with heat ("Everyone breaking the law"); 60 m
+    witness OK. NEXT (owner): a CAP of ~5 police chasing at once overall, and spread over the whole field
+    ("making sure the whole field get bothered not jsut slow drivers") - behind its own switch.
 15. TRAFFIC (and unaggravated police) stop for fuel now and then and take slip roads (the petrol
     station stops exist, ai/trafficFuel.ts, 11-11: check how often); aggravated police as now.
 

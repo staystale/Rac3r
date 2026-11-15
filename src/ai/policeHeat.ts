@@ -15,7 +15,6 @@
 // BUST_GAP_M of you (box to box) while you are under BUST_STILL_MS, for BUST_S.
 import { sameLevel } from '../world/crossinggeo.ts';
 import { tooInjured } from '../damage.ts';
-import { FIX } from '../core/fixes.ts';
 import type { PoliceOrders } from './trafficPolice.ts';
 import type { AiCar, TrafficCar, TrafficVehicle } from './types.ts';
 import type { HwLevel } from '../highway/hwtypes.ts';
@@ -164,10 +163,10 @@ function speedOffences(heat: Heat, input: HeatInput) {
   if (isYou && (speed > LIMIT_MPH * MPH_MS || camera) && frame)
     input.orders.dueUntil = frame.s + DUE_M;
   if (camera) heatAtLeast(heat, 1, 'camera');
-  // (?hwparked=1: a police car waiting at the roadside sees it as you pass, out to WITNESS_M - a
+  // (a police car waiting at the roadside sees it as you pass, out to WITNESS_M - a
   // forecourt's stands back from the road: ai/policeWake.ts)
   if (speed <= LIMIT_MPH * MPH_MS || !(witnessed(input, SPEED_NEAR_M)
-    || (FIX.hwparked && witnessedWaiting(input, WITNESS_M)))) return;
+    || witnessedWaiting(input, WITNESS_M))) return;
   heatAtLeast(heat, speed > HARD_MPH * MPH_MS ? 2 : 1, 'speeding');
 }
 

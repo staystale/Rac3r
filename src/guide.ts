@@ -18,7 +18,6 @@
 
 import { COL } from "./world/colours.ts";
 import { LEVEL } from "./world/state.ts";
-import { FIX } from "./core/fixes.ts";
 import type { HudRects } from './hud/layout.ts';
 
 /** A screen rectangle, css px. */
@@ -158,15 +157,15 @@ const LIGHTS = (scene: GuideScene) => ({
   x: scene.W / 2 - Math.min(scene.W, scene.H) * 0.22, y: scene.H * 0.2,
   w: Math.min(scene.W, scene.H) * 0.44, h: Math.min(scene.W, scene.H) * 0.19,
 });
-// (?hwparked=1) the police on the endless road: a waiting car gives a star for speeding past it and
+// the police on the endless road: a waiting car gives a star for speeding past it and
 // wakes as a driver with heat passes it (ai/policeWake.ts)
-const POLICE_CARD: GuideCard[] = FIX.hwparked ? [{
+const POLICE_CARD: GuideCard[] = [{
   title: 'POLICE',
   text: () => 'Police cars wait at the roadside. Speed past one (over 70 mph) and you earn a '
     + 'STAR - shown here. With a star, a waiting car pulls out as you pass it and joins the '
     + 'chase. Stay out of their sight to lose them.',
   target: (scene: GuideScene) => scene.L.heat,
-}] : [];
+}];
 export const RULES: Record<string, GuideCard[]> = {
   highway: [
     {

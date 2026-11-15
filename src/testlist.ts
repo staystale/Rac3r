@@ -13,19 +13,6 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
-    id: 'hwparked',
-    added: '2026-11-15',
-    name: 'Parked police wake as you pass them with a star; speeding past one gives a star',
-    where: 'Test link + &hwparked=1: the highway (motorway or dual); police cars wait on the hard '
-      + 'shoulder, in lay-bys and by petrol stations',
-    try: 'Drive past a waiting police car under 70 mph with no stars: it stays. Pass one over 70 '
-      + 'mph: a star, and about 1 s after you pass it pulls out and chases. Get a star elsewhere '
-      + '(a camera), then pass a waiting one: it pulls out behind you. HOW TO PLAY in the pause '
-      + 'menu shows the new POLICE card.',
-    wrong: 'A waiting car pulling out in front of you before you reach it, waking with no stars, '
-      + 'staying put with a star, more than 3 chasing, or no star for speeding right past one.',
-  },
-  {
     id: 'aipace',
     added: '2026-11-15',
     name: 'AI PACE dial, and the AI DRIVERS dials live from the pause menu',

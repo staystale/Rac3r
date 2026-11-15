@@ -35,7 +35,6 @@ import { seatRacer } from './trafficSpeeder.ts';
 import type { AiCar, DriveInput, TrafficCar, TrafficEnt, TrafficVehicle } from './types.ts';
 import { boxGap } from './policeHeat.ts';
 import type { Heat, Suspect } from './policeHeat.ts';
-import { FIX } from '../core/fixes.ts';
 import { wakeWaiting } from './policeWake.ts';
 
 // the share of the cars put back that are police, and the share while police are due (MEASURED,
@@ -449,9 +448,9 @@ function joinBySight(ctx: TrafficCtx, chasers: TrafficCar[]) {
   for (const slot of ctx.list) {
     if (orders.owed <= 0) return;
     const police = slot.police;
-    // (?hwparked=1: a waiting car wakes as one passes it: ai/policeWake.ts)
+    // (a waiting car wakes as one passes it: ai/policeWake.ts)
     if (slot.parked || !police || police.mode === 'chase' || (slot.dir ?? 1) < 0 || slot.wreck
-      || (FIX.hwparked && police.mode === 'wait')
+      || police.mode === 'wait'
       || !orders.suspects.some((each) => each.car !== slot.car && sameLevel(slot.car, each.car)
         && Math.hypot(slot.car.x - each.car.x, slot.car.y - each.car.y) < JOIN_M)) continue;
     makeChaser(ctx, slot);
@@ -611,8 +610,8 @@ function runChase(ctx: TrafficCtx, dt: number, player: AiCar & { crossing?: numb
   orders.owed = Math.max(0, Math.min(orders.owed, Math.min(MAX_CHASERS, orders.stars)
     - chasers.length));
   joinBySight(ctx, chasers);
-  // (?hwparked=1: a waiting car a driver with heat passes pulls out and joins)
-  if (FIX.hwparked) wakeWaiting(ctx, dt, chasers);
+  // (a waiting car a driver with heat passes pulls out and joins)
+  wakeWaiting(ctx, dt, chasers);
   orders.sendT -= dt;
   // (a new one from behind the driver with heat nearest you: the chase you can see)
   const playerS = ctx.level!._hw.q!.s;

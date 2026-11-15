@@ -351,7 +351,7 @@ twins: the flashing light bar (`render/lightbar.ts`) and the HUD's flashing blue
 (`hud/heat.ts`). Rendered to .wav by `tools/scratch/_sirenwav.mjs`; checked live by
 `tools/scratch/_siren.mjs`.
 
-THE WAITING POLICE WAKE (`?hwparked=1`, `FIX.hwparked`, under test; `ai/policeWake.ts
+THE WAITING POLICE WAKE (passed 11-15; `ai/policeWake.ts
 wakeWaiting`, from `ai/trafficPolice.ts runChase` while any driver has stars): a police car of our
 way waiting at the roadside (`putWaiting`: a forecourt, a lay-by, the hard shoulder) that a driver
 with heat passes - level with it or past it (4 m), within `JOIN_M` (200 m), on its level - pulls

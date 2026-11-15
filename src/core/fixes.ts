@@ -60,7 +60,4 @@ export const FIX = {
   aipace: atLoad('aipace'),
   // a chasing police car sounds a siren, the light bar's twin (game/sirens.ts, audiosiren.ts)
   siren: atLoad('siren'),
-  // a police car waiting at the highway's roadside pulls out and joins the chase ~1 s after a
-  // driver with heat passes it (ai/policeWake.ts)
-  hwparked: atLoad('hwparked'),
 };

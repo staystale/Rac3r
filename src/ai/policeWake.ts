@@ -1,4 +1,4 @@
-// ai/policeWake.ts - A WAITING (PARKED) POLICE CAR WAKES (?hwparked=1, FIX.hwparked; TODO 3a2 item
+// ai/policeWake.ts - A WAITING (PARKED) POLICE CAR WAKES (passed 11-15; TODO-DONE item
 // 14, the owner's answer 11-15: "wake when you pass within their sight with >= 1 star: pull out
 // after ~1 s and join the chase; no stars = stay parked"). A police car waiting at the roadside
 // (ai/trafficPolice.ts putWaiting: a forecourt, a lay-by, the hard shoulder) that a driver with
