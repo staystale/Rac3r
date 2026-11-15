@@ -1,27 +1,29 @@
 // _carsheet.mjs - every car's pixel sprite (with wheels), drawn by the game's own garage painter,
 // nose up, scaled x SCALE, with its name, on one sheet (owner 11-07, item 4: "reworking any cars
 // that don't look like their real counter part"). node tools/scratch/_carsheet.mjs [out.png] [scale]
-import { startServer, launchBrowser, gotoGame } from '../lib/browser.mjs';
+// [cars] (a comma list: only those, e.g. tools/newcar.mjs)
+import { startServer, launchBrowser, gotoGame, extraQuery } from '../lib/browser.mjs';
 import { writeFileSync } from 'node:fs';
 
-const [out = 'tools/scratch/_carsheet.png', scaleArg = '4'] = process.argv.slice(2);
+const [out = 'tools/scratch/_carsheet.png', scaleArg = '4', carsArg = ''] = process.argv.slice(2);
 const server = await startServer();
 const browser = await launchBrowser();
 try {
   const page = await browser.newPage({ viewport: { width: 844, height: 390 } });
   const errors = [];
   page.on('pageerror', (error) => errors.push(error.message));
-  await gotoGame(page, `${server.url}/?pc=1&guide=0&menu=0&noaudio=1`);
+  await gotoGame(page, `${server.url}/?pc=1&guide=0&menu=0&noaudio=1${extraQuery()}`);
   await page.waitForTimeout(1500);
-  const url = await page.evaluate(async (scale) => {
+  const url = await page.evaluate(async ([scale, only]) => {
     const cars = await import('/src/cars.ts'), veh = await import('/src/vehicle.ts');
-    const r = window.__game.renderer, cols = 7, cellW = 45 * scale + 30, cellH = 80 * scale + 50;
+    const rows = cars.ROSTER.filter((row) => !only.length || only.includes(row.id));
+    const r = window.__game.renderer, cols = Math.min(7, rows.length), cellW = 45 * scale + 30, cellH = 80 * scale + 50;
     const sheet = document.createElement('canvas');
-    sheet.width = cols * cellW; sheet.height = Math.ceil(cars.ROSTER.length / cols) * cellH;
+    sheet.width = cols * cellW; sheet.height = Math.ceil(rows.length / cols) * cellH;
     const sctx = sheet.getContext('2d');
     sctx.fillStyle = '#5a7a4a'; sctx.fillRect(0, 0, sheet.width, sheet.height);
     sctx.imageSmoothingEnabled = false;
-    cars.ROSTER.forEach((row, i) => {
+    rows.forEach((row, i) => {
       const spec = cars.applyLivery(veh.makeCar(row.id).spec, null);
       const pic = r.pixelCarWithWheels(spec), canvas = pic.c || pic.canvas || pic;
       const cx = (i % cols) * cellW + cellW / 2, cy = Math.floor(i / cols) * cellH + cellH / 2 - 10;
@@ -35,7 +37,7 @@ try {
       sctx.fillText(row.id + ' (' + row.kind + ')', cx, Math.floor(i / cols) * cellH + cellH - 2);
     });
     return sheet.toDataURL('image/png');
-  }, +scaleArg);
+  }, [+scaleArg, carsArg ? carsArg.split(',') : []]);
   writeFileSync(out, Buffer.from(url.split(',')[1], 'base64'));
   console.log('saved ' + out + (errors.length ? ' | PAGE ERRORS ' + errors.slice(0, 2).join(' | ') : ''));
 } finally { await browser.close(); server.stop(); }

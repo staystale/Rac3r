@@ -1,0 +1,47 @@
+// realfigures.mjs - the REAL car's published performance, per roster car: what tools/newcar.mjs
+// puts beside the game's measured numbers (tools/carstats.mjs). Reference only: nothing in the
+// game reads it. The rest of the real car (mass, engine, gears, tyres, drag, size) is already in
+// its ROSTER row (src/cars.ts) and src/carreal.ts.
+// topKph: km/h; zeroTo100: s (0-100 km/h; a 0-60 mph figure is noted where that is the period's
+// test). EST where the figure varies by test or is not published; null where there is no sure
+// figure (a build, a class of car, a one-off).
+
+/** @type {Record<string, {real: string, topKph: number|null, zeroTo100: number|null, note?: string}>} */
+export const REAL_FIGURES = {
+  'hatch-fwd': { real: 'VW Golf GTI Mk7 (2013, 220 PS, 6MT)', topKph: 246, zeroTo100: 6.5 },
+  'hatch-rwd': { real: 'BMW M135i F20 (2012, 6MT)', topKph: 250, zeroTo100: 5.1,
+    note: 'top speed governed' },
+  'saloon-rwd': { real: 'BMW 330i E46 (5MT)', topKph: 250, zeroTo100: 6.5,
+    note: 'top speed governed' },
+  'wrz-awd': { real: 'Subaru Impreza WRX STI GD (2005, EU)', topKph: 255, zeroTo100: 5.5,
+    note: '0-100 EST (5.2-5.5 by market and test)' },
+  'estate-4x4': { real: 'Volvo V70 R (2004, 6MT)', topKph: 250, zeroTo100: 6.1,
+    note: 'top speed governed; 0-100 EST' },
+  'muscle-rwd': { real: 'Chevrolet Chevelle SS 454 LS6 (1970, 4MT)', topKph: null,
+    zeroTo100: 5.8, note: '0-60 mph 5.4 s (period road test); 0-100 km/h EST; top speed varies '
+      + 'with the axle ratio' },
+  'rally-4x4': { real: 'Audi Sport quattro S1 E2 (1985)', topKph: null, zeroTo100: 3.1,
+    note: 'EST, on gravel; geared per stage' },
+  'track-rwd': { real: 'Formula 1 car (2022 rules)', topKph: 340, zeroTo100: 2.6,
+    note: 'EST; top speed by the circuit\'s wing level' },
+  'naffcar': { real: 'NASCAR Cup Next Gen', topKph: 320, zeroTo100: 3.5,
+    note: 'EST; unrestricted' },
+  'tractor': { real: 'JCB Fastrac 8330', topKph: 70, zeroTo100: null,
+    note: 'never reaches 100 km/h' },
+  'mini-fwd': { real: 'Mini Cooper S 1275 Mk1', topKph: 156, zeroTo100: 11.5,
+    note: '0-60 mph 10.9 s (period road test); 0-100 km/h EST' },
+  'lambo-awd': { real: 'Lamborghini Huracan LP 610-4', topKph: 325, zeroTo100: 3.2 },
+  'mikra-r1': { real: 'a Nissan Micra R1 rally car', topKph: null, zeroTo100: null,
+    note: 'no sure figures' },
+  'kit-2l': { real: 'Peugeot 306 Maxi (F2 kit car, 1996)', topKph: null, zeroTo100: null,
+    note: 'no sure figures' },
+  'rx-super': { real: 'Ford Fiesta RX (World RX supercar)', topKph: null, zeroTo100: 1.9,
+    note: '0-100 the class\'s quoted figure (EST, on a mixed surface)' },
+  'banger-f2': { real: 'a BriSCA F2 stock car', topKph: null, zeroTo100: null,
+    note: 'no sure figures' },
+  'grass-special': { real: 'an autograss special (Class 8-ish)', topKph: null, zeroTo100: null,
+    note: 'no sure figures' },
+  'drift-s13': { real: 'a pro drift Nissan Silvia S13 build', topKph: null, zeroTo100: null,
+    note: 'a build: no sure figures' },
+  'f2-rwd': { real: 'Dallara F2 (2018)', topKph: 335, zeroTo100: 2.9, note: '0-100 EST' },
+};

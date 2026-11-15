@@ -911,6 +911,14 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
 
 ## Tools worth knowing
 
+- CARS (11-15): `tools/newcar.mjs <id>` runs every check for one car - carstats (beside the real
+  car's published figures, tools/lib/realfigures.mjs, and the garage's saved numbers), carfeel,
+  tyrecheck --car, partcheck <id>, aifieldcheck (tarmac, and loose ground for loose classes), its
+  sprite, rolled and damaged pictures, a real crash and `tools/carlapshot.mjs` (racing with AI at
+  844x390 and 390x844) - onto one sheet, shots/newcar/<id>/index.html + sheet.png (CHECK_PORT;
+  --no-browser for the numbers alone). `tools/newcarstart.mjs <spec.json>` (--template for an
+  example): a new car's ROSTER row copied from the nearest car with the real numbers filled in,
+  each field marked REAL or COPIED, plus its REAL_SIZE and REAL_FIGURES lines.
 - `tools/lightleak.mjs [level ...] [query]` (11-12): a car's light where it must not fall, at every
   tunnel and overhead deck over the race road - photos lamps off / on / off at stops before, in and
   past each, facing along and turned 0.9 rad; light on slats, past a tunnel's walls, in a straight

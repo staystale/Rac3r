@@ -5,6 +5,7 @@
 // kind missing from the table threw in the sim step (the drive shaft, 11-07). And a torn catch
 // fence's shreds (world/armcodent.ts SHRED_KINDS).
 // node tools/partcheck.mjs        (built 11-08)
+// node tools/partcheck.mjs <id>   that car only (tools/newcar.mjs); the fence shreds are skipped
 import { makeCar } from '../src/vehicle.ts';
 import * as L from '../src/lab.ts';
 import { ROSTER } from '../src/cars.ts';
@@ -18,7 +19,12 @@ const always = () => 0, kinds = new Map(), missing = new Set();
 let errors = 0;
 const realRandom = Math.random;
 Math.random = always;
-for (const row of ROSTER) {
+const onlyCar = process.argv[2] || '';
+if (onlyCar && !ROSTER.some((row) => row.id === onlyCar)) {
+  console.log(`partcheck: no car ${onlyCar}`);
+  process.exit(1);
+}
+for (const row of ROSTER.filter((car) => !onlyCar || car.id === onlyCar)) {
   const car = makeCar(row.id);
   for (let corner = 0; corner < 4; corner++) {
     for (const endW of [0, 1]) crashDebris(car, corner, 1000, endW, always);
@@ -40,7 +46,7 @@ for (const row of ROSTER) {
 }
 Math.random = realRandom;
 // a torn catch fence's shreds
-for (const kind of SHRED_KINDS) {
+for (const kind of onlyCar ? [] : SHRED_KINDS) {
   kinds.set(kind, (kinds.get(kind) || 0) + 1);
   if (!DEBRIS[kind]) missing.add(`${kind} (a torn catch fence)`);
 }

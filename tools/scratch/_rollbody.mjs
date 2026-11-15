@@ -6,9 +6,9 @@
 // real roll photographed mid-spin (-live.png, the blur and whoosh lines).
 // node tools/scratch/_rollbody.mjs [cars] [extra query]
 import { startServer, launchBrowser, gotoGame } from '../lib/browser.mjs';
-// SHOTS=0: only the numbers
+// SHOTS=0: only the numbers; OUT=<folder> where the pictures go (default tools/scratch)
 const [carsArg = 'track-rwd,mikra-r1', query = 'x=1'] = process.argv.slice(2),
-  SHOTS = process.env.SHOTS !== '0';
+  SHOTS = process.env.SHOTS !== '0', OUT = process.env.OUT || 'tools/scratch';
 const server = await startServer();
 const browser = await launchBrowser();
 const CLIP = 150;
@@ -91,11 +91,11 @@ try {
         roll.startRoll(car, 1, 13);
       });
       await page.waitForTimeout(110);
-      await page.screenshot({ path: `tools/scratch/_rollbody-${carId}${hurt ? '-hurt' : ''}-live.png` });
+      await page.screenshot({ path: `${OUT}/_rollbody-${carId}${hurt ? '-hurt' : ''}-live.png` });
       const sheet = await browser.newPage({ viewport: { width: CLIP * 4, height: CLIP * 3 } });
       await sheet.setContent(`<body style="margin:0;display:grid;grid-template-columns:repeat(4,${CLIP}px)">${
         shots.map((b64) => `<img src="data:image/png;base64,${b64}">`).join('')}</body>`);
-      await sheet.screenshot({ path: `tools/scratch/_rollbody-${carId}${hurt ? '-hurt' : ''}.png` });
+      await sheet.screenshot({ path: `${OUT}/_rollbody-${carId}${hurt ? '-hurt' : ''}.png` });
       await sheet.close();
       console.log(carId, hurt ? 'damaged' : 'clean', JSON.stringify(res),
         errors.length ? 'ERRORS ' + errors.join(' | ') : 'errors none');

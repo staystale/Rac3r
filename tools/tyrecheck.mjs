@@ -1,6 +1,7 @@
 // tyrecheck.mjs — proves the TYRE TEMPERATURE model (vehicle.js, 2026-10-03) by measurement.
 //
 //   node tools/tyrecheck.mjs        exit code 1 on any failure
+//   node tools/tyrecheck.mjs --car <id>   the claims that hold for every car, on that car (checkOneCar)
 //
 // Every claim the user made, as a number:
 //   1. tyres start cold; cruising in a straight line barely warms them
@@ -23,6 +24,100 @@ function run(id, surface, secs, control, setup) {
   return car;
 }
 const hold = (v) => (car) => ({ steer: 0, throttle: Math.hypot(car.vx, car.vy) < v ? 0.6 : 0, brake: 0 });
+
+/**
+ * ONE CAR (node tools/tyrecheck.mjs --car <id>; tools/newcar.mjs): the model's claims that hold for
+ * every car, measured on that car - a cruise barely warms; a clean corner warms the outside more;
+ * wheelspin heats the DRIVEN axle; cold tyres grip less on tarmac, temperature nothing on gravel;
+ * an 80 s tarmac drift's times to too hot and the pop point (shown, not judged); no heat spike
+ * over the Test Track jump or braking across a surface change. The model's own tuning (the hatch-rwd's numbers) is the
+ * full run without --car.
+ * @param {string} id the roster id
+ */
+async function checkOneCar(id) {
+  const spec = makeCar(id).spec;
+  const frontDriven = spec.drive > 0.01, rearDriven = spec.drive < 0.99;
+  const cruise = run(id, SURFACES.tarmac, 30, hold(25), (c) => { c.vx = 25; });
+  console.log(`1. 30 s cruising at up to 90 km/h: ${f0(cruise.tyreT)} (FL FR RL RR)`);
+  check(Math.max(...cruise.tyreT) < 35, 'a straight cruise barely warms the tyres (< 35 C)');
+  const corner = run(id, SURFACES.tarmac, 30,
+    (c) => ({ steer: 0.12, throttle: Math.hypot(c.vx, c.vy) < 17 ? 0.5 : 0, brake: 0 }),
+    (c) => { c.vx = 17; });
+  const T2 = corner.tyreT, outsideIsMinusY = corner.t.ay > 0;
+  const outside = outsideIsMinusY ? T2[1] + T2[3] : T2[0] + T2[2];
+  const inside = outsideIsMinusY ? T2[0] + T2[2] : T2[1] + T2[3];
+  console.log(`2. 30 s cornering at ~60 km/h: ${f0(T2)}; lateral ${(corner.t.ay / 9.81).toFixed(2)} g`);
+  check(outside > inside, 'cornering warms the outside tyres more than the inside');
+  const spun = run(id, SURFACES.wet, 8, () => ({ steer: 0, throttle: 1, brake: 0 }), null).tyreT;
+  const frontT = (spun[0] + spun[1]) / 2, rearT = (spun[2] + spun[3]) / 2;
+  console.log(`3. 8 s full throttle from rest on wet tarmac: ${f0(spun)} (drive ${spec.drive})`);
+  if (Math.max(...spun) < TYRE_AMBIENT + 1.5) console.log('  info no wheelspin in 8 s (it grips)');
+  else if (frontDriven && !rearDriven) check(frontT > rearT + 5, 'FWD wheelspin heats the FRONT tyres');
+  else if (rearDriven && !frontDriven) check(rearT > frontT + 5, 'RWD wheelspin heats the REAR tyres');
+  else check(Math.min(frontT, rearT) > TYRE_AMBIENT + 1.5, '4WD wheelspin heats both axles');
+  const pinnedG = (surface, temp) => {
+    const car = makeCar(id); reset(car, 0, 0, 0); car.vx = 18;
+    let steer = 0, best = 0;
+    for (let i = 0; i < 5 / PHYSICS_STEP_SECONDS; i++) {
+      car.surface = surface; car.tyreT.fill(temp);
+      steer = Math.min(0.5, steer + PHYSICS_STEP_SECONDS * 0.12);
+      step(car, { steer, throttle: Math.hypot(car.vx, car.vy) < 18 ? 0.5 : 0, brake: 0 },
+        PHYSICS_STEP_SECONDS);
+      best = Math.max(best, Math.abs(car.t.ay || 0) / 9.81);
+    }
+    return best;
+  };
+  const coldT = pinnedG(SURFACES.tarmac, TYRE_AMBIENT), warmT = pinnedG(SURFACES.tarmac, 100);
+  const coldG = pinnedG(SURFACES.gravel, TYRE_AMBIENT), warmG = pinnedG(SURFACES.gravel, 85);
+  console.log(`4. peak lateral g - tarmac cold ${coldT.toFixed(2)} / working ${warmT.toFixed(2)};`
+    + ` gravel cold ${coldG.toFixed(2)} / working ${warmG.toFixed(2)}`);
+  check(coldT < warmT * 0.95, 'cold tyres grip noticeably less on tarmac');
+  check(Math.abs(coldG - warmG) < 0.01, 'on gravel temperature makes no difference');
+  let hot = Infinity, pop = Infinity;
+  const drifter = makeCar(id); reset(drifter, 0, 0, 0); drifter.vx = 12;
+  for (let i = 0; i < 80 / PHYSICS_STEP_SECONDS; i++) {
+    drifter.surface = SURFACES.tarmac;
+    step(drifter, { steer: 0.35, throttle: 1, brake: 0 }, PHYSICS_STEP_SECONDS);
+    const peak = Math.max(...drifter.tyreT), time = (i + 1) * PHYSICS_STEP_SECONDS;
+    if (hot === Infinity && peak >= 110) hot = time;
+    if (pop === Infinity && peak >= 260) pop = time;
+  }
+  const secs = (value) => (value === Infinity ? 'never' : value.toFixed(0) + ' s');
+  console.log(`7. 80 s tarmac drift: too hot (110 C) ${secs(hot)}, pop point (260 C) ${secs(pop)}`);
+  // shown, not judged: the full run's drift and burnout limits (section 7) fail on the base for
+  // the hatch-rwd, muscle-rwd, track-rwd and naffcar alike (the tyres heat faster than those
+  // limits were set for), so a car's sheet would be red for the whole model
+  console.log(`  info (section 7's limit: never pops, overheats after 12 s+ - fails on the base too)`);
+  const lab = await import('../src/lab.ts');
+  lab.setLevel('test-track');
+  const table = lab.LEVEL.bumps.find((bump) => bump.kind === 'table');
+  for (const [name, input] of [['slide over the Test Track jump', { steer: 0.5, handbrake: 1 }],
+    ['brake over the Test Track jump', { brake: 1 }]]) {
+    const car = makeCar(id); reset(car, table.x - 30, table.y, 0);
+    car.vx = 24; car.gear = 3; car.tyreT = [50, 50, 50, 50];
+    let biggest = 0, prev = car.tyreT.slice();
+    for (let i = 0; i < 300; i++) {
+      lab.applyGround(car, PHYSICS_STEP_SECONDS);
+      step(car, { steer: 0, throttle: 0, brake: 0, handbrake: 0,
+        ...(Math.abs(car.x - table.x) < 12 ? input : {}) }, PHYSICS_STEP_SECONDS);
+      car.tyreT.forEach((temp, k) => { biggest = Math.max(biggest, temp - prev[k]); });
+      prev = car.tyreT.slice();
+    }
+    const rise = Math.max(...car.tyreT) - 50;
+    console.log(`8. ${name}: rise ${rise.toFixed(1)} C, biggest single step +${biggest.toFixed(2)} C`);
+    check(biggest < 2 && rise < 15, `${name}: no heat spike`);
+  }
+  lab.setLevel('lab');
+}
+
+const carFlag = process.argv.indexOf('--car');
+if (carFlag > 0) {
+  const id = process.argv[carFlag + 1];
+  console.log(`tyrecheck --car ${id}`);
+  await checkOneCar(id);
+  console.log(fails.length ? `\nFAIL (${fails.length})` : `\nTyre temperature (${id}): all OK`);
+  process.exit(fails.length ? 1 : 0);
+}
 
 // 1. cold start, straight cruise
 let car = run('hatch-rwd', SURFACES.tarmac, 30, hold(25), (c) => { c.vx = 25; });

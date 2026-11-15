@@ -1,6 +1,8 @@
 // carstats.mjs — MEASURES each car's garage numbers and writes src/carstats.ts (CLAUDE.md rule 10: read the car, not the
 // receipt — the garage shows what the car actually does, measured, never a hand-typed spec sheet). Re-run after any
 // change to cars.js or the vehicle model:   node tools/carstats.mjs
+// node tools/carstats.mjs <id,...>   measure only those cars and print them (one JSON line each);
+//                                    src/carstats.ts is not written (tools/newcar.mjs uses this)
 import fs from 'fs';
 import { makeCar, step, reset, PHYSICS_STEP_SECONDS } from '../src/vehicle.ts';
 import { CAR_IDS } from '../src/cars.ts';
@@ -8,8 +10,12 @@ import { SURFACES } from '../src/lab.ts';
 // 0-100 is the BEST LAUNCH (passed 11-03 with the muscle tyres; owner: players manage starts):
 // feathered (throttle 1 .. 0.6 until 15 m/s, then flat out), as the period road tests drove;
 // flat out a bias-ply muscle car only smokes its tyres
-const out = {};
-for (const id of CAR_IDS) {
+/**
+ * One car's garage numbers, measured.
+ * @param {string} id the roster id
+ * @returns {object} topKph, zeroTo100, brake100 (m), gripG, massKg, drive, aids
+ */
+function measureCar(id) {
   const s = makeCar(id).spec;
   // 0-100 km/h and top speed: flat out on warm tyres, 60 s
   let c = makeCar(id); reset(c, 0, 0, 0); c.tyreT = [85, 85, 85, 85];
@@ -34,10 +40,20 @@ for (const id of CAR_IDS) {
       if (Math.abs(Math.atan2(c.t.vLat, Math.abs(c.t.vLong))) > 0.2) bad = true; if (k > 300) { ay += Math.abs(c.t.vLong * c.yawRate); n++; } }
     if (!bad) g = Math.max(g, ay / n / 9.81);
   }
-  out[id] = {
+  return {
     topKph: Math.round(vmax * 3.6), zeroTo100: t100 === null ? null : +t100.toFixed(1), brake100: +d.toFixed(1), gripG: +g.toFixed(2),
     massKg: s.mass, drive: s.drive >= 0.99 ? 'FWD' : s.drive <= 0.01 ? 'RWD' : '4WD', aids: s.aids || null,
   };
+}
+
+const onlyCars = process.argv[2] ? process.argv[2].split(',') : null;
+if (onlyCars) {
+  for (const id of onlyCars) console.log(id.padEnd(11), JSON.stringify(measureCar(id)));
+  process.exit(0);
+}
+const out = {};
+for (const id of CAR_IDS) {
+  out[id] = measureCar(id);
   console.log(id.padEnd(11), JSON.stringify(out[id]));
 }
 const file = 'carstats.ts', name = 'CAR_STATS';

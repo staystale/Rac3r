@@ -1,8 +1,9 @@
 // _crashparts.mjs - a REAL crash in the game: the player's car (flat out at SPEED m/s) into an AI
 // car parked across its way; what came off (parts, wheels) and a shot after -
-// tools/scratch/_crashparts-<car>.png. node tools/scratch/_crashparts.mjs [cars] [speed]
+// tools/scratch/_crashparts-<car>.png (OUT=<folder> elsewhere). node tools/scratch/_crashparts.mjs [cars] [speed]
 import { startServer, launchBrowser, gotoGame } from '../lib/browser.mjs';
 const [carsArg = 'hatch-fwd,track-rwd', speedArg = '22', query = ''] = process.argv.slice(2);
+const OUT = process.env.OUT || 'tools/scratch';
 const server = await startServer();
 const browser = await launchBrowser();
 try {
@@ -27,7 +28,7 @@ try {
       return { parts: loose.map((obj) => obj.cutKind || obj.kind), lost: car.partLost || '',
         otherLost: other.partLost || '', dmg: car.dmg?.map((d) => +d.toFixed(2)) };
     }, [carId, +speedArg]);
-    await page.screenshot({ path: `tools/scratch/_crashparts-${carId}${query ? '-' + query.replace(/[=&]/g, '') : ''}.png` });
+    await page.screenshot({ path: `${OUT}/_crashparts-${carId}${query ? '-' + query.replace(/[=&]/g, '') : ''}.png` });
     console.log(carId, JSON.stringify(res), errors.length ? 'ERRORS ' + errors.join(' | ') : 'errors none');
     await page.close();
   }

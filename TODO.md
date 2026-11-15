@@ -185,6 +185,15 @@ Group B, the Toyota TS010 and the Rebellion (Le Mans prototypes), a Porsche 911 
 Clio Cup, Saxo Max; buses (school bus, bus, double decker) and everyday cars (Focus, Ibiza, a
 "Freeari", Mercedes, Audi, electric: Tesla, BYD and worse) as TRAFFIC and drivable. The Pikes Peak
 cars: the Hoonigan pink Porsche, the BMW E36.
+CAR TOOLS (owner: "tools first"): BUILT 11-15 - tools/newcar.mjs <id> (every check for one car on
+one sheet, shots/newcar/<id>/) and tools/newcarstart.mjs (a new car's starting row from the nearest
+car, the real numbers filled in); NOTES "Tools worth knowing". The real cars' published top speed
+and 0-100 are in tools/lib/realfigures.mjs (EST where marked; none for the builds and classes).
+FOUND while building them (nothing changed): src/carstats.ts, the garage's measured numbers, is
+out of date for the Formula Won (saved 347 km/h, 2.8 s, 32.3 m, 1.83 g; measured now 349, 2.9,
+34.0, 1.87 - re-run tools/carstats.mjs); tools/tyrecheck.mjs's full run fails 5 of its claims on
+the base (the burnout and drift times of the hatch-rwd, the muscle car, the F1 and the Naffcar: the
+tyres heat faster than its limits; it is not in CI) - its --car mode shows those times unjudged.
 
 ### 3b. Tracks (the venue helper builds, the foreman reviews, the owner passes; one switch each)
 
