@@ -6,9 +6,11 @@
 //   FUEL   our way's cars passing each roadside station and those that pulled in, police apart
 //   JOINS  cars put on an on-ramp, merged, held at the give-way (and for how long), lost before
 //          merging; the seconds from the ramp to in the lane
-//   SAFETY car-to-car contact steps (any cars), traffic step cost (ms a step, node)
+//   SAFETY car-to-car contact steps (any cars; and those with a car on a trip in them - a police
+//          chase, a different one each way, swings the first), traffic step cost (us a step, node)
+// The screen: VIEW_M m round you (a phone zoomed out on the highway sees ~80-100 m).
 // [KM=8] [SEEDS=4242,7] [ROADS=motorway,dual] [SCENERIES=countryside,canyon] [SPEED=100] [LANE=1]
-// [HWTRIPS=1]   node tools/scratch/_hwtrips.mjs
+// [VIEW_M=90] [HWTRIPS=1]   node tools/scratch/_hwtrips.mjs
 process.env.POLICE = '1';
 const { makeCar, reset, PHYSICS_STEP_SECONDS: DT } = await import('../../src/vehicle.ts');
 const L = await import('../../src/lab.ts');
@@ -24,6 +26,7 @@ const SEEDS = (process.env.SEEDS || '4242,7').split(',').map(Number);
 const ROADS = (process.env.ROADS || 'motorway,dual').split(',');
 const SCENERIES = (process.env.SCENERIES || 'countryside,canyon').split(',');
 const SPEED = +(process.env.SPEED || 100), LANE = +(process.env.LANE ?? 1);
+const VIEW_M = +(process.env.VIEW_M || 90);
 hw.addHighwayLevel();
 L.setLevel('highway');
 const level = L.LEVEL;
@@ -51,7 +54,7 @@ function newWorld(road, scenery, seed) {
   const you = makeCar('hatch-rwd');
   reset(you, level.spawn.x, level.spawn.y, level.spawn.heading);
   const world = { traffic, you, time: 0, orders: traffic.police(), heat: createHeat(),
-    contacts: 0, stepMs: 0, steps: 0 };
+    contacts: 0, tripContacts: 0, stepMs: 0, steps: 0 };
   world.orders.heats.set(you, world.heat);
   return world;
 }
@@ -73,12 +76,14 @@ function stepWorld(world) {
   hw.stepHighway(level, you);
   const cam = hw.speedCamera(level, you);
   const started = performance.now();
-  traffic.step(DT, { player: you, others: [] });
+  traffic.step(DT, { player: you, others: [], visible: (x, y) => Math.hypot(x - you.x,
+    y - you.y) < VIEW_M });
   world.stepMs += performance.now() - started;
   world.steps++;
   const all = [you, ...traffic.cars], startVel = all.map((car) => [car.vx, car.vy]);
   const touches = carContacts(all);
   world.contacts += touches;
+  if (touches) world.tripContacts += tripTouches(world, all);
   if (touches && process.env.DEBUG) logTouch(world, all);
   all.forEach((car, i) => hit(car, startVel[i][0], startVel[i][1]));
   const drivers = [{ car: you, frame: level._hw.q, isYou: true, camera: !!cam, kind: 'you',
@@ -87,6 +92,16 @@ function stepWorld(world) {
       touched: false }))];
   stepHeats(world.orders, drivers, { dt: DT, level, slots: traffic.list, cars: traffic.cars });
   world.time += DT;
+}
+
+/** The touching pairs (within 5 m) with a car on a trip in them. */
+function tripTouches(world, all) {
+  const onTrip = new Set(world.traffic.list.filter((slot) => slot.trip).map((slot) => slot.car));
+  let count = 0;
+  for (let i = 0; i < all.length; i++) for (let j = i + 1; j < all.length; j++)
+    if ((onTrip.has(all[i]) || onTrip.has(all[j]))
+      && Math.hypot(all[i].x - all[j].x, all[i].y - all[j].y) < 5) count++;
+  return count;
 }
 
 /** Who a car is, for the log. */
@@ -218,7 +233,7 @@ function run(road, scenery, seed) {
       + ` s), held ${joins.held} (median ${median(joins.holdS)} s), lost before merging`
       + ` ${joins.lost}`,
     `  SAFETY contact steps ${world.contacts} (${(world.contacts / Math.max(0.1, km)).toFixed(1)}`
-      + `/km), traffic step ${(world.stepMs / Math.max(1, world.steps) * 1000).toFixed(0)} us`]
+      + `/km), with a car on a trip ${world.tripContacts}, traffic step ${(world.stepMs / Math.max(1, world.steps) * 1000).toFixed(0)} us`]
     .join('\n');
 }
 

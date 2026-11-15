@@ -13,6 +13,20 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'hwtrips',
+    added: '2026-11-15',
+    name: 'Traffic leaves by the slip roads, stops for fuel and joins from the on-ramps',
+    where: 'Test link + &hwtrips=1: the highway (motorway, dual, Deaf Valley); slip roads every '
+      + '2-4 km, junctions (roundabouts by a bridge) now and then, petrol stations in lay-bys',
+    try: 'Watch the cars ahead before an exit: about 1 in 6 moves to the left lane, indicates left '
+      + 'and takes the slip (a junction: round its roundabout). About 1 in 8 pulls in at a petrol '
+      + 'station, a cruising police car too. Past a junction or a services, a car comes down the '
+      + 'on-ramp, waits if the lane is busy and merges.',
+    wrong: 'A car cutting across lanes into the slip, leaving with no indicator, stopping on the '
+      + 'motorway for its exit, vanishing in view, a chasing police car leaving, or a joining car '
+      + 'pulling out into a car in the left lane.',
+  },
+  {
     id: 'hwparked',
     added: '2026-11-15',
     name: 'Parked police wake as you pass them with a star; speeding past one gives a star',
