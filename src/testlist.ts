@@ -23,6 +23,15 @@ export const TEST_LIST: TestEntry[] = [
       + 'clock run out off the road: that still counts.',
     wrong: 'A getaway win while off the road; PULLING AWAY not starting again on the road; a '
       + 'line or clock race not ending because you were off the road.',
+    id: 'rollhold',
+    added: '2026-11-15',
+    name: 'Rolling starts: every car holds the pace, no bumping before the green',
+    where: 'Test link + &rollhold=1: a race with AI on Naffcar Speedway, Stock Car, Dieatona and '
+      + 'the highway; AI cars of your class (a saloon or a banger mixes the field)',
+    try: 'Watch the formation from the grid to the green: the cars rise to speed together, each '
+      + 'keeping its gap; the green comes ~1.5 s later than before on the ovals.',
+    wrong: 'A car running into the one ahead before the green, a car dropping out of its slot, '
+      + 'the formation crawling or the green taking much longer.',
   },
   {
     id: 'resetback',

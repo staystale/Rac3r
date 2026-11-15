@@ -474,6 +474,18 @@ time you come back to it; before, it ran anywhere - on the verge and up to 16 m 
 off-road countdown never runs) for ever, and further out its 8 s beat the off-road guard's 10 s. A
 race to a line or against the clock is unchanged: off the road still counts there.
 `tools/scratch/_offroadwin.mjs`.
+THE ROLLING START (`game/order.ts`: the ovals - Naffcar Speedway, Stock Car - Dieatona, and the
+highway's grid): the grid ROLL_BACK 120 m behind the line, and until the green the game drives every
+car, yours too, in formation (`formationWant`, `ai/formation.ts`): along its grid column, at the
+pace (ROLL_PACE 16 m/s) for the pole car and the pole car's own speed for the rest, closing on its
+slot behind the pole at up to 4 m/s either side of that; green as the pole crosses the line (the
+highway: HW_GREEN 6 s in). The throttle was capped at 0.55, so each car rose to the pace as fast
+as its car did at that throttle (headless, 0-16 m/s: the RX Supercar 1.8 s, the Lamborghini 2.9,
+the Mini 7.7): the weak car fell out of its slot and the strong one behind ran into it. Under test,
+`?rollhold=1` (`FIX.rollhold`): the pace itself rises at ROLL_ACCEL 2.5 m/s2 from the start's
+clock (16 m/s in 6.4 s, within every car but the tractor) and each car's throttle is whatever holds
+its speed (`holdSpeed`, up to 1); the fallback hold (`atPace`) the same. Nothing after the green.
+`tools/scratch/_rollhold.mjs`.
 
 LAP LENGTHS AS DATA (the default since 11-14): the menu's track cards show each level's lap from
 `world/levels/laplengths.ts` (`category.ts menuLapOf`), written by `tools/laplengths.mjs` with

@@ -249,6 +249,27 @@ BUGS (each behind its own switch, measured, then a test link):
    then on the road: won at 18.0 s, on the road. Unchanged both ways: on the road won at 8.0 s;
    over a line 300 m on, 12 m out: finished at 6.7-6.8 s; the clock out at 6.0 s, 12 m out.
 7. ROLLING STARTS: the AI holds a SPEED, not a throttle (faster cars bump slower ones).
+   BUILT 11-15 behind ?rollhold=1 (FIX.rollhold; testlist 'rollhold'; the rolling start's hold
+   only, game/order.ts + ai/formation.ts). CAUSE: the formation's throttle was capped at 0.55,
+   and the pole car rose to the pace as fast as its car did there; the others hold their slots
+   behind it (headless, 0-16 m/s at 0.55: RX Supercar 1.8 s, Lamborghini 2.9, Mini 7.7, tractor
+   17.3), so a weak car fell out of its slot and the stronger one behind ran into it. BUILT: the
+   pace rises at 2.5 m/s2 from the start's clock to 16 m/s (6.4 s; every car but the tractor can:
+   at its best throttle the Mini 4.9 s, the muscle car 4.7), for every car, and each car's
+   throttle is what holds its speed (up to 1). After the green: nothing changed.
+   MEASURED (tools/scratch/_rollhold.mjs, the second PC, the real game, 5 AI of your class, your
+   car saloon (a mixed road-car field), Naffcar (one model) or the banger (bangers + Grass
+   Specials), 3 runs each, every frame to 5 s after the green; OLD / NEW):
+   - bumps before the green: Naffcar Speedway + Stock Car 3 of 18 runs / 0; Dieatona 2 of 9 / 0;
+     the highway 0 of 9 / 0 (each a weak car hit from behind: Mini by Lamborghini 11.5 / 16.0
+     m/s, banger by Grass Special 11.8 / 17.2, saloon by hatch 15.3 / 17.4). An earlier run of the
+     tool (each launch read before its new start was armed) counted 9 + 9.
+   - widest speed spread across the field once moving: ovals 7.8 / 2.2 m/s, Dieatona 6.8 / 1.0,
+     highway 4.5 / 2.2; closest bodies (no bump): ovals 0.92 / 4.1 m, Dieatona 3.98 / 4.31 m,
+     highway (side by side) 1.71 / 1.74 m.
+   - the green: ovals 9.1-9.9 s -> 11.0-11.3 s, Dieatona 10.1-11.0 -> 12.0-12.1 s (the slower
+     rise); the highway's at 6.0 s as before, the pace there then 15 m/s (was up to 16).
+   - bumps in the 5 s after the green (racing, not changed): 18 / 14 over the same 36 runs.
 8. STUCK AI AND TRAFFIC: reset or vanish after 5-10 s stuck.
 9. AI SLOW ON SLIPPERY SURFACES (measure first: an AI change).
 10. HIGHWAY AI NOT DODGING ONCOMING TRAFFIC: back on (owner 11-13). Before: "ai don't dodge
