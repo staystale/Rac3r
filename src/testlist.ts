@@ -69,6 +69,8 @@ export const TEST_LIST: TestEntry[] = [
     try: 'Watch from the blank page to the menu: pane, LOADING, RAC3R, the bar filling.',
     wrong: 'The old "RAC3R loading..." shown, the bar still or jumping, two screens, no blue '
       + 'flash, the menu slower to come than without the switch, a tap passing through.',
+  },
+  {
     id: 'hjfirs',
     added: '2026-11-15',
     name: 'Holy Jeez mostly firs: a Swedish pine forest (85 % firs), a few leafy trees',
