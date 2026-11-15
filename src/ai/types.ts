@@ -224,7 +224,7 @@ export interface Mistake {
   inside: boolean;
   t: number;
   fired?: boolean;   // the "throttle" kind: the slide has been started
-  spin?: boolean;    // ?aislide=1: one that really spins (ai/driverSlide.ts spinChance)
+  spin?: boolean;    // one meant to spin (ai/driverSlide.ts spinChance)
   spun?: boolean;    // ... its throttle held
 }
 

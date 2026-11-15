@@ -1,11 +1,11 @@
-// ai/driverSlide.ts - THE AI'S SLIDES BY THE GROUND (?aislide=1, TODO 3a2 bug 9). MEASURED before
+// ai/driverSlide.ts - THE AI'S SLIDES BY THE GROUND (passed 11-15, TODO 3a2 bug 9). MEASURED before
 // (tools/scratch/_aislip.mjs, one AI alone): the driver lifted, caught and tidied its slides at
 // FIXED slip angles (rear 0.18 rad, front 0.14-0.20, the slip feel 0.07-0.19) while each ground's
 // tyre peaks at its own (the physics' peak this step, car.t.aPeakR: tarmac ~0.12, gravel ~0.19,
 // sand ~0.16, wet / snow / ice the 0.10 floor) - on gravel it never let the rear reach its peak,
 // and on ice a slide past 0.18 was caught with the throttle shut to 0.2 (a hatch on Thruston's
 // ice: 39 s a lap catching, no lap finished in 420 s).
-// With the switch, on SLIPPERY ground only (mu under SLIPPERY_MU; tarmac, wet or dry, as before -
+// On SLIPPERY ground only (mu under SLIPPERY_MU; tarmac, wet or dry, as before -
 // on wet tarmac the hold sent the cars off 3x as long, MEASURED):
 // - HOLD A SLIDE: a rear slide in a corner, going the corner's way, is HELD on the throttle at
 //   holdSlip (HOLD_K x the rear tyre's peak, HOLD_MIN..HOLD_MAX) - the drift law the loose
@@ -14,7 +14,6 @@
 //   driven through instead of a lift.
 // - the catch, the understeer lift and the slip feel read the ground's peak too (OVER_K, UNDER_K,
 //   the feel x the peak over tarmac's).
-import { FIX } from "../core/fixes.ts";
 import { debugValue } from "../core/debug.ts";
 import type { AiCar, Mistake } from "./types.ts";
 
@@ -44,8 +43,8 @@ const ROOM_M = 2, ROOM_MU = 0.6;
 const MIST_CATCH = 1.5;
 // ... and the mistake itself bigger: a 'late' one's extra speed (1.06 + 0.14 x severity) and a
 // 'throttle' one's time (0.3 + 0.5 x severity s) x this, so a weak driver's overcooked corner
-// slides wide and its throttle slide can spin (1 without the switch)
-export const MIST_GROW = FIX.aislide ? 2 : 1;
+// slides wide and its throttle slide can spin
+export const MIST_GROW = 2;
 // MISTAKES THAT SPIN (owner: "yes but rare-ish"): a 'late' or 'throttle' mistake is, by the
 // driver's own random stream, one that SPINS with this chance x (1 - skill) - none at skill 1: its
 // slide is never caught (no countersteer, no lift) and past the apex the throttle is held
@@ -65,17 +64,17 @@ const SPIN_LOCK = 0.7;
  * @returns the steer, -1..1, or null
  */
 export function spinSteer(state: { t: number; spinUntil?: number; spinTurn?: number }) {
-  if (!FIX.aislide || !(state.t < (state.spinUntil ?? -Infinity))) return null;
+  if (!(state.t < (state.spinUntil ?? -Infinity))) return null;
   return (state.spinTurn || 1) * SPIN_LOCK;
 }
 
 /**
- * The chance a 'late' or 'throttle' mistake spins (0 without ?aislide=1).
+ * The chance a 'late' or 'throttle' mistake spins.
  * @param skill the driver's skill, 0..1
  * @returns 0..1
  */
 export function spinChance(skill: number): number {
-  return FIX.aislide ? SPIN_SHARE * (1 - Math.max(0, Math.min(1, skill))) : 0;
+  return SPIN_SHARE * (1 - Math.max(0, Math.min(1, skill)));
 }
 
 /** What the driver feels of the ground's slide this step (the switch on, slippery ground). */
@@ -97,7 +96,7 @@ const feel: SlideFeel = { hold: 0, holdMax: 0, overAt: 0, underAt: 0, feelK: 1, 
  * @returns the feel (shared: read before the next call), or null
  */
 export function slideFeel(car: AiCar, underBefore: number): SlideFeel | null {
-  if (!FIX.aislide || !(car.surface.mu < SLIPPERY_MU)) return null;
+  if (!(car.surface.mu < SLIPPERY_MU)) return null;
   const peakRear = car.t.aPeakR ?? 0.1, peakFront = car.t.aPeakF ?? 0.1;
   const holdK = debugValue("AI_HOLDK") as number || HOLD_K;
   const holdMax = debugValue("AI_HOLDMAX") as number || HOLD_MAX;
@@ -126,7 +125,7 @@ export function slideLimits(slide: SlideFeel | null, mist: Mistake | null, under
   limits.overAt = slide ? slide.overAt : 0.18;
   limits.underAt = slide ? slide.underAt : underBefore;
   limits.mistaken = false;
-  if (FIX.aislide && mist && mist.inside && (mist.kind === 'late' || mist.kind === 'throttle')) {
+  if (mist && mist.inside && (mist.kind === 'late' || mist.kind === 'throttle')) {
     limits.overAt *= 1 + MIST_CATCH * mist.sev;
     if (mist.kind === 'late') limits.underAt = Infinity;
     // (a spinning one: never caught)

@@ -188,7 +188,7 @@ export function createSlideStep(
     }
   }
 
-  /** ?aislide=1: a slide held here - not banned, away from the edge, held (ai/driverSlide.ts). */
+  /** A slide held here - not banned, away from the edge, held (ai/driverSlide.ts). */
   function heldHere(car: AiCar, slide: SlideFeel, slipRear: number, speed: number, turn: number,
       edgeRoom: number) {
     return state.t > (state.driftBan || 0) && edgeRoom > slide.room
@@ -212,7 +212,7 @@ export function createSlideStep(
     const nearPt = pts[nearIdx], edgeRoom = path === main ? line.hw - Math.abs(
         lineOff + (car.x - nearPt.x) * -Math.sin(nearPt.h) + (car.y - nearPt.y) * Math.cos(
         nearPt.h)) : 0;
-    // (?aislide=1 on slippery ground: any corner, every driver, held at the ground's own slip -
+    // (on slippery ground: any corner, every driver, held at the ground's own slip -
     // ai/driverSlide.ts; a driver who ran off drifting still backs off for DRIFT_BAN s)
     if (slide) return { drifting: inCorner && heldHere(car, slide, slipRear, speed, nearPt.turn,
       edgeRoom), edgeRoom, hold: slide.hold };

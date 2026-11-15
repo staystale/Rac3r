@@ -5,7 +5,6 @@ import { driveOut } from "./driveOut.ts";
 import { jokerStep } from "./driverJoker.ts";
 import { carsStep, obstacleAvoid } from "./driverTraffic.ts";
 import { ownSideCap } from "./driverOncoming.ts";
-import { FIX } from "../core/fixes.ts";
 import { steerSlideStep, pedalStep } from "./driverPedals.ts";
 import { coolStep, COOL_LOOK } from './driverCool.ts';
 import {
@@ -34,7 +33,7 @@ const EDGE_IN_M = 0.3, COME_IN_M = 1;
 
 /**
  * How far off the track's middle the lateral target may go: the usual edge, past it only while
- * going round a car; with ?aislide=1 the line's own place too (by a kerb it is past the usual
+ * going round a car; and the line's own place (by a kerb it is past the usual
  * edge: line.ts kerbReach).
  * @param state the driver's state
  * @param latLim m, the usual edge
@@ -47,7 +46,7 @@ function targetEdge(state: Drv["state"], latLim: number, onMain: boolean, lineOf
   // NaN)
   const isWide = state.wide !== undefined && state.t < (state.wideUntil ?? -Infinity);
   const edge = isWide ? state.wide! : latLim;
-  return FIX.aislide && onMain ? Math.max(edge, Math.abs(lineOff)) : edge;
+  return onMain ? Math.max(edge, Math.abs(lineOff)) : edge;
 }
 
 /**
