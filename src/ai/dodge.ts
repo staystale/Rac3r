@@ -57,6 +57,19 @@ export function swerveCap(need: number, room: number, speed: number, vAlong: num
 // sees the brake lights at once; a weak one half of it), and the s a speed is read over
 const READ_WEAK = 0.5, READ_TOP = 1, READ_S = 0.1;
 
+/** One car's speed as a driver reads it: m/s along my way, when, and how fast it slows / gains. */
+export interface SpeedRead { v: number; t: number; dec: number; gain: number }
+
+/**
+ * How fast a car is speeding up along my way, as read with its braking (readBraking), m/s/s.
+ * @param seenV the driver's speeds read
+ * @param other the car
+ * @returns m/s/s (0 before it has been read)
+ */
+export function readGain(seenV: WeakMap<object, SpeedRead>, other: object): number {
+  return seenV.get(other)?.gain ?? 0;
+}
+
 /**
  * how fast a car is slowing, as a driver reads it (its speed along my way, kept per
  * car and differenced over READ_S).
@@ -67,13 +80,18 @@ const READ_WEAK = 0.5, READ_TOP = 1, READ_S = 0.1;
  * @param skill the driver's skill, 0..1
  * @returns m/s/s it slows (0 when it is not)
  */
-export function readBraking(seenV: WeakMap<object, { v: number; t: number; dec: number }>,
+export function readBraking(seenV: WeakMap<object, SpeedRead>,
   other: object, vAlong: number, now: number, skill: number): number {
   const last = seenV.get(other);
-  if (!last || now - last.t > 1) { seenV.set(other, { v: vAlong, t: now, dec: 0 }); return 0; }
+  if (!last || now - last.t > 1) {
+    seenV.set(other, { v: vAlong, t: now, dec: 0, gain: 0 });
+    return 0;
+  }
   if (now - last.t >= READ_S) {
     const raw = Math.max(0, (last.v - vAlong) / (now - last.t));
     last.dec += (raw - last.dec) * 0.5;
+    // (and how fast it speeds up, read the same way: ?stopdodge=1's car pulling away)
+    last.gain += ((vAlong - last.v) / (now - last.t) - last.gain) * 0.5;
     last.v = vAlong;
     last.t = now;
   }

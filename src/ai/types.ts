@@ -9,6 +9,7 @@ import type { DamageCar } from "../damage.ts";
 import type { HwLevel } from '../highway/hwtypes.ts';
 import type { TrafficPolice } from './trafficPolice.ts';
 import type { StoppedCar } from './stopDodge.ts';
+import type { SpeedRead } from './dodge.ts';
 
 // One row of DIFFICULTIES: the centre of a difficulty's spread.
 export interface Difficulty {
@@ -310,7 +311,7 @@ export interface CircuitState extends DriveOutState {
   offT?: number;   // s its centre has been past the track's edge, -1 on it (ai/rejoin.ts)
   laneLat?: number;   // the lane kept, m off the line (driverLane.ts laneStep)
   lookHeld?: boolean;   // held at the edge by the look before pulling on (driverDrive.ts lookFirst)
-  seenV?: WeakMap<object, { v: number; t: number; dec: number }>;   // speeds read (ai/dodge.ts)
+  seenV?: WeakMap<object, SpeedRead>;   // speeds read (ai/dodge.ts)
   footK?: number;   // the share of the throttle the driver's foot gives (ai/driverFoot.ts)
   atk: Attack | null;
   atkCorner: number;
