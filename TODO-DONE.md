@@ -33,6 +33,16 @@ code plain (simhash, worldhash, renderhash the same).
   car): racing laps' fronts smoking 5-8 % -> 1 % of the time; a fast 1.1 g corner's fronts 20 % ->
   5 % (gripping ones none); burnouts, donuts, lock-ups and hot slides kept (-12 to +45 % of the
   puffs); Drift tyres smoke much less, Wet ones more on a dry road.
+- THE BOOT BAR (was ?bootbar=1; index.html #bootbar, game/bootbar.ts; owner 11-14: "There's no
+  loading bar when the game first loads"; 11-15: "should show the racer logo or at least the 3 as
+  big and blue like the logo"). From the page's first paint the loading screen's pane: LOADING, the
+  logo (until it loads RAC3R in words, the 3 big and blue, in the logo's box), the bar easing on the
+  compositor through the code's download and build (paced by the last load), then the menu's first
+  frame and fonts, then full, the blue flash and the fade. MEASURED (tools/scratch/_bootbar.mjs,
+  cold page, 390x844, medians of 5): nothing in the load slower; the menu seen 0.49 s later at CPU
+  x1 (the fill and the two blinks after the menu's own first frame), -0.06 s at x4, +0.74 s on a
+  4G-like line; a fresh browser's first paint 44-108 ms with it (2.0-3.5 s and the boot screen
+  never seen without). The logo and thumbnails not waited for (waiting made the menu later).
 
 ## PASSED 11-14 (owner: "Pass all four") - THE LOADING SCREEN, THE RESTART FIX, THE SMOOTH FLY-IN, THE NIGHT FLY-IN; now the default
 

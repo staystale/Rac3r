@@ -36,7 +36,7 @@
 </head>
 <body>
 <canvas id="c"></canvas>
-<!-- THE BOOT BAR (?bootbar=1, under test; game/bootbar.ts drives it once the code has run): the
+<!-- THE BOOT BAR (game/bootbar.ts drives it once the code has run): the
      loading screen's pane and bar from the first paint, over the boot screen. Its look is
      menu/loadscreen.ts's, copied here in plain CSS (the code has not loaded yet); its words take
      their own copies of the menu's faces (menu/pixelstyle.ts), and show once those have loaded
@@ -80,12 +80,11 @@
   <div class="well"><div class="fill"></div></div></div></div>
 </template>
 <script>
-  // ?bootbar=1: the boot bar up before the first paint, its bar easing (on the compositor, so it
+  // the boot bar up before the first paint, its bar easing (on the compositor, so it
   // moves while the code downloads and runs) toward the code's share of the whole wait, over the
   // time the code took here the last time (game/bootbar.ts keeps it), else a guess; the share and
   // the menu's own wait left on the screen for the code to carry on from
   (() => {
-    if (new URLSearchParams(location.search).get('bootbar') !== '1') return;
     document.body.appendChild(document.getElementById('bootbar-page').content.cloneNode(true));
     let last = null;
     try {
@@ -120,7 +119,7 @@
   const bundled = new URLSearchParams(location.search).get('bundle') !== '0'
     && !navigator.webdriver;
   import(bundled ? './__bundle.js' : './src/main.ts').catch((err) => {
-    // (?bootbar=1: the boot bar taken down, so the error shows)
+    // (the boot bar taken down, so the error shows)
     const bootBar = document.getElementById('bootbar');
     if (bootBar) bootBar.remove();
     document.querySelector('#boot p').textContent = 'could not load: ' + err.message;

@@ -5,7 +5,7 @@
 // menu's ember accent; when the work is done the bar turns the press's electric blue and blinks
 // twice, as a pressed button does. DOM, as the menu: it is up while the canvas is not drawn, and it
 // takes every tap and touch so none reaches the world below.
-// THE BOOT BAR (?bootbar=1, game/bootbar.ts) is the same screen put up by the page itself
+// THE BOOT BAR (game/bootbar.ts) is the same screen put up by the page itself
 // (index.html #bootbar: its look copied there in plain CSS, as the code has not loaded yet), driven
 // from here once the code runs: the bar, its blue flash and the fade are this screen's.
 import { MENU_FACES, PRESS_BLINK_CSS, PRESS_BLINK_MS } from './pixelstyle.ts';
@@ -133,7 +133,7 @@ export function createLoadScreen(): LoadScreen {
 }
 
 /**
- * The page's boot bar (index.html #bootbar, up since the first paint with ?bootbar=1), driven as
+ * The page's boot bar (index.html #bootbar, up since the first paint), driven as
  * this screen from here on; its bar left where the page set it.
  * @returns its controls (show is not for it), or null when the page put none up
  */

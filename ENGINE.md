@@ -151,11 +151,12 @@ and those of a fly-in drawn live (`live`, and `liveWhy`: every zoomed-out frame 
 counted). The field counts as still while the start is armed and not green, or while the loading
 screen's fly-in holds the race (a solo practice has no lights).
 
-THE BOOT BAR (`?bootbar=1`, under test; `FIX.bootbar`, `index.html` #bootbar, `game/bootbar.ts`):
-the loading screen at the page's first load. A tiny inline script in `index.html` reads the switch
-from the page link and, before the first paint, puts up the loading screen's pane - LOADING, RAC3R
-and the bar - over the boot screen (its look copied there in plain CSS from `menu/loadscreen.ts`, as
-the code has not loaded; switch off, the page is as before). Its words use their own copies of the
+THE BOOT BAR (the default since 11-15; `index.html` #bootbar, `game/bootbar.ts`): the loading
+screen at the page's first load. A tiny inline script in `index.html`, before the first paint, puts
+up the loading screen's pane - LOADING, the owner's logo (the main menu's; until it has loaded, the
+name in words, RAC3R with its 3 big and in the logo's blue, in the logo's box so nothing moves) and
+the bar - over the boot screen (its look copied there in plain CSS from `menu/loadscreen.ts`, as
+the code has not loaded). Its words use their own copies of the
 menu's faces (VT323, Press Start 2P with Silkscreen's digits) with `font-display: block`: the pane
 and the bar show at once, the words when their faces have loaded (a face slower than ~3 s shows a
 monospace stand-in until it comes). The bar eases on the compositor toward the code's share of the

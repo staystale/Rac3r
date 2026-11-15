@@ -286,7 +286,7 @@ if (shared.MENU) {
   // the phone report's load time: ms from the page opening to the menu shown (ui/report.ts)
   shared.loadMs = Math.round(performance.now());
 }
-// ?bootbar=1: the page's loading bar on until the menu is ready (game/bootbar.ts)
+// the page's loading bar on until the menu is ready (game/bootbar.ts)
 endBootBar(shared.MENU);
 game.menuMode = shared.MENU;
 window.__game.menu = shared.menu;

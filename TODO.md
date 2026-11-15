@@ -47,52 +47,8 @@ records in `TODO-DONE.md` (PASSED 11-12). On the phone now:
   trees. renderhash highway at night off vs on SAME; fly-in photos byte-identical. NOT PROVEN by a
   caught break on the road (no tree in a light in any capture made): the owner's phone test is it.
   (TODO-DONE).
-- BOOT BAR (owner 11-14: "There's no loading bar when the game first loads"). BUILT, behind
-  `?bootbar=1` (worker, to review; ENGINE.md "One frame"):
-  - 11-15 owner: "should show the racer logo or at least the 3 as big and blue like the logo". Now
-    the logo (assets/logo.jpg, its box kept from the first paint); until it has come, RAC3R in words
-    with the 3 big and in the logo's blue (_bootbar-1b-words photos). Also loads the menu's logo
-    earlier.
-  - From the page's first paint (index.html, before the code runs; the page reads the switch
-    itself) the loading screen's pane: LOADING, RAC3R, the bar, over the boot screen. The words show
-    once their faces load (font-display: block; the pane and bar at once).
-  - The bar eases on the compositor through the code's download and main.ts's build (paced by the
-    time they took on this device the last time, 3 s the first time), then through the menu's first
-    frame and its fonts; then full, the blue flash (two blinks, 160 ms), the fade into the menu.
-    The menu race behind it is untouched; with ?menu=0 (the tools) it ends at once.
-  - NOT WAITED FOR: the logo and the first track thumbnails (the menu never waited for them; holding
-    for them made the menu later: below). One line to add them back if wanted.
-  - MEASURED (laptop, tools/scratch/_bootbar.mjs: a cold page, empty cache, 390x844, the bundle as
-    the phone gets it, the menu race seeded to the same level both ways - the Nordschleife, the
-    heaviest; medians of 5, ms from the page opening; off / on):
-    CPU x1 - first paint 76 / 80, bundle in 59 / 88, menu built 2101 / 2177, its first frame
-    2287 / 2362; on: the flash 2584, the fade starts 2778, the bar gone 3043. The MENU SEEN (off its
-    first frame, on the fade's start) 2287 / 2778: +0.49 s, of it 0.42 s the bar's end after the
-    menu's own first frame (fill 120 ms + flash 160 ms + the timers waiting behind the menu race's
-    frames) and +75 ms the menu's own build (inside the runs' spread: off 2041-2708, on 2079-2447).
-    CPU x4 - first paint 128 / 140, bundle 147 / 216, menu built 13289 / 12532, first frame
-    14213 / 13468; on: flash 13904, fade 14153, gone 14516. Menu seen 14213 / 14153 (the bar's end
-    0.69 s after its own first frame; run spread +-0.6 s).
-    A 4G-LIKE LINE (100 ms, 500 KB/s, x1, 3 runs): bundle in 1694 / 1806 (+112: the bar's three
-    font files, 38 KB, share the line; the test server sends everything no-store, so the menu
-    fetches its own two again later - on itch.io they would be cached), first frame 4740 / 4945,
-    menu seen 4740 / 5484 (+0.74 s).
-    WITH THE LOGO AND THE FIRST THUMBNAILS WAITED FOR (tried, not kept): the bar's end 0.55 s after
-    the menu's first frame at x1, 1.35 s on the 4G-like line (the 24 thumbnails, ~580 KB).
-    THE FIRST PAINT: in a fresh browser's first load the plain page painted nothing until the menu
-    (first paint 2.0-3.5 s in 5 of 5 such runs, the boot screen never seen); with the bar on 44-108
-    ms in every run.
-  - SO: nothing in the load itself is slower on the laptop (the code, the build and the first frame
-    alike within the runs' spread); the menu shows 0.4-0.7 s after its first frame, the fill and
-    the two blinks asked for plus the menu race's frames delaying their timers; on a slow line also
-    the bar's 38 KB of fonts (+0.1 s).
-  - PROOFS (laptop, against references saved on 7d2b5777): verify clean; simhash SAME off and with
-    bootbar=1; worldhash SAME off and with BOOTBAR=1; _loadmenu all OK off and on; menucheck OK off,
-    and on once WRONG - the menu demo car's NaN state at 390x844 (the WATCH below, 11-04: it came
-    back), OK on the rerun; settingscheck FAILS 42 of 42 links on noLoadScreen ('got false, want
-    undefined') - the same on 7d2b5777 itself (the ?loadscreen=0 setting it does not know yet).
-  - PHOTOS (tools/scratch/_bootbarshots.mjs, 844x390 and 390x844): _bootbar-1-nofonts (the pane and
-    bar, the words waiting for their faces), -2-partfull, -3-flash, -4-menu.
+- BOOT BAR (owner 11-14: "There's no loading bar when the game first loads"): PASSED 11-15 with
+  the logo, the default (TODO-DONE).
 
 ## 3. OPEN, IN THE OWNER'S ORDER
 

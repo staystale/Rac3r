@@ -1,4 +1,4 @@
-// game/bootbar.ts - THE BOOT BAR (?bootbar=1, under test): the loading screen at the page's first
+// game/bootbar.ts - THE BOOT BAR: the loading screen at the page's first
 // load. The page puts it up before the code has loaded (index.html #bootbar: the pane, LOADING, the
 // game's name, the bar) and eases the bar toward the code's share over the time the code took on
 // this device the last time (or a guess), on the compositor, so it moves while the code downloads
@@ -8,9 +8,7 @@
 // blinks) and fades into the menu, as the loading screen does (loading.ts flashThenHide). The logo
 // and the track thumbnails are not waited for (the menu never has: MEASURED, holding for them made
 // the menu later - tools/scratch/_bootbar.mjs, TODO.md). The menu race behind it runs as it would
-// without it. Both stages' times are kept for the next load's pacing. Switch off: the page puts
-// none up and nothing here runs.
-import { FIX } from '../core/fixes.ts';
+// without it. Both stages' times are kept for the next load's pacing.
 import { takeBootScreen } from '../menu/loadscreen.ts';
 import { CREEP_SHARE, flashThenHide } from './loading.ts';
 
@@ -56,12 +54,11 @@ function keepTimes(codeMs: number, readyMs: number): void {
 
 /**
  * The code has run (main.ts, the menu shown or the boot tap up): the page's boot bar eases on
- * through the menu's wait, then fills, flashes and fades. Nothing without the switch or the bar.
+ * through the menu's wait, then fills, flashes and fades. Nothing when the page put no bar up.
  * @param hasMenu false with no menu (?menu=0, the test tools): the bar ends at once, over the boot
  *   tap
  */
 export function endBootBar(hasMenu: boolean): void {
-  if (!FIX.bootbar) return;
   const screen = takeBootScreen();
   if (!screen) return;
   const root = document.getElementById('bootbar')!;
