@@ -122,7 +122,8 @@ export const TEST_LIST: TestEntry[] = [
     added: '2026-11-15',
     name: 'A loading bar from the first moment the page opens',
     where: 'Test link + &bootbar=1: open or reload it (twice: the 2nd is paced on the 1st)',
-    try: 'Watch from the blank page to the menu: pane, LOADING, RAC3R, the bar filling.',
+    try: 'Watch from the blank page to the menu: pane, LOADING, the logo (or RAC3R with a big '
+      + 'blue 3 until it comes), the bar filling.',
     wrong: 'The old "RAC3R loading..." shown, the bar still or jumping, two screens, no blue '
       + 'flash, the menu slower to come than without the switch, a tap passing through.',
   },

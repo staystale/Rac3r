@@ -49,6 +49,10 @@ records in `TODO-DONE.md` (PASSED 11-12). On the phone now:
   (TODO-DONE).
 - BOOT BAR (owner 11-14: "There's no loading bar when the game first loads"). BUILT, behind
   `?bootbar=1` (worker, to review; ENGINE.md "One frame"):
+  - 11-15 owner: "should show the racer logo or at least the 3 as big and blue like the logo". Now
+    the logo (assets/logo.jpg, its box kept from the first paint); until it has come, RAC3R in words
+    with the 3 big and in the logo's blue (_bootbar-1b-words photos). Also loads the menu's logo
+    earlier.
   - From the page's first paint (index.html, before the code runs; the page reads the switch
     itself) the loading screen's pane: LOADING, RAC3R, the bar, over the boot screen. The words show
     once their faces load (font-display: block; the pane and bar at once).

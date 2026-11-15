@@ -57,15 +57,26 @@
     box-shadow: inset 0 0 0 2px #3a2018, 6px 6px 0 rgba(0,0,0,.6); }
   #bootbar .what { font-family: R3BootSmall, monospace; font-size: 18px; color: #b3a39b;
     letter-spacing: .02em; }
-  #bootbar .name { font-family: R3BootTitle, monospace; font-size: clamp(14px, 4.2vw, 22px);
-    line-height: 1.35; letter-spacing: .02em; color: #ff4a1a;
-    text-shadow: 2px 2px 0 #000, 3px 3px 0 #5a2f1c; }
+  #bootbar .name { position: relative; font-family: R3BootTitle, monospace;
+    font-size: clamp(14px, 4.2vw, 22px); line-height: 1.35; letter-spacing: .02em;
+    color: #ff4a1a; text-shadow: 2px 2px 0 #000, 3px 3px 0 #5a2f1c; }
+  /* the owner's logo (the main menu's), its box kept from the first paint so nothing moves when
+     it comes; until then the name in words, its 3 big and in the logo's blue */
+  #bootbar .logo { display: block; width: 100%; max-height: 42vh; aspect-ratio: 1200 / 556;
+    object-fit: contain; visibility: hidden; }
+  #bootbar .name.ready .logo { visibility: visible; }
+  #bootbar .word { position: absolute; inset: 0; display: flex; align-items: center;
+    justify-content: center; font-size: clamp(22px, 7vw, 40px); }
+  #bootbar .name.ready .word { display: none; }
+  #bootbar .three { color: #35c4ff; font-size: 1.9em; line-height: 1;
+    text-shadow: 2px 2px 0 #000, 3px 3px 0 #0b3b66; }
   #bootbar .well { height: 18px; background: #241c23; border: 2px solid #000;
     box-shadow: inset 0 0 0 2px #3a2018; overflow: hidden; }
   #bootbar .fill { height: 100%; background: #ff7a2a; transform-origin: 0 50%;
     transform: scaleX(0); will-change: transform; }
 </style>
-<div id="bootbar"><div class="pane"><div class="what">LOADING</div><div class="name">RAC3R</div>
+<div id="bootbar"><div class="pane"><div class="what">LOADING</div><div class="name"><img class="logo"
+  src="assets/logo.jpg" alt=""><div class="word">RAC<span class="three">3</span>R</div></div>
   <div class="well"><div class="fill"></div></div></div></div>
 </template>
 <script>
@@ -88,6 +99,12 @@
     const bar = document.getElementById('bootbar'), fill = bar.querySelector('.fill');
     bar.dataset.share = share;
     bar.dataset.readyMs = readyMs;
+    // (the logo shown once it has come; a logo that fails leaves the words)
+    const logo = bar.querySelector('.logo'), showLogo = () => {
+      if (logo.naturalWidth) bar.querySelector('.name').classList.add('ready');
+    };
+    if (logo.complete) showLogo();
+    else logo.addEventListener('load', showLogo);
     // (the empty bar laid out first, so it eases from empty; 0.9: loading.ts CREEP_SHARE)
     void fill.offsetWidth;
     fill.style.transition = 'transform ' + Math.round(codeMs) + 'ms ease-out';

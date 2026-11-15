@@ -57,6 +57,11 @@ try {
     await run.page.waitForTimeout(600);
     await rawShot(run.page, `${OUT}-1-nofonts-${tag}.png`);
     await run.context.close();
+    // (the fonts come, the logo held back: the name in words, its 3 big and blue)
+    run = await openHeld(browser, url, size, { '**/logo.jpg': 4000, '**/__bundle.js': 4000 });
+    await run.page.waitForTimeout(1500);
+    await rawShot(run.page, `${OUT}-1b-words-${tag}.png`);
+    await run.context.close();
     run = await openHeld(browser, url, size, { '**/__bundle.js': 1500 });
     await run.page.waitForTimeout(1200);
     const share = await run.page.evaluate(() => getComputedStyle(document
