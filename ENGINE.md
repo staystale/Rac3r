@@ -154,10 +154,10 @@ target is capped inside its own lanes (its side 0.3 m short of the middle line),
 move's rate, and `followAhead` drops any way round a car that is in the other way's lane.
 `tools/scratch/_hwdodge.mjs` counts what the racers hit.
 
-THE AI'S SLIDES BY THE GROUND (under test, `?aislide=1`, `FIX.aislide`; `ai/driverSlide.ts`). The
+THE AI'S SLIDES BY THE GROUND (the default since 11-15, was `?aislide=1`; `ai/driverSlide.ts`). The
 tyre law writes each axle's slip angle at its lateral peak this step to the telemetry
 (`physics/wheelspin.ts axleLaw`, `car.t.aPeakF / aPeakR`: tarmac ~0.12 rad, gravel ~0.19, sand
-~0.16, wet, snow and ice the 0.10 floor), read only by the AI. With the switch, on ground under
+~0.16, wet, snow and ice the 0.10 floor), read only by the AI. On ground under
 `SLIPPERY_MU` (0.7: not tarmac, wet or dry): a rear slide in a corner going the corner's way (the
 car rotating as the line turns) is HELD on the throttle at 1.25 x the rear peak (0.15-0.30 rad;
 `driverSteps.ts driftHold`, the loose hairpins' drift law, now any corner, every rear- or
@@ -171,25 +171,22 @@ kerbs lie outside the edge), and the driver's lateral clamp allows the line's ow
 (`driverDrive.ts targetEdge`). MISTAKES THAT SLIDE (`driverSlide.ts slideLimits`, `driverLane.ts
 applyMistake`): while a 'late' or 'throttle' mistake runs in its corner the catch is x (1 + 1.5 x
 its severity), nothing is held, a 'late' one has no understeer lift, and both are twice as big
-(`MIST_GROW`). `tools/scratch/_aislip.mjs` (AISLIDE=1) measures it; `_aislideshot.mjs` photographs it.
-MISTAKES THAT SPIN (same switch; `driverSlide.ts spinChance`, `spinSteer`): a 'late' or 'throttle'
-mistake is drawn as one that spins with 0.25 x (1 - skill) (the driver's own stream); then its slide
+(`MIST_GROW`). `tools/scratch/_aislip.mjs` measures it; `_aislideshot.mjs` photographs it.
+MISTAKES THAT SPIN (left as built, no owner decision; `driverSlide.ts spinChance`, `spinSteer`): a
+'late' or 'throttle' mistake is drawn as one that spins with 0.25 x (1 - skill) (the driver's own stream); then its slide
 is never caught (no catch, no understeer lift) and past the apex the throttle is held 1.2 s with the
-wheel held 0.7 of the lock into the corner. MEASURED: the cars do not spin from it (below).
+wheel held 0.7 of the lock into the corner. MEASURED: the cars do not spin from it (TODO-DONE
+bug 9: 0 spins in 160 runs), so it is inert in practice.
 
-THE AI DRIVERS DIALS LIVE AND THE PACE DIAL (under test, `?aipace=1`, `FIX.aipace`; `ai/tune.ts`,
-`game/aitune.ts`, `menu/aidrivers.ts showLiveDials`). A seventh dial, PACE (0..1, 0.5 = x1): every
-driver's speed plan - the corner grip (`line.ts K_CORNER`) and the braking grip (its `kBrake`) - x
-`paceOf(pace)`, 0.8 at 0 .. 1.3 at 1, rounded to 0.01 (`traits.paceK`, `profileOf`'s fifth
-argument; the plans are cached per value). It shows in the setup's AI DRIVERS panel and, in the
-pause menu with a field racing, AI DRIVERS > (test mode): the seven dials LIVE. A dial moved deals
-each racer again from its own place in the field (`AiEntry.seat`: index, field size, the race's
-seed) and changes its traits in place, so its driver reads them from the next step; its engine
-share follows its skill; its reaction time (set from its skill when the driver was made) and its
-random stream do not change. The dials become the session's (a RESTART keeps them; the setup's
-remembered dials are not touched); RESET puts back the ones the race was launched with
-(`shared.aiTuneStart`). `tools/scratch/_aidialshot.mjs` photographs the panel and checks the
-traits follow; `_aislip.mjs` AIPACE=1 PACE=x measures laps.
+THE PACE DIAL AND THE PRESETS (the default since 11-15; `ai/tune.ts`). A seventh AI DRIVERS dial in
+the setup panel, PACE (0..1, 0.5 = x1): every driver's speed plan - the corner grip (`line.ts
+K_CORNER`) and the braking grip (its `kBrake`) - x `paceOf(pace)`, 0.8 at 0 .. 1.3 at 1, rounded
+to 0.01 (`traits.paceK`, `profileOf`'s fifth argument; the plans are cached per value). Each
+difficulty's PRESET (`tuneOf`) is its centre (`SKILL_CENTRE`, `RISK_CENTRE`, `AGG_CENTRE`) + 0.10
+skill and + 0.03 risk, aggression and PACE (0.53, x1.02) - the owner's live tuning, the same on
+every difficulty so each harder one stays quicker. The shift is on the preset, not the centres: the
+centres are also the reference a driver's pace-by-skill is read against (`ai/traits.ts`), as the
+owner moved the dials. `_aislip.mjs` PACE=x measures laps at a dial.
 
 THE ONCOMING CAR AND THE PLAN (under test, (since 11-15, passed), `FIX.rollfix`): where a racer means to be
 across the road is kept to its side while an oncoming car keeps it there (`driverDrive.ts
