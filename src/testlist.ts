@@ -13,6 +13,14 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'nighthw',
+    added: '2026-11-15',
+    name: 'Night on the endless highway: only the trees a light reaches darkened (lighter)',
+    where: 'Test link + &nighthw=1&report=1: a countryside highway at night, drive a few km',
+    try: 'Drive past lamps and trees with your headlights on; watch tree tops near the lights.',
+    wrong: 'A tree top lit by a lamp or headlight, a hitch as the road ahead appears.',
+  },
+  {
     id: 'exitpuns',
     added: '2026-11-14',
     name: 'Countryside exit signs as puns: GHOULE, SKUNKTHORPE, BRIGGADOON, HOWDY-DEN',
