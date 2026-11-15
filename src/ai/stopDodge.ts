@@ -1,4 +1,4 @@
-// ai/stopDodge.ts - A STOPPED OR MUCH SLOWER CAR IN THE WAY (?stopdodge=1): brake enough to miss it
+// ai/stopDodge.ts - A STOPPED OR MUCH SLOWER CAR IN THE WAY (passed 11-15): brake enough to miss it
 // while going round it, then race pace as soon as it is clear. MEASURED before
 // (tools/scratch/_stopcar.mjs, a car stopped across the line, 6 AI x 3 laps: Thruston 26-48 hits
 // a run, up to 66 km/h; the highway trace tools/scratch/_hwracerhits.mjs: most pile-up follow-on

@@ -90,7 +90,7 @@ export function readBraking(seenV: WeakMap<object, SpeedRead>,
   if (now - last.t >= READ_S) {
     const raw = Math.max(0, (last.v - vAlong) / (now - last.t));
     last.dec += (raw - last.dec) * 0.5;
-    // (and how fast it speeds up, read the same way: ?stopdodge=1's car pulling away)
+    // (and how fast it speeds up, read the same way: a car pulling away is not stopped)
     last.gain += ((vAlong - last.v) / (now - last.t) - last.gain) * 0.5;
     last.v = vAlong;
     last.t = now;

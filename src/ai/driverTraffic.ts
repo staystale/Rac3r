@@ -10,7 +10,6 @@ import {
 } from "./dodge.ts";
 import { blockOn, gapLine, seeCar } from "./gapPick.ts";
 import type { SeenCar } from "./gapPick.ts";
-import { FIX } from "../core/fixes.ts";
 
 // MEASURED (aidrivecheck, HB on/off, Realish + Real, hatch + 4x4): Slidden / Knobhill / Castle Kum
 // within 0.1 s, Sweaty Lamb +0.2..+0.7 s, 6 pulls per 2 min at Slidden, 4 at Sweaty Lamb — it is
@@ -190,7 +189,7 @@ export function alongsideCar(drv: Drv, acc: CarsAcc, env: CarsEnv, fwd: number, 
     }
     return;
   }
-  // (?stopdodge=1: not to a car stopped or stranded - haltedAhead - it is no race for the line;
+  // (not to a car stopped or stranded - haltedAhead - it is no race for the line;
   // held to its speed, a car half a length short of a stopped one never got round it:
   // ai/stopDodge.ts brakes)
   const racing = !halted;
@@ -240,7 +239,7 @@ const STOPPED_V = 3, STRANDED_SHARE = 0.5;
 const GETAWAY_S = 2;
 
 /**
- * ?stopdodge=1: a car ahead STOPPED (under STOPPED_V) or STRANDED (much slower than me and than
+ * A car ahead STOPPED (under STOPPED_V) or STRANDED (much slower than me and than
  * the racing speed where it is), and NOT pulling away.
  * @param fwd m it is ahead
  * @param vAlong its m/s along my way
@@ -270,7 +269,7 @@ const haltRead = { gain: 0, planV: 0 };
 
 /**
  * A car ahead not racing - stopped or crawling against my speed (racingNot) - kept for the
- * brake that misses it (?stopdodge=1, ai/stopDodge.ts).
+ * brake that misses it (ai/stopDodge.ts).
  * @param acc the cars' read so far (stopped)
  * @param other the car
  * @param seenAs m ahead, m off my path, its m/s along my way, my m/s
@@ -373,7 +372,7 @@ function viewOf(car: AiCar, other: AiCar, byRoad: boolean) {
 
 /**
  * A car's place across MY path, m: off the path at its own point - or, a car ahead not racing
- * with ?stopdodge=1, where it stands across the road held to my point (off the line there + the
+ * where it stands across the road held to my point (off the line there + the
  * line's place across the road there - the line's here). A car going round one steers to a place
  * across the ROAD (driverSteps.ts offRoad), and a stopped car stays where it is on the road while
  * the line runs across it: read off the line at its point, a way round planned 3.5 m off the line
@@ -423,10 +422,10 @@ export function carsStep(drv: Drv, car: AiCar, others: AiCar[], path: AiPath, ne
     const closeIdx = closestPathIdx(drv, env, other, fwd);
     const point = path.pts[closeIdx];
     const dec = readBraking(state.seenV ??= new WeakMap(), other, vAlong, state.t, traits.skill);
-    // (?stopdodge=1: a car stopped or stranded ahead - not one pulling away)
+    // (a car stopped or stranded ahead - not one pulling away)
     haltRead.gain = readGain(state.seenV, other);
     haltRead.planV = prof[closeIdx];
-    const halted = FIX.stopdodge && !gettingAway(state) && haltedAhead(fwd, vAlong, speed,
+    const halted = !gettingAway(state) && haltedAhead(fwd, vAlong, speed,
       haltRead);
     const otherLat = placeAcross(env, other, closeIdx, halted);
     const envO = sizedEnv(env, car, other, point.h);

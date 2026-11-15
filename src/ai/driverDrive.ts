@@ -43,11 +43,9 @@ const EDGE_IN_M = 0.3, COME_IN_M = 1;
  * @returns m
  */
 function targetEdge(state: Drv["state"], latLim: number, onMain: boolean, lineOff: number) {
-  // (?stopdodge=1: a plain guard - with no window set and the clock below 0 the old test read
-  // an unset width, NaN)
-  const isWide = FIX.stopdodge
-    ? state.wide !== undefined && state.t < (state.wideUntil ?? -Infinity)
-    : state.t < (state.wideUntil || 0);
+  // (a plain guard - with no window set and the clock below 0 the old test read an unset width,
+  // NaN)
+  const isWide = state.wide !== undefined && state.t < (state.wideUntil ?? -Infinity);
   const edge = isWide ? state.wide! : latLim;
   return FIX.aislide && onMain ? Math.max(edge, Math.abs(lineOff)) : edge;
 }
@@ -91,11 +89,9 @@ function trafficStep(drv: Drv, car: AiCar, ctx: DriveCtx, path: AiPath, nearIdx:
   } else { state.atk = null; state.cover = null; state.cc = -1; }
   // (a stopped or much slower car still in line with where the car really is: brake to miss it,
   // and steer round it as a move, not a soft rejoin - ai/stopDodge.ts)
-  if (FIX.stopdodge) {
-    const stop = stopCap(drv, car, { path, nearIdx, latT: latT + dodgeT }, cars.stopped ?? []);
-    followCap = Math.min(followCap, stop.cap);
-    conflict ||= stop.inLine;
-  }
+  const stop = stopCap(drv, car, { path, nearIdx, latT: latT + dodgeT }, cars.stopped ?? []);
+  followCap = Math.min(followCap, stop.cap);
+  conflict ||= stop.inLine;
   // (round a car in the way with no time to spare, the swerve's own rate: ai/dodge.ts)
   // (going round a car, the rate swerveCap counts on - the move was planned at SWERVE_RATE and
   // made at 2.5 m/s, arriving short)

@@ -57,8 +57,4 @@ export const FIX = {
   aislide: atLoad('aislide'),
   // a chasing police car sounds a siren, the light bar's twin (game/sirens.ts, audiosiren.ts)
   siren: atLoad('siren'),
-  // a racer brakes enough to miss a stopped or much slower car in its path while going round it
-  // (ai/stopDodge.ts); and two plain guards: the driver's wide-window read with a negative clock
-  // (ai/driverDrive.ts targetEdge), a recovery clearing a NaN tyre wear (game/sim.ts recoverCar)
-  stopdodge: atLoad('stopdodge'),
 };

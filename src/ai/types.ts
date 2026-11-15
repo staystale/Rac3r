@@ -269,7 +269,7 @@ export interface CarsAcc {
   atkLat?: number;
   // the cars seen (gap spotting, ai/gapPick.ts)
   seen?: { fwd: number; lat: number; v: number; across: number; along: number }[];
-  // the cars not racing ahead, stopped or crawling (?stopdodge=1, ai/stopDodge.ts)
+  // the cars not racing ahead, stopped or crawling (ai/stopDodge.ts)
   stopped?: StoppedCar[];
 }
 export interface CarsEnv {

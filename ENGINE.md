@@ -172,7 +172,7 @@ applyMistake`): while a 'late' or 'throttle' mistake runs in its corner the catc
 its severity), nothing is held, a 'late' one has no understeer lift, and both are twice as big
 (`MIST_GROW`). `tools/scratch/_aislip.mjs` (AISLIDE=1) measures it; `_aislideshot.mjs` photographs it.
 
-A STOPPED OR MUCH SLOWER CAR IN THE WAY (under test, `?stopdodge=1`, `FIX.stopdodge`;
+A STOPPED OR MUCH SLOWER CAR IN THE WAY (since 11-15, passed;
 `ai/stopDodge.ts`). A car ahead HALTED (`driverTraffic.ts haltedAhead`: under 3 m/s, or slower than
 max(5 m/s, half my speed) AND under half the racing speed where it is - my plan there; not coming
 back at more than 2 m/s; and NOT PULLING AWAY: speeding up under 1 m/s/s along my way, read with its
@@ -193,7 +193,7 @@ only). Two plain guards ride on the switch: the wide-window read with the driver
 (`driverDrive.ts targetEdge`: no window set -> the usual edge) and a recovery clearing a NaN tyre
 wear (`game/sim.ts clearBadWear`: the set's wear at the event's start, 0 with none).
 `tools/scratch/_stopsum.mjs` (a car stopped across the line, STOPDODGE=1) and `_pileups.mjs` (a field's
-touches and incidents, RAC3R_QUERY=stopdodge=1) measure it.
+touches and incidents) measure it.
 
 THE SMOOTH FLY-IN (the default since 11-14; `render/flylayers.ts`): zoomed out, a fly-in frame
 drew every prop and loose object one by one. With the switch, the layers that hold still while the
