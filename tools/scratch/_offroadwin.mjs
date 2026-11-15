@@ -28,6 +28,11 @@ const CASES = {
 const MUST = { on: 'away', verge: 'not', band: 'not', field: 'not', back: 'away', line: 'finish',
   clock: 'time' };
 const SPEED = 45, GAP_M = 400, WATCH_S = 20;
+// SHOTS=<folder>: a photo 6 s into each case named in SHOT_CASES (default band, on); VIEW=WxH
+const SHOTS = process.env.SHOTS || '';
+const SHOT_CASES = (process.env.SHOT_CASES || 'band,on').split(',');
+const [VIEW_W, VIEW_H] = (process.env.VIEW || '844x390').split('x').map(Number);
+const SWITCH = (process.env.RAC3R_QUERY || '').includes('offroadwin=1') ? 'on' : 'off';
 
 /** Page side: carry the car up the road for one case; window.__ow holds what it saw. */
 function startCase([name, outM, laneAfterS, finish, speed, gapM]) {
@@ -65,11 +70,11 @@ const browser = await launchBrowser();
 let failed = false;
 try {
   const errors = [];
-  const page = await browser.newPage({ viewport: { width: 844, height: 390 } });
+  const page = await browser.newPage({ viewport: { width: VIEW_W, height: VIEW_H } });
   page.on('pageerror', (err) => errors.push(err.message));
   await gotoGame(page, `${server.url}/?pc=1&guide=0&menu=0&rules=0&noaudio=1&loadscreen=0`
     + extraQuery());
-  await page.mouse.click(422, 195);
+  await page.mouse.click(VIEW_W / 2, VIEW_H / 2);
   await page.waitForTimeout(800);
   for (const road of ROADS) {
     const lines = [];
@@ -95,6 +100,10 @@ try {
         SPEED, GAP_M]);
       for (let tries = 0; tries < WATCH_S * 2; tries++) {
         await page.waitForTimeout(500);
+        if (SHOTS && tries === 11 && SHOT_CASES.includes(name)) {
+          await page.screenshot({ path: `${SHOTS}/_offroadwin-${road}-${name}-switch${SWITCH}-`
+            + `${VIEW_W}x${VIEW_H}.png` });
+        }
         if (await page.evaluate(() => !!window.__ow.end)) break;
       }
       const seen = await page.evaluate(() => ({ ...window.__ow }));

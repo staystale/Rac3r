@@ -229,6 +229,25 @@ BUGS (each behind its own switch, measured, then a test link):
    31-50 m back, as the old one did at 1.7-2.6 s and 7-10 m.
 6. A HIGHWAY RACE WON BY PULLING AWAY while OFF THE ROAD: not allowed (owner 11-13). Off the road
    still counts in a race to a line or against the clock.
+   BUILT 11-15 behind ?offroadwin=1 (FIX.offroadwin; testlist 'offroadwin'). HOW IT IS WON NOW
+   (ai/hwFlow.ts dueKind): every rival over 5 m behind you on the road (road distance, the
+   car's projection on the road, wherever it is) and off screen -> PULLING AWAY 8 s -> you win.
+   Nothing asks where your car is, so it is won off the road three ways: on the verge (0-8 m
+   out, no off-road countdown at all), in the band 8-16 m out (the countdown shows but never
+   runs: highway.ts OFF_NEAR), and further out, where the 8 s beats the guard's 10 s; and the
+   PULLING AWAY notice covered the guard's BACK TO THE ROAD one.
+   BUILT: the getaway's count runs only while your car's middle is inside the road's edge
+   (highway.ts playerOutM, the guard's own measure: a lay-by, a forecourt and the side road are
+   road; the verge, a slip road and the fields are not), and starts again from 8 s each time you
+   come back to it. A race to a line or against the clock unchanged (off the road counts).
+   MEASURED (tools/scratch/_offroadwin.mjs, the second PC, a race with 2 AI, your car 400 m
+   ahead carried at 45 m/s; motorway, twisty, Deaf Valley): OLD - won by the getaway at 8.0 s
+   from the verge (4 m out), the band (12 m) and the fields (30 m) on all three roads, and
+   still off the road at 8 s in the "back" case; NEW - no win in 20 s on the verge or in the
+   band; in the fields the guard puts you back at 10 s and the getaway wins 8 s later ON the
+   road (motorway, Deaf Valley; twisty: a lay-by far back, no win in 20 s); 12 m out for 10 s
+   then on the road: won at 18.0 s, on the road. Unchanged both ways: on the road won at 8.0 s;
+   over a line 300 m on, 12 m out: finished at 6.7-6.8 s; the clock out at 6.0 s, 12 m out.
 7. ROLLING STARTS: the AI holds a SPEED, not a throttle (faster cars bump slower ones).
 8. STUCK AI AND TRAFFIC: reset or vanish after 5-10 s stuck.
 9. AI SLOW ON SLIPPERY SURFACES (measure first: an AI change).

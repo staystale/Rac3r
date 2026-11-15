@@ -13,6 +13,18 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'offroadwin',
+    added: '2026-11-15',
+    name: 'No highway race won by pulling away off the road',
+    where: 'Test link + &offroadwin=1: a highway race with AI (endless, and 5 KM / 3 MIN), any '
+      + 'road; phone upright and on its side',
+    try: 'Get well ahead, then run on the verge or in the fields: PULLING AWAY should go; back '
+      + 'on the road it counts again from 8. In a 5 KM / 3 MIN race, cross the line or let the '
+      + 'clock run out off the road: that still counts.',
+    wrong: 'A getaway win while off the road; PULLING AWAY not starting again on the road; a '
+      + 'line or clock race not ending because you were off the road.',
+  },
+  {
     id: 'resetback',
     added: '2026-11-15',
     name: 'Resets never put you ahead, never onto a car, and leave the police',
