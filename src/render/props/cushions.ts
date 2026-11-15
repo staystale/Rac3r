@@ -1,4 +1,4 @@
-// render/props/cushions.ts - A HIGHWAY CRASH-CUSHION BARREL seen from above (?hwbarrels=1;
+// render/props/cushions.ts - A HIGHWAY CRASH-CUSHION BARREL seen from above (
 // highway/cushions.ts lays them, cones/coneCushion.ts pops them): a round plastic drum 0.9 m
 // across in its paint (blue on the countryside, yellow on Deaf Valley), its lid a shade darker with
 // its filler cap, lit from the top-left with its shadow down-right as every other prop's; popped, a

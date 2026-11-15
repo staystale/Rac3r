@@ -1,4 +1,4 @@
-// cones/coneCushion.ts - A CRASH-CUSHION BARREL HIT (?hwbarrels=1; highway/cushions.ts lays them;
+// cones/coneCushion.ts - A CRASH-CUSHION BARREL HIT (highway/cushions.ts lays them;
 // TODO 3a2 item 13, the owner's answers 11-15: "each LEAKS or POPS depending on how hard (with a
 // chance), spraying water over 2-6 squares (a wet patch that dries); they soften the crash"). A
 // barrel is a heavy loose object (DEBRIS.cushion: ~400 kg, a dead bounce), so a car ploughing

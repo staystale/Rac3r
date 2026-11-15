@@ -632,7 +632,7 @@ desirable minimum for the design speed), none within 20 m along of a lay-by or s
 side (`laybys.ts bayHere`), on Deaf Valley too at each second spot (96 m).
 `tools/scratch/_hwchevroncount.mjs` counts them a km; `_hwchevronshots.mjs` photographs one.
 
-THE HIGHWAYS' CRASH-CUSHION BARRELS (`?hwbarrels=1`, `FIX.hwbarrels`; `highway/cushions.ts`,
+THE HIGHWAYS' CRASH-CUSHION BARRELS (passed 11-15; `highway/cushions.ts`,
 `cones/coneCushion.ts`, `render/props/cushions.ts`): water-filled barrels (loose objects, kind
 `cushion`, 0.9 m, 400 kg, bounce 0.1, a car's impulse capped at 8 m/s a hit as a bale's) in a
 TRIANGLE pointing at the traffic (`CUSHION_ROWS` 1-2-3, rows 0.9 m apart, centred on the end, the

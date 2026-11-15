@@ -178,7 +178,7 @@ export const DEBRIS: Record<string, DebrisKind> = {
   // puncture risk"): knocked, breaking at the first hit into bone shards (physics/punctures.ts:
   // its horns, the shards)
   skull: { mass: 8, r: 0.4, breaks: 1, into: 'bones' },
-  // a highway CRASH-CUSHION BARREL (?hwbarrels=1, highway/cushions.ts): a 0.9 m plastic drum
+  // a highway CRASH-CUSHION BARREL (highway/cushions.ts): a 0.9 m plastic drum
   // about two-thirds full of water (~400 kg); a hit leaks or pops it (cones/coneCushion.ts), a
   // popped one a flat split shell
   cushion: { mass: 400, r: 0.45, breaks: 0 },

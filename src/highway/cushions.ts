@@ -1,4 +1,4 @@
-// highway/cushions.ts - THE HIGHWAYS' CRASH-CUSHION BARRELS (?hwbarrels=1, FIX.hwbarrels; TODO 3a2
+// highway/cushions.ts - THE HIGHWAYS' CRASH-CUSHION BARRELS (passed 11-15; TODO-DONE
 // item 13; the owner 11-15: "placed just before the tips of the arm coat or the ends of the arm
 // coat to protect like crashes coming onto them, like in real life ... in little triangle
 // formations or in like threes in front of it"; then "It should cover barriers at the side
@@ -19,7 +19,6 @@
 // laid with the stretch, so they are back the next time it is built. No random stream is read:
 // the switch adds the barrels and moves nothing else.
 import { COL } from '../world/colours.ts';
-import { FIX } from '../core/fixes.ts';
 import { roadFrame, roadPose } from './road.ts';
 import type { Barrier, BarrierKind } from '../world/types.ts';
 import type { DressCtx, HwLevel } from './hwtypes.ts';
@@ -166,7 +165,7 @@ interface EndDue { x: number; y: number; s: number; off: number; away: number; f
  * @param ctx the dress context
  */
 export function markBarriers(ctx: DressCtx) {
-  if (FIX.hwbarrels) ctx.state.barrierMark = ctx.level.barriers.length;
+  ctx.state.barrierMark = ctx.level.barriers.length;
 }
 
 /**
