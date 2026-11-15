@@ -51,6 +51,9 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
+  // a reset never puts you ahead of where you were, takes the next free spot behind a car in the
+  // way, and leaves the police (game/resetspot.ts)
+  resetback: atLoad('resetback'),
   // the player's car never drawn under a HUD piece: the camera moves it clear
   // (render/hudclear.ts, hud/keepclear.ts)
   hudclear: atLoad('hudclear'),

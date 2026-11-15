@@ -385,16 +385,22 @@ export function highwayGuard(level: HwLevel, car: HwCar, dt: number) {
   }
   return null;
 }
-// the put-back pose (wrong way, off the road, an exit taken): the hard shoulder, a few metres short
-// of the furthest point reached, facing up the road
-export function highwayRespawn(level: HwLevel) {
-  const state = stateOf(level), first = state.pts[0].s;
+/**
+ * The put-back pose (wrong way, off the road, an exit taken): the hard shoulder, a few metres
+ * short of the furthest point reached - or of fromS when that is further back (?resetback=1: the
+ * car's own road distance, never ahead of it) - facing up the road.
+ * @param level the highway level
+ * @param fromS road distance the put-back may not pass, m
+ * @returns the pose, and its road distance s, m
+ */
+export function highwayRespawn(level: HwLevel, fromS = Infinity) {
+  const state = stateOf(level), first = state.pts[0].s, upTo = Math.min(state.best, fromS);
   // (a road without a hard shoulder: the last lay-by behind)
-  const bay = bayBehind(level, state.best - 6, undefined, first + 20);
-  const dist = Math.max(0, (bay ? bay.s : state.best - 6) - first);
+  const bay = bayBehind(level, upTo - 6, undefined, first + 20);
+  const dist = Math.max(0, (bay ? bay.s : upTo - 6) - first);
   const pos = onTrack(level.subtrack!, dist, bay ? bay.off : shoulderOff(level), {});
   rehome(level, dist + first);
-  return { x: pos.x, y: pos.y, h: pos.rot };
+  return { x: pos.x, y: pos.y, h: pos.rot, s: dist + first };
 }
 
 /**

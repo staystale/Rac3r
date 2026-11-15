@@ -41,7 +41,8 @@ export function createTraffic({ rnd = Math.random } = {}) {
       resetTraffic(ctx, nextLevel, density)
     ),
     step: (dt: number, args: StepArgs) => stepTraffic(ctx, dt, args),
-    clearAround: (x: number, y: number, radius: number) => clearAround(ctx, x, y, radius),
+    clearAround: (x: number, y: number, radius: number, keepPolice = false) => clearAround(ctx,
+      x, y, radius, keepPolice),
     clearSpan: (fromS: number, toS: number) => clearSpan(ctx, fromS, toS),
     get list() { return ctx.list; }, get want() { return ctx.want; },
     // the police's orders (the heats, the suspects), the police chasing a driver gone

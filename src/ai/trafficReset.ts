@@ -80,11 +80,19 @@ export function resetTraffic(ctx: TrafficCtx, nextLevel: HighwayLevel | null, de
 /**
  * Make room: every traffic car within radius m of (x, y) leaves (the player was just put
  * back there).
+ * @param ctx the traffic
+ * @param x world x, m
+ * @param y world y, m
+ * @param radius m
+ * @param keepPolice the police cars (and the angry drivers chasing as one) stay
+ * @returns how many left
  */
-export function clearAround(ctx: TrafficCtx, x: number, y: number, radius: number) {
+export function clearAround(ctx: TrafficCtx, x: number, y: number, radius: number,
+  keepPolice = false) {
   let count = 0;
   for (const slot of ctx.list)
-    if (!slot.parked && Math.hypot(slot.car.x - x, slot.car.y - y) < radius) {
+    if (!slot.parked && !(keepPolice && slot.police)
+      && Math.hypot(slot.car.x - x, slot.car.y - y) < radius) {
       slot.parked = true;
       count++;
     }

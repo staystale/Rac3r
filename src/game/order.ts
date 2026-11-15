@@ -14,6 +14,8 @@ import { onGround } from "../world/crossinggeo.ts";
 import { STAGE_GAP_S, GRID_STEP, gridColumn } from './grid.ts';
 import { formationInput, roadFormationInput } from '../ai/formation.ts';
 import { shared, game, hwLevel } from './state.ts';
+import { FIX } from '../core/fixes.ts';
+import { firstFree, lapAhead, lapStepBack } from './resetspot.ts';
 import type { GameCar, CutRun, FormKeeper } from './state.ts';
 import type { CarInput } from '../vehicle.ts';
 
@@ -185,12 +187,19 @@ export function penaliseCut(car: GameCar, cut: CutRun) {
  * @param cut the finished excursion
  */
 export function putBackCut(car: GameCar, cut: CutRun) {
-  const point = onTrack(LEVEL.subtrack!, cut.q!, 0, {});
+  const sub = LEVEL.subtrack!;
+  // (?resetback=1, yours: a car in the way - the next free spot behind)
+  const dist = FIX.resetback && car === game.car ? firstFree(cut.q!, (spotAt) => {
+    const onRoad = onTrack(sub, spotAt, 0, {});
+    return { x: onRoad.x, y: onRoad.y, heading: onRoad.rot };
+  }, lapStepBack(sub)) : cut.q!;
+  const point = onTrack(sub, dist, 0, {});
   resetCar(car, point.x, point.y, point.rot);
-  car._prog = cut.prog;
-  car._lastQ = cut.q;
+  car._prog = dist === cut.q || cut.prog === undefined ? cut.prog
+    : cut.prog + lapAhead(sub, cut.q!, dist);
+  car._lastQ = dist;
   if (car === game.car) {
-    shared.lastOnTrack = { dist: cut.q!, off: 0 };
+    shared.lastOnTrack = { dist, off: 0 };
     if (shared.renderer && shared.renderer.snap) shared.renderer.snap(car);
     game.notice = { text: 'TRACK CUT — PUT BACK', at: performance.now() };
   }

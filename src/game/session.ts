@@ -21,7 +21,11 @@ import { resetCoverField } from "../world/coverfield.ts";
 import { resetRace, resetStage } from './rules.ts';
 import { onTrack } from "../world/tyrewall.ts";
 import { clearOfUnder, trackSpotOf } from "../world/trackunder.ts";
-import { jokerLane, lanePose } from "../world/joker.ts";
+import { jokerLane, lanePose, laneSpot } from "../world/joker.ts";
+import { FIX } from '../core/fixes.ts';
+import {
+  FREE_STEP_M, firstFree, lapStepBack, notAheadOf, respawnBehind,
+} from './resetspot.ts';
 import { resetCar, armStart, startHeld, startAtOf } from './order.ts';
 import { gridPos, spawnAI } from './grid.ts';
 import { shared, game } from './state.ts';
@@ -146,15 +150,29 @@ function resetInset(ang: number): number {
  * @returns true when the car was put back on the joker lane
  */
 function resetOnJoker(place: PlaceCar) {
-  const lane = LEVEL.joker ? jokerLane(LEVEL) : null, spot = game.lastOnJoker;
+  const lane = LEVEL.joker ? jokerLane(LEVEL) : null;
+  let spot = game.lastOnJoker;
   if (!lane || !spot) return false;
+  // (?resetback=1: never ahead of where the car is now along the lane)
+  if (FIX.resetback) {
+    const here = laneSpot(lane, game.car.x, game.car.y);
+    if (here.along < spot.along) spot = here;
+  }
   const side = Math.sign(spot.off) || (Math.random() < 0.5 ? -1 : 1), half = lane.width / 2;
-  const along = Math.max(0, spot.along - RESET_BACK), pose = lanePose(lane, along);
+  let along = Math.max(0, spot.along - RESET_BACK);
   const ang = (RESET_ANG[0] + Math.random() * (RESET_ANG[1] - RESET_ANG[0])) * Math.PI / 180;
   const off = Math.max(0, half - resetInset(ang));
   // the lane's +normal is (-ty, tx); a heading turned positive turns the nose toward it
-  const x = pose.x - pose.ty * side * off, y = pose.y + pose.tx * side * off;
-  place(game.car, x, y, pose.heading - side * ang);
+  const poseAt = (spotAt: number) => {
+    const onLane = lanePose(lane, spotAt);
+    return { x: onLane.x - onLane.ty * side * off, y: onLane.y + onLane.tx * side * off,
+      heading: onLane.heading - side * ang };
+  };
+  // (?resetback=1: a car in the way - the next free spot back down the lane)
+  if (FIX.resetback) along = firstFree(along, poseAt,
+    (spotAt) => (spotAt > 0 ? Math.max(0, spotAt - FREE_STEP_M) : null));
+  const { x, y, heading } = poseAt(along);
+  place(game.car, x, y, heading);
   game.lastOnJoker = { along, off: side * (half - 0.5) };
   // the jump is not a crossing of the joker line
   game.jokerPrev = { x, y };
@@ -174,6 +192,7 @@ function resetOnJoker(place: PlaceCar) {
 function resetOnShoulder(place: PlaceCar): boolean {
   if (!LEVEL.endless) return false;
   const level = hwLevel(), here = roadFrame(level, game.car.x, game.car.y, null);
+  if (FIX.resetback) return resetOnShoulderBehind(place, level, here);
   // (a road without a hard shoulder: the last lay-by behind)
   const bay = here && (vergeBack(level, here.s - RESET_BACK, roadSpan(level).s0 + 20)
     ?? bayBehind(level, here.s - RESET_BACK, undefined, roadSpan(level).s0 + 20));
@@ -182,6 +201,38 @@ function resetOnShoulder(place: PlaceCar): boolean {
   if (here) rehome(level, bay ? bay.s : here.s - RESET_BACK);
   place(game.car, pose.x, pose.y, pose.h);
   game.traffic.clearAround(pose.x, pose.y, 30);
+  shared.lastOnTrack = null;
+  if (shared.renderer && shared.renderer.snap) shared.renderer.snap(game.car);
+  return true;
+}
+
+/**
+ * The endless road's reset with ?resetback=1: as resetOnShoulder - RESET_BACK m back, the verge or
+ * a lay-by on a road with no hard shoulder - from the car's own road distance (too far off the
+ * road to say where it is: the guard's spot, from the car's road distance, not the furthest point
+ * reached), the first spot free of cars from there back; the police stay (only the other traffic
+ * is cleared from round it).
+ * @param place puts the car
+ * @param level the highway level
+ * @param here the car's road frame, or null
+ * @returns true
+ */
+function resetOnShoulderBehind(place: PlaceCar, level: ReturnType<typeof hwLevel>,
+  here: { s: number } | null): boolean {
+  const floor = roadSpan(level).s0 + 20;
+  const shoulderSpot = (dist: number) => vergeBack(level, dist, floor)
+    ?? bayBehind(level, dist, undefined, floor) ?? { s: dist, off: shoulderOff(level) };
+  let pose;
+  if (here) {
+    const spot = firstFree(shoulderSpot(here.s - RESET_BACK), (tried) => {
+      const onRoad = roadPose(level, tried.s, tried.off);
+      return { x: onRoad.x, y: onRoad.y, heading: onRoad.h };
+    }, (tried) => (tried.s - FREE_STEP_M > floor ? shoulderSpot(tried.s - FREE_STEP_M) : null));
+    pose = roadPose(level, spot.s, spot.off);
+    rehome(level, spot.s);
+  } else pose = respawnBehind(level, level._hw.q?.s ?? Infinity, 0);
+  place(game.car, pose.x, pose.y, pose.h);
+  game.traffic.clearAround(pose.x, pose.y, 30, true);
   shared.lastOnTrack = null;
   if (shared.renderer && shared.renderer.snap) shared.renderer.snap(game.car);
   return true;
@@ -207,10 +258,18 @@ function resetOnCircuit(place: PlaceCar) {
       off: (game.car.x - point.x) * point.nx + (game.car.y - point.y) * point.ny };
   }
   if (!rec) return false;
+  // (?resetback=1: never ahead of where the car is now)
+  if (FIX.resetback) rec = notAheadOf(sub, rec, game.car);
   const side = Math.sign(rec.off) || (Math.random() < 0.5 ? -1 : 1);
-  const dist = clearOfUnder(sub, (rec.dist - RESET_BACK + sub.totalDist) % sub.totalDist);
+  let dist = clearOfUnder(sub, (rec.dist - RESET_BACK + sub.totalDist) % sub.totalDist);
   const ang = (RESET_ANG[0] + Math.random() * (RESET_ANG[1] - RESET_ANG[0])) * Math.PI / 180;
-  const point = onTrack(sub, dist, side * Math.max(0, sub.width / 2 - resetInset(ang)), {});
+  const across = side * Math.max(0, sub.width / 2 - resetInset(ang));
+  // (?resetback=1: a car in the way - the next free spot behind)
+  if (FIX.resetback) dist = firstFree(dist, (spotAt) => {
+    const onRoad = onTrack(sub, spotAt, across, {});
+    return { x: onRoad.x, y: onRoad.y, heading: onRoad.rot - side * ang };
+  }, lapStepBack(sub));
+  const point = onTrack(sub, dist, across, {});
   // +heading turns the nose toward +normal, so a car on the +side turns by -ang to point back
   // across the road
   place(game.car, point.x, point.y, point.rot - side * ang);
@@ -219,6 +278,18 @@ function resetOnCircuit(place: PlaceCar) {
   return true;
 }
 
+/**
+ * With ?resetback=1, the breadcrumb a reset off any road goes back to: ~2 s back, or the first
+ * older one free of cars (the oldest when none is).
+ * @returns its index
+ */
+function freeCrumb(): number {
+  const crumbs = shared.breadcrumbs;
+  return firstFree(Math.max(0, crumbs.length - 5), (spotAt) => crumbs[spotAt],
+    (spotAt) => (spotAt > 0 ? spotAt - 1 : null));
+}
+
+/** RESET: the player's car back on the road (or a recent clear spot), mended. */
 export function doReset() {
   // Safe track/free-roam recovery: places car back on nearest track edge or recent clear spot
   game.car.prevWheels = null;
@@ -235,7 +306,9 @@ export function doReset() {
   if (resetOnJoker(resetKeepingTyres) || resetOnShoulder(resetKeepingTyres)
     || resetOnCircuit(resetKeepingTyres)) return;
   if (shared.breadcrumbs.length > 0) {
-    const safe = shared.breadcrumbs[Math.max(0, shared.breadcrumbs.length - 5)];   // ~2 s back
+    // ~2 s back (?resetback=1: a car in the way - the next older crumb free of cars)
+    const safe = shared.breadcrumbs[FIX.resetback ? freeCrumb()
+      : Math.max(0, shared.breadcrumbs.length - 5)];
     resetKeepingTyres(game.car, safe.x, safe.y, safe.heading);
     if (shared.renderer && shared.renderer.snap) shared.renderer.snap(game.car);
     return;
