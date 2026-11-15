@@ -4,7 +4,8 @@
 import { LEVEL } from '../world/state.ts';
 import { COL } from '../world/colours.ts';
 import { querySubtrack } from '../world/tyrewall.ts';
-import { fmtTime, drawHudPanel, drawHudLabel } from './widgets.ts';
+import { FIX } from '../core/fixes.ts';
+import { fmtTime, drawHudPanel, drawHudLabel, LAP_ROW_H } from './widgets.ts';
 import type { HudRace, HudStage, HudGame } from './hudtypes.ts';
 import type { HudRects } from './layout.ts';
 import type { HudRect } from './widgets.ts';
@@ -103,25 +104,51 @@ export function drawHudLapStage(ctx: CanvasRenderingContext2D, stage: HudStage, 
  */
 export function drawHudLapJoker(ctx: CanvasRenderingContext2D, game: HudGame, race: HudRace,
   lapRect: HudRect, lapNum: number) {
-  if (race.done) drawHudLapJokerDone(ctx, race, lapRect);
+  if (race.done) drawHudLapJokerDone(ctx, game, race, lapRect);
   else drawHudLapJokerLive(ctx, game, race, lapRect, lapNum);
+}
+
+/**
+ * Whether the lap panel gives the joker line its own third row (?jokerrow=1): a rallycross race
+ * with rivals, where the second row's right holds the position (P2/4) and a long joker line
+ * (JOKER TAKEN) ran into it. Solo, the joker line is alone on the second row.
+ * @param game the game
+ * @returns true when the panel has the third row
+ */
+export function lapJokerRowShown(game: HudGame): boolean {
+  return FIX.jokerrow && !!LEVEL.subtrack && !!LEVEL.joker && !LEVEL.endless && !LEVEL.stage
+    && !!game.race && game.race.on && !!game.ai && game.ai.length > 0;
+}
+
+/**
+ * The joker line's place in the lap panel: the second row, or the third with ?jokerrow=1.
+ * @param game the game
+ * @param lapRect the lap panel rectangle
+ * @returns the line's y (its middle) and the most width it may take, css px (0: any)
+ */
+function jokerLineAt(game: HudGame, lapRect: HudRect) {
+  const ownRow = lapJokerRowShown(game);
+  return { y: lapRect.y + 26 + (ownRow ? LAP_ROW_H : 0), maxW: ownRow ? lapRect.w - 16 : 0 };
 }
 
 /**
  * Joker race lap panel once finished: FINISH, total time and the joker verdict.
  * @param ctx
+ * @param game the game
  * @param race the race state
  * @param lapRect the lap panel rectangle
  * @returns {void}
  */
-function drawHudLapJokerDone(ctx: CanvasRenderingContext2D, race: HudRace, lapRect: HudRect) {
+function drawHudLapJokerDone(ctx: CanvasRenderingContext2D, game: HudGame, race: HudRace,
+  lapRect: HudRect) {
   drawHudLabel(ctx, 'FINISH', lapRect.x + 8, lapRect.y + 13,
     { size: 11, weight: 700, col: COL.live });
   drawHudLabel(ctx, fmtTime(race.total), lapRect.x + lapRect.w - 8, lapRect.y + 13,
     { size: 11, weight: 700, align: 'right', col: COL.hudText });
+  const line = jokerLineAt(game, lapRect);
   drawHudLabel(ctx, !race.penalty ? 'JOKER DONE' : race.jokers === 0
-    ? `+${race.penalty} s NO JOKER` : `+${race.penalty} s EXTRA JOKER`, lapRect.x + 8,
-    lapRect.y + 26, { size: 9, weight: 700, col: race.penalty ? COL.danger : COL.live });
+    ? `+${race.penalty} s NO JOKER` : `+${race.penalty} s EXTRA JOKER`, lapRect.x + 8, line.y,
+  { size: 9, weight: 700, col: race.penalty ? COL.danger : COL.live, maxW: line.maxW });
 }
 
 /** The joker line's states (truthy / falsy, as the lap panel works them out). */
@@ -202,8 +229,9 @@ function drawHudLapJokerLive(ctx: CanvasRenderingContext2D, game: HudGame, race:
     && performance.now() - (game.jokerAt || 0) < 2000;
   const blink = Math.floor(performance.now() / 200) % 2 === 0;
   const [jTxt, jCol] = jokerLine(race, { near, flash, inLane, fresh, blink });
-  drawHudLabel(ctx, jTxt, lapRect.x + 8, lapRect.y + 26,
-    { size: near || fresh || inLane ? 10.5 : 9, weight: 800, col: jCol });
+  const line = jokerLineAt(game, lapRect);
+  drawHudLabel(ctx, jTxt, lapRect.x + 8, line.y,
+    { size: near || fresh || inLane ? 10.5 : 9, weight: 800, col: jCol, maxW: line.maxW });
 }
 
 /**

@@ -35,7 +35,7 @@ import {
   drawHudSpeedo,
   drawHudTyreDiagram,
 } from './hud/gauges.ts';
-import { drawHudLapTimer } from './hud/laps.ts';
+import { drawHudLapTimer, lapJokerRowShown } from './hud/laps.ts';
 import { drawHudPedals, drawHudDevReadout, drawHudFps } from './hud/controls.ts';
 import { drawHudMinimap } from './hud/minimap.ts';
 import { drawHudBusted, drawHudHeat } from './hud/heat.ts';
@@ -106,6 +106,7 @@ function newHudState(): HudState {
     // "No, OFF means off" - a damaged car shows its damage on itself)
     tyreHud: false,
     carDiagram: false,
+    lapJokerRow: false,
     // SPEED UNITS (requirement: tapping the speed / kph should change it to mph), remembered on the
     // device
     mph: false,
@@ -131,6 +132,7 @@ export function createHud() {
   function draw(ctx: CanvasRenderingContext2D, game: HudGame, width: number, height: number,
     wallDt: number) {
     state.carDiagram = state.tyreHud;
+    state.lapJokerRow = lapJokerRowShown(game);
     try {
       state.drawLightsLater = () => {
         drawHudLights(ctx, game, width, height);
@@ -167,8 +169,10 @@ export function createHud() {
   return {
     draw, hit, layout,
     // the pieces drawn now, for the camera (hud/keepclear.ts)
-    keepout: (game: HudGame, width: number, height: number) => hudKeepout(state, game, width,
-      height),
+    keepout: (game: HudGame, width: number, height: number) => {
+      state.lapJokerRow = lapJokerRowShown(game);
+      return hudKeepout(state, game, width, height);
+    },
     get tyreHud() { return state.tyreHud; }, setTyreHud,
     get mph() { return state.mph; }, setMph: (mph: boolean) => setHudMph(state, mph),
     get tempF() { return state.tempF; }, setTempF: (fahrenheit: boolean) => setHudTempF(state,

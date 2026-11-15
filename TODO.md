@@ -50,6 +50,15 @@ records in `TODO-DONE.md` (PASSED 11-12). On the phone now:
   walkthrough line. FROM IT (owner 11-15: "Seems ok yes"): the AI's wide-window read with a negative
   clock and a recovery that does not clear a NaN tyre wear - BUILT as plain guards on ?stopdodge=1
   (3a2 item 10 below).
+- THE JOKER LINE ON ITS OWN ROW (owner 11-15: "new line always so it never covers"). BUILT behind
+  `?jokerrow=1` (FIX.jokerrow; hud/laps.ts lapJokerRowShown, hud/layout.ts; testlist 'jokerrow').
+  MEASURED (tools/scratch/_jokerrowshots.mjs, Knobhill RX race, 3 AI, Edge): the lap panel's second
+  row has 104 px between its insets, P2/4 takes 25.9; JOKER TAKEN ✓ (83.4 px) ran 5.4 px into it
+  and +30 s EXTRA JOKER (84.0) 5.9 px, the rest clear by 6-27 px. The panel is the same 120 px at
+  every screen size, so the overlap was the same in landscape. ON: with AI cars the panel is one
+  13 px row taller (36 -> 49) and every joker line sits alone on the third row (shrunk to the
+  panel's width if ever needed); what hangs under the panel (track gauge, FPS strip, cone tally,
+  the ABS / TCS chips' clearance) moves down with it. Solo (no position) the joker keeps row two.
 - THE GROUND AT THE ZOOM'S DENSITY + THE PC LOADING DRAW-IN (owner's friend 11-15, Windows Chrome
   2109x1250 dpr 1, Stade de Prance: "it did the loading bar ... then i saw all the tiles slowly
   draw in"; the foreman: the zoomed-out ground cost behind the highway jerk). BUILT behind

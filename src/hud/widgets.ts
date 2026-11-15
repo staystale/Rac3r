@@ -5,6 +5,8 @@ import { COL } from '../world/colours.ts';
 
 export const MARGIN = 12;              // minimum margin
 export const BTN_H = 34;          // >= 30px touch target; the repeated ones (pedals) are 72px
+// css px between two rows of the lap panel (its labels at 13 and 26 px down)
+export const LAP_ROW_H = 13;
 export const DIAGRAM_H = 50;      // css px: the tyre / damage diagram under the speedo
 
 /** A HUD rectangle (css px), maybe a button with its label. */

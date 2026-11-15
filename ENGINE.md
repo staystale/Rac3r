@@ -271,6 +271,17 @@ SNOW FALLING, RAIN STOPPING, HOT TRACK) shown only on the MOBILE difficulty (`ga
 `shared.aiDiff` 0); the weather changes as before. `tools/scratch/_noticeshots.mjs` photographs
 the escape notice and measures its box; `_weathernotice.mjs` steps SEASON weather per difficulty.
 
+THE LAP PANEL (`hud/laps.ts drawHudLapTimer`, top right under the speedo, 120 px wide, its rect in
+`hud/layout.ts`): two rows - the lap (or stage / distance) and its clock; under them the best,
+the gap or the joker line on the left and the position (P2/4) on the right. Under test,
+`?jokerrow=1` (`FIX.jokerrow`): in an RX race with AI cars (`lapJokerRowShown`, written to the
+HUD state's `lapJokerRow` each frame before the layout) the panel is one row taller (`LAP_ROW_H`
+13 px: 36 -> 49) and every joker line (TO DO, the approach, IN JOKER, TAKEN, DONE, the extra
+jokers, the finish's verdict) is drawn alone on the third row, shrunk to the panel's width if it
+must be; the gauge, FPS strip, cone tally and the ABS / TCS chips' clearance follow the panel's
+bottom as before. Solo (no position) the joker line keeps the second row. Off: two rows, the joker
+line beside the position. `tools/scratch/_jokerrowshots.mjs` photographs every joker state.
+
 ## Sound (`audio.ts`)
 
 All sound is synthesised with Web Audio (no sound files); `?noaudio=1` never starts it. One

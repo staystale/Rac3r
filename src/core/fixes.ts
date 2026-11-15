@@ -65,4 +65,7 @@ export const FIX = {
   // (ai/stopDodge.ts); and two plain guards: the driver's wide-window read with a negative clock
   // (ai/driverDrive.ts targetEdge), a recovery clearing a NaN tyre wear (game/sim.ts recoverCar)
   stopdodge: atLoad('stopdodge'),
+  // a rallycross race with rivals: the joker line on its own third row of the lap panel, so it
+  // never runs into the position (hud/laps.ts, the panel's height in hud/layout.ts)
+  jokerrow: atLoad('jokerrow'),
 };
