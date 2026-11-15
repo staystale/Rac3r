@@ -231,18 +231,42 @@ const STOPPED_BACK_V = -2;
 // stopped: held a stopping distance behind the car ahead on the grid, a field hesitated at the
 // green (owner: "hesitant on grid starts"); from rest at full throttle a car gains 3-6 m/s/s
 const PULL_AWAY = 1;
+// m/s under which a car counts as stopped; and the share of the racing speed where it is (my plan
+// there) under which a slow car is stranded, not racing - a car braking for a corner is at it
+const STOPPED_V = 3, STRANDED_SHARE = 0.5;
+// s from my own getaway (driverLane.ts goT) in which no car ahead counts as stopped - the grid
+// pulling away: a car ahead still at rest read as stopped held the next row to a crawl until its
+// own getaway was read (_gridstart.mjs, Knobhill RX: 7 car-s held in the first 3 s)
+const GETAWAY_S = 2;
 
 /**
- * ?stopdodge=1: a car ahead stopped, stranded or much slower (racingNot) and NOT pulling away.
+ * ?stopdodge=1: a car ahead STOPPED (under STOPPED_V) or STRANDED (much slower than me and than
+ * the racing speed where it is), and NOT pulling away.
  * @param fwd m it is ahead
  * @param vAlong its m/s along my way
  * @param speed my m/s
- * @param gain how fast it speeds up along my way, m/s/s (ai/dodge.ts readGain)
+ * @param read how fast it speeds up along my way (m/s/s, ai/dodge.ts readGain) and my plan's
+ *   speed where it is (m/s)
+ * @param read.gain m/s/s
+ * @param read.planV m/s
  * @returns true when it counts as stopped
  */
-function haltedAhead(fwd: number, vAlong: number, speed: number, gain: number): boolean {
-  return fwd > 0 && vAlong >= STOPPED_BACK_V && racingNot(vAlong, speed) && gain < PULL_AWAY;
+function haltedAhead(fwd: number, vAlong: number, speed: number,
+  read: { gain: number; planV: number }): boolean {
+  if (fwd <= 0 || vAlong < STOPPED_BACK_V || read.gain >= PULL_AWAY) return false;
+  return vAlong < STOPPED_V || (racingNot(vAlong, speed) && vAlong < STRANDED_SHARE * read.planV);
 }
+/**
+ * On the grid or within GETAWAY_S of my getaway (the start).
+ * @param state my state (my clock, goT: when I first moved off)
+ * @param state.t s
+ * @param state.goT s, undefined before
+ * @returns true at the start
+ */
+const gettingAway = (state: { t: number; goT?: number }) => state.goT == null
+  || state.t - state.goT < GETAWAY_S;
+// (one read, reused: no allocation per car)
+const haltRead = { gain: 0, planV: 0 };
 
 /**
  * A car ahead not racing - stopped or crawling against my speed (racingNot) - kept for the
@@ -400,7 +424,10 @@ export function carsStep(drv: Drv, car: AiCar, others: AiCar[], path: AiPath, ne
     const point = path.pts[closeIdx];
     const dec = readBraking(state.seenV ??= new WeakMap(), other, vAlong, state.t, traits.skill);
     // (?stopdodge=1: a car stopped or stranded ahead - not one pulling away)
-    const halted = FIX.stopdodge && haltedAhead(fwd, vAlong, speed, readGain(state.seenV, other));
+    haltRead.gain = readGain(state.seenV, other);
+    haltRead.planV = prof[closeIdx];
+    const halted = FIX.stopdodge && !gettingAway(state) && haltedAhead(fwd, vAlong, speed,
+      haltRead);
     const otherLat = placeAcross(env, other, closeIdx, halted);
     const envO = sizedEnv(env, car, other, point.h);
     envO.dec = dec;

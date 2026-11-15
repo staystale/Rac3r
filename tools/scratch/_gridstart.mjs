@@ -27,6 +27,9 @@ function tickStart() {
     run.dist[i] = (run.dist[i] || 0) + Math.hypot(entry.car.vx, entry.car.vy) / 60;
     if (run.at100[i] == null && run.dist[i] >= 100) run.at100[i] = since;
     if (run.at250[i] == null && run.dist[i] >= 250) run.at250[i] = since;
+    // s in the first 15 s judging a stopped car (?stopdodge=1's brake: ai/stopDodge.ts)
+    if (since < 15 && entry.drv.state.stopCar) run.held[i] = (run.held[i] || 0) + 1 / 60;
+    if (since < 3 && entry.drv.state.stopCar) run.early = (run.early || 0) + 1 / 60;
   });
   if (run.spread10 == null && since >= 10) {
     run.spread10 = Math.max(...run.dist) - Math.min(...run.dist);
@@ -78,7 +81,7 @@ async function runOne(browser, base, id) {
   await page.evaluate(launchLevel, [run.level, { car: 'hatch-rwd', ...run.opts }]);
   await page.waitForTimeout(SETTLE_MS);
   await page.evaluate(`window.__start = { t: 0, green: null, dist: [], at100: [], at250: [],
-    spread10: null, touches: 0, touching: new Map() };
+    spread10: null, touches: 0, held: [], touching: new Map() };
     window.__startTick = ${tickStart.toString()}; window.__startTouch = ${touchStart.toString()};`);
   let done = false;
   for (let guard = 0; !done && guard < (AFTER_S + MAX_WAIT_S) * 60 / 300 + 2; guard++) {
@@ -101,7 +104,9 @@ try {
       + ` 100 m mean ${mean(at100).toFixed(2)} s, last ${Math.max(...at100).toFixed(2)} s`
       + ` (${at100.length} made it) | 250 m mean ${mean(at250).toFixed(2)} s, last`
       + ` ${Math.max(...at250).toFixed(2)} s (${at250.length}) | spread at 10 s`
-      + ` ${(out.spread10 ?? 0).toFixed(0)} m | touches in 30 s ${out.touches}`
+      + ` ${(out.spread10 ?? 0).toFixed(0)} m | touches in 30 s ${out.touches} | judging a stopped`
+      + ` car in the first 15 s ${out.held.reduce((sum, value) => sum + (value || 0), 0).toFixed(1)}`
+      + ` car-s (first 3 s ${(out.early || 0).toFixed(1)})`
       + `${out.errors.length ? ' ERR ' + out.errors[0] : ''}`);
   }
 } finally {
