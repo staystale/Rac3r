@@ -62,4 +62,7 @@ export const FIX = {
   // tyre smoke by each tyre's own window and only past grip: spinning, locked or sliding
   // (render/tyresmoke.ts)
   tyresmoke: atLoad('tyresmoke'),
+  // the loading screen's pane and bar from the page's first paint until the menu is ready
+  // (index.html #bootbar, game/bootbar.ts; the page reads ?bootbar=1 itself)
+  bootbar: atLoad('bootbar'),
 };

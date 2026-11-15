@@ -5,6 +5,9 @@
 // menu's ember accent; when the work is done the bar turns the press's electric blue and blinks
 // twice, as a pressed button does. DOM, as the menu: it is up while the canvas is not drawn, and it
 // takes every tap and touch so none reaches the world below.
+// THE BOOT BAR (?bootbar=1, game/bootbar.ts) is the same screen put up by the page itself
+// (index.html #bootbar: its look copied there in plain CSS, as the code has not loaded yet), driven
+// from here once the code runs: the bar, its blue flash and the fade are this screen's.
 import { MENU_FACES, PRESS_BLINK_CSS, PRESS_BLINK_MS } from './pixelstyle.ts';
 import { MENU_COL } from './palette.ts';
 
@@ -14,13 +17,12 @@ const FADE_MS = 250;
 // bottom one - ZAP's own bevel is for a button's height and reads pale on a 14 px bar
 const BAR_DONE = 'linear-gradient(180deg, #8ff2ff 0 2px, #35c4ff 2px calc(100% - 3px), '
   + '#1e8cff calc(100% - 3px) calc(100% - 1px), #0e3aa8 calc(100% - 1px))';
+// the screens this sheet drives: the loading screen and the page's boot bar (its look: index.html)
+const SCREENS = ':is(#loadscreen, #bootbar)';
 
-const CSS = `
+const LOOK_CSS = `
 #loadscreen { position: fixed; inset: 0; z-index: 25; display: flex; align-items: center;
-  justify-content: center; background: #101116; touch-action: none; pointer-events: auto;
-  opacity: 1; transition: opacity ${FADE_MS}ms linear; }
-#loadscreen.fading { opacity: 0; pointer-events: none; }
-#loadscreen.gone { display: none; }
+  justify-content: center; background: #101116; touch-action: none; pointer-events: auto; }
 #loadscreen .pane { width: min(440px, calc(100% - 48px)); padding: 16px; display: flex;
   flex-direction: column; gap: 12px; background: rgba(12,11,16,.95); border: 2px solid #000;
   box-shadow: inset 0 0 0 2px #3a2018, 6px 6px 0 rgba(0,0,0,.6); }
@@ -33,7 +35,13 @@ const CSS = `
   box-shadow: inset 0 0 0 2px #3a2018; overflow: hidden; }
 #loadscreen .fill { height: 100%; background: ${MENU_COL.accent}; transform-origin: 0 50%;
   transform: scaleX(0); will-change: transform; }
-#loadscreen .fill.done { background: ${BAR_DONE};
+`;
+
+const STATE_CSS = `
+${SCREENS} { opacity: 1; transition: opacity ${FADE_MS}ms linear; }
+${SCREENS}.fading { opacity: 0; pointer-events: none; }
+${SCREENS}.gone { display: none; }
+${SCREENS} .fill.done { background: ${BAR_DONE};
   animation: r3blink ${PRESS_BLINK_MS}ms steps(1, end) 1; }
 ${PRESS_BLINK_CSS}
 `;
@@ -46,6 +54,17 @@ export interface LoadScreen {
   hide: () => void;
 }
 
+let isStyled = false;
+
+/** Adds the screens' style sheet to the page, once (the faces, the look, the states). */
+function addScreenStyle(): void {
+  if (isStyled) return;
+  isStyled = true;
+  const style = document.createElement('style');
+  style.textContent = MENU_FACES + LOOK_CSS + STATE_CSS;
+  document.head.appendChild(style);
+}
+
 /**
  * Stops a tap or touch on the screen reaching anything under it (the world, the boot tap).
  * @param event the event
@@ -56,22 +75,14 @@ function swallow(event: Event): void {
 }
 
 /**
- * Builds the screen once (hidden): its style, the pane, the name and the bar.
- * @returns show (at once, the bar empty), progress, flash (the bar done: blue, two blinks) and
- *   hide (a short fade)
+ * The controls of a screen's element (the pane, the name, the bar inside it); every tap and touch
+ * on it is swallowed from now on.
+ * @param root the screen
+ * @returns show, progress, flash and hide
  */
-export function createLoadScreen(): LoadScreen {
-  const style = document.createElement('style');
-  style.textContent = MENU_FACES + CSS;
-  document.head.appendChild(style);
-  const root = document.createElement('div');
-  root.id = 'loadscreen';
-  root.className = 'gone';
-  root.innerHTML = '<div class="pane"><div class="what">LOADING</div><div class="name"></div>'
-    + '<div class="well"><div class="fill"></div></div></div>';
+function controlScreen(root: HTMLElement): LoadScreen {
   for (const kind of ['pointerdown', 'pointerup', 'touchstart', 'touchend', 'click'])
     root.addEventListener(kind, swallow, { passive: false });
-  document.body.appendChild(root);
   const nameEl = root.querySelector('.name') as HTMLElement;
   const fill = root.querySelector('.fill') as HTMLElement;
   let fadeTimer = 0;
@@ -103,4 +114,32 @@ export function createLoadScreen(): LoadScreen {
       fadeTimer = window.setTimeout(() => { root.className = 'gone'; }, FADE_MS);
     },
   };
+}
+
+/**
+ * Builds the screen once (hidden): its style, the pane, the name and the bar.
+ * @returns show (at once, the bar empty), progress, flash (the bar done: blue, two blinks) and
+ *   hide (a short fade)
+ */
+export function createLoadScreen(): LoadScreen {
+  addScreenStyle();
+  const root = document.createElement('div');
+  root.id = 'loadscreen';
+  root.className = 'gone';
+  root.innerHTML = '<div class="pane"><div class="what">LOADING</div><div class="name"></div>'
+    + '<div class="well"><div class="fill"></div></div></div>';
+  document.body.appendChild(root);
+  return controlScreen(root);
+}
+
+/**
+ * The page's boot bar (index.html #bootbar, up since the first paint with ?bootbar=1), driven as
+ * this screen from here on; its bar left where the page set it.
+ * @returns its controls (show is not for it), or null when the page put none up
+ */
+export function takeBootScreen(): LoadScreen | null {
+  const root = document.getElementById('bootbar');
+  if (!root) return null;
+  addScreenStyle();
+  return controlScreen(root);
 }

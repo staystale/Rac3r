@@ -36,6 +36,64 @@
 </head>
 <body>
 <canvas id="c"></canvas>
+<!-- THE BOOT BAR (?bootbar=1, under test; game/bootbar.ts drives it once the code has run): the
+     loading screen's pane and bar from the first paint, over the boot screen. Its look is
+     menu/loadscreen.ts's, copied here in plain CSS (the code has not loaded yet); its words take
+     their own copies of the menu's faces (menu/pixelstyle.ts), and show once those have loaded
+     (font-display: block - the pane and the bar show at once; a face slower than ~3 s shows a
+     monospace stand-in until it comes). -->
+<template id="bootbar-page">
+<style>
+  @font-face { font-family: R3BootSmall; src: url(assets/fonts/vt323.woff2) format("woff2");
+    font-display: block; }
+  @font-face { font-family: R3BootTitle; src: url(assets/fonts/silkscreen-700.woff2)
+    format("woff2"); unicode-range: U+0030-0039; font-display: block; }
+  @font-face { font-family: R3BootTitle; src: url(assets/fonts/press-start-2p.woff2)
+    format("woff2"); unicode-range: U+0000-002F, U+003A-FFFF; font-display: block; }
+  #bootbar { position: fixed; inset: 0; z-index: 25; display: flex; align-items: center;
+    justify-content: center; background: #101116; touch-action: none; pointer-events: auto; }
+  #bootbar .pane { width: min(440px, calc(100% - 48px)); padding: 16px; display: flex;
+    flex-direction: column; gap: 12px; background: rgba(12,11,16,.95); border: 2px solid #000;
+    box-shadow: inset 0 0 0 2px #3a2018, 6px 6px 0 rgba(0,0,0,.6); }
+  #bootbar .what { font-family: R3BootSmall, monospace; font-size: 18px; color: #b3a39b;
+    letter-spacing: .02em; }
+  #bootbar .name { font-family: R3BootTitle, monospace; font-size: clamp(14px, 4.2vw, 22px);
+    line-height: 1.35; letter-spacing: .02em; color: #ff4a1a;
+    text-shadow: 2px 2px 0 #000, 3px 3px 0 #5a2f1c; }
+  #bootbar .well { height: 18px; background: #241c23; border: 2px solid #000;
+    box-shadow: inset 0 0 0 2px #3a2018; overflow: hidden; }
+  #bootbar .fill { height: 100%; background: #ff7a2a; transform-origin: 0 50%;
+    transform: scaleX(0); will-change: transform; }
+</style>
+<div id="bootbar"><div class="pane"><div class="what">LOADING</div><div class="name">RAC3R</div>
+  <div class="well"><div class="fill"></div></div></div></div>
+</template>
+<script>
+  // ?bootbar=1: the boot bar up before the first paint, its bar easing (on the compositor, so it
+  // moves while the code downloads and runs) toward the code's share of the whole wait, over the
+  // time the code took here the last time (game/bootbar.ts keeps it), else a guess; the share and
+  // the menu's own wait left on the screen for the code to carry on from
+  (() => {
+    if (new URLSearchParams(location.search).get('bootbar') !== '1') return;
+    document.body.appendChild(document.getElementById('bootbar-page').content.cloneNode(true));
+    let last = null;
+    try {
+      last = JSON.parse(localStorage.getItem('rac3r.bootbar') || 'null');
+    } catch {
+      last = null;
+    }
+    const codeMs = Math.max(200, Number(last && last.codeMs) || 3000);
+    const readyMs = Math.max(100, Number(last && last.readyMs) || 600);
+    const share = Math.min(0.95, Math.max(0.5, codeMs / (codeMs + readyMs)));
+    const bar = document.getElementById('bootbar'), fill = bar.querySelector('.fill');
+    bar.dataset.share = share;
+    bar.dataset.readyMs = readyMs;
+    // (the empty bar laid out first, so it eases from empty; 0.9: loading.ts CREEP_SHARE)
+    void fill.offsetWidth;
+    fill.style.transition = 'transform ' + Math.round(codeMs) + 'ms ease-out';
+    fill.style.transform = 'scaleX(' + share * 0.9 + ')';
+  })();
+</script>
 <div id="boot"><h1>RAC3R</h1><p>loading…</p></div>
 <script type="module">
   // the game as ONE file the test server builds (serve.mjs /__bundle.js) instead of ~160 modules
@@ -45,6 +103,9 @@
   const bundled = new URLSearchParams(location.search).get('bundle') !== '0'
     && !navigator.webdriver;
   import(bundled ? './__bundle.js' : './src/main.ts').catch((err) => {
+    // (?bootbar=1: the boot bar taken down, so the error shows)
+    const bootBar = document.getElementById('bootbar');
+    if (bootBar) bootBar.remove();
     document.querySelector('#boot p').textContent = 'could not load: ' + err.message;
   });
 </script>

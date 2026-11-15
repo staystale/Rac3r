@@ -55,6 +55,7 @@ import {
   start, enterMenu, launch, paintThumbs, paintThumbsNow, prepareThumbs, refreshMinimap,
 } from './game/menuflow.ts';
 import { loop } from './game/loop.ts';
+import { endBootBar } from './game/bootbar.ts';
 import { MAX_AI } from './core/settings.ts';
 // build the world, in this order: the hand-made levels (load.ts), then the levels added after them
 initWorld();
@@ -288,6 +289,8 @@ if (shared.MENU) {
   // the phone report's load time: ms from the page opening to the menu shown (ui/report.ts)
   shared.loadMs = Math.round(performance.now());
 }
+// ?bootbar=1: the page's loading bar on until the menu is ready (game/bootbar.ts)
+endBootBar(shared.MENU);
 game.menuMode = shared.MENU;
 window.__game.menu = shared.menu;
 Object.defineProperty(window.__game, 'mode', { get: () => shared.mode });

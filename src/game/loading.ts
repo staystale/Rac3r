@@ -29,7 +29,7 @@ const FILL_LAST_MS = 120;
 // ms a stage is thought to take before it has been timed (the bar's ease through it)
 const FIRST_GUESS_MS = 1500;
 // the share of its stage the bar eases to while the stage runs (the rest when it ends)
-const CREEP_SHARE = 0.9;
+export const CREEP_SHARE = 0.9;
 // ground tiles painted a task (each ~2 ms on the laptop, ~7 ms at CPU x4). MEASURED on Spa at x4
 // (tools/scratch/_startload.mjs): 6 a task, the field to the screen's end 2.45 s for 0.9 s of
 // tiles; 12 a task, 2.07 s - a frame between tasks costs as much as the painting
@@ -145,28 +145,37 @@ export function runLoading(name: string, stages: LoadStage[]): void {
 }
 
 /**
- * The work done: the bar full, the screen held to its least time, the bar flashed blue (as a
- * pressed button: two blinks), then the screen faded over the fly-in's start; the race stays held
- * until the fly-in is over (holdRace).
+ * The work done: the bar full, the screen held to its least time, then flashed and hidden
+ * (flashThenHide); the race stays held until the fly-in is over (holdRace).
  * @param generation the load this is
  */
 function finishLoading(generation: number): void {
   if (generation !== state.generation) return;
-  screen!.progress(1, FILL_LAST_MS);
-  const wait = Math.max(FILL_LAST_MS, MIN_SCREEN_MS - (performance.now() - state.shownAt));
-  setTimeout(() => flashThenFly(generation), wait);
+  const holdMs = MIN_SCREEN_MS - (performance.now() - state.shownAt);
+  flashThenHide(screen!, holdMs, () => generation === state.generation, () => {
+    state.phase = 'fly';
+  });
 }
 
 /**
- * The full bar flashes blue, then the screen fades and the fly-in starts.
- * @param generation the load this is
+ * Ends a screen: its bar filled (over FILL_LAST_MS), held holdMs at the least, flashed blue (as a
+ * pressed button: two blinks), then faded; the loading screen over the fly-in's start, the boot bar
+ * (game/bootbar.ts) into the menu.
+ * @param target the screen
+ * @param holdMs ms the full bar holds before its flash, FILL_LAST_MS at the least
+ * @param isCurrent false once another load has replaced this one (nothing more is done)
+ * @param onHide run as the screen starts to fade
  */
-function flashThenFly(generation: number): void {
-  if (generation !== state.generation) return;
-  screen!.flash();
+export function flashThenHide(target: LoadScreen, holdMs: number, isCurrent: () => boolean,
+  onHide: () => void): void {
+  target.progress(1, FILL_LAST_MS);
   setTimeout(() => {
-    if (generation !== state.generation) return;
-    state.phase = 'fly';
-    screen!.hide();
-  }, PRESS_BLINK_MS);
+    if (!isCurrent()) return;
+    target.flash();
+    setTimeout(() => {
+      if (!isCurrent()) return;
+      onHide();
+      target.hide();
+    }, PRESS_BLINK_MS);
+  }, Math.max(FILL_LAST_MS, holdMs));
 }
