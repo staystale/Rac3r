@@ -869,7 +869,8 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   [world], the pixels [look] - the `checks` workflow then reports that hash instead of failing it.
   Untagged, a difference fails: it was not meant. A level change that moves anything drawn (a
   board, a road) changes the pixels too: [world] [look] (the Brands board and loop, 11-08, failed
-  renderhash on [world] alone). The push to main needs only `verify` on that commit; a red
+  renderhash on [world] alone). An AI change moves the cars renderhash photographs: [sim] [look]
+  (bug 10, 11-15, failed the highway frames on [sim] alone). The push to main needs only `verify` on that commit; a red
   renderhash that shows only the meant levels is not a reason to run CI again.
 - Phone runs: `node tools/phonereport.mjs <report log> --since <UTC time>`; the log path is in the
   owner's README / the test server's start-up.
