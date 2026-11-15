@@ -40,6 +40,8 @@ function mulberry(seed) {
 
 /** A fresh road and traffic, you at the spawn. */
 function newWorld(road, scenery, seed) {
+  // (the game's other dice - the cones, the AI - seeded too: a run repeats)
+  Math.random = mulberry(seed + 1);
   level.seed = seed;
   level.roadType = null;
   hw.setHighwayPreset(level, road, scenery);
@@ -68,7 +70,8 @@ function stepWorld(world) {
   carryYou(world);
   hw.stepHighway(level, you);
   const cam = hw.speedCamera(level, you);
-  traffic.step(DT, { player: you, others: [], visible: () => false });
+  // (no screen test given: the traffic's own - the road from 90 m behind you to 270 m ahead)
+  traffic.step(DT, { player: you, others: [] });
   const all = [you, ...traffic.cars], startVel = all.map((car) => [car.vx, car.vy]);
   carContacts(all);
   all.forEach((car, i) => hit(car, startVel[i][0], startVel[i][1]));
