@@ -24,7 +24,6 @@ import {
   stepLooseCones, stepTyreMarks,
 } from './sim.ts';
 import { shared, game } from './state.ts';
-import { FIX } from '../core/fixes.ts';
 import type { CarInput } from '../vehicle.ts';
 // (cast: the renderer's and the HUD's car shapes are narrower than the traffic's and the
 // highway flow's - one car type is TODO.md work)
@@ -36,8 +35,8 @@ import type { HudGame } from '../hud/hudtypes.ts';
 // worst 1.4 m at 200 km/h). wallDt is already capped at 0.1 s (12 steps), so this cannot become the
 // "background tab lurch" the cap was guarding against.
 export const MAX_STEPS = 12;                // per frame; drop the rest
-// the MOBILE difficulty mode (menu/setup.ts DIFF[0], shared.aiDiff): ?weathermobile=1 shows the
-// weather's notices there only (the owner: no new banners; the game should show what happens)
+// the MOBILE difficulty mode (menu/setup.ts DIFF[0], shared.aiDiff): the weather's notices show
+// there only (the owner: no new banners; the game should show what happens)
 const MOBILE_MODE = 0;
 
 /**
@@ -111,9 +110,9 @@ export function stepWorld(inp: CarInput) {
     [game.car, ...game.ai.map((entry) => entry.car), ...game.traffic.cars]);
   stepAI(PHYSICS_STEP_SECONDS);
   stepRaceFlow();
-  // the weather (weather.ts): a change of sky is news on the HUD (?weathermobile=1: on MOBILE only)
+  // the weather (weather.ts): a change of sky is news on the HUD (on the MOBILE difficulty only)
   const news = stepWeather(PHYSICS_STEP_SECONDS);
-  if (news && (!FIX.weathermobile || shared.aiDiff === MOBILE_MODE))
+  if (news && shared.aiDiff === MOBILE_MODE)
     game.notice = { text: news.text, good: news.good, at: performance.now() };
   // the game clock: runs in an event, the sky follows it
   stepClock(PHYSICS_STEP_SECONDS, shared.mode === 'session', WEATHER.rain);

@@ -52,21 +52,6 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
-  // the rallycross walkthrough says not every rallycross has a joker (guide.ts RULES.rx)
-  rxguide: atLoad('rxguide'),
   // a chasing police car sounds a siren, the light bar's twin (game/sirens.ts, audiosiren.ts)
   siren: atLoad('siren'),
-  // a level built on first use is built in the standard world (bounds.ts inStandardFloor), and its
-  // tape runs numbered from 0: the same whatever level was built or played before it
-  // (world/load.ts buildLevel)
-  forestseed: atLoad('forestseed'),
-  // the police notice when you shake them off reads WANTED LEVEL LOST (LOST THEM read like the
-  // racers' notices) (game/police.ts)
-  wantedlost: atLoad('wantedlost'),
-  // the weather's notices (RAIN STARTING ...) only on the MOBILE difficulty; the weather changes
-  // as before (game/loop.ts)
-  weathermobile: atLoad('weathermobile'),
-  // a frame stamped before the last one has no game time, not a negative one (the menu race's
-  // camera car froze for good on a NaN when its driver got one) (game/pacing.ts)
-  menunan: atLoad('menunan'),
 };

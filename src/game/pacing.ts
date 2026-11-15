@@ -7,7 +7,6 @@
 // learned from the frames, the rounding is carried over (never shown), and a frame that really
 // missed a refresh still counts as two.
 
-import { FIX } from '../core/fixes.ts';
 
 // a gap this long (ms) is a pause or a background tab, not a frame: resync, do not pace it
 const RESYNC_MS = 250;
@@ -33,12 +32,12 @@ export function createFramePacer() {
      */
     step(now: number, last: number) {
       const raw = now - last;
-      // (?menunan=1: a frame stamped before the last one - the first frame can be, main.ts
+      // (a frame stamped before the last one - the first frame can be, main.ts
       // taking its time after the frame began - has no game time, never a negative one: the menu
       // race's driver took it as a step back in time, steered NaN and stopped its car for good)
       if (shown === null || raw <= 0 || raw > RESYNC_MS) {
         shown = now;
-        return FIX.menunan ? Math.max(0, raw) : raw;
+        return Math.max(0, raw);
       }
       // learn from frames that look like one refresh (a missed refresh would pull it up)
       if (raw > interval * 0.5 && raw < interval * 1.5) interval += (raw - interval) * LEARN_RATE;

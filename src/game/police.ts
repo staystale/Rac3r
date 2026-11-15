@@ -2,7 +2,7 @@
 // physics step after the contacts, every driver's heat (ai/policeHeat.ts stepHeats) - you, the
 // racing AI rivals, the traffic (not the police) - reads what happened this step: a speed camera's
 // catch (yours only: game/sim.ts caughtBySpeedCamera), a driver running into a car (noteTouches).
-// Your stars go on the HUD (hud/heat.ts); LOST THEM (?wantedlost=1: WANTED LEVEL LOST) on the
+// Your stars go on the HUD (hud/heat.ts); WANTED LEVEL LOST on the
 // notice line and the BUSTED card are yours only. A bust: you - the card with a fine as the speed
 // camera's (shown, not charged in TEST MODE), your chasers gone, your heat cleared and a normal
 // reset (game/session.ts doReset); an AI rival - held where it was stopped for BUST_HOLD_S (out of
@@ -11,7 +11,6 @@
 import { clearHeat, heatOf, stepHeats } from '../ai/policeHeat.ts';
 import type { Driver } from '../ai/policeHeat.ts';
 import { PHYSICS_STEP_SECONDS } from '../vehicle.ts';
-import { FIX } from '../core/fixes.ts';
 import { LEVEL } from '../world/state.ts';
 import { doReset } from './session.ts';
 import { game, hwLevel } from './state.ts';
@@ -100,9 +99,9 @@ export function stepPoliceGame() {
   const yours = heatOf(orders, game.car);
   game.heat = { stars: yours?.stars ?? 0, siren: !!yours?.sees };
   for (const { driver, result } of events) {
-    // (?wantedlost=1: WANTED LEVEL LOST - CATCH THEM / CLOSING IN / PULLING AWAY are the racers')
-    if (driver.isYou && result === 'escaped') game.notice = { text: FIX.wantedlost
-      ? 'WANTED LEVEL LOST' : 'LOST THEM', good: true, at: performance.now() };
+    // (WANTED LEVEL LOST - CATCH THEM / CLOSING IN / PULLING AWAY are the racers')
+    if (driver.isYou && result === 'escaped') game.notice = { text: 'WANTED LEVEL LOST',
+      good: true, at: performance.now() };
     if (result !== 'busted') continue;
     if (driver.isYou) bustPlayer(yours?.stars ?? 1);
     else if (driver.kind === 'ai') holdAI(driver.owner as AiEntry);

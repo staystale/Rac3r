@@ -100,6 +100,81 @@ The item as it stood (history; "under test" there is now the default):
   with the switch off: not caused by reading the cars by the road. Not fixed (an AI change: the
   owner decides).
 
+## PASSED 11-15 (owner: "Ok pass") - THE FOREST BUILD LEAK, WANTED LEVEL LOST, WEATHER ON MOBILE,
+THE MENU RACE NaN, THE RX WALKTHROUGH LINE; now the default (switches gone). PROOF: worldhash
+--highway 20, round51 with all five on vs the default: every line SAME. simhash / renderhash
+left to CI (no sim or drawn change: notices, a frame-time floor the tools never hit).
+
+- RX WALKTHROUGH (owner 11-15: "maybe just say not all races have jokers and don't show the joker
+  hud stuff when not needed"): BUILT behind `?rxguide=1` (guide.ts RULES.rx): " Not every
+  rallycross has a joker." added to the first card. The joker HUD and steps ALREADY show only on a
+  joker level (Croughed RX races as a lap race: the race walkthrough, no joker line). Photos
+  tools/scratch/_rxguide-*.
+- THE FOREST STAGE'S BUILD LEAK (owner 11-15: "Eww fix that issue Forrest building"). BUILT behind
+  `?forestseed=1` (FIX.forestseed; testlist 'forestseed'; world/load.ts buildLevel, bounds.ts
+  inStandardFloor). CAUSE: a level built on first use read the floor of the level set before it -
+  kit.ts trackKit clear and rxDress free keep props and bales 5-6 m inside the live FLOOR - and the
+  tape runs were numbered on from every level taped before. Not a random seed: the stage's own
+  generator is seeded; Math.random seeded before each build changed nothing. MEASURED
+  (tools/scratch/_buildorder.mjs: each of the 50 lazily built levels built in the standard world
+  and again right after other levels, back to its stub between): OFF, 12 of 50 differ - the 8 set
+  rally stages and the forest stage gain 7-26 trees at their edge after a big venue (forest 827 ->
+  853 props after Spa or Croughed RX; 827 after Naffcar or Lab), Croughed RX gains 32-41 bales
+  and stacks round Clervaux and Hawthorn (355 loose objects alone, 367 after Croughed, 387 after
+  Thruston, 396 after Spa), and X Gayms and Holy Jeez only their tape ids. ON: 0 of 50 differ,
+  after Spa, Naffcar, Croughed RX or the highway (a 100 km floor). The level is always the
+  "built alone" one, so in the game: the stages lose the extra edge trees they had after a big
+  menu-race track (the menu race picks a random circuit, oval or RX track, or the highway).
+  CROUGHED RX KEEPS ITS BALES (owner rule "never change what's passed"): a rallycross venue's
+  bales and tyre stacks are kept inside the level's OWN floor (rallycross-venue.ts passes
+  level.floor to kit.ts rxDress), as the tape is: Croughed RX (546 m) 396 loose objects after
+  every level (the standard 260 m world dropped 41 of them: 355). ON, MEASURED again: 0 of 50
+  levels differ by build order (after Spa, Naffcar, the highway); Croughed RX, Holy Jeez and X
+  Gayms after Spa, Naffcar, Croughed, Thruston: the same (396 / 545 / 585); every other lazily
+  built level the same count as before. (In node the highway does not load: "after the
+  highway" is after the level before it.) worldhash (LEVELS order): OFF SAME as round49
+  (330cae71); ON against the old ?forestseed=1, only Croughed RX (cones 355 -> 396); ON against
+  OFF, the tape ids on the tape levels and Croughed RX 367 -> 396 loose objects.
+- OLD BANNERS, NO NEW ONES (owner 11-15: no new banners ever; "it should be clear from the game
+  what's happening"). BUILT behind its own switch (testlist 'wantedlost', 'weathermobile'):
+  - `?wantedlost=1` (FIX.wantedlost, game/police.ts): shaking off the police reads WANTED LEVEL
+    LOST, not LOST THEM (CATCH THEM / CLOSING IN / PULLING AWAY are the racers'). FITS
+    (tools/scratch/_noticeshots.mjs: the escape made by the game's own police step on the
+    highway, the box measured as drawHudNotice lays it): 274 x 46 px, 285 px clear each side at
+    844x390, 58 px at 390x844, over no HUD piece (LOST THEM: 165 px); photos looked at.
+  - `?weathermobile=1` (FIX.weathermobile, game/loop.ts): the weather's notices only on the
+    MOBILE difficulty (shared.aiDiff 0), the weather changing as before. MEASURED
+    (tools/scratch/_weathernotice.mjs, laptop, Thruston, winter SEASON weather, 600 s, two seeds,
+    MOBILE and REALISH): the weather's changes identical off and on (seed 1: rain at 264 s; seed
+    2: snow at 219 s, rain at 566 s); notices OFF on both modes (RAIN STARTING; SNOW FALLING, RAIN
+    STARTING), ON on MOBILE only, none on REALISH. Not photographed: the notice is the same line
+    as before, its words unchanged.
+  - PROOFS (every 11-15 switch here off - forestseed, wantedlost, weathermobile, menunan; the
+    second PC against db2919a2, both before and after the menunan commit): simhash SAME (all 13
+    runs); renderhash SAME on Thruston and the highway; worldhash --highway 20 SAME (laptop).
+- THE MENU RACE'S NaN (TODO 4 WATCH 11-04, again 11-14 in menucheck at 390x844). FOUND AND FIXED
+  behind `?menunan=1` (FIX.menunan, game/pacing.ts; testlist 'menunan').
+  TRIPWIRE (tools/scratch/_menunan.mjs): the menu opened many times over five sizes, each frame
+  the camera car's state and input in a ring, dumped when the game recovers a NaN. LAPTOP, 40
+  races of 15 s: 4 froze (Dieatona Road, X Gayms, Anglesleazy National, Sillystone); the second PC,
+  81 races: 8 froze (Castle Kum, Malarkey, Brands Indy, Croughed, Snotterton, Anglesleazy, the
+  highway twice; every size, 844x390 too): each time the camera car's input steer NaN from the
+  first frame, throttle 1, the car standing at its grid slot, recovered every step. CAUSE: the frame pacer returned a
+  frame stamped before the last one as it is - NEGATIVE game time (the first frame can be: main.ts
+  takes performance.now() after the frame began). The demo driver is driven with the frame's time
+  (sim.ts demoInput; ?autopilot too): its clock went below 0, and ai/driverDrive.ts's 'wide'
+  window test (state.t < (state.wideUntil || 0)) then read state.wide, never set: undefined, so
+  its lateral target and steer were NaN (node: a first drive with -4 ms gives steer NaN; 0 ms and
+  +16 ms do not). The NaN step left the car's tyre wear NaN, which no recovery clears, so it
+  stayed frozen. FIX (a plain bug, the AI untouched): such a frame has 0 ms. Forced (_menunan
+  AHEAD=30, the last frame time set 30 ms ahead): off, steer NaN for the next 6 frames, driver
+  clock -0.41 s; on, steer finite, clock from 0. WITH THE SWITCH: laptop 0 of 40 races froze, the
+  second PC 0 of 100 (off: 12 of 121, 10 %); menucheck with it OK at both sizes. simhash with
+  ?menunan=1 SAME as without (the tools' stepped clock never stamps a frame early).
+  NOT CHANGED (questions in the hand-over): the driver's wide-window test still reads an unset
+  state.wide when its clock is negative (ai/ - not touched); a recovery does not clear a NaN tyre
+  wear.
+
 ## PASSED 11-15 (owner: "Pass") - THE LOGO FADE: the boot bar's logo box empty until the logo has
 come (asked for at high priority), then faded in over 150 ms; the words (RAC3R, the blue 3) only
 after 3 s or if it fails. Was ?logofade=1 (index.html). Photos tools/scratch/_bootbar-logofade1-*.

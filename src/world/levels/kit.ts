@@ -95,7 +95,7 @@ export function trackKit(sub: Subtrack, seed: number, lanes: Lane[] = []): Track
 // lane (joker, start, traps, paddock) and 1.6 m clear of any existing object.
 // lined: [[d0, d1]] stretches with bales along BOTH sides every 4.4 m
 // floorM: the half-size of the level's world, m (bales kept 5 m inside it); the live FLOOR unless
-// the level passes its own (?forestseed=1: world/levels/rallycross-venue.ts)
+// the level passes its own (world/levels/rallycross-venue.ts)
 export function rxDress(
   sub: Subtrack, lanes: Lane[], existing: Cone[], lined: Point[] = [],
   floorM: number = FLOOR): Cone[] {

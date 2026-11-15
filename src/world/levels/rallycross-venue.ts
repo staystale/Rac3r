@@ -12,7 +12,6 @@ import { SURFACES } from "../surfaces.ts";
 import { jokerApproach, jokerArrow } from "./slidden-hill.ts";
 import { jokerBales, rxDress } from "./kit.ts";
 import { RX_BUSHES } from "./bushes.ts";
-import { FIX } from "../../core/fixes.ts";
 import type { VenueSpec } from "../venue.ts";
 import type { Cone, JokerRule, Lane, Level, Point, Solid, Subtrack } from "../types.ts";
 
@@ -71,10 +70,9 @@ export function rallycrossLevel(spec: VenueSpec, layout: string, levelId: string
   const loose = sub.sectors.filter((sector) => sector.surface === SURFACES.dirt)
     .map((sector): Point => [sector.startDist, sector.endDist]);
   // (none in a prop: a corner's tyre block landed in a marshal post's hut)
-  // (?forestseed=1: kept inside the level's own floor, not the floor of the level set before it -
+  // (kept inside the level's own floor, not the floor of the level set before it -
   // the build runs in the standard world, whose 260 m dropped Croughed RX's outer bales)
-  const floorM = FIX.forestseed ? level.floor : undefined;
-  const bales = rxDress(sub, level.lanes || [], level.cones, loose, floorM)
+  const bales = rxDress(sub, level.lanes || [], level.cones, loose, level.floor)
     .filter((cone) => !inSolid(level.solids || [], cone.x, cone.y));
   const cones = [...level.cones, ...bales];
   // (tidied as the venue's own: none on another or on a barrier)
