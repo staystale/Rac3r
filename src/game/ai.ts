@@ -17,6 +17,7 @@ import { startHeld, carHeld, atPace, formationWant } from './order.ts';
 import { RESET_BACK, RESET_ANG } from './session.ts';
 import { shared, game } from './state.ts';
 import { activeLamps } from '../world/lamps.ts';
+import { FIX } from '../core/fixes.ts';
 import {
   behindRecord, freeLapSpot, freeShoulderSpot, stuckWatchFires,
 } from './aistuck.ts';
@@ -127,6 +128,17 @@ export function refreshAIObstacles(entry: AiEntry, dt: number) {
 }
 
 /**
+ * ?hwdodge=1 on the endless road: the racers read the cars by the road, and a two-way road's middle
+ * line keeps them to their side for oncoming cars (ai/driverOncoming.ts); else nothing.
+ * @returns the road context, or undefined
+ */
+function roadCtx(): { middleOff: number | null } | undefined {
+  if (!FIX.hwdodge || !LEVEL.endless) return undefined;
+  const geo = hwLevel()._hw.geo;
+  return { middleOff: geo.median == null && geo.oncoming.length ? geo.oppL : null };
+}
+
+/**
  * Asks an AI driver for its controls this step.
  * @param entry the AI entry
  * @param dt the step in seconds
@@ -145,7 +157,7 @@ export function aiWant(entry: AiEntry, dt: number) {
       cars: [game.car, ...game.ai.map((other) => other.car),
         ...(LEVEL.endless ? game.traffic.ourSide : [])].filter((other) => other !== car
           && sameLevel(other, car)),
-          hold: startHeld(), lap,
+          hold: startHeld(), lap, road: roadCtx(),
             laps: game.flow ? game.flow.laps : shared.race.on ? shared.race.laps
               : (LEVEL.joker && LEVEL.joker.laps) || 5 }));
   // waiting out the crash

@@ -52,6 +52,9 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
+  // the highway racers read cars by the road and keep to their own side of a two-way road for an
+  // oncoming car within 4 s, judged by skill (ai/driverOncoming.ts)
+  hwdodge: atLoad('hwdodge'),
   // a chasing police car sounds a siren, the light bar's twin (game/sirens.ts, audiosiren.ts)
   siren: atLoad('siren'),
 };

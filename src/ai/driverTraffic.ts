@@ -114,9 +114,11 @@ export function followAhead(drv: Drv, acc: CarsAcc, env: CarsEnv, fwd: number, o
   const both = [otherLat + clear, otherLat - clear];
   const onRoad = both.filter((cand) => Math.abs(lineOff + cand) <= latLim);
   // (past the edge only round a car stopped or crawling - offTrackOk)
+  // (?hwdodge=1: an oncoming car close - no side in the other way's lane: ai/driverOncoming.ts)
+  const keepMax = state.keepMax ?? Infinity;
   const cands = (onRoad.length || !offTrackOk(vAlong, speed) ? onRoad : both.filter(
-      (cand) => Math.abs(lineOff + cand) <= wide)).sort(
-      (first, second) => Math.abs(first - myLat) - Math.abs(second - myLat));
+      (cand) => Math.abs(lineOff + cand) <= wide)).filter((cand) => lineOff + cand <= keepMax)
+      .sort((first, second) => Math.abs(first - myLat) - Math.abs(second - myLat));
   if (cands.length && fwd > 3) {
     acc.dodgeT = cands[0] - latT;
     // no time to swerve at this speed -> brake until there is (ai/dodge.ts)
@@ -277,6 +279,33 @@ const MARGIN_WAY = 1;
  */
 const readSpeed = (speed: number, vAlong: number) => Math.max(speed, speed - vAlong);
 
+// one car as I read it (reused: no allocation per step) - m ahead, m across, m/s along my way
+const view = { fwd: 0, lat: 0, vAlong: 0 };
+
+/**
+ * Where another car is to me: by my heading (a box ahead of the car), or (?hwdodge=1 on the endless
+ * road: ai/driverOncoming.ts) by the road - both road frames' distance along and offset across,
+ * its speed along the road - so a car round a bend is ahead, not off to the side.
+ * @param car my car
+ * @param other the other car
+ * @param byRoad read by the road (both have road frames)
+ * @returns the view (shared: read before the next call)
+ */
+function viewOf(car: AiCar, other: AiCar, byRoad: boolean) {
+  if (byRoad) {
+    view.fwd = other._hwf!.s - car._hwf!.s;
+    view.lat = other._hwf!.off - car._hwf!.off;
+    view.vAlong = other._hwf!.v;
+    return view;
+  }
+  const cosH = Math.cos(car.heading), sinH = Math.sin(car.heading);
+  const relX = other.x - car.x, relY = other.y - car.y;
+  view.fwd = relX * cosH + relY * sinH;
+  view.lat = -relX * sinH + relY * cosH;
+  view.vAlong = other.vx * cosH + other.vy * sinH;
+  return view;
+}
+
 /** The s of travel the gap spotter reads the cars ahead in, by skill. */
 function gapLook(skill: number) {
   return GAP_LOOK_WEAK + (GAP_LOOK_TOP - GAP_LOOK_WEAK) * Math.max(0, Math.min(1, skill));
@@ -292,7 +321,7 @@ export function carsStep(drv: Drv, car: AiCar, others: AiCar[], path: AiPath, ne
   const env: CarsEnv = {
     car, path, nearIdx, idx, speed, prec, prof, lineOff, latT, startK, latLim, myLat, clear, gapF
   };
-  const cosH = Math.cos(car.heading), sinH = Math.sin(car.heading);
+  const byRoad = !!state.roadRead && !!car._hwf;
   // the s ahead it reads the cars in, by skill (was 1.1 for everyone; ai/dodge.ts)
   // (the gap spotter's reading, the highway driver's 2.6 .. 3.8 s - ai/gapPick.ts)
   const look = gapLook(traits.skill);
@@ -301,17 +330,14 @@ export function carsStep(drv: Drv, car: AiCar, others: AiCar[], path: AiPath, ne
   };
   const seen: SeenCar[] = [];
   for (const other of others) {
-    const relX = other.x - car.x, relY = other.y - car.y, fwd = relX * cosH + relY * sinH,
-        lat = -relX * sinH + relY * cosH;
+    const { fwd, lat, vAlong } = viewOf(car, other, byRoad && !!other._hwf);
     // (cars to 60 m behind too - the gap picker's mirror; ahead, read as far in time
     // as a car going my way - one coming at me at the closing speed)
-    if (fwd < -60 || fwd > 8 + readSpeed(speed, other.vx * cosH + other.vy * sinH) * look
-      || Math.abs(lat) > 8) continue;
+    if (fwd < -60 || fwd > 8 + readSpeed(speed, vAlong) * look || Math.abs(lat) > 8) continue;
     // its lateral place relative to MY path
     const closeIdx = closestPathIdx(drv, env, other, fwd);
     const point = path.pts[closeIdx], otherLat = (other.x - point.x) * -Math.sin(point.h) + (
         other.y - point.y) * Math.cos(point.h);
-    const vAlong = other.vx * cosH + other.vy * sinH;
     const envO = sizedEnv(env, car, other, point.h);
     envO.dec = readBraking(state.seenV ??= new WeakMap(), other, vAlong, state.t, traits.skill);
     // (not the car I am attacking: the attack is passing it - going round it as traffic undid the
