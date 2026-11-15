@@ -13,6 +13,31 @@ import { startServer, launchBrowser, gotoGame, extraQuery } from '../lib/browser
 const LEVELS = (process.env.LEVELS || 'naffcar,stock-car,dieatona,highway').split(',');
 const CARS = (process.env.CARS || 'saloon-rwd,naffcar,banger-f2').split(',');
 const RUNS = Number(process.env.RUNS || 2);
+// SHOTS=<folder>: photo mode - each level and car once, a photo SHOT_AT s into the formation
+// (VIEW=WxH), no measuring
+const SHOTS = process.env.SHOTS || '', SHOT_AT = Number(process.env.SHOT_AT || 4.5);
+const [VIEW_W, VIEW_H] = (process.env.VIEW || '844x390').split('x').map(Number);
+const SWITCH = (process.env.RAC3R_QUERY || '').includes('rollhold=1') ? 'on' : 'off';
+
+/**
+ * Photo mode: one launch, a photo as the formation's clock passes SHOT_AT.
+ * @returns {Promise<void>}
+ */
+async function photo(page, levelId, carId) {
+  await page.evaluate(([id, car]) => window.__game.launch(id, car, { ai: 5, diff: 2,
+    aiCars: 'class', traffic: 0 }), [levelId, carId]);
+  for (let tries = 0; tries < 100; tries++) {
+    await page.waitForTimeout(100);
+    if (await page.evaluate(() => window.__game.start.on && !window.__game.start.green
+      && window.__game.start.t < 1.5)) break;
+  }
+  for (let tries = 0; tries < 200; tries++) {
+    if (await page.evaluate((at) => window.__game.start.t >= at, SHOT_AT)) break;
+    await page.waitForTimeout(50);
+  }
+  await page.screenshot({ path: `${SHOTS}/_rollhold-${levelId}-${carId}-switch${SWITCH}-`
+    + `${VIEW_W}x${VIEW_H}.png` });
+}
 
 /** Page side: one run, sampled every frame; returns its numbers. */
 async function sampleRun([levelId, carId]) {
@@ -76,15 +101,19 @@ const browser = await launchBrowser();
 let total = { pre: 0, post: 0 };
 try {
   const errors = [];
-  const page = await browser.newPage({ viewport: { width: 844, height: 390 } });
+  const page = await browser.newPage({ viewport: { width: VIEW_W, height: VIEW_H } });
   page.on('pageerror', (err) => errors.push(err.message));
   // (the autopilot drives your car after the green: a car left standing would be hit)
   await gotoGame(page, `${server.url}/?pc=1&guide=0&menu=0&rules=0&noaudio=1&loadscreen=0`
     + `&autopilot=1${extraQuery()}`);
-  await page.mouse.click(422, 195);
+  await page.mouse.click(VIEW_W / 2, VIEW_H / 2);
   await page.waitForTimeout(800);
   for (const levelId of LEVELS) {
     for (const carId of CARS) {
+      if (SHOTS) {
+        await photo(page, levelId, carId);
+        continue;
+      }
       for (let run = 0; run < RUNS; run++) {
         const res = await page.evaluate(sampleRun, [levelId, carId]);
         total.pre += res.pre.bumps.length;
