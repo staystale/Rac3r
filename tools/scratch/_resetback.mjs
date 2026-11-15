@@ -7,9 +7,11 @@
 //   joker     RX: on the joker lane, then 25 m back down it and 5 m off it, RESET (back) / with
 //             an AI on the spot (blocked)
 //   start     stages: on the road 1 m past the start line, RESET - ahead is a FAIL
+//   crumb     the Lab (no road, no other car): coasting at 20 m/s, RESET goes back to where the
+//             car was ~2 s before (metres back along its way)
 //   cut       a circuit race: a big cut put back where the car left the road, an AI on that spot
 //   hw-*      the endless roads: the wrong-way guard (the car 40 m back down the road), the
-//             off-road guard (90 m out, 20 m back), R from 60 m out and 30 m back; R and the
+//             off-road guard (90 m out, 20 m back), R from 150 m out and 30 m back; R and the
 //             wrong-way guard with an AI racer on the spot; R with a chasing police car near
 //             (the police car cleared away is a FAIL)
 // Each line: OK / FAIL, the metres the reset put the car ahead (+) or behind (-) of where it was
@@ -24,6 +26,7 @@ const ALL = {
   rx: ['knobhill', { ai: 3, rx: true }, ['back', 'blocked', 'joker']],
   stage: ['gen-forest-medium-mixed-1001', { ai: 2 }, ['back', 'blocked', 'start']],
   lamb: ['sweaty-lamb', { ai: 2 }, ['back', 'blocked', 'start']],
+  lab: ['lab', { ai: 0 }, ['crumb']],
   'hw-motorway': ['highway', { ai: 2, traffic: 1, road: 'motorway' }, ['hw']],
   'hw-twisty': ['highway', { ai: 2, traffic: 1, road: 'twisty' }, ['hw']],
   'hw-canyon': ['highway', { ai: 2, traffic: 1, road: 'dual', scenery: 'canyon' }, ['hw']],
@@ -31,6 +34,18 @@ const ALL = {
 const CASES = (process.env.CASES || Object.keys(ALL).join(',')).split(',');
 // m a reset may land ahead and still count as in line (a road point's own rounding)
 const TOLERANCE_M = 0.5;
+// SHOTS=<folder>: a photo just after each blocked reset and the police one; VIEW=390x844 the size
+const SHOTS = process.env.SHOTS || '';
+const [VIEW_W, VIEW_H] = (process.env.VIEW || '844x390').split('x').map(Number);
+let caseName = '';
+
+/** A photo of the game now, when SHOTS is set. */
+async function shot(page, label) {
+  if (!SHOTS) return;
+  await page.waitForTimeout(150);
+  const name = `_resetback-${caseName}-${label}-${VIEW_W}x${VIEW_H}.png`;
+  await page.screenshot({ path: `${SHOTS}/${name}` });
+}
 
 /** Page side: the helpers every case uses, on window.__rb. */
 async function installHelpers() {
@@ -73,6 +88,13 @@ async function installHelpers() {
     });
   }).length;
   const others = () => [...game.ai.map((entry) => entry.car), ...game.traffic.cars];
+  // every put-back of yours snaps the camera to the car: counted, to know one has happened
+  const renderer = game.renderer, snap = renderer.snap;
+  window.__rbSnaps = 0;
+  renderer.snap = (car) => {
+    if (car === game.car) window.__rbSnaps++;
+    return snap.call(renderer, car);
+  };
   window.__rb = { nearest, lapAhead, put, putOn, overlaps, others, tyrewall, joker, highway,
     police };
 }
@@ -122,9 +144,11 @@ async function lapCase(page, kind, frac) {
       landed: rb.overlaps(car, rb.others()) };
   }, [offAt, taken]);
   if (!res) return `  ${kind.padEnd(8)} at ${Math.round(d0)} m: no AI car to block with`;
+  if (kind === 'blocked' && frac < 0.5) await shot(page, 'blocked');
   const isOk = res.ahead <= TOLERANCE_M && res.landed === 0;
   return `${isOk ? 'OK  ' : 'FAIL'} ${kind.padEnd(8)} at ${String(Math.round(d0)).padStart(5)} m:`
-    + ` ${res.ahead > 0 ? '+' : ''}${res.ahead.toFixed(1)} m ${spot(kind)}, on ${res.landed} car(s)`;
+    + ` ${res.ahead > 0 ? '+' : ''}${res.ahead.toFixed(1)} m ${spot(kind)},`
+    + ` on ${res.landed} car(s)`;
 }
 
 /** What a case's metres are measured from. */
@@ -177,6 +201,7 @@ async function jokerCase(page) {
       return { ahead: after - (spotTaken ? spotTaken.along : here), wasOn,
         landed: rb.overlaps(game.car, rb.others()) };
     }, [len * 0.7 - 25, backOff.toString(), taken]);
+    if (blocked) await shot(page, 'joker');
     const isOk = res.ahead <= TOLERANCE_M && res.landed === 0 && res.wasOn;
     lines.push(`${isOk ? 'OK  ' : 'FAIL'} joker${blocked ? '-blk' : '    '} `
       + `${res.ahead > 0 ? '+' : ''}${res.ahead.toFixed(1)} m along the lane `
@@ -221,6 +246,30 @@ async function cutCase(page) {
     + `${after.ahead.toFixed(1)} m from the taken spot, on ${after.landed} car(s), "${after.why}"`;
 }
 
+/**
+ * The Lab: coasting, then RESET; how far back along its way the car was put.
+ * @returns {Promise<string>} the line
+ */
+async function crumbCase(page) {
+  const from = await page.evaluate(() => {
+    const car = window.__game.car;
+    Object.assign(car, { vx: 20 * Math.cos(car.heading), vy: 20 * Math.sin(car.heading) });
+    return { x: car.x, y: car.y, heading: car.heading };
+  });
+  await wait(page, 3000);
+  const res = await page.evaluate((start) => {
+    const game = window.__game, car = game.car, ax = Math.cos(start.heading);
+    const ay = Math.sin(start.heading), along = (x, y) => (x - start.x) * ax + (y - start.y) * ay;
+    const was = along(car.x, car.y);
+    game.reset();
+    return { ahead: along(car.x, car.y) - was, landed: window.__rb.overlaps(car,
+      window.__rb.others()) };
+  }, from);
+  const isOk = res.ahead <= TOLERANCE_M && res.landed === 0;
+  return `${isOk ? 'OK  ' : 'FAIL'} crumb    ${res.ahead > 0 ? '+' : ''}${res.ahead.toFixed(1)} m`
+    + ` along its way from where it was, on ${res.landed} car(s)`;
+}
+
 /** Page side: the car's road frame now. */
 function roadNow() {
   const game = window.__game, frame = game.level._hw.q;
@@ -251,7 +300,7 @@ async function hwPutBack(page, kind, blocked) {
     const rb = window.__rb, game = window.__game, level = game.level, frame = level._hw.q;
     const out = level._hw.geo.hw, lane = level._hw.geo.centres[0];
     const [back, off] = how === 'wrongway' ? [40, lane] : how === 'guard-off' ? [20, -(out + 90)]
-      : how === 'R-far' ? [30, -(out + 60)] : [0, lane];
+      : how === 'R-far' ? [30, -(out + 150)] : [0, lane];
     const carS = frame.s - back, pose = rb.highway.roadPose(level, carS, off);
     const putCar = () => {
       rb.put(game.car, pose.x, pose.y, pose.h);
@@ -260,6 +309,7 @@ async function hwPutBack(page, kind, blocked) {
     };
     putCar();
     game.notice = null;
+    window.__rbSnapsWere = window.__rbSnaps;
     let taken = null;
     if (isBlocked && how.startsWith('R')) {
       game.reset();
@@ -275,10 +325,11 @@ async function hwPutBack(page, kind, blocked) {
       taken = { x: spot.x, y: spot.y, heading: spot.h };
     }
     if (taken) rb.put(game.ai[0].car, taken.x, taken.y, taken.heading);
+    // (the probe's own put-back not counted)
+    window.__rbSnapsWere = window.__rbSnaps;
     if (how.startsWith('R')) {
-      const atReset = rb.highway.roadFrame(level, game.car.x, game.car.y, null);
       game.reset();
-      return { carS, here: !!atReset, taken };
+      return { carS, taken };
     }
     return { carS, taken };
   }, [kind, blocked]);
@@ -287,11 +338,10 @@ async function hwPutBack(page, kind, blocked) {
     await wait(page, 100);
     res = await page.evaluate(() => {
       const rb = window.__rb, game = window.__game, frame = game.level._hw.q;
-      if (!frame) return null;
+      if (!frame || window.__rbSnaps === window.__rbSnapsWere) return null;
       return { s: frame.s, why: game.notice?.text ?? '-', x: game.car.x, y: game.car.y,
         landed: rb.overlaps(game.car, rb.others()) };
     });
-    if (res && !kind.startsWith('R') && res.why === '-') res = null;
   }
   return { ...moved, ...res };
 }
@@ -310,11 +360,11 @@ async function hwCases(page) {
     if (res.s == null) { lines.push(`FAIL ${how}: no put-back seen`); continue; }
     const ahead = res.s - res.carS, taken = res.taken;
     const gap = taken ? Math.hypot(res.x - taken.x, res.y - taken.y) : 0;
+    if (taken) await shot(page, how);
     const isOk = ahead <= TOLERANCE_M && res.landed === 0;
     lines.push(`${isOk ? 'OK  ' : 'FAIL'} ${how.padEnd(12)} ${ahead > 0 ? '+' : ''}`
       + `${ahead.toFixed(1)} m from where it was${taken ? ', ' + gap.toFixed(1)
-        + ' m from the taken spot' : ''}, on ${res.landed} car(s), "${res.why}"`
-      + (res.here === false ? ' (no road frame: the far reset)' : ''));
+        + ' m from the taken spot' : ''}, on ${res.landed} car(s), "${res.why}"`);
   }
   lines.push(await policeCase(page, mark));
   return lines;
@@ -339,6 +389,7 @@ async function policeCase(page, mark) {
       return { dist, kept: !near.parked && !!near.police, stars: game.heat?.stars ?? 0 };
     });
     if (res) {
+      await shot(page, 'police');
       return `${res.kept ? 'OK  ' : 'FAIL'} police       a chaser ${res.dist.toFixed(1)} m away at`
         + ` the reset: ${res.kept ? 'still there' : 'CLEARED'} (stars ${res.stars})`;
     }
@@ -354,11 +405,12 @@ try {
   const errors = [];
   for (const name of CASES) {
     const [level, opts, kinds] = ALL[name];
-    const page = await browser.newPage({ viewport: { width: 844, height: 390 } });
+    caseName = name;
+    const page = await browser.newPage({ viewport: { width: VIEW_W, height: VIEW_H } });
     page.on('pageerror', (err) => errors.push(err.message));
     await gotoGame(page, `${server.url}/?pc=1&guide=0&menu=0&rules=0&noaudio=1&loadscreen=0`
       + (kinds[0] === 'hw' ? '&autopilot=1' : '') + extraQuery());
-    await page.mouse.click(422, 195);
+    await page.mouse.click(VIEW_W / 2, VIEW_H / 2);
     await wait(page, 800);
     await page.evaluate(([id, launchOpts]) => window.__game.launch(id, 'hatch-rwd', launchOpts),
       [level, opts]);
@@ -375,6 +427,7 @@ try {
       if (kind === 'hw') lines.push(...await hwCases(page));
       else if (kind === 'joker') lines.push(...await jokerCase(page));
       else if (kind === 'cut') lines.push(await cutCase(page));
+      else if (kind === 'crumb') lines.push(await crumbCase(page));
       else if (kind === 'start') lines.push(await lapCase(page, 'start', 0));
       else for (const frac of [0.3, 0.55, 0.8]) lines.push(await lapCase(page, kind, frac));
     }

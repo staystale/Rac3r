@@ -176,6 +176,31 @@ BUGS (each behind its own switch, measured, then a test link):
 4. RESETS: never put you ahead of where you were (inline or behind only); a car in the way: the
    next free spot BEHIND; a reset does not clear the police (they go only when too damaged, or
    having caught someone).
+   BUILT 11-15 behind ?resetback=1 (FIX.resetback, game/resetspot.ts; testlist 'resetback'). Every
+   reset of yours: R / the RESET button (and the bust's, a car change's), the endless road's
+   wrong-way / off-road / exit guard, a big cut's put-back (a circuit race), the Lab's breadcrumbs.
+   - NEVER AHEAD: a circuit, stage or joker-lane reset goes RESET_BACK (4 m) behind the EARLIER of
+     where the car left the road and where it is now (it went off and came back down the run-off);
+     the endless road's guard from the car's own road distance, not the furthest point reached.
+   - A CAR IN THE WAY (a racing AI; on the endless road a police car): the next free spot 6 m
+     further back (up to 40 tries; the guard's rolling put-back keeps 1.5 s of its speed clear in
+     front); a stage never into its gap between the stop zone and the run-up.
+   - THE POLICE STAY: the reset clears only the other traffic within 30 m (as before); the police
+     go only when wrecked or after a bust (ai/trafficPolice.ts, unchanged).
+   MEASURED (tools/scratch/_resetback.mjs, the second PC, the real game; OLD = the switch off):
+   - Back down the run-off 30 m, 9 m out, RESET (3 spots each): OLD +24..+25.5 m AHEAD of the car
+     on Thruston (free drive and race), Knobhill RX, a generated stage, Sweaty Lamb; NEW -4.5..-6 m.
+   - The reset's spot taken by an AI car: OLD lands on it (all 12 spots, and the cut put-back);
+     NEW 6 m behind it, on no car. The joker lane: OLD +21 m ahead / on the car; NEW -4 / -12 m.
+   - The endless roads (motorway, twisty, Deaf Valley): the wrong-way guard OLD +32..+35 m ahead
+     (motorway), +10 m (twisty), NEW 6-8 m behind on the motorway (a lay-by road: the last
+     lay-by behind the car, 88-241 m); the off-road guard on the motorway OLD +13..+15 m,
+     NEW -4..-8 m (the lay-by roads: a lay-by behind either way); R as before (-3..-5 m); R
+     and the wrong-way guard onto an AI: OLD on it (all six), NEW clear
+     (R 10 m back; the guard 33-45 m back on the motorway, the lay-by before on Deaf Valley, 193 m);
+     a chasing police car 6-21 m away at an R: OLD cleared (all three roads), NEW still there.
+   - 1 m past a stage's start line: OLD and NEW behind (-4.5 / -6 m: the run-up behind the line);
+     the Lab: 29.7 m back along its way, both (no road, no other car there).
 5. WRONG WAY ON HIGHWAYS too quick (highway.ts BACK_T 1.2 s, BACK_M 30 m): time to turn round,
    to spin or crash, to roll back a little.
 6. A HIGHWAY RACE WON BY PULLING AWAY while OFF THE ROAD: not allowed (owner 11-13). Off the road
