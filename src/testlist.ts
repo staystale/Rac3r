@@ -12,4 +12,15 @@ export interface TestEntry {
 }
 
 export const TEST_LIST: TestEntry[] = [
+  {
+    id: 'rxguide',
+    added: '2026-11-15',
+    name: 'Rallycross walkthrough: "Not every rallycross has a joker."',
+    where: 'Test link + &rxguide=1: a rallycross race with a joker (Knobhill RX, RX RACE), its '
+      + 'walkthrough (pause menu, or the first time)',
+    try: 'Read the first RALLYCROSS step. Then Croughed RX: no joker steps, no joker in the '
+      + 'lap box.',
+    wrong: 'The sentence missing or cut off, the box overlapping the lap panel, a joker step or '
+      + 'joker line on Croughed RX.',
+  },
 ];

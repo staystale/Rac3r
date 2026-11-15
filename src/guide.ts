@@ -18,6 +18,7 @@
 
 import { COL } from "./world/colours.ts";
 import { LEVEL } from "./world/state.ts";
+import { FIX } from "./core/fixes.ts";
 import type { HudRects } from './hud/layout.ts';
 
 /** A screen rectangle, css px. */
@@ -242,7 +243,8 @@ export const RULES: Record<string, GuideCard[]> = {
     {
       title: 'RALLYCROSS',
       text: () => 'A race of laps on mixed surfaces from the lights. '
-        + 'Your lap and the JOKER status are here.',
+        + 'Your lap and the JOKER status are here.'
+        + (FIX.rxguide ? ' Not every rallycross has a joker.' : ''),
       target: (scene: GuideScene) => scene.L.lap,
     },
     {

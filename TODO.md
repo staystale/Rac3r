@@ -42,6 +42,11 @@ records in `TODO-DONE.md` (PASSED 11-12). On the phone now:
   the menu; behind its own switch.
 - BOOT BAR (owner 11-14: "There's no loading bar when the game first loads"): PASSED 11-15 with
   the logo, the default (TODO-DONE).
+- RX WALKTHROUGH (owner 11-15: "maybe just say not all races have jokers and don't show the joker
+  hud stuff when not needed"): BUILT behind `?rxguide=1` (guide.ts RULES.rx): " Not every
+  rallycross has a joker." added to the first card. The joker HUD and steps ALREADY show only on a
+  joker level (Croughed RX races as a lap race: the race walkthrough, no joker line). Photos
+  tools/scratch/_rxguide-*.
 - LOGO FADE (owner 11-15: no "cheap version of the logo first"): PASSED 11-15, the default
   (TODO-DONE). The test tools (navigator.webdriver) get no boot bar: they click to start at once.
 
