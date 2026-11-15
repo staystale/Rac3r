@@ -120,6 +120,10 @@ BUGS (each behind its own switch, measured, then a test link):
      throttle launch's light wheelspin barely smokes now (old 0-47 % of the time at <= 0.03,
      new 0-6 %). The 4x4s, the saloon and the RX car do not spin up held by the brake: no burnout
      smoke under either rule.
+   - PROOFS (laptop, against a7233a37): simhash SAME switch off and with tyresmoke=1 (all 13
+     runs, 441c130c...); worldhash SAME off and TYRESMOKE=1; renderhash --only thruston,knobhill
+     SAME off and SAME on (its 20 s drives leave the tyres at 43-57 C: no smoke under either
+     rule, so the pixel check cannot see the switch; the photos do).
 3. THE HUD COVERS THE PLAYER'S CAR on the highways: the car must never be under a control or HUD.
 4. RESETS: never put you ahead of where you were (inline or behind only); a car in the way: the
    next free spot BEHIND; a reset does not clear the police (they go only when too damaged, or
