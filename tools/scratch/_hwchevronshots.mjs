@@ -1,7 +1,7 @@
 // _hwchevronshots.mjs - THE HIGHWAY'S CHEVRON BOARDS (?hwchevron=1) photographed in the real game:
 // the autopilot down a highway; a photo when a chevron board first stands 15-45 m ahead (on
-// screen), then the same board knocked flat (its fall set by hand). Writes
-// <OUT>/<on|off>-<scenery>-<road>-<W>x<H>-<up|down>.png.
+// screen) with the view pinned at zoom 1.4, then the same board knocked flat (its fall set by
+// hand). Writes <OUT>/<on|off>-<scenery>-<road>-<W>x<H>-<up|down>.png.
 // [VIEW=390x844] [ROAD=twisty] [SCENERY=countryside] [HWCHEVRON=1] [OUT=dir] [LIMIT_S=240]
 //   node tools/scratch/_hwchevronshots.mjs
 import { mkdirSync } from 'node:fs';
@@ -49,6 +49,9 @@ try {
   }
   if (found < 0) console.log('no board met in', LIMIT_S, 's');
   else {
+    // (the view pinned zoomed in, so the board reads)
+    await page.evaluate(() => window.__game.renderer.debugZoom(1.4));
+    await page.waitForTimeout(250);
     await page.screenshot({ path: `${OUT}/${tag}-up.png` });
     const paint = await page.evaluate((index) => {
       const obj = window.__game.cones.list[index];
