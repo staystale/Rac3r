@@ -87,4 +87,16 @@ export const TEST_LIST: TestEntry[] = [
     wrong: 'The camera\'s car standing still at the start while the others race; any other '
       + 'change to the menu race or to driving.',
   },
+  {
+    id: 'tileahead',
+    added: '2026-11-15',
+    name: 'Smoother highway: the ground made ahead of the car, a little each frame',
+    where: 'Highway, two runs back to back on the same phone: the test link + &report=1, then the '
+      + 'test link + &tileahead=1&report=1. Each: a few minutes flat out (zoomed out), and some of '
+      + 'it off the road in the fields',
+    try: 'Feel for the jerks (60 dropping to 58) flat out and off the road; also look at the '
+      + 'ground as it scrolls in at full speed.',
+    wrong: 'As jerky or worse than without it; squares of ground ahead showing late (the road, '
+      + 'its lines or the verges popping in); any other change to the ground\'s look or driving.',
+  },
 ];

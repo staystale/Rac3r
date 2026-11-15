@@ -387,6 +387,12 @@ off / on): racing laps fronts smoke 5-8 % -> 1 % of the time; a held 1.1 g corne
   wear, kerbs) is painted into cached tiles at ONE density (the zoom-1 step) within a time budget
   per frame (`tilesBudget.ts`); the GPU ground scales them to any zoom and draws each at its exact
   place. Tiles under new wear go stale and are repainted within the budget (`tilesWear.ts`).
+  The look-ahead paints one tile a frame of the widest view round the camera (plus a margin) while
+  nothing in view is missing; a tile goes to the GPU when it is first drawn, so a row scrolling
+  into view uploads 6+ textures in one frame. Under test, `?tileahead=1` (`FIX.tileahead`,
+  `lookAheadSpread`): the box is centred 0.8 s of the car's motion ahead, its tiles kept on the
+  GPU (`sink.preload`), and one tile a frame - nearest the ground about to scroll in - painted and
+  uploaded, or a painted one uploaded; nothing on a frame that painted in view.
   `tilesPalette.ts` builds the palette the GPU snaps to; `tilesShade.ts` the hill shading's
   heights and bands (drawn by `glshade.ts`).
 - `render/ground/` paints into tiles: `art.ts` the per-surface art table, `prims.ts` pattern primitives,
