@@ -19,8 +19,6 @@ export interface PauseActions {
   tests?: boolean;   // the TESTING list (test mode only)
   audio?: MenuAudio | null;
   hud?: { items: () => HudItem[]; set: (pieceId: string, shown: boolean) => void };
-  // ?aipace=1, test mode: the AI DRIVERS dials live - the launch's, now's, and set (game/aitune.ts)
-  aiDials?: { from: () => AiTune; now: () => AiTune; set: (tune: AiTune) => void } | null;
 }
 
 /** The session's actions for the results screens (game/menuflow.ts stepResults). */

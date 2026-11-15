@@ -37,6 +37,171 @@ wakes them, the 60 m witness kept.
     you 8-23 m past it - 2 woke for another driver with heat, 0 passed stayed put; at 130 km/h a
     star from 20 of 20 passed (one 22 m off). Photos of the card: tools/scratch/_policecard/.
 
+## PASSED 11-15 - BUG 9, THE AI'S SLIDES BY THE GROUND (owner: "bug 9a ai slide approved") and THE PACE
+DIAL (owner, after tuning live: "You can remove the sliders now"), the default (were ?aislide=1,
+?aipace=1); the live pause-menu dials removed, PACE kept in the setup's AI DRIVERS panel; the spin
+mistakes left as built (inert); the presets settled (below). PROVED (the second PC, simhash):
+round75 with ?aipace=1 = the PACE-default commit plain, SAME; round75 with ?aipace=1&aislide=1 =
+the slides-default commit plain, SAME; then the presets on their own [sim] [look] commit.
+
+9. AI SLOW ON SLIPPERY SURFACES (measure first: an AI change).
+   OWNER 11-15 GO (one switch, after bug 10): "they don't seem to deviate from racing line even if
+   it's quicker ... slowly drive the racing line even if taking a bit of curb is quicker ... don't
+   slide into corners even as a mistake"; "Ai should slide more on ice but try and go fast still".
+   Build: hold a slide at each surface's own best slip angle (on ice slide MORE, still fast); more
+   corner speed off tarmac; use kerbs / other lines when quicker (check the line first); mistakes
+   by skill. (Option A as first written - catching slides earlier on ice - was the wrong way.)
+   MEASURED 11-15, NOTHING CHANGED (tools/scratch/_aislip.mjs: node, one top-difficulty AI alone,
+   its flying lap; Thruston and Knobhill with their tarmac given the grip numbers of each surface -
+   mu, peakK, longK, plough - so the line and the plan read that grip too; hatch-rwd, rally-4x4,
+   rx-super, f2-rwd; the FAIR REFERENCE is the same AI with its plan's corner and brake factors
+   (ai/line.ts K_CORNER 0.88, K_BRAKE 0.70) scaled x1.15 / x1.3 / x1.5, and the same AI with its
+   slip-feel throttle lifts taken out (NOFEEL), each in the tool only):
+   - AGAINST THE GRIP: a lap on each surface over the tarmac lap, against sqrt(mu ratio) (a lap
+     held by the grip alone): the 4x4 and the RX car match it within 4 % on every surface, both
+     tracks (gravel x1.19-1.22 vs 1.23, snow x1.69-1.73 vs 1.71, ice x2.58-2.72 vs 2.80). The 2WD
+     cars lose more on loose ground: hatch snow x1.87-1.90, sand x1.61-1.62 (vs 1.31: sand's plough
+     drag too), grass / mud +3-7 %; F2 snow x1.85-1.93, grass x1.54-1.58, sand x1.43-1.52, ice
+     x3.20 at Thruston; wet and gravel within 3 % for all but the F2 in the wet (x1.19-1.27,
+     vs 1.14).
+   - THE PLAN IS NOT THE CAUSE: scaled x1.15-1.5 the AI is 0-9 % quicker and stays on the road,
+     but by as much on TARMAC (Thruston 6-8 %, Knobhill 0-4.5 %) as on slippery ground; the 4x4 and
+     RX car gain 0-6 % on gravel, ice or grass, mostly nothing (already 1.2-11 s a lap off the road
+     there). Apexes at 0.72-1.02 of the plan on every surface, tarmac 0.79-0.93.
+   - WHERE THE 2WD TIME GOES: below its own target with the throttle part-open on the slip feel
+     (wheelspin, rear slip) - F2 Knobhill snow 38.5 s of a 71.6 s lap, sand 27.5 s; hatch Thruston
+     snow 18.6 s, ice 94 s of 201 s (part throttle 66-77 % of an icy lap; tarmac 14-42 %) - and full
+     throttle short of the target (traction: the physics). TAKING THE LIFTS OUT IS SLOWER: F2 snow
+     -8..-16 %, sand -58..-82 %, grass -7..-13 % with more off the road; hatch -0.1..-2 % (on ice at
+     Thruston it did not finish the lap); 4x4 / RX within 2.3 %. The lifts are right: the loss is
+     the car's traction, not the driver.
+   - ON ICE the slides grow: rear-slide catches 10-67 s a lap, off the road 3-17 s a lap (4x4, RX,
+     F2), the hatch at Knobhill 15.6 s in one run (a spin). The driver's slide limits are fixed
+     angles (ai/driverSteps.ts slideStep: understeer lift past 0.14-0.20 rad front slip, catch past
+     0.18 rad rear) while each surface's tyre peaks at its own slip (surfaces.ts peakK: ice 0.70,
+     tarmac 1.00, snow 2.00, sand 2.20, gravel 2.40).
+   - NOT MEASURED: the real weather (rain's wetness, snow and ice laid in patches), the native loose
+     levels (Sweaty Lamb, Slidden Hill, the stages), TCS on, contact, a human reference (the
+     scripted demo driver is 34 % slower on tarmac and does not finish an icy lap: no reference).
+   OPTIONS (none built; A and B leave the AI on tarmac unchanged by construction):
+   - A. Slide limits by the ground's peak slip: the lift / catch angles x the surface's peakK over
+     tarmac's (tarmac x1). Expected: fewer slides and offs on ice; later lifts on gravel, snow and
+     sand. Risk: the AWD cars are already at the edge on loose ground. S.
+   - B. A plan bonus off tarmac for 2WD cars only (K x1.1-1.15 where mu < 0.8): measured +2-9 % a
+     lap, 0 off for the hatch and the F2. Risk: more offs in traffic; the 4x4 / RX gain nothing. S.
+   - C. Nothing: the AI tracks the grip; the 2WD cars are traction-limited, as yours are.
+   RECOMMENDATION: ask where it was seen (car, level, weather). A 2WD car on snow or sand: C (it is
+   the car) or B; the AI losing it on ice: A first, measured with _aislip, then in a field.
+   BUILT 11-15 behind ?aislide=1 (FIX.aislide, ai/driverSlide.ts; testlist 'aislide'; ENGINE.md
+   THE AI'S SLIDES BY THE GROUND), the owner's GO in four steps, each measured with _aislip:
+   1. HOLD A SLIDE: the tyre law now writes each axle's peak slip angle (car.t.aPeakR: tarmac
+      ~0.12 rad, gravel ~0.19, sand ~0.16, wet / snow / ice the 0.10 floor); on ground under mu
+      0.7 (not tarmac, wet or dry) a rear slide in a corner going the corner's way is held on the
+      throttle at 1.25 x that (0.15-0.30 rad) - the loose hairpins' drift law, now any corner and
+      every rear- or four-wheel-driven driver - with 2 m x sqrt(0.6 / mu) to the edge (ice ~4.5
+      m); the catch, the understeer lift and the slip feel read the ground's peak too. TRIED: wet
+      tarmac in it (mu 0.85 threshold) - off the road 7 -> 24 s over the runs, out; the 2 m edge
+      on ice - off 48 -> 86 s, so the room grows as the grip falls.
+   2. COMMIT OFF TARMAC: a 2WD car plans 1.12 x the corner grip on mu 0.25-0.7 (gravel, grass,
+      sand, mud, snow). MEASURED alone: every car +1-3 % a lap; the 2WD cars no more offs, the
+      AWD cars 1-3 s more off a lap on gravel and snow, every car more off on ice (65 vs 48 s) -
+      so 2WD only, not ice.
+   3. KERBS: the line did NOT use them - it kept its middle 1.6 m inside the road's edge and the
+      kerbs lie outside the edge (render/kerbs.ts, halfW to halfW + 2.4 m). Now beside a kerb it
+      may come to 0.6 m of the edge (~0.3 m of wheel on the kerb), and the driver's lateral clamp
+      lets it. Tarmac circuits change: alone +0.6 % a lap, no offs.
+   4. MISTAKES BY SKILL: there already were (ai/driverLane.ts: per corner, by the driver's own
+      random stream, severity larger the lower the skill: late / early / throttle / lift).
+      MEASURED before: of 90 at Realish and 200 at Mobile none spun or left the road on tarmac or
+      gravel. Now while a 'late' or 'throttle' one runs the catch is x (1 + 1.5 x severity),
+      nothing held, no understeer lift on a 'late' one, and both twice as big.
+   MEASURED, all four on (the laptop - the second PC ran 5x slower beside the other worker's
+   renderhash; _aislip, Thruston + Knobhill laid in each surface, one flying lap, top difficulty,
+   traits seeds 1 and 2, per car class over 8 runs: lap off -> on, sliding s / lap, off s / lap):
+   - gravel 2WD 58.4 -> 57.0 s (+2.6 %), sliding 2.8 -> 3.3, off 0.7 -> 0.9; AWD 57.3 -> 57.0
+     (+0.6 %), 4.7 -> 6.8, 1.4 -> 1.6. sand 2WD +0.1 %, 4.0 -> 5.5, off 0; AWD +0.3 %, 5.8 ->
+     7.8, 1.9 -> 2.4. grass 2WD 71.4 -> 70.6 (+1.1 %), off 1.5 -> 3.5 (5 -> 11 offs); AWD
+     +0.6 %, off 4.8 -> 4.2. snow 2WD +1.0 %, 10.3 -> 12.7, off 0; AWD +0.9 %, 12.4 -> 13.8,
+     1.5 -> 1.4. ice 2WD 140.8 -> 139.5 (+2.0 %, laps over 7: one unfinished before, none
+     after), spins 8 -> 3, off 5.7 -> 7.2; AWD +0.3 %, off 7.6 -> 5.4. tarmac -0.1 % both
+     (the kerbs; no offs), wet -0.2 / -0.6 %. No spins anywhere but ice.
+   - BY SKILL (Realish, 5 drivers each, 3 laps, hatch + 4x4, both seeds, 120 runs a side):
+     mistakes slid (rear past its peak 0.3 s+) tarmac 9 of 42 -> 17 of 43, gravel 10 of 42 ->
+     22 of 41; still NO mistake spun or left the road on tarmac or gravel (one on ice, either
+     side); gravel offs 2 -> 32 (1 -> 36 s over 40 runs: brushes past the edge), laps 1.5-1.7 %
+     quicker; ice the same mess either way (spins 23 -> 27, unfinished 3 -> 5). The weakest
+     drivers drew the fewest mistakes in these runs (their dice), so by-skill counts are thin.
+   - THE HOLD ANGLE (owner: "see if greater angle speeds up lap times"; HOLD_K 1.25 built, 1.6
+     and 2.0 tried with HOLD_MAX raised 0.30 -> 0.45 - at 1.6 gravel's hold sat on 0.30): laps
+     within 0.3 s of 1.25 on every surface and class (gravel 2WD 57.0 / 57.1 / 57.1, AWD 57.0 /
+     56.9 / 56.9; snow 2WD 84.1 / 84.0 / 84.2; ice 2WD 139.5 / 139.7 / 142.5, spins 3 / 3 / 6),
+     sliding much the same (the hold only acts once the rear is past half the hold, and the
+     cars rarely get the rear out that far on the throttle). A bigger angle does not speed them
+     up. OWNER TO DECIDE the angle (1.25 kept).
+   NOT MEASURED: a full field (contact), the real weather's patches, the native loose levels'
+   own laps (Sweaty Lamb photographed only), mud.
+   OWNER 11-15 (JOB 1b): hold angle 1.25 kept; the gravel-edge brushes fine (no change).
+   MISTAKES THAT SPIN ("yes but rare-ish"): BUILT inside ?aislide=1 (driverSlide.ts spinChance):
+   a 'late' / 'throttle' mistake spins with 0.25 x (1 - skill); never caught, the throttle held
+   1.2 s past the apex, the wheel held 0.7 of the lock into the corner. MEASURED (_aislip, laps
+   2-4, Thruston + Knobhill laid in tarmac and gravel, hatch-rwd + rally-4x4, Mobile + Realish,
+   5 drivers x 2 seeds = 160 runs): mistakes meant to spin 21 (all at skill under 0.4, ~13 % of
+   their 159 mistakes), SPINS 0 - the most a car turned from where it went in one was 0.14-0.32
+   rad (hatch) and 0.31-0.66 rad (4x4; a spin counts past 1.22). Laps and offs as before (within
+   0.3 s). So the cars do not spin from it; not forced further (asked).
+   PACE DIAL + THE AI DRIVERS DIALS LIVE: BUILT behind ?aipace=1 (FIX.aipace; ai/tune.ts paceOf,
+   game/aitune.ts, menu/aidrivers.ts showLiveDials; testlist 'aipace'; ENGINE THE AI DRIVERS DIALS
+   LIVE): PACE x0.8 (0) .. x1 (0.5) .. x1.3 (1) on every driver's corner and braking grip; in the
+   test-mode pause menu AI DRIVERS > moves all seven dials mid-race (photos tools/scratch/
+   _aidials-*.png; _aidialshot: PACE 0.9 + SKILL 0.9 -> paceK 1.24, skill +0.4 on the field's
+   cars, RESET back). MEASURED (_aislip AIPACE=1, ?aislide=1 on, Realish, 5 drivers, laps 2-3,
+   mean lap s / offs over the 5 / s off; PACE 0.3, 0.5, 0.7, 0.9):
+   - tarmac Thruston hatch 70.5 / 68.9 / 67.0 / 65.4, no offs; 4x4 64.5 / 62.6 / 60.1 / 58.2, no
+     offs. Knobhill hatch 46.8 / 46.1 / 45.5 / 44.9, no offs; 4x4 43.5 / 42.3 / 41.3 / 40.4, offs
+     0 / 1 / 3 / 4 (0 / 0.5 / 2.2 / 5.1 s).
+   - gravel Thruston hatch 83.4 / 81.5 / 79.1 / 77.8, offs 0 / 3 / 4 / 16 (0 / 1.8 / 3.4 / 15.8 s);
+     4x4 78.4 / 75.7 / 72.5 / 69.9, offs 7 / 6 / 6 / 18 (4.4 / 5.5 / 6.4 / 17.5 s). Knobhill hatch
+     51.1 / 50.6 / 49.9 / 49.2, offs 0 / 1 / 4 / 4 (0 / 0.3 / 7.2 / 7.8 s); 4x4 47.9 / 46.6 / 45.3
+     / 44.5, offs 1 / 0 / 4 / 11 (0.3 / 0 / 4.6 / 14.7 s).
+   A starting point: 0.7 (x1.12) is 1-4 % a lap quicker than 0.5, a few more offs on gravel; 0.9
+   (x1.24) 3-8 % quicker, still clean on tarmac for the hatch, 3-9x the time off on gravel. NOT
+   MEASURED: a full field (contact), the highway, stages, the live dials' effect mid-race (only
+   that the traits change).
+   THE PRESETS SETTLED (owner 11-15, after tuning live; ai/tune.ts tuneOf): every difficulty's
+   preset = its centre + 0.10 skill, + 0.03 risk, aggression and PACE - added to the presets, not
+   the centre arrays (the centres are also the pace-by-skill reference). Skill / risk / aggression
+   by difficulty, MOBILE .. REAL: 0.40 / 0.41 / 0.43, 0.50 / 0.47 / 0.48, REALISH 0.60 / 0.53 /
+   0.53, RICH 0.70 / 0.59 / 0.58, REAL 0.80 / 0.65 / 0.63; PACE 0.53 (x1.02) on each; spread,
+   defence, mistakes 0.5 as before. Nothing clamps (the highest is 0.80).
+   MEASURED old presets -> new (slides and PACE the default on both sides; tools/aifieldcheck.mjs,
+   node, 6 hatch-rwd AI with contact, 3 laps, seeds 7 / 3 / 11 summed; lap = the mean of laps 2-3;
+   off = seconds off the road, all cars; incidents = well off + spins + big hits + resets; touches
+   = contact events; run-ins = nose-to-tail touches):
+   - Thruston Realish lap 67.54 -> 66.58 s (-1.4 %), off 12.6 -> 7.7 s, incidents 3 -> 1, touches
+     114 -> 131, run-ins 105 -> 90; Real 64.01 -> 63.54 (-0.7 %), 8.1 -> 12.4 s, 3 -> 1, 259 ->
+     130, 182 -> 106.
+   - Brands Realish 79.66 -> 79.30 (-0.5 %), off 14.2 -> 21.8 s, incidents 6 -> 5, touches 342 ->
+     333, run-ins 251 -> 230; Real 76.53 -> 75.68 (-1.1 %), 18.6 -> 59.0 s, 3 -> 10 (3 off, 5
+     spins, 2 resets), 291 -> 548, 159 -> 332.
+   - Sweaty Lamb Realish 149.04 -> 146.49 (-1.7 %), off 166.8 -> 61.8 s, incidents 30 -> 11,
+     touches 358 -> 356, run-ins 207 -> 218; Real 144.14 -> 143.78 (-0.2 %), 72.2 -> 52.5 s, 7 ->
+     7, 194 -> 352, 134 -> 219.
+   - Slidden Hill Realish 52.83 -> 51.79 (-2.0 %), off 257.4 -> 255.6 s, incidents 37 -> 40,
+     touches 246 -> 333, run-ins 93 -> 177; Real 50.59 -> 50.83 (+0.5 %), 237.2 -> 239.5 s, 37 ->
+     40, 193 -> 41, 125 -> 22. (Its off seconds are as high on both sides; not looked into.)
+   Real stays quicker than Realish everywhere. Touches swing hugely run to run on both sides (4 to
+   432 in one run; Brands Real's new seed 7 alone is 432 of its 548 and 38 of its 59 s off), so at
+   3 seeds the contact numbers are noise; the laps are the steadier read.
+   PILE-UPS old -> new (tools/scratch/_pileups.mjs on the second PC, the real game, 19 AI, the
+   default difficulty Realish, 240 s, seeds 1 + 2 summed; run-ins = touches into a stopped or much
+   slower racer):
+   - Brands: touches 214 -> 224, incidents 80 -> 92 (4.05 -> 4.63 per 10 km, 2.68 -> 2.43 touches
+     each), run-ins 6 -> 27, at 15 km/h+ 80 -> 72, mean lap 86.95 -> 87.35 s, 78.1 -> 78.4 km/h.
+     By seed: s1 82 -> 113 touches, run-ins 4 -> 13; s2 132 -> 111, 2 -> 14.
+   - Knobhill RX: touches 227 -> 193, incidents 74 -> 59 (5.18 -> 4.01 per 10 km, 3.07 -> 3.27
+     each), run-ins 44 -> 42, at 15 km/h+ 83 -> 50, mean lap 59.0 -> 56.8 s, 56.4 -> 58.2 km/h.
+   (Offs are not in this tool: aifieldcheck above has them.)
+
 ## PASSED 11-15 (owner: "Pass") - THE SINGLE-LANE ROLLING-START FIX AND THE AI CRASH PUT-BACKS BY YOUR RESET'S
 RULES, the default (were ?rollfix=1, ?aireset=1). Numbers: TODO 3a2 item 10 (rolling starts) and the AI extras' 2a note.
 

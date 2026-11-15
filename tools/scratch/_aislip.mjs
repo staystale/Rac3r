@@ -11,9 +11,9 @@
 // braking / full throttle / part throttle / coasting, the time BELOW its own target by > 1.5 m/s
 // and why (full throttle = the physics; part throttle: understeer lift, oversteer catch, slip
 // feel, ramp), mean front / rear slip in corners, and the speed at each corner's apex vs its plan.
-// JOB 1b: AIPACE=1 PACE=0..1 sets the AI DRIVERS PACE dial (ai/tune.ts paceOf); each run also
+// JOB 1b: PACE=0..1 sets the AI DRIVERS PACE dial (ai/tune.ts paceOf); each run also
 // counts the mistakes meant to spin (spinMists) and the most the car turned while one ran.
-// BUG 9 additions: AISLIDE=1 (the game's switch, read by core/fixes.ts) turns the slide work on;
+// BUG 9 additions (the slide work is the game's default since 11-15):
 // DIFF (difficulty 0-4, default 4), SEAT (place in the field: the persona, default 0) and TSEED
 // (the traits' seed, default 3) pick the driver; LAPS (default 1) flying laps are tallied (laps
 // 2..LAPS+1). Per run also: each lap's time, SLIDING (s with the rear past its tyre's peak slip
@@ -40,7 +40,7 @@ async function runOne([level, carId, surfId, kMulText]) {
         plough: from.plough });
     }
   }
-  // (HOLDK / HOLDMAX: the slide hold's angle dials, ai/driverSlide.ts - with AISLIDE=1)
+  // (HOLDK / HOLDMAX: the slide hold's angle dials, ai/driverSlide.ts)
   if (process.env.HOLDK) globalThis.__AI_HOLDK = Number(process.env.HOLDK);
   if (process.env.HOLDMAX) globalThis.__AI_HOLDMAX = Number(process.env.HOLDMAX);
   globalThis.__AI_K = 0.88 * kMul;
@@ -57,7 +57,7 @@ async function runOne([level, carId, surfId, kMulText]) {
   L.clearWear();
   const line = racingLine(L.LEVEL), sub = L.LEVEL.subtrack, car = makeCar(carId);
   reset(car, line.pts[0].x, line.pts[0].y, line.pts[0].h);
-  // (JOB 1b: PACE=0..1 the AI DRIVERS PACE dial, with AIPACE=1 - ai/tune.ts)
+  // (JOB 1b: PACE=0..1 the AI DRIVERS PACE dial - ai/tune.ts)
   const { tuneOf } = await import('../../src/ai/tune.ts');
   const diff = Number(process.env.DIFF ?? 4);
   const tune = process.env.PACE ? { ...tuneOf(diff), pace: Number(process.env.PACE) } : undefined;
@@ -95,7 +95,7 @@ async function runOne([level, carId, surfId, kMulText]) {
     peakF: +(acc.peakF / Math.max(1e-6, acc.cornerN)).toFixed(3),
     peakR: +(acc.peakR / Math.max(1e-6, acc.cornerN)).toFixed(3), spins: acc.spins, offs: acc.offs, mists: acc.mists,
     mistOut: acc.mistOut, spinMists: acc.spinMists || 0, spinDrift: +(acc.spinDrift || 0).toFixed(2),
-    skill: +traits.skill.toFixed(2), persona: traits.persona, aislide: process.env.AISLIDE === '1' };
+    skill: +traits.skill.toFixed(2), persona: traits.persona };
 }
 
 /**

@@ -4,16 +4,14 @@
 // the game always had), RISK, AGGRESSION, DEFENCE (each the field's centre, 0.5 = as before) and
 // MISTAKES (0.5 = x1). A dial moves the whole field; each driver keeps its own place round it
 // (persona + chance, ai/traits.ts), so a better driver stays better.
-// ?aipace=1: a seventh, PACE (0.5 = as before): every driver's speed plan - its corner and braking
-// grip (ai/line.ts K_CORNER, K_BRAKE) - x paceOf(pace); and the dials move live, mid-race, from the
-// test-mode pause menu (game/aitune.ts).
-import { FIX } from "../core/fixes.ts";
+// A seventh, PACE (passed 11-15; 0.5 = x1): every driver's speed plan - its corner and braking grip
+// (ai/line.ts K_CORNER, K_BRAKE) - x paceOf(pace).
 
 /** The field's AI dials, each 0..1; custom once a dial moved off the difficulty's preset. */
 export interface AiTune {
   skill: number; spread: number; risk: number; aggression: number; defence: number;
   mistakes: number; custom?: boolean;
-  pace?: number;   // ?aipace=1 (absent: 0.5)
+  pace?: number;   // absent (dials kept before PACE): 0.5
 }
 
 // the speed plan's grip x this at PACE 0 and at PACE 1 (0.5 = x1). MEASURED (bug 9, _aislip): the
@@ -40,6 +38,15 @@ export const SKILL_CENTRE = [0.3, 0.4, 0.5, 0.6, 0.7];
 // Realish keeps 0.5
 export const RISK_CENTRE = [0.38, 0.44, 0.5, 0.56, 0.62];
 export const AGG_CENTRE = [0.4, 0.45, 0.5, 0.55, 0.6];
+// THE PRESETS (owner 11-15, after tuning the dials live: "slightly higher skill overall and ever
+// slightly on those other settings / That's a better baseline for realish ... keep the lean so they
+// are faster still at real"): every difficulty's preset is its centre above + SKILL_UP skill and
+// + LEAN_UP risk, aggression and pace - the same shift on each, so the lean between them stays.
+// (Added to the preset, not to the centres: the centres are also the pace reference a driver's
+// skill is read against, ai/traits.ts - as the owner moved the dials, not the centres.)
+const SKILL_UP = 0.1, LEAN_UP = 0.03;
+// the PACE dial's preset (0.5 = x1)
+const PACE_PRESET = 0.5 + LEAN_UP;
 
 /**
  * A difficulty's preset dials.
@@ -48,8 +55,10 @@ export const AGG_CENTRE = [0.4, 0.45, 0.5, 0.55, 0.6];
  */
 export function tuneOf(diff: number): AiTune {
   const row = Math.max(0, Math.min(4, diff | 0));
-  return { skill: SKILL_CENTRE[row], spread: 0.5, risk: RISK_CENTRE[row],
-    aggression: AGG_CENTRE[row], defence: 0.5, mistakes: 0.5 };
+  const unit = (value: number) => Math.max(0, Math.min(1, value));
+  return { skill: unit(SKILL_CENTRE[row] + SKILL_UP), spread: 0.5,
+    risk: unit(RISK_CENTRE[row] + LEAN_UP), aggression: unit(AGG_CENTRE[row] + LEAN_UP),
+    defence: 0.5, mistakes: 0.5, pace: PACE_PRESET };
 }
 
 /** The dials as the panel shows them: key, name, what it does. */
@@ -60,9 +69,8 @@ export const TUNE_DIALS: [keyof Omit<AiTune, 'custom'>, string, string][] = [
   ['aggression', 'AGGRESSION', 'GOES FOR GAPS, ATTACKS SOONER, BUMPS'],
   ['defence', 'DEFENCE', 'COVERS THE INSIDE, HARD TO PASS'],
   ['mistakes', 'MISTAKES', 'ERRORS A CORNER FOR EVERYONE - A BETTER DRIVER STILL MAKES FEWER'],
-  ...(FIX.aipace ? [['pace', 'PACE', 'HOW HARD EVERY DRIVER PUSHES: CORNER SPEED AND BRAKING - '
-    + 'HIGHER IS QUICKER UNTIL THEY RUN OFF'] as [keyof Omit<AiTune, 'custom'>, string, string]]
-    : []),
+  ['pace', 'PACE', 'HOW HARD EVERY DRIVER PUSHES: CORNER SPEED AND BRAKING - '
+    + 'HIGHER IS QUICKER UNTIL THEY RUN OFF'],
 ];
 
 /**

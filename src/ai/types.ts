@@ -38,7 +38,7 @@ export interface Traits {
   seed: number;
   risk?: number;     // 0..1, later braking / faster entries
   kBrake?: number;   // the braking grip it plans (line.ts K_BRAKE by default)
-  paceK?: number;    // ?aipace=1: its speed plan's corner and braking grip x this (ai/tune.ts)
+  paceK?: number;    // its speed plan's corner and braking grip x this (ai/tune.ts PACE)
   power?: number;    // its engine power share (a weak driver gives a little away)
 }
 
@@ -224,7 +224,7 @@ export interface Mistake {
   inside: boolean;
   t: number;
   fired?: boolean;   // the "throttle" kind: the slide has been started
-  spin?: boolean;    // ?aislide=1: one that really spins (ai/driverSlide.ts spinChance)
+  spin?: boolean;    // one meant to spin (ai/driverSlide.ts spinChance)
   spun?: boolean;    // ... its throttle held
 }
 

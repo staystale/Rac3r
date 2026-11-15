@@ -273,6 +273,6 @@ export function spawnAI(count: number = shared.aiCount) {
       car._origin = LEVEL.splitStart ? splitOrigin(slot) : undefined;
       if (slot === 0) game.poleCar = car;
     }
-    game.ai.push({ car, drv, inGate: false, seat: { index: i, count, seed } });
+    game.ai.push({ car, drv, inGate: false });
   }
 }

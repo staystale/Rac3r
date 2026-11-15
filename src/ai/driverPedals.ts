@@ -35,7 +35,7 @@ export function steerSlideStep(drv: Drv, car: AiCar, path: AiPath, nearIdx: numb
   // rear slip before lifting, a later slide catch and power through the slide — each alone
   // harmless, together the 4x4 left the road at Knobhill / Sweaty Lamb (16-31 s off a lap).
   const slide = slideStep(car, path, nearIdx, speed, lineOff, { deltaS, LOCK, cap });
-  // (?aislide=1: a mistake that spins holds the wheel turned in - ai/driverSlide.ts)
+  // (a mistake that spins holds the wheel turned in - ai/driverSlide.ts)
   const spin = spinSteer(drv.state);
   return { psi, ...slide, steer: spin ?? slide.steer };
 }

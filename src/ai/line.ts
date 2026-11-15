@@ -11,7 +11,6 @@
 //    car's MEASURED grip (carstats.ts), then a backward braking pass, so the target at any point
 //    already brakes for everything ahead.
 import { debugValue } from "../core/debug.ts";
-import { FIX } from "../core/fixes.ts";
 import { groundAt } from "../world/wear.ts";
 import { dampSurface, surfaceById } from "../world/wet.ts";
 import { WEATHER } from "../world/weather.ts";
@@ -33,7 +32,7 @@ const K_CORNER = 0.88;
 // fraction of grip planned for braking (0.80 arrived 4 m/s hot into Sweaty Lamb's S on gravel,
 // MEASURED)
 export const K_BRAKE = 0.70;
-// ?aislide=1 (TODO 3a2 bug 9): COMMIT OFF TARMAC - a 2WD car's corner grip planned on loose
+// (TODO 3a2 bug 9) COMMIT OFF TARMAC - a 2WD car's corner grip planned on loose
 // ground (mu COMMIT_LOW..COMMIT_MU: gravel, grass, sand, mud, snow; not wet tarmac 0.72, not ice
 // 0.12) x COMMIT_K. MEASURED (tools/scratch/_aislip.mjs, Thruston and Knobhill laid in each
 // surface): +1-3 % a lap for every car, no more offs for the 2WD cars, but the AWD cars off the
@@ -42,9 +41,9 @@ const COMMIT_LOW = 0.25, COMMIT_MU = 0.7, COMMIT_K = 1.12;
 /** The corner grip planned x this (1 without the switch). */
 const commitOf = (grip: number, spec: AiCar["spec"]) => {
   const drive = spec.drive ?? 1, twoWheel = drive <= 0 || drive >= 1;
-  return FIX.aislide && twoWheel && grip >= COMMIT_LOW && grip < COMMIT_MU ? COMMIT_K : 1;
+  return twoWheel && grip >= COMMIT_LOW && grip < COMMIT_MU ? COMMIT_K : 1;
 };
-// ?aislide=1: THE KERBS - beside a kerb the line may come to KERB_LINE_M m of the road's edge (the
+// THE KERBS - beside a kerb the line may come to KERB_LINE_M m of the road's edge (the
 // car's middle: ~0.3 m of wheel on the kerb), not LINE_MARGIN (the kerbs lie outside the edge, so
 // the line never touched one)
 const KERB_LINE_M = 0.6;
@@ -147,7 +146,7 @@ function hairpinLimits(ctx: LineCtx) {
   // folds the line back on itself (MEASURED: Slidden's start hairpin, offsets flipping +3.8 / -3.3
   // m every 5 m, line R 4 m, the AI crawling at 5 m/s)
   const low = new Float64Array(count).fill(-reach), high = new Float64Array(count).fill(reach);
-  if (FIX.aislide) kerbReach(ctx, low, high);
+  kerbReach(ctx, low, high);
   const span = Math.max(1, Math.round(4 / (sub.totalDist / count)));
   for (let i = 0; i < count; i++) {
     const before = centre[(i - span + count) % count],
@@ -170,7 +169,7 @@ function hairpinLimits(ctx: LineCtx) {
 }
 
 /**
- * ?aislide=1: beside a kerb the line's limit on that side out to KERB_LINE_M from the road's edge.
+ * Beside a kerb the line's limit on that side out to KERB_LINE_M from the road's edge.
  * @param ctx the line context
  * @param low the lower limits, per point (changed)
  * @param high the upper limits, per point (changed)
@@ -551,7 +550,7 @@ function regripPath(path: Path) {
  * The speed plan's corner and braking grip factors for a car.
  * @param spec the car
  * @param kBo the driver's braking grip, if its own
- * @param paceK ?aipace=1's PACE dial (ai/tune.ts), 1 without it
+ * @param paceK the PACE dial's multiplier (ai/tune.ts paceOf), 1 by default
  * @returns the corner and braking factors
  */
 function planGrips(spec: AiCar["spec"], kBo: number | undefined, paceK: number) {
@@ -575,7 +574,7 @@ export function profileOf(
   const count = path.n, speed = new Float64Array(count), spacing = path.sp, pts = path.pts;
   for (let i = 0; i < count; i++) {
     const radius = pts[i].R;
-    // (?aislide=1: committed off tarmac - COMMIT_K)
+    // (committed off tarmac - COMMIT_K)
     speed[i] = Math.min(95, Math.sqrt(
       kCorner * commitOf(pts[i].mu, spec) * (radius / (radius + R_TIGHT)) * pts[i].mu * gripG
         * GRAVITY * radius,

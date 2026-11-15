@@ -9,7 +9,6 @@ import type { AiCar, CarsAcc, CircuitState, LinePoint, PathPoint } from "./types
 import type { Drv, AiPath } from "./driverCtx.ts";
 import { cornerNudge } from "./cornerLine.ts";
 import { MIST_GROW, SPIN_THROTTLE_S, spinChance } from "./driverSlide.ts";
-import { FIX } from "../core/fixes.ts";
 
 // extra braking grip planned while ATTACKING (late braking into the corner)
 const ATK_KB = 0.12;
@@ -64,8 +63,8 @@ export function startMistake(drv: Drv, cIdx: number) {
     kind, sev: Math.min(1, (0.3 + 0.7 * rnd()) * (1.2 - traits.skill)), corner: cIdx, inside:
         false, t: 0
   };
-  // (?aislide=1: now and then one that really spins - ai/driverSlide.ts)
-  if (FIX.aislide && (kind === 'late' || kind === 'throttle')) {
+  // (now and then one meant to spin - ai/driverSlide.ts)
+  if (kind === 'late' || kind === 'throttle') {
     state.mist.spin = rnd() < spinChance(traits.skill);
   }
 }
@@ -98,7 +97,7 @@ export function applyMistake(drv: Drv, mist: NonNullable<CircuitState["mist"]>, 
   if (inC) mist.inside = true;
   if (mist.inside && !inC) state.mist = null;    // through the corner: done
   // brakes late: runs wide, maybe off
-  // (?aislide=1: bigger - MIST_GROW, ai/driverSlide.ts)
+  // (bigger - MIST_GROW, ai/driverSlide.ts)
   else if (mist.kind === 'late' && !pastApex) vMul = 1.06 + 0.14 * mist.sev * MIST_GROW;
   // turns in early: clips the inside
   else if (mist.kind === 'early' && !pastApex) latT += corner.turn * (1 + 2 * mist.sev);

@@ -12,29 +12,4 @@ export interface TestEntry {
 }
 
 export const TEST_LIST: TestEntry[] = [
-  {
-    id: 'aipace',
-    added: '2026-11-15',
-    name: 'AI PACE dial, and the AI DRIVERS dials live from the pause menu',
-    where: 'Test link + &aipace=1: any race with AI cars (a circuit, rallycross, a stage, the '
-      + 'highway); pause, then AI DRIVERS',
-    try: 'Move PACE up and resume: the whole field should corner and brake harder and lap quicker '
-      + '(x1.00 at the middle); move it down: they ease off. The other dials (skill, risk, '
-      + 'mistakes ...) work mid-race too; RESET puts back what the race started with.',
-    wrong: 'No change in the AI after moving a dial, the race jumping or cars teleporting on '
-      + 'resume, PACE in the middle not matching the plain link, or the panel not fitting the '
-      + 'screen.',
-  },
-  {
-    id: 'aislide',
-    added: '2026-11-15',
-    name: 'AI slides by the ground, uses kerbs, makes sliding mistakes',
-    where: 'Test link + &aislide=1: a slippery stage or track with 2WD AI cars (rear-drive hatch, '
-      + 'F2) - gravel or sand (Sweaty Lamb, a rally stage), or snow / ice weather; then a tarmac '
-      + 'circuit for the kerbs',
-    try: 'Watch the AI through corners: on loose ground and ice they should hold slides and still '
-      + 'be quick; on tarmac a wheel on the kerbs; weaker drivers now and then sliding wide.',
-    wrong: 'AI slower or spinning off far more on ice / snow, sliding on dry tarmac, cutting '
-      + 'across the grass instead of the kerb, or no visible change on gravel.',
-  },
 ];

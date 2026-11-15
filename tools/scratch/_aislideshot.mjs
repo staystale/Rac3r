@@ -1,11 +1,11 @@
-// _aislideshot.mjs - BUG 9 (?aislide=1) PHOTOS: an AI racer HOLDING A SLIDE. A race on LEVEL
+// _aislideshot.mjs - BUG 9 (the AI's slides, the default) PHOTOS: an AI racer HOLDING A SLIDE. A race on LEVEL
 // (default sweaty-lamb: gravel) with 5 AI, your car on ?autopilot, deterministic (seeded, fake
 // clock). The camera follows a racer (the renderer's car swapped, as _hwdodgeshot.mjs; the HUD
 // stays yours), drawn all the time, each racer in turn for PER s; when the followed racer's driver
 // is holding a slide (drv.state.lastDrift this step) with the rear over HOLD_RAD of slip, it is
 // photographed then and 0.3 s later.
 // SHOTS=<folder> VIEW=844x390 LEVEL=sweaty-lamb CAR=rally-4x4 SEED=1 PER=20 FROM=6 HOLD_RAD=0.15
-// RAC3R_QUERY=aislide=1 CHECK_PORT=... node tools/scratch/_aislideshot.mjs
+// CHECK_PORT=... node tools/scratch/_aislideshot.mjs
 import { mkdirSync } from 'node:fs';
 import { startServer, launchBrowser, gotoGame, extraQuery } from '../lib/browser.mjs';
 import { installDeterminism, launchLevel, SETTLE_MS } from '../lib/determinism.mjs';

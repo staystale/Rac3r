@@ -79,7 +79,7 @@ function paintStrip(strip: HTMLElement, caption: HTMLElement, diff: number, tune
 type DialKey = (typeof TUNE_DIALS)[number][0];
 
 /**
- * A dial's value (PACE, absent before ?aipace=1's dials were kept: 0.5).
+ * A dial's value (PACE, absent from dials kept before it: 0.5).
  * @param tune the dials
  * @param key the dial
  * @returns 0..1
@@ -114,40 +114,6 @@ function addDialRows(panel: HTMLElement, onMove: (key: DialKey, value: number) =
     inputs[i].value = String(dialOf(tune, key));
     labels[i].innerHTML = name + '<br>' + dialWords(key, dialOf(tune, key));
   });
-}
-
-/**
- * ?aipace=1: the AI DRIVERS dials LIVE, from the test-mode pause menu - a slider moves the field
- * racing now (game/aitune.ts), from where it stands; RESET puts back the dials it started with.
- * @param menu the menu context
- * @param start the dials the race started with, and the ones it has now
- * @param start.from the dials the race started with
- * @param start.now the dials now
- * @param set the field's new dials
- * @param back back to the pause menu
- * @param resume back to the race
- */
-export function showLiveDials(menu: Menu, start: { from: AiTune; now: AiTune },
-  set: (tune: AiTune) => void, back: () => void, resume: () => void) {
-  const panel = addPane(menu, false);
-  let tune: AiTune = { ...start.now };
-  addElement(panel, 'h2', 'AI DRIVERS · LIVE');
-  addElement(panel, 'div', 'MOVES THE FIELD RACING NOW. EACH DRIVER KEEPS ITS OWN PLACE IN IT; '
-    + 'THEIR REACTIONS STAY AS THE RACE STARTED.', 'sub');
-  const paintDials = addDialRows(panel, (key, value) => {
-    tune = { ...tune, [key]: value, custom: true };
-    set(tune);
-    paintDials(tune);
-  });
-  const row = addElement(panel, 'div', '', 'row');
-  addButton(menu, row, 'RESET', () => {
-    tune = { ...start.from };
-    set(tune);
-    paintDials(tune);
-  });
-  addButton(menu, row, 'RESUME ▶', resume, 'go');
-  addButton(menu, row, 'BACK', back);
-  paintDials(tune);
 }
 
 /**

@@ -27,8 +27,6 @@ import type { HwLevel } from '../highway/hwtypes.ts';
 import type { ResultsFlow } from '../menu/menutypes.ts';
 import type { LaunchOpts } from './state.ts';
 import { MAX_AI } from '../core/settings.ts';
-import { FIX } from '../core/fixes.ts';
-import { fieldTune, fieldTuneStart, retuneField } from './aitune.ts';
 
 /**
  * Works out whether the minimap, the progress bar and the track gauge show (the pause settings
@@ -176,7 +174,6 @@ export function applyLaunchOptions(levelId: string, opts: LaunchOpts) {
   shared.race.on = !!opts.rx;
   shared.aiCarMode = opts.aiCars === 'class' ? 'class' : 'same';
   shared.aiTune = opts.aiTune || null;
-  shared.aiTuneStart = shared.aiTune;
   shared.raceLaps = Math.max(0, Math.min(10, (opts.laps ?? 0) | 0));
   shared.hwFinish = opts.finish ?? null;
   // WEATHER (setup): the plan and the seed its random stream starts from, so a restart
@@ -284,9 +281,6 @@ export function openPause() {
     tests: game.testMode,   // the TESTING list (src/testlist.ts) in the pause menu, test mode only
     audio: shared.audio,                  // the SOUND slider + MUTE (menu.ts pause)
     hud: hudActions(),   // the HUD list (each piece on / off for this difficulty mode)
-    // ?aipace=1, test mode, a field racing: the AI DRIVERS dials live (game/aitune.ts)
-    aiDials: FIX.aipace && game.testMode && game.ai.length ? { from: () => fieldTuneStart(),
-      now: () => fieldTune(), set: retuneField } : null,
     exit: () => {
       shared.paused = false;
       enterMenu();
