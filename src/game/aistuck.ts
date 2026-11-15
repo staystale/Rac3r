@@ -20,7 +20,9 @@ import { LEVEL } from '../world/state.ts';
 import { onTrack } from '../world/tyrewall.ts';
 import { trackSpotOf } from '../world/trackunder.ts';
 import { sameLevel } from '../world/crossinggeo.ts';
-import { firstFree, lapStepBack, notAheadOf } from './resetspot.ts';
+import { FREE_STEP_M, ROLL_CLEAR_S, firstFree, lapStepBack, notAheadOf } from './resetspot.ts';
+import { roadFrame, roadPose, roadSpan } from '../highway.ts';
+import type { HwLevel } from '../highway/hwtypes.ts';
 import type { SpotBody } from './resetspot.ts';
 import type { AiEntry, GameCar, StuckWatch } from './state.ts';
 import type { Subtrack } from '../world/types.ts';
@@ -205,4 +207,33 @@ export function freeLapSpot(car: GameCar, sub: Subtrack, dist: number, across: n
     const point = onTrack(sub, spotAt, across, {});
     return { x: point.x, y: point.y, heading: point.rot + turn };
   }, lapStepBack(sub), 0, { spec: car.spec, others });
+}
+
+/**
+ * The endless road's stuck put-back made free of every car (you, the racers and the traffic, which
+ * hwPutBack's own test cannot see): from its hard-shoulder spot, FREE_STEP_M further back at a time
+ * along the same line, keeping ROLL_CLEAR_S of the speed it rolls on at clear in front.
+ * @param car the car put back
+ * @param level the highway level
+ * @param point hwPutBack's spot: x, y, m; h, radians
+ * @param point.x world x, m
+ * @param point.y world y, m
+ * @param point.h heading, radians
+ * @param speed m/s it is put back rolling at
+ * @returns the spot: x, y, m; h, radians
+ */
+export function freeShoulderSpot(car: GameCar, level: HwLevel, point: { x: number; y: number;
+  h: number }, speed: number): { x: number; y: number; h: number } {
+  const frame = roadFrame(level, point.x, point.y, null);
+  if (!frame) return point;
+  const floor = roadSpan(level).s0 + 60, off = frame.off;
+  const others: SpotBody[] = [game.car];
+  for (const entry of game.ai) if (entry.car !== car) others.push(entry.car);
+  for (const other of game.traffic.cars) others.push(other as GameCar);
+  const along = firstFree(frame.s, (dist) => {
+    const pose = roadPose(level, dist, off);
+    return { x: pose.x, y: pose.y, heading: pose.h };
+  }, (dist) => (dist - FREE_STEP_M > floor ? dist - FREE_STEP_M : null), ROLL_CLEAR_S * speed,
+  { spec: car.spec, others });
+  return along === frame.s ? point : roadPose(level, along, off);
 }

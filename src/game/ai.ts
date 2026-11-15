@@ -18,7 +18,9 @@ import { RESET_BACK, RESET_ANG } from './session.ts';
 import { shared, game } from './state.ts';
 import { activeLamps } from '../world/lamps.ts';
 import { FIX } from '../core/fixes.ts';
-import { TRYING_GAIN, behindRecord, freeLapSpot, stuckWatchFires } from './aistuck.ts';
+import {
+  TRYING_GAIN, behindRecord, freeLapSpot, freeShoulderSpot, stuckWatchFires,
+} from './aistuck.ts';
 import type { AiEntry, HurtEntry } from './state.ts';
 import type { CarInput } from '../vehicle.ts';
 import type { RaceFlow } from '../raceflow.ts';
@@ -30,8 +32,9 @@ import type { RaceFlow } from '../raceflow.ts';
 /**
  * Puts an AI car back on the road, mended, its hazards on.
  * @param entry the AI entry
- * @param behind ?stuckreset=1's stuck put-back on a lap or stage: never ahead of where the car is,
- *   the next free spot behind a car in the way (game/aistuck.ts)
+ * @param behind ?stuckreset=1's stuck put-back: on a lap or stage never ahead of where the car is,
+ *   the next free spot behind a car in the way; on the highway its spot past every car, the
+ *   traffic too (game/aistuck.ts)
  */
 export function aiReset(entry: HurtEntry, behind = false) {
   const car = entry.car, sub = LEVEL.subtrack!;
@@ -43,8 +46,9 @@ export function aiReset(entry: HurtEntry, behind = false) {
     const all = [game.car, ...game.ai.map((other) => other.car),
       ...game.traffic.cars].filter((other) => other !== car),
         frame = car._hwf ?? roadFrame(hwLevel(), car.x, car.y, null),
-        point = hwPutBack(hwLevel(), (frame ? frame.s : 0) - 15, all);
+        spot = hwPutBack(hwLevel(), (frame ? frame.s : 0) - 15, all);
     const speed = Math.max(12, 0.5 * Math.hypot(car.vx, car.vy));
+    const point = behind ? freeShoulderSpot(car, hwLevel(), spot, speed) : spot;
     reset(car, point.x, point.y, point.h);
     car.vx = Math.cos(point.h) * speed;
     car.vy = Math.sin(point.h) * speed;
