@@ -76,4 +76,10 @@ export const FIX = {
   // tape runs numbered from 0: the same whatever level was built or played before it
   // (world/load.ts buildLevel)
   forestseed: atLoad('forestseed'),
+  // the police notice when you shake them off reads WANTED LEVEL LOST (LOST THEM read like the
+  // racers' notices) (game/police.ts)
+  wantedlost: atLoad('wantedlost'),
+  // the weather's notices (RAIN STARTING ...) only on the MOBILE difficulty; the weather changes
+  // as before (game/loop.ts)
+  weathermobile: atLoad('weathermobile'),
 };
