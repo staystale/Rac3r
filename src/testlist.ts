@@ -13,6 +13,27 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'hwdodge',
+    added: '2026-11-15',
+    name: 'Highway racers keep to their side for oncoming cars',
+    where: 'Test link + &hwdodge=1: a highway race on the twisty single lane (and Deaf Valley), '
+      + 'with traffic; phone upright and on its side',
+    try: 'Follow the racers through the bends: they should pull back into their lane when a car '
+      + 'comes the other way and only overtake on a clear stretch; the weaker ones misjudge now '
+      + 'and then.',
+    wrong: 'Racers pulling out into an oncoming car, sitting in the other lane round blind bends, '
+      + 'or crawling behind slow traffic for ever; any change on the motorway or a circuit.',
+  },
+  {
+    id: 'hwputback',
+    added: '2026-11-15',
+    name: 'Two highway racers put back at once land apart',
+    where: 'Test link + &hwputback=1: a highway race with traffic (twisty is busiest)',
+    try: 'Watch racers that go far off the road get put back on the hard shoulder, two at once if '
+      + 'you see it.',
+    wrong: 'A racer put back on top of another racer or a traffic car.',
+  },
+  {
     id: 'logofade',
     added: '2026-11-15',
     name: 'Loading bar: the logo fades in, no cheap text version first',

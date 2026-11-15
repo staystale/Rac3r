@@ -124,7 +124,24 @@ purpose (broken down, at a pump), is not a police car (their own rules) and is n
 (`findLead`: a car within 8 m in front under 2 m/s) - a car queued behind a wreck starts from 0 when
 the wreck goes.
 `tools/scratch/_stuckai.mjs` measures every mode, `_stucksum.mjs` checks the logs,
-`_stuckshot.mjs` photographs it.
+`_stuckshot.mjs` photographs it. The highway's off-road put-back (`highwayOffTooLong`, 8 m out 3 s or
+40 m out) uses `hwPutBack`'s own spot; under test, `?hwputback=1` (`FIX.hwputback`), the stuck
+put-back's `freeShoulderSpot` too (two racers put back in one step landed on one spot: the first's
+reset clears its `_hwf`, which `hwPutBack`'s test reads).
+
+THE HIGHWAY RACERS AND ONCOMING TRAFFIC (under test, `?hwdodge=1`, `FIX.hwdodge`; `game/ai.ts
+roadCtx` gives the driver `DriveCtx.road` on the endless road). The driver reads the cars round it
+(`ai/driverTraffic.ts carsStep`) in a box on its own heading - 8 m either side, ahead 8 m + the
+closing speed x 2.6-3.8 s by skill; with the switch, on the endless road, by the road frames every
+car carries (`_hwf`: distance along, offset across, speed along the road), so a car round a bend is
+ahead, not off to the side. On a two-way road (`geo.oppL`, the middle line; none behind a central
+reservation) `ai/driverOncoming.ts ownSideCap`: the nearest oncoming car ahead on the other way's
+side, its closing time judged (off by up to 35 % for a skill-0 driver, one draw from the driver's
+own random stream per oncoming car; exact at skill 1); within KEEP_S (4 s) - or KEEP_S + PASS_S (8
+s) while the racer is on its own side, so a pass needs that much clear road - the racer's lateral
+target is capped inside its own lanes (its side 0.3 m short of the middle line), crossing back at a
+move's rate, and `followAhead` drops any way round a car that is in the other way's lane.
+`tools/scratch/_hwdodge.mjs` counts what the racers hit.
 
 THE SMOOTH FLY-IN (the default since 11-14; `render/flylayers.ts`): zoomed out, a fly-in frame
 drew every prop and loose object one by one. With the switch, the layers that hold still while the
