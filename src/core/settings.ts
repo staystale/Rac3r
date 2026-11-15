@@ -19,6 +19,9 @@ export interface Settings {
   menuAi: number;                // ?menuai=N: AI cars behind the menu, 0-5 (default 4)
   guide: string | null;          // ?guide=1|0: raw; 1 forces HOW TO PLAY, 0 skips it
   rules: string | null;          // ?rules=1|0: raw; 1 forces the event rules, 0 skips them
+  // ?loadscreen=0: a start or restart without the loading screen (the determinism tools: its
+  // stages run on the browser's timers, which their fake frame clock cannot replay)
+  noLoadScreen: boolean;
   levelId: string | null;        // ?level=ID: the level to start on, raw (null = no ?level)
   inputMode: "touch" | "pc" | "auto";   // ?touch / ?pc: force touch or pc controls
   highwayDebug: string | null;   // ?hw=NAME: road preset of the debug highway (tools)
@@ -87,6 +90,7 @@ export function readSettings(search: string): Settings {
     menuAi: params.has('menuai') ? Math.max(0, Math.min(5, +params.get('menuai')!)) : 4,
     guide: params.get('guide'),
     rules: params.get('rules'),
+    noLoadScreen: params.get('loadscreen') === '0',
     levelId: params.has('level') ? params.get('level') : null,
     inputMode: params.has('touch') ? 'touch' : params.has('pc') ? 'pc' : 'auto',
     highwayDebug: params.get('hw'),

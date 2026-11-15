@@ -48,7 +48,7 @@ let screen: LoadScreen | null = null;
  * @returns true to load behind the screen
  */
 export function loadScreenOn(): boolean {
-  return shared.started && shared.mode === 'session';
+  return !shared.settings.noLoadScreen && shared.started && shared.mode === 'session';
 }
 
 /**

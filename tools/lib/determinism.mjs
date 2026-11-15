@@ -76,7 +76,10 @@ export async function openPage(browser, base, id, errors, extra = '') {
   const page = await ctx.newPage();
   page.on('pageerror', (err) => errors.push(String(err)));
   await page.addInitScript(installDeterminism);
-  await gotoGame(page, `${base}/?touch=1&guide=0&menu=0&rules=0&level=${id}${extra}`, 'window.__rt');
+  // (loadscreen=0: the loading screen's stages run on real timers this page's fake clock cannot
+  // replay, so a run with it was not repeatable - the tools prove the race, not the screen)
+  await gotoGame(page, `${base}/?touch=1&guide=0&menu=0&rules=0&loadscreen=0&level=${id}${extra}`,
+    'window.__rt');
   await page.waitForTimeout(SETTLE_MS);
   return page;
 }
