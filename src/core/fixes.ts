@@ -55,6 +55,9 @@ export const FIX = {
   // the AI's slides (TODO 3a2 bug 9): held at each surface's own best slip angle, more corner speed
   // off tarmac, the kerbs used, mistakes by skill (ai/driverSlide.ts)
   aislide: atLoad('aislide'),
+  // the AI's own crash, roll and injury put-backs by your reset's rules - never ahead of where the
+  // car is, the next free spot behind a car in the way - as its stuck put-backs (game/ai.ts)
+  aireset: atLoad('aireset'),
   // a chasing police car sounds a siren, the light bar's twin (game/sirens.ts, audiosiren.ts)
   siren: atLoad('siren'),
   // the endless roads' minimap shows the roads leaving the motorway, the petrol stations and the
