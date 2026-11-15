@@ -61,4 +61,7 @@ export const FIX = {
   // step drawn only once all of its view is painted and on the GPU; the loading screen paints and
   // uploads all the fly-in will show, sized to the real screen (render/tiles.ts, game/loading.ts)
   tiledensity: atLoad('tiledensity'),
+  // a rallycross race with rivals: the joker line on its own third row of the lap panel, so it
+  // never runs into the position (hud/laps.ts, the panel's height in hud/layout.ts)
+  jokerrow: atLoad('jokerrow'),
 };
