@@ -25,15 +25,17 @@ export const TEST_LIST: TestEntry[] = [
       + 'across the grass instead of the kerb, or no visible change on gravel.',
   },
   {
-    id: 'tileahead',
+    id: 'tiledensity',
     added: '2026-11-15',
-    name: 'Smoother highway: the ground made ahead of the car, a little each frame',
-    where: 'Highway, two runs back to back on the same phone: the test link + &report=1, then the '
-      + 'test link + &tileahead=1&report=1. Each: a few minutes flat out (zoomed out), and some of '
-      + 'it off the road in the fields',
-    try: 'Feel for the jerks (60 dropping to 58) flat out and off the road; also look at the '
-      + 'ground as it scrolls in at full speed.',
-    wrong: 'As jerky or worse than without it; squares of ground ahead showing late (the road, '
-      + 'its lines or the verges popping in); any other change to the ground\'s look or driving.',
+    name: 'Ground made at the sharpness the zoom needs: smoother zoomed out, no ground drawing in '
+      + 'after the loading bar',
+    where: 'Test link + &tiledensity=1&report=1, against the test link + &report=1 back to back on '
+      + 'the same phone: the highway flat out (zoomed out) and off the road; a start on a stadium '
+      + '(Stade de Prance) and on Spa; on a PC too if one is to hand',
+    try: 'Feel for the jerks zoomed out on the highway; watch the ground as the view zooms out '
+      + 'with speed and back in as you brake; after the loading bar, watch the fly-in.',
+    wrong: 'As jerky or worse; the ground flashing, shifting, going soft or blurry as the zoom '
+      + 'changes; road, lines or verges drawing in late after the bar or ahead of the car; any '
+      + 'change when zoomed in (slow or stopped).',
   },
 ];

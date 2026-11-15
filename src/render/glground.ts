@@ -27,6 +27,8 @@ export interface GroundSink {
    * that is not done yet. Returns true when it uploaded or built mipmaps.
    */
   preload(source: HTMLCanvasElement, upload: boolean): boolean;
+  /** Whether a picture is on the GPU, with its mipmaps (tiles.ts ?tiledensity=1). */
+  has(source: HTMLCanvasElement): boolean;
 }
 
 /** How a CSS px of the view maps to a screen device pixel this frame. */
@@ -255,6 +257,10 @@ function createSink(webgl: WebGL2RenderingContext, program: WebGLProgram,
       if (!upload || (entry && entry.mip)) return false;
       textureOf(webgl, textures, source, state.frameNo, true, state.counts);
       return true;
+    },
+    has(source) {
+      const entry = textures.get(source);
+      return !!entry && entry.mip;
     },
     image(source, x, y, width, height) {
       const frame = state.frame;

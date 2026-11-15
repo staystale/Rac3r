@@ -12,6 +12,7 @@ import { PRESS_BLINK_MS } from '../menu/pixelstyle.ts';
 import { shared, game } from './state.ts';
 import type { LoadScreen } from '../menu/loadscreen.ts';
 import type { RenderGame } from '../render/types.ts';
+import { FIX } from '../core/fixes.ts';
 
 /** One piece of the work behind the screen. */
 export interface LoadStage {
@@ -34,11 +35,14 @@ export const CREEP_SHARE = 0.9;
 // (tools/scratch/_startload.mjs): 6 a task, the field to the screen's end 2.45 s for 0.9 s of
 // tiles; 12 a task, 2.07 s - a frame between tasks costs as much as the painting
 const TILES_A_SLICE = 12;
+// ?tiledensity=1: the fly-in's tiles uploaded a task (a 384 px tile with its mipmaps, ~1-2 ms)
+const UPLOADS_A_SLICE = 16;
 
 type Phase = 'screen' | 'fly' | null;
-// (groundLeft: tiles round the grid still to paint)
+// (groundLeft: tiles round the grid still to paint; ?tiledensity=1: flyReady, the fly-in
+// started; planned, its tiles planned; uploadLeft, some still to upload)
 const state = { phase: null as Phase, generation: 0, shownAt: 0, fieldsQueued: 0,
-  groundLeft: false };
+  groundLeft: false, flyReady: false, planned: false, uploadLeft: false };
 // ms each kind of stage took the last time (a session's restarts pace the bar by the first)
 const stageMs = new Map<string, number>();
 let screen: LoadScreen | null = null;
@@ -87,6 +91,7 @@ export function noteFieldDone(): void {
  * @returns the stages
  */
 export function readyStages(): LoadStage[] {
+  if (FIX.tiledensity) return densityStages();
   return [
     { key: 'ground', weight: 0.2, work: () => {
       if (state.fieldsQueued === 0)
@@ -94,6 +99,32 @@ export function readyStages(): LoadStage[] {
     }, more: () => state.fieldsQueued > 0 || state.groundLeft },
     { key: 'picture', weight: 0.08,
       work: () => shared.renderer.readyFlyIn(game as unknown as RenderGame) },
+  ];
+}
+
+/**
+ * The stages under ?tiledensity=1: the fly-in started once the field is lined up (its path ends
+ * on the car), then every tile it will show - planned on its path at the real screen, each at its
+ * zoom's density - painted, then uploaded, a slice a task; so the bar ends with all of it on the
+ * GPU (the friend's PC: 562 tiles and 305 uploads in the first frame after the bar, then 4 a
+ * frame for 1.2 s).
+ * @returns the stages
+ */
+function densityStages(): LoadStage[] {
+  return [
+    { key: 'picture', weight: 0.08, work: () => {
+      if (state.fieldsQueued > 0 || state.flyReady) return;
+      shared.renderer.readyFlyIn(game as unknown as RenderGame);
+      state.flyReady = true;
+    }, more: () => !state.flyReady },
+    { key: 'ground', weight: 0.2, work: () => {
+      if (!state.planned) shared.renderer.planStartGround(game.car);
+      state.planned = true;
+      state.groundLeft = shared.renderer.paintPlanned(TILES_A_SLICE);
+    }, more: () => state.groundLeft },
+    { key: 'upload', weight: 0.06, work: () => {
+      state.uploadLeft = shared.renderer.uploadPlanned(UPLOADS_A_SLICE);
+    }, more: () => state.uploadLeft },
   ];
 }
 
@@ -108,6 +139,7 @@ export function runLoading(name: string, stages: LoadStage[]): void {
   state.phase = 'screen';
   state.shownAt = performance.now();
   state.groundLeft = true;
+  state.flyReady = state.planned = state.uploadLeft = false;
   screen ??= createLoadScreen();
   screen.show(name);
   // a pedal or the stick held into the screen is let go

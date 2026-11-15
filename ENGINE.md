@@ -408,10 +408,19 @@ off / on): racing laps fronts smoke 5-8 % -> 1 % of the time; a held 1.1 g corne
   place. Tiles under new wear go stale and are repainted within the budget (`tilesWear.ts`).
   The look-ahead paints one tile a frame of the widest view round the camera (plus a margin) while
   nothing in view is missing; a tile goes to the GPU when it is first drawn, so a row scrolling
-  into view uploads 6+ textures in one frame. Under test, `?tileahead=1` (`FIX.tileahead`,
-  `lookAheadSpread`): the box is centred 0.8 s of the car's motion ahead, its tiles kept on the
-  GPU (`sink.preload`), and one tile a frame - nearest the ground about to scroll in - painted and
-  uploaded, or a painted one uploaded; nothing on a frame that painted in view.
+  into view uploads 6+ textures in one frame. Under test, `?tiledensity=1` (`FIX.tiledensity`,
+  `tilesSteps.ts`, `tilesDensity.ts`): a tile is painted at the coarsest of the steps zoom 1 /
+  0.5 / 0.354 still as dense as the screen (off: always zoom 1, so zoomed out at 0.30 a view needs
+  ~11x the tiles, each at full density); a new step is readied over the whole view - one paint
+  and two uploads a frame - before it is drawn (no stand-in, no burst), with a gap between the
+  zooms that switch each way (coarser below x1.1 inside the next step, finer from 0.95 of the
+  drawn step's limit); the cache holds the real screen's widest view 1.25 times (a big PC screen
+  shows ~300 zoom-1 tiles; 200 made it repaint a view each frame). The loading screen
+  (`game/loading.ts densityStages`) starts the fly-in once the field is lined up, plans every
+  tile of its path from the hand-over to the landing (64 views, each at its zoom's step, a ring
+  round the landing) at the real screen, and paints then uploads them behind the bar; they are
+  kept until the fly-in lands (`keepPlan`). The GPU sink says whether a picture is on it
+  (`glground.ts has`).
   `tilesPalette.ts` builds the palette the GPU snaps to; `tilesShade.ts` the hill shading's
   heights and bands (drawn by `glshade.ts`).
 - `render/ground/` paints into tiles: `art.ts` the per-surface art table, `prims.ts` pattern primitives,

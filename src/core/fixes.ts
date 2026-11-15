@@ -57,8 +57,8 @@ export const FIX = {
   aislide: atLoad('aislide'),
   // a chasing police car sounds a siren, the light bar's twin (game/sirens.ts, audiosiren.ts)
   siren: atLoad('siren'),
-  // the ground tiles' look-ahead paints toward where the car is going and puts them on the GPU
-  // before they scroll into view, one tile a frame, never on a frame that painted one in view
-  // (render/tiles.ts lookAheadSpread)
-  tileahead: atLoad('tileahead'),
+  // the ground tiles painted at a density matched to the zoom (zoom 1, 1/2 or 1/2.8 steps), a
+  // step drawn only once all of its view is painted and on the GPU; the loading screen paints and
+  // uploads all the fly-in will show, sized to the real screen (render/tiles.ts, game/loading.ts)
+  tiledensity: atLoad('tiledensity'),
 };
