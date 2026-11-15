@@ -48,7 +48,6 @@ import { BIRDSMESS_LEVELS } from "./birdsmess-venue.ts";
 import { LALIVELY_LEVELS } from "./lalively-venue.ts";
 import { HOLJES_LEVELS } from "./holjes-venue.ts";
 import { CROUGHEDRX_LEVELS } from "./croughedrx-venue.ts";
-import { FIX } from "../../core/fixes.ts";
 import { OP_LEVELS } from "./oultonpork-venue.ts";
 import { DT_LEVELS } from "./dieatona-venue.ts";
 import { TH_VENUE_LEVEL } from "./thruston-venue.ts";
@@ -233,8 +232,8 @@ export const LEVELS: Level[] = [
   ...GW_LEVELS,
   // Croughed, a new venue (croughed-venue.ts), its two layouts
   ...CR_LEVELS,
-  // Croughed RX, the Croughed venue's rallycross lap (croughedrx-venue.ts), under test
-  ...(FIX.croughedrx ? CROUGHEDRX_LEVELS : []),
+  // Croughed RX, the Croughed venue's rallycross lap (croughedrx-venue.ts)
+  ...CROUGHEDRX_LEVELS,
   // Spa-Frankenchumps, a venue (spa-venue.ts), the first world championship circuit (passed 11-09)
   ...SPA_LEVELS,
   // Monzarella, a venue (monza-venue.ts), a world championship circuit (passed 11-10)

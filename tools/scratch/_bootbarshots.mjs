@@ -7,7 +7,9 @@ import { writeFileSync } from 'node:fs';
 import { startServer, launchBrowser } from '../lib/browser.mjs';
 
 const SIZES = [[844, 390], [390, 844]];
-const OUT = 'tools/scratch/_bootbar';
+// BOOTBAR_QUERY: more of the query (e.g. logofade=1), its photos named with it
+const EXTRA = process.env.BOOTBAR_QUERY || '';
+const OUT = 'tools/scratch/_bootbar' + (EXTRA ? '-' + EXTRA.replace(/[^a-z0-9]+/gi, '') : '');
 
 /**
  * Opens the page in a fresh context, holding back the files matched for ms.
@@ -49,7 +51,7 @@ async function rawShot(page, path) {
 const server = await startServer();
 await fetch(`${server.url}/__bundle.js`).then((res) => res.arrayBuffer());
 const browser = await launchBrowser({ args: ['--disable-blink-features=AutomationControlled'] });
-const url = `${server.url}/?touch=1&guide=0&noaudio=1&bootbar=1`;
+const url = `${server.url}/?touch=1&guide=0&noaudio=1` + (EXTRA ? '&' + EXTRA : '');
 try {
   for (const size of SIZES) {
     const tag = `${size[0]}x${size[1]}`;
@@ -58,9 +60,11 @@ try {
     await rawShot(run.page, `${OUT}-1-nofonts-${tag}.png`);
     await run.context.close();
     // (the fonts come, the logo held back: the name in words, its 3 big and blue)
-    run = await openHeld(browser, url, size, { '**/logo.jpg': 4000, '**/__bundle.js': 4000 });
+    run = await openHeld(browser, url, size, { '**/logo.jpg': 6000, '**/__bundle.js': 6000 });
     await run.page.waitForTimeout(1500);
     await rawShot(run.page, `${OUT}-1b-words-${tag}.png`);
+    await run.page.waitForTimeout(2000);
+    await rawShot(run.page, `${OUT}-1c-late-${tag}.png`);
     await run.context.close();
     run = await openHeld(browser, url, size, { '**/__bundle.js': 1500 });
     await run.page.waitForTimeout(1200);

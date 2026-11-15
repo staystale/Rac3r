@@ -100,32 +100,29 @@ put-back keeping 1.5 s of its speed clear ahead; the police are not cleared from
 AI's own: `game/ai.ts aiReset`). `tools/scratch/_resetback.mjs` tries each mode.
 
 STUCK AI AND TRAFFIC. A racing AI first drives itself out (`ai/driveOut.ts`: nearly still 1.2 s ->
-reverse 1-1.5 s with the wheel turned toward the road; three tries inside 15 s = `giveUp`); the
-game puts it back (`game/ai.ts stepAIStuck` -> `aiReset`) after 3 s under 1 m/s (going forwards and
-gaining 0.08 m/s since it went slow = trying, not stuck), on `giveUp`, or on the highway 8 m off the
-carriageway for 3 s (40 m out at once); a rolled AI once still 1.5 s and a too-injured one after its
-pause also. Lap / stage put-back: 4 m behind where it last was on the road, its middle on that edge;
-the highway's 15 m back on the hard shoulder past any car (`highwayrace.ts hwPutBack`). Highway
-traffic: a physics car under 1 m/s counts `deadT`; out of view past 6 s it is recycled
-(`ai/trafficStep.ts leaving`); a wreck brakes with its hazards on and stays while in view. Under
-test, `?stuckreset=1` (`FIX.stuckreset`, `game/aistuck.ts`): the AI is put back only when TRULY
-stuck - STAYED within 5 m of one spot for 6 s (not queued: you, a highway car or a racer not itself
-stood put over 1 s, close in front, facing its way within 60 deg and under 2 m/s - a racer stood
-put in front makes a pile-up, put back as one; not pulling away: forwards and gaining since the
-watch began, never backed up), or
-NO PROGRESS: under 4 m/s and not queued with no 3 m of race progress (`_prog`, the highway's
-`_hwf.s`) in 10 s; never while the start holds it or a crash plays out. The 3 s and `giveUp` resets
-are off (the drive-outs and the highway's off-road rule as before). Its lap / stage put-back is
-your reset's rules: from where it last was on the road but never ahead of where it
-is (`resetspot.ts notAheadOf`), the next spot 6 m further back while a racer is on it (`firstFree`
-with the AI's own size and the other racers, `aistuck.ts freeLapSpot`); the highway's hard-shoulder
-spot (`hwPutBack`, 15 m back) stepped back 6 m at a time until clear of you, the racers and the
-traffic, 1.5 s of its rolling speed clear in front (`freeShoulderSpot`: `hwPutBack`'s own test reads
-each car's `_hwf`, which traffic cars do not have). A highway car standing stuck 6 s goes in view too (recycled,
-rejoining off screen): its own clock (`slot.stuckGoT`, `ai/trafficStep.ts noteStuckCars`) runs
-only while it is still (`deadT` running) and did not stop on purpose (broken down, at a pump), is
-not a police car (their own rules) and is not queued (`findLead`: a car within 8 m in front under
-2 m/s) - a car queued behind a wreck starts from 0 when the wreck goes.
+reverse 1-1.5 s with the wheel turned toward the road; three tries inside 15 s = `giveUp`, read by
+`tools/aifieldcheck.mjs` only). The game (`game/ai.ts stepAIStuck` -> `aiReset`, `game/aistuck.ts`;
+the default since 11-15) puts it back only when TRULY stuck - STAYED within 5 m of one spot for 6 s
+(not queued: you, a highway car or a racer not itself stood put over 1 s, close in front, facing its
+way within 60 deg and under 2 m/s - a racer stood put in front makes a pile-up, put back as one; not
+pulling away: forwards and gaining since the watch began, never backed up), or NO PROGRESS: under 4
+m/s and not queued with no 3 m of race progress (`_prog`, the highway's `_hwf.s`) in 10 s; never
+while the start holds it or a crash plays out - or on the highway 8 m off the carriageway for 3 s
+(40 m out at once); a rolled AI once still 1.5 s and a too-injured one after its pause also (those
+at the old spot: 4 m behind where it last was on the road, the highway's 15 m back on the hard
+shoulder, `highwayrace.ts hwPutBack`). Its stuck put-back is your reset's:
+from where it last was on the road but never ahead of where it is (`resetspot.ts notAheadOf`), the
+next spot 6 m further back while a racer is on it (`firstFree` with the AI's own size and the other
+racers, `aistuck.ts freeLapSpot`); the highway's hard-shoulder spot (`hwPutBack`, 15 m back) stepped
+back 6 m at a time until clear of you, the racers and the traffic, 1.5 s of its rolling speed clear
+in front (`freeShoulderSpot`: `hwPutBack`'s own test reads each car's `_hwf`, which traffic cars do
+not have). Highway traffic: a physics car under 1 m/s counts `deadT`; out of view past 6 s it is
+recycled (`ai/trafficStep.ts leaving`); a wreck brakes with its hazards on. A highway car standing
+stuck 6 s goes in view too (recycled, rejoining off screen): its own clock (`slot.stuckGoT`,
+`ai/trafficStep.ts noteStuckCars`) runs only while it is still (`deadT` running) and did not stop on
+purpose (broken down, at a pump), is not a police car (their own rules) and is not queued
+(`findLead`: a car within 8 m in front under 2 m/s) - a car queued behind a wreck starts from 0 when
+the wreck goes.
 `tools/scratch/_stuckai.mjs` measures every mode, `_stucksum.mjs` checks the logs,
 `_stuckshot.mjs` photographs it.
 
@@ -181,14 +178,14 @@ THE NIGHT FLY-IN (the default since 11-14): two parts.
   (every car's beams and glows, `light.ts carLightReachM`; sparks; trains; caravans; a knocked
   lamp's head) are walked each frame. A tree within 3 light-map px of a light is traced; a canopy
   no light reached is already exactly the dark, so the pixels are the same. Every canopy on a map
-  coarser than 3 px in 64 m. THE ENDLESS ROAD (`?nighthw=1`, `render/canopystream.ts`; without it every canopy there): its props and lamps
-  stream, so the still lights are worked out per stretch - when the props list or the lamps change,
-  only the props and lamps not walked before are (each new tree filed in the stream's own 32 m grid
-  with its gap to the still lights near it; each new lamp pool or board filed and lowering the gaps
-  of the trees near it, `eventglows.ts noteStillLightsOf`), and what left the list is dropped
-  from the grids; a dropped light leaves its trees' gaps (traced the more, never left dark). The
-  moving lights as on any level (`canopycut.ts noteMovingLights`). `canopyCut.walks`,
-  `walkMs`, `walkMostMs`: the stretch walks and their time.
+  coarser than 3 px in 64 m. THE ENDLESS ROAD (`render/canopystream.ts`, the default since 11-15):
+  its props and lamps stream, so the still lights are worked out per stretch - when the props list
+  or the lamps change, only the props and lamps not walked before are (each new tree filed in the
+  stream's own 32 m grid with its gap to the still lights near it; each new lamp pool or board filed
+  and lowering the gaps of the trees near it, `eventglows.ts noteStillLightsOf`), and what left the
+  list is dropped from the grids; a dropped light leaves its trees' gaps (traced the more, never
+  left dark). The moving lights as on any level (`canopycut.ts noteMovingLights`).
+  `canopyCut.walks`, `walkMs`, `walkMostMs`: the stretch walks and their time.
 - THE NIGHT PICTURES (the fly-in only): while the lamps are lit when a fly-in
   is planned, each set also gets two night pictures at its px a metre (`flylayers.ts paintNight`;
   all of them within their own 12 MB beside the sets' 24, past it fewer px a metre): the lamps' pools and heads and the still event lights, white (the rub-out) and tinted
@@ -508,12 +505,12 @@ highway's grid): the grid ROLL_BACK 120 m behind the line, and until the green t
 car, yours too, in formation (`formationWant`, `ai/formation.ts`): along its grid column, at the
 pace (ROLL_PACE 16 m/s) for the pole car and the pole car's own speed for the rest, closing on its
 slot behind the pole at up to 4 m/s either side of that; green as the pole crosses the line (the
-highway: HW_GREEN 6 s in). The throttle was capped at 0.55, so each car rose to the pace as fast
-as its car did at that throttle (headless, 0-16 m/s: the RX Supercar 1.8 s, the Lamborghini 2.9,
-the Mini 7.7): the weak car fell out of its slot and the strong one behind ran into it. Under test,
-`?rollhold=1` (`FIX.rollhold`): the pace itself rises at ROLL_ACCEL 2.5 m/s2 from the start's
-clock (16 m/s in 6.4 s, within every car but the tractor) and each car's throttle is whatever holds
-its speed (`holdSpeed`, up to 1); the fallback hold (`atPace`) the same. Nothing after the green.
+highway: HW_GREEN 6 s in). The pace itself rises at ROLL_ACCEL 2.5 m/s2 from the start's clock
+(16 m/s in 6.4 s, within every car but the tractor) and each car's throttle is whatever holds its
+speed (`holdSpeed`, up to 1); the fallback hold (`atPace`) the same (the default since 11-15: a
+throttle capped at 0.55 let each car rise to the pace as fast as its car did - headless, 0-16 m/s:
+the RX Supercar 1.8 s, the Lamborghini 2.9, the Mini 7.7 - so the weak car fell out of its slot
+and the strong one behind ran into it). Nothing after the green.
 `tools/scratch/_rollhold.mjs`.
 
 LAP LENGTHS AS DATA (the default since 11-14): the menu's track cards show each level's lap from
@@ -563,7 +560,7 @@ pass: `evenEdge` and its own dressing from `_lalivelydata.mjs` (a paddock in the
 platform and fans by the jump, fans by the start, show cars in the infield). No level fixes its
 own hour: every event runs on the world clock, or TEST MODE's START HOUR (`game/menuflow.ts`).
 A venue's RALLYCROSS layout (`world/levels/rallycross-venue.ts` rallycrossLevel: the joker rule, the bales, the rallycross bushes
-unless the venue is `bushless`) takes its joker from another layout's loop (`VenueSpec.joker`, `world/venuejoker.ts`), the lane on
+unless the venue is `bushless`) takes its joker, where it has one, from another layout's loop (`VenueSpec.joker`, `world/venuejoker.ts`), the lane on
 that loop's own surface at its middle (a dirt joker: L.A. Lively's). No bale or tyre stands on the
 joker lane's road (clearJokerLane: the corner bales went round the lap's outside where the joker branches off). L.A. Lively (`tools/scratch/_lalivelydata.mjs`)
 is the first: a street figure of eight crossing at 90 deg, 923 m laid loose (`venues/lalively.ts`): the corners mixed (a fast
@@ -584,7 +581,7 @@ rule, the map's own corner ~15 m: no `minR`), the top hairpin 19.5 m. Its edge t
 caravans are loose objects on a pad of grass (the trees keep off it) north of the top gravel - the
 map's west edge is 30 m past the top hairpin; a TV tower, transporters, flags and spares as the
 stadiums' dressing (`dress`); 3000 trees at most (2026 stand); two firs far out in the forest hold
-the map's edge 150 m past the top hairpin (off-map ground never in view). MOSTLY FIRS (`?hjfirs=1`):
+the map's edge 150 m past the top hairpin (off-map ground never in view). MOSTLY FIRS (11-15):
 a level's own share of firs (`Level.firShare`, 0..1; `render/trees.ts` picks each tree's kind by
 its seed against it, `FIR_SHARE` 0.4 on a level without one) - Holy Jeez 0.85, 1 717 of its 2 022
 trees firs (805 at 0.4; `tools/scratch/_firmix.mjs`). Every reader of a tree's kind follows it: the
@@ -600,20 +597,22 @@ The room behind the pole is the venue's (`VenueSpec.startLane.gridRoomM`, 75 m w
 bending up to 17 m east clear of the stand and the building west of it, 162 m behind the pole (21
 cars need 140 m). Every other level's grid takes the old path (all 49 grids' slots identical,
 `tools/scratch/_griddump.mjs`).
-CROUGHED RX (`world/levels/croughedrx-venue.ts`, behind `?croughedrx=1`): Croft's rallycross lap
-as a level of the Croughed venue (`Level.venue`) at full size, a build of its own from the circuit's
-map download (`tools/venues/croughedrx.json` -> `venues/croughedrx.ts`; the half-size circuit's
-`croughed.json` and its two levels untouched). The map leaves the Rallycross way's surface off: the
-config skips the way and carries it again in `extra` with its own nodes and surface=gravel (the
-source in the config: BRX reports, aerial photographs), so the lap is 1255 m (traced), tarmac 0-520 m
-(the Clervaux run, Clervaux, Hawthorn, the chicane), gravel 520-1255 m (59 %). The far circuit
-pieces are skipped, the Back Straight trimmed (`trim`) beside the gravel leg; the Clervaux trap
-carried from `croughed.json`. The gravel hairpin at its real radius (12.8 m traced: `minR` 10).
-The start lane is the Main Straight (`startLane` pieces Main Straight + Main Straight north,
-`gridRoomM` 320: the pole 55 m before the merge). The joker is hand-laid (`extra`, NOT REAL:
-Croft ran none) into the open infield east of the return leg, 23 m longer; the island's Armco
-joined at its noses (`tidyEdge`, `evenEdge`). The circuit's seen rails (`croughed-venue.ts
+CROUGHED RX (`world/levels/croughedrx-venue.ts`, passed 11-15): Croft's rallycross lap as a level of
+the Croughed venue (`Level.venue`) at full size, a build of its own from the circuit's map download
+(`tools/venues/croughedrx.json` -> `venues/croughedrx.ts`; the half-size circuit's `croughed.json`
+and its two levels untouched). The map leaves the Rallycross way's surface off: the config skips the
+way and carries it again in `extra` with its own nodes and surface=gravel (the source in the config:
+BRX reports, aerial photographs), so the lap is 1255 m (traced), tarmac 0-520 m (the Clervaux run,
+Clervaux, Hawthorn, the chicane), gravel 520-1255 m (59 %). The far circuit pieces are skipped, the
+Back Straight trimmed (`trim`) beside the gravel leg; the Clervaux trap carried from
+`croughed.json`. The gravel hairpin at its real radius (12.8 m traced: `minR` 10). The start lane is
+the Main Straight (`startLane` pieces Main Straight + Main Straight north, `gridRoomM` 320: the pole
+55 m before the merge). NO JOKER: Croft ran none (BRX reports 2017, 2018), and none is laid where
+the real course has none: no `VenueSpec.joker`, so `rallycrossLevel` gives it the rallycross
+dressing alone - no joker lane, rule, bales or arrows - and the game races it as any lap (VS AI, the
+laps row, no RX RACE; the menu, HUD, race flow and AI all read `LEVEL.joker` as optional). Its edge
+tidied and made even (`tidyEdge`, `evenEdge`). The circuit's seen rails (`croughed-venue.ts
 CR_RAILS`) and its slope are shared. Dressing: grass banks (catch-fenced) inside the hairpin,
 between the start lane and the return leg and inside Hawthorn, crowds, Union flags, the paddock's
-hospitality units (`block` landmarks), transporters and spares (`dress`), a TV tower; the big
-screen stands in as a board (LIVE): no screen prop.
+hospitality units (`block` landmarks), transporters and spares (`dress`), a TV tower; the big screen
+stands in as a board (LIVE): no screen prop.

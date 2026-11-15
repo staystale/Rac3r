@@ -49,7 +49,7 @@ const CATS = [
   // (shown only with a level listed under it: world/levels/category.ts LISTED_UNDER)
   { id: 'world', name: 'WORLD CIRCUITS', sub: 'the championships\' tracks · F1 · GT' },
   { id: 'rally', name: 'RALLY STAGES', sub: 'point to point · against the clock' },
-  { id: 'rx', name: 'RALLYCROSS', sub: 'mixed surface · joker lap' },
+  { id: 'rx', name: 'RALLYCROSS', sub: 'mixed surface' },
   { id: 'ovals', name: 'OVALS', sub: 'stock car · speedway · autograss' },
   { id: 'roads', name: 'ENDLESS ROADS', sub: 'how far can you get?' },
   { id: 'test', name: 'TEST GROUNDS', sub: 'surfaces · physics · free play' },

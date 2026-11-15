@@ -34,7 +34,7 @@ export function lineUpCrashBench(): boolean {
       const car = makeCar(ids[(row * BENCH_PER_ROW + slot) % ids.length]);
       reset(car, start.x, start.y, start.heading);
       car.vy = BENCH_LAUNCH;
-      game.ai.push({ car, held: FLAT_OUT, stuckT: 0, inGate: false,
+      game.ai.push({ car, held: FLAT_OUT, inGate: false,
         drv: { state: {} } } as unknown as AiEntry);
     }
   // the camera on you, not swept from the spawn

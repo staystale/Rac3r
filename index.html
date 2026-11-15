@@ -68,6 +68,12 @@
   #bootbar .word { position: absolute; inset: 0; display: flex; align-items: center;
     justify-content: center; font-size: clamp(22px, 7vw, 40px); }
   #bootbar .name.ready .word { display: none; }
+  /* ?logofade=1: no words first - the logo's box empty until it has come, then faded in; the words
+     only if it has not come in LOGO_LATE_MS or fails */
+  #bootbar .name.fade .word { visibility: hidden; }
+  #bootbar .name.fade.late .word { visibility: visible; }
+  #bootbar .name.fade .logo { visibility: visible; opacity: 0; transition: opacity 150ms linear; }
+  #bootbar .name.fade.ready .logo { opacity: 1; }
   #bootbar .three { color: #35c4ff; font-size: 1.9em; line-height: 1;
     text-shadow: 2px 2px 0 #000, 3px 3px 0 #0b3b66; }
   #bootbar .well { height: 18px; background: #241c23; border: 2px solid #000;
@@ -84,8 +90,16 @@
   // moves while the code downloads and runs) toward the code's share of the whole wait, over the
   // time the code took here the last time (game/bootbar.ts keeps it), else a guess; the share and
   // the menu's own wait left on the screen for the code to carry on from
+  // (not for the test tools - navigator.webdriver, as the bundle below: they click to start at once,
+  // and the bar would take that click; tools/scratch/_bootbarshots.mjs hides the flag to see it)
   (() => {
-    document.body.appendChild(document.getElementById('bootbar-page').content.cloneNode(true));
+    if (navigator.webdriver) return;
+    const params = new URLSearchParams(location.search);
+    const page = document.getElementById('bootbar-page').content;
+    // (?logofade=1: the logo asked for first, ahead of the code)
+    const isFade = params.get('logofade') === '1';
+    if (isFade) page.querySelector('.logo').fetchPriority = 'high';
+    document.body.appendChild(page.cloneNode(true));
     let last = null;
     try {
       last = JSON.parse(localStorage.getItem('rac3r.bootbar') || 'null');
@@ -98,12 +112,22 @@
     const bar = document.getElementById('bootbar'), fill = bar.querySelector('.fill');
     bar.dataset.share = share;
     bar.dataset.readyMs = readyMs;
-    // (the logo shown once it has come; a logo that fails leaves the words)
-    const logo = bar.querySelector('.logo'), showLogo = () => {
-      if (logo.naturalWidth) bar.querySelector('.name').classList.add('ready');
+    // (the logo shown once it has come; a logo that fails leaves the words - with ?logofade=1 the
+    // words only after LOGO_LATE_MS, 3 s, or the logo failing)
+    const logo = bar.querySelector('.logo'), name = bar.querySelector('.name');
+    const showLogo = () => {
+      if (logo.naturalWidth) name.classList.add('ready');
+      else name.classList.add('late');
     };
+    if (isFade) {
+      name.classList.add('fade');
+      setTimeout(() => name.classList.add('late'), 3000);
+    }
     if (logo.complete) showLogo();
-    else logo.addEventListener('load', showLogo);
+    else {
+      logo.addEventListener('load', showLogo);
+      logo.addEventListener('error', showLogo);
+    }
     // (the empty bar laid out first, so it eases from empty; 0.9: loading.ts CREEP_SHARE)
     void fill.offsetWidth;
     fill.style.transition = 'transform ' + Math.round(codeMs) + 'ms ease-out';

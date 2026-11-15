@@ -1,5 +1,5 @@
 // _crxrace.mjs - CROUGHED RX WITH A FULL FIELD (scratch; _hjrace.mjs for this level): a real race
-// in the game (?croughedrx=1), the player and AI cars all driven by the racing AI (as racecheck4
+// in the game, the player and AI cars all driven by the racing AI (as racecheck4
 // drives them), from the real grid on the start lane. Per car: laps done, finished or not, seconds
 // off the road (centre past the lap's edge + 1.5 m and off every lane), resets (a jump of over 8 m
 // in one frame), rolls; and every pass over lap 80-140 m (Holy Jeez's crest window; here the
@@ -20,7 +20,7 @@ try {
   const page = await ctx.newPage();
   const errors = [];
   page.on('pageerror', (err) => errors.push(String(err)));
-  await page.goto(`${srv.url}/?menu=1&guide=0&rules=0&croughedrx=1&seed=${seedArg}${extraQuery()}`);
+  await page.goto(`${srv.url}/?menu=1&guide=0&rules=0&seed=${seedArg}${extraQuery()}`);
   await page.waitForTimeout(3000);
   await page.evaluate(startRace, [+aiArg, +lapsArg, carId]);
   const started = Date.now();
@@ -50,7 +50,7 @@ async function startRace([aiCount, laps, car]) {
   const circuit = await import('/src/ai/circuit.ts'), traits = await import('/src/ai/traits.ts');
   const lab = await import('/src/lab.ts');
   game.menu.hide();
-  game.launch('croughedrx', car, { ai: aiCount, diff: 2, laps, rx: true });
+  game.launch('croughedrx', car, { ai: aiCount, diff: 2, laps });
   const driver = circuit.createAIDriver(lab.LEVEL, traits.aiTraits(2, 0, 1, 99));
   game.input.update = () => ({ ...driver.drive(game.car, 1 / 60, { cars: game.ai.map((entry) =>
     entry.car), lap: 1, laps }), reverse: 0, shiftUp: false, shiftDown: false });

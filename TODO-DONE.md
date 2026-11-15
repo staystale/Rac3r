@@ -69,6 +69,83 @@ code plain (simhash, worldhash, renderhash the same).
   in 20 s off the road, won 8 s after coming back onto it. A race to a line or against the clock
   unchanged (off the road still counts there).
 
+## PASSED 11-15 (owner: "Ok and no joker if it's not there in real life / The rest is pass") - THE NIGHT CANOPY CUT ON THE ENDLESS ROAD, THE EXIT PUNS, HOLY JEEZ FIRS, ROLLING STARTS, STUCK AI, CROUGHED RX; now the default
+
+The switches ?nighthw=1, ?exitpuns=1, ?hjfirs=1, ?rollhold=1, ?stuckreset=1 and ?croughedrx=1
+removed with their test entries and old paths. PROOF (laptop, the old code d783d413 with the five
+switches on against the new code plain): simhash SAME (all 13 runs, and drive runs on Holy Jeez,
+X Gayms and Slidden Hill); worldhash --highway 20 SAME on every level (Croughed RX the one line
+added); the exit boards over 20 km of each countryside road type the same names (a throwaway node
+walk as worldhash drives; worldhash's own 20 km of motorway passes none of the four). renderhash
+(the second PC, both sides there) SAME on Knobhill RX, X Gayms, Holy Jeez, Slidden Hill,
+Thruston, Stock Car, Dieatona, Naffcar and the highway by day, and on the highway and Holy Jeez
+at night (night=0.94). Not run: renderhash on the other levels (none of their drawing changed;
+simhash covers the race on them).
+
+- NIGHT CANOPY CUT ON THE ENDLESS ROAD (owner 11-14 "I don't see why we wouldn't do it";
+  render/canopystream.ts): the still lights worked out per stretch as the props stream. Laptop,
+  night 0.94, 90 s: countryside fly-in 3 of 23 canopies darkened (all 23 before), in race at most
+  5 of 5; a stretch walk at most 1.5 ms (11 walks); Deaf Valley no trees. renderhash highway at
+  night off vs on SAME (by design: a canopy no light reaches is already exactly the dark).
+- EXIT PUNS (owner 11-14 "Pun them"): the countryside highway's GOOLE, SCUNTHORPE, BRIGG and
+  HOWDEN are GHOULE, SKUNKTHORPE, BRIGGADOON and HOWDY-DEN (highway/extras.ts SLIP_NAMES; NOTES'
+  register).
+- HOLY JEEZ MOSTLY FIRS (owner 11-14 "Yes, mostly firs"): a level's own share of firs
+  (Level.firShare; render/trees.ts by each tree's seed, FIR_SHARE 0.4 without one); Holy Jeez
+  0.85: 1 717 of its 2 022 trees firs (805 before), the rest leafy trees that colour in autumn
+  and go bare in winter; the drawing and the night canopy cut follow it. renderhash: only Holy
+  Jeez differs; worldhash: only its level field; simhash SAME.
+- 3a2 BUG 7, ROLLING STARTS HOLD A SPEED (game/order.ts, ai/formation.ts): the formation's
+  throttle was capped at 0.55, so a weak car fell out of its slot and the strong one behind ran
+  into it (0-16 m/s at 0.55: RX Supercar 1.8 s, Mini 7.7). Now the pace rises at 2.5 m/s2 to
+  16 m/s (6.4 s) for every car and each car's throttle is whatever holds its speed (up to 1).
+  MEASURED (tools/scratch/_rollhold.mjs, the second PC, 5 AI of your class, 3 runs each, OLD /
+  NEW): bumps before the green, ovals 3 of 18 / 0, Dieatona 2 of 9 / 0, highway 0 / 0; widest
+  speed spread once moving, ovals 7.8 / 2.2 m/s, Dieatona 6.8 / 1.0, highway 4.5 / 2.2; the green
+  on the ovals 9.1-9.9 s -> 11.0-11.3 s, Dieatona 10.1-11.0 -> 12.0-12.1 s, the highway 6.0 s as
+  before. After the green nothing changed.
+- 3a2 BUG 8, STUCK AI AND TRAFFIC (game/aistuck.ts, ai/trafficStep.ts): the old rule put an AI
+  back after 3 s under 1 m/s or on its drive-outs' give-up, 4 m behind its last on-road point;
+  it missed cars rocking on their drive-outs (10-15 s), cars bogged in the Sahara (20-31 s), put
+  a stage's later starters back while still waiting at their start, and put back AHEAD (7 in the
+  Sahara, +1 058 m) and onto other cars (1-3 a run); a highway wreck in view stayed (25.6-95 s).
+  Now: STAYED within 5 m for 6 s or NO PROGRESS (under 4 m/s, no 3 m of race progress in 10 s),
+  never while the start holds it, a crash plays out, it is QUEUED or PULLING AWAY; put back as
+  your reset is (never ahead, the next free spot 6 m back). Traffic standing stuck 6 s goes, in
+  view too, unless broken down, at a pump, a police car or queued. MEASURED
+  (tools/scratch/_stuckai.mjs, 17 runs): no stuck spell over 10.3 s (old up to 31.1 s); no put-back
+  ahead, onto a car or at a stage's start; traffic stuck in view at most 6.5 s (old 25.6 s). More
+  put-backs in lap-1 pile-ups (first 45 s: Brands 12, old 1; Spa 5, old 2; Knobhill RX 5, old 3).
+  The driver's `giveUp` flag stays (read by tools/aifieldcheck.mjs only).
+- CROUGHED RX (Croft's rallycross, its own full-size level of the Croughed venue; built 11-15,
+  questions answered 11-14): the Rallycross way carried with surface=gravel (BRX reports, aerial
+  photographs); 1255 m, tarmac 0-520 m (the Clervaux run, Clervaux, Hawthorn, the chicane), gravel
+  520-1255 m (59 %); the gravel hairpin at its real radius (12.8 m, minR 10); the grid two abreast
+  on the Main Straight (21 slots); grass banks with catch fences, crowds, Union flags,
+  hospitality units, transporters, a TV tower, boards (the big screen a LIVE board).
+  THE JOKER: Croft ran none (BRX reports 2017, 2018); a hand-laid gravel loop had been built for
+  the owner's question. Owner 11-15: "no joker if it's not there in real life" - REMOVED: its
+  `extra` way and `joker` layout from tools/venues/croughedrx.json (the Rallycross way, split at
+  the loop's two nodes into Rallycross 2 and 3, is one piece again: the same 1252 m real, the same
+  points), `VenueSpec.joker`, and with it the lane, the gate and rule, the bales between it and
+  the lap, the painted arrows, the island's Armco (5 barrier runs) and 144 tyres and bales;
+  tools/scratch/_crxjoker.mjs. rallycross-venue.ts rallycrossLevel takes a venue with no joker
+  (the dressing alone); every joker level is built as before (worldhash). The game reads
+  LEVEL.joker as optional everywhere (menu, HUD, race flow, rules, AI, minimap): a joker-less
+  level races as any lap - VS AI with its laps row (3), no PRACTICE / RX RACE row.
+  CHECKS (11-15, no joker): barriercheck OK; propcheck all clear (51 levels); solidcheck OK;
+  balecheck OK; venueaudit left with the two it had before (a farm road ending in its farmyard,
+  mapped; a 6 m Armco run by the Back Straight) - the joker's Armco end and its 23 m island run
+  gone; crestcheck no crest air (the hairpin's light bounce as with the joker); lapdriver's flying
+  laps 0.0 s off (rally-4x4 67.2 s, rx-super 65.6, hatch-rwd 72.6, track-rwd 60.3), from the grid
+  1.6-2.4 s off on the start lane as before; aijokercheck (the racing AI alone, 5 laps): no joker
+  branch, no gate, laps 46.8-48.0 s, 0.0 s off, the start lane held to 0.3 m. THE REAL GAME (tools/scratch/_crxshots.mjs, 844x390
+  and 390x844): the setup shows SOLO / VS AI, no RX RACE row; a 2-lap race with 20 AI, your car on
+  the racing AI (seed 1, then 2): every car's laps counted - all 21 finished, then 17 with four
+  on their second lap when the race closed - no penalty, no page error, the HUD LAP n/2 with no
+  joker line; the return leg and the infield beside it photographed - bales and
+  grass, no gravel lane, Armco, arrow or sign left. Menu thumbnail painted again (the loop gone).
+
 ## PASSED 11-14 (owner: "Pass all four") - THE LOADING SCREEN, THE RESTART FIX, THE SMOOTH FLY-IN, THE NIGHT FLY-IN; now the default
 
 The switches ?loadscreen=1, ?onestart=1, ?smoothfly=1 and ?nightfly=1 removed with their test

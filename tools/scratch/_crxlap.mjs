@@ -2,7 +2,7 @@
 // autodriver and the same off-road test as tools/lapdriver.mjs (the driver's distance from the
 // lap's centreline past half the road), run for two laps from the grid; the seconds off counted
 // apart while the car is on the start lane (within its half width: off the lap by design), and the
-// second, flying lap's own; WHERE=1 prints where it is off the lap. node tools/scratch/_crxlap.mjs [car] (CROUGHEDRX=1)
+// second, flying lap's own; WHERE=1 prints where it is off the lap. node tools/scratch/_crxlap.mjs [car]
 import { makeCar, step, reset, PHYSICS_STEP_SECONDS } from '../../src/vehicle.ts';
 import * as L from '../../src/lab.ts';
 import { createAutoDriver } from '../../src/ai/autodrive.ts';

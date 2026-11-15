@@ -1,7 +1,7 @@
 // _crxoff.mjs - WHERE CROUGHED RX'S RACING AI LEAVES THE ROAD, ALONE (scratch): one car, the racing
 // AI (ai/circuit.ts, as aijokercheck drives it) from the grid for 160 s (three laps); every 0.25 s it is off
 // (centre past the lap's edge + 1.5 m and off every lane) its lap m, spot, speed and side.
-// CROUGHEDRX=1 node tools/scratch/_crxoff.mjs [car] [seed]
+// node tools/scratch/_crxoff.mjs [car] [seed]
 import { makeCar, step, reset, PHYSICS_STEP_SECONDS } from '../../src/vehicle.ts';
 import * as L from '../../src/lab.ts';
 import { createAIDriver } from '../../src/ai/circuit.ts';

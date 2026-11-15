@@ -80,10 +80,9 @@ export type AiDriver = ReturnType<typeof createAIDriver>;
 /** One AI racer: its car, its driver, and the game's bookkeeping. */
 export interface AiEntry extends FormKeeper {
   car: GameCar; drv: AiDriver;
-  stuckT: number; inGate: boolean;
-  stuckFrom?: number;   // m/s when it went slow (gaining since = trying, not stuck)
+  inGate: boolean;
   offT?: number;   // seconds off the road
-  // ?stuckreset=1: where it has stood, since when, and whether it has backed up (game/aistuck.ts)
+  // where it has stood, since when, and whether it has backed up (game/aistuck.ts)
   stuckWatch?: StuckWatch;
   progressFrom?: number; progressT?: number;   // race progress, m, and s since it last gained
   obs?: LooseObstacle[]; obsT?: number;   // loose objects near it (the driver steers round them)

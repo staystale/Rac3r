@@ -5,7 +5,8 @@ import type { AiCar, DriveCtx, DriveOutState } from "./types.ts";
 
 // Nearly still for DRIVE_OUT_T s after the green (nose in a wall, beached, tangled) -> REVERSE
 // ~1-1.5 s with the wheel turned to swing the nose back toward the road direction roadH; three
-// tries inside 15 s and still stuck -> state.giveUp: main.ts resets it (last resort). Returns the
+// tries inside 15 s and still stuck -> state.giveUp (the game puts a stuck car back by its own
+// watch, game/aistuck.ts; tools/aifieldcheck.mjs reads giveUp). Returns the
 // reversing controls, or null = drive on. (NOOUT=1 env: node A/B only - proves the highway merge
 // changed nothing else)
 const NOOUT = !!envValue("NOOUT");

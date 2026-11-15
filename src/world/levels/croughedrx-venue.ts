@@ -10,12 +10,11 @@
 // THE SURFACES: the map leaves the Rallycross way's surface off; the venue file carries it as
 // gravel (the loose section off the circuit: BRX reports, aerial photographs - the config's
 // source); the circuit's pieces it runs over are tarmac.
-// THE JOKER (the shared joker rule): Croft ran none (BRX reports 2017, 2018); the owner asked for
-// the joker choice, so a gravel joker is laid by hand into the open infield off the return leg
-// (TODO.md 5: the owner's question) - 23 m longer round two bends.
+// NO JOKER: Croft ran none (BRX reports 2017, 2018), and the game lays none where the real course
+// has none (the owner's rule), so it races as a plain lap (no RX RACE: VS AI, its laps chosen).
 // WHAT IT IS MEANT TO FAIL YOU AT: the gravel hairpin at its real size; the changes from tarmac to
 // gravel and back (the grip changes through the lap: brake for the chicane's exit on the tarmac,
-// not on the gravel past it); the joker's choice.
+// not on the gravel past it).
 // ITS LOOK: a UK round on the old airfield - grass banks for the crowd inside the hairpin, along
 // the return leg and inside Hawthorn, hospitality units and the teams' transporters in the paddock
 // west of the Clervaux run, a big screen by the start (a LIVE board: no screen prop), Union flags.
@@ -103,18 +102,16 @@ export const CROUGHEDRX_SPEC: VenueSpec = {
   seed: 1967,
   followRails: true,
   railsSeen: CR_RAILS,
-  // tidied and made even (world/venuetidy.ts, world/stadiumtidy.ts): the lap's Armco and the
-  // joker's met at the joker island's two noses doubled over 10-12 m; joined, they close it
+  // tidied and made even (world/venuetidy.ts, world/stadiumtidy.ts), as Holy Jeez: every Armco run
+  // and catch fence eased, near doubles joined
   tidyEdge: true,
   evenEdge: true,
-  // the joker: the joker loop's way round the infield east of the return leg
-  joker: { layout: 'rx', loop: 'joker', near: [140, -70] },
   landmarks: [...CROWD, ...FLAGS],
   dress: { props: DRESS, litter: DRESS_LITTER },
 };
 
 /**
- * The course as a level: the venue's rallycross layout (the joker rule, the bales).
+ * The course as a level: the venue's rallycross layout (the bales; no joker).
  * @returns the level
  */
 function croughedRxLevel(): Level {
