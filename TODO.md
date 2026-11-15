@@ -76,6 +76,12 @@ BUGS (each behind its own switch, measured, then a test link):
 6. A HIGHWAY RACE WON BY PULLING AWAY while OFF THE ROAD: PASSED 11-15, the default (TODO-DONE).
 7-8. ROLLING STARTS HOLD A SPEED and STUCK AI AND TRAFFIC: PASSED 11-15 (TODO-DONE).
 9. AI SLOW ON SLIPPERY SURFACES (measure first: an AI change).
+   OWNER 11-15 GO (one switch, after bug 10): "they don't seem to deviate from racing line even if
+   it's quicker ... slowly drive the racing line even if taking a bit of curb is quicker ... don't
+   slide into corners even as a mistake"; "Ai should slide more on ice but try and go fast still".
+   Build: hold a slide at each surface's own best slip angle (on ice slide MORE, still fast); more
+   corner speed off tarmac; use kerbs / other lines when quicker (check the line first); mistakes
+   by skill. (Option A as first written - catching slides earlier on ice - was the wrong way.)
    MEASURED 11-15, NOTHING CHANGED (tools/scratch/_aislip.mjs: node, one top-difficulty AI alone,
    its flying lap; Thruston and Knobhill with their tarmac given the grip numbers of each surface -
    mu, peakK, longK, plough - so the line and the plan read that grip too; hatch-rwd, rally-4x4,
@@ -117,6 +123,9 @@ BUGS (each behind its own switch, measured, then a test link):
    - C. Nothing: the AI tracks the grip; the 2WD cars are traction-limited, as yours are.
    RECOMMENDATION: ask where it was seen (car, level, weather). A 2WD car on snow or sand: C (it is
    the car) or B; the AI losing it on ice: A first, measured with _aislip, then in a field.
+10. OWNER 11-15 GO: options A + B only ("C would be too much"); "Over take when clear not when
+    oncoming is there - driver skill can say it makes mistakes or miss judges tho". Police contact
+    measuring: no. Plus ?hwputback=1: two racers put back onto one spot (approved).
 10. HIGHWAY AI NOT DODGING ONCOMING TRAFFIC: back on (owner 11-13). Before: "ai don't dodge
     properly", to measure what they miss (traffic, the player, wrecks); parked 11-10 ("let's leave
     it for now").

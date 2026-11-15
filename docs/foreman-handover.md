@@ -1,31 +1,48 @@
 # Foreman handover
 
 Kept current as the work goes (owner 11-12: "update the handover as we go"). Last updated
-2026-11-14. Read `CLAUDE.md`, then `NOTES.md` (the owner's rules and the Routine at its end,
+2026-11-15. Read `CLAUDE.md`, then `NOTES.md` (the owner's rules and the Routine at its end,
 not repeated here), then `TODO.md`, then this page. The 11-07 version of this page is in git.
 
-## Where we are (11-14, evening)
+## Where we are (11-15, late morning)
 
-- **Main** = round28 (610a7602); **round29** (fb680511, lap lengths + stage thumbnails defaulted) is
-  on CI: push to main when its 14 check-runs are green, then move the served clone.
-- **PASSED today, now the default:** Holy Jeez (a normal level), PERFPASS (the speed fixes), the lap
-  lengths as data, the rally stages' shipped thumbnails. **Passed, switch still on:** `?onestart=1`
-  (remove it with the smooth fly-in, which is built on its code). **Under test:** `?loadscreen=1`
-  (owner: pass it TOGETHER with the smooth fly-in).
-- **Worker** (agent a728d032b34dfbe63, worktree `.claude/worktrees/barriercull`): the SMOOTH
-  FLY-IN on `worker/smoothfly` (from round28; `?smoothfly=1`; the big levels' fly-in drew every
-  prop and cone each frame: ~4 fps on the phone). Then, on my go: the Holy Jeez FIRS (a per-level
-  tree mix), then CROUGHED RX (answers in TODO 3b).
-- **Open, recorded:** SPEED NEXT in TODO section 2 (Yas Marina's night-rain draw spikes, the
-  zoomed-out uploads); the owner's 11-13 list in TODO 3a2 (record only).
-- **Second test PC:** see Picking up. The owner's friends may test with `&report=1` (none yet).
-- **Lessons today (NOTES has the lasting ones):** check `npm run verify`'s real result before a
-  push (a pipe hid a tsc failure once); a level's pass fails CI's worldhash once (NOTES); never
-  rerun what the worker runs (owner: "don't double do work"); SendMessage to a worker mid-run moves
-  its foreground job to the background.
-- PARALLEL WORKERS (11-14 night): each its OWN worktree and its OWN port (8090, 8091, 8092; two
-  on one port served each other's code once); a laptop browser lock is removed only by whoever
-  wrote it (compare its text first); the PC is one worker's at a time.
+- **Main** = round46 (71bdf097) = **ITCH.IO** build `2026-11-15-71bdf097` (pushed 11-15 on the
+  owner's yes; staged in `GamesStudio/ready-to-play/rac3r-2026-11-15`). Bugs 1-8, Croughed RX (no
+  joker: Croft had none), the boot bar with the logo fade: all PASSED and the default. Test list
+  empty. Only switch left: `?siren=1` (PARKED until the sound pass, owner).
+- **ITCH RULE:** ask before EVERY push; push only on the owner's yes, after CI is green.
+- **Worker A** (agent a519a84a1d0ed2559, worktree `bugfix`, port 8091, PC folder
+  `rac3r-proofepo`): BUG 10 behind `?hwdodge=1` (owner chose A + B: read cars along the road
+  frame; own lanes when oncoming, overtake only when clear, skill can misjudge; NOT C), then
+  `?hwputback=1` (two racers put back onto one spot). Then BUG 9 (owner GO, one switch: hold a slide
+  at each surface's best slip angle - on ice slide MORE but fast; more corner speed off tarmac; use
+  kerbs / other lines when quicker; mistakes by skill). Briefs: scratchpad briefA2.md.
+- **Worker B** (agent a6dd9ec310acc785b, worktree `barriercull`, port 8092, PC folder
+  `rac3r-proofepo2` port 8093): `?forestseed=1` (gen-forest seed leak), `?wantedlost=1` (LOST
+  THEM -> WANTED LEVEL LOST), `?weathermobile=1` (weather notices on MOBILE difficulty only), the
+  menu demo car's NaN (find first). THEN the highway off-road jerk (owner: after itch; ~87 frames/min
+  over 20 ms since 11-14 vs 39-47 on 11-13; drop seconds have ~20 % more tile builds), THEN the
+  tracks (answers in hand: Pembreezy RX + circuit as ONE, Blighty Park, Glen Hellish, Swapsies
+  head-to-head real / full field in test mode, quarry). Brief: scratchpad briefB2.md.
+- **Queued, approved:** JOKER TAKEN on its own line in the lap box; game SOUND OFF entirely until the
+  sound pass (switch, then default); the AI using your reset rules; the wrong-way guard on R's verge
+  rule; the off-road countdown running 8-16 m out; start lights keeping the car clear. Pit stops:
+  questions first (not every race; test-mode option; a real race turns them on where real life
+  would). Then highway extras, F1 vs world circuits, cars, the sound pass.
+- **DROPPED (owner):** NO NEW BANNERS ever (the WRONG WAY 3-2-1, GET BACK ON THE ROAD); the police
+  contact measuring.
+- **Open question:** the Rallycross walkthrough line "Your lap and the JOKER status" (Croughed RX
+  has no joker): change to "your lap"? (rec yes)
+- **Faster rounds (owner approved):** targeted re-checks after small fixes (CI runs the full set);
+  heavy proofs on the PC (two folders, two ports); the owner's link moved to a branch once the
+  worker's proofs pass, before CI; measuring sized to the change.
+- **Test tools get no boot bar** (index.html skips it under navigator.webdriver; the bar took their
+  start click). _bootbarshots hides the flag to photograph it.
+- **The PC** (i5-3570K, 4 threads, 8 GB) is not faster per run than the laptop (Ryzen 5 5500U, 12
+  threads, 5.8 GB, ~1 GB free): its worth is spare memory.
+- PARALLEL WORKERS: each its OWN worktree and its OWN port (two on one port served each other's
+  code once); a laptop browser lock is removed only by whoever wrote it (compare its text first);
+  check whether a tool opens a browser BEFORE running it (guidecheck, racecheck do).
 - Earlier state of this page: git history.
 
 ## In progress
