@@ -255,8 +255,10 @@ off / on): racing laps fronts smoke 5-8 % -> 1 % of the time; a held 1.1 g corne
   car's box on screen clears every piece the HUD draws now (`hud/keepclear.ts hudKeepout`: the
   button row, the panels, the minimap, the aid chips on a car with that aid, the pedals with touch
   controls). Each piece pushes toward the middle along one axis, ramped in over 32 px as the car
-  comes alongside, so the view never jumps (`render/hudclear.ts`). Not avoided: the steering
-  stick under the thumb, the passing notices and the finish flag.
+  comes alongside, worked out again where the push moved it (up to 4 passes); the camera follows
+  that push with its speed changing at most 3 px / frame / frame (`render/hudclear.ts
+  followPush`), taken whole only after a teleport, so the view never jumps. Not avoided: the
+  steering stick under the thumb, the passing notices, the speed camera's flash, the finish flag.
 - `render/tiles.ts`: what lies over the floor and zones (track ribbon, lanes, patches, covers,
   wear, kerbs) is painted into cached tiles at ONE density (the zoom-1 step) within a time budget
   per frame (`tilesBudget.ts`); the GPU ground scales them to any zoom and draws each at its exact
