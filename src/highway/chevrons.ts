@@ -21,8 +21,10 @@ const SHARP_FAST_M = 360, SHARP_SINGLE_M = 255;
 const BOARD_EVERY = 12, DESERT_EVERY = 24;
 // m off the road's edge (behind the Armco where there is one, as the rally boards)
 const BOARD_OUT_M = 4.5;
-// m along the road either side of a board a lay-by must not reach (the board is 5 m wide)
-const BAY_CLEAR_M = 8;
+// m along the road either side of a board a lay-by must not reach: the board's 2.6 m half-width,
+// the station's brand board 8 m before its lay-by (highway/stations.ts BOARD_BEFORE_M; a board was
+// laid under one) and a margin; tested every BAY_STEP_M
+const BAY_CLEAR_M = 20, BAY_STEP_M = 4;
 
 /**
  * The sharp-bend radius for a road (the single lane has one lane each way).
@@ -39,8 +41,10 @@ const sharpRadius = (cfg: HwCfg) => (cfg.oncoming === 'lane' ? SHARP_SINGLE_M : 
  * @returns true when one does
  */
 function isInBay(ctx: DressCtx, dist: number, side: number) {
-  return [-BAY_CLEAR_M, 0, BAY_CLEAR_M].some((off) => bayHere(ctx.level, dist + off, side)
-    !== null);
+  for (let off = -BAY_CLEAR_M; off <= BAY_CLEAR_M; off += BAY_STEP_M) {
+    if (bayHere(ctx.level, dist + off, side) !== null) return true;
+  }
+  return false;
 }
 
 /**
