@@ -19,6 +19,8 @@ import { LEVEL } from '../world/state.ts';
 import { MARGIN } from './widgets.ts';
 import { jokerLane } from '../world/joker.ts';
 import { inTrackUnderpass } from '../world/trackunder.ts';
+import { FIX } from '../core/fixes.ts';
+import { drawHighwayMarks, drawHighwaySideRoads } from './minimapHighway.ts';
 import type { HudState, HudGame } from './hudtypes.ts';
 import type { HudRects } from './layout.ts';
 import type { HudRect } from './widgets.ts';
@@ -38,6 +40,8 @@ const ROAD_WIND = 1.4;       // x the straight-line reach: road shown ahead, as 
 const NEAR_POINTS = 40;      // centreline points searched round the last match each frame
 const LOST_M = 40;           // m off the matched point: search the whole centreline again
 const OPACITY = 0.85;
+// m past the window's reach a side road's sampled points may lie and still have a piece in view
+const SIDE_ROAD_PAD_M = 120;
 
 // DIFFICULTY MODES (menu/setup.ts DIFF: MOBILE, GAME, REALISH, RICH, REAL): the default per mode,
 // and the one mode where it is locked off. REALISH counts as easy (owner, 2026-10-16: it is the
@@ -401,10 +405,15 @@ function drawWindow(ctx: CanvasRenderingContext2D, game: HudGame, x: number, y: 
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
   drawJokerLane(ctx, scale);
+  // (?hwmap=1: the roads leaving the motorway, under it; a side road's points are ~30 m apart)
+  const reach = (radius + lead) / scale;
+  if (FIX.hwmap) drawHighwaySideRoads(ctx, game, reach + SIDE_ROAD_PAD_M, scale);
   drawRoad(ctx, pts, idx, closed ? sub.totalDist : null, scale, span);
   ctx.globalAlpha = OPACITY;
-  drawRivals(ctx, game, (radius + lead) / scale, scale);
+  drawRivals(ctx, game, reach, scale);
   ctx.restore();
+  // (?hwmap=1: the petrol stations and the police, over the road)
+  if (FIX.hwmap) drawHighwayMarks(ctx, game, carX, carY, scale, reach);
   drawCarMark(ctx, carX, carY, car.heading);
   ctx.restore();
 }

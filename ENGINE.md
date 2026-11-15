@@ -285,6 +285,18 @@ must be; the gauge, FPS strip, cone tally and the ABS / TCS chips' clearance fol
 bottom as before. Solo (no position) the joker line keeps the second row. Off: two rows, the joker
 line beside the position. `tools/scratch/_jokerrowshots.mjs` photographs every joker state.
 
+THE HIGHWAY'S MINIMAP EXTRAS (under test, `?hwmap=1`, `FIX.hwmap`; `hud/minimapHighway.ts`, called
+from `hud/minimap.ts drawWindow`; the endless roads only): the roads leaving the motorway - the
+level's tarmac lanes but a village's street, a bridge's approach kept only where it leads on from
+a junction's roundabout (an approach shares its points with the cut that shortens it,
+`highway/cuts.ts addCut`, in `_hw.cuts`; it starts within 18 m of its ring's middle): the slips,
+the side road, a junction's slips, roundabouts and roads on - stroked thin (4 / 1.8 px) under the motorway's line; each
+`gasstation` prop (a lay-by's, a services', Deaf Valley's) as a 5 x 7 px pump in `COL.mapFuel`;
+each police car in the window's reach (a traffic slot with `police`, not an angry driver) as a
+3 px dot in `COL.blues`, flashing with `COL.bluesCore` every 125 ms while its mode is `chase`. The
+pumps and roads are picked out of `LEVEL.props` / `lanes` only when those lists (or the cuts)
+change. `tools/scratch/_hwmapshots.mjs` photographs each.
+
 ## Sound (`audio.ts`)
 
 All sound is synthesised with Web Audio (no sound files); `?noaudio=1` never starts it. One
