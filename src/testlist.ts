@@ -13,6 +13,18 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'aislide',
+    added: '2026-11-15',
+    name: 'AI slides by the ground, uses kerbs, makes sliding mistakes',
+    where: 'Test link + &aislide=1: a slippery stage or track with 2WD AI cars (rear-drive hatch, '
+      + 'F2) - gravel or sand (Sweaty Lamb, a rally stage), or snow / ice weather; then a tarmac '
+      + 'circuit for the kerbs',
+    try: 'Watch the AI through corners: on loose ground and ice they should hold slides and still '
+      + 'be quick; on tarmac a wheel on the kerbs; weaker drivers now and then sliding wide.',
+    wrong: 'AI slower or spinning off far more on ice / snow, sliding on dry tarmac, cutting '
+      + 'across the grass instead of the kerb, or no visible change on gravel.',
+  },
+  {
     id: 'tileahead',
     added: '2026-11-15',
     name: 'Smoother highway: the ground made ahead of the car, a little each frame',

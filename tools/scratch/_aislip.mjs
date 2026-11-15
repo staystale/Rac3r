@@ -38,6 +38,9 @@ async function runOne([level, carId, surfId, kMulText]) {
         plough: from.plough });
     }
   }
+  // (HOLDK / HOLDMAX: the slide hold's angle dials, ai/driverSlide.ts - with AISLIDE=1)
+  if (process.env.HOLDK) globalThis.__AI_HOLDK = Number(process.env.HOLDK);
+  if (process.env.HOLDMAX) globalThis.__AI_HOLDMAX = Number(process.env.HOLDMAX);
   globalThis.__AI_K = 0.88 * kMul;
   globalThis.__AI_KB = 0.70 * kMul;
   const { makeCar, step, reset, PHYSICS_STEP_SECONDS: dt } = await import('../../src/vehicle.ts');

@@ -15,11 +15,13 @@
 // - the catch, the understeer lift and the slip feel read the ground's peak too (OVER_K, UNDER_K,
 //   the feel x the peak over tarmac's).
 import { FIX } from "../core/fixes.ts";
+import { debugValue } from "../core/debug.ts";
 import type { AiCar, Mistake } from "./types.ts";
 
 // mu under which the ground is slippery (gravel 0.62, sand 0.55 ... ice 0.12; wet tarmac 0.72 not)
 export const SLIPPERY_MU = 0.7;
-// the slide held: x the rear tyre's peak slip angle, within these rad
+// the slide held: x the rear tyre's peak slip angle, within these rad (the tools' dials
+// __AI_HOLDK / __AI_HOLDMAX try others: tools/scratch/_aislip.mjs HOLDK / HOLDMAX)
 const HOLD_K = 1.25, HOLD_MIN = 0.15, HOLD_MAX = 0.3;
 // a held slide is caught past this many times the hold
 const CATCH_K = 1.8;
@@ -66,7 +68,9 @@ const feel: SlideFeel = { hold: 0, holdMax: 0, overAt: 0, underAt: 0, feelK: 1, 
 export function slideFeel(car: AiCar, underBefore: number): SlideFeel | null {
   if (!FIX.aislide || !(car.surface.mu < SLIPPERY_MU)) return null;
   const peakRear = car.t.aPeakR ?? 0.1, peakFront = car.t.aPeakF ?? 0.1;
-  feel.hold = Math.max(HOLD_MIN, Math.min(HOLD_MAX, HOLD_K * peakRear));
+  const holdK = debugValue("AI_HOLDK") as number || HOLD_K;
+  const holdMax = debugValue("AI_HOLDMAX") as number || HOLD_MAX;
+  feel.hold = Math.max(HOLD_MIN, Math.min(holdMax, holdK * peakRear));
   feel.holdMax = CATCH_K * feel.hold;
   feel.overAt = Math.max(0.18, OVER_K * peakRear);
   feel.underAt = Math.max(underBefore, UNDER_K * peakFront);

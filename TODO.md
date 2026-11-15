@@ -165,6 +165,54 @@ BUGS (each behind its own switch, measured, then a test link):
    - C. Nothing: the AI tracks the grip; the 2WD cars are traction-limited, as yours are.
    RECOMMENDATION: ask where it was seen (car, level, weather). A 2WD car on snow or sand: C (it is
    the car) or B; the AI losing it on ice: A first, measured with _aislip, then in a field.
+   BUILT 11-15 behind ?aislide=1 (FIX.aislide, ai/driverSlide.ts; testlist 'aislide'; ENGINE.md
+   THE AI'S SLIDES BY THE GROUND), the owner's GO in four steps, each measured with _aislip:
+   1. HOLD A SLIDE: the tyre law now writes each axle's peak slip angle (car.t.aPeakR: tarmac
+      ~0.12 rad, gravel ~0.19, sand ~0.16, wet / snow / ice the 0.10 floor); on ground under mu
+      0.7 (not tarmac, wet or dry) a rear slide in a corner going the corner's way is held on the
+      throttle at 1.25 x that (0.15-0.30 rad) - the loose hairpins' drift law, now any corner and
+      every rear- or four-wheel-driven driver - with 2 m x sqrt(0.6 / mu) to the edge (ice ~4.5
+      m); the catch, the understeer lift and the slip feel read the ground's peak too. TRIED: wet
+      tarmac in it (mu 0.85 threshold) - off the road 7 -> 24 s over the runs, out; the 2 m edge
+      on ice - off 48 -> 86 s, so the room grows as the grip falls.
+   2. COMMIT OFF TARMAC: a 2WD car plans 1.12 x the corner grip on mu 0.25-0.7 (gravel, grass,
+      sand, mud, snow). MEASURED alone: every car +1-3 % a lap; the 2WD cars no more offs, the
+      AWD cars 1-3 s more off a lap on gravel and snow, every car more off on ice (65 vs 48 s) -
+      so 2WD only, not ice.
+   3. KERBS: the line did NOT use them - it kept its middle 1.6 m inside the road's edge and the
+      kerbs lie outside the edge (render/kerbs.ts, halfW to halfW + 2.4 m). Now beside a kerb it
+      may come to 0.6 m of the edge (~0.3 m of wheel on the kerb), and the driver's lateral clamp
+      lets it. Tarmac circuits change: alone +0.6 % a lap, no offs.
+   4. MISTAKES BY SKILL: there already were (ai/driverLane.ts: per corner, by the driver's own
+      random stream, severity larger the lower the skill: late / early / throttle / lift).
+      MEASURED before: of 90 at Realish and 200 at Mobile none spun or left the road on tarmac or
+      gravel. Now while a 'late' or 'throttle' one runs the catch is x (1 + 1.5 x severity),
+      nothing held, no understeer lift on a 'late' one, and both twice as big.
+   MEASURED, all four on (the laptop - the second PC ran 5x slower beside the other worker's
+   renderhash; _aislip, Thruston + Knobhill laid in each surface, one flying lap, top difficulty,
+   traits seeds 1 and 2, per car class over 8 runs: lap off -> on, sliding s / lap, off s / lap):
+   - gravel 2WD 58.4 -> 57.0 s (+2.6 %), sliding 2.8 -> 3.3, off 0.7 -> 0.9; AWD 57.3 -> 57.0
+     (+0.6 %), 4.7 -> 6.8, 1.4 -> 1.6. sand 2WD +0.1 %, 4.0 -> 5.5, off 0; AWD +0.3 %, 5.8 ->
+     7.8, 1.9 -> 2.4. grass 2WD 71.4 -> 70.6 (+1.1 %), off 1.5 -> 3.5 (5 -> 11 offs); AWD
+     +0.6 %, off 4.8 -> 4.2. snow 2WD +1.0 %, 10.3 -> 12.7, off 0; AWD +0.9 %, 12.4 -> 13.8,
+     1.5 -> 1.4. ice 2WD 140.8 -> 139.5 (+2.0 %, laps over 7: one unfinished before, none
+     after), spins 8 -> 3, off 5.7 -> 7.2; AWD +0.3 %, off 7.6 -> 5.4. tarmac -0.1 % both
+     (the kerbs; no offs), wet -0.2 / -0.6 %. No spins anywhere but ice.
+   - BY SKILL (Realish, 5 drivers each, 3 laps, hatch + 4x4, both seeds, 120 runs a side):
+     mistakes slid (rear past its peak 0.3 s+) tarmac 9 of 42 -> 17 of 43, gravel 10 of 42 ->
+     22 of 41; still NO mistake spun or left the road on tarmac or gravel (one on ice, either
+     side); gravel offs 2 -> 32 (1 -> 36 s over 40 runs: brushes past the edge), laps 1.5-1.7 %
+     quicker; ice the same mess either way (spins 23 -> 27, unfinished 3 -> 5). The weakest
+     drivers drew the fewest mistakes in these runs (their dice), so by-skill counts are thin.
+   - THE HOLD ANGLE (owner: "see if greater angle speeds up lap times"; HOLD_K 1.25 built, 1.6
+     and 2.0 tried with HOLD_MAX raised 0.30 -> 0.45 - at 1.6 gravel's hold sat on 0.30): laps
+     within 0.3 s of 1.25 on every surface and class (gravel 2WD 57.0 / 57.1 / 57.1, AWD 57.0 /
+     56.9 / 56.9; snow 2WD 84.1 / 84.0 / 84.2; ice 2WD 139.5 / 139.7 / 142.5, spins 3 / 3 / 6),
+     sliding much the same (the hold only acts once the rear is past half the hold, and the
+     cars rarely get the rear out that far on the throttle). A bigger angle does not speed them
+     up. OWNER TO DECIDE the angle (1.25 kept).
+   NOT MEASURED: a full field (contact), the real weather's patches, the native loose levels'
+   own laps (Sweaty Lamb photographed only), mud.
 10. HIGHWAY AI AND ONCOMING TRAFFIC, and two racers put back onto one spot: PASSED 11-15, the
     default (TODO-DONE).
 

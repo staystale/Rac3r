@@ -152,6 +152,25 @@ target is capped inside its own lanes (its side 0.3 m short of the middle line),
 move's rate, and `followAhead` drops any way round a car that is in the other way's lane.
 `tools/scratch/_hwdodge.mjs` counts what the racers hit.
 
+THE AI'S SLIDES BY THE GROUND (under test, `?aislide=1`, `FIX.aislide`; `ai/driverSlide.ts`). The
+tyre law writes each axle's slip angle at its lateral peak this step to the telemetry
+(`physics/wheelspin.ts axleLaw`, `car.t.aPeakF / aPeakR`: tarmac ~0.12 rad, gravel ~0.19, sand
+~0.16, wet, snow and ice the 0.10 floor), read only by the AI. With the switch, on ground under
+`SLIPPERY_MU` (0.7: not tarmac, wet or dry): a rear slide in a corner going the corner's way (the
+car rotating as the line turns) is HELD on the throttle at 1.25 x the rear peak (0.15-0.30 rad;
+`driverSteps.ts driftHold`, the loose hairpins' drift law, now any corner, every rear- or
+four-wheel-driven driver) while the edge is further than 2 m x sqrt(0.6 / mu) away; caught past
+1.8 x the hold; a slide not held caught past 1.6 x the rear peak (never under the 0.18 rad of
+before), the understeer lift past 1.3 x the front peak, the slip feel's angles x the rear peak over
+tarmac's. COMMIT OFF TARMAC (`line.ts commitOf`): a 2WD car plans 1.12 x the corner grip where the
+line's ground is mu 0.25-0.7 (gravel, grass, sand, mud, snow; not ice). THE KERBS (`line.ts
+kerbReach`): beside a kerb the line may come to 0.6 m of the road's edge (was 1.6 m everywhere; the
+kerbs lie outside the edge), and the driver's lateral clamp allows the line's own place
+(`driverDrive.ts targetEdge`). MISTAKES THAT SLIDE (`driverSlide.ts slideLimits`, `driverLane.ts
+applyMistake`): while a 'late' or 'throttle' mistake runs in its corner the catch is x (1 + 1.5 x
+its severity), nothing is held, a 'late' one has no understeer lift, and both are twice as big
+(`MIST_GROW`). `tools/scratch/_aislip.mjs` (AISLIDE=1) measures it; `_aislideshot.mjs` photographs it.
+
 THE SMOOTH FLY-IN (the default since 11-14; `render/flylayers.ts`): zoomed out, a fly-in frame
 drew every prop and loose object one by one. With the switch, the layers that hold still while the
 field waits at the lights - the deck (run-off, kerbs, bumps, paint), fence, barriers, props, the
