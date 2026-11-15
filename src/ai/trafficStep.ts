@@ -176,20 +176,34 @@ const STUCK_GO_S = 6;
 const QUEUE_GAP_M = 8, QUEUE_STILL_MS = 2;
 
 /**
- * ?stuckreset=1: whether a car stands TRULY stuck - still (its physics' deadT, under 1 m/s) for
- * STUCK_GO_S, wrecked or not, and not on purpose: not broken down or at a pump, not a police car
- * (those go by their own rules), not queued behind a car close in front that is itself nearly
- * still (the head of the queue is what is stuck: once it goes the queue moves).
- * @param slot the car
+ * ?stuckreset=1: counts each car's time standing TRULY stuck (slot.stuckGoT) - still (its physics'
+ * deadT running: under 1 m/s), wrecked or not, and not on purpose: not broken down or at a pump,
+ * not a police car (those go by their own rules), not queued behind a car close in front that is
+ * itself nearly still (the head of the queue is what is stuck: once it goes the queue moves on,
+ * its clock never started).
+ * @param ctx the traffic
  * @param ents everyone on the road
- * @returns true when it must go
+ * @param dt the step, s
  */
-function standsStuck(slot: TrafficCar, ents: TrafficEnt[]): boolean {
-  if (!(slot.deadT > STUCK_GO_S) || slot.broke || slot.police) return false;
-  const { lead, gap } = findLead(slot, ents);
-  return !(lead && gap < QUEUE_GAP_M
-    && Math.hypot(lead.car.vx, lead.car.vy) < QUEUE_STILL_MS);
+function noteStuckCars(ctx: TrafficCtx, ents: TrafficEnt[], dt: number) {
+  for (const slot of ctx.list) {
+    if (slot.parked || !(slot.deadT > 0) || slot.broke || slot.police) {
+      slot.stuckGoT = 0;
+      continue;
+    }
+    const { lead, gap } = findLead(slot, ents);
+    const queued = !!lead && gap < QUEUE_GAP_M
+      && Math.hypot(lead.car.vx, lead.car.vy) < QUEUE_STILL_MS;
+    slot.stuckGoT = queued ? 0 : (slot.stuckGoT ?? 0) + dt;
+  }
 }
+
+/**
+ * Whether a car has stood stuck STUCK_GO_S (noteStuckCars): it goes, in view or not.
+ * @param slot the car
+ * @returns true when it goes
+ */
+const stoodStuck = (slot: TrafficCar) => (slot.stuckGoT ?? 0) > STUCK_GO_S;
 
 /** RECYCLE (out of view only) + place the parked slots; true if the live cars changed. */
 function recycle(ctx: TrafficCtx, ents: TrafficEnt[], playerS: number, vis: VisFn,
@@ -221,7 +235,7 @@ function recycle(ctx: TrafficCtx, ents: TrafficEnt[], playerS: number, vis: VisF
     }
     const relS = slot.s - playerS, seen = vis(slot.car.x, slot.car.y, slot.s);
     const { away, forced } = leaving(slot, relS, seen, span, youV);
-    if (!away && !forced && !(stuckGo && standsStuck(slot, ents))) continue;
+    if (!away && !forced && !(stuckGo && stoodStuck(slot))) continue;
     if (forced && seen) ctx.visHits++;
     drop(slot);
     // (the other way's traffic always comes from ahead; yours dealt its driver, from behind when
@@ -319,6 +333,7 @@ export function stepTraffic(ctx: TrafficCtx, dt: number, args: StepArgs) {
   const playerS = level._hw.q.s;
   const vis = args.visible || ((x, y, dist) => dist - playerS > -90 && dist - playerS < 270);
   const ents = collectEnts(ctx, args);
+  if (args.stuckGo) noteStuckCars(ctx, ents, dt);
   if (recycle(ctx, ents, playerS, vis, args.held, speedOf(ents, args.player), args.stuckGo)) {
     rebuildCars(ctx);
   }

@@ -70,7 +70,11 @@ function tickTracker() {
       const dx = other.x - car.x, dy = other.y - car.y, along = dx * cos + dy * sin,
         across = -dx * sin + dy * cos;
       if (along > 0 && along < 12 && Math.abs(across) < 3 && (!best || along < best.along)) {
-        best = { along, speed: Math.hypot(other.vx, other.vy) };
+        const turn = Math.abs(Math.atan2(Math.sin(other.heading - car.heading),
+          Math.cos(other.heading - car.heading))) * 180 / Math.PI;
+        const ent = game.ai.find((item) => item.car === other);
+        best = { along, speed: Math.hypot(other.vx, other.vy), turn,
+          headStuck: ent ? (ent.stuckWatch?.t ?? 0) : -1 };
       }
     }
     return best;
@@ -108,7 +112,8 @@ function tickTracker() {
         stuckFor: +(stk.t - rec.anchorT).toFixed(1),
         gain: prog != null && prev.prog != null ? +(prog - prev.prog).toFixed(1) : null,
         nearest: +nearest.toFixed(1), x: Math.round(rec.px), y: Math.round(rec.py),
-        queued: prev.queued, held: stk.order.startHeld() });
+        queued: prev.queued, held: stk.order.startHeld(),
+        onCar: others.some((other) => window.__stkOverlap(car, other)) });
       if (rec.ep) rec.ep.end = 'reset:' + kind;
     }
     const held = LEVEL.stage ? stk.order.carHeld(car) : stk.order.startHeld();
@@ -142,10 +147,24 @@ function tickTracker() {
     }
     rec.prev = { giveUp: entry.drv.state.giveUp, stuckT: entry.stuckT, offT: entry.offT || 0,
       rolled: !!car.roll, hurt: entry.hurtWait != null, prog, outN: entry.drv.state.outN || 0,
-      watchT: entry.stuckWatch?.t ?? 0, progressT: entry.progressT ?? 0, queued: !!(nearAhead(car)?.speed < 2) };
+      watchT: entry.stuckWatch?.t ?? 0, progressT: entry.progressT ?? 0, queued: (() => { const ahead = nearAhead(car);
+        return ahead && ahead.speed < 2 ? { turn: Math.round(ahead.turn), headStuck: +ahead.headStuck.toFixed(1) } : false; })() };
     rec.px = car.x; rec.py = car.y; rec.pvx = car.vx; rec.pvy = car.vy;
   }
   tickTraffic(stk, game, dt);
+}
+
+/** Page side: whether two cars' bodies overlap (each tested on the first's axes, no margin). */
+function overlaps(car, other) {
+  const cos = Math.cos(car.heading), sin = Math.sin(car.heading);
+  const dx = other.x - car.x, dy = other.y - car.y, turn = other.heading - car.heading;
+  const along = dx * cos + dy * sin, across = -dx * sin + dy * cos;
+  const reachAlong = other.spec.len / 2 * Math.abs(Math.cos(turn))
+    + other.spec.wid / 2 * Math.abs(Math.sin(turn));
+  const reachAcross = other.spec.len / 2 * Math.abs(Math.sin(turn))
+    + other.spec.wid / 2 * Math.abs(Math.cos(turn));
+  return Math.abs(along) < car.spec.len / 2 + reachAlong
+    && Math.abs(across) < car.spec.wid / 2 + reachAcross;
 }
 
 /** Page side: an episode's means, as a log row. */
@@ -248,7 +267,8 @@ async function runOne(browser, base, id) {
   await page.evaluate(installTracker);
   await page.evaluate(`window.__stkTick = ${tickTracker.toString()};
     window.__stkClose = window.closeEpisode = ${closeEpisode.toString()};
-    window.tickTraffic = ${tickTraffic.toString()};`);
+    window.tickTraffic = ${tickTraffic.toString()};
+    window.__stkOverlap = ${overlaps.toString()};`);
   const frames = SECONDS * 60;
   for (let done = 0; done < frames; done += CHUNK) {
     await page.evaluate(stepTracked, Math.min(CHUNK, frames - done));

@@ -4,8 +4,9 @@
 // - STAYED: the car has stayed within STUCK_RADIUS_M of one spot for STUCK_RESET_S - nose in a
 //   wall, beached, rocking back and forth on its drive-outs, on its side or roof. Not stuck: a car
 //   QUEUED (one close in front, facing its way and itself nearly still: the head of the queue is
-//   what is stuck), and a car PULLING AWAY (going forwards and gaining since it went slow, never
-//   backed up since: an icy start creeping off).
+//   what is stuck - unless that one has stood put QUEUE_HEAD_S itself: a pile-up, not a queue,
+//   and the whole pile is put back, not one car every 6 s), and a car PULLING AWAY (going
+//   forwards and gaining since it went slow, never backed up since: an icy start creeping off).
 // - NO PROGRESS: slower than CRAWL_MS and not queued, it has not gained PROGRESS_M along the race
 //   in NO_PROGRESS_S - crawling round in sand or gravel, creeping backwards out of a jam.
 // MEASURED (tools/scratch/_stuckai.mjs, the old rules): the 3 s under 1 m/s reset reset cars in a
@@ -40,6 +41,10 @@ export const TRYING_GAIN = 0.08;
 const BACKING_MS = 0.3;
 // m bumper to bumper, and m/s, within which a car in front makes a QUEUE; how far off its heading
 const QUEUE_GAP_M = 6, QUEUE_STILL_MS = 2, QUEUE_TURN_COS = Math.cos(Math.PI / 3);
+// s a racing AI in front may have stood put itself and still make a queue (MEASURED, Knobhill RX,
+// 20 cars: with no limit, three cars against the same bank were put back one after another, 6 s
+// apart, the last after 19.5 s)
+const QUEUE_HEAD_S = 1;
 
 /**
  * Whether one car stands close in front of another, facing its way and nearly still.
@@ -60,14 +65,18 @@ function holdsUp(car: SpotBody, other: GameCar, cos: number, sin: number): boole
 }
 
 /**
- * Whether a car waits in a queue: you, a racing AI or a highway car close in front holds it up.
+ * Whether a car waits in a queue: you, a racing AI (not itself stuck) or a highway car close in
+ * front holds it up.
  * @param car the car
  * @returns true when queued
  */
 export function isQueued(car: GameCar): boolean {
   const cos = Math.cos(car.heading), sin = Math.sin(car.heading);
   if (holdsUp(car, game.car, cos, sin)) return true;
-  for (const entry of game.ai) if (holdsUp(car, entry.car, cos, sin)) return true;
+  for (const entry of game.ai) {
+    const standing = (entry.stuckWatch?.t ?? 0) > QUEUE_HEAD_S;
+    if (!standing && holdsUp(car, entry.car, cos, sin)) return true;
+  }
   for (const other of game.traffic.cars) if (holdsUp(car, other as GameCar, cos, sin)) return true;
   return false;
 }
