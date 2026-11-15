@@ -69,5 +69,11 @@ export const TEST_LIST: TestEntry[] = [
     try: 'Watch from the blank page to the menu: pane, LOADING, RAC3R, the bar filling.',
     wrong: 'The old "RAC3R loading..." shown, the bar still or jumping, two screens, no blue '
       + 'flash, the menu slower to come than without the switch, a tap passing through.',
+    id: 'hjfirs',
+    added: '2026-11-15',
+    name: 'Holy Jeez mostly firs: a Swedish pine forest (85 % firs), a few leafy trees',
+    where: 'Test link + &hjfirs=1: Holy Jeez; compare without the switch',
+    try: 'Race a lap, by day (autumn if you can) and at night. Look at the forest round the lap.',
+    wrong: 'Leafy trees still most of them; every tree alike; any other level\'s trees changed.',
   },
 ];

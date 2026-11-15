@@ -492,10 +492,17 @@ rule, the map's own corner ~15 m: no `minR`), the top hairpin 19.5 m. Its edge t
 caravans are loose objects on a pad of grass (the trees keep off it) north of the top gravel - the
 map's west edge is 30 m past the top hairpin; a TV tower, transporters, flags and spares as the
 stadiums' dressing (`dress`); 3000 trees at most (2026 stand); two firs far out in the forest hold
-the map's edge 150 m past the top hairpin (off-map ground never in view). THE START LANE'S GRID: a
-venue level with a start lane carries the lane behind the pole (`Level.startLine`,
-`venuejoker.ts laneBehindPole`); `game/grid.ts` lays the grid every level has along it - two
-abreast, the columns `gridColumn` either side, a slot every 7 m - as a circuit's along its road.
+the map's edge 150 m past the top hairpin (off-map ground never in view). MOSTLY FIRS (`?hjfirs=1`):
+a level's own share of firs (`Level.firShare`, 0..1; `render/trees.ts` picks each tree's kind by
+its seed against it, `FIR_SHARE` 0.4 on a level without one) - Holy Jeez 0.85, 1 717 of its 2 022
+trees firs (805 at 0.4; `tools/scratch/_firmix.mjs`). Every reader of a tree's kind follows it: the
+drawing (`drawSeasonTree`: the race, the fly-in's pictures, the season's colours and bare winter
+branches) and the night canopy cut (`traceCanopiesNear`; its kept kinds start again when the share
+changes). The trees are the same props (worldhash: only Holy Jeez differs, by the field).
+THE START LANE'S GRID: a venue level with a start lane carries the lane behind the pole
+(`Level.startLine`, `venuejoker.ts laneBehindPole`); `game/grid.ts` lays the grid every level has
+along it - two abreast, the columns `gridColumn` either side, a slot every 7 m - as a circuit's
+along its road.
 The room behind the pole is the venue's (`VenueSpec.startLane.gridRoomM`, 75 m when not given), and
 `startLane.back` lays the lane on back past the map's dead end (real m): Holy Jeez's runs 89 m on,
 bending up to 17 m east clear of the stand and the building west of it, 162 m behind the pole (21

@@ -269,9 +269,18 @@ cars: the Hoonigan pink Porsche, the BMW E36.
   (world/venue.ts venueBuild), and each level, once built, is kept for the session; a short course
   at full size (share 1) beside a half-size circuit is its own build of the same map data.
   HOLY JEEZ PASSED 11-14: TODO-DONE.
-  HOLY JEEZ FIRS (owner 11-14: "Yes, mostly firs"): a per-level tree mix (the share of firs, now
-  render/trees.ts FIR_SHARE 0.4 for every level) as level data; Holy Jeez about 85 % firs; every
-  other level unchanged (renderhash SAME). For the worker after the loading screen.
+  HOLY JEEZ FIRS (owner 11-14: "Yes, mostly firs"), BUILT, TO TEST (`?hjfirs=1`): a level's own
+  share of firs as level data (Level.firShare; render/trees.ts picks each tree's kind by its seed
+  against it, FIR_SHARE 0.4 on a level without one); Holy Jeez 0.85 (holjes-venue.ts): 1 717 of
+  its 2 022 trees firs (805 off), the rest leafy trees that colour in autumn and go bare in
+  winter. Every reader of a tree's kind follows the share: the drawing (race, fly-in pictures,
+  seasons) and the night canopy cut (traceCanopiesNear). Proofs (laptop): renderhash with the
+  switch on SAME against the base on Spa, Knobhill RX and the forest stage by day and at night
+  (night=0.94), Holy Jeez DIFFERENT (t14, t20, damaged); off, Holy Jeez SAME day and night;
+  worldhash off SAME, on only Holy Jeez differs (the level field: the same 2 077 props); simhash
+  SAME on (all 13 runs and a Holy Jeez drive) and off. The menu thumbnail has no trees: painted
+  on / off, 0 px differ - not repainted (the committed one differs by 96 px at the start lane from
+  today's painting, on and off alike: not this change).
   CROUGHED RX QUESTIONS ANSWERED (owner 11-14): the player fights the GRAVEL HAIRPIN, the
   TARMAC-TO-GRAVEL changes (grip changing through the lap, braking on the wrong surface punished),
   the JOKER choice; dressed like a UK round (grass banks, hospitality units, a big screen, flags).
