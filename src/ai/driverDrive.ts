@@ -50,6 +50,20 @@ function targetEdge(state: Drv["state"], latLim: number, onMain: boolean, lineOf
   return FIX.aislide && onMain ? Math.max(edge, Math.abs(lineOff)) : edge;
 }
 
+/**
+ * Where I mean to be across the path - with ?rollfix=1 on my side while an oncoming car keeps me
+ * there (ai/driverOncoming.ts): read from the plan before it is kept, an oncoming car in its own
+ * lane was "in the way" and followed - its speed coming at me made a cap below 0 (the single
+ * lane's rolling start, tools/scratch/_rollstop.mjs: the field braked to a stop at the green).
+ * @param planned m off my path, the dodge and lane's target
+ * @param keepMax the highest place across the road's middle I may take, m (or Infinity)
+ * @param lineOff the line's m off the road's middle here
+ * @returns m off my path
+ */
+function plannedLat(planned: number, keepMax: number, lineOff: number): number {
+  return FIX.rollfix ? Math.min(planned, keepMax - lineOff) : planned;
+}
+
 /** Other cars and obstacles, then racecraft: the lateral target, speed scale and gap cap. */
 function trafficStep(drv: Drv, car: AiCar, ctx: DriveCtx, path: AiPath, nearIdx: number,
     idx: (pos: number) => number, speed: number, dt: number, lineOff: number, startK: number,
@@ -63,10 +77,10 @@ function trafficStep(drv: Drv, car: AiCar, ctx: DriveCtx, path: AiPath, nearIdx:
   // faster car close behind -> a defensive driver covers its side a little
   const prec = traits.prec ?? 0.5;
   const latLim = path === main ? line.hw - WANDER_EDGE : 2;
-  const myLat = state.dodge + latT;
   // (the endless road: read the cars by the road; keep to my side for oncoming cars)
   state.roadRead = !!ctx.road;
   const keepMax = state.keepMax = ownSideCap(drv, car, ctx, path, nearIdx, lineOff);
+  const myLat = plannedLat(state.dodge + latT, keepMax, lineOff);
   const cars = carsStep(drv, car, others, path, nearIdx, idx, speed, prec, prof, lineOff, latT,
       startK, latLim, myLat);
   let dodgeT = cars.dodgeT, conflict = cars.conflict;
@@ -89,7 +103,9 @@ function trafficStep(drv: Drv, car: AiCar, ctx: DriveCtx, path: AiPath, nearIdx:
   } else { state.atk = null; state.cover = null; state.cc = -1; }
   // (a stopped or much slower car still in line with where the car really is: brake to miss it,
   // and steer round it as a move, not a soft rejoin - ai/stopDodge.ts)
-  const stop = stopCap(drv, car, { path, nearIdx, latT: latT + dodgeT }, cars.stopped ?? []);
+  // (?rollfix=1: the plan as the oncoming car's keep-to-my-side will let it be)
+  const planned = FIX.rollfix ? Math.min(latT + dodgeT, keepMax - lineOff) : latT + dodgeT;
+  const stop = stopCap(drv, car, { path, nearIdx, latT: planned }, cars.stopped ?? []);
   followCap = Math.min(followCap, stop.cap);
   conflict ||= stop.inLine;
   // (round a car in the way with no time to spare, the swerve's own rate: ai/dodge.ts)
@@ -137,10 +153,21 @@ function lookFirst(car: AiCar, path: AiPath, nearIdx: number, lineOff: number, l
   return clear ? latT : actual;
 }
 
+/**
+ * ?rollfix=1: the last think the start held me (a rolling start's formation), read by the
+ * stopped-car brake (driverTraffic.ts gettingAway).
+ * @param state my state
+ * @param ctx the drive context (hold)
+ */
+function noteHeld(state: Drv["state"], ctx: DriveCtx) {
+  if (FIX.rollfix && ctx.hold) state.heldT = state.t;
+}
+
 /** One drive tick: the controls for this car from the driver context, or a drive-out move. */
 export function drive(drv: Drv, car: AiCar, dt = 1 / 120, ctx: DriveCtx = {}) {
   const { rnd, main, state, jLaps } = drv;
   state.t += dt;
+  noteHeld(state, ctx);
   state.steerHold = null;
   const spec = car.spec, speed = Math.hypot(car.vx, car.vy);
   if (state.i === null) placeAtStart(drv, car);

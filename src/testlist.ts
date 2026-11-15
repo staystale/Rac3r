@@ -13,6 +13,17 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'rollfix',
+    added: '2026-11-15',
+    name: 'Rolling starts on the single-lane road: the AI race off cleanly past oncoming cars',
+    where: 'Test link + &rollfix=1: a highway race on the SINGLE LANE (countryside and Deaf '
+      + 'Valley), then the dual carriageway, the motorway and an oval (Naffcar, Stock Car)',
+    try: 'Watch the rolling start and the first minute: at the green the field should get up to '
+      + 'speed and string out, keeping to its side for oncoming cars, not braking in a chain.',
+    wrong: 'Cars slowing or stopping at the green for oncoming traffic, braking because the car '
+      + 'ahead moved over, swerving into an oncoming car, or the other roads starting worse.',
+  },
+  {
     id: 'aipace',
     added: '2026-11-15',
     name: 'AI PACE dial, and the AI DRIVERS dials live from the pause menu',

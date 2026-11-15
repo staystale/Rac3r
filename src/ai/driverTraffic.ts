@@ -10,6 +10,7 @@ import {
 } from "./dodge.ts";
 import { blockOn, gapLine, seeCar } from "./gapPick.ts";
 import type { SeenCar } from "./gapPick.ts";
+import { FIX } from "../core/fixes.ts";
 
 // MEASURED (aidrivecheck, HB on/off, Realish + Real, hatch + 4x4): Slidden / Knobhill / Castle Kum
 // within 0.1 s, Sweaty Lamb +0.2..+0.7 s, 6 pulls per 2 min at Slidden, 4 at Sweaty Lamb — it is
@@ -253,17 +254,23 @@ const GETAWAY_S = 2;
 function haltedAhead(fwd: number, vAlong: number, speed: number,
   read: { gain: number; planV: number }): boolean {
   if (fwd <= 0 || vAlong < STOPPED_BACK_V || read.gain >= PULL_AWAY) return false;
-  return vAlong < STOPPED_V || (racingNot(vAlong, speed) && vAlong < STRANDED_SHARE * read.planV);
+  // (?rollfix=1: much slower than ME - half my speed, no 5 m/s floor: a pack rolling slowly
+  // together, a formation or a queue, read each other as stranded and braked in a chain)
+  const slower = FIX.rollfix ? vAlong < STRANDED_SHARE * speed : racingNot(vAlong, speed);
+  return vAlong < STOPPED_V || (slower && vAlong < STRANDED_SHARE * read.planV);
 }
 /**
- * On the grid or within GETAWAY_S of my getaway (the start).
+ * On the grid or within GETAWAY_S of my getaway (the start); ?rollfix=1 also through a rolling
+ * start's formation and GETAWAY_S past its green (heldT: the last think the start held me).
  * @param state my state (my clock, goT: when I first moved off)
  * @param state.t s
  * @param state.goT s, undefined before
+ * @param state.heldT s, the last think the start held me (?rollfix=1)
  * @returns true at the start
  */
-const gettingAway = (state: { t: number; goT?: number }) => state.goT == null
-  || state.t - state.goT < GETAWAY_S;
+const gettingAway = (state: { t: number; goT?: number; heldT?: number }) => state.goT == null
+  || state.t - (FIX.rollfix ? Math.max(state.goT, state.heldT ?? -Infinity) : state.goT)
+    < GETAWAY_S;
 // (one read, reused: no allocation per car)
 const haltRead = { gain: 0, planV: 0 };
 
@@ -445,6 +452,26 @@ export function carsStep(drv: Drv, car: AiCar, others: AiCar[], path: AiPath, ne
   return acc;
 }
 
+// m/s back down my way a car must be going to count as oncoming (driverOncoming.ts's)
+const ONCOMING_V = -2;
+
+/**
+ * ?rollfix=1: an oncoming car in the other way's lane while one keeps me to my side
+ * (driverOncoming.ts keepMax) is passed, not followed - followed, its speed (coming at me) made
+ * the cap below 0: on the single lane the field braked to a stop at the green for the oncoming
+ * traffic (tools/scratch/_rollstop.mjs, the twisty road, seed 2: targets down to -17 m/s).
+ * @param drv the driver context (state.keepMax)
+ * @param env the cars' environment (lineOff)
+ * @param otherLat its m off my path
+ * @param vAlong its m/s along my way
+ * @returns true to pass it by
+ */
+function passingOncoming(drv: Drv, env: CarsEnv, otherLat: number, vAlong: number): boolean {
+  const keepMax = drv.state.keepMax ?? Infinity;
+  return FIX.rollfix && vAlong < ONCOMING_V && Number.isFinite(keepMax)
+    && env.lineOff + otherLat > keepMax;
+}
+
 /**
  * How I take one car I see: attacking it, following it, alongside it, or defending from it.
  * @param drv the driver context
@@ -464,7 +491,8 @@ function reactTo(drv: Drv, acc: CarsAcc, envs: [CarsEnv, CarsEnv], seenAs: { fwd
     // (aifieldcheck: ~6 s of contact per 3 laps of 6 cars at Realish). USER (after
     // testing it): "contact is ok … it felt ok before, put it back" — a strict speed-based gap
     // (zero contact, but a procession: 1 position change in 3 laps) was tried and REVERTED.
-    if (speed - vAlong > -0.5 && Math.abs(otherLat - myLat) < envO.clear) {
+    if (speed - vAlong > -0.5 && Math.abs(otherLat - myLat) < envO.clear
+      && !passingOncoming(drv, env, otherLat, vAlong)) {
       followAhead(drv, acc, envO, fwd, otherLat, vAlong, closeIdx);
     }
   } else if (fwd > -4) {
@@ -502,8 +530,11 @@ function gapStep(drv: Drv, car: AiCar, acc: CarsAcc, seen: SeenCar[], mine: { my
   // "They can go off track too if needed")
   const room = latLim + (!inWay.length ? 0 : inWay.some((other) => other.v < CREEP_UNDER_V)
     ? WIDE_SLOW : WIDE);
+  // (?rollfix=1: never into the other way's lane while an oncoming car keeps me to my side -
+  // ai/driverOncoming.ts; the line picked there was clamped back and the dodge went short)
+  const top = Math.min(room, FIX.rollfix ? state.keepMax ?? Infinity : Infinity) - lineOff;
   const line = gapLine(seen, { lat: myLat, base: state.gapBase ?? myLat, half, len, speed, look,
-    lo: -room - lineOff, hi: room - lineOff, edge: latLim, centre: lineOff,
+    lo: -room - lineOff, hi: Math.max(top, -room - lineOff), edge: latLim, centre: lineOff,
     lanes: drv.state.path === drv.main ? drv.line.lanes : undefined });
   state.gapBase = line;
   acc.dodgeT = line - latT;
