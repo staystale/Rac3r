@@ -10,7 +10,8 @@ b = await launchBrowser();
 const ctx = await b.newContext({ viewport: { width: W, height: H }, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
 const p = await ctx.newPage();
 const errs = []; p.on('pageerror', e => errs.push(e.message));
-await gotoGame(p, srv.url + '/?touch=1&guide=0&menu=0');
+// (loadscreen=0: the touches go to the race at once; the loading screen takes every touch while up)
+await gotoGame(p, srv.url + '/?touch=1&guide=0&menu=0&loadscreen=0');
 await p.touchscreen.tap(W / 2, H / 2); await p.waitForTimeout(300);
 const cdp = await ctx.newCDPSession(p);
 const touch = (type, pts) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: pts.map(([x, y], i) => ({ x, y, id: pts[i][2] ?? i })) });

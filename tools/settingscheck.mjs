@@ -7,7 +7,7 @@ import { readSettings } from '../src/core/settings.ts';
 
 const DEFAULTS = {
   dev: false, carId: null, aiCount: 0, aiDifficulty: 2, trafficDensity: 0.6, litter: null, menu: null,
-  menuAi: 4, guide: null, rules: null, levelId: null, inputMode: 'auto', highwayDebug: null,
+  menuAi: 4, guide: null, rules: null, noLoadScreen: false, levelId: null, inputMode: 'auto', highwayDebug: null,
   tilePx: 256, rain: null, night: null,
  
   maxDpr: null,
@@ -27,6 +27,8 @@ const TABLE = [
   ['?litter=2&menuai=0', { litter: 2, menuAi: 0 }],
   ['?menu=0&guide=0&rules=0&litter=0', { menu: '0', guide: '0', rules: '0', litter: 0 }],
   ['?menu=1&guide=1&rules=1', { menu: '1', guide: '1', rules: '1' }],
+  ['?loadscreen=0', { noLoadScreen: true }],
+  ['?loadscreen=1', {}],
   ['?dev&touch&pc&noshade&tilepx=128',
     { dev: true, inputMode: 'touch', noShade: true, tilePx: 128 }],
   ['?pc', { inputMode: 'pc' }],
