@@ -211,6 +211,42 @@ BUGS (each behind its own switch, measured, then a test link):
     default (TODO-DONE).
     STOPPED-CAR AVOIDANCE + THE TWO GUARDS (with the start fix): PASSED 11-15 ("Much better", "Yes"),
     the default (TODO-DONE).
+    ROLLING STARTS ON THE SINGLE LANE (owner 11-15: "Rolling start on single lane roads tho seem to
+    suffer from the start issue ... It's bad"; "they weave out of oncoming traffic and brake because
+    someone weaved and then it gets worse and they don't dodge well enough"): BUILT behind
+    ?rollfix=1 (FIX.rollfix; ai/driverDrive.ts plannedLat, ai/driverTraffic.ts; testlist
+    'rollfix'). TRACED (tools/scratch/_rollstop.mjs, a per-car trace at the twisty road's green):
+    the racers read the cars from where they MEANT to be across the road before the oncoming car's
+    keep-to-your-side clamp, so an oncoming car in its own lane was "in the way" and FOLLOWED - its
+    speed, coming at them, made their target -3 to -20 m/s: the field braked to a stop at the green,
+    then the stopped-car brake judged the stopped cars and the chain went on. The same start before
+    stopped-car avoidance (round57, pre57 worktree): twisty 54 / 55 km/h in the 10 s after the
+    green, spread 224 / 252 m; Deaf Valley 58 / 59 km/h, 219 / 243 m - as bad: it was the
+    oncoming-car read, not the new brake. FIX: where I mean to be is kept to my side while an
+    oncoming car keeps me there; an oncoming car beyond my side's limit is passed, not followed;
+    the gap picker's room and the brake's plan never into the other way's lane then; and the
+    stopped-car brake: no car counts as stopped through a rolling start's formation and 2 s past
+    its green, and "much slower" is under half my own speed (no 5 m/s floor). MEASURED
+    (_rollstop, seeds 1 / 2, off / on; 10 s after the green: the car-s judging a stopped car, the
+    racers' mean km/h, the field's spread / largest gap; to 60 s: brake events, chained, touches):
+    - twisty: judging 10.3 / 10.5 -> 0.0 / 0.3; 54 / 55 -> 95 / 102 km/h; spread 225 / 253 ->
+      75 / 189 m (largest gap 210 / 234 -> 36 / 146); brake events 6 / 53 -> 14 / 8, chained 0 /
+      1 -> 0 / 0; touches 5 / 8 -> 6 / 1.
+    - Deaf Valley (single lane): 8.9 / 5.3 -> 1.0 / 0.5; 58 / 60 -> 90 / 91 km/h; spread 219 /
+      249 -> 120 / 173 m; brake events 11 / 21 -> 3 / 11, chained 2 / 0 -> 0 / 1; touches 5 / 3
+      -> 4 / 5.
+    - dual, motorway, Deaf Valley dual, Naffcar, Dieatona: the start the same (10 s spread and
+      speed equal); judging to 60 s dual 1.3 / 34.9 -> 1.2 / 43.5 car-s, motorway 24.4 / 13.2 ->
+      11.7 / 11.2, Deaf Valley dual 0 / 17.5 -> 0 / 1.3, Naffcar 13.0 / 30.3 -> 12.5 / 15.6.
+    - Stock Car: 106 / 41 brake events (48 / 23 chained) off, 115 / 38 (55 / 21) on, touches
+      68 / 44 -> 71 / 43 - unchanged by this; before stopped-car avoidance 69 / 54 touches, the
+      same 72 / 74 km/h. Its pile of touches is the oval's own (19 cars in a short bowl).
+    STANDING GRIDS AND RUN-INS (the "much slower" change reaches circuits too): _gridstart Brands
+    and Knobhill RX seeds 1, 2: 100 m / 250 m times and spreads identical off / on, touches in 30
+    s 55 / 33 -> 60 / 32 (Brands), 30 / 52 -> 36 / 53 (Knobhill). _pileups 240 s seeds 1-3:
+    Brands touches 291 -> 257, per incident 2.75 -> 3.29, per 10 km 3.55 -> 2.61, into a stopped
+    racer 23 -> 34, at 15 km/h+ 77 -> 77, lap 86.5 -> 86.7 s; Knobhill 354 -> 348, 3.37 -> 2.88,
+    4.83 -> 5.64, 53 -> 60, 107 -> 109, lap 57.5 -> 58.0 s (these swing 10-20 % by seed).
 11. MINIMAP (fuel stations, slip roads, police): PASSED 11-15, the default (TODO-DONE).
 12. CHEVRON SIGNS in the country highways' lay-bys; on Deaf Valley too, fewer.
     OWNER 11-15: the real-life rule - black-and-white boards on the OUTSIDE OF SHARP BENDS, not

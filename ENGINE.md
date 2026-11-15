@@ -190,11 +190,20 @@ remembered dials are not touched); RESET puts back the ones the race was launche
 (`shared.aiTuneStart`). `tools/scratch/_aidialshot.mjs` photographs the panel and checks the
 traits follow; `_aislip.mjs` AIPACE=1 PACE=x measures laps.
 
+THE ONCOMING CAR AND THE PLAN (under test, `?rollfix=1`, `FIX.rollfix`): where a racer means to be
+across the road is kept to its side while an oncoming car keeps it there (`driverDrive.ts
+plannedLat`, ai/driverOncoming.ts keepMax) before it reads the cars; an oncoming car beyond that
+limit is passed, not followed (`driverTraffic.ts passingOncoming`); the gap picker's room and the
+stopped-car brake's plan never go into the other way's lane then. `tools/scratch/_rollstop.mjs`
+measures rolling starts.
+
 A STOPPED OR MUCH SLOWER CAR IN THE WAY (since 11-15, passed;
 `ai/stopDodge.ts`). A car ahead HALTED (`driverTraffic.ts haltedAhead`: under 3 m/s, or slower than
 max(5 m/s, half my speed) AND under half the racing speed where it is - my plan there; not coming
 back at more than 2 m/s; and NOT PULLING AWAY: speeding up under 1 m/s/s along my way, read with its
-braking, `dodge.ts readGain`; and none at all within 2 s of my own getaway, `goT`) is read, with the switch, where it STANDS
+braking, `dodge.ts readGain`; and none at all within 2 s of my own getaway, `goT`; under test,
+`?rollfix=1`: none through a rolling start's formation and 2 s past its green, `heldT`, and
+"much slower" under half my own speed with no 5 m/s floor) is read, with the switch, where it STANDS
 ACROSS THE ROAD held to my point (`placeAcross`: off the line at its point + the line's place across
 the road there - the line's here), the frame the steering keeps off the line (`driverSteps.ts
 offRoad`): read off the line at its own point, a way round planned 3.5 m off the line here ended on
