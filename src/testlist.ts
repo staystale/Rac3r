@@ -23,6 +23,8 @@ export const TEST_LIST: TestEntry[] = [
       + 'clock run out off the road: that still counts.',
     wrong: 'A getaway win while off the road; PULLING AWAY not starting again on the road; a '
       + 'line or clock race not ending because you were off the road.',
+  },
+  {
     id: 'rollhold',
     added: '2026-11-15',
     name: 'Rolling starts: every car holds the pace, no bumping before the green',
