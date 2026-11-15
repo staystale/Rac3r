@@ -1,5 +1,5 @@
-// highway/chevrons.ts - THE HIGHWAY'S CHEVRON BOARDS BY THE REAL-LIFE RULE (?hwchevron=1,
-// FIX.hwchevron; TODO 3a2 item 12, the owner's answer 11-15: "real life rule"): black boards with
+// highway/chevrons.ts - THE HIGHWAY'S CHEVRON BOARDS BY THE REAL-LIFE RULE (passed
+// 11-15; TODO-DONE item 12, the owner's answer 11-15: "real life rule"): black boards with
 // white chevrons (UK Traffic Signs Manual ch. 4, diagram 515: "to denote sharp changes in the
 // direction of a road where a 'bend' sign alone would not be a sufficient warning"; on the
 // outside of the bend, traffic passing in front of them, never before it) on the outside of the

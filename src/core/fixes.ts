@@ -60,7 +60,4 @@ export const FIX = {
   aipace: atLoad('aipace'),
   // a chasing police car sounds a siren, the light bar's twin (game/sirens.ts, audiosiren.ts)
   siren: atLoad('siren'),
-  // the highways' chevron boards by the real-life rule: black and white, on the outside of the
-  // sharp bends only, never in a lay-by, on Deaf Valley too, fewer (highway/chevrons.ts)
-  hwchevron: atLoad('hwchevron'),
 };

@@ -4,7 +4,6 @@ import { STEP } from "./presets.ts";
 import type { DressCtx } from './hwtypes.ts';
 import type { LevelObj } from '../cones/coneTypes.ts';
 import { insidePolygon } from '../world/zones.ts';
-import { FIX } from '../core/fixes.ts';
 import { layRoadChevron } from './chevrons.ts';
 // the roadside debris mix (weights by repetition: pallets / boxes / tarps are what really ends up
 // on a hard shoulder) + paint for bins, barrels, bumpers, tarps
@@ -47,8 +46,8 @@ const DESERT_DRUM = ['#7a4a2a', '#3e5f7a', '#5c6339', '#8a3b22'];
  * @returns the desert's, or null
  */
 function desertLitter(obj: LevelObj, rand: () => number): LevelObj | null {
-  // (?hwchevron=1: the road's chevron boards stand in Deaf Valley too, fewer: highway/chevrons.ts)
-  if (obj.kind === 'chevron') return FIX.hwchevron ? obj : null;
+  // (the road's chevron boards stand in Deaf Valley too, fewer: highway/chevrons.ts)
+  if (obj.kind === 'chevron') return obj;
   const pick = (from: string[]) => from[(rand() * from.length) | 0];
   const kind = obj.kind === 'cone' ? pick(DESERT_CONE) : obj.kind === 'tyre'
     || obj.kind === 'tyrestack' ? obj.kind : pick(DESERT_DEBRIS);
@@ -73,24 +72,6 @@ function isOnRock(barriers: DressCtx['level']['barriers'], x: number, y: number,
 /** What the litter layers share: their random stream, the adder, the density-scaled chance. */
 interface Loot { looseRand: () => number; addLoose: AddLoose; chance: (prob: number) => number;
   density: number }
-
-/**
- * A chevron sign on the outside of a tight bend (one per 48 m, 4.5 m off the edge).
- * @param ctx the dress context
- * @param addLoose adds a loose object tagged with its road distance
- * @param i road point index
- * @param dist road distance at i
- * @returns {void}
- */
-function layChevron(ctx: DressCtx, addLoose: AddLoose, i: number, dist: number) {
-  const { road, halfWidth, pointAt } = ctx;
-  const curv = road[i].curv;
-  if (Math.abs(curv) > 1 / 650 && i % 12 === 0) {
-    const dir = Math.sign(curv),
-      pos = pointAt(i, -dir * (halfWidth + 4.5));
-    addLoose({ kind: "chevron", x: pos.x, y: pos.y, rot: pos.rot + (dir * Math.PI) / 2 }, dist);
-  }
-}
 
 /**
  * Lone litter on both verges (~0.8 per 10 m), now and then on the hard shoulder.
@@ -253,8 +234,7 @@ export function layLooseRoadside(ctx: DressCtx) {
     const loot = { looseRand, addLoose, chance, density };
     for (let i = firstIdx; i < endIdx; i++) {
       const dist = road[i].s;
-      if (FIX.hwchevron) layRoadChevron(ctx, addLoose, i, dist);
-      else layChevron(ctx, addLoose, i, dist);
+      layRoadChevron(ctx, addLoose, i, dist);
       layVergeLitter(ctx, loot, i, dist);
       layDebrisScatter(ctx, loot, i);
       layTyreStacks(ctx, loot, i, dist);

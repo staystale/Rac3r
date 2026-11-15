@@ -623,9 +623,8 @@ the LEVEL'S OWN floor (`level.floor`, as the tape's `onFloor` reads it), not the
 Croughed RX (546 m) keeps all 396 loose objects.
 
 THE HIGHWAY'S CHEVRON BOARDS (`highway/litter.ts layLooseRoadside`, knockable loose objects,
-cones TOPPLES, 45 kg): the rally boards (black with yellow chevrons) on the outside of every bend
-tighter than R 650, one each 48 m, 4.5 m off the edge, none on Deaf Valley. Under test,
-`?hwchevron=1` (`FIX.hwchevron`, `highway/chevrons.ts layRoadChevron`): the UK rule - black
+cones TOPPLES, 45 kg; since 11-15, passed - the old rally boards on every bend tighter than R 650
+are gone; `highway/chevrons.ts layRoadChevron`): the UK rule - black
 boards with white chevrons (`paint` `COL.signWhite`; `render/objects.ts drawChevron` draws a
 board's paint, else the rally yellow) on the outside of the SHARP bends only (R under 360 m on
 the motorways and the dual carriageway, 255 m on the single lane: two steps below the DMRB
