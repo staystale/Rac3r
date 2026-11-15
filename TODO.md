@@ -141,9 +141,18 @@ HIGHWAYS:
     station stops exist, ai/trafficFuel.ts, 11-11: check how often); aggravated police as now.
 
 RACE TRACKS:
-16. PIT STOPS as in real life, cheap or free: each car its own box; stopped 30 %+ in the box opens
-    a picture menu (damage, tyres: same again / wets / slicks, the car's own choices as quick
-    buttons); the race goes on. Fuel: to agree. Questions first.
+16. PIT STOPS - ALL QUESTIONS ANSWERED 11-15 (build after the 10 cars, one switch):
+    - ON in F1 / GT / endurance-type real races of MORE THAN 3 LAPS on proper circuits over ~2 km; off
+      for sprints, rallycross, stock cars, stages, the highway; test mode: a PIT STOPS on/off option.
+    - COMPULSORY only where the real rules make it so (F1 dry: two compounds); extra stops always allowed.
+    - Pit lanes: the 20 venues with one mapped; ADD Le Manky and the Nordschleife from the map data.
+    - The stop: the driver stops in the box THEMSELVES (no auto-steer; 30 %+ in the box opens the picture
+      menu: repairs, tyres same again / wets / slicks / the car's own choices); its time = the player's
+      own taps + ~0.5 s, then the race start's GO reused. No pit crew.
+    - Fuel: every car carries fuel (its weight counts), topped up per race automatically, refuelling only
+      where a race needs it; charged in career / story later.
+    - Pit lane: automatic limiter, no penalty. AI: the same rules, a short skill-based delay for the menu.
+    - Cost: free in test mode, charged later.
 17. LITTER / JUNK on race tracks: very light (props we have). To discuss.
 18. F1 vs WORLD CIRCUITS in the menu (split where a level opens a sub-menu).
 
