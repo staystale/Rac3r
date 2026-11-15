@@ -104,6 +104,26 @@ and those of a fly-in drawn live (`live`, and `liveWhy`: every zoomed-out frame 
 counted). The field counts as still while the start is armed and not green, or while the loading
 screen's fly-in holds the race (a solo practice has no lights).
 
+THE BOOT BAR (`?bootbar=1`, under test; `FIX.bootbar`, `index.html` #bootbar, `game/bootbar.ts`):
+the loading screen at the page's first load. A tiny inline script in `index.html` reads the switch
+from the page link and, before the first paint, puts up the loading screen's pane - LOADING, RAC3R
+and the bar - over the boot screen (its look copied there in plain CSS from `menu/loadscreen.ts`, as
+the code has not loaded; switch off, the page is as before). Its words use their own copies of the
+menu's faces (VT323, Press Start 2P with Silkscreen's digits) with `font-display: block`: the pane
+and the bar show at once, the words when their faces have loaded (a face slower than ~3 s shows a
+monospace stand-in until it comes). The bar eases on the compositor toward the code's share of the
+whole wait, over the time the code took on this device the last time (`localStorage
+rac3r.bootbar`, written by `game/bootbar.ts`; 3 s the first time), so it moves while the bundle
+downloads and while `main.ts` builds the world and the menu. When `main.ts` is done (`endBootBar`)
+the code takes the screen over (`loadscreen.ts takeBootScreen`: the loading screen's own
+controls) and eases on through the menu's wait - its first frame drawn, then the fonts its text
+asked for (a cap of 8 s) - then the bar fills, flashes blue twice and fades into the menu
+(`loading.ts flashThenHide`, the loading screen's own ending). The logo and the track thumbnails
+are not waited for: the menu never waited for them, and holding for them made the menu later
+(TODO.md). The menu race runs behind the bar as without it; the loading screen is never up at the
+same time (a START needs a tap, and the bar takes every tap). With no menu (`?menu=0`, the tools)
+the bar ends at once over the boot tap. A failed code load takes it down so the error shows.
+
 THE NIGHT FLY-IN (the default since 11-14): two parts.
 - THE CANOPY CUT (`render/canopycut.ts`; game-wide: every level, in race and in the fly-in, with or
   without the fly-in): the night layer puts its
