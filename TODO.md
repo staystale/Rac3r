@@ -327,9 +327,84 @@ BUGS (each behind its own switch, measured, then a test link):
      knobhill and knobhill-rx from 43.5 s (a racer put back at another moment, then the wake and
      contacts).
 9. AI SLOW ON SLIPPERY SURFACES (measure first: an AI change).
+   MEASURED 11-15, NOTHING CHANGED (tools/scratch/_aislip.mjs: node, one top-difficulty AI alone,
+   its flying lap; Thruston and Knobhill with their tarmac given the grip numbers of each surface -
+   mu, peakK, longK, plough - so the line and the plan read that grip too; hatch-rwd, rally-4x4,
+   rx-super, f2-rwd; the FAIR REFERENCE is the same AI with its plan's corner and brake factors
+   (ai/line.ts K_CORNER 0.88, K_BRAKE 0.70) scaled x1.15 / x1.3 / x1.5, and the same AI with its
+   slip-feel throttle lifts taken out (NOFEEL), each in the tool only):
+   - AGAINST THE GRIP: a lap on each surface over the tarmac lap, against sqrt(mu ratio) (a lap
+     held by the grip alone): the 4x4 and the RX car match it within 4 % on every surface, both
+     tracks (gravel x1.19-1.22 vs 1.23, snow x1.69-1.73 vs 1.71, ice x2.58-2.72 vs 2.80). The 2WD
+     cars lose more on loose ground: hatch snow x1.87-1.90, sand x1.61-1.62 (vs 1.31: sand's plough
+     drag too), grass / mud +3-7 %; F2 snow x1.85-1.93, grass x1.54-1.58, sand x1.43-1.52, ice
+     x3.20 at Thruston; wet and gravel within 3 % for all but the F2 in the wet (x1.19-1.27,
+     vs 1.14).
+   - THE PLAN IS NOT THE CAUSE: scaled x1.15-1.5 the AI is 0-9 % quicker and stays on the road,
+     but by as much on TARMAC (Thruston 6-8 %, Knobhill 0-4.5 %) as on slippery ground; the 4x4 and
+     RX car gain 0-6 % on gravel, ice or grass, mostly nothing (already 1.2-11 s a lap off the road
+     there). Apexes at 0.72-1.02 of the plan on every surface, tarmac 0.79-0.93.
+   - WHERE THE 2WD TIME GOES: below its own target with the throttle part-open on the slip feel
+     (wheelspin, rear slip) - F2 Knobhill snow 38.5 s of a 71.6 s lap, sand 27.5 s; hatch Thruston
+     snow 18.6 s, ice 94 s of 201 s (part throttle 66-77 % of an icy lap; tarmac 14-42 %) - and full
+     throttle short of the target (traction: the physics). TAKING THE LIFTS OUT IS SLOWER: F2 snow
+     -8..-16 %, sand -58..-82 %, grass -7..-13 % with more off the road; hatch -0.1..-2 % (on ice at
+     Thruston it did not finish the lap); 4x4 / RX within 2.3 %. The lifts are right: the loss is
+     the car's traction, not the driver.
+   - ON ICE the slides grow: rear-slide catches 10-67 s a lap, off the road 3-17 s a lap (4x4, RX,
+     F2), the hatch at Knobhill 15.6 s in one run (a spin). The driver's slide limits are fixed
+     angles (ai/driverSteps.ts slideStep: understeer lift past 0.14-0.20 rad front slip, catch past
+     0.18 rad rear) while each surface's tyre peaks at its own slip (surfaces.ts peakK: ice 0.70,
+     tarmac 1.00, snow 2.00, sand 2.20, gravel 2.40).
+   - NOT MEASURED: the real weather (rain's wetness, snow and ice laid in patches), the native loose
+     levels (Sweaty Lamb, Slidden Hill, the stages), TCS on, contact, a human reference (the
+     scripted demo driver is 34 % slower on tarmac and does not finish an icy lap: no reference).
+   OPTIONS (none built; A and B leave the AI on tarmac unchanged by construction):
+   - A. Slide limits by the ground's peak slip: the lift / catch angles x the surface's peakK over
+     tarmac's (tarmac x1). Expected: fewer slides and offs on ice; later lifts on gravel, snow and
+     sand. Risk: the AWD cars are already at the edge on loose ground. S.
+   - B. A plan bonus off tarmac for 2WD cars only (K x1.1-1.15 where mu < 0.8): measured +2-9 % a
+     lap, 0 off for the hatch and the F2. Risk: more offs in traffic; the 4x4 / RX gain nothing. S.
+   - C. Nothing: the AI tracks the grip; the 2WD cars are traction-limited, as yours are.
+   RECOMMENDATION: ask where it was seen (car, level, weather). A 2WD car on snow or sand: C (it is
+   the car) or B; the AI losing it on ice: A first, measured with _aislip, then in a field.
 10. HIGHWAY AI NOT DODGING ONCOMING TRAFFIC: back on (owner 11-13). Before: "ai don't dodge
     properly", to measure what they miss (traffic, the player, wrecks); parked 11-10 ("let's leave
     it for now").
+    MEASURED 11-15, NOTHING CHANGED (tools/scratch/_hwdodge.mjs: the real game, deterministic,
+    nothing drawn, your car on ?autopilot, a highway race with 5 AI, 180 s, seeds 1 and 2; the
+    twisty single carriageway at traffic 1.5 and 1.0, the motorway and Deaf Valley's dual
+    carriageway at 1.5; every racer's body against every other car, a new touch = a hit; free drive
+    has no racing AI - its speeders were not measured apart):
+    - TWISTY (two-way): HEAD-ONS with oncoming traffic 3.3-9.7 per 10 racer-km (13, 7, 8, 18 hits
+      in 17-23 km a run), 29 of 46 with the racer IN THE OTHER WAY'S LANE, 35 of 46 at over 15 m/s
+      closing; near misses (2.5 m or less at over 15 m/s) 35-58 a run. The racers spend 22-33 % of
+      their time in the other way's lane (the racing line uses the whole road). Standing cars and
+      wrecks (many left by the head-ons) 6.1-12.3 hits per 10 km; police 7-22 (chases: who hit whom
+      not split); same-way traffic 1.1-2.6; you 0.6-4.2.
+    - MOTORWAY / DUAL: no oncoming (behind the median); same-way traffic 2.1-7.1 per 10 km, police
+      3.4-9.1, you 1.4-3.0, standing 0-2.2, other racers 4.9-6.4.
+    - WHAT IT SAW: 2.5-3 s before a head-on the oncoming car was OUTSIDE the window the driver reads
+      cars in for 27 of 40 (100-180 m ahead and 8-70 m to the side: round a bend). That window
+      (ai/driverTraffic.ts carsStep) is a box on the racer's own heading - |across| <= 8 m, ahead
+      <= 8 m + closing x 2.6-3.8 s by skill - so on a twisty road a car round the next bend is not
+      read until the bend opens out. 0.5-1 s before, most were braking (27 of 46) - too late at
+      50-65 m/s closing.
+    - WHAT IT DOES WITH ONE: an oncoming car is read as a slow car ahead (followAhead): it goes
+      round it on the side nearest where it already is (so it can stay in the other way's lane)
+      and brakes only when there is no time to swerve; nothing keeps it to its own side of a
+      two-way road or stops it overtaking blind into a bend.
+    - NOT TRACED: who started each police contact; the speeders in free drive; the other two-way
+      roads (the twisty preset only).
+    OPTIONS (none built; circuits must stay the same):
+    - A. On the endless road read cars by their place along the road (the road frame's s / off, as
+      the traffic does), not the heading box: an oncoming car round a bend read 2-3 s sooner. S-M.
+    - B. On a two-way road, an oncoming car within ~4 s closing: the racer's target moves into its
+      own lanes, and an overtake into the other lane needs that much clear road. M.
+    - C. An oncoming car is passed on the racer's own side only (followAhead's side choice). S.
+    RECOMMENDATION: A + C first (they reuse what is there), measured with _hwdodge against these
+    numbers (head-ons, time in the other lane, the race's pace); B if head-ons stay above ~1 per 10
+    km. Ask: may a racer still use the other lane to overtake on a clear straight?
 
 HIGHWAYS:
 11. MINIMAP: fuel stations, exits / road splits / slip roads, police.
