@@ -71,9 +71,10 @@ colours; it takes every tap and touch, and the keys are ignored while it is up (
 A frame paints it, then the work runs behind it a stage a task, each after a painted frame: the level
 build (`controls.ts enterLevel`, a new level only), the rest of the switch (`settleLevel`: cones,
 marks, the restart), the session (`launchSession`: car, livery, tyres, the restart), the field lined
-up (`startField`, its own task as before), the ground of the fly-in's hand-over view round the grid
-painted a few tiles a task (`renderer.paintStartGround`, `tiles.ts prepareAround`), and the fly-in
-started with its whole-level picture painted and uploaded to the GPU (`renderer.readyFlyIn`). The bar
+up (`startField`, its own task as before), the fly-in started with its whole-level picture painted
+and uploaded to the GPU (`renderer.readyFlyIn`), then every ground tile the fly-in will show planned,
+painted and uploaded a slice a task (`renderer.planStartGround / paintPlanned / uploadPlanned`,
+`render/tilesDensity.ts`: see `render/tiles.ts` below). The bar
 moves at each stage and eases through a long one on the compositor (paced by the time that stage took
 last). The screen stays up at least 300 ms (a quick load flashed it); the full bar then turns the
 press's electric blue and blinks twice (160 ms, as a pressed menu button: `pixelstyle.ts
@@ -435,20 +436,19 @@ off / on): racing laps fronts smoke 5-8 % -> 1 % of the time; a held 1.1 g corne
   followPush`), taken whole only after a teleport, so the view never jumps. Not avoided: the
   steering stick under the thumb, the passing notices, the speed camera's flash, the finish flag.
 - `render/tiles.ts`: what lies over the floor and zones (track ribbon, lanes, patches, covers,
-  wear, kerbs) is painted into cached tiles at ONE density (the zoom-1 step) within a time budget
-  per frame (`tilesBudget.ts`); the GPU ground scales them to any zoom and draws each at its exact
-  place. Tiles under new wear go stale and are repainted within the budget (`tilesWear.ts`).
-  The look-ahead paints one tile a frame of the widest view round the camera (plus a margin) while
-  nothing in view is missing; a tile goes to the GPU when it is first drawn, so a row scrolling
-  into view uploads 6+ textures in one frame. Under test, `?tiledensity=1` (`FIX.tiledensity`,
-  `tilesSteps.ts`, `tilesDensity.ts`): a tile is painted at the coarsest of the steps zoom 1 /
-  0.5 / 0.354 still as dense as the screen (off: always zoom 1, so zoomed out at 0.30 a view needs
-  ~11x the tiles, each at full density); a new step is readied over the whole view - one paint
+  wear, kerbs) is painted into cached tiles within a time budget per frame (`tilesBudget.ts`);
+  the GPU ground scales them to the exact zoom and draws each at its exact place. Tiles under new
+  wear go stale and are repainted within the budget (`tilesWear.ts`). THE DENSITY STEPS
+  (`tilesSteps.ts`, `tilesDensity.ts`; the default since 11-15): a tile is painted at the
+  coarsest of the steps zoom 1 / 0.5 / 0.354 still as dense as the screen (painted at zoom 1 alone,
+  a view zoomed out at 0.30 needed ~11x the tiles, each at full density); the look-ahead paints
+  one tile a frame of the drawn step's widest view while nothing in view is missing; a tile goes
+  to the GPU when it is first drawn; a new step is readied over the whole view - one paint
   and two uploads a frame - before it is drawn (no stand-in, no burst), with a gap between the
   zooms that switch each way (coarser below x1.1 inside the next step, finer from 0.95 of the
   drawn step's limit); the cache holds the real screen's widest view 1.25 times (a big PC screen
   shows ~300 zoom-1 tiles; 200 made it repaint a view each frame). The loading screen
-  (`game/loading.ts densityStages`) starts the fly-in once the field is lined up, plans every
+  (`game/loading.ts readyStages`) starts the fly-in once the field is lined up, plans every
   tile of its path from the hand-over to the landing (64 views, each at its zoom's step, a ring
   round the landing) at the real screen, and paints then uploads them behind the bar; they are
   kept until the fly-in lands (`keepPlan`). The GPU sink says whether a picture is on it
