@@ -75,8 +75,8 @@ export function stepFlow(ctx: HwCtx, dt: number) {
   const myS = sOf(myEntry), top = rivals.reduce((slowest, entry) =>
     (sOf(entry) < sOf(slowest) ? entry : slowest), rivals[0]);
   let kind = withGrace(flow, dueKind(ctx, myS, rivals, top), dt);
-  // (?offroadwin=1: no getaway off the road - its count runs only on the road, and starts
-  // again from full each time you come back to it)
+  // (no getaway off the road - its count runs only on the road, and starts again from full each
+  // time you come back to it; a flow made with no offRoad, the headless tools', counts anywhere)
   if (kind === 'behind' && ctx.offRoad && ctx.offRoad()) kind = null;
   switchKind(ctx, kind);
   const gap = sOf(top) - myS;

@@ -22,7 +22,6 @@ import { resetRace, resetStage } from './rules.ts';
 import { onTrack } from "../world/tyrewall.ts";
 import { clearOfUnder, trackSpotOf } from "../world/trackunder.ts";
 import { jokerLane, lanePose, laneSpot } from "../world/joker.ts";
-import { FIX } from '../core/fixes.ts';
 import {
   FREE_STEP_M, firstFree, lapStepBack, notAheadOf, respawnBehind,
 } from './resetspot.ts';
@@ -307,9 +306,8 @@ export function buildFlow() {
   // the HIGHWAY: no laps — the race ends on the off-screen countdowns (highwayrace.js
   // createHwFlow); "on screen" = the renderer's real view
   if (LEVEL.endless) {
-    // (?offroadwin=1: the getaway counts only on the road - the car's middle inside its edge)
-    return createHwFlow({ lv: hwLevel(), offRoad: FIX.offroadwin
-      ? () => playerOutM(hwLevel()) > 0 : undefined,
+    // (the getaway counts only on the road - the car's middle inside its edge)
+    return createHwFlow({ lv: hwLevel(), offRoad: () => playerOutM(hwLevel()) > 0,
       cars: [{ car: game.car, player: true }, ...game.ai.map((entry) => ({ car: entry.car }))],
         visible: (car) => onScreen(car.x, car.y), finish: finishOf(shared.hwFinish) });
   }

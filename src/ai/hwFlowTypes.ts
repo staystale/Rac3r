@@ -22,7 +22,7 @@ export interface HwFlowArgs {
   lv: HighwayLevel; cars: { car: AiCar; player?: boolean }[];
   visible: (car: AiCar) => boolean; count?: number; catchT?: number;
   finish?: HwFinish | null;   // a distance or a time (highway/finish.ts)
-  offRoad?: () => boolean;   // your car off the road now (?offroadwin=1)
+  offRoad?: () => boolean;   // your car off the road now (the game always gives it)
 }
 // What createHwFlow returns: the race state, and the countdowns' bookkeeping.
 export interface HwFlow {
@@ -47,5 +47,5 @@ export interface HwCtx {
   sRef: number;
   gapPrev: number | null;
   gapRate: number;
-  offRoad?: () => boolean;   // your car off the road now (?offroadwin=1)
+  offRoad?: () => boolean;   // your car off the road now (the game always gives it)
 }

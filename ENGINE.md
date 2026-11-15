@@ -495,8 +495,8 @@ by road distance (each car's road frame, its last one while it has none). CATCH 
 the slowest rival off screen ahead: HW_CATCH 15 s (refilled while closing, held near the edge), at 0
 the race ends. PULLING AWAY (the getaway) - every rival over 5 m behind you and off screen: HW_COUNT
 8 s, at 0 the race ends and you have won. A finish (`highway/finish.ts`): over the line (your road
-distance past it) or the clock out ends it, whichever comes first with the getaway. Under test,
-`?offroadwin=1` (`FIX.offroadwin`): the getaway's count runs only while your car's middle is inside
+distance past it) or the clock out ends it, whichever comes first with the getaway. The getaway's
+count (the default since 11-15) runs only while your car's middle is inside
 the road's edge (`highway.ts playerOutM`, the guard's own measure - a lay-by, a forecourt and the
 side road are road; the verge, a slip road and the fields are not), and starts again from full each
 time you come back to it; before, it ran anywhere - on the verge and up to 16 m out (where the

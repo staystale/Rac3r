@@ -54,9 +54,6 @@ export const FIX = {
   // a racing AI truly stuck 6 s is put back behind, on a free spot; a highway traffic car standing
   // stuck 6 s goes (game/aistuck.ts, ai/trafficStep.ts)
   stuckreset: atLoad('stuckreset'),
-  // no highway race won by pulling away off the road: the getaway's count runs only while you
-  // are on it, from the start each time you come back (ai/hwFlowStep.ts)
-  offroadwin: atLoad('offroadwin'),
   // the rolling start's formation holds a SPEED: one pace rising at ROLL_ACCEL for every car, each
   // car's throttle whatever holds it (game/order.ts formationWant, ai/formation.ts)
   rollhold: atLoad('rollhold'),

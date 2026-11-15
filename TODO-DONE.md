@@ -60,6 +60,14 @@ code plain (simhash, worldhash, renderhash the same).
   (_wrongwaygame.mjs, 4 roads x 4 cars): none of those reset now; reversing on resets at 4.5-5.4 s,
   driving the wrong way at 3.7-5.2 s and 31-50 m back. tools/treadmillcheck.mjs (KNOWN-FAIL in the
   suite) still asks for its reverse to reset within 3 s: it failed that on 4 of 5 roads before.
+- NO HIGHWAY RACE WON BY PULLING AWAY OFF THE ROAD (was ?offroadwin=1; ai/hwFlowStep.ts, the game's
+  flow given highway.ts playerOutM). The getaway's 8 s count runs only while your car's middle is
+  inside the road's edge (a lay-by, a forecourt and the side road are road; the verge, a slip road
+  and the fields are not), from full each time you come back. MEASURED (tools/scratch/_offroadwin.mjs,
+  a race with 2 AI, your car 400 m ahead at 45 m/s): before, won at 8.0 s on the verge (4 m out),
+  in the band (12 m) and in the fields (30 m) on the motorway, twisty and Deaf Valley; now no win
+  in 20 s off the road, won 8 s after coming back onto it. A race to a line or against the clock
+  unchanged (off the road still counts there).
 
 ## PASSED 11-14 (owner: "Pass all four") - THE LOADING SCREEN, THE RESTART FIX, THE SMOOTH FLY-IN, THE NIGHT FLY-IN; now the default
 
