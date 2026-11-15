@@ -622,6 +622,17 @@ and tyre stacks (`rallycross-venue.ts rallycrossLevel` -> `rxDress(..., floorM)`
 the LEVEL'S OWN floor (`level.floor`, as the tape's `onFloor` reads it), not the standard 260 m:
 Croughed RX (546 m) keeps all 396 loose objects.
 
+THE HIGHWAY'S CHEVRON BOARDS (`highway/litter.ts layLooseRoadside`, knockable loose objects,
+cones TOPPLES, 45 kg): the rally boards (black with yellow chevrons) on the outside of every bend
+tighter than R 650, one each 48 m, 4.5 m off the edge, none on Deaf Valley. Under test,
+`?hwchevron=1` (`FIX.hwchevron`, `highway/chevrons.ts layRoadChevron`): the UK rule - black
+boards with white chevrons (`paint` `COL.signWhite`; `render/objects.ts drawChevron` draws a
+board's paint, else the rally yellow) on the outside of the SHARP bends only (R under 360 m on
+the motorways and the dual carriageway, 255 m on the single lane: two steps below the DMRB
+desirable minimum for the design speed), none within 20 m along of a lay-by or station on its
+side (`laybys.ts bayHere`), on Deaf Valley too at each second spot (96 m).
+`tools/scratch/_hwchevroncount.mjs` counts them a km; `_hwchevronshots.mjs` photographs one.
+
 THE ENDLESS ROAD'S GUARD (`highway.ts highwayGuard`, the player only, each step after
 `stepHighway`): WRONG WAY - moving back down the road faster than BACK_V (3 m/s) for BACK_T s, or
 on the road BACK_M m behind the furthest point reached (`checkWrongWay`); OFF THE MOTORWAY - the

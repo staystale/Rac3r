@@ -13,6 +13,17 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'hwchevron',
+    added: '2026-11-15',
+    name: 'Highway chevron boards: black and white, sharp bends only, never in a lay-by',
+    where: 'Test link + &hwchevron=1: the single lane and the dual carriageway (most sharp bends), '
+      + 'in the countryside and on Deaf Valley',
+    try: 'Look for the boards on the outside of the sharp bends; hit one and see it fall; check '
+      + 'the lay-bys and petrol stations have none.',
+    wrong: 'Boards on gentle bends or straights, in a lay-by or by a station, on the inside of a '
+      + 'bend, too few or too many to read the bends, or one that does not fall when hit.',
+  },
+  {
     id: 'aipace',
     added: '2026-11-15',
     name: 'AI PACE dial, and the AI DRIVERS dials live from the pause menu',

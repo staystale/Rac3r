@@ -620,14 +620,15 @@ function drawTapePost(env: ObjectsCtx, cone: RenderCone) {
 
 /**
  * Draws a knockable chevron board: upright as the old prop; once knocked lying flat, face up and
- * darker.
+ * darker. Its chevrons the rally boards' yellow, or its paint (the highway's white).
  * @param env the objects context
- * @param down 0 = upright, 1 = flat
+ * @param cone the board (down: 0 = upright, 1 = flat; paint: its chevrons' colour)
  * @param ppm the pixels per metre
  * @param rect the rect drawer
  */
-function drawChevron(env: ObjectsCtx, down: number, ppm: number, rect: RectFn) {
-  const { view } = env;
+function drawChevron(env: ObjectsCtx, cone: RenderCone, ppm: number, rect: RectFn) {
+  const { view } = env, down = cone.down;
+  const arrows = cone.paint || '#f2c21b', fallen = cone.paint ? shade(cone.paint, 0.72) : '#b08c14';
   view.ctx.scale(1.6, 1.6);
   if (down < 0.5) {
     view.ctx.fillStyle = 'rgba(10,12,16,0.32)';
@@ -635,17 +636,17 @@ function drawChevron(env: ObjectsCtx, down: number, ppm: number, rect: RectFn) {
       0.5 * ppm);
     rect(-1.6, -0.25, 3.2, 0.5, '#15171c');
     for (let col = 0; col < 3; col++) {
-      rect(-1.25 + col * 1.0, -0.2, 0.25, 0.15, '#f2c21b');
-      rect(-1.0 + col * 1.0, -0.075, 0.25, 0.15, '#f2c21b');
-      rect(-1.25 + col * 1.0, 0.05, 0.25, 0.15, '#f2c21b');
+      rect(-1.25 + col * 1.0, -0.2, 0.25, 0.15, arrows);
+      rect(-1.0 + col * 1.0, -0.075, 0.25, 0.15, arrows);
+      rect(-1.25 + col * 1.0, 0.05, 0.25, 0.15, arrows);
     }
   }
   else {
     rect(-1.6, -0.5, 3.2, 1.0, '#15171c');
     for (let col = 0; col < 3; col++) {
-      rect(-1.25 + col * 1.0, -0.4, 0.3, 0.3, '#b08c14');
-      rect(-0.95 + col * 1.0, -0.15, 0.3, 0.3, '#b08c14');
-      rect(-1.25 + col * 1.0, 0.1, 0.3, 0.3, '#b08c14');
+      rect(-1.25 + col * 1.0, -0.4, 0.3, 0.3, fallen);
+      rect(-0.95 + col * 1.0, -0.15, 0.3, 0.3, fallen);
+      rect(-1.25 + col * 1.0, 0.1, 0.3, 0.3, fallen);
     }
     // face up, its two posts
     rect(-1.5, 0.5, 0.15, 0.6, '#5a4632'); rect(1.35, 0.5, 0.15, 0.6, '#5a4632');
@@ -685,7 +686,7 @@ function drawFlag(env: ObjectsCtx, cone: RenderCone, ppm: number, rect: RectFn) 
 function drawBoard(env: ObjectsCtx, cone: RenderCone) {
   const ppm = env.PPMz(), rect = makeRect(env, ppm);
   env.view.ctx.rotate(cone.ang || 0);
-  if (cone.kind === 'chevron') drawChevron(env, cone.down, ppm, rect);
+  if (cone.kind === 'chevron') drawChevron(env, cone, ppm, rect);
   else drawFlag(env, cone, ppm, rect);
 }
 
