@@ -33,15 +33,27 @@ function nearestOn(pts, x, y) {
 
 /** Sorts one cluster by the barriers round it. */
 function sortCluster(lv, cluster) {
-  let alongside = null, atEnd = null;
+  let alongside = null, atEnd = null, endBarrier = null;
   for (const barrel of cluster) for (const barrier of lv.barriers) {
     const near = nearestOn(barrier.pts, barrel.x, barrel.y);
     if (near.dist > NEAR_M) continue;
     // (an end is a real end only when no other barrier carries on from it)
-    if (near.atEnd) atEnd = barrier.kind;
+    if (near.atEnd) {
+      atEnd = barrier.kind;
+      endBarrier = barrier;
+    }
     else alongside = barrier.kind;
   }
-  return alongside ? `alongside ${alongside}` : atEnd ? `at an end of ${atEnd}` : 'free';
+  if (alongside) return `alongside ${alongside}`;
+  if (!atEnd) return 'free';
+  // (which way the barrier runs from the cluster: a leading end has it running on the way that
+  // side's traffic goes - the left rising s, the right falling)
+  const mid = endBarrier.pts[endBarrier.pts.length >> 1];
+  const here = roadFrame(lv, cluster[0].x, cluster[0].y, cluster[0]._s);
+  const there = roadFrame(lv, mid[0], mid[1], cluster[0]._s);
+  if (Math.abs(here.off) < lv._hw.geo.hw) return `at an end of ${atEnd}`;
+  const isLeading = Math.sign(there.s - here.s) === (here.off < 0 ? 1 : -1);
+  return `at a ${isLeading ? 'LEADING' : 'TRAILING'} ${here.off < 0 ? 'left' : 'right'} end of ${atEnd}`;
 }
 
 /** Drives one road in one scenery; returns its line. */

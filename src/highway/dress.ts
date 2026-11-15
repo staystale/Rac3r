@@ -13,7 +13,7 @@ import { layRoadLamps } from "./roadlamps.ts";
 import { dressCanyon } from "./canyon.ts";
 import { medianAt } from "./medians.ts";
 import { FIX } from "../core/fixes.ts";
-import { layCushions, noteLeftBarrier, noteMedianPiece } from "./cushions.ts";
+import { layCushions, markBarriers, noteMedianPiece } from "./cushions.ts";
 import type { LevelObj } from '../cones/coneTypes.ts';
 import type { Point, BarrierKind } from '../world/types.ts';
 import type { HwPose, HwLevel, DressCtx, Stamp } from './hwtypes.ts';
@@ -259,10 +259,8 @@ function layArmco(ctx: DressCtx) {
           continue;
         }
         // (out round a lay-by)
-        const off = runNow.side * (halfWidth + 1.8 + bayOut(level, road[j].s, runNow.side));
-        // (?hwbarrels=1: starting again after a slip's gap - its nose)
-        noteLeftBarrier(ctx, j, off, runNow.side);
-        const pos = pointAt(j, off);
+        const pos = pointAt(j, runNow.side * (halfWidth + 1.8
+          + bayOut(level, road[j].s, runNow.side)));
         pts.push([pos.x, pos.y]);
       }
       flush();
@@ -304,8 +302,6 @@ function layWalls(ctx: DressCtx) {
           }
           // (out round a lay-by)
           const edge = halfWidth + wallGap + bayOut(level, road[j].s, side);
-          // (?hwbarrels=1: the left wall starting again after a slip's gap - its nose)
-          noteLeftBarrier(ctx, j, side * edge, side);
           const pos = pointAt(
             j,
             sideOffset
@@ -379,6 +375,8 @@ function clearSignsOffLanes(level: HwLevel, fromS: number) {
  */
 function dressStretch(level: HwLevel, firstIdx: number, endIdx: number, loose: LevelObj[]) {
   const ctx = makeDressContext(level, firstIdx, endIdx, loose);
+  // (?hwbarrels=1: the barriers this stretch lays are read for their ends)
+  markBarriers(ctx);
   // (the lay-bys first - the scenery keeps off them)
   layLaybys(ctx);
   // a themed road dresses its own way (Deaf Valley: highway/canyon.ts)

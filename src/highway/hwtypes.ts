@@ -115,10 +115,12 @@ export interface HwState {
   gantryDue?: boolean; villageNext?: number;
   looseCut?: number | null; looseNew?: LevelObj[];   // the loose objects dropped / added
   tookExit?: boolean;   // the player left by a slip
-  // the road distances slips left at whose barrier's nose is still to come; the central
-  // reservation's last barrier piece (its kind, null for none; the road distance it ends at, m)
-  // (highway/cushions.ts)
-  noseDue?: number[]; medianLast?: { kind: BarrierKind | null; endS: number };
+  // the crash-cushion barrels' bookkeeping (highway/cushions.ts): where this stretch's barriers
+  // start in level.barriers; the last stretch's roadside barrier ends, judged once this one is
+  // laid; the central reservation's last barrier piece (its kind, null for none; the road
+  // distance it ends at, m)
+  barrierMark?: number; endsDue?: { x: number; y: number; s: number; off: number; away: number;
+    from: Barrier }[]; medianLast?: { kind: BarrierKind | null; endS: number };
   inV?: number; camS?: number; outPrev?: number | null;   // the guard's and the camera's memory
 }
 
