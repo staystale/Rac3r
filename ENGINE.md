@@ -424,6 +424,18 @@ parody pun (CLAUDE.md). A level is loaded by `world/load.ts`; `world/state.ts` h
 lists (zones, bumps, props, barriers), which the physics and the renderer both read, so what you see is
 what you drive on.
 
+THE ENDLESS ROAD'S GUARD (`highway.ts highwayGuard`, the player only, each step after
+`stepHighway`): WRONG WAY - moving back down the road faster than BACK_V (3 m/s) for BACK_T s, or
+on the road BACK_M m behind the furthest point reached (`checkWrongWay`); OFF THE MOTORWAY - the
+off-road countdown (OFF_T 10 s from OFF_SOFT 8 m out, held within OFF_NEAR 16 m or heading back) or
+OFF_HARD 70 m out at once; EXIT TAKEN - the countdown's end after a lane off the motorway. Each puts
+the car back (`highwayRespawn`) with its reason on the notice line. BACK_T 1.2 s and BACK_M 30 m;
+under test, `?wrongway=1` (`FIX.wrongway`): 4 s and 50 m - room to turn round, to be knocked back
+in a crash and to reverse a little (measured on every car, `tools/scratch/_wrongway.mjs`: a U-turn
+from facing back runs back up to 1.45 s and 8.3 m; a head-on with the heaviest traffic car knocks a
+light car back up to 3.1 s and 35 m; at 1.2 s the guard fired after 7 m of reversing). In the real
+game: `tools/scratch/_wrongwaygame.mjs`.
+
 LAP LENGTHS AS DATA (the default since 11-14): the menu's track cards show each level's lap from
 `world/levels/laplengths.ts` (`category.ts menuLapOf`), written by `tools/laplengths.mjs` with
 `lapOf`, which traces a venue's whole road; without it a list's open traced every venue in it

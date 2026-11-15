@@ -17,7 +17,9 @@
 // metres back from the furthest point reached (BACK_M), the time it all took, and whether TODAY's
 // guard (1.2 s, 30 m) would have fired. Worst over every car per case, and each car's numbers
 // with VERBOSE=1. node tools/scratch/_wrongway.mjs [cars,...]
-import { makeCar, step, reset, neutralInput, PHYSICS_STEP_SECONDS as DT } from '../../src/vehicle.ts';
+import {
+  makeCar, step, reset, neutralInput, PHYSICS_STEP_SECONDS as DT,
+} from '../../src/vehicle.ts';
 import { CAR_IDS } from '../../src/cars.ts';
 import { carContact } from '../../src/contact.ts';
 import * as L from '../../src/lab.ts';
