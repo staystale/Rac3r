@@ -1,34 +1,31 @@
 # Foreman handover
 
 Kept current as the work goes (owner 11-12: "update the handover as we go"). Last updated
-2026-11-15. Read `CLAUDE.md`, then `NOTES.md` (the owner's rules and the Routine at its end,
+2026-11-15 (night). Read `CLAUDE.md`, then `NOTES.md` (the owner's rules and the Routine at its end,
 not repeated here), then `TODO.md`, then this page. The 11-07 version of this page is in git.
 
-## Where we are (11-15, late morning)
+## Where we are (11-15, night; the owner asleep from ~22:50)
 
-- **Main** = round46 (71bdf097) = **ITCH.IO** build `2026-11-15-71bdf097` (pushed 11-15 on the
-  owner's yes; staged in `GamesStudio/ready-to-play/rac3r-2026-11-15`). Bugs 1-8, Croughed RX (no
-  joker: Croft had none), the boot bar with the logo fade: all PASSED and the default. Test list
-  empty. Only switch left: `?siren=1` (PARKED until the sound pass, owner).
-- **ITCH RULE:** ask before EVERY push; push only on the owner's yes, after CI is green.
-- **Worker A** (worktree `bugfix`, port 8091, PC `rac3r-proofepo` 8094): BUG 10 + the highway put-back PASSED 11-15, the default (round51). Next: BUG 9 (owner GO: hold a slide at each surface's best slip angle - on ice slide MORE but fast; more corner speed off tarmac; kerbs / other lines when quicker; mistakes by skill), then the AI extras, then CAR TOOLS -> under-skin layer -> 10 cars -> two-wheel state. Brief: scratchpad briefA3.md.
-- **Worker B** (worktree `barriercull`, port 8092, PC `rac3r-proofepo2` 8093): queue in scratchpad briefB3.md, hand-back per job: 0 forestseed keeps Croughed RX bales (done, round50); 1 highway off-road jerk; 2 joker line always its own line; 3 highway extras one switch each; 4 F1 vs world split (proposal first); 5 tracks.
-- **Queued, approved:** JOKER TAKEN on its own line in the lap box; the AI using your reset rules; the wrong-way guard on R's verge
-  rule; the off-road countdown running 8-16 m out; start lights keeping the car clear. Pit stops:
-  questions first (not every race; test-mode option; a real race turns them on where real life
-  would). Then highway extras, F1 vs world circuits, cars, the sound pass.
-- **SOUND: leave it all alone until the sound pass** (owner 11-15; no sound-off switch).
-- **DROPPED (owner):** NO NEW BANNERS ever (the WRONG WAY 3-2-1, GET BACK ON THE ROAD); the police
-  contact measuring.
-- **Open question:** the Rallycross walkthrough line "Your lap and the JOKER status" (Croughed RX
-  has no joker): change to "your lap"? (rec yes)
-- **Faster rounds (owner approved):** targeted re-checks after small fixes (CI runs the full set);
-  heavy proofs on the PC (two folders, two ports); the owner's link moved to a branch once the
-  worker's proofs pass, before CI; measuring sized to the change.
-- **Test tools get no boot bar** (index.html skips it under navigator.webdriver; the bar took their
-  start click). _bootbarshots hides the flag to photograph it.
-- **The PC** (i5-3570K, 4 threads, 8 GB) is not faster per run than the laptop (Ryzen 5 5500U, 12
-  threads, 5.8 GB, ~1 GB free): its worth is spare memory.
+- **ITCH** = `2026-11-15-7c4af37a` (push #3 of the day, owner yes). **Main** = 7c4af37a. Staged builds in
+  `GamesStudio/ready-to-play/rac3r-2026-11-15{,b,c}`. ITCH RULE: ask before every push; push only on a
+  clear yes, after CI is green. An ambiguous reply: ASK (owner 11-15: "ask if not sure").
+- **The owner's link** = foreman/round77 (8789924a): everything passed today is the default (bugs 1-10,
+  stopped-car avoidance + its start fix + the single-lane rolling-start fix, AI crash put-backs, the
+  ground density, the joker row, the minimap, chevrons, barrels, parked police). UNDER TEST: none from
+  the owner; ?aipace=1 / ?aislide=1 PASSED and being defaulted by Worker A with new presets.
+- **Worker A** (fresh, briefA5.md, worktree `bugfix`, PC `repo` / 8094): JOB 1 (PACE + aislide default +
+  presets skill +0.10, risk/agg/pace +0.03, proofs and numbers), then CAR TOOLS, the UNDER-THE-SKIN layer,
+  the 10 cars (one link each), then the AI extras 2b-2d (owner: cars first).
+- **Worker B** (fresh, briefB3.md, worktree `barriercull`, PC `repo2` / 8093): item 15 traffic (2 in 12
+  leave at the next slip, 5 in 40 fuel, joins from on-ramps), then JOB 3b the frame-drop prep (GPU / layer
+  timing in the phone report, ?gpustat=1) for the owner's morning drive; then F1 vs world (proposal),
+  the tracks. Police cap: stays 3 (owner).
+- **MEMORY RULE** (the laptop ran out at ~21:45; jobs were reaped): one heavy job at a time, on the PC
+  only; the laptop light. Reaped jobs are re-run only on the owner's say (the owner said yes tonight).
+- **The PC** is not faster than the laptop; its value is spare memory. Foreman's folder `repo3` / 8095.
+- **Lessons today:** test every case a driving change touches before handover (single-lane rolling
+  starts shipped broken once); don't invent numeric targets; numbers inform, the owner decides
+  "better"; AI changes tag [sim] [look]; a test that taps under the loading screen fails (uicheck fixed).
 - PARALLEL WORKERS: each its OWN worktree and its OWN port (two on one port served each other's
   code once); a laptop browser lock is removed only by whoever wrote it (compare its text first);
   check whether a tool opens a browser BEFORE running it (guidecheck, racecheck do).
