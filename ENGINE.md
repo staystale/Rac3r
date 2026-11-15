@@ -171,6 +171,27 @@ applyMistake`): while a 'late' or 'throttle' mistake runs in its corner the catc
 its severity), nothing is held, a 'late' one has no understeer lift, and both are twice as big
 (`MIST_GROW`). `tools/scratch/_aislip.mjs` (AISLIDE=1) measures it; `_aislideshot.mjs` photographs it.
 
+A STOPPED OR MUCH SLOWER CAR IN THE WAY (under test, `?stopdodge=1`, `FIX.stopdodge`;
+`ai/stopDodge.ts`). A car ahead "not racing" (`driverTraffic.ts racingNot`: under max(5 m/s, half my
+speed) along my way, not coming back at more than 2 m/s) is read, with the switch, where it STANDS
+ACROSS THE ROAD held to my point (`placeAcross`: off the line at its point + the line's place across
+the road there - the line's here), the frame the steering keeps off the line (`driverSteps.ts
+offRoad`): read off the line at its own point, a way round planned 3.5 m off the line here ended on
+the car where the line crossed the road. Those cars are kept (`CarsAcc.stopped`) for `stopCap`:
+while the car's REAL body (`rejoin.ts lateralOf`, not its dodge target) is still in line with one
+(within `dodge.ts clearOf`), its speed is capped to what misses it braking at 0.7 of its full
+braking - stop 1.5 m short, or reach it no sooner than the time to get across to the planned side
+(0.3 s + the m to go at `SWERVE_RATE`) - never under 3 m/s when a way round is planned (held to a
+crawl it could not steer out); the room judged off by up to 20 % at skill 0 (one draw from the
+driver's own stream per car), exact at skill 1. While in line, going round is a move (`conflict`:
+the dodge at the swerve's rate, the steering uncapped by the soft rejoin). Clear of it: no cap. A
+stopped car never takes the line's priority from me (`alongsideCar`'s give-way is for racing cars
+only). Two plain guards ride on the switch: the wide-window read with the driver's clock below 0
+(`driverDrive.ts targetEdge`: no window set -> the usual edge) and a recovery clearing a NaN tyre
+wear (`game/sim.ts clearBadWear`: the set's wear at the event's start, 0 with none).
+`tools/scratch/_stopsum.mjs` (a car stopped across the line, STOPDODGE=1) and `_pileups.mjs` (a field's
+touches and incidents, RAC3R_QUERY=stopdodge=1) measure it.
+
 THE SMOOTH FLY-IN (the default since 11-14; `render/flylayers.ts`): zoomed out, a fly-in frame
 drew every prop and loose object one by one. With the switch, the layers that hold still while the
 field waits at the lights - the deck (run-off, kerbs, bumps, paint), fence, barriers, props, the

@@ -47,8 +47,9 @@ records in `TODO-DONE.md` (PASSED 11-12). On the phone now:
 
 - PASSED 11-15, now the default (TODO-DONE): the forest stage's build leak (and Croughed RX's
   bales), WANTED LEVEL LOST, the weather's notices on MOBILE only, the menu race's NaN, the RX
-  walkthrough line. OPEN from it (owner asked): the AI's wide-window read with a negative clock
-  (ai/) and a recovery that does not clear a NaN tyre wear - plain guards, recommended yes.
+  walkthrough line. FROM IT (owner 11-15: "Seems ok yes"): the AI's wide-window read with a negative
+  clock and a recovery that does not clear a NaN tyre wear - BUILT as plain guards on ?stopdodge=1
+  (3a2 item 10 below).
 - THE HIGHWAY OFF-ROAD JERK (owner 11-15: "seems jerky when off road on highways now ? 60 down to
   58 regularly"). BUILT behind `?tileahead=1` (FIX.tileahead, render/tiles.ts lookAheadSpread;
   testlist 'tileahead').
@@ -215,6 +216,46 @@ BUGS (each behind its own switch, measured, then a test link):
    own laps (Sweaty Lamb photographed only), mud.
 10. HIGHWAY AI AND ONCOMING TRAFFIC, and two racers put back onto one spot: PASSED 11-15, the
     default (TODO-DONE).
+    STOPPED-CAR AVOIDANCE (from its Deaf Valley trace; owner 11-15: "they should brake and try to
+    dodge and then race pace asap again") + THE TWO GUARDS: BUILT behind ?stopdodge=1
+    (FIX.stopdodge, ai/stopDodge.ts; testlist 'stopdodge'; ENGINE.md A STOPPED OR MUCH SLOWER CAR).
+    TRACED (tools/scratch/_stopcar.mjs, a car stopped across the line; node, not deterministic - the
+    same run gave 26-48 hits): the way round was planned off the line at the stopped car's point
+    while the steering holds a place across the ROAD (where the line crosses the road the plan
+    ended on the car); the swerve's brake trusted the plan, not where the car was, and once the
+    plan looked clear the steering was a soft rejoin's; half a length short the stopped car "owned
+    the line" and the car gave way to it at 0 m/s. BUILT: a car not racing ahead is read where it
+    stands across the road; while my real body is in line with it the speed is capped to miss it
+    braking at 0.7 of its full braking (stop short, or get across in time braking as it goes; never under
+    3 m/s with a way round planned: held to a crawl a car never steered out), and going round is a
+    move; clear of it, no cap; the judged room off by up to 20 % at skill 0. GUARDS: the
+    wide-window read (node: a first drive at -4 ms steered NaN off, -0.865 on) and a recovery
+    clearing a NaN wear (tools/scratch/_nanwear.mjs: [NaN,.2,.3,NaN] off, the start's wear on).
+    MEASURED, A CAR STOPPED ACROSS THE LINE (tools/scratch/_stopsum.mjs, Thruston / Brands / Castle
+    Kum, off -> on): one AI alone, 6 seeds x 4 laps: hits 614 -> 217, at 15 km/h+ 132 -> 6, closing
+    speeds summed 7745 -> 1246 km/h, mean lap 76.5 -> 71.9 s, one run of 18 unfinished (Brands: the
+    car went round, then beached); 6 AI, 3 seeds x 3 laps: hits 758 -> 503, 15 km/h+ 97 -> 22,
+    6821 -> 3499 km/h summed, mean lap 68.9 -> 73.1 s (off, the stopped car was shoved 15-59 m off
+    the line and stopped being in the way; on, 1-6 m: every lap meets it; queues behind it cost
+    the time).
+    MEASURED, PILE-UPS IN A FIELD (tools/scratch/_pileups.mjs: the real game, deterministic - the
+    laptop and the second PC gave the same numbers; 240 s, seeds 1-3, off -> on; a touch = a new
+    racer-racer body contact, an incident = touches within 3 s and 60 m):
+    - Brands, 19 AI: touches per incident 3.21 -> 2.65, incidents per 10 km 3.31 -> 3.18, touches
+      into a stopped / much slower racer 56 -> 12, at 15 km/h+ 109 -> 78, 5+-touch pile-ups 12 ->
+      9; mean lap 89.0 -> 86.3 s.
+    - Spa, 19 AI: 3.78 -> 2.69 each, 2.85 -> 3.24 per 10 km, into stopped 65 -> 38, 15 km/h+
+      138 -> 84, 5+ 14 -> 14; lap 149.2 -> 149.1 s.
+    - Knobhill RX, 19 AI: 3.18 -> 2.81 each, 4.88 -> 5.16 per 10 km, into stopped 70 -> 39, 15
+      km/h+ 120 -> 93, 5+ 12 -> 11; lap 57.1 -> 56.7 s.
+    - Deaf Valley (dual), 5 AI: 1.74 -> 2.03 each, 3.63 -> 3.41 per 10 km, into stopped 24 -> 31,
+      15 km/h+ 42 -> 47, 5+ 1 -> 4; racer 107.4 -> 105.7 km/h. NOT BETTER there.
+    - Twisty, 5 AI: 1.33 -> 1.43 each, 3.44 -> 2.08 per 10 km, into stopped 25 -> 16; 95.9 ->
+      101.2 km/h.
+    Of 27 touches into a stopped racer left at Knobhill (seed 3, on), 20 came in the first lap's
+    jam at 3-15 km/h, most at the 3 m/s floor; the faster ones braking fully, too late.
+    NOT MEASURED: Deaf Valley's remaining run-ins traced one by one, other difficulties, stages,
+    the player's own car as the stopped one, wet / loose ground.
 
 HIGHWAYS:
 11. MINIMAP: fuel stations, exits / road splits / slip roads, police.
