@@ -330,6 +330,8 @@ export interface TileState {
   newTiles: number;
   perStep: Record<number, number>;
   prefetched: number;
+  // tiles the look-ahead put on the GPU before they were in view (?tileahead=1, tools)
+  uploadedAhead: number;
   lastStep: number | null;
   drawnN: number;
   standIn: boolean;

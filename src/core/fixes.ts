@@ -75,4 +75,8 @@ export const FIX = {
   // a frame stamped before the last one has no game time, not a negative one (the menu race's
   // camera car froze for good on a NaN when its driver got one) (game/pacing.ts)
   menunan: atLoad('menunan'),
+  // the ground tiles' look-ahead paints toward where the car is going and puts them on the GPU
+  // before they scroll into view, one tile a frame, never on a frame that painted one in view
+  // (render/tiles.ts lookAheadSpread)
+  tileahead: atLoad('tileahead'),
 };
