@@ -484,7 +484,7 @@ THE ENDLESS ROAD'S GUARD (`highway.ts highwayGuard`, the player only, each step 
 on the road BACK_M m behind the furthest point reached (`checkWrongWay`); OFF THE MOTORWAY - the
 off-road countdown (OFF_T 10 s from OFF_SOFT 8 m out, held within OFF_NEAR 16 m or heading back) or
 OFF_HARD 70 m out at once; EXIT TAKEN - the countdown's end after a lane off the motorway. Each puts
-the car back (`highwayRespawn`) with its reason on the notice line. BACK_T 4 s and BACK_M 50 m (the
+the car back (`resetspot.ts respawnBehind`) with its reason on the notice line. BACK_T 4 s and BACK_M 50 m (the
 default since 11-15; were 1.2 s and 30 m) - room to turn round, to be knocked back
 in a crash and to reverse a little (measured on every car, `tools/scratch/_wrongway.mjs`: a U-turn
 from facing back runs back up to 1.45 s and 8.3 m; a head-on with the heaviest traffic car knocks a
