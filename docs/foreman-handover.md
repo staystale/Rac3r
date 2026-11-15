@@ -23,6 +23,9 @@ not repeated here), then `TODO.md`, then this page. The 11-07 version of this pa
   push (a pipe hid a tsc failure once); a level's pass fails CI's worldhash once (NOTES); never
   rerun what the worker runs (owner: "don't double do work"); SendMessage to a worker mid-run moves
   its foreground job to the background.
+- PARALLEL WORKERS (11-14 night): each its OWN worktree and its OWN port (8090, 8091, 8092; two
+  on one port served each other's code once); a laptop browser lock is removed only by whoever
+  wrote it (compare its text first); the PC is one worker's at a time.
 - Earlier state of this page: git history.
 
 ## In progress
