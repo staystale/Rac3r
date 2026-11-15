@@ -59,6 +59,9 @@ try {
   page.on('pageerror', (err) => errors.push(err.message));
   await gotoGame(page, `${server.url}/?touch=1&guide=0&menu=0&rules=0&noaudio=1&autopilot=1`
     + `&night=${NIGHT}&nightfly=1` + (process.env.QUERY ? '&' + process.env.QUERY : ''));
+  // (a tap starts the game, as a player's first touch)
+  await page.touchscreen.tap(viewW / 2, viewH / 2);
+  await page.waitForTimeout(1500);
   const levels = process.argv.slice(2).length ? process.argv.slice(2)
     : await page.evaluate(() => window.__game.levels.map((level) => level.id));
   for (const level of levels) {

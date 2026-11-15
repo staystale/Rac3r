@@ -40,6 +40,12 @@ records in `TODO-DONE.md` (PASSED 11-12). On the phone now:
   bar when the game first loads"): the same panel and bar from the page's first paint (index.html,
   before the code runs), filling as the code, fonts and menu thumbnails load, the blue flash, then
   the menu; behind its own switch.
+- NIGHT CANOPY CUT ON THE ENDLESS ROAD (owner 11-14 "I don't see why we wouldn't do it"): BUILT behind
+  `?nighthw=1` (render/canopystream.ts; the night worker): the still lights worked out per stretch
+  as the props stream. Laptop, night 0.94, 90 s: countryside fly-in 3 of 23 canopies darkened
+  (all 23 before), in race at most 5 of 5; a stretch walk at most 1.5 ms (11 walks); Deaf Valley no
+  trees. renderhash highway at night off vs on SAME; fly-in photos byte-identical. NOT PROVEN by a
+  caught break on the road (no tree in a light in any capture made): the owner's phone test is it.
 
 ## 3. OPEN, IN THE OWNER'S ORDER
 

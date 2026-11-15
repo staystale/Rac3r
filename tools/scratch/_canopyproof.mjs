@@ -3,7 +3,7 @@
 // but once the fly-in is over the player car is put 14 m from the densest clump of trees, facing it,
 // its headlights on and moving at 20 m/s, and the screen is captured at CAPTURES frames after. Prints each capture's hash and the canopy cut's counts (renderer.flyStats.canopyCut:
 // canopies darkened / on the map). Run it with and without nightfly=1 (QUERY) and compare.
-// [OPTS={"traffic":1}] [PLACE=0] [NEAR_LAMPS=1] [QUERY=nightfly=1] [NIGHT=0.94] [CAPTURES=20,60,100,140] node tools/scratch/_canopyproof.mjs [level]
+// [ZOOM=0.3] [OPTS={"traffic":1}] [PLACE=0] [NEAR_LAMPS=1] [QUERY=nightfly=1] [NIGHT=0.94] [CAPTURES=20,60,100,140] node tools/scratch/_canopyproof.mjs [level]
 import { createHash } from 'node:crypto';
 import { startServer, launchBrowser } from '../lib/browser.mjs';
 import { openPage, launchLevel, installDriver, SETTLE_MS } from '../lib/determinism.mjs';
@@ -86,6 +86,10 @@ try {
   console.log(`${levelId} night ${NIGHT}${QUERY}: by the clump at ${placed.index}, ${placed.trees}`
     + ` trees within 15 m (${placed.all} trees, ${placed.lamps} lamps, ${placed.near} trees within`
     + ' 40 m of a lamp)');
+  // (ZOOM: the camera held at this zoom, wider than the race's: more canopies on the map)
+  if (process.env.ZOOM) {
+    await page.evaluate((zoom) => window.__game.renderer.debugZoom(zoom), Number(process.env.ZOOM));
+  }
   let done = 0;
   for (const frame of CAPTURES) {
     await page.evaluate((count) => window.__rt.step(count), frame - done);
@@ -93,9 +97,11 @@ try {
     const url = await page.evaluate(grabCanvas);
     const hash = createHash('sha256').update(Buffer.from(url.split(',')[1], 'base64'))
       .digest('hex').slice(0, 16);
-    const cut = await page.evaluate(() => window.__game.renderer.flyStats.canopyCut);
+    const cut = await page.evaluate(() => ({ ...window.__game.renderer.flyStats.canopyCut,
+      car: [Math.round(window.__game.car.x), Math.round(window.__game.car.y),
+        window.__game.car.lightsOn] }));
     console.log(`  f${frame}: ${hash}  canopies darkened ${cut.traced} / on the map ${cut.onMap},`
-      + ` stretch walks ${cut.walks} (last ${cut.walkMs.toFixed(2)} ms, most ${cut.walkMostMs.toFixed(2)})`);
+      + ` car ${cut.car.join(' ')}, stretch walks ${cut.walks} (last ${cut.walkMs.toFixed(2)} ms, most ${cut.walkMostMs.toFixed(2)})`);
   }
   await page.context().close();
   console.log(errors.length ? `  page errors: ${errors.slice(0, 3).join(' | ')}` : '  no page errors');
