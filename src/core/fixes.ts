@@ -54,4 +54,8 @@ export function dialAtLoad(name: string): number {
 export const FIX = {
   // a chasing police car sounds a siren, the light bar's twin (game/sirens.ts, audiosiren.ts)
   siren: atLoad('siren'),
+  // the ground tiles' look-ahead paints toward where the car is going and puts them on the GPU
+  // before they scroll into view, one tile a frame, never on a frame that painted one in view
+  // (render/tiles.ts lookAheadSpread)
+  tileahead: atLoad('tileahead'),
 };

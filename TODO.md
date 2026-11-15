@@ -49,6 +49,43 @@ records in `TODO-DONE.md` (PASSED 11-12). On the phone now:
   bales), WANTED LEVEL LOST, the weather's notices on MOBILE only, the menu race's NaN, the RX
   walkthrough line. OPEN from it (owner asked): the AI's wide-window read with a negative clock
   (ai/) and a recovery that does not clear a NaN tyre wear - plain guards, recommended yes.
+- THE HIGHWAY OFF-ROAD JERK (owner 11-15: "seems jerky when off road on highways now ? 60 down to
+  58 regularly"). BUILT behind `?tileahead=1` (FIX.tileahead, render/tiles.ts lookAheadSpread;
+  testlist 'tileahead').
+  READ FROM THE PHONE (tools/phonereport.mjs and scratch readers, highway runs zoomed out, frames
+  over 20 ms a minute after each run's first 600 frames, pauses left out): 11-12 17-30; 11-13
+  40-48; 11-14 / 11-15 83-102 (11-15 11:54, hwdodge: 55). sim and draw ~4 + 3 ms, slow or not.
+  Tiles and uploads a second the SAME on both sides (~30): not more ground built. What a slow
+  frame FOLLOWS (the frame before it): 6+ texture uploads (a row of tiles scrolling into view at
+  once - uploads come as 0 or 6+) 4.6-12 % slow on 11-14/15 (11-12/13: 0.7-2.1 %); a frame that
+  painted 4 tiles (the view outran the look-ahead) 23-28 % (11-12/13: 2.8-18 %); a quiet frame
+  (no tile, our JS <= 6 ms) 1.2-2.1 % (0.4-0.7 %). So EVERY kind of frame got about twice as
+  likely to miss, the bursts most. Other levels vary by run more than by day (frames over
+  20 ms, Spa: 11-12 0.40 %, 11-13 1.9-2.6 %, 11-14 noon 0.49 %, 11-14 evening 1.7-2.2 %). One
+  11-13 highway run went 0.3 % -> 2.5-3.3 % in its 6th minute, sim 3 -> 5 ms and draw 2 -> 4 ms
+  together (at the game's dawn): the same code, mid-run.
+  WHAT CHANGED 11-13 -> 11-14: NOT FOUND. The ground code did not change in between (tiles.ts:
+  trackCanvas and the loading screen's prepareAround only); perfpass, the loading screen,
+  onestart, smoothfly and lap data went in. LAPTOP A/B, the 11-13 build (ec84b67d) against now,
+  the same drive (tools/scratch/_hwoffroad.mjs, 440x738 dpr 3, seed 1, 40 s, two runs each):
+  frames over twice the median work, x2 on the road 7.5 (crashed early) / 4.6 % vs 6.4 / 3.4 %,
+  off the road 5.2 / 6.3 % vs 8.3 / 15.1 %; x4 mixed both ways; tiles and uploads a second
+  alike. No difference above the run-to-run noise; the phone's own GPU and memory cannot be
+  measured here.
+  THE FIX (the bursts): the look-ahead box is centred 0.8 s of the car's motion ahead, its tiles
+  kept on the GPU, and ONE tile a frame - the one nearest the ground about to scroll in - is
+  painted and uploaded (or a painted one uploaded); nothing on a frame that painted in view.
+  MEASURED (laptop, CPU x1, three 40 s runs each, off -> on): ON THE ROAD (~37 m/s, zoomed
+  out) frames with 6+ uploads 186 / 148 / 163 -> 0 / 0 / 1, the most in a frame 17 -> 4-7,
+  frames painting 2+ tiles 27-56 -> 3-7, uploads a second 32-38 -> 42-46 (every tile painted
+  is uploaded now); OFF THE ROAD (~17 m/s) 6+ uploads 73-75 -> 1-2, the most 17-19 -> 10-12, 2+
+  tiles 23-27 -> 14-15. The laptop's own frame gaps did not change (over 20 ms: on the road
+  15-23 -> 17-26 a minute, off 9-12 -> 8-12: its GPU takes the uploads in its stride); the
+  phone is the judge (&report=1). Alternate frames for the paint and the upload was tried:
+  half the rate, the view outran it at 38 m/s (2+ tile frames 30 -> 96-142). PROOFS (second
+  PC): renderhash --only highway,thruston against 22511d59 SAME with the switch off and SAME
+  with it on (the same pixels in its stepped captures); simhash / worldhash not run (no
+  simulation or level code touched).
 
 ## 3. OPEN, IN THE OWNER'S ORDER
 
