@@ -83,23 +83,22 @@ frozen over is an ice twin, left out of the picture), the screen's px a metre; t
 road's every time. The picture holds no weather, time of day, light or wear (laid over it as drawn),
 and a level's own mud dried in a race is put back before the fly-in.
 
-RESETS (`game/session.ts doReset`; the endless road's guard in `game/sim.ts stepEndlessHighway`;
-a big cut's put-back in free practice, `game/order.ts putBackCut`). A circuit or stage: RESET_BACK
-(4 m) behind where the car last was on the road, on the edge it left by, nose 5-15 deg back on; the
-joker lane the same along the lane; the endless road RESET_BACK back on our hard shoulder (a verge or
-lay-by on a road without one), the traffic within 30 m cleared, and the guard (wrong way, off the
+RESETS (`game/session.ts doReset`; the endless road's guard in `game/sim.ts stepEndlessHighway`; a
+big cut's put-back in free practice, `game/order.ts putBackCut`). A circuit or stage: RESET_BACK (4
+m) behind where the car last was on the road, on the edge it left by, nose 5-15 deg back on; the
+joker lane the same along the lane; the endless road RESET_BACK back on our hard shoulder (a verge
+or lay-by on a road without one), the traffic within 30 m cleared, and the guard (wrong way, off the
 road, an exit taken) 6 m short of the furthest point reached; levels with no road (the Lab) the
-breadcrumb ~2 s back. Under test, `?resetback=1` (`FIX.resetback`, `game/resetspot.ts`): never
-ahead of where the car is when the reset comes - a circuit, stage or joker reset from where the car
-is now when that is further back than where it left the road (`notAheadOf`), the guard and a reset
-from too far off the endless road to have a road frame from the car's own road distance
-(`highway.ts highwayRespawn(level, fromS)`, `respawnBehind`); a spot with a car on it (the racing
-AI; on the endless road the police - the other traffic is cleared as before) gives way to the next
-free one FREE_STEP_M (6 m) further back (`firstFree`, up to 40 tries; a stage never into its gap
-between the stop zone and the run-up, `lapBack`), the guard's rolling put-back keeping 1.5 s of its
-speed clear ahead; the police are not cleared from round the spot (`traffic.clearAround(..., true)`:
-they go only when wrecked or after a bust). Your resets only: the AI's own (`game/ai.ts aiReset`)
-are as before. `tools/scratch/_resetback.mjs` tries each mode.
+breadcrumb ~2 s back. Under test, `?resetback=1` (`FIX.resetback`, `game/resetspot.ts`): never ahead
+of where the car is when the reset comes - a circuit, stage or joker reset from where the car is now
+when that is further back than where it left the road (`notAheadOf`), the endless road's guard from
+the car's own road distance (`highway.ts highwayRespawn(level, fromS)`, `respawnBehind`); a spot
+with a car on it (the racing AI; on the endless road the police - the other traffic is cleared as
+before) gives way to the next free one FREE_STEP_M (6 m) further back (`firstFree`, up to 40 tries;
+a stage never into its gap between the stop zone and the run-up, `lapBack`), the guard's rolling
+put-back keeping 1.5 s of its speed clear ahead; the police are not cleared from round the spot
+(`traffic.clearAround(..., true)`: they go only when wrecked or after a bust). Your resets only: the
+AI's own (`game/ai.ts aiReset`) are as before. `tools/scratch/_resetback.mjs` tries each mode.
 
 THE SMOOTH FLY-IN (the default since 11-14; `render/flylayers.ts`): zoomed out, a fly-in frame
 drew every prop and loose object one by one. With the switch, the layers that hold still while the

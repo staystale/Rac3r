@@ -208,10 +208,10 @@ function resetOnShoulder(place: PlaceCar): boolean {
 
 /**
  * The endless road's reset with ?resetback=1: as resetOnShoulder - RESET_BACK m back, the verge or
- * a lay-by on a road with no hard shoulder - from the car's own road distance (too far off the
- * road to say where it is: the guard's spot, from the car's road distance, not the furthest point
- * reached), the first spot free of cars from there back; the police stay (only the other traffic
- * is cleared from round it).
+ * a lay-by on a road with no hard shoulder - from the car's own road distance (no road frame:
+ * the guard's spot, from the car's road distance, not the furthest point reached), the first
+ * spot free of cars from there back; the police stay (only the other traffic is cleared from
+ * round it).
  * @param place puts the car
  * @param level the highway level
  * @param here the car's road frame, or null
