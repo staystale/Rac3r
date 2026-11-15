@@ -55,6 +55,9 @@ export const FIX = {
   // the highway racers read cars by the road and keep to their own side of a two-way road for an
   // oncoming car within 4 s, judged by skill (ai/driverOncoming.ts)
   hwdodge: atLoad('hwdodge'),
+  // a racer the highway's off-road rule puts back lands clear of every car, the traffic too, as a
+  // stuck one does (game/ai.ts stepAIStuck, game/aistuck.ts freeShoulderSpot)
+  hwputback: atLoad('hwputback'),
   // a chasing police car sounds a siren, the light bar's twin (game/sirens.ts, audiosiren.ts)
   siren: atLoad('siren'),
 };

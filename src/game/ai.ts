@@ -32,9 +32,9 @@ import type { RaceFlow } from '../raceflow.ts';
 /**
  * Puts an AI car back on the road, mended, its hazards on.
  * @param entry the AI entry
- * @param behind the stuck put-back: on a lap or stage never ahead of where the car is,
- *   the next free spot behind a car in the way; on the highway its spot past every car, the
- *   traffic too (game/aistuck.ts)
+ * @param behind the stuck put-back (and ?hwputback=1 the highway off-road one): on a lap or stage
+ *   never ahead of where the car is, the next free spot behind a car in the way; on the highway
+ *   its spot past every car, the traffic too (game/aistuck.ts)
  */
 export function aiReset(entry: HurtEntry, behind = false) {
   const car = entry.car, sub = LEVEL.subtrack!;
@@ -241,7 +241,9 @@ export function stepAIStuck(entry: AiEntry, dt: number) {
   const car = entry.car;
   const held = LEVEL.stage ? carHeld(car) : startHeld();
   if (stuckWatchFires(entry, held || entry.hurtWait != null, dt)) aiReset(entry, true);
-  else if (highwayOffTooLong(entry, dt)) aiReset(entry);
+  // (?hwputback=1: the highway's off-road put-back clear of every car too - two racers put back in
+  // one step landed on one spot, the first's road frame cleared by its reset)
+  else if (highwayOffTooLong(entry, dt)) aiReset(entry, FIX.hwputback);
 }
 
 /**
