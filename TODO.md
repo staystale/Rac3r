@@ -228,22 +228,36 @@ BUGS (each behind its own switch, measured, then a test link):
     WHY: the gore rule placed by the slip's gap, not by a barrier: _hwbarrelwhere.mjs sorted
     every gore cluster as FREE (no barrier within 2.5 m: 9-14 a road in 20 km, e.g. in the walled
     road's wall gap, i.e. "at a join"); every reservation cluster was already at an end.
-    NOW: a TRIANGLE 1-2-3 (rows 0.9 m apart, centred on the end, back row 0.15 m clear of it)
-    ONLY at an exposed barrier end: where the LEFT barrier starts again after a leaving slip's gap
-    (the nose between road and slip) and the reservation's Jersey / Armco ends with an open
-    reservation beyond (its start for our traffic, its end for the far carriageway's). A row that
-    would stand on tarmac loses barrels: the walled road's noses are 1-2-2 (the wall 1.2 m off
-    the edge). A slip with no barrier beside it gets none (the open roads, the services road the
-    wall swings out with, Deaf Valley's rock).
-    MEASURED (20 km each, seed as the game's): _hwbarrelwhere.mjs - every cluster AT AN END (0
-    alongside, 0 free); _hwbarrelcount.mjs triangles a km, countryside / Deaf Valley: motorway 0.30
-    / 0.30 (all reservation), interstate 0.20 / 0.20, dual 0.05 / 0.05, walled 0.25 / 0.20 (all
-    noses, 5 of its 5 slips + junctions through the wall; 4 of 7 in Deaf Valley - its junctions
-    open the rock all along), single lane 0; 0 barrels on tarmac, a lane, a barrier, a light or
-    litter. CRASH (_hwbarrelcrash.mjs, node, a hatch coasting into a triangle, 5 runs, km/h where
-    the end stands, none in brackets): 50 -> 6-11 (38), 80 -> 12-25 (74), 120 -> 20-28 (116);
-    popped 0-5, wet cells 1-12.
-    worldhash --highway 20: off SAME, on DIFFERENT (highway only) [world][look].
+    THEN a TRIANGLE 1-2-3 (rows 0.9 m apart, centred on the end, back row 0.15 m clear of it)
+    only at the wall's nose after a leaving slip's gap and the reservation's ends (f733b4df).
+    OWNER: "Ok better", but "It should cover barriers at the side too".
+    NOW: the triangle before every EXPOSED LEADING barrier end - each ROADSIDE Armco (bends, a
+    gorge's lip), wall or river parapet run's end that its side's traffic drives at (the left's
+    start, the right's end: the far carriageway / the other lane), so the slip nose (the wall
+    starting again after the gap) is one of them, never doubled; and the reservation's Jersey /
+    Armco ends where it opens (its start for our traffic, its end for the far carriageway's).
+    Exposed: no other barrier within 1 m (a join; a run carried into the next stretch - judged
+    once that stretch is laid) and none between it and the road (a lip Armco 1.2 m behind the
+    walled road's wall had triangles along the wall: now none). A row that would stand on
+    tarmac, a barrier or a street light loses barrels (before a wall 1.2 m off the edge: 1-2-2).
+    MEASURED (20 km each, seed as the game's): _hwbarrelwhere.mjs - every triangle at an end,
+    every roadside one at a LEADING end (0 trailing, 0 alongside, 0 free); _hwbarrelcount.mjs
+    triangles in 20 km (roadside + reservation) / barrels a km, countryside: motorway 9 + 6 /
+    4.3, interstate 2 + 4 / 1.7, dual 27 + 1 / 8.3, walled 7 + 0 / 1.8, single lane 73 + 0 / 21.3
+    (its many Armco bends, both sides); Deaf Valley 4 + 6 / 2.9, 4 + 4 / 2.4, 4 + 1 / 1.5,
+    14 + 0 / 3.6, 4 + 0 / 1.2; 0 barrels on tarmac, a lane, a barrier, a light or litter.
+    CRASH (_hwbarrelcrash.mjs, node, a hatch coasting into a triangle, 5 runs, km/h where the
+    end stands, none in brackets): 50 -> 6-11 (38), 80 -> 12-25 (74), 120 -> 20-28 (116);
+    popped 0-5, wet cells 1-12. IN THE GAME (_hwbarrelshots.mjs, motorway, the reservation's
+    start at s 5580, a hatch let go 12 m before it): 60 km/h damage 0.82-0.88 with the
+    triangle, 1.47 without (the first build's 3-barrel cluster: 0.84; at 90 km/h it 1.97, none
+    2.22, the corners near their 1.0 cap). A median street light stands at that end: hit in both. Into
+    the walled road's nose (1-2-2) at 90: 0.75-1.09. Barrels count as a heavy object's hit in
+    damage.ts (as bales do), so a triangle alone costs some damage.
+    worldhash --highway 20: off SAME, on DIFFERENT (highway only) [world][look]. Off, on the PC
+    (a70e3253 vs round68): simhash SAME, renderhash --only highway SAME. FRAMES (_hwframes.mjs, the
+    motorway at CPU x4, off / on / off / on): work median 67.9 / 29.6 / 31.1 / 61.6 ms - the
+    laptop swinging 2x between runs whatever the switch; no difference seen.
 14. PARKED POLICE wake when passed with a wanted level on.
 15. TRAFFIC (and unaggravated police) stop for fuel now and then and take slip roads (the petrol
     station stops exist, ai/trafficFuel.ts, 11-11: check how often); aggravated police as now.
