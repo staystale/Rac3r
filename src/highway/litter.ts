@@ -4,6 +4,8 @@ import { STEP } from "./presets.ts";
 import type { DressCtx } from './hwtypes.ts';
 import type { LevelObj } from '../cones/coneTypes.ts';
 import { insidePolygon } from '../world/zones.ts';
+import { FIX } from '../core/fixes.ts';
+import { layRoadChevron } from './chevrons.ts';
 // the roadside debris mix (weights by repetition: pallets / boxes / tarps are what really ends up
 // on a hard shoulder) + paint for bins, barrels, bumpers, tarps
 const DEBRIS_PICK = [
@@ -45,7 +47,8 @@ const DESERT_DRUM = ['#7a4a2a', '#3e5f7a', '#5c6339', '#8a3b22'];
  * @returns the desert's, or null
  */
 function desertLitter(obj: LevelObj, rand: () => number): LevelObj | null {
-  if (obj.kind === 'chevron') return null;
+  // (?hwchevron=1: the road's chevron boards stand in Deaf Valley too, fewer: highway/chevrons.ts)
+  if (obj.kind === 'chevron') return FIX.hwchevron ? obj : null;
   const pick = (from: string[]) => from[(rand() * from.length) | 0];
   const kind = obj.kind === 'cone' ? pick(DESERT_CONE) : obj.kind === 'tyre'
     || obj.kind === 'tyrestack' ? obj.kind : pick(DESERT_DEBRIS);
@@ -250,7 +253,8 @@ export function layLooseRoadside(ctx: DressCtx) {
     const loot = { looseRand, addLoose, chance, density };
     for (let i = firstIdx; i < endIdx; i++) {
       const dist = road[i].s;
-      layChevron(ctx, addLoose, i, dist);
+      if (FIX.hwchevron) layRoadChevron(ctx, addLoose, i, dist);
+      else layChevron(ctx, addLoose, i, dist);
       layVergeLitter(ctx, loot, i, dist);
       layDebrisScatter(ctx, loot, i);
       layTyreStacks(ctx, loot, i, dist);

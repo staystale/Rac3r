@@ -60,4 +60,7 @@ export const FIX = {
   // the endless roads' minimap shows the roads leaving the motorway, the petrol stations and the
   // police (hud/minimapHighway.ts)
   hwmap: atLoad('hwmap'),
+  // the highways' chevron boards by the real-life rule: black and white, on the outside of the
+  // sharp bends only, never in a lay-by, on Deaf Valley too, fewer (highway/chevrons.ts)
+  hwchevron: atLoad('hwchevron'),
 };

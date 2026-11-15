@@ -58,4 +58,6 @@ export const COL = {
   fencePost: '#5f626d',
   // a petrol station's pump on the highway's minimap (hud/minimapHighway.ts)
   mapFuel: '#3faa4c',
+  // a road sign's white: the highway's chevron boards' chevrons (highway/chevrons.ts)
+  signWhite: '#efefea',
 };
