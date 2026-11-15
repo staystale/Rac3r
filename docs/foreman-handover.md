@@ -24,11 +24,11 @@ not repeated here), then `TODO.md`, then this page. The 11-07 version of this pa
   over 20 ms since 11-14 vs 39-47 on 11-13; drop seconds have ~20 % more tile builds), THEN the
   tracks (answers in hand: Pembreezy RX + circuit as ONE, Blighty Park, Glen Hellish, Swapsies
   head-to-head real / full field in test mode, quarry). Brief: scratchpad briefB2.md.
-- **Queued, approved:** JOKER TAKEN on its own line in the lap box; game SOUND OFF entirely until the
-  sound pass (switch, then default); the AI using your reset rules; the wrong-way guard on R's verge
+- **Queued, approved:** JOKER TAKEN on its own line in the lap box; the AI using your reset rules; the wrong-way guard on R's verge
   rule; the off-road countdown running 8-16 m out; start lights keeping the car clear. Pit stops:
   questions first (not every race; test-mode option; a real race turns them on where real life
   would). Then highway extras, F1 vs world circuits, cars, the sound pass.
+- **SOUND: leave it all alone until the sound pass** (owner 11-15; no sound-off switch).
 - **DROPPED (owner):** NO NEW BANNERS ever (the WRONG WAY 3-2-1, GET BACK ON THE ROAD); the police
   contact measuring.
 - **Open question:** the Rallycross walkthrough line "Your lap and the JOKER status" (Croughed RX
