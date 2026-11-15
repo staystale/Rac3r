@@ -33,6 +33,9 @@ async function startRace([laps]) {
   const shared = (await import('/src/game/state.ts')).shared;
   game.menu.hide();
   game.launch('croughedrx', 'rx-super', { ai: 20, diff: 2, laps, aiCars: 'class' });
+  // (the launch runs behind the loading screen: the level and its field come a moment later)
+  for (let tries = 0; tries < 300 && !(lab.LEVEL.id === 'croughedrx' && game.ai.length === 20);
+    tries++) await new Promise((done) => setTimeout(done, 100));
   const driver = circuit.createAIDriver(lab.LEVEL, traits.aiTraits(2, 0, 1, 99));
   game.input.update = () => ({ ...driver.drive(game.car, 1 / 60, { cars: game.ai.map((entry) =>
     entry.car), lap: 1, laps }), reverse: 0, shiftUp: false, shiftDown: false });
@@ -80,7 +83,10 @@ try {
     deviceScaleFactor: 1, isMobile: true, hasTouch: true });
   const page = await ctx.newPage();
   page.on('pageerror', (err) => errors.push(err.message));
-  await gotoGame(page, `${server.url}/?guide=0&rules=0&noaudio=1&seed=${seedArg}${extraQuery()}`);
+  await gotoGame(page, `${server.url}/?touch=1&menu=1&guide=0&rules=0&noaudio=1&seed=${seedArg}`
+    + extraQuery());
+  await page.waitForFunction(() => window.__game.mode === 'menu', null, { timeout: 60000,
+    polling: 250 });
   await wait(page, 1500);
   const buttons = await readSetup(page);
   console.log('setup buttons:', buttons.map((text) => text.replace(/\s+/g, ' ').trim())
