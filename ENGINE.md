@@ -61,7 +61,7 @@ stamped before `main.ts` took `performance.now()`, so its time was NEGATIVE: the
 driver (driven with the frame's time, as `?autopilot`) took it as a step back, its clock went below
 0 inside a 'wide' window it never opened (`ai/driverDrive.ts`: `state.wideUntil` unset,
 `state.wide` undefined), its steer was NaN and the camera car froze, its tyre wear NaN through
-every recovery. Under test, `?menunan=1` (`FIX.menunan`): such a frame has 0 ms
+every recovery. Since 11-15 (passed) such a frame has 0 ms
 (`tools/scratch/_menunan.mjs` hunts the menu race's NaN; `AHEAD=` forces the case).
 
 THE LOADING SCREEN (the default since 11-14; `game/loading.ts`, its picture
@@ -224,9 +224,9 @@ THE NIGHT FLY-IN (the default since 11-14): two parts.
 
 THE NOTICE LINE (`game.notice`, `hud/overlays.ts drawHudNotice`: one line centre-top at 30 % of
 the height, 2.2 s): no new notices (owner 11-15: "it should be clear from the game what's
-happening"). Under test: `?wantedlost=1` - the police's escape notice (`game/police.ts`) reads
+happening"). Since 11-15 (passed): the police's escape notice (`game/police.ts`) reads
 WANTED LEVEL LOST, not LOST THEM (the racers' notices are CATCH THEM / CLOSING IN / PULLING AWAY);
-`?weathermobile=1` - the weather's (`world/weather.ts changeWeather`: RAIN STARTING, HEAVY RAIN,
+the weather's (`world/weather.ts changeWeather`: RAIN STARTING, HEAVY RAIN,
 SNOW FALLING, RAIN STOPPING, HOT TRACK) shown only on the MOBILE difficulty (`game/loop.ts`,
 `shared.aiDiff` 0); the weather changes as before. `tools/scratch/_noticeshots.mjs` photographs
 the escape notice and measures its box; `_weathernotice.mjs` steps SEASON weather per difficulty.
@@ -516,7 +516,7 @@ stage; `world/load.ts buildLevel`) read the floor of whatever level was set befo
 `bounds.ts FLOOR`, so after Spa (613 m) the forest stage kept 26 more trees at its edge (853
 props, 827 alone) and Croughed RX 41 more bales and stacks round Clervaux and Hawthorn (396
 loose objects, 355 alone); and `load.ts tapePass` numbered its tape runs on from every level
-taped before it. Under test, `?forestseed=1` (`FIX.forestseed`): the build runs in the standard
+taped before it. Since 11-15 (passed) the build runs in the standard
 world (`bounds.ts inStandardFloor`: BASE_FLOOR, no rectangle, as when it is the first built; the
 current level's floor put back after) and each level's tape runs number from 0, so every level
 builds the same whatever came before (`tools/scratch/_buildorder.mjs`). A rallycross venue's bales
