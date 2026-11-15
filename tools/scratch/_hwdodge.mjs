@@ -28,7 +28,7 @@ const SKIP = '&skip=world,ground,car&autopilot=1' + extraQuery();
 /** Page side: the tracker's state and helpers. */
 async function installTracker() {
   const world = await import('/src/world/state.ts');
-  window.__hd = { world, t: 0, hits: [], near: [], touching: new Map(), snaps: [], km: 0, racerS: 0, oncomingS: 0,
+  window.__hd = { world, t: 0, hits: [], near: [], touching: new Map(), snaps: [], km: 0, racerS: 0, oncomingS: 0, keepS: 0, judgingS: 0, keptOverS: 0, overMax: 0,
     passed: new Map() };
 }
 
@@ -81,6 +81,13 @@ function tickTracker() {
     const car = entry.car;
     hd.km += Math.hypot(car.vx, car.vy) / 60 / 1000;
     hd.racerS += 1 / 60;
+    if (Number.isFinite(entry.drv.state.keepMax)) {
+      hd.keepS += 1 / 60;
+      const over = car._hwf && geo ? car._hwf.off - (geo.oppL - car.spec.wid / 2) : 0;
+      if (over > 0) hd.keptOverS += 1 / 60;
+      hd.overMax = Math.max(hd.overMax, over);
+    }
+    if (entry.drv.state.oncomingCar) hd.judgingS += 1 / 60;
     if (geo && car._hwf && geo.oncoming.some((centre) => Math.abs(car._hwf.off - centre) < 2)) {
       hd.oncomingS += 1 / 60;
     }
@@ -163,7 +170,7 @@ async function runOne(browser, base, id) {
     await page.evaluate(stepTracked, Math.min(CHUNK, SECONDS * 60 - done));
   }
   const out = await page.evaluate(() => ({ hits: window.__hd.hits, near: window.__hd.near,
-    km: window.__hd.km, oncomingShare: window.__hd.oncomingS / Math.max(1, window.__hd.racerS),
+    km: window.__hd.km, keepS: window.__hd.keepS, keptOverS: window.__hd.keptOverS, overMax: window.__hd.overMax, judgingS: window.__hd.judgingS, oncomingShare: window.__hd.oncomingS / Math.max(1, window.__hd.racerS),
     ended: window.__game.flow?.state, why: window.__game.flow?.endWhy }));
   await page.context().close();
   out.errors = errors.slice(0, 3);
@@ -181,7 +188,8 @@ try {
     for (const hit of out.hits) byKind[hit.kind] = (byKind[hit.kind] || 0) + 1;
     console.log(`${id}: racers ${out.km.toFixed(1)} km | hits ${out.hits.length}`
       + ` ${JSON.stringify(byKind)} | oncoming near misses ${out.near.length} | in the other way's`
-      + ` lane ${(100 * out.oncomingShare).toFixed(0)} % of the time | flow`
+      + ` lane ${(100 * out.oncomingShare).toFixed(0)} % of the time | kept to its side`
+      + ` ${out.keepS.toFixed(0)} s (over the middle ${out.keptOverS.toFixed(0)} s, most ${out.overMax.toFixed(1)} m), judging an oncoming car ${out.judgingS.toFixed(0)} s | flow`
       + ` ${out.ended} ${out.why ?? ''}${out.errors.length ? ' ERR ' + out.errors[0] : ''}`);
     for (const hit of out.hits) console.log('   HIT ' + JSON.stringify(hit));
   }

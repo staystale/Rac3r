@@ -6,15 +6,19 @@
 // - READ BY THE ROAD (driverTraffic.ts carsStep): each car's place along and across the road (its
 //   road frame, _hwf, set for every car each step) instead of the heading box.
 // - KEEP TO YOUR SIDE (here): on a two-way road, the nearest oncoming car ahead within KEEP_S of
-//   closing keeps the racer's middle inside its own lanes - back over if it is out, no pulling out
-//   to overtake. The driver judges that time: off by up to MISJUDGE of it (one draw from its own
-//   random stream for each oncoming car), less the more skilled (none at skill 1).
+//   closing keeps the racer's middle inside its own lanes - back over if it is out; on its side it
+//   pulls out to overtake only with KEEP_S + PASS_S of closing clear. The driver judges that time:
+//   off by up to MISJUDGE of it (one draw from its own random stream for each oncoming car), less
+//   the more skilled (none at skill 1).
 import { lateralOf } from "./rejoin.ts";
 import type { AiCar, DriveCtx } from "./types.ts";
 import type { AiPath, Drv } from "./driverCtx.ts";
 
 // s of closing within which an oncoming car keeps the racer on its own side of the road
 export const KEEP_S = 4;
+// s more an oncoming car must be away for a racer on its own side to pull out (to pass): the
+// pass's own time, so it is back on its side before KEEP_S
+export const PASS_S = 4;
 // m kept between the racer's side and the road's middle line
 const KEEP_MARGIN_M = 0.3;
 // the most a skill-0 driver's judged closing time is off, as a share of it
@@ -78,8 +82,11 @@ export function ownSideCap(drv: Drv, car: AiCar, ctx: DriveCtx, path: AiPath, ne
     const skill = Math.max(0, Math.min(1, traits.skill));
     state.misjudge = (1 - skill) * MISJUDGE * (2 * rnd() - 1);
   }
-  if (near.time * (1 + (state.misjudge ?? 0)) > KEEP_S) return Infinity;
+  // its own side's edge (road frame); on it, it pulls out only with the pass's time clear too
+  const sideOff = road.middleOff - car.spec.wid / 2 - KEEP_MARGIN_M;
+  const window = car._hwf.off <= sideOff + KEEP_MARGIN_M ? KEEP_S + PASS_S : KEEP_S;
+  if (near.time * (1 + (state.misjudge ?? 0)) > window) return Infinity;
   // the road frame's offset of the driver's line frame (both + to the right of the way)
   const shift = car._hwf.off - (lineOff + lateralOf(car, path, nearIdx));
-  return road.middleOff - car.spec.wid / 2 - KEEP_MARGIN_M - shift;
+  return sideOff - shift;
 }
