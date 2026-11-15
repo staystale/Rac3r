@@ -68,4 +68,6 @@ export const FIX = {
   // the loading screen's pane and bar from the page's first paint until the menu is ready
   // (index.html #bootbar, game/bootbar.ts; the page reads ?bootbar=1 itself)
   bootbar: atLoad('bootbar'),
+  // Holy Jeez mostly firs: its own share of firs (Level.firShare; render/trees.ts)
+  hjfirs: atLoad('hjfirs'),
 };

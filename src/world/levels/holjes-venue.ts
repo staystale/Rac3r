@@ -9,19 +9,26 @@
 // outside of the split from the top of the straight onto the top gravel, 24 m longer.
 // WHAT IT IS MEANT TO FAIL YOU AT: the crest after the start taken flat (the car lands crooked
 // into the split) and the tight hairpin at the top, both at their real size.
-// ITS LOOK: pine forest round it, the crowd and Swedish flags on the hillside above the hill
-// gravel and along the start straight, a TV tower over the crest, the campers and caravans of the
-// summer race weekend in a mown field in the forest north of the top gravel (between the top
-// hairpin and the joker), the teams' transporters in the paddock behind the grandstands, by the
-// mapped buildings. The world clock and weather set its hour and sky. North up.
+// ITS LOOK: pine forest round it (?hjfirs=1: its trees 85 % firs, Level.firShare - a Swedish pine
+// forest, the rest leafy trees that turn in autumn; every other level keeps the game's mix), the
+// crowd and Swedish flags on the hillside above the hill gravel and along the start straight, a
+// TV tower over the crest, the campers and caravans of the summer race weekend in a mown field in
+// the forest north of the top gravel (between the top hairpin and the joker), the teams'
+// transporters in the paddock behind the grandstands, by the mapped buildings. The world clock and
+// weather set its hour and sky. North up.
 import { HOLJES_VENUE } from "./venues/holjes.ts";
 import { venueLap } from "../venue.ts";
 import { rallycrossLevel } from "./rallycross-venue.ts";
+import { FIX } from "../../core/fixes.ts";
 import type { VenueSpec } from "../venue.ts";
 import type { Level } from "../types.ts";
 
 // the course's name (the parody approved by the owner 11-13), in one place
 export const HOLY_JEEZ = 'Holy Jeez';
+
+// the share of its trees that are firs (picked by each tree's seed): a Swedish pine forest, a
+// few leafy trees among the firs (?hjfirs=1; without it the game's mix, render/trees.ts)
+const HOLY_JEEZ_FIR_SHARE = 0.85;
 
 // the campers' field in the forest north of the top gravel, 40-70 m off the lap and clear of every
 // road (real m): its clearing (a pad of the grass round it: the trees keep off it), and two rows
@@ -144,5 +151,6 @@ function holyJeezLevel(): Level {
 // the one layout - built on first use (world/load.ts buildLevel)
 export const HOLJES_LEVELS: Level[] = [
   { id: 'holyjeez', name: HOLY_JEEZ, venue: HOLY_JEEZ,
+    ...(FIX.hjfirs ? { firShare: HOLY_JEEZ_FIR_SHARE } : {}),
     _lap: () => venueLap(HOLJES_SPEC, 'rx'), _build: holyJeezLevel } as Level,
 ];

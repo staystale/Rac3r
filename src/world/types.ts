@@ -561,6 +561,9 @@ export interface Level {
   // a street course: street lights along every straight of the lap, not only the start / finish
   // straight (world/lampplan.ts; L.A. Lively)
   streetLamps?: boolean;
+  // the share of its trees that are firs, 0..1, picked by each tree's seed (render/trees.ts; the
+  // game's mix when unset)
+  firShare?: number;
   bounds?: Rect;
   floor?: number;
   subtrack?: Subtrack;

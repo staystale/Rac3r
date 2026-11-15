@@ -2,18 +2,21 @@
 // TRUNK is solid (the cars clip under the canopy: world/treetrunks.ts); the canopy is drawn ABOVE
 // the cars (props.ts's overhead layer) and blocks the light at night - no lamp, sign or headlight
 // lights a canopy's top from below (render/light.ts puts the night's dark back over it). Each tree
-// is a LEAFY tree or a FIR by its seed (desert scrub stays scrub). Leafy trees follow the season:
-// fresh green in spring, deep green in summer, orange / red / gold in autumn, bare branches in
-// winter (light passes through them); firs and scrub keep theirs. Snow settles on them from the
-// weather (it snows, or the weather's snow lies), never from level art.
+// is a LEAFY tree or a FIR by its seed, in the level's own share of firs (Level.firShare: Holy
+// Jeez's pine forest; FIR_SHARE, the game's mix, on a level without one); desert scrub stays
+// scrub. Leafy trees follow the season: fresh green in spring, deep green in summer, orange / red
+// / gold in autumn, bare branches in winter (light passes through them); firs and scrub keep
+// theirs. Snow settles on them from the weather (it snows, or the weather's snow lies), never
+// from level art.
 import { calendarAt, CLOCK } from '../world/clock.ts';
 import { FIELD } from '../world/coverfield.ts';
+import { LEVEL } from '../world/state.ts';
 import { WEATHER, weatherSeason } from '../world/weather.ts';
 import { propsNear, screenBox } from './propgrid.ts';
 import type { Prop } from '../world/types.ts';
 import type { View } from './types.ts';
 
-// the share of trees that are firs (by seed)
+// the share of trees that are firs (by seed) on a level without its own (Level.firShare)
 const FIR_SHARE = 0.4;
 // snow lies on the trees while it snows this hard, or the weather's snow lies this deep
 const SNOWING = 0.05, SNOW_LYING = 0.3;
@@ -59,7 +62,15 @@ function isSnowy(): boolean {
  */
 function kindOf(prop: Prop): 'scrub' | 'fir' | 'leafy' {
   if (prop.pal === 'dry') return 'scrub';
-  return seedShare(prop, 1) < FIR_SHARE ? 'fir' : 'leafy';
+  return seedShare(prop, 1) < firShareNow() ? 'fir' : 'leafy';
+}
+
+/**
+ * The share of the current level's trees that are firs: its own, else the game's mix.
+ * @returns 0..1
+ */
+function firShareNow(): number {
+  return LEVEL?.firShare ?? FIR_SHARE;
 }
 
 /**
@@ -118,8 +129,9 @@ export function drawSeasonTree(ctx: CanvasRenderingContext2D, prop: Prop, size: 
 // THE CANOPY WALK BY THE PROP GRID: every leafy (not bare) or fir canopy near the light map added
 // to the path as a square each (render/light.ts puts the night's dark back over them), from the
 // trees the prop grid (render/propgrid.ts) holds round the light map; the season is looked up once
-// a call and each tree's kind (a fixed thing of its seed and palette) is kept.
-const TREE_KINDS = new WeakMap<Prop, 'scrub' | 'fir' | 'leafy'>();
+// a call and each tree's kind (a fixed thing of its seed, its palette and the level's share of
+// firs) is kept - for the share it was found in (a new share starts a new list).
+const KINDS = { share: FIR_SHARE, byTree: new WeakMap<Prop, 'scrub' | 'fir' | 'leafy'>() };
 // the props list the largest canopy side was found for, its length then, and the side, m
 const LARGEST = { props: null as Prop[] | null, count: 0, sideM: 0 };
 
@@ -129,10 +141,15 @@ const LARGEST = { props: null as Prop[] | null, count: 0, sideM: 0 };
  * @returns scrub, fir or leafy
  */
 function treeKind(prop: Prop): 'scrub' | 'fir' | 'leafy' {
-  let kind = TREE_KINDS.get(prop);
+  const share = firShareNow();
+  if (share !== KINDS.share) {
+    KINDS.share = share;
+    KINDS.byTree = new WeakMap();
+  }
+  let kind = KINDS.byTree.get(prop);
   if (!kind) {
     kind = kindOf(prop);
-    TREE_KINDS.set(prop, kind);
+    KINDS.byTree.set(prop, kind);
   }
   return kind;
 }
