@@ -30,6 +30,8 @@ export const TEST_LIST: TestEntry[] = [
       + 'a long hot slide. Fronts and rears should follow one rule.',
     wrong: 'Smoke from tyres that are gripping (a clean fast corner, a normal stop with ABS), '
       + 'or burnouts, donuts, lock-ups and hot slides with clearly less smoke than before.',
+  },
+  {
     id: 'hudclear',
     added: '2026-11-14',
     name: 'Your car is never under a button, panel or pedal',

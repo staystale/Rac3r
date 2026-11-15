@@ -1,4 +1,5 @@
 // The CAMERA of the renderer: follow, speed zoom, the level fly-in and the overview picture.
+import { FIX } from '../core/fixes.ts';
 import { FX0, FX1, FY0, FY1 } from "../world/bounds.ts";
 import { LEVEL } from "../world/state.ts";
 import { meterEvent } from "../ui/meter.ts";
