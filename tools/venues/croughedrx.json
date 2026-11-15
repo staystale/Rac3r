@@ -46,24 +46,9 @@
         "Clervaux",
         "Hawthorn",
         "Chicane",
-        "Rallycross",
-        "Rallycross 2",
-        "Rallycross 3"
+        "Rallycross"
       ],
       "avoid": [
-        "Joker",
-        "Chicane 2",
-        "Main Straight north"
-      ]
-    },
-    "joker": {
-      "through": [
-        "Joker",
-        "Rallycross",
-        "Clervaux"
-      ],
-      "avoid": [
-        "Rallycross 2",
         "Chicane 2",
         "Main Straight north"
       ]
@@ -187,50 +172,6 @@
         [
           54.4569957,
           -1.5548089
-        ]
-      ]
-    },
-    {
-      "source": "NOT REAL: Croft ran no joker (BRX reports 2017, 2018). A gravel joker laid by hand into the open infield east of the return leg, from its node at the leg south of the finish to its node north of it, for the owner to judge (TODO 3b)",
-      "tags": {
-        "highway": "raceway",
-        "name": "Joker",
-        "oneway": "yes",
-        "sport": "motor",
-        "surface": "gravel"
-      },
-      "pts": [
-        [
-          54.4554103,
-          -1.5547331
-        ],
-        [
-          54.4554976,
-          -1.5545766
-        ],
-        [
-          54.4556414,
-          -1.5543757
-        ],
-        [
-          54.455821,
-          -1.5542367
-        ],
-        [
-          54.4560186,
-          -1.5542057
-        ],
-        [
-          54.4562163,
-          -1.5542985
-        ],
-        [
-          54.4563959,
-          -1.5545148
-        ],
-        [
-          54.4565523,
-          -1.5547884
         ]
       ]
     },

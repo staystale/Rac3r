@@ -1,6 +1,6 @@
 // _crxslots.mjs - CROUGHED RX'S GRID SLOTS IN NODE (scratch): game/grid.ts gridPos for slots 0-20,
 // each one's distance from the start lane's centreline, its heading and the nearest tree, stand,
-// building and barrier point (game m). CROUGHEDRX=1 node tools/scratch/_crxslots.mjs
+// building and barrier point (game m). node tools/scratch/_crxslots.mjs
 import * as L from '../../src/lab.ts';
 import { gridPos } from '../../src/game/grid.ts';
 

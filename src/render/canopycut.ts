@@ -206,8 +206,8 @@ function isCanopyLit(index: number): boolean {
 
 /**
  * The canopies the dark must go back over this frame, as a test on a tree's index;
- * null to trace them all (the endless road: canopystream.ts with ?nighthw=1; a map too coarse
- * for the still lights' walk).
+ * null to trace them all (a map too coarse for the still lights' walk; the endless road has its
+ * own, canopystream.ts).
  * @param input the frame's input
  * @returns the test, or null
  */

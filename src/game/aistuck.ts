@@ -1,6 +1,6 @@
-// game/aistuck.ts - A RACING AI TRULY STUCK (?stuckreset=1, TODO 3a2 bug 8): when the game puts an
-// AI racer back, and where. Two watches, both from the green to the end, never while the start
-// holds it or a crash is playing out:
+// game/aistuck.ts - A RACING AI TRULY STUCK: when the game puts an AI racer back, and where. Two
+// watches, both from the green to the end, never while the start holds it or a crash is playing
+// out:
 // - STAYED: the car has stayed within STUCK_RADIUS_M of one spot for STUCK_RESET_S - nose in a
 //   wall, beached, rocking back and forth on its drive-outs, on its side or roof. Not stuck: a car
 //   QUEUED (one close in front, facing its way and itself nearly still: the head of the queue is

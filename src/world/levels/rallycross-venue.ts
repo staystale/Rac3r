@@ -2,7 +2,9 @@
 // venue from the map; the old stages stay as they are - owner 11-10: "keep the originals"): the
 // venue's level (world/venue.ts) with the joker rule, the rallycross dressing - hay bales round the
 // corners where no wall stands and both sides of the loose stretches lined, bales
-// between the joker and the lap where they run apart - and the rallycross bushes.
+// between the joker and the lap where they run apart - and the rallycross bushes. A venue with no
+// joker (spec.joker unset: Croughed RX - none where the real course has none) gets the dressing
+// alone: no joker lane, rule, bales or arrows, raced as any lap.
 import { looseRadius, tidyLoose, venueBuild, venueLevel } from "../venue.ts";
 import { isNearLine } from "../venuegeo.ts";
 import { venueJoker } from "../venuejoker.ts";
@@ -56,7 +58,7 @@ function inSolid(solids: Solid[], x: number, y: number): boolean {
 /**
  * A venue's rallycross layout as a level.
  * @param spec the venue
- * @param layout its rallycross layout (spec.joker names it)
+ * @param layout its rallycross layout (spec.joker names it, where it has a joker)
  * @param levelId the level id
  * @param name the level's name
  * @returns the level
@@ -64,19 +66,21 @@ function inSolid(solids: Solid[], x: number, y: number): boolean {
 export function rallycrossLevel(spec: VenueSpec, layout: string, levelId: string,
   name: string): Level {
   const level = venueLevel(spec, layout, levelId, name);
-  const sub = level.subtrack!, lane = venueJoker(venueBuild(spec), layout)!;
+  const sub = level.subtrack!, lane = venueJoker(venueBuild(spec), layout);
   const loose = sub.sectors.filter((sector) => sector.surface === SURFACES.dirt)
     .map((sector): Point => [sector.startDist, sector.endDist]);
   // (none in a prop: a corner's tyre block landed in a marshal post's hut)
   const bales = rxDress(sub, level.lanes || [], level.cones, loose)
     .filter((cone) => !inSolid(level.solids || [], cone.x, cone.y));
   const cones = [...level.cones, ...bales];
-  const mid = lane.pts[Math.floor(lane.pts.length / 2)];
   // (tidied as the venue's own: none on another or on a barrier)
   // (the rallycross bushes, but on a venue with none: a street course's)
-  const kept = tidyLoose([...cones, ...jokerBales(sub, lane, cones)], level.barriers || [], sub,
-    level.covers || []);
-  return { ...level, ...(spec.bushless ? {} : { bushes: RX_BUSHES }),
+  const kept = tidyLoose([...cones, ...(lane ? jokerBales(sub, lane, cones) : [])],
+    level.barriers || [], sub, level.covers || []);
+  const bushes = spec.bushless ? {} : { bushes: RX_BUSHES };
+  if (!lane) return { ...level, ...bushes, cones: kept };
+  const mid = lane.pts[Math.floor(lane.pts.length / 2)];
+  return { ...level, ...bushes,
     cones: clearJokerLane(kept, lane),
     joker: { gate: { x: mid[0], y: mid[1], r: JOKER_GATE_R }, penalty: JOKER_PENALTY_S,
       laps: JOKER_LAPS,

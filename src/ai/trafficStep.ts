@@ -26,8 +26,6 @@ export interface StepArgs {
   others?: AiCar[];
   visible?: VisFn;
   held?: boolean;   // the race not started yet (a single carriageway's other way waits)
-  // ?stuckreset=1: a car standing stuck STUCK_GO_S goes, in view or not (noteStuckCars)
-  stuckGo?: boolean;
 }
 
 /** Everyone in road coordinates: s along, off sideways (+ = right), v along the road. */
@@ -176,7 +174,7 @@ const STUCK_GO_S = 6;
 const QUEUE_GAP_M = 8, QUEUE_STILL_MS = 2;
 
 /**
- * ?stuckreset=1: counts each car's time standing TRULY stuck (slot.stuckGoT) - still (its physics'
+ * Counts each car's time standing TRULY stuck (slot.stuckGoT) - still (its physics'
  * deadT running: under 1 m/s), wrecked or not, and not on purpose: not broken down or at a pump,
  * not a police car (those go by their own rules), not queued (a wreck never is) behind a car close
  * in front that is itself nearly still (the head of the queue is what is stuck: once it goes the
@@ -208,7 +206,7 @@ const stoodStuck = (slot: TrafficCar) => (slot.stuckGoT ?? 0) > STUCK_GO_S;
 
 /** RECYCLE (out of view only) + place the parked slots; true if the live cars changed. */
 function recycle(ctx: TrafficCtx, ents: TrafficEnt[], playerS: number, vis: VisFn,
-  held = false, youV = 0, stuckGo = false) {
+  held = false, youV = 0) {
   const span = roadSpan(ctx.level!);
   // (a single carriageway's other way joins only once the race has started)
   const waits = (dir: number) => dir < 0 && held && holdsOncoming(ctx);
@@ -236,7 +234,7 @@ function recycle(ctx: TrafficCtx, ents: TrafficEnt[], playerS: number, vis: VisF
     }
     const relS = slot.s - playerS, seen = vis(slot.car.x, slot.car.y, slot.s);
     const { away, forced } = leaving(slot, relS, seen, span, youV);
-    if (!away && !forced && !(stuckGo && stoodStuck(slot))) continue;
+    if (!away && !forced && !stoodStuck(slot)) continue;
     if (forced && seen) ctx.visHits++;
     drop(slot);
     // (the other way's traffic always comes from ahead; yours dealt its driver, from behind when
@@ -334,8 +332,8 @@ export function stepTraffic(ctx: TrafficCtx, dt: number, args: StepArgs) {
   const playerS = level._hw.q.s;
   const vis = args.visible || ((x, y, dist) => dist - playerS > -90 && dist - playerS < 270);
   const ents = collectEnts(ctx, args);
-  if (args.stuckGo) noteStuckCars(ctx, ents, dt);
-  if (recycle(ctx, ents, playerS, vis, args.held, speedOf(ents, args.player), args.stuckGo)) {
+  noteStuckCars(ctx, ents, dt);
+  if (recycle(ctx, ents, playerS, vis, args.held, speedOf(ents, args.player))) {
     rebuildCars(ctx);
   }
   // (the police's orders - a chase, its chasers sent - before the cars are driven)

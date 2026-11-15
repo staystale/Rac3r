@@ -1,6 +1,6 @@
 // _crxmap.mjs - CROUGHED RX'S LEVEL AS DATA (scratch): the lap's length, surfaces by sector, its
 // least radius and where, and a JSON of every road, lane, barrier, prop and loose object (game m)
-// for a plan drawing (scratchpad). CROUGHEDRX=1 node tools/scratch/_crxmap.mjs <out.json>
+// for a plan drawing (scratchpad). node tools/scratch/_crxmap.mjs <out.json>
 import fs from 'node:fs';
 import * as L from '../../src/lab.ts';
 

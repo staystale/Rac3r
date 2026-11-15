@@ -1,4 +1,4 @@
-// render/canopystream.ts - THE CANOPY CUT ON THE ENDLESS ROAD (?nightfly=1, render/canopycut.ts):
+// render/canopystream.ts - THE CANOPY CUT ON THE ENDLESS ROAD (render/canopycut.ts):
 // its props and lamps stream - a stretch is laid ahead as the road grows and dropped behind - so
 // the still lights' reach cannot be walked once per level. Here it is worked out PER STRETCH: when
 // the props list or the lamps change, only the props and lamps not seen before are walked - each
@@ -271,7 +271,7 @@ function isStreamCanopyLit(index: number): boolean {
 }
 
 /**
- * The canopies the dark must go back over this frame on the endless road (?nightfly=1), as a test
+ * The canopies the dark must go back over this frame on the endless road, as a test
  * on a tree's index; null to trace them all (a map too coarse for the still lights' walk).
  * @param input the frame's input
  * @returns the test, or null

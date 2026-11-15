@@ -359,7 +359,7 @@ export interface TrafficCar {
   keepLeftT: number;
   wreck: boolean;
   deadT: number;
-  stuckGoT?: number;   // ?stuckreset=1: s standing stuck, not on purpose and not queued
+  stuckGoT?: number;   // s standing stuck, not on purpose and not queued
   parked: boolean;
   kOff: number | null;
   kin: boolean;

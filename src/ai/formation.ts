@@ -37,7 +37,7 @@ export interface FormationPlace {
  * @param pole the pole car (the front of the formation)
  * @param sub the lap
  * @param paceMps the formation's speed, m/s
- * @param throttleMax the most throttle it may use (?rollhold=1: whatever holds the pace)
+ * @param throttleMax the most throttle it may use (the game's: whatever holds the pace)
  * @returns the controls
  */
 export function formationInput(car: AiCar, driver: ColumnDriver, place: FormationPlace,
@@ -104,7 +104,7 @@ export function holdSpeed(speed: number, target: number, throttleMax = THROTTLE_
  * @param pole the pole car
  * @param level the highway
  * @param paceMps the formation's speed, m/s
- * @param throttleMax the most throttle it may use (?rollhold=1: whatever holds the pace)
+ * @param throttleMax the most throttle it may use (the game's: whatever holds the pace)
  * @returns the controls, or null (off the road there is)
  */
 export function roadFormationInput(car: AiCar, place: FormationPlace, pole: AiCar,

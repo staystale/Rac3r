@@ -17,9 +17,8 @@ import { startHeld, carHeld, atPace, formationWant } from './order.ts';
 import { RESET_BACK, RESET_ANG } from './session.ts';
 import { shared, game } from './state.ts';
 import { activeLamps } from '../world/lamps.ts';
-import { FIX } from '../core/fixes.ts';
 import {
-  TRYING_GAIN, behindRecord, freeLapSpot, freeShoulderSpot, stuckWatchFires,
+  behindRecord, freeLapSpot, freeShoulderSpot, stuckWatchFires,
 } from './aistuck.ts';
 import type { AiEntry, HurtEntry } from './state.ts';
 import type { CarInput } from '../vehicle.ts';
@@ -32,7 +31,7 @@ import type { RaceFlow } from '../raceflow.ts';
 /**
  * Puts an AI car back on the road, mended, its hazards on.
  * @param entry the AI entry
- * @param behind ?stuckreset=1's stuck put-back: on a lap or stage never ahead of where the car is,
+ * @param behind the stuck put-back: on a lap or stage never ahead of where the car is,
  *   the next free spot behind a car in the way; on the highway its spot past every car, the
  *   traffic too (game/aistuck.ts)
  */
@@ -204,25 +203,6 @@ export function stepAIJoker(entry: AiEntry) {
 }
 
 /**
- * Counts the seconds an AI car has been under 1 m/s (entry.stuckT); (A9) going forwards
- * and gaining since it went slow is TRYING (an icy start creeping away, its wheels spinning), not
- * stuck - MEASURED: a muscle car on ice crawls under 1 m/s for 4-7 s on its way off the grid.
- * @param entry the AI entry
- * @param held true while the start holds it
- * @param dt the step in seconds
- */
-function noteStuck(entry: AiEntry, held: boolean, dt: number) {
-  const car = entry.car, speed = Math.hypot(car.vx, car.vy);
-  entry.stuckT = !held && speed < 1 ? entry.stuckT + dt : 0;
-  if (!entry.stuckT) entry.stuckFrom = undefined;
-  else if (entry.stuckFrom === undefined) entry.stuckFrom = speed;
-  if (entry.stuckT > 3 && car.t.vLong > 0 && speed - entry.stuckFrom! > TRYING_GAIN) {
-    entry.stuckT = 0;
-    entry.stuckFrom = speed;
-  }
-}
-
-/**
  * The HIGHWAY: more than 8 m off the carriageway for 3 s (or 40 m out) - there is no lap to come
  * back to, so it is put back.
  * @param entry the AI entry
@@ -240,30 +220,16 @@ function highwayOffTooLong(entry: AiEntry, dt: number): boolean {
 }
 
 /**
- * Resets an AI car that is stuck (beached, off the highway, or out of tries driving itself out).
+ * Resets an AI car that is stuck: only a car truly stuck, put back behind on a free spot
+ * (game/aistuck.ts), or one off the highway too long.
  * @param entry the AI entry
  * @param dt the step in seconds
  */
 export function stepAIStuck(entry: AiEntry, dt: number) {
   const car = entry.car;
   const held = LEVEL.stage ? carHeld(car) : startHeld();
-  // ?stuckreset=1: only a car truly stuck, put back behind on a free spot (game/aistuck.ts); the
-  // highway's off-road rule as before
-  if (FIX.stuckreset) {
-    if (stuckWatchFires(entry, held || entry.hurtWait != null, dt)) aiReset(entry, true);
-    else if (highwayOffTooLong(entry, dt)) aiReset(entry);
-    return;
-  }
-  // STUCK (beached, nose in a wall, spun backwards): under 1 m/s for 3 s after the green ->
-  // back on the road, as the player's RESET
-  noteStuck(entry, held, dt);
-  if (highwayOffTooLong(entry, dt)) entry.stuckT = 4;
-  // (an AI first tries to DRIVE ITSELF OUT - aidriver.js DRIVE OUT - and gives up after three
-  // tries: then this resets it)
-  if (entry.stuckT > 3 || entry.drv.state.giveUp) {
-    aiReset(entry);
-    entry.stuckT = 0;
-  }
+  if (stuckWatchFires(entry, held || entry.hurtWait != null, dt)) aiReset(entry, true);
+  else if (highwayOffTooLong(entry, dt)) aiReset(entry);
 }
 
 /**

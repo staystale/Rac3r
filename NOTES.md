@@ -17,6 +17,8 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   re-lay is the bar); (2) a PROPS PASS - the venue dressed like the stadiums and X Gayms (paddock,
   fans, flags, litter, its own look), propcheck clean; (3) a BARRIER CHECK - barriercheck,
   venueaudit (fold-backs, free ends, sealing), portal mouths; all in the first hand-over, not later.
+- NO JOKER WHERE THE REAL COURSE HAS NONE (owner 11-15: "no joker if it's not there in real life"):
+  a rallycross level gets a joker only where the real one ran one (Croughed RX: none, as Croft).
 - TRACK SCALE (owner 11-13: "make sure it fits with how we've done other tracks I know some are half
   but smaller tracks are bigger"): a road circuit at 1/2 scale (VenueSpec share 0.5); a short course
   (rallycross, stadium, about 1 km real) at full size (share 1), as the ROC stadiums and X Gayms.
@@ -87,6 +89,8 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   Esprit Arena = Dusseldork Arena; the old Wembley (the Empire Stadium, its stock car oval) = Old
   Wobbly; X Games = X Gayms (the owner's), L.A. Live = L.A. Lively, Holjes = Holy Jeez (owner 11-13),
   Croft RX = Croughed RX (owner 11-13: its own full-size level of the Croughed venue).
+  TOWNS (the countryside highway's exit signs, owner 11-14 "Pun them"): Goole = GHOULE, Scunthorpe =
+  SKUNKTHORPE, Brigg = BRIGGADOON, Howden = HOWDY-DEN.
 - No keys, tokens, tunnel URLs or process IDs in the repo. No itch.io push until the owner says so.
 - The foreman may push to `main` once the change is proven (routine below).
 - Keep the test server and the tunnel running.

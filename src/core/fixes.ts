@@ -20,7 +20,8 @@
 // bushflat passed 11-10; trafficeven, speeders, breakdowns, vergereset, desertmore, bathurst,
 // medianlamps, hwstations, desertroads, drivebridges passed 11-11; roadparity, bridgecars,
 // railbridges, roadtunnels, wobbly, stadeprance, police, trainlights, moveover, roadrage,
-// stationstops, carcache, carcull, coverlight passed 11-12.)
+// stationstops, carcache, carcull, coverlight passed 11-12; nighthw, exitpuns, hjfirs, rollhold,
+// stuckreset, croughedrx passed 11-15.)
 import { envValue } from './debug.ts';
 
 /**
@@ -51,15 +52,9 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
-  // a racing AI truly stuck 6 s is put back behind, on a free spot; a highway traffic car standing
-  // stuck 6 s goes (game/aistuck.ts, ai/trafficStep.ts)
-  stuckreset: atLoad('stuckreset'),
   // no highway race won by pulling away off the road: the getaway's count runs only while you
   // are on it, from the start each time you come back (ai/hwFlowStep.ts)
   offroadwin: atLoad('offroadwin'),
-  // the rolling start's formation holds a SPEED: one pace rising at ROLL_ACCEL for every car, each
-  // car's throttle whatever holds it (game/order.ts formationWant, ai/formation.ts)
-  rollhold: atLoad('rollhold'),
   // a reset never puts you ahead of where you were, takes the next free spot behind a car in the
   // way, and leaves the police (game/resetspot.ts)
   resetback: atLoad('resetback'),
@@ -69,21 +64,12 @@ export const FIX = {
   // the player's car never drawn under a HUD piece: the camera moves it clear
   // (render/hudclear.ts, hud/keepclear.ts)
   hudclear: atLoad('hudclear'),
-  // the countryside highway's exit signs: the four real towns as parody puns (highway/extras.ts)
-  exitpuns: atLoad('exitpuns'),
-  // the night's canopy cut on the endless road too, worked out stretch by stretch as its props
-  // stream (render/canopystream.ts)
-  nighthw: atLoad('nighthw'),
   // tyre smoke by each tyre's own window and only past grip: spinning, locked or sliding
   // (render/tyresmoke.ts)
   tyresmoke: atLoad('tyresmoke'),
   // the loading screen's pane and bar from the page's first paint until the menu is ready
   // (index.html #bootbar, game/bootbar.ts; the page reads ?bootbar=1 itself)
   bootbar: atLoad('bootbar'),
-  // Holy Jeez mostly firs: its own share of firs (Level.firShare; render/trees.ts)
-  hjfirs: atLoad('hjfirs'),
-  // Croughed RX, Croft's rallycross lap traced from the map at full size (croughedrx-venue.ts)
-  croughedrx: atLoad('croughedrx'),
   // a chasing police car sounds a siren, the light bar's twin (game/sirens.ts, audiosiren.ts)
   siren: atLoad('siren'),
 };

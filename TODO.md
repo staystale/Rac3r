@@ -40,13 +40,6 @@ records in `TODO-DONE.md` (PASSED 11-12). On the phone now:
   bar when the game first loads"): the same panel and bar from the page's first paint (index.html,
   before the code runs), filling as the code, fonts and menu thumbnails load, the blue flash, then
   the menu; behind its own switch.
-- NIGHT CANOPY CUT ON THE ENDLESS ROAD (owner 11-14 "I don't see why we wouldn't do it"): BUILT behind
-  `?nighthw=1` (render/canopystream.ts; the night worker): the still lights worked out per stretch
-  as the props stream. Laptop, night 0.94, 90 s: countryside fly-in 3 of 23 canopies darkened
-  (all 23 before), in race at most 5 of 5; a stretch walk at most 1.5 ms (11 walks); Deaf Valley no
-  trees. renderhash highway at night off vs on SAME; fly-in photos byte-identical. NOT PROVEN by a
-  caught break on the road (no tree in a light in any capture made): the owner's phone test is it.
-  (TODO-DONE).
 - BOOT BAR (owner 11-14: "There's no loading bar when the game first loads"). BUILT, behind
   `?bootbar=1` (worker, to review; ENGINE.md "One frame"):
   - 11-15 owner: "should show the racer logo or at least the 3 as big and blue like the logo". Now
@@ -252,80 +245,7 @@ BUGS (each behind its own switch, measured, then a test link):
    road (motorway, Deaf Valley; twisty: a lay-by far back, no win in 20 s); 12 m out for 10 s
    then on the road: won at 18.0 s, on the road. Unchanged both ways: on the road won at 8.0 s;
    over a line 300 m on, 12 m out: finished at 6.7-6.8 s; the clock out at 6.0 s, 12 m out.
-7. ROLLING STARTS: the AI holds a SPEED, not a throttle (faster cars bump slower ones).
-   BUILT 11-15 behind ?rollhold=1 (FIX.rollhold; testlist 'rollhold'; the rolling start's hold
-   only, game/order.ts + ai/formation.ts). CAUSE: the formation's throttle was capped at 0.55,
-   and the pole car rose to the pace as fast as its car did there; the others hold their slots
-   behind it (headless, 0-16 m/s at 0.55: RX Supercar 1.8 s, Lamborghini 2.9, Mini 7.7, tractor
-   17.3), so a weak car fell out of its slot and the stronger one behind ran into it. BUILT: the
-   pace rises at 2.5 m/s2 from the start's clock to 16 m/s (6.4 s; every car but the tractor can:
-   at its best throttle the Mini 4.9 s, the muscle car 4.7), for every car, and each car's
-   throttle is what holds its speed (up to 1). After the green: nothing changed.
-   MEASURED (tools/scratch/_rollhold.mjs, the second PC, the real game, 5 AI of your class, your
-   car saloon (a mixed road-car field), Naffcar (one model) or the banger (bangers + Grass
-   Specials), 3 runs each, every frame to 5 s after the green; OLD / NEW):
-   - bumps before the green: Naffcar Speedway + Stock Car 3 of 18 runs / 0; Dieatona 2 of 9 / 0;
-     the highway 0 of 9 / 0 (each a weak car hit from behind: Mini by Lamborghini 11.5 / 16.0
-     m/s, banger by Grass Special 11.8 / 17.2, saloon by hatch 15.3 / 17.4). An earlier run of the
-     tool (each launch read before its new start was armed) counted 9 + 9.
-   - widest speed spread across the field once moving: ovals 7.8 / 2.2 m/s, Dieatona 6.8 / 1.0,
-     highway 4.5 / 2.2; closest bodies (no bump): ovals 0.92 / 4.1 m, Dieatona 3.98 / 4.31 m,
-     highway (side by side) 1.71 / 1.74 m.
-   - the green: ovals 9.1-9.9 s -> 11.0-11.3 s, Dieatona 10.1-11.0 -> 12.0-12.1 s (the slower
-     rise); the highway's at 6.0 s as before, the pace there then 15 m/s (was up to 16).
-   - bumps in the 5 s after the green (racing, not changed): 18 / 14 over the same 36 runs.
-8. STUCK AI AND TRAFFIC: reset or vanish after 5-10 s stuck.
-   BUILT 11-15 behind ?stuckreset=1 (FIX.stuckreset, game/aistuck.ts; testlist 'stuckreset').
-   HOW IT WAS (game/ai.ts stepAIStuck): an AI put back after 3 s under 1 m/s, or when its drive-outs
-   gave up (3 reverses inside 15 s), 4 m behind where it last was on the road; highway traffic: a
-   still car out of view recycled after 6 s, one in view (a wreck) stays.
-   MEASURED (tools/scratch/_stuckai.mjs: the real game, deterministic, nothing drawn, your car on
-   ?autopilot, 180 s a run; Thruston, Brands, Knobhill, Spa, Naffcar (rolling start) with 19 AI,
-   Grass Track 12; RX Knobhill 19, Holy Jeez and X Gayms 12; the forest and Sahara stages; the
-   highway race (motorway, twisty: 5 AI, traffic 1.5); free drive (motorway, twisty, Thruston); the
-   Lab. STUCK = an AI after its green gaining under 3 m of race progress for 5 s or more;
-   tools/scratch/_stucksum.mjs checks the logs):
-   - OLD: most stuck spells are lap-1 pile-ups the cars crawl out of in 5-10 s (Brands 14 of 16,
-     Knobhill 11 of 11). MISSED: cars rocking on their drive-outs (over 1 m/s while reversing, so
-     the 3 s clock starts again: 10-15 s; Knobhill RX: one car put back 5 times into the same jam at
-     one bank); two cars bogged in the Sahara's sand at ~2 m/s, 20-31 s at a time (8 spells over 12
-     s). FALSE: a stage's later starters put back at ~10 s while still WAITING AT THEIR START (the
-     drive-out's hold is your start, not theirs: 3 tries -> give up -> reset 4-6 m back) - both
-     stages, every run. PUT-BACKS AHEAD: 7 in the Sahara, +1 058 m (a car crossing the sand to a
-     later stretch of the stage had its last on-road point there), 1 on twisty; ONTO another car:
-     1-3 a circuit or RX run, 3 in the Sahara. TRAFFIC: a wreck in view stays (25.6 s on
-     twisty to the run's end; 54-95 s round your stopped car in an earlier run).
-   - BUILT: STAYED - within 5 m of one spot for 6 s - or NO PROGRESS - under 4 m/s with no 3 m of
-     race progress in 10 s - put back; never while the start holds it (a stage's own start too) or a
-     crash plays out; not while QUEUED (a car close in front facing its way, under 2 m/s, not itself
-     stood put over 1 s: then it is a pile-up and the pile is put back) or PULLING AWAY (forwards
-     and gaining, never backed up). The 3 s and give-up resets are off; the drive-outs, the
-     highway's off-road rule, the roll and injury resets unchanged. The put-back is your reset's:
-     never ahead of where the car is, the next free spot 6 m back past a car (the highway: its
-     hard-shoulder spot 15 m back, then 6 m further back at a time past you, the racers and the
-     traffic). Traffic: a car standing still 6 s, not broken down, at a pump, a
-     police car or queued behind a still car within 8 m, goes - in view too - and rejoins off screen
-     as a recycled car.
-   - NEW (the same 17 runs): no stuck spell over 10.3 s anywhere (old: up to 31.1 s; 13 over 12 s);
-     no put-back ahead (old 8), none onto a car (old 1-3 a run), none at a stage's
-     start (old: every run); the Sahara and forest stages no put-backs at all (old 28 and 10);
-     traffic standing stuck in view at most 6.5 s (old 25.6 s). MORE PUT-BACKS IN LAP-1 PILE-UPS: in
-     the first 45 s Brands 12 (old 1), Spa 5 (2), Knobhill RX 5 (3) - cars that used to crawl out of
-     a pile in 5-10 s are put back at 6 s (see the question in the hand-over). QUEUES: your car
-     stopped on the motorway with the traffic queued behind (180 s): the queued cars in view stay
-     (24-90 s, as off), the wreck among them goes at 6 s (off: 54.7 s to the run's end). One
-     put-back with a slow car 10-12 m in front at 40 deg (Knobhill): not in its path, so not a
-     queue. Left as before (not stuck handling): two racers flung 40 m off the highway in the same
-     step are put back onto one spot, and an injured racer's put-back can land on a traffic car (off
-     and on alike, 1-4 a twisty run). Photos (tools/scratch/_stuckshot.mjs, 844x390 and 390x844): an
-     AI stranded with no power on Thruston put back after 6 s, behind, then a second time, behind
-     again; a highway wreck 25 m ahead of you gone at 7.5 s (off: still there).
-   - PROOFS (laptop, against a700d67a): simhash switch off SAME (441c130c..., all 13 runs);
-     worldhash --highway 20 SAME off and on; renderhash --only thruston,highway SAME off and on (its
-     20 s drives have no stuck car). simhash ON [sim] DIFFERENT in 4 runs: the two stages from 10 s
-     (old: a later starter put back while waiting at its start, the give-up reset; new: not),
-     knobhill and knobhill-rx from 43.5 s (a racer put back at another moment, then the wake and
-     contacts).
+7-8. ROLLING STARTS HOLD A SPEED and STUCK AI AND TRAFFIC: PASSED 11-15 (TODO-DONE).
 9. AI SLOW ON SLIPPERY SURFACES (measure first: an AI change).
    MEASURED 11-15, NOTHING CHANGED (tools/scratch/_aislip.mjs: node, one top-difficulty AI alone,
    its flying lap; Thruston and Knobhill with their tarmac given the grip numbers of each surface -
@@ -451,7 +371,7 @@ cars: the Hoonigan pink Porsche, the BMW E36.
   11-13: the REAL ONES FIRST - Holjes, Croft's RX layout, Pembrey, Blyton - then a NITRO-STYLE one
   OUTDOORS (not a stadium: a gap jump over the track, a crossover bridge, banked dirt turns), then
   the HEAD-TO-HEAD SWAP-OVER (two parallel lanes crossing on a bridge, mixed tarmac and gravel).
-  NAMES (owner 11-13: "Ok yea names work"): Holjes = HOLY JEEZ (PASSED), Croft RX = CROUGHED RX (its own
+  NAMES (owner 11-13: "Ok yea names work"): Holjes = HOLY JEEZ (PASSED), Croft RX = CROUGHED RX (PASSED; its own
   full-size level of the Croughed venue; the half-size circuit unchanged), Pembrey = PEMBREEZY, Blyton
   Park = BLIGHTY PARK, the Nitro-style one (after Glen Helen) = GLEN HELLISH, the swap-over = SWAPSIES. Real (traced, real tarmac / gravel
   split, real jumps, real joker), at FULL SIZE as the other short courses (NOTES: track scale), not
@@ -463,50 +383,9 @@ cars: the Hoonigan pink Porsche, the BMW E36.
   (world/venue.ts venueBuild), and each level, once built, is kept for the session; a short course
   at full size (share 1) beside a half-size circuit is its own build of the same map data.
   HOLY JEEZ PASSED 11-14: TODO-DONE.
-  HOLY JEEZ FIRS (owner 11-14: "Yes, mostly firs"), BUILT, TO TEST (`?hjfirs=1`): a level's own
-  share of firs as level data (Level.firShare; render/trees.ts picks each tree's kind by its seed
-  against it, FIR_SHARE 0.4 on a level without one); Holy Jeez 0.85 (holjes-venue.ts): 1 717 of
-  its 2 022 trees firs (805 off), the rest leafy trees that colour in autumn and go bare in
-  winter. Every reader of a tree's kind follows the share: the drawing (race, fly-in pictures,
-  seasons) and the night canopy cut (traceCanopiesNear). Proofs (laptop): renderhash with the
-  switch on SAME against the base on Spa, Knobhill RX and the forest stage by day and at night
-  (night=0.94), Holy Jeez DIFFERENT (t14, t20, damaged); off, Holy Jeez SAME day and night;
-  worldhash off SAME, on only Holy Jeez differs (the level field: the same 2 077 props); simhash
-  SAME on (all 13 runs and a Holy Jeez drive) and off. The menu thumbnail has no trees: painted
-  on / off, 0 px differ - not repainted (the committed one differs by 96 px at the start lane from
-  today's painting, on and off alike: not this change).
-  CROUGHED RX QUESTIONS ANSWERED (owner 11-14): the player fights the GRAVEL HAIRPIN, the
-  TARMAC-TO-GRAVEL changes (grip changing through the lap, braking on the wrong surface punished),
-  the JOKER choice; dressed like a UK round (grass banks, hospitality units, a big screen, flags).
-  Weather from the world weather only, nothing forced. The map: tools/venues/croughed.osm.json way
-  108510895 "Rallycross" (with "Club Link", "Chicane"), as knobhill.json's rx layout; the surfaces
-  from the circuit's own RX map.
-  CROUGHED RX BUILT, TO REVIEW (worker 11-15, ?croughedrx=1): its own full-size build of the
-  circuit's map (tools/venues/croughedrx.json; croughed.json and the circuit's two levels untouched:
-  worldhash SAME). THE SURFACES: the Rallycross way carried with surface=gravel (the map leaves it
-  off; the source in the config: BRX reports - "Croft's loose-surface hairpin", dust "on the gravel
-  parts" - and aerial photographs, ESRI World Imagery, showing the loose track from the chicane
-  round the hairpin to the Main Straight); Clervaux, Hawthorn and the chicane tarmac: 1255 m, tarmac
-  0-520 m, gravel 520-1255 m (59 %). THE GRAVEL HAIRPIN at its real radius (12.8 m traced, minR 10).
-  THE GRID two abreast on the Main Straight (the start lane): 21 slots on the lane 3.2 m off its
-  centre, the nearest tree 41 m. THE JOKER: none at the real Croft - a hand-laid gravel loop in the
-  infield (section 5's question), the island's Armco joined at its noses. DRESSED: grass banks with
-  catch fences (inside the hairpin, between the start lane and the return leg, inside Hawthorn),
-  crowds, Union flags, hospitality units, transporters, a TV tower, boards (the big screen a LIVE
-  board: section 5). CHECKS: lapdriver's flying lap 0.0 s off (rally-4x4 67.2 s, rx-super 65.7,
-  hatch-rwd 72.4, track-rwd 60.4; from the grid 0.5-2.3 s off where the autodriver crosses from the
-  lane to the lap, which it does not follow - the racing AI alone, 160 s on three seeds: 0.0 s off);
-  THE 20-AI RACE (4 laps): seed 1 all 20 AI finished (the test's own player car stuck at the
-  hairpin's entry), seed 2 the race closed at 251 s when that car won, every AI 2-4 laps done, none
-  stopped; the field's offs and resets in traffic at the chicane's turn onto the gravel and the
-  hairpin's entry (resets 5 and 4 there), no page errors; aijokercheck 3 seeds: one joker each;
-  jokercost 10.1-11.4 s (Holy Jeez's real joker 7.5-8.6 s by the same tool); no air anywhere
-  (crestcheck). barriercheck OK; propcheck clean; venueaudit: one Armco end at the joker's nose (as
-  Holy Jeez's), short Armco runs of 23 m (the island) and 6 m (by the Back Straight), a farm road
-  ending in its farmyard (mapped). FRAMES (laptop, 20 AI, work median, Croughed RX / Knobhill RX):
-  x1 day 11.3 / 14.6, night 12.6 / 14.3 ms; x4 day 212.5 / 195.3, night 188.5 / 206.1 (both in the
-  catch-up loop, 12 steps, as calibrated). worldhash with the switch off SAME as main's with
-  CROUGHEDRX=1 on every level; simhash SAME. Thumbnail painted.
+  HOLY JEEZ FIRS PASSED 11-15: TODO-DONE.
+  CROUGHED RX PASSED 11-15 WITHOUT A JOKER (owner: "no joker if it's not there in real life"):
+  TODO-DONE.
 - DEMOLITION DERBY (owner 11-10: "Demolition derby levels classic tarmac circle - and we can reuse
   stock car tracks ect for that too"): a classic tarmac circle arena, and a derby mode on the stock
   car tracks (Stock Car, Grass Track, Old Wobbly). Questions when we come to it (the AI ramming, how
@@ -645,13 +524,8 @@ inputs and get the cars back. A SPIKE (two phones on the tunnel) before committi
 
 ## 5. QUESTIONS FOR THE OWNER
 
-- CROUGHED RX'S JOKER (worker 11-15, `?croughedrx=1`): Croft ran NO joker (BRX reports 2017 and
-  2018: "there is no joker at Croft", "Not having a joker lap at Croft isn't ideal"), and no map
-  or source shows one. You asked for the joker choice, so one is built by hand (NOT REAL): a
-  gravel loop into the open infield east of the return leg, 23 m longer (jokercost 10-11 s with
-  the autodriver against Holy Jeez's real joker 7.5-8.6 s by the same tool). RECOMMENDED: keep
-  it (the joker choice you asked for); the other answers: no joker (the real race), or another
-  place for it.
+- ANSWERED 11-15: CROUGHED RX'S JOKER - none (owner: "no joker if it's not there in real life");
+  the hand-laid loop removed, the level passed (TODO-DONE).
 - CROUGHED RX'S START (worker 11-15): no source found says where Croft's rallycross grid stood.
   Built: the grid on the circuit's Main Straight (the start lane), the line where it meets the lap
   north of the pits, the first corner Clervaux (a 2016 report: "spun into the gravel at the first
@@ -662,7 +536,7 @@ inputs and get the cars back. A SPIKE (two phones on the tunnel) before committi
   highway levels: names in the same style if they lack them ("I think it has them tho already") -
   check, make them only where missing. CHECKED (foreman): the countryside list exists, with four
   plain real towns; owner "Pun them": GHOULE, SKUNKTHORPE, BRIGGADOON, HOWDY-DEN behind
-  `?exitpuns=1` (highway/extras.ts SLIP_NAMES).
+  `?exitpuns=1` (highway/extras.ts SLIP_NAMES); PASSED 11-15, the default.
 - ANSWERED 11-14: Dongington Park's catch fence in front of the Hollywood grandstand KEPT (owner:
   "Keep dongerton catch fence"); its test-list reminder removed.
 - ANSWERED 11-14: GitHub tidied (owner: "The 108 only"): the 109 branches whose every change is in

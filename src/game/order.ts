@@ -25,22 +25,20 @@ export const resetCar = reset;
 // start, then releases them"). Any race (VS AI or the RX race): three reds light one per second
 // with 3-2-1, then GREEN + GO!. Every car is held until GREEN - START_EARLY ("free to go at green
 // or a split second before", the same for player and AI). Rolling start (LEVEL.rollingStart, the
-// ovals): the grid starts 120 m further back, the game drives every car at ROLL_PACE in grid order
-// behind red lights, and it goes green as the front car crosses the line. Sim time (rule 5: what
-// the cars do). Solo practice: no lights.
+// ovals): the grid starts 120 m further back, the game drives every car up to ROLL_PACE
+// in grid order behind red lights, and it goes green as the front car crosses the line. Sim time
+// (rule 5: what the cars do). Solo practice: no lights.
 export const START_STEP = 1.0, START_EARLY = 0.12, ROLL_PACE = 16, ROLL_BACK = 120;
-// ?rollhold=1: m/s2 the formation's pace rises at from the grid (16 m/s in 6.4 s; MEASURED,
+// m/s2 the formation's pace rises at from the grid (16 m/s in 6.4 s; MEASURED,
 // headless: every car but the tractor reaches 16 m/s in 1.5-4.9 s at its best throttle, the Mini
 // 7.7 s at the old 0.55), and the throttle each car may use to hold it
 const ROLL_ACCEL = 2.5, ROLL_HOLD_THROTTLE = 1;
 
 /**
- * The formation's pace now (?rollhold=1: rising at ROLL_ACCEL from the start's clock to
- * ROLL_PACE; without it ROLL_PACE from the first step).
+ * The formation's pace now: rising at ROLL_ACCEL from the start's clock to ROLL_PACE.
  * @returns m/s
  */
-const rollPaceNow = () => (FIX.rollhold ? Math.min(ROLL_PACE, ROLL_ACCEL * game.start.t)
-  : ROLL_PACE);
+const rollPaceNow = () => Math.min(ROLL_PACE, ROLL_ACCEL * game.start.t);
 export function armStart() {
   // 4 = top; only where there is a track to drive (the Lab the game boots on has none)
   shared.autoDrv = shared.settings.autopilot && LEVEL.subtrack
@@ -68,10 +66,8 @@ export const carHeld = (car: GameCar) => game.start.on && !game.start.rolling
 // formation, formationWant)
 export function atPace(out: CarInput, car: GameCar) {
   const speed = Math.hypot(car.vx, car.vy);
-  // (?rollhold=1: the pace held as a speed, as the formation's)
-  if (FIX.rollhold) return { ...out, ...holdSpeed(speed, rollPaceNow()), handbrake: 0, reverse: 0 };
-  return { ...out, throttle: speed > ROLL_PACE ? 0 : Math.min(out.throttle, 0.55),
-    brake: speed > ROLL_PACE + 2 ? 0.25 : 0, handbrake: 0, reverse: 0 };
+  // (the pace held as a speed, as the formation's)
+  return { ...out, ...holdSpeed(speed, rollPaceNow()), handbrake: 0, reverse: 0 };
 }
 /**
  * THE FORMATION (ai/formation.ts): a car's controls in its own grid slot before a circuit's
@@ -88,13 +84,12 @@ export function formationWant(car: GameCar, slot: number, keeper: FormKeeper) {
   if (LEVEL.endless) {
     const level = hwLevel();
     return roadFormationInput(car, hwSlot(level, slot), game.poleCar || game.car, level,
-      rollPaceNow(), FIX.rollhold ? ROLL_HOLD_THROTTLE : undefined);
+      rollPaceNow(), ROLL_HOLD_THROTTLE);
   }
   keeper.formDrv ??= createAutoDriver(LEVEL.subtrack!);
   return formationInput(car, keeper.formDrv,
     { columnM: gridColumn(slot), backM: slot * GRID_STEP },
-    game.poleCar || game.car, LEVEL.subtrack!, rollPaceNow(),
-    FIX.rollhold ? ROLL_HOLD_THROTTLE : undefined);
+    game.poleCar || game.car, LEVEL.subtrack!, rollPaceNow(), ROLL_HOLD_THROTTLE);
 }
 export function stepStart(dt: number) {
   // the clock keeps running after green so the HUD can take the lights away 1.2 s later
