@@ -44,7 +44,7 @@ function trafficStep(drv: Drv, car: AiCar, ctx: DriveCtx, path: AiPath, nearIdx:
   const prec = traits.prec ?? 0.5;
   const latLim = path === main ? line.hw - WANDER_EDGE : 2;
   const myLat = state.dodge + latT;
-  // ?hwdodge=1 (the endless road): read the cars by the road; keep to my side for oncoming cars
+  // (the endless road: read the cars by the road; keep to my side for oncoming cars)
   state.roadRead = !!ctx.road;
   const keepMax = state.keepMax = ownSideCap(drv, car, ctx, path, nearIdx, lineOff);
   const cars = carsStep(drv, car, others, path, nearIdx, idx, speed, prec, prof, lineOff, latT,

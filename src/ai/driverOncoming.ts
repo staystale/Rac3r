@@ -1,5 +1,5 @@
-// ai/driverOncoming.ts - THE RACER AND ONCOMING TRAFFIC on the endless road (?hwdodge=1, TODO 3a2
-// bug 10; the game sets DriveCtx.road there). MEASURED (tools/scratch/_hwdodge.mjs): on the twisty
+// ai/driverOncoming.ts - THE RACER AND ONCOMING TRAFFIC on the endless road (the game sets
+// DriveCtx.road there). MEASURED (tools/scratch/_hwdodge.mjs): on the twisty
 // single carriageway the racers spent 22-33 % of their time in the other way's lane and hit
 // oncoming traffic 3.3-9.7 times per 10 racer-km, 27 of 40 of those cars outside the window the
 // driver read cars in 2.5-3 s before (round a bend: the window was a box on the racer's heading).

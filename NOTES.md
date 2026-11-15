@@ -553,7 +553,8 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   Reading them at the closing speed did not help, nor holding the racers' lanes to the left one
   (1260 contact steps): the racing line keeps the whole road and the passing has no 'is the other
   lane clear' judgement. Twin carriageways are safe (the barrier between); the single carriageway
-  waits for that passing work.
+  got that judgement in bug 10 (11-15, ai/driverOncoming.ts: cars read along the road, kept to its
+  side for an oncoming car within 4 s): head-ons 5.3 -> 2.1 per 10 racer-km on the twisty road.
 - NOTHING SOLID NEARER THE ROAD THAN ITS RUN-OFF (11-09, the start crash review): 20-car starts
   (tools/scratch/_startcrash.mjs, which names a solid's hit by the solid's kind - the nearest
   barrier's name hid them) found the hardest hits on a start gantry's far leg (1.9 m past the edge,
