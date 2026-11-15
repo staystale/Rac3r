@@ -41,6 +41,7 @@ import { syncBridgeways } from './highway/bridgeways.ts';
 import { crossingOf } from './world/crossinggeo.ts';
 import type { RoadLoc } from './highway/road.ts';
 import type { Level } from './world/types.ts';
+import { FIX } from './core/fixes.ts';
 export { HW_PRESETS, HW_SCENERY, HW_ROADS } from "./highway/presets.ts";
 export { laneGeo, roadFrame, roadPose, roadSpan } from "./highway/road.ts";
 // THE GUARD (requirement: go backwards should reset you): rolling BACK down the road faster than
@@ -54,9 +55,14 @@ export { laneGeo, roadFrame, roadPose, roadSpan } from "./highway/road.ts";
 // view). LONGER + HELD NEAR THE ROAD (requirement: the off road timer should be longer / turn off
 // if youre close to the road (about to get back)): OFF_T 6 -> 10 s; it does not run while you are
 // within OFF_NEAR m of the edge or heading back to it faster than BACK_IN m/s.
+// ?wrongway=1: time to turn round, to be knocked back in a crash and to reverse a little
+// (MEASURED, tools/scratch/_wrongway.mjs, every car: a U-turn from facing back runs back up to
+// 1.45 s and 8.3 m, a head-on with the heaviest traffic car knocks a light car back for up to
+// 3.1 s and 35 m, reversing 30 m takes 3.4-5.6 s of it); without it 1.2 s and 30 m fire after
+// 7 m of reversing
 const BACK_V = 3,
-  BACK_T = 1.2,
-  BACK_M = 30,
+  BACK_T = FIX.wrongway ? 4 : 1.2,
+  BACK_M = FIX.wrongway ? 50 : 30,
   OFF_SOFT = 8,
   OFF_T = 10,
   OFF_HARD = 70,
