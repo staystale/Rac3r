@@ -76,6 +76,80 @@ function paintStrip(strip: HTMLElement, caption: HTMLElement, diff: number, tune
     + `${Math.max(...skills).toFixed(2)} (RED ROOKIES, BLUE PROS)`;
 }
 
+type DialKey = (typeof TUNE_DIALS)[number][0];
+
+/**
+ * A dial's value (PACE, absent before ?aipace=1's dials were kept: 0.5).
+ * @param tune the dials
+ * @param key the dial
+ * @returns 0..1
+ */
+const dialOf = (tune: AiTune, key: DialKey): number => tune[key] ?? 0.5;
+
+/**
+ * The dial rows: per dial a slider, its name and value, and what it does under it.
+ * @param panel the panel
+ * @param onMove a slider moved: its dial and value
+ * @param afterRow called after each dial's rows (the setup's skill strip after SPREAD)
+ * @returns sets the sliders and their words from the dials
+ */
+function addDialRows(panel: HTMLElement, onMove: (key: DialKey, value: number) => void,
+  afterRow: (key: DialKey) => void = () => { /* nothing after */ }) {
+  const inputs: HTMLInputElement[] = [], labels: HTMLElement[] = [];
+  for (const [key, , note] of TUNE_DIALS) {
+    const row = addElement(panel, 'div', '', 'row');
+    row.style.alignItems = 'center';
+    const label = addElement(row, 'div', '');
+    label.style.cssText = 'width:150px;font-size:12px';
+    const input = document.createElement('input');
+    input.type = 'range'; input.min = '0'; input.max = '1'; input.step = '0.01';
+    input.style.cssText = 'flex:1;min-height:34px;accent-color:' + MENU_COL.accent;
+    input.addEventListener('input', () => onMove(key, +input.value));
+    row.appendChild(input);
+    inputs.push(input); labels.push(label);
+    addElement(panel, 'div', note, 'sub');
+    afterRow(key);
+  }
+  return (tune: AiTune) => TUNE_DIALS.forEach(([key, name], i) => {
+    inputs[i].value = String(dialOf(tune, key));
+    labels[i].innerHTML = name + '<br>' + dialWords(key, dialOf(tune, key));
+  });
+}
+
+/**
+ * ?aipace=1: the AI DRIVERS dials LIVE, from the test-mode pause menu - a slider moves the field
+ * racing now (game/aitune.ts), from where it stands; RESET puts back the dials it started with.
+ * @param menu the menu context
+ * @param start the dials the race started with, and the ones it has now
+ * @param start.from the dials the race started with
+ * @param start.now the dials now
+ * @param set the field's new dials
+ * @param back back to the pause menu
+ * @param resume back to the race
+ */
+export function showLiveDials(menu: Menu, start: { from: AiTune; now: AiTune },
+  set: (tune: AiTune) => void, back: () => void, resume: () => void) {
+  const panel = addPane(menu, false);
+  let tune: AiTune = { ...start.now };
+  addElement(panel, 'h2', 'AI DRIVERS · LIVE');
+  addElement(panel, 'div', 'MOVES THE FIELD RACING NOW. EACH DRIVER KEEPS ITS OWN PLACE IN IT; '
+    + 'THEIR REACTIONS STAY AS THE RACE STARTED.', 'sub');
+  const paintDials = addDialRows(panel, (key, value) => {
+    tune = { ...tune, [key]: value, custom: true };
+    set(tune);
+    paintDials(tune);
+  });
+  const row = addElement(panel, 'div', '', 'row');
+  addButton(menu, row, 'RESET', () => {
+    tune = { ...start.from };
+    set(tune);
+    paintDials(tune);
+  });
+  addButton(menu, row, 'RESUME ▶', resume, 'go');
+  addButton(menu, row, 'BACK', back);
+  paintDials(tune);
+}
+
 /**
  * Shows the AI DRIVERS panel.
  * @param menu the menu context
@@ -96,31 +170,18 @@ export function showAiDrivers(menu: Menu, start: { diff: number; tune: AiTune | 
     paint();
   }));
   const customBtn = addButton(menu, presetRow, 'CUSTOM', () => { /* shows the state only */ });
-  const inputs: HTMLInputElement[] = [], labels: HTMLElement[] = [];
   let strip: HTMLElement | null = null, caption: HTMLElement | null = null;
-  for (const [key, , note] of TUNE_DIALS) {
-    const row = addElement(panel, 'div', '', 'row');
-    row.style.alignItems = 'center';
-    const label = addElement(row, 'div', '');
-    label.style.cssText = 'width:150px;font-size:12px';
-    const input = document.createElement('input');
-    input.type = 'range'; input.min = '0'; input.max = '1'; input.step = '0.01';
-    input.style.cssText = 'flex:1;min-height:34px;accent-color:' + MENU_COL.accent;
-    input.addEventListener('input', () => {
-      tune = { ...tune, [key]: +input.value, custom: true };
-      paint();
-    });
-    row.appendChild(input);
-    inputs.push(input); labels.push(label);
-    addElement(panel, 'div', note, 'sub');
-    if (key === 'spread') {
-      strip = addElement(panel, 'div', '');
-      strip.style.cssText = 'position:relative;display:block;box-sizing:border-box;width:100%;'
-        + 'height:26px;min-height:26px;flex:0 0 26px;margin:6px 0 8px;background:'
-        + MENU_COL.well + ';box-shadow:inset 0 0 0 2px #3a2018';
-      caption = addElement(panel, 'div', '', 'sub');
-    }
-  }
+  const paintDials = addDialRows(panel, (key, value) => {
+    tune = { ...tune, [key]: value, custom: true };
+    paint();
+  }, (key) => {
+    if (key !== 'spread') return;
+    strip = addElement(panel, 'div', '');
+    strip.style.cssText = 'position:relative;display:block;box-sizing:border-box;width:100%;'
+      + 'height:26px;min-height:26px;flex:0 0 26px;margin:6px 0 8px;background:'
+      + MENU_COL.well + ';box-shadow:inset 0 0 0 2px #3a2018';
+    caption = addElement(panel, 'div', '', 'sub');
+  });
   const resetRow = addElement(panel, 'div', '', 'row');
   const resetBtn = addButton(menu, resetRow, '', () => {
     tune = tuneOf(diff);
@@ -132,10 +193,7 @@ export function showAiDrivers(menu: Menu, start: { diff: number; tune: AiTune | 
   function paint() {
     presets.forEach((button, i) => button.classList.toggle('on', !tune.custom && i === diff));
     customBtn.classList.toggle('on', !!tune.custom);
-    TUNE_DIALS.forEach(([key, name], i) => {
-      inputs[i].value = String(tune[key]);
-      labels[i].innerHTML = name + '<br>' + dialWords(key, tune[key]);
-    });
+    paintDials(tune);
     if (strip && caption) paintStrip(strip, caption, diff, tune, start.count);
     resetBtn.textContent = 'RESET TO ' + PRESETS[diff];
   }

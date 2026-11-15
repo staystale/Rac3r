@@ -4,6 +4,7 @@ import { showTrackSelect } from './tracks.ts';
 import { showMenu, hideMenu } from '../menu.ts';
 import { addPauseClock } from './pauseclock.ts';
 import { showSettings } from './settings.ts';
+import { showLiveDials } from './aidrivers.ts';
 import type { Menu } from '../menu.ts';
 import type { PauseActions, ResultsActions, ResultRow, ResultsFlow } from './menutypes.ts';
 import { MENU_COL } from './palette.ts';
@@ -62,6 +63,7 @@ export function showPause(menu: Menu, act: PauseActions) {
     addPauseClock(row);   // the alarm clock beside MUTE (menu/pauseclock.ts)
   } else addPauseClock(addElement(panel, 'div', '', 'row'));
   addHudButton(menu, panel, act);
+  addAiDialsButton(menu, panel, act);
   addButton(menu, panel, 'SETTINGS ›', () => showSettings(menu, () => showPause(menu, act), () => {
     hideMenu(menu);
     act.resume();
@@ -89,6 +91,22 @@ export function showPause(menu: Menu, act: PauseActions) {
     act.exit();
   showMenu(menu);
   });
+}
+
+/**
+ * Adds the AI DRIVERS > button (?aipace=1, test mode, a field racing: the dials live).
+ * @param menu the menu context
+ * @param panel the pause panel
+ * @param act the session actions (aiDials)
+ */
+function addAiDialsButton(menu: Menu, panel: HTMLElement, act: PauseActions) {
+  const dials = act.aiDials;
+  if (!dials) return;
+  addButton(menu, panel, 'AI DRIVERS ›', () => showLiveDials(menu,
+    { from: dials.from(), now: dials.now() }, dials.set, () => showPause(menu, act), () => {
+      hideMenu(menu);
+      act.resume();
+    }));
 }
 
 /**

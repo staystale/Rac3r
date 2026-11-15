@@ -1,7 +1,8 @@
 // ai/traits.js — the 5 difficulties, the personalities and aiTraits (from aidriver.js).
 import type { Difficulty, Traits } from "./types.ts";
 import { K_BRAKE } from "./line.ts";
-import { SKILL_CENTRE, tuneOf } from "./tune.ts";
+import { SKILL_CENTRE, tuneOf, paceOf } from "./tune.ts";
+import { FIX } from "../core/fixes.ts";
 import type { AiTune } from "./tune.ts";
 
 // ---- the 5 difficulties (PLAN.md §4): the CENTRE of the field's spread. pace = fraction of the
@@ -121,6 +122,8 @@ function tunedTraits(diffIndex: number, i: number, seed: number, tune: AiTune): 
     // (rounded so the drivers share speed profiles: line.ts caches one per braking grip)
     kBrake: Math.round((K_BRAKE + RISK_BRAKE * (risk - 0.5)) * 100) / 100,
     power: skill < 0.5 ? 1 - (1 - WEAK_POWER) * (0.5 - skill) / 0.5 : 1,
+    // (?aipace=1: the PACE dial, the whole field's speed plan - ai/tune.ts)
+    ...(FIX.aipace ? { paceK: paceOf(tune.pace ?? 0.5) } : {}),
     seed: rngState,
   };
 }

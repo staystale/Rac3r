@@ -46,6 +46,37 @@ const MIST_CATCH = 1.5;
 // 'throttle' one's time (0.3 + 0.5 x severity s) x this, so a weak driver's overcooked corner
 // slides wide and its throttle slide can spin (1 without the switch)
 export const MIST_GROW = FIX.aislide ? 2 : 1;
+// MISTAKES THAT SPIN (owner: "yes but rare-ish"): a 'late' or 'throttle' mistake is, by the
+// driver's own random stream, one that SPINS with this chance x (1 - skill) - none at skill 1: its
+// slide is never caught (no countersteer, no lift) and past the apex the throttle is held
+// SPIN_THROTTLE_S s, so the rear comes round. A front-driven car seldom spins on the throttle.
+const SPIN_SHARE = 0.25;
+export const SPIN_THROTTLE_S = 1.2;
+// ... and the wheel held turned in, this share of the lock, the corner's way: the hands keep
+// turning instead of catching it (the steering law's own heading term catches a slide by itself)
+const SPIN_LOCK = 0.7;
+
+/**
+ * The steer while a mistake spins: the wheel held into the corner (null: none running).
+ * @param state the driver's state (spinUntil, spinTurn, its clock)
+ * @param state.t s
+ * @param state.spinUntil s
+ * @param state.spinTurn the corner's way, +1 / -1
+ * @returns the steer, -1..1, or null
+ */
+export function spinSteer(state: { t: number; spinUntil?: number; spinTurn?: number }) {
+  if (!FIX.aislide || !(state.t < (state.spinUntil ?? -Infinity))) return null;
+  return (state.spinTurn || 1) * SPIN_LOCK;
+}
+
+/**
+ * The chance a 'late' or 'throttle' mistake spins (0 without ?aislide=1).
+ * @param skill the driver's skill, 0..1
+ * @returns 0..1
+ */
+export function spinChance(skill: number): number {
+  return FIX.aislide ? SPIN_SHARE * (1 - Math.max(0, Math.min(1, skill))) : 0;
+}
 
 /** What the driver feels of the ground's slide this step (the switch on, slippery ground). */
 export interface SlideFeel {
@@ -98,6 +129,11 @@ export function slideLimits(slide: SlideFeel | null, mist: Mistake | null, under
   if (FIX.aislide && mist && mist.inside && (mist.kind === 'late' || mist.kind === 'throttle')) {
     limits.overAt *= 1 + MIST_CATCH * mist.sev;
     if (mist.kind === 'late') limits.underAt = Infinity;
+    // (a spinning one: never caught)
+    if (mist.spin) {
+      limits.overAt = Infinity;
+      limits.underAt = Infinity;
+    }
     limits.mistaken = true;
   }
   return limits;

@@ -5,6 +5,7 @@ import { steerAim, profileSpeed } from "./driverSteps.ts";
 import type { AiCar } from "./types.ts";
 import type { RejoinAim } from "./rejoin.ts";
 import { footThrottle } from "./driverFoot.ts";
+import { spinSteer } from "./driverSlide.ts";
 import type { Drv, AiPath } from "./driverCtx.ts";
 
 // throttle kept through a front slide on loose ground (off road, dirt, gravel)
@@ -34,7 +35,9 @@ export function steerSlideStep(drv: Drv, car: AiCar, path: AiPath, nearIdx: numb
   // rear slip before lifting, a later slide catch and power through the slide — each alone
   // harmless, together the 4x4 left the road at Knobhill / Sweaty Lamb (16-31 s off a lap).
   const slide = slideStep(car, path, nearIdx, speed, lineOff, { deltaS, LOCK, cap });
-  return { psi, ...slide };
+  // (?aislide=1: a mistake that spins holds the wheel turned in - ai/driverSlide.ts)
+  const spin = spinSteer(drv.state);
+  return { psi, ...slide, steer: spin ?? slide.steer };
 }
 type Slide = ReturnType<typeof steerSlideStep>;
 
