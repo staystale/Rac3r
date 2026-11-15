@@ -632,6 +632,28 @@ desirable minimum for the design speed), none within 20 m along of a lay-by or s
 side (`laybys.ts bayHere`), on Deaf Valley too at each second spot (96 m).
 `tools/scratch/_hwchevroncount.mjs` counts them a km; `_hwchevronshots.mjs` photographs one.
 
+THE HIGHWAYS' CRASH-CUSHION BARRELS (`?hwbarrels=1`, `FIX.hwbarrels`; `highway/cushions.ts`,
+`cones/coneCushion.ts`, `render/props/cushions.ts`): water-filled barrels (loose objects, kind
+`cushion`, 0.9 m, 400 kg, bounce 0.1, a car's impulse capped at 8 m/s a hit as a bale's) in
+clusters of 3-9 (rolled from the road's seed and the spot - no road random stream used, so the
+switch moves nothing else), tapering to one barrel facing the traffic (`clusterRows`), blue
+(`COL.cushionBlue`) on the countryside, yellow (`COL.cushionYellow`) on Deaf Valley. WHERE: the
+NOSE of every slip that leaves the left edge (a slip, a junction's off-slip: `noteSlipNose`, read
+across the road with the slip's angle; a services' side road: `layServicesNose`) - the back row
+where the gap between the slip's and the carriageway's edges first reaches 3.6 m, up to 3 across,
+each row as wide as its gap holds with 0.3 m spare; and the central reservation's barrier ENDS
+(`noteMedianPiece`, from `dress.ts layMedian`'s pieces in order): a Jersey barrier or Armco with an
+open reservation beyond gets a cluster (2 across) on the reservation's line before that end, for
+the traffic coming at it (none at a change to or from a fence). Litter under a barrel is taken
+(`clearUnderBarrels`). Laid with the stretch, so a popped cluster is back when the stretch is
+built again. A HIT (`hitCushion`, distinct hits 0.6 s apart): pops by a chance rising 0 -> 1
+over 6-20 m/s of closing speed (its water out, a flat `cushionpop` shell driven over), else
+leaks by a chance rising over 2-8 m/s (2-3 cells of its 6, lighter); the water is the tyres'
+water in the wear cells (`physics/engineheat.ts wetCellAt`), sprayed up to 3 m the way it was
+knocked, and a splash (`render/particles.ts` 'water'). No damage of their own.
+`tools/scratch/_hwbarrelcount.mjs` counts and checks them; `_hwbarrelcrash.mjs` (node) drives a hatch
+into a cluster; `_hwbarrelshots.mjs` photographs one and a crash.
+
 THE ENDLESS ROAD'S GUARD (`highway.ts highwayGuard`, the player only, each step after
 `stepHighway`): WRONG WAY - moving back down the road faster than BACK_V (3 m/s) for BACK_T s, or
 on the road BACK_M m behind the furthest point reached (`checkWrongWay`); OFF THE MOTORWAY - the

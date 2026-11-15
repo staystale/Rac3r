@@ -5,21 +5,24 @@ import { drawLooseCactus } from "./props/desert.ts";
 import { drawWoodPiece } from "./props/woodfence.ts";
 import { drawTumbleweed } from "./props/tumbleweed.ts";
 import { drawLooseSkull } from "./props/desertjunk.ts";
+import { drawLooseCushion } from "./props/cushions.ts";
 
 /**
  * The loose props of the outdoors drawn by their own modules: Deaf Valley's cacti (they snap when
  * hit: render/props/desert.ts) and a torn wooden fence's rails and posts
- * (render/props/woodfence.ts).
+ * (render/props/woodfence.ts), the highway's crash-cushion barrels (render/props/cushions.ts).
  * @param ctx the canvas
  * @param cone the loose object (centred, turned)
  * @param ppm pixels per metre
  * @returns whether one was drawn
  */
 export function drawLooseProp(ctx: CanvasRenderingContext2D,
-    cone: { kind: string; ang?: number; hx?: number; hy?: number; rollDist?: number },
+    cone: { kind: string; ang?: number; hx?: number; hy?: number; rollDist?: number;
+      paint?: string },
     ppm: number): boolean {
   return drawLooseCactus(ctx, cone, ppm) || drawWoodPiece(ctx, cone, ppm)
-    || drawTumbleweed(ctx, cone, ppm) || drawLooseSkull(ctx, cone, ppm);
+    || drawTumbleweed(ctx, cone, ppm) || drawLooseSkull(ctx, cone, ppm)
+    || drawLooseCushion(ctx, cone, ppm);
 }
 
 // what the prop drawers read of the objects context

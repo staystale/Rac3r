@@ -12,6 +12,8 @@ import { layLooseRoadside } from "./litter.ts";
 import { layRoadLamps } from "./roadlamps.ts";
 import { dressCanyon } from "./canyon.ts";
 import { medianAt } from "./medians.ts";
+import { FIX } from "../core/fixes.ts";
+import { layCushions, noteMedianPiece } from "./cushions.ts";
 import type { LevelObj } from '../cones/coneTypes.ts';
 import type { Point, BarrierKind } from '../world/types.ts';
 import type { HwPose, HwLevel, DressCtx, Stamp } from './hwtypes.ts';
@@ -389,6 +391,7 @@ function dressStretch(level: HwLevel, firstIdx: number, endIdx: number, loose: L
     // (any road there - a twin carriageway's central reservation, the walled road's walls)
     layWalls(ctx);
     layMedian(ctx);
+    if (FIX.hwbarrels) layCushions(ctx);
     return;
   }
   const { state, road, pointAt, clear } = ctx;
@@ -426,6 +429,8 @@ function dressStretch(level: HwLevel, firstIdx: number, endIdx: number, loose: L
   layLooseRoadside(ctx);
   layWalls(ctx);
   layMedian(ctx);
+  // (?hwbarrels=1: the crash-cushion barrels)
+  if (FIX.hwbarrels) layCushions(ctx);
 }
 
 /**
@@ -444,5 +449,8 @@ function layMedian(ctx: DressCtx) {
     }
     const kind = medianAt(level._cfg, level._hw.seed, road[startIdx].s);
     if (kind && pts.length > 1) level.barriers.push({ kind, pts, _s: road[startIdx].s });
+    // (?hwbarrels=1: crash-cushion barrels before a Jersey barrier's or Armco's end)
+    if (FIX.hwbarrels) noteMedianPiece(ctx, startIdx, Math.min(road.length - 1, startIdx + 30),
+      kind);
   }
 }

@@ -76,6 +76,9 @@ const CONE_DUST = { rgb: '185,178,164', size: 0.18, lift: 2.2, life: 0.45, grow:
 const BALE_DUST = { rgb: '214,190,128', size: 0.55, lift: 1.6, life: 1.4, grow: 1.1 };
 // a popped SHEEP (S-C): a white FLUFF cloud, no gore
 const FLUFF_PUFF = { rgb: '248,247,240', size: 0.5, lift: 3.2, life: 1.5, grow: 1.0 };
+// a crash-cushion barrel's WATER (cones/coneCushion.ts): a quick pale burst of spray (the wet
+// road's wheel spray's colour, world/surfaces.ts SPRAY_WET, bigger and flung harder)
+const WATER_SPLASH = { rgb: '232,238,248', size: 0.35, lift: 4.5, life: 0.55, grow: 0.8 };
 
 // TYRE SMOKE. Each hot tyre that is also slipping puffs white-grey smoke at a rate set by how hot
 // and how hard - the silent twin of a squeal (CLAUDE.md §4).
@@ -192,6 +195,8 @@ function addPuffsTo(ctx: ParticleCtx, hits: PuffHit[]) {
       (fxRandom() - 0.5) * 4, (fxRandom() - 0.5) * 4, FLUFF_PUFF, 1); continue; }
     if (hit.kind === 'bale') { for (let i = 0; i < 4; i++) emitPuff(ctx, hit.x, hit.y,
       (fxRandom() - 0.5) * 3, (fxRandom() - 0.5) * 3, BALE_DUST, 1); continue; }
+    if (hit.kind === 'water') { for (let i = 0; i < 4; i++) emitPuff(ctx, hit.x, hit.y,
+      (fxRandom() - 0.5) * 4, (fxRandom() - 0.5) * 4, WATER_SPLASH, 1); continue; }
     const count = Math.min(3, 1 + Math.floor(hit.speed / 6));
     for (let i = 0; i < count; i++) emitPuff(ctx, hit.x, hit.y, 0, 0, CONE_DUST, 1);
   }

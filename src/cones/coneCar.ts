@@ -10,6 +10,7 @@ import {
   BALE_BURST_V, BALE_DRAG, BROKEN, COW_TIP_V, DEBRIS, MAX_CONE_V, RESTITUTION, SHEEP_POP_V,
   TOPPLE_V, TOPPLES, burstStack, mayBurst, stackBursts,
 } from "./coneConsts.ts";
+import { CUSHION_REST, hitCushion } from './coneCushion.ts';
 import type { ConesCtx, Loose, ConeCar } from './coneTypes.ts';
 
 
@@ -136,9 +137,11 @@ function wheelsContact(obj: Loose, car: ConeCar, relX: number, relY: number) {
 function transferMomentum(obj: Loose, car: ConeCar, contact: Contact) {
   const { wnx, wny, nearX, nearY, pvx, pvy, rel } = contact;
   const rest = obj.kind === 'tyrestack' ? 0.25 : obj.kind === 'tyre' ? 0.35 : obj.kind
-      === 'sheep' ? 0.2 : obj.kind === 'cow' ? 0.1 : RESTITUTION;
+      === 'sheep' ? 0.2 : obj.kind === 'cow' ? 0.1 : obj.kind === 'cushion' ? CUSHION_REST
+      : RESTITUTION;
   if (obj.mass > 5) {
-    const impulse = Math.min(obj.kind === 'bale' || obj.kind === 'cow' ? 8 : 2.5, (rel
+    const impulse = Math.min(obj.kind === 'bale' || obj.kind === 'cow'
+      || obj.kind === 'cushion' ? 8 : 2.5, (rel
         * obj.mass) / car.spec.mass);
     car.vx -= wnx * impulse;
     car.vy -= wny * impulse;
@@ -375,5 +378,6 @@ export function hitByCar(ctx: ConesCtx, obj: Loose, car: ConeCar, newTyres: Loos
     car.burstSlow = true;
   }
   hitAnimal(ctx, obj, rel);
+  hitCushion(ctx, obj, rel);
   afterHit(ctx, obj, car, newTyres, rel, speed);
 }

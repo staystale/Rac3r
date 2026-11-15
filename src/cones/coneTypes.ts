@@ -33,6 +33,7 @@ export interface Loose {
   over?: boolean; overTried?: boolean;   // hopping a wall
   impacts?: number; _lastHit?: number;   // distinct hits (chevrons, flags, breaking debris)
   tipped?: boolean;   // a cow on its side
+  water?: number;   // a crash-cushion barrel's water left, wear cells (cones/coneCushion.ts)
   flat?: boolean;   // flattened: driven over
   _nailT?: number;   // the last time its nails had a go at a tyre
   // a tumbleweed: its breeze, m/s, the s it takes it to the road's middle, and

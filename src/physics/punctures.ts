@@ -17,6 +17,8 @@ const SOFT = 0.05, MEDIUM = 0.25, HARD = 0.35, SHARP = 0.5;
 const BIG_HIT_CHANCE: Record<string, number> = {
   tyre: SOFT, tyrestack: SOFT, bale: SOFT, straw: SOFT, tarp: SOFT, cone: SOFT, box: SOFT,
   cardboard: SOFT, sheep: SOFT, fluff: SOFT,
+  // a crash-cushion barrel's smooth plastic, and its split shell
+  cushion: SOFT, cushionpop: SOFT,
   car: MEDIUM, barrel: MEDIUM, bin: MEDIUM, sandbag: MEDIUM, sand: MEDIUM, armco: MEDIUM,
   fence: MEDIUM, cow: MEDIUM, banger: MEDIUM, caravan: MEDIUM, truck: MEDIUM,
   wall: HARD, pitwall: HARD, building: HARD, grandstand: HARD, rock: HARD, tree: HARD,
@@ -35,7 +37,7 @@ const UNKNOWN = HARD;
 // running into a piece of roadside debris (over DEBRIS_HIT_V, physics/tyrewear.ts): its chance
 const DEBRIS_CHANCE: Record<string, number> = {
   pallet: 0.15, crate: 0.15, exhaust: 0.08, bumper: 0.08, wing: 0.08, panel: 0.08, box: 0.01,
-  bin: 0.01, barrel: 0.01, sandbag: 0.01, tarp: 0,
+  bin: 0.01, barrel: 0.01, sandbag: 0.01, tarp: 0, cushion: 0,
   // (owner 11-07: "size / their sharpness ... how likely they are to cause punctures"):
   // a bent wishbone's tube ends worst, a strut's spring, the engine's brackets, a wing's edges, a
   // flat bonnet / boot lid little, a mirror's glass less

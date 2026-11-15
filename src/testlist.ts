@@ -13,6 +13,19 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'hwbarrels',
+    added: '2026-11-15',
+    name: 'Highway crash-cushion barrels (water-filled) that leak or pop',
+    where: 'Test link + &hwbarrels=1: the highway, motorway or interstate (the most), in the '
+      + 'countryside (blue) and Deaf Valley (yellow); zoom out to spot them',
+    try: 'Find a cluster where a slip road or a services road leaves (in the gap between it and '
+      + 'the road), or at the end of the central barrier where it stops. Drive into one slowly, '
+      + 'then fast: soft hits shove or leak a barrel, hard ones pop them (water sprayed, a wet '
+      + 'patch that dries); behind them the barrier end hits far softer.',
+    wrong: 'Barrels on the road or a slip lane, a gap or exit with none, barrels missing at a '
+      + 'central barrier end, popped barrels you cannot drive over, no water, or a car launched.',
+  },
+  {
     id: 'aipace',
     added: '2026-11-15',
     name: 'AI PACE dial, and the AI DRIVERS dials live from the pause menu',
