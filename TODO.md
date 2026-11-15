@@ -336,7 +336,7 @@ cars: the Hoonigan pink Porsche, the BMW E36.
   ending in its farmyard (mapped). FRAMES (laptop, 20 AI, work median, Croughed RX / Knobhill RX):
   x1 day 11.3 / 14.6, night 12.6 / 14.3 ms; x4 day 212.5 / 195.3, night 188.5 / 206.1 (both in the
   catch-up loop, 12 steps, as calibrated). worldhash with the switch off SAME as main's with
-  CROUGHEDRX=1 on every level. Thumbnail painted.
+  CROUGHEDRX=1 on every level; simhash SAME. Thumbnail painted.
 - DEMOLITION DERBY (owner 11-10: "Demolition derby levels classic tarmac circle - and we can reuse
   stock car tracks ect for that too"): a classic tarmac circle arena, and a derby mode on the stock
   car tracks (Stock Car, Grass Track, Old Wobbly). Questions when we come to it (the AI ramming, how
