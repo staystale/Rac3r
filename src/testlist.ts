@@ -48,17 +48,6 @@ export const TEST_LIST: TestEntry[] = [
       + 'the formation crawling or the green taking much longer.',
   },
   {
-    id: 'wrongway',
-    added: '2026-11-15',
-    name: 'Highway WRONG WAY reset waits: turn round, reverse a little, get knocked back',
-    where: 'Test link + &wrongway=1: any highway (motorway, twisty, Deaf Valley), alone and in '
-      + 'a race; phone upright and on its side',
-    try: 'Stop and reverse 10-15 m; spin round and turn back the right way; then drive the '
-      + 'wrong way on purpose and hold it.',
-    wrong: 'WRONG WAY firing while you reverse a little or turn round; driving the wrong way '
-      + 'on purpose not reset within about 4 s / 50 m.',
-  },
-  {
     id: 'croughedrx',
     added: '2026-11-15',
     name: 'Croughed RX: Croft\'s rallycross at full size (tarmac, then gravel, a joker)',

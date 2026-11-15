@@ -52,6 +52,14 @@ code plain (simhash, worldhash, renderhash the same).
   RX, a stage, Sweaty Lamb); a reset onto an AI car landed on it every time before, now 6 m behind;
   the joker lane +21 m -> -4 / -12 m; the endless road's wrong-way guard +32..+35 m ahead on the
   motorway -> 6-8 m behind; a chasing police car at an R: cleared before, kept now.
+- THE WRONG-WAY GUARD WAITS (was ?wrongway=1; highway.ts BACK_T 1.2 -> 4 s moving back down the
+  road over 3 m/s, BACK_M 30 -> 50 m behind the furthest point). MEASURED, every car
+  (tools/scratch/_wrongway.mjs): a U-turn from facing back runs back up to 1.45 s / 8.3 m; a
+  head-on with the heaviest traffic car knocks a light car back up to 3.06 s / 35 m (the old guard
+  fired on 15 of 19); reversing fired the old guard after 1.7-2.5 s / 7 m. In the real game
+  (_wrongwaygame.mjs, 4 roads x 4 cars): none of those reset now; reversing on resets at 4.5-5.4 s,
+  driving the wrong way at 3.7-5.2 s and 31-50 m back. tools/treadmillcheck.mjs (KNOWN-FAIL in the
+  suite) still asks for its reverse to reset within 3 s: it failed that on 4 of 5 roads before.
 
 ## PASSED 11-14 (owner: "Pass all four") - THE LOADING SCREEN, THE RESTART FIX, THE SMOOTH FLY-IN, THE NIGHT FLY-IN; now the default
 

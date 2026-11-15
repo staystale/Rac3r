@@ -60,9 +60,6 @@ export const FIX = {
   // the rolling start's formation holds a SPEED: one pace rising at ROLL_ACCEL for every car, each
   // car's throttle whatever holds it (game/order.ts formationWant, ai/formation.ts)
   rollhold: atLoad('rollhold'),
-  // the endless road's wrong-way guard gives time to turn round, to be knocked back and to
-  // reverse a little: 4 s back down the road or 50 m behind the furthest point (highway.ts)
-  wrongway: atLoad('wrongway'),
   // the countryside highway's exit signs: the four real towns as parody puns (highway/extras.ts)
   exitpuns: atLoad('exitpuns'),
   // the night's canopy cut on the endless road too, worked out stretch by stretch as its props

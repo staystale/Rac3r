@@ -77,32 +77,7 @@ BUGS (each behind its own switch, measured, then a test link):
 1b. BUG 1 CONTINUED, THE FRONT TYRE SMOKE: PASSED 11-15, the default (TODO-DONE).
 3. THE HUD COVERS THE PLAYER'S CAR: PASSED 11-15, the default (TODO-DONE).
 4. RESETS NEVER AHEAD, NEVER ONTO A CAR, THE POLICE LEFT: PASSED 11-15, the default (TODO-DONE).
-5. WRONG WAY ON HIGHWAYS too quick (highway.ts BACK_T 1.2 s, BACK_M 30 m): time to turn round,
-   to spin or crash, to roll back a little.
-   BUILT 11-15 behind ?wrongway=1 (FIX.wrongway; testlist 'wrongway'): BACK_T 1.2 -> 4 s moving
-   back down the road faster than 3 m/s, BACK_M 30 -> 50 m behind the furthest point (BACK_V 3 m/s,
-   the off-road guard and the put-back unchanged). The endless roads only (circuits, stages, RX and
-   the Lab have no wrong-way guard).
-   MEASURED, headless, every car (tools/scratch/_wrongway.mjs; flat tarmac, the phone's pedal
-   ramps; worst car, its back-run = the guard's clock / metres back from the furthest point):
-   - TURN ROUND from rest facing back (full lock, throttle): 1.45 s / 8.3 m (RX Supercar; the
-     median car 0 s / 3.3 m); a three-point turn 0 s / 0.8 m.
-   - SPINS at 20, 30, 40 m/s (full lock and the handbrake 0.8 s, then the brake): 0 s / 0.1 m (the
-     cars stop facing 59-111 deg; past 90 deg the U-turn after it adds the turn's numbers).
-   - CRASHES, head-on at 25 + 25 m/s, both braking 1 s after the hit: into the same car up to
-     1.32 s / 6.9 m; into the heaviest traffic car (the muscle car, 1730 kg) up to 3.06 s / 35 m
-     (the Grass Special and the Mini; median 1.57 s / 11 m). Today's guard fires on 15 of 19.
-   - REVERSING: today's guard fires on every car after 1.7-2.5 s, 6.9-7.6 m of reversing.
-   PROPOSED AND BUILT: 4 s (the worst crash knock-back 3.1 s + 30 %) and 50 m (the worst
-   knock-back 35 m + 15 m). Deliberate wrong-way driving is still reset, now after 3.7-5.2 s and
-   31-50 m.
-   THE REAL GAME (tools/scratch/_wrongwaygame.mjs, the second PC, the player's input scripted;
-   motorway, twisty, Deaf Valley, walled x hatch, RX Supercar, tractor, F2, alone; a race with 2
-   AI and traffic on the motorway): OLD - reversing 15 m reset on all 16 (1.7-2.6 s, 7 m), knocked
-   back at 8 m/s reset on all 16 (1.2 s), the RX Supercar's turn round reset on all 4 roads; NEW -
-   none of those reset (up to 19 m reversed, 12 m back in a turn round, 12 m knocked back);
-   reversing on (80 m) resets at 4.5-5.4 s, 22-34 m back, driving the wrong way at 3.7-5.2 s,
-   31-50 m back, as the old one did at 1.7-2.6 s and 7-10 m.
+5. WRONG WAY ON HIGHWAYS too quick: PASSED 11-15, the default (TODO-DONE).
 6. A HIGHWAY RACE WON BY PULLING AWAY while OFF THE ROAD: not allowed (owner 11-13). Off the road
    still counts in a race to a line or against the clock.
    BUILT 11-15 behind ?offroadwin=1 (FIX.offroadwin; testlist 'offroadwin'). HOW IT IS WON NOW
