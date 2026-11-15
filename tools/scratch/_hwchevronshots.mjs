@@ -1,7 +1,7 @@
 // _hwchevronshots.mjs - THE HIGHWAY'S CHEVRON BOARDS (?hwchevron=1) photographed in the real game:
 // the autopilot down a highway; when a chevron board first stands 15-45 m ahead your car is held
-// still on the road beside it and the view pinned at zoom 1.2: a photo, then the same board
-// knocked flat (its fall set by hand). Prints the board's place against your car. Writes
+// still 5 m from it on the road's side and the view pinned at zoom 1.2: a photo, then the same
+// board knocked flat (its fall set by hand). Prints the board's place and paint. Writes
 // <OUT>/<on|off>-<scenery>-<road>-<W>x<H>-<up|down>.png.
 // [VIEW=390x844] [ROAD=twisty] [SCENERY=countryside] [HWCHEVRON=1] [OUT=dir] [LIMIT_S=240]
 //   node tools/scratch/_hwchevronshots.mjs
@@ -33,20 +33,25 @@ function boardAhead() {
 }
 
 /**
- * Page side: holds your car still on the road's middle beside a board, the view zoomed in.
+ * Page side: holds your car still 5 m from a board on the road's side of it (the view centres on
+ * your car), the view zoomed in; the board kept as window.__board.
  * @param index the board's index in the live loose objects
- * @returns the board's distance from the held car, m
+ * @returns the board's distance from the road's middle, m, and its paint
  */
 async function holdBeside(index) {
-  const game = window.__game, board = game.cones.list[index];
+  const game = window.__game, board = window.__board = game.cones.list[index];
   const { roadPose } = await import('/src/highway.ts');
-  const spot = roadPose(game.level, board._s ?? 0, 0), car = game.car;
+  const middle = roadPose(game.level, board._s ?? 0, 0), car = game.car;
+  const gap = Math.hypot(board.x - middle.x, board.y - middle.y);
+  const share = 5 / Math.max(5, gap);
+  const spot = { x: board.x + (middle.x - board.x) * share, y: board.y + (middle.y - board.y)
+    * share };
   game.setAutopilot(false);
   game.renderer.debugZoom(1.2);
   window.__hold = setInterval(() => {
-    Object.assign(car, { x: spot.x, y: spot.y, vx: 0, vy: 0, heading: spot.h, yawRate: 0 });
+    Object.assign(car, { x: spot.x, y: spot.y, vx: 0, vy: 0, heading: middle.h, yawRate: 0 });
   }, 4);
-  return Math.hypot(board.x - spot.x, board.y - spot.y).toFixed(1);
+  return `${gap.toFixed(1)} m from the road's middle, paint ${board.paint || 'none (rally yellow)'}`;
 }
 
 const server = await startServer();
@@ -71,18 +76,16 @@ try {
   }
   if (found < 0) console.log('no board met in', LIMIT_S, 's');
   else {
-    const gap = await page.evaluate(holdBeside, found);
+    const where = await page.evaluate(holdBeside, found);
     await page.waitForTimeout(1200);
     await page.screenshot({ path: `${OUT}/${tag}-up.png` });
-    const paint = await page.evaluate((index) => {
-      const obj = window.__game.cones.list[index];
-      obj.down = 1;
-      obj.moved = true;
-      return obj.paint || 'none (the rally yellow)';
-    }, found);
+    await page.evaluate(() => {
+      window.__board.down = 1;
+      window.__board.moved = true;
+    });
     await page.waitForTimeout(300);
     await page.screenshot({ path: `${OUT}/${tag}-down.png` });
-    console.log(`${tag}: board ${gap} m from the road's middle, paint ${paint}`);
+    console.log(`${tag}: board ${where}`);
   }
   console.log(errors.length ? 'page errors: ' + errors.slice(0, 3).join(' | ') : 'page errors: none');
 } finally {

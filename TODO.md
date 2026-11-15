@@ -196,6 +196,22 @@ BUGS (each behind its own switch, measured, then a test link):
     ignored switch 58), so its A/B (on 42-56, off 47-50) shows nothing above that. Switch off:
     renderhash --only highway SAME (f845dc16). Photos: tools/scratch/_hwmapshots.mjs.
 12. CHEVRON SIGNS in the country highways' lay-bys; on Deaf Valley too, fewer.
+    OWNER 11-15: the real-life rule - black-and-white boards on the OUTSIDE OF SHARP BENDS, not
+    in lay-bys; fewer on Deaf Valley; they topple when hit like the rally boards.
+    BUILT behind `?hwchevron=1` (FIX.hwchevron; highway/chevrons.ts; testlist 'hwchevron';
+    ENGINE.md THE HIGHWAY'S CHEVRON BOARDS). THE RULE: UK Traffic Signs Manual ch. 4 (diagram
+    515, "sharp changes in the direction of a road where a bend sign alone would not be a
+    sufficient warning", outside of the bend, never before it); SHARP = tighter than two steps
+    below the DMRB desirable minimum radius for the design speed: R 360 m on the motorways and
+    the dual carriageway (120 km/h), R 255 m on the single lane (100 km/h). One board each 48 m
+    of such a bend (Deaf Valley each 96 m), none within 20 m along of a lay-by or a station
+    (a station's brand board stood over one). TODAY (off): the rally boards (black / yellow) on
+    every bend tighter than R 650, none on Deaf Valley - and many in the lay-bys.
+    MEASURED (tools/scratch/_hwchevroncount.mjs, 20 km of each road, seed as the game's), boards
+    a km off -> on: motorway 6.3 -> 0.1, interstate 1.6 -> 0, dual 11.8 -> 1.7, single lane 14.3
+    -> 2.1; Deaf Valley 0 -> motorway 0.3, interstate 0, dual 1.0, single lane 0.8. In a lay-by
+    on their own side: dual 50 -> 0, single lane 74 -> 0. worldhash --highway 20: off SAME, on
+    DIFFERENT (highway only) [world][look].
 13. BARRELS (impact attenuators) at the ends of central reservations, walled edges and slip-road
     barriers, as in real life; infinite highways only. A barrel hit sprays water 2-6 squares.
 14. PARKED POLICE wake when passed with a wanted level on.
