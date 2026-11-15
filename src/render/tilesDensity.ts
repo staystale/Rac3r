@@ -1,8 +1,8 @@
-// The ground tiles at a density matched to the zoom, under ?tiledensity=1 (FIX.tiledensity): the
-// step drawn (tilesSteps.ts), a new step readied - painted and on the GPU over the whole view - a
-// little a frame before it is drawn, so a step change never stands in, shifts or uploads a view
-// at once; and the loading screen's PLAN: every tile the fly-in will show, on its path at the
-// real screen's size, painted and uploaded behind the bar (game/loading.ts).
+// The ground tiles at a density matched to the zoom (tiles.ts draws through it): the step drawn
+// (tilesSteps.ts), a new step readied - painted and on the GPU over the whole view - a little a
+// frame before it is drawn, so a step change never stands in, shifts or uploads a view at once;
+// and the loading screen's PLAN: every tile the fly-in will show, on its path at the real
+// screen's size, painted and uploaded behind the bar (game/loading.ts).
 import {
   DENSITY_STEPS, lowestZoomOf, stepForZoom, wantedStep, zoomOfStep,
 } from "./tilesSteps.ts";
@@ -254,7 +254,7 @@ export function tileLimit(tcx: DensityTiles, least: number, zoomMin: number) {
 }
 
 /**
- * What the loading screen asks of the renderer under ?tiledensity=1 (game/loading.ts,
+ * What the loading screen asks of the renderer for the ground (game/loading.ts,
  * render.ts loadingHelpers): the started fly-in's tiles planned, then painted and uploaded a slice
  * at a time (true while some are left).
  * @param ctx the renderer: its fly-in, hand-over zoom and the tile cache's plan calls

@@ -21,7 +21,7 @@
 // medianlamps, hwstations, desertroads, drivebridges passed 11-11; roadparity, bridgecars,
 // railbridges, roadtunnels, wobbly, stadeprance, police, trainlights, moveover, roadrage,
 // stationstops, carcache, carcull, coverlight passed 11-12; nighthw, exitpuns, hjfirs, rollhold,
-// stuckreset, croughedrx passed 11-15.)
+// stuckreset, croughedrx, tiledensity passed 11-15.)
 import { envValue } from './debug.ts';
 
 /**
@@ -57,10 +57,6 @@ export const FIX = {
   aislide: atLoad('aislide'),
   // a chasing police car sounds a siren, the light bar's twin (game/sirens.ts, audiosiren.ts)
   siren: atLoad('siren'),
-  // the ground tiles painted at a density matched to the zoom (zoom 1, 1/2 or 1/2.8 steps), a
-  // step drawn only once all of its view is painted and on the GPU; the loading screen paints and
-  // uploads all the fly-in will show, sized to the real screen (render/tiles.ts, game/loading.ts)
-  tiledensity: atLoad('tiledensity'),
   // a racer brakes enough to miss a stopped or much slower car in its path while going round it
   // (ai/stopDodge.ts); and two plain guards: the driver's wide-window read with a negative clock
   // (ai/driverDrive.ts targetEdge), a recovery clearing a NaN tyre wear (game/sim.ts recoverCar)

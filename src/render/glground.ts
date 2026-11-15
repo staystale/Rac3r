@@ -27,7 +27,7 @@ export interface GroundSink {
    * that is not done yet. Returns true when it uploaded or built mipmaps.
    */
   preload(source: HTMLCanvasElement, upload: boolean): boolean;
-  /** Whether a picture is on the GPU, with its mipmaps (tiles.ts ?tiledensity=1). */
+  /** Whether a picture is on the GPU, with its mipmaps (tilesDensity.ts). */
   has(source: HTMLCanvasElement): boolean;
 }
 

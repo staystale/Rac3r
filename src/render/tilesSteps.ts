@@ -1,7 +1,7 @@
-// The ground tiles' density steps under ?tiledensity=1 (tiles.ts). Off it every tile is painted
-// at the zoom-1 step and the GPU shrinks it: zoomed out at ZOOM_MIN 0.30 a view needs ~11x the
-// tiles of zoom 1, each painted and uploaded at full density. Here a tile is painted at the
-// coarsest of a few steps still at least as dense as the screen, so the GPU never enlarges one.
+// The ground tiles' density steps (tiles.ts). A tile painted at the zoom-1 step and shrunk by the
+// GPU made a view zoomed out at ZOOM_MIN 0.30 need ~11x the tiles of zoom 1, each painted and
+// uploaded at full density. A tile is painted at the coarsest of a few steps still at least as
+// dense as the screen, so the GPU never enlarges one.
 
 // the steps a tile may be painted at (zoom 2^(k/2): 1, 0.5, 0.354), finest first. Zoom 1 for the
 // zoom range 0.5-1 (all zoomed-in play: nothing changes there); 0.354 covers ZOOM_MIN 0.30 at

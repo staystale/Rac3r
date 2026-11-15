@@ -1,7 +1,8 @@
 // The GROUND TILES cache of the renderer: the zones' details, the track ribbon, lanes, patches,
-// covers, wear and kerbs painted into world-aligned tiles at ONE fixed density and drawn each
-// frame by the GPU ground (glground.ts), which paints the floor and zone fills itself (glpaint.ts),
-// snaps the palette and lays the hill shading over them (glshade.ts). Wear marks tiles stale.
+// covers, wear and kerbs painted into world-aligned tiles at the density step for the zoom
+// (tilesSteps.ts, tilesDensity.ts) and drawn each frame by the GPU ground (glground.ts), which
+// paints the floor and zone fills itself (glpaint.ts), snaps the palette and lays the hill shading
+// over them (glshade.ts). Wear marks tiles stale.
 import { LEVEL } from "../world/state.ts";
 import type { Settings } from "../core/settings.ts";
 import { COL } from "../world/colours.ts";
@@ -16,7 +17,6 @@ import type {
 // ZOOM_MIN: read only inside functions (draw time), so the import cycle is harmless
 import { ZOOM_MIN } from "../render.ts";
 import { trackCanvas } from '../core/memorybudget.ts';
-import { FIX } from '../core/fixes.ts';
 import { stepForZoom } from "./tilesSteps.ts";
 import {
   drawDensity, keepPlan, paintPlan, planFly, tileLimit, uploadPlan,
@@ -71,8 +71,8 @@ interface TilesCtx {
   TILE_PX: number;
   /** the tile canvases painted with worn cells in them (a wear reset stales only these) */
   WORN_TILES: WeakSet<HTMLCanvasElement>;
-  /** the cache's calls the density path uses (?tiledensity=1: tilesDensity.ts) */
-  ops?: DensityOps;
+  /** the cache's calls the density steps use (tilesDensity.ts) */
+  ops: DensityOps;
 }
 
 /** one tile being painted: its canvas, geometry and the strip it is on */
@@ -83,17 +83,18 @@ type TileJob = {
 };
 
 // The ribbon, lanes, patches and covers never change while you drive (wear and marks are drawn
-// over them), so they are painted into cached TILES, world-aligned squares at ONE density (the
-// zoom-1 step): the GPU scales them to any zoom (sharp-pixel filter, mipmaps), so no zoom step
-// ever shifts, stands in or flashes. A tile not ready yet is painted in at most the frame's
-// budget (tilesBudget.ts); the GPU-painted floor and zones under it are the real ground already.
+// over them), so they are painted into cached TILES, world-aligned squares at the coarsest density
+// step still as dense as the screen (tilesSteps.ts): the GPU scales them to the exact zoom
+// (sharp-pixel filter, mipmaps), and a new step is drawn only once its whole view is painted and on
+// the GPU (tilesDensity.ts), so a step change never shifts, stands in or flashes. A tile not ready
+// yet is painted in at most the frame's budget (tilesBudget.ts); the GPU-painted floor and zones
+// under it are the real ground already.
 // STRIPS: a tile is painted in this many bands of device rows, one band per stepTile (so a frame
 // can do one strip)
 const STRIPS = 4;
-// the one zoom step the tiles are painted at (zoom 1), the widest view's margin (the prefetch
-// covers the view at ZOOM_MIN / WIDE_MARGIN) and the tiles kept (the widest phone view is ~70
-// tiles of ~120 KB; behind and ahead of it fit too)
-const FIXED_STEP = 0, WIDE_MARGIN = 1.25, TILE_MAX = 200;
+// the fewest tiles kept (the widest phone view is ~70 tiles of ~120 KB; behind and ahead of it fit
+// too); a bigger screen keeps more (tilesDensity.ts tileLimit)
+const TILE_MAX = 200;
 
 /**
  * The zoom of a zoom step.
@@ -393,7 +394,7 @@ function drawFlyOverview(tcx: TilesCtx, sink: GroundSink, overview: Overview,
 }
 
 /**
- * The fly-in pre-paints only the tiles drawn after it (the fixed step) over the hand-over view,
+ * The fly-in pre-paints only the tiles drawn after it (the hand-over zoom's step) over its view,
  * and uploads them FLY_PREFETCH a frame, keeping the rest from expiring. MEASURED (owner's
  * phone): the hand-over frame uploaded every tile in view at once (59 uploads, 71 mipmaps, 32 ms);
  * uploading all tiles already painted in the first fly-in frame moved it there (46 uploads, 58
@@ -404,8 +405,7 @@ function drawFlyOverview(tcx: TilesCtx, sink: GroundSink, overview: Overview,
  */
 function prefetchFly(tcx: TilesCtx, sink: GroundSink, car: CamCar) {
   const { view, tiles } = tcx, { FLY_HANDOVER, FLY_PREFETCH } = tcx.helpers;
-  // (?tiledensity=1: the step the hand-over view is drawn at)
-  const step = FIX.tiledensity ? stepForZoom(FLY_HANDOVER) : FIXED_STEP;
+  const step = stepForZoom(FLY_HANDOVER);
   prefetch(tcx, step, car.x, car.y, FLY_HANDOVER, { n: FLY_PREFETCH });
   const tileWidth = tcx.TILE_PX / (view.PPM * zOfStep(step)), ppm = view.PPM * FLY_HANDOVER;
   const halfW = view.W / 2 / ppm, halfH = view.H / 2 / ppm;
@@ -419,31 +419,11 @@ function prefetchFly(tcx: TilesCtx, sink: GroundSink, car: CamCar) {
 }
 
 /**
- * Draws the tiles in view. Painting EVERY missing tile in the frame it appeared made frames up to
- * ~150 ms when ground scrolled in at speed (MEASURED at CPU x4), so at most the frame's budget is
- * painted and the rest arrive over the next frames (the GPU-painted floor and zones show
- * meanwhile).
- * @param tcx the tile context
- * @param sink the GPU ground
- * @param budget the frame budget
- */
-function drawTilesInView(tcx: TilesCtx, sink: GroundSink, budget: TileBudget) {
-  const { state } = tcx;
-  if (countMissing(tcx, FIXED_STEP) > 1) {
-    state.standIn = blitStep(tcx, sink, FIXED_STEP, budget) > 0;
-  } else {
-    blitStep(tcx, sink, FIXED_STEP, { n: Infinity });
-    state.standIn = false;
-  }
-  state.lastStep = FIXED_STEP;
-}
-
-/**
  * Evicts the least recently used tiles above the cache's size.
  * @param tcx the tile context
- * @param most the tiles kept (TILE_MAX; ?tiledensity=1 sizes it to the screen)
+ * @param most the tiles kept (tilesDensity.ts tileLimit: sized to the screen)
  */
-function evictTiles(tcx: TilesCtx, most = TILE_MAX) {
+function evictTiles(tcx: TilesCtx, most: number) {
   const { tiles } = tcx;
   if (tiles.size > most) {
     const old = [...tiles.entries()].sort((first, second) => first[1].used - second[1].used);
@@ -454,21 +434,10 @@ function evictTiles(tcx: TilesCtx, most = TILE_MAX) {
 }
 
 /**
- * Keeps everything the widest zoom (plus a margin) would show painted, one tile a frame while
- * nothing in view is missing, so a zoom-out never meets ground without its tiles.
- * @param tcx the tile context
- * @param fly the fly-in state, or a falsy value when not flying
- */
-function lookAhead(tcx: TilesCtx, fly: unknown) {
-  const { cam, state } = tcx;
-  if (!state.standIn && !fly) {
-    prefetch(tcx, FIXED_STEP, cam.x, cam.y, ZOOM_MIN / WIDE_MARGIN, { n: 1 });
-  }
-}
-
-/**
- * Draws the ground's tiles on the GPU ground (nothing while it cannot draw: a lost context comes
- * back by itself, glground.ts).
+ * Draws the ground's tiles on the GPU ground at the zoom's density step (nothing while it cannot
+ * draw: a lost context comes back by itself, glground.ts). Painting EVERY missing tile in the frame
+ * it appeared made frames up to ~150 ms when ground scrolled in at speed (MEASURED at CPU x4), so
+ * at most the frame's budget is painted and the rest arrive over the next frames.
  * @param tcx the tile context
  * @param wallDt the wall-clock seconds since the last frame
  * @param car the car for the fly-in prefetch and look-ahead, or null
@@ -481,20 +450,14 @@ function drawGround(tcx: TilesCtx, wallDt = 0, car: CamCar | null = null) {
   const sink = tcx.helpers.groundSink();
   if (!sink) return;
   const fly = tcx.helpers.getFly();
-  // (?tiledensity=1: the fly-in's planned tiles kept until it lands)
-  if (FIX.tiledensity) keepPlan(tcx, sink, fly);
+  // the fly-in's planned tiles kept until it lands
+  keepPlan(tcx, sink, fly);
   if (fly && fly.ov && view.zoom < tcx.helpers.FLY_HANDOVER) {
     drawFlyOverview(tcx, sink, fly.ov, car);
     return;
   }
-  if (FIX.tiledensity && tcx.ops) {
-    drawDensity(tcx, tcx.ops, sink, tileBudget(), fly, ZOOM_MIN);
-    evictTiles(tcx, tileLimit(tcx, TILE_MAX, ZOOM_MIN));
-    return;
-  }
-  drawTilesInView(tcx, sink, tileBudget());
-  lookAhead(tcx, fly);
-  evictTiles(tcx);
+  drawDensity(tcx, tcx.ops, sink, tileBudget(), fly, ZOOM_MIN);
+  evictTiles(tcx, tileLimit(tcx, TILE_MAX, ZOOM_MIN));
 }
 
 /**
@@ -525,15 +488,15 @@ export function createTiles(view: View, cam: Cam, settings: Settings, helpers: T
     paletteLUT: null,           // the pixel-mode palette lookup, built on first use
     wearDrainT: 0, seenEpoch: -1,
   };
-  const tcx: TilesCtx = {
-    view, cam, helpers, state: tileState, tiles, TILE_PX, WORN_TILES: new WeakSet(),
-  };
-  tcx.ops = {
+  const ops: DensityOps = {
     blitStep: (sink, step, budget) => blitStep(tcx, sink, step, budget),
     countMissing: (step) => countMissing(tcx, step),
     paintTile: (step, i, j) => paintTile(tcx, step, i, j),
     prefetch: (step, centreX, centreY, zoom, budget) =>
       prefetch(tcx, step, centreX, centreY, zoom, budget),
+  };
+  const tcx: TilesCtx = {
+    view, cam, helpers, state: tileState, tiles, TILE_PX, WORN_TILES: new WeakSet(), ops,
   };
   return {
     tileState, tiles, TILE_PX, zOfStep,
@@ -547,22 +510,7 @@ export function createTiles(view: View, cam: Cam, settings: Settings, helpers: T
     prefetch: (step: number, centreX: number, centreY: number, z: number, budget: TileBudget) =>
       prefetch(tcx, step, centreX, centreY, z, budget),
     /**
-     * Paints up to maxTiles of the tiles a view at zoom z round a spot shows, before any frame
-     * draws them (game/loading.ts: behind the loading screen); a new level's cache emptied first.
-     * @param centreX the spot, m
-     * @param centreY the spot, m
-     * @param z the zoom
-     * @param maxTiles the most to paint now
-     * @returns true when it painted its most (some may be left)
-     */
-    prepareAround: (centreX: number, centreY: number, z: number, maxTiles: number) => {
-      resetOnChange(tcx);
-      const budget = { n: maxTiles };
-      prefetch(tcx, FIXED_STEP, centreX, centreY, z, budget);
-      return budget.n === 0;
-    },
-    /**
-     * ?tiledensity=1, behind the loading screen: plans the fly-in's tiles (a new level's cache
+     * Behind the loading screen: plans the fly-in's tiles (a new level's cache
      * emptied first), then paints and uploads them a slice at a time.
      * @param views the fly-in's views from the hand-over on (centre, m; zoom), the landing last
      * @returns how many tiles the plan holds
@@ -571,7 +519,7 @@ export function createTiles(view: View, cam: Cam, settings: Settings, helpers: T
       resetOnChange(tcx);
       return planFly(tcx, views);
     },
-    paintPlan: (most: number) => paintPlan(tcx, tcx.ops!, most),
+    paintPlan: (most: number) => paintPlan(tcx, ops, most),
     uploadPlan: (most: number) => {
       const sink = helpers.groundSink();
       return sink ? uploadPlan(tcx, sink, most) : false;
