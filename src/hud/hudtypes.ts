@@ -12,7 +12,7 @@ export interface HudState {
   helpLabel: string;   // '?' (replay the guide) or 'II' (pause) with the menus on
   tyreHud: boolean;   // the player's TYRE / DAMAGE choice
   carDiagram: boolean;   // the diagram is drawn this frame
-  lapJokerRow: boolean;   // the lap panel has the joker's own third row this frame (?jokerrow=1)
+  lapJokerRow: boolean;   // the lap panel has the joker's own third row this frame
   mph: boolean; tempF: boolean;   // the units
   flagSeen: number; flagAt: number; flagTxt: string;   // the race flag banner
   drawLightsLater: (() => void) | null;   // the start lights / notices, drawn last

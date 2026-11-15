@@ -13,6 +13,19 @@ rolls - OWNER 11-07; the AI rework - Where we are 11-04; the driving root fix, t
 LIST 11-01; TypeScript, mud, grass, lamps - Queue; weather, surfaces, car systems, damage,
 lighting, bushes and trees - OWNER LIST 10-24; the checking tools - Tools that are wrong.
 
+## PASSED 11-15 (owner: "Pass for joker hud too") - THE JOKER LINE ON ITS OWN ROW, the default (was
+?jokerrow=1; solo the joker stays on row 2, as built).
+
+- THE JOKER LINE ON ITS OWN ROW (owner 11-15: "new line always so it never covers"). BUILT behind
+  `?jokerrow=1` (FIX.jokerrow; hud/laps.ts lapJokerRowShown, hud/layout.ts; testlist 'jokerrow').
+  MEASURED (tools/scratch/_jokerrowshots.mjs, Knobhill RX race, 3 AI, Edge): the lap panel's second
+  row has 104 px between its insets, P2/4 takes 25.9; JOKER TAKEN ✓ (83.4 px) ran 5.4 px into it
+  and +30 s EXTRA JOKER (84.0) 5.9 px, the rest clear by 6-27 px. The panel is the same 120 px at
+  every screen size, so the overlap was the same in landscape. ON: with AI cars the panel is one
+  13 px row taller (36 -> 49) and every joker line sits alone on the third row (shrunk to the
+  panel's width if ever needed); what hangs under the panel (track gauge, FPS strip, cone tally,
+  the ABS / TCS chips' clearance) moves down with it. Solo (no position) the joker keeps row two.
+
 ## PASSED 11-15 (owner: "Link seems good pass no more needed") - TODO 3a2 BUG 10, THE HIGHWAY
 RACERS AND ONCOMING TRAFFIC, and THE HIGHWAY PUT-BACK; now the default
 

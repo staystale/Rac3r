@@ -49,15 +49,4 @@ export const TEST_LIST: TestEntry[] = [
       + 'changes; road, lines or verges drawing in late after the bar or ahead of the car; any '
       + 'change when zoomed in (slow or stopped).',
   },
-  {
-    id: 'jokerrow',
-    added: '2026-11-15',
-    name: 'Joker line on its own row of the lap box, clear of your position',
-    where: 'Test link + &jokerrow=1: an RX RACE with AI cars (Knobhill, Slidden Hill), the phone '
-      + 'upright and on its side',
-    try: 'Watch the lap box top right through a race: JOKER TO DO, the arrows as you near it, IN '
-      + 'JOKER, JOKER TAKEN, JOKER DONE, a second joker, and the finish line.',
-    wrong: 'Any joker words touching P2/4 or the box edge; the box covering the minimap, the ABS / '
-      + 'TCS chips or anything under it; a gap row in the box with no AI cars.',
-  },
 ];

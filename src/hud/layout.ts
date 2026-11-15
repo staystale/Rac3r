@@ -37,7 +37,7 @@ function layoutCornerPanels(state: HudState, width: number, btnY: number, narrow
   // speed grows a car diagram when on (or when damaged), the whole panel while the speedo is hidden
   const speedH = (isHidden(state, 'speedo') ? 0 : 56) + (state.carDiagram ? DIAGRAM_H : 0);
   const speed = { x: width - MARGIN - 120, y: MARGIN, w: 120, h: speedH };
-  // two rows; a third for the joker line in a rallycross race with rivals (?jokerrow=1)
+  // two rows; a third for the joker line in a rallycross race with rivals
   const lapH = 36 + (state.lapJokerRow ? LAP_ROW_H : 0);
   const lap = { x: width - MARGIN - 120, y: speedH ? speed.y + speedH + 6 : MARGIN, w: 120,
     h: isHidden(state, 'lapTimer') ? 0 : lapH };

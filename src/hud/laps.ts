@@ -4,7 +4,6 @@
 import { LEVEL } from '../world/state.ts';
 import { COL } from '../world/colours.ts';
 import { querySubtrack } from '../world/tyrewall.ts';
-import { FIX } from '../core/fixes.ts';
 import { fmtTime, drawHudPanel, drawHudLabel, LAP_ROW_H } from './widgets.ts';
 import type { HudRace, HudStage, HudGame } from './hudtypes.ts';
 import type { HudRects } from './layout.ts';
@@ -109,19 +108,19 @@ export function drawHudLapJoker(ctx: CanvasRenderingContext2D, game: HudGame, ra
 }
 
 /**
- * Whether the lap panel gives the joker line its own third row (?jokerrow=1): a rallycross race
+ * Whether the lap panel gives the joker line its own third row (since 11-15): a rallycross race
  * with rivals, where the second row's right holds the position (P2/4) and a long joker line
  * (JOKER TAKEN) ran into it. Solo, the joker line is alone on the second row.
  * @param game the game
  * @returns true when the panel has the third row
  */
 export function lapJokerRowShown(game: HudGame): boolean {
-  return FIX.jokerrow && !!LEVEL.subtrack && !!LEVEL.joker && !LEVEL.endless && !LEVEL.stage
+  return !!LEVEL.subtrack && !!LEVEL.joker && !LEVEL.endless && !LEVEL.stage
     && !!game.race && game.race.on && !!game.ai && game.ai.length > 0;
 }
 
 /**
- * The joker line's place in the lap panel: the second row, or the third with ?jokerrow=1.
+ * The joker line's place in the lap panel: the second row, or the third in a race with rivals.
  * @param game the game
  * @param lapRect the lap panel rectangle
  * @returns the line's y (its middle) and the most width it may take, css px (0: any)
