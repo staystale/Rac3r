@@ -82,8 +82,13 @@ records in `TODO-DONE.md` (PASSED 11-12). On the phone now:
     alike within the runs' spread); the menu shows 0.4-0.7 s after its first frame, the fill and
     the two blinks asked for plus the menu race's frames delaying their timers; on a slow line also
     the bar's 38 KB of fonts (+0.1 s).
-  - PROOFS: verify clean; simhash SAME off and with bootbar=1; worldhash SAME off and BOOTBAR=1;
-    _loadmenu, menucheck, settingscheck OK.
+  - PROOFS (laptop, against references saved on 7d2b5777): verify clean; simhash SAME off and with
+    bootbar=1; worldhash SAME off and with BOOTBAR=1; _loadmenu all OK off and on; menucheck OK off,
+    and on once WRONG - the menu demo car's NaN state at 390x844 (the WATCH below, 11-04: it came
+    back), OK on the rerun; settingscheck FAILS 42 of 42 links on noLoadScreen ('got false, want
+    undefined') - the same on 7d2b5777 itself (the ?loadscreen=0 setting it does not know yet).
+  - PHOTOS (tools/scratch/_bootbarshots.mjs, 844x390 and 390x844): _bootbar-1-nofonts (the pane and
+    bar, the words waiting for their faces), -2-partfull, -3-flash, -4-menu.
 
 ## 3. OPEN, IN THE OWNER'S ORDER
 
