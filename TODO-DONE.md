@@ -19,7 +19,9 @@ RACERS AND ONCOMING TRAFFIC, and THE HIGHWAY PUT-BACK; now the default
 Was ?hwdodge=1 and ?hwputback=1 (ai/driverOncoming.ts, ai/driverTraffic.ts viewOf, game/ai.ts
 roadCtx and stepAIStuck); both switches and their test entries removed; proved by the base with
 both switches on against the new code plain (simhash, worldhash --highway 20, renderhash on the
-highway: SAME). The item as it stood (history; "under test" there is now the default):
+highway: SAME; the second PC). What the pass changes (simhash, round 48 plain against it with
+both switches): highway-ai and highway-traffic only, every circuit, stage and test run the same.
+The item as it stood (history; "under test" there is now the default):
 
 - OWNER 11-15 GO: options A + B only ("C would be too much"); "Over take when clear not when
   oncoming is there - driver skill can say it makes mistakes or miss judges tho". Police contact
@@ -86,6 +88,17 @@ highway: SAME). The item as it stood (history; "under test" there is now the def
   s): off - two racers put back in one step onto one spot (156.6 s, 1.6 m apart) and one onto a
   car (176.9 s); on - none from the off-road rule (the two injury put-backs near a car are not
   this rule).
+- DEAF VALLEY'S RACER-ON-RACER RISE TRACED 11-15, NOTHING CHANGED (tools/scratch/_hwracerhits.mjs:
+  each racer-on-racer touch counted once per pair, with both racers' road frames 1 / 0.5 / 0.2 s
+  before; hits within 3 s of each other one INCIDENT; the second PC, the dual at traffic 1.5, 5
+  AI, 180 s, seeds 1-9, off / on): INCIDENTS 72 in 252 racer-km (2.9 per 10 km) -> 66 in 238
+  (2.8): no more crashes. Pair touches 119 (4.7) -> 143 (6.0): the rise is in the pile-ups' size
+  (incidents of 5+ touches 3 -> 6; per seed 2.7-7.6 off, 0.8-10.9 on - noise-sized). Most
+  follow-on touches are a racer running into a racer stopped ahead (under 3 m/s) that it had in
+  its read window 1 s before - by the heading box AND the road box - and was not braking for 0.5
+  s before, going round it: off 13 of 17 such touches, on 15 of 22. That failure is the same
+  with the switch off: not caused by reading the cars by the road. Not fixed (an AI change: the
+  owner decides).
 
 ## PASSED 11-15 (owner: "Pass") - THE LOGO FADE: the boot bar's logo box empty until the logo has
 come (asked for at high priority), then faded in over 150 ms; the words (RAC3R, the blue 3) only
