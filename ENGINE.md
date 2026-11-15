@@ -520,3 +520,20 @@ The room behind the pole is the venue's (`VenueSpec.startLane.gridRoomM`, 75 m w
 bending up to 17 m east clear of the stand and the building west of it, 162 m behind the pole (21
 cars need 140 m). Every other level's grid takes the old path (all 49 grids' slots identical,
 `tools/scratch/_griddump.mjs`).
+CROUGHED RX (`world/levels/croughedrx-venue.ts`, behind `?croughedrx=1`): Croft's rallycross lap
+as a level of the Croughed venue (`Level.venue`) at full size, a build of its own from the circuit's
+map download (`tools/venues/croughedrx.json` -> `venues/croughedrx.ts`; the half-size circuit's
+`croughed.json` and its two levels untouched). The map leaves the Rallycross way's surface off: the
+config skips the way and carries it again in `extra` with its own nodes and surface=gravel (the
+source in the config: BRX reports, aerial photographs), so the lap is 1255 m (traced), tarmac 0-520 m
+(the Clervaux run, Clervaux, Hawthorn, the chicane), gravel 520-1255 m (59 %). The far circuit
+pieces are skipped, the Back Straight trimmed (`trim`) beside the gravel leg; the Clervaux trap
+carried from `croughed.json`. The gravel hairpin at its real radius (12.8 m traced: `minR` 10).
+The start lane is the Main Straight (`startLane` pieces Main Straight + Main Straight north,
+`gridRoomM` 320: the pole 55 m before the merge). The joker is hand-laid (`extra`, NOT REAL:
+Croft ran none) into the open infield east of the return leg, 23 m longer; the island's Armco
+joined at its noses (`tidyEdge`, `evenEdge`). The circuit's seen rails (`croughed-venue.ts
+CR_RAILS`) and its slope are shared. Dressing: grass banks (catch-fenced) inside the hairpin,
+between the start lane and the return leg and inside Hawthorn, crowds, Union flags, the paddock's
+hospitality units (`block` landmarks), transporters and spares (`dress`), a TV tower; the big
+screen stands in as a board (LIVE): no screen prop.

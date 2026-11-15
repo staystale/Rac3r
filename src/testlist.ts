@@ -31,6 +31,14 @@ export const TEST_LIST: TestEntry[] = [
       + 'wrong way on purpose and hold it.',
     wrong: 'WRONG WAY firing while you reverse a little or turn round; driving the wrong way '
       + 'on purpose not reset within about 4 s / 50 m.',
+    id: 'croughedrx',
+    added: '2026-11-15',
+    name: 'Croughed RX: Croft\'s rallycross at full size (tarmac, then gravel, a joker)',
+    where: 'Test link + &croughedrx=1: TRACKS, rallycross (or Croughed in ALL), any car, AI on',
+    try: 'Start on the Main Straight, race through Clervaux, Hawthorn and the chicane onto the '
+      + 'gravel, round the gravel hairpin and back; take the joker once (the infield loop).',
+    wrong: 'A car off the grid or stuck at the start, a barrier on the road, Armco ending in the '
+      + 'open, the hairpin too wide or too tight to drive, the dark map edge, a floating prop.',
   },
   {
     id: 'nighthw',

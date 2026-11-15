@@ -12,7 +12,7 @@
 // source); the circuit's pieces it runs over are tarmac.
 // THE JOKER (the shared joker rule): Croft ran none (BRX reports 2017, 2018); the owner asked for
 // the joker choice, so a gravel joker is laid by hand into the open infield off the return leg
-// (TODO 3b: the owner's question) - 24 m longer round two tight bends.
+// (TODO 3b: the owner's question) - 23 m longer round two bends.
 // WHAT IT IS MEANT TO FAIL YOU AT: the gravel hairpin at its real size; the changes from tarmac to
 // gravel and back (the grip changes through the lap: brake for the chicane's exit on the tarmac,
 // not on the gravel past it); the joker's choice.
@@ -103,6 +103,10 @@ export const CROUGHEDRX_SPEC: VenueSpec = {
   seed: 1967,
   followRails: true,
   railsSeen: CR_RAILS,
+  // tidied and made even (world/venuetidy.ts, world/stadiumtidy.ts): the lap's Armco and the
+  // joker's met at the joker island's two noses doubled over 10-12 m; joined, they close it
+  tidyEdge: true,
+  evenEdge: true,
   // the joker: the joker loop's way round the infield east of the return leg
   joker: { layout: 'rx', loop: 'joker', near: [140, -70] },
   landmarks: [...CROWD, ...FLAGS],
