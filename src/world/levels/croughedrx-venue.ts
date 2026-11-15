@@ -38,22 +38,22 @@ const UNION = ['#c8342a', '#f0f0ea', '#1d3f9a'];
 // chicane's turn onto the gravel
 const BANKS: VenueSpec['banks'] = [
   { pts: [[112, 26], [128, 56]], r: 6, h: 2.5 },
-  { pts: [[76, -75], [80, -40], [84, -5]], r: 7, h: 2.5 },
+  { pts: [[86, -80], [89, -45], [92, -10]], r: 6, h: 2.5 },
   { pts: [[195, -300], [232, -308], [268, -300]], r: 9, h: 3 },
 ];
 
 // the crowd on the banks, facing the road
 const CROWD: NonNullable<VenueSpec['landmarks']> = [
   { at: [120, 41], kind: 'crowd', size: 3, len: 9, rot: 1.08, seed: 1 },
-  { at: [78, -58], kind: 'crowd', size: 3, len: 9, rot: 1.46, seed: 2 },
-  { at: [82, -22], kind: 'crowd', size: 3, len: 9, rot: 1.46, seed: 3 },
+  { at: [87, -62], kind: 'crowd', size: 3, len: 9, rot: 1.49, seed: 2 },
+  { at: [90, -27], kind: 'crowd', size: 3, len: 9, rot: 1.49, seed: 3 },
   { at: [212, -304], kind: 'crowd', size: 3, len: 9, rot: -0.2, seed: 4 },
   { at: [250, -304], kind: 'crowd', size: 3, len: 9, rot: 0.2, seed: 5 },
 ];
 
 // Union flags behind the banks, red, white and blue in turn
 const FLAGS: NonNullable<VenueSpec['landmarks']> = [[195, -314], [215, -318], [235, -320],
-  [255, -318], [69, -70], [72, -35], [76, 0]].map(([x, y], i) => ({ at: [x, y] as [number, number],
+  [255, -318], [87, -75], [90, -40], [92, -8]].map(([x, y], i) => ({ at: [x, y] as [number, number],
   kind: 'flag', size: 1, col: UNION[i % UNION.length] }));
 
 // the paddock between the service road and the Clervaux run (real m): the hospitality units (flat
