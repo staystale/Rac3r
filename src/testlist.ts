@@ -48,17 +48,6 @@ export const TEST_LIST: TestEntry[] = [
       + 'the formation crawling or the green taking much longer.',
   },
   {
-    id: 'resetback',
-    added: '2026-11-15',
-    name: 'Resets never put you ahead, never onto a car, and leave the police',
-    where: 'Test link + &resetback=1: a circuit race, rallycross (the joker lane too), a rally '
-      + 'stage, the highway with traffic and police, the Test Lab; phone upright and on its side',
-    try: 'Go off, drive back down the grass, then RESET; reset with a rival on the spot; on the '
-      + 'highway go the wrong way, go far off the road, and RESET with the police behind you.',
-    wrong: 'A reset that puts you further on than you were, onto or into a car, or makes a '
-      + 'police car vanish; a reset onto the other carriageway or off the road.',
-  },
-  {
     id: 'wrongway',
     added: '2026-11-15',
     name: 'Highway WRONG WAY reset waits: turn round, reverse a little, get knocked back',

@@ -13,7 +13,7 @@
 // jam and missed the ones rocking on their drive-outs (over 1 m/s while reversing: 10-15 s
 // stuck), the ones creeping backwards out of a jam, and the ones bogged in the Sahara's sand at
 // ~2 m/s (20-29 s); its put-back went 4 m behind where the car last was on the road, onto the jam.
-// Put back the way your reset is (?resetback=1, game/resetspot.ts): never ahead of where the car
+// Put back the way your reset is (game/resetspot.ts): never ahead of where the car
 // is, the next free spot behind a car in the way.
 import { game } from './state.ts';
 import { LEVEL } from '../world/state.ts';

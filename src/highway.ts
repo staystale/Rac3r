@@ -393,7 +393,7 @@ export function highwayGuard(level: HwLevel, car: HwCar, dt: number) {
 }
 /**
  * The put-back pose (wrong way, off the road, an exit taken): the hard shoulder, a few metres
- * short of the furthest point reached - or of fromS when that is further back (?resetback=1: the
+ * short of the furthest point reached - or of fromS when that is further back (your resets: the
  * car's own road distance, never ahead of it) - facing up the road.
  * @param level the highway level
  * @param fromS road distance the put-back may not pass, m

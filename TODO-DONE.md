@@ -43,6 +43,15 @@ code plain (simhash, worldhash, renderhash the same).
   x1 (the fill and the two blinks after the menu's own first frame), -0.06 s at x4, +0.74 s on a
   4G-like line; a fresh browser's first paint 44-108 ms with it (2.0-3.5 s and the boot screen
   never seen without). The logo and thumbnails not waited for (waiting made the menu later).
+- RESETS NEVER AHEAD, NEVER ONTO A CAR, THE POLICE LEFT (was ?resetback=1; game/resetspot.ts).
+  Every reset of yours (R / RESET, the endless road's guard, a big cut's put-back, the Lab's
+  breadcrumbs): from the earlier of where the car left the road and where it is, never ahead; a
+  car in the way (a racer; on the endless road a police car) - the next free spot 6 m further
+  back; the police are not cleared. MEASURED (tools/scratch/_resetback.mjs, the real game): back
+  down a run-off 30 m, RESET put you 24-25.5 m AHEAD before, now 4.5-6 m behind (Thruston, Knobhill
+  RX, a stage, Sweaty Lamb); a reset onto an AI car landed on it every time before, now 6 m behind;
+  the joker lane +21 m -> -4 / -12 m; the endless road's wrong-way guard +32..+35 m ahead on the
+  motorway -> 6-8 m behind; a chasing police car at an R: cleared before, kept now.
 
 ## PASSED 11-14 (owner: "Pass all four") - THE LOADING SCREEN, THE RESTART FIX, THE SMOOTH FLY-IN, THE NIGHT FLY-IN; now the default
 

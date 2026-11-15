@@ -204,8 +204,8 @@ export function penaliseCut(car: GameCar, cut: CutRun) {
  */
 export function putBackCut(car: GameCar, cut: CutRun) {
   const sub = LEVEL.subtrack!;
-  // (?resetback=1, yours: a car in the way - the next free spot behind)
-  const dist = FIX.resetback && car === game.car ? firstFree(cut.q!, (spotAt) => {
+  // (yours: a car in the way - the next free spot behind)
+  const dist = car === game.car ? firstFree(cut.q!, (spotAt) => {
     const onRoad = onTrack(sub, spotAt, 0, {});
     return { x: onRoad.x, y: onRoad.y, heading: onRoad.rot };
   }, lapStepBack(sub)) : cut.q!;

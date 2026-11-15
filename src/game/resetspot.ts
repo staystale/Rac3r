@@ -1,4 +1,4 @@
-// game/resetspot.ts - WHERE A RESET MAY PUT YOUR CAR (?resetback=1, TODO 3a2 bug 4): never ahead
+// game/resetspot.ts - WHERE A RESET MAY PUT YOUR CAR (TODO-DONE 11-15): never ahead
 // of where the car is when the reset comes - in line or behind only, so a reset can never gain a
 // place - and never onto another car: a spot with a car in it gives way to the next free spot
 // behind. Used by every reset of yours (game/session.ts doReset, the endless road's guard in

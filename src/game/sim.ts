@@ -4,7 +4,7 @@ import { TYRE_LOOK } from '../carpaint.ts';
 import { realScale } from '../carreal.ts';
 import { hwLevel, hwFlow } from './state.ts';
 import { step, reset, assertFinite, PHYSICS_STEP_SECONDS } from '../vehicle.ts';
-import { stepHighway, highwayGuard, highwayRespawn, speedCamera } from '../highway.ts';
+import { stepHighway, highwayGuard, speedCamera } from '../highway.ts';
 import { blocked } from '../highway/cuts.ts';
 import { carContacts } from '../contact.ts';
 import { hit, hitRoll, repair, applyBurst, stepDamage } from '../damage.ts';
@@ -323,25 +323,24 @@ export function stepEndlessHighway() {
     if (game.trackD != null) game.trackD -= shift;
   }
   // THE TREADMILL GUARD (requirement: go backwards should reset you): wrong way / dropped back /
-  // off the motorway -> put back in the left lane at the furthest point
-  // reached, rolling at 60 % of the speed you had (or 15 m/s), with the reason shown
+  // off the motorway -> put back in the left lane, rolling at 60 % of the speed you had (or 15
+  // m/s), with the reason shown
   const why = highwayGuard(hwLevel(), game.car, PHYSICS_STEP_SECONDS);
   // the going-wide countdown
   const warn = hwLevel()._hw.warn;
   if (warn) game.notice = { text: warn, at: performance.now() };
   streamHighwayLitter();
   if (why) {
-    // (?resetback=1: from the car's own road distance, never ahead of it, the first spot free of
-    // cars from there back, room kept ahead for the speed it rolls on at)
+    // (from the car's own road distance, never ahead of it, the first spot free of cars from
+    // there back, room kept ahead for the speed it rolls on at)
     const speed = Math.max(15, 0.6 * Math.hypot(game.car.vx, game.car.vy)),
-      spot = FIX.resetback ? respawnBehind(hwLevel(), hwLevel()._hw.q?.s ?? Infinity,
-        speed * ROLL_CLEAR_S) : highwayRespawn(hwLevel());
+      spot = respawnBehind(hwLevel(), hwLevel()._hw.q?.s ?? Infinity, speed * ROLL_CLEAR_S);
     repair(game.car);
     resetCar(game.car, spot.x, spot.y, spot.h);
     game.car.vx = Math.cos(spot.h) * speed;
     game.car.vy = Math.sin(spot.h) * speed;
-    // never put back into (or right behind) a traffic car (?resetback=1: the police stay)
-    game.traffic.clearAround(spot.x, spot.y, 30, FIX.resetback);
+    // never put back into (or right behind) a traffic car (the police stay)
+    game.traffic.clearAround(spot.x, spot.y, 30, true);
     shared.lastOnTrack = null;
     shared.breadcrumbs.length = 0;
     if (shared.renderer && shared.renderer.snap) shared.renderer.snap(game.car);
