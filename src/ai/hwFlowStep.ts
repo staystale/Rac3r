@@ -74,7 +74,10 @@ export function stepFlow(ctx: HwCtx, dt: number) {
   // `top` = the rival you have to catch: the LAST one
   const myS = sOf(myEntry), top = rivals.reduce((slowest, entry) =>
     (sOf(entry) < sOf(slowest) ? entry : slowest), rivals[0]);
-  const kind = withGrace(flow, dueKind(ctx, myS, rivals, top), dt);
+  let kind = withGrace(flow, dueKind(ctx, myS, rivals, top), dt);
+  // (?offroadwin=1: no getaway off the road - its count runs only on the road, and starts
+  // again from full each time you come back to it)
+  if (kind === 'behind' && ctx.offRoad && ctx.offRoad()) kind = null;
   switchKind(ctx, kind);
   const gap = sOf(top) - myS;
   trackGap(ctx, gap, dt);

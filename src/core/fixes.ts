@@ -51,6 +51,9 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
+  // no highway race won by pulling away off the road: the getaway's count runs only while you
+  // are on it, from the start each time you come back (ai/hwFlowStep.ts)
+  offroadwin: atLoad('offroadwin'),
   // a reset never puts you ahead of where you were, takes the next free spot behind a car in the
   // way, and leaves the police (game/resetspot.ts)
   resetback: atLoad('resetback'),

@@ -410,6 +410,16 @@ export function highwayRespawn(level: HwLevel, fromS = Infinity) {
 }
 
 /**
+ * How far the player's car is past the road's edge, as the guard measured it on its last step
+ * (a lay-by, a station's forecourt and the side road are road; 0 just after a put-back).
+ * @param level the highway level
+ * @returns m out past the edge (<= 0 on the road)
+ */
+export function playerOutM(level: HwLevel): number {
+  return stateOf(level).outPrev ?? 0;
+}
+
+/**
  * The off-road guard's memory cleared, as a new road starts it (stepOffCountdown).
  * @param state the highway state
  */

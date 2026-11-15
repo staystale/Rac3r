@@ -4,7 +4,7 @@ import { hazardsAfterReset } from './resethazard.ts';
 import { lineUpCrashBench } from './crashbench.ts';
 import { hwLevel } from './state.ts';
 import { reset } from '../vehicle.ts';
-import { resetHighway, roadFrame, roadPose, roadSpan, highwayRespawn, rehome }
+import { resetHighway, roadFrame, roadPose, roadSpan, highwayRespawn, rehome, playerOutM }
   from '../highway.ts';
 import { bayBehind } from '../highway/laybys.ts';
 import { shoulderOff } from '../highway/road.ts';
@@ -335,7 +335,9 @@ export function buildFlow() {
   // the HIGHWAY: no laps — the race ends on the off-screen countdowns (highwayrace.js
   // createHwFlow); "on screen" = the renderer's real view
   if (LEVEL.endless) {
-    return createHwFlow({ lv: hwLevel(),
+    // (?offroadwin=1: the getaway counts only on the road - the car's middle inside its edge)
+    return createHwFlow({ lv: hwLevel(), offRoad: FIX.offroadwin
+      ? () => playerOutM(hwLevel()) > 0 : undefined,
       cars: [{ car: game.car, player: true }, ...game.ai.map((entry) => ({ car: entry.car }))],
         visible: (car) => onScreen(car.x, car.y), finish: finishOf(shared.hwFinish) });
   }

@@ -98,13 +98,14 @@ export function hwPutBack(level: HighwayLevel, dist: number, cars: AiCar[]) {
 // green; flow.order -> your position. Results rows are raceflow.ts-shaped (+ dist / gapM) so
 // menu.ts can show them; flow.highway marks the distance table.
 export function createHwFlow(
-  { lv, cars, visible, count = HW_COUNT, catchT = HW_CATCH, finish = null }: HwFlowArgs) {
+  { lv, cars, visible, count = HW_COUNT, catchT = HW_CATCH, finish = null, offRoad }: HwFlowArgs) {
   const sRef = roadFrame(lv, lv.spawn.x, lv.spawn.y, null)!.s;   // ! : null before the road exists
   const entries = cars.map(({ car, player }) => ({ car, player: !!player }));
   const flow: HwFlow = { highway: true, state: 'racing', t: 0, laps: 0, entries: entries, flags: [],
     results: null, cd: null, cdKind: null, cdHold: false, myPlace: null,
     finish: finish ? { ...finish, ...(finish.m ? { s: sRef + finish.m } : {}) } : null };
-  const ctx: HwCtx = { flow, entries, visible, count, catchT, sRef, gapPrev: null, gapRate: 0 };
+  const ctx: HwCtx = { flow, entries, visible, count, catchT, sRef, gapPrev: null, gapRate: 0,
+    offRoad };
   clearFinishLine(lv);
   flow.order = () => order(ctx);
   flow.step = (dt: number) => {
