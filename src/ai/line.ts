@@ -551,7 +551,7 @@ function regripPath(path: Path) {
  * The speed plan's corner and braking grip factors for a car.
  * @param spec the car
  * @param kBo the driver's braking grip, if its own
- * @param paceK ?aipace=1's PACE dial (ai/tune.ts), 1 without it
+ * @param paceK the PACE dial's multiplier (ai/tune.ts paceOf), 1 by default
  * @returns the corner and braking factors
  */
 function planGrips(spec: AiCar["spec"], kBo: number | undefined, paceK: number) {

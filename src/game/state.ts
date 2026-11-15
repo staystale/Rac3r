@@ -81,8 +81,6 @@ export type AiDriver = ReturnType<typeof createAIDriver>;
 export interface AiEntry extends FormKeeper {
   car: GameCar; drv: AiDriver;
   inGate: boolean;
-  // its place in the field it was dealt from (ai/traits.ts aiTraits): the live dials deal it again
-  seat?: { index: number; count: number; seed: number };
   offT?: number;   // seconds off the road
   // where it has stood, since when, and whether it has backed up (game/aistuck.ts)
   stuckWatch?: StuckWatch;
@@ -181,7 +179,6 @@ export interface Shared {
   aiCount: number; aiDiff: number; aiCarMode: string; raceLaps: number; gridSlot: number;
   hwFinish?: string | null;   // the highway's finish code (highway/finish.ts)
   aiTune?: AiTune | null;   // the dials of this session's field
-  aiTuneStart?: AiTune | null;   // the dials it was launched with (?aipace=1's live RESET)
   trafficDensity: number;
   demo: AiDriver | null; demoStill: number;
   demoHurt?: HurtEntry;   // the menu demo car, hurt (game/ai.ts stepAIInjury)

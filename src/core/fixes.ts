@@ -21,7 +21,8 @@
 // medianlamps, hwstations, desertroads, drivebridges passed 11-11; roadparity, bridgecars,
 // railbridges, roadtunnels, wobbly, stadeprance, police, trainlights, moveover, roadrage,
 // stationstops, carcache, carcull, coverlight passed 11-12; nighthw, exitpuns, hjfirs, rollhold,
-// stuckreset, croughedrx, tiledensity passed 11-15.)
+// stuckreset, croughedrx, tiledensity, aipace (its live pause-menu dials removed), aislide passed
+// 11-15.)
 import { envValue } from './debug.ts';
 
 /**
@@ -55,9 +56,6 @@ export const FIX = {
   // the AI's slides (TODO 3a2 bug 9): held at each surface's own best slip angle, more corner speed
   // off tarmac, the kerbs used, mistakes by skill (ai/driverSlide.ts)
   aislide: atLoad('aislide'),
-  // the AI DRIVERS dials' PACE (the speed plan's corner and braking grip, ai/tune.ts) and the dials
-  // moved LIVE from the test-mode pause menu (menu/aidrivers.ts showLiveDials, game/aitune.ts)
-  aipace: atLoad('aipace'),
   // a chasing police car sounds a siren, the light bar's twin (game/sirens.ts, audiosiren.ts)
   siren: atLoad('siren'),
 };

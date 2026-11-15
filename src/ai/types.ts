@@ -38,7 +38,7 @@ export interface Traits {
   seed: number;
   risk?: number;     // 0..1, later braking / faster entries
   kBrake?: number;   // the braking grip it plans (line.ts K_BRAKE by default)
-  paceK?: number;    // ?aipace=1: its speed plan's corner and braking grip x this (ai/tune.ts)
+  paceK?: number;    // its speed plan's corner and braking grip x this (ai/tune.ts PACE)
   power?: number;    // its engine power share (a weak driver gives a little away)
 }
 
