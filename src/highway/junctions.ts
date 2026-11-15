@@ -11,6 +11,8 @@ import { blocked, isSignClear, keepOut } from './cuts.ts';
 import { RING_LANE_M, RING_OUTER_M, RING_R, ringCentre } from './ringgeo.ts';
 import type { Lane, Point, Prop } from '../world/types.ts';
 import type { HwLevel, HwPose, KeepRect } from './hwtypes.ts';
+import { FIX } from '../core/fixes.ts';
+import { noteSlipNose } from './cushions.ts';
 
 // road points from the off-slip's start to the bridge and from the bridge to the on-slip's end
 // (4 m apart: 120 m - room to climb to the ring and to come down)
@@ -120,7 +122,10 @@ export function layJunction(level: HwLevel, fromIdx: number, bridge: Prop, bridg
   // into the ring at its back (the motorway's way behind), out of it at its front
   const entry: Point = [near[0] - along[0] * RING_R, near[1] - along[1] * RING_R];
   const exit: Point = [near[0] + along[0] * RING_R, near[1] + along[1] * RING_R];
-  laySlip(level, curveBetween([start.x, start.y], headingOf(fromIdx), entry, along), dist);
+  const offSlip = curveBetween([start.x, start.y], headingOf(fromIdx), entry, along);
+  laySlip(level, offSlip, dist);
+  // (?hwbarrels=1: crash-cushion barrels at the off-slip's nose)
+  if (FIX.hwbarrels) noteSlipNose(level, offSlip, SLIP_WIDTH_M, dist);
   laySlip(level, curveBetween(exit, along, [end.x, end.y], headingOf(toIdx)), dist);
   layRing(level, near, dist);
   layRing(level, far, dist);

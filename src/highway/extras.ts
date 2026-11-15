@@ -13,6 +13,8 @@ import { layServices, newServices, servicesDue as yardDue, servicesOut } from '.
 import { SIDE_OUT } from './cuts.ts';
 import { gorgeAt } from './gorge.ts';
 import { JUNCTION_SHARE, LEAD_POINTS, layJunction } from './junctions.ts';
+import { FIX } from '../core/fixes.ts';
+import { noteSlipNose } from './cushions.ts';
 
 // a SERVICES (highway/stations.ts): m between them, the least and the most; the
 // first one's road distance; m the side road runs beside the motorway past it
@@ -248,6 +250,8 @@ function buildSlip(level: HwLevel, i: number, dist: number, pointAt: (i: number,
       _s: dist,
     };
   level.lanes.push(lane);
+  // (?hwbarrels=1: crash-cushion barrels at its nose)
+  if (FIX.hwbarrels) noteSlipNose(level, line, SLIP_W, dist);
   const putGate = addSlipGate(level, line, mark);
   keepOut(
     level,

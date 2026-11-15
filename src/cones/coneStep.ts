@@ -72,7 +72,8 @@ function moveWobble(ctx: ConesCtx, obj: Loose, dt: number, speed: number) {
  */
 function moveFlat(obj: Loose, dt: number) {
   const dragVal = (obj.kind === 'banger' || obj.kind === 'caravan' || obj.kind
-      === 'podium' || obj.kind === 'bale' || obj.kind === 'straw' || obj.kind === 'cow')
+      === 'podium' || obj.kind === 'bale' || obj.kind === 'straw' || obj.kind === 'cow'
+      || obj.kind === 'cushion')
       ? 6.5
     : obj.kind === 'tyrestack' || obj.kind === 'sheep' ? 4.5 : obj.kind === 'tyre' ? 3.8
         : obj.kind === 'barrel' ? 1.6 : obj.kind === 'tarp' ? 5 : BROKEN.has(obj.kind) ? 7

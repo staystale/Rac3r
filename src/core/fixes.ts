@@ -60,4 +60,8 @@ export const FIX = {
   aipace: atLoad('aipace'),
   // a chasing police car sounds a siren, the light bar's twin (game/sirens.ts, audiosiren.ts)
   siren: atLoad('siren'),
+  // the highways' crash-cushion barrels: water-filled clusters where a slip road leaves and at the
+  // ends of the central reservation's barriers; a hit leaks or pops them, spraying water
+  // (highway/cushions.ts, cones/coneCushion.ts)
+  hwbarrels: atLoad('hwbarrels'),
 };

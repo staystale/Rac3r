@@ -60,4 +60,8 @@ export const COL = {
   mapFuel: '#3faa4c',
   // a road sign's white: the highway's chevron boards' chevrons (highway/chevrons.ts)
   signWhite: '#efefea',
+  // the highways' crash-cushion barrels (highway/cushions.ts): the roadside barrel's blue on the
+  // countryside, the rally boards' yellow on Deaf Valley
+  cushionBlue: '#2b56b5',
+  cushionYellow: '#f2c21b',
 };

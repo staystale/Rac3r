@@ -134,11 +134,12 @@ function heatPower(state: EngineState): number {
 
 /**
  * Water lands on the ground under the radiator: bare ground in that wear cell becomes the tyres'
- * water (as meltwater does, world/puddles.ts); a cell already covered takes it in.
+ * water (as meltwater does, world/puddles.ts); a cell already covered takes it in. (A crash-cushion
+ * barrel's water lands the same way: cones/coneCushion.ts.)
  * @param x world x, m
  * @param y world y, m
  */
-function wetCellAt(x: number, y: number) {
+export function wetCellAt(x: number, y: number) {
   const cell = getCell(Math.floor(x / WEAR_CELL), Math.floor(y / WEAR_CELL), true);
   if (!cell || cell.fixed || cell.cover) return;
   cell.cover = 'wet';
