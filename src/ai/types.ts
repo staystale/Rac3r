@@ -8,6 +8,7 @@ import type { AxlePeaks } from "../physics/wheelspin.ts";
 import type { DamageCar } from "../damage.ts";
 import type { HwLevel } from '../highway/hwtypes.ts';
 import type { TrafficPolice } from './trafficPolice.ts';
+import type { StoppedCar } from './stopDodge.ts';
 
 // One row of DIFFICULTIES: the centre of a difficulty's spread.
 export interface Difficulty {
@@ -267,6 +268,8 @@ export interface CarsAcc {
   atkLat?: number;
   // the cars seen (gap spotting, ai/gapPick.ts)
   seen?: { fwd: number; lat: number; v: number; across: number; along: number }[];
+  // the cars not racing ahead, stopped or crawling (?stopdodge=1, ai/stopDodge.ts)
+  stopped?: StoppedCar[];
 }
 export interface CarsEnv {
   car: AiCar; path: Path<DrivePoint>; nearIdx: number; idx: (pos: number) => number;
@@ -321,6 +324,8 @@ export interface CircuitState extends DriveOutState {
   gridLat?: number;   // drive: set with goT, its offset from the line when it set off
   wide?: number;   // drive: the width allowed while going round a car outside the usual edge
   wideUntil?: number;   // drive: set with wide
+  // ai/stopDodge.ts: the stopped car in my way judged last, and how far off that judgement is
+  stopCar?: AiCar | null; stopJudge?: number;
   obst?: number;   // drive: seconds spent dodging loose objects
   nearT?: number;   // drive: seconds with a car ahead
   nAtk?: number;   // drive: attacks made

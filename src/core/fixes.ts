@@ -57,6 +57,10 @@ export const FIX = {
   aislide: atLoad('aislide'),
   // a chasing police car sounds a siren, the light bar's twin (game/sirens.ts, audiosiren.ts)
   siren: atLoad('siren'),
+  // a racer brakes enough to miss a stopped or much slower car in its path while going round it
+  // (ai/stopDodge.ts); and two plain guards: the driver's wide-window read with a negative clock
+  // (ai/driverDrive.ts targetEdge), a recovery clearing a NaN tyre wear (game/sim.ts recoverCar)
+  stopdodge: atLoad('stopdodge'),
   // the ground tiles' look-ahead paints toward where the car is going and puts them on the GPU
   // before they scroll into view, one tile a frame, never on a frame that painted one in view
   // (render/tiles.ts lookAheadSpread)

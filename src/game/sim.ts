@@ -42,7 +42,22 @@ export function recoverCar(why: unknown) {
   game.car.x = shared.lastGood.x;
   game.car.y = shared.lastGood.y;
   game.car.heading = shared.lastGood.heading;
+  if (FIX.stopdodge) clearBadWear(game.car);
   doReset();
+}
+
+/**
+ * A plain guard (?stopdodge=1): a tyre's wear left NaN by a bad step goes back to the set's wear
+ * at the event's start (0 for a set with none) - nothing else clears it, and a NaN wear makes
+ * every later step bad too.
+ * @param car the car (tyreWear changed in place)
+ */
+function clearBadWear(car: Car) {
+  const wear = car.tyreWear, start = car.tyreWearStart;
+  if (!wear) return;
+  for (let i = 0; i < wear.length; i++) {
+    if (!Number.isFinite(wear[i])) wear[i] = start && Number.isFinite(start[i]) ? start[i] : 0;
+  }
 }
 
 /**
