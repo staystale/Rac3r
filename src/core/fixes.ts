@@ -61,4 +61,7 @@ export const FIX = {
   // (ai/stopDodge.ts); and two plain guards: the driver's wide-window read with a negative clock
   // (ai/driverDrive.ts targetEdge), a recovery clearing a NaN tyre wear (game/sim.ts recoverCar)
   stopdodge: atLoad('stopdodge'),
+  // the endless roads' minimap shows the roads leaving the motorway, the petrol stations and the
+  // police (hud/minimapHighway.ts)
+  hwmap: atLoad('hwmap'),
 };

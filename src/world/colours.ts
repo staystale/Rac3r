@@ -56,4 +56,6 @@ export const COL = {
   // fluorescent yellow, its white body and roof, the roof number's black
   battenBlue: '#1f4fc4', hiVis: '#d4ec1c', policeWhite: '#f2f2ee', roofNumber: '#14161b',
   fencePost: '#5f626d',
+  // a petrol station's pump on the highway's minimap (hud/minimapHighway.ts)
+  mapFuel: '#3faa4c',
 };

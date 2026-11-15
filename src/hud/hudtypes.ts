@@ -71,6 +71,11 @@ export interface HudInput {
   pedalHits: (width: number, height: number) => { name: string; x: number; y: number; r: number }[];
   isTouch: () => boolean;
 }
+/** What the HUD reads of a traffic car (ai/types.ts TrafficCar): where it is, its police state. */
+export interface HudTrafficSlot {
+  car: { x: number; y: number };
+  police?: { mode: string; angry?: boolean } | null;
+}
 /** The game object as the HUD reads it (main.ts). */
 export interface HudGame {
   car: HudCar;
@@ -93,5 +98,6 @@ export interface HudGame {
   input: HudInput;
   in?: { throttle: number; steer: number; handbrake: number; brake: number };
   cones: { total: number; knocked: number };
+  traffic?: { list: HudTrafficSlot[] };   // the endless roads' traffic (traffic.ts)
   audio?: { muted: boolean; volume: number };
 }
