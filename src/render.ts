@@ -27,6 +27,7 @@ import { createProps } from "./render/props.ts";
 import { createObjects } from "./render/objects.ts";
 import { createTiles } from "./render/tiles.ts";
 import { createCamera } from "./render/camera.ts";
+import { densityLoading } from "./render/tilesDensity.ts";
 import { drawMarksOnScreen, drawSharpCarLayers } from "./render/screen.ts";
 import { createGlGround } from "./render/glground.ts";
 import type { GlGround, GroundSink } from "./render/glground.ts";
@@ -687,6 +688,7 @@ function loadingHelpers(ctx: RenderCtx) {
   return {
     paintStartGround: (car: CamCar, maxTiles: number) =>
       ctx.prepareAround(car.x, car.y, ctx.FLY_HANDOVER, maxTiles),
+    ...densityLoading(ctx),
     readyFlyIn(game?: RenderGame) {
       ctx.flyIn();
       const overview = ctx.camState.fly && ctx.camState.fly.ov;

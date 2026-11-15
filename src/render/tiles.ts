@@ -17,6 +17,11 @@ import type {
 import { ZOOM_MIN } from "../render.ts";
 import { trackCanvas } from '../core/memorybudget.ts';
 import { FIX } from '../core/fixes.ts';
+import { stepForZoom } from "./tilesSteps.ts";
+import {
+  drawDensity, keepPlan, paintPlan, planFly, tileLimit, uploadPlan,
+} from "./tilesDensity.ts";
+import type { DensityOps } from "./tilesDensity.ts";
 
 // what createTiles destructures from the renderer
 interface TilesHelpers {
@@ -66,6 +71,8 @@ interface TilesCtx {
   TILE_PX: number;
   /** the tile canvases painted with worn cells in them (a wear reset stales only these) */
   WORN_TILES: WeakSet<HTMLCanvasElement>;
+  /** the cache's calls the density path uses (?tiledensity=1: tilesDensity.ts) */
+  ops?: DensityOps;
 }
 
 /** one tile being painted: its canvas, geometry and the strip it is on */
@@ -397,13 +404,15 @@ function drawFlyOverview(tcx: TilesCtx, sink: GroundSink, overview: Overview,
  */
 function prefetchFly(tcx: TilesCtx, sink: GroundSink, car: CamCar) {
   const { view, tiles } = tcx, { FLY_HANDOVER, FLY_PREFETCH } = tcx.helpers;
-  prefetch(tcx, FIXED_STEP, car.x, car.y, FLY_HANDOVER, { n: FLY_PREFETCH });
-  const tileWidth = tcx.TILE_PX / (view.PPM * zOfStep(FIXED_STEP)), ppm = view.PPM * FLY_HANDOVER;
+  // (?tiledensity=1: the step the hand-over view is drawn at)
+  const step = FIX.tiledensity ? stepForZoom(FLY_HANDOVER) : FIXED_STEP;
+  prefetch(tcx, step, car.x, car.y, FLY_HANDOVER, { n: FLY_PREFETCH });
+  const tileWidth = tcx.TILE_PX / (view.PPM * zOfStep(step)), ppm = view.PPM * FLY_HANDOVER;
   const halfW = view.W / 2 / ppm, halfH = view.H / 2 / ppm;
   let uploads = FLY_PREFETCH;
   for (let i = Math.floor((car.x - halfW) / tileWidth); i * tileWidth < car.x + halfW; i++) {
     for (let j = Math.floor((car.y - halfH) / tileWidth); j * tileWidth < car.y + halfH; j++) {
-      const tile = tiles.get(FIXED_STEP + '|' + i + '|' + j);
+      const tile = tiles.get(step + '|' + i + '|' + j);
       if (tile && sink.preload(tile.c, uploads > 0)) uploads--;
     }
   }
@@ -430,14 +439,15 @@ function drawTilesInView(tcx: TilesCtx, sink: GroundSink, budget: TileBudget) {
 }
 
 /**
- * Evicts the least recently used tiles above TILE_MAX.
+ * Evicts the least recently used tiles above the cache's size.
  * @param tcx the tile context
+ * @param most the tiles kept (TILE_MAX; ?tiledensity=1 sizes it to the screen)
  */
-function evictTiles(tcx: TilesCtx) {
+function evictTiles(tcx: TilesCtx, most = TILE_MAX) {
   const { tiles } = tcx;
-  if (tiles.size > TILE_MAX) {
+  if (tiles.size > most) {
     const old = [...tiles.entries()].sort((first, second) => first[1].used - second[1].used);
-    for (let index = 0, drop = tiles.size - TILE_MAX; index < drop; index++) {
+    for (let index = 0, drop = tiles.size - most; index < drop; index++) {
       tiles.delete(old[index][0]);
     }
   }
@@ -456,104 +466,6 @@ function lookAhead(tcx: TilesCtx, fly: unknown) {
   }
 }
 
-// ?tileahead=1: s of the car's motion the look-ahead box is centred ahead by (at 40 m/s, 32 m:
-// about the margin between the widest view and the box, so the box still holds the view's far
-// half and the ground about to scroll in)
-const LEAD_S = 0.8;
-// the canvases the look-ahead put on the GPU (a texture idle 90 frames goes: one that scrolls in
-// after that uploads as it is drawn, as without the switch)
-const AHEAD_ON_GPU = new WeakSet<HTMLCanvasElement>();
-
-// the look-ahead's pick this frame (one object reused: no allocation per frame): the missing
-// tile nearest the ground about to scroll in, and the painted one there not yet on the GPU
-const AHEAD_PICK = { missI: 0, missJ: 0, missD2: Infinity, up: null as Tile | null,
-  upD2: Infinity };
-
-/**
- * Walks the look-ahead box, centred LEAD_S of the car's motion ahead: keeps each painted tile on
- * the GPU and in the cache, and picks (AHEAD_PICK) the tiles nearest a point half the lead ahead -
- * the ground about to scroll in first.
- * @param tcx the tile context
- * @param sink the GPU ground
- * @param car the car, or null
- * @returns the pick
- */
-function scanAhead(tcx: TilesCtx, sink: GroundSink, car: CamCar | null) {
-  const { view, cam, tiles, state } = tcx, pick = AHEAD_PICK;
-  const tileWidth = tcx.TILE_PX / (view.PPM * zOfStep(FIXED_STEP)),
-    ppm = view.PPM * ZOOM_MIN / WIDE_MARGIN, leadX = car ? car.vx * LEAD_S : 0,
-    leadY = car ? car.vy * LEAD_S : 0, halfW = view.W / 2 / ppm, halfH = view.H / 2 / ppm;
-  // the view now (its tiles were drawn this frame, so they are on the GPU already)
-  const viewPpm = tcx.helpers.PPMz(), reachX = view.W / 2 / viewPpm + tileWidth / 2,
-    reachY = view.H / 2 / viewPpm + tileWidth / 2;
-  pick.missD2 = pick.upD2 = Infinity;
-  pick.up = null;
-  for (let i = Math.floor((cam.x + leadX - halfW) / tileWidth);
-    i * tileWidth < cam.x + leadX + halfW; i++) {
-    for (let j = Math.floor((cam.y + leadY - halfH) / tileWidth);
-      j * tileWidth < cam.y + leadY + halfH; j++) {
-      const tile = tiles.get(FIXED_STEP + '|' + i + '|' + j);
-      const awayX = (i + 0.5) * tileWidth - cam.x, awayY = (j + 0.5) * tileWidth - cam.y,
-        rank2 = (awayX - leadX / 2) ** 2 + (awayY - leadY / 2) ** 2;
-      if (!tile) {
-        if (rank2 < pick.missD2) {
-          pick.missD2 = rank2;
-          pick.missI = i;
-          pick.missJ = j;
-        }
-        continue;
-      }
-      // kept: on the GPU and in the cache until it scrolls into view
-      sink.preload(tile.c, false);
-      tile.used = state.tileFrame;
-      const outOfView = Math.abs(awayX) >= reachX || Math.abs(awayY) >= reachY;
-      if (outOfView && !tile.stale && !AHEAD_ON_GPU.has(tile.c) && rank2 < pick.upD2) {
-        pick.upD2 = rank2;
-        pick.up = tile;
-      }
-    }
-  }
-  return pick;
-}
-
-/**
- * The look-ahead under ?tileahead=1 (FIX.tileahead). The phone's slow frames follow bursts: a row
- * of tiles scrolling into view uploads 6+ textures in one frame, and a frame that paints 4 tiles
- * (the view outran the look-ahead). Here the box is centred ahead of the car (scanAhead), its
- * tiles kept on the GPU, and ONE tile a frame - the one nearest the ground about to scroll in - is
- * painted and uploaded, or (none missing) a painted one uploaded; nothing on a frame that painted
- * in view. (Painting and uploading on alternate frames halved the rate: at 38 m/s the view
- * outran it and frames painting 2+ tiles in view went 30 -> 96-142 in 40 s.)
- * @param tcx the tile context
- * @param sink the GPU ground
- * @param car the car, or null
- * @param paintedInView whether this frame painted a tile in view
- */
-function lookAheadSpread(tcx: TilesCtx, sink: GroundSink, car: CamCar | null,
-    paintedInView: boolean) {
-  const pick = scanAhead(tcx, sink, car);
-  if (paintedInView) return;
-  let canvas = pick.up ? pick.up.c : null;
-  if (pick.missD2 < Infinity) canvas = paintAhead(tcx, pick.missI, pick.missJ);
-  if (!canvas) return;
-  if (sink.preload(canvas, true)) tcx.state.uploadedAhead++;
-  AHEAD_ON_GPU.add(canvas);
-}
-
-/**
- * Paints a look-ahead tile into the cache (?tileahead=1).
- * @param tcx the tile context
- * @param i the tile column
- * @param j the tile row
- * @returns its canvas
- */
-function paintAhead(tcx: TilesCtx, i: number, j: number) {
-  const canvas = paintTile(tcx, FIXED_STEP, i, j);
-  tcx.tiles.set(FIXED_STEP + '|' + i + '|' + j, { c: canvas, used: tcx.state.tileFrame });
-  tcx.state.prefetched++;
-  return canvas;
-}
-
 /**
  * Draws the ground's tiles on the GPU ground (nothing while it cannot draw: a lost context comes
  * back by itself, glground.ts).
@@ -569,16 +481,19 @@ function drawGround(tcx: TilesCtx, wallDt = 0, car: CamCar | null = null) {
   const sink = tcx.helpers.groundSink();
   if (!sink) return;
   const fly = tcx.helpers.getFly();
+  // (?tiledensity=1: the fly-in's planned tiles kept until it lands)
+  if (FIX.tiledensity) keepPlan(tcx, sink, fly);
   if (fly && fly.ov && view.zoom < tcx.helpers.FLY_HANDOVER) {
     drawFlyOverview(tcx, sink, fly.ov, car);
     return;
   }
-  const paintedBefore = state.tilesPainted;
+  if (FIX.tiledensity && tcx.ops) {
+    drawDensity(tcx, tcx.ops, sink, tileBudget(), fly, ZOOM_MIN);
+    evictTiles(tcx, tileLimit(tcx, TILE_MAX, ZOOM_MIN));
+    return;
+  }
   drawTilesInView(tcx, sink, tileBudget());
-  // (?tileahead=1: ahead of the car, one tile a frame, uploaded before it is in view)
-  if (FIX.tileahead && !state.standIn && !fly) {
-    lookAheadSpread(tcx, sink, car, state.tilesPainted !== paintedBefore);
-  } else lookAhead(tcx, fly);
+  lookAhead(tcx, fly);
   evictTiles(tcx);
 }
 
@@ -603,7 +518,6 @@ export function createTiles(view: View, cam: Cam, settings: Settings, helpers: T
     newTiles: 0,
     perStep: {},                // tiles painted per zoom step k (tools/tilecost.mjs)
     prefetched: 0,              // tiles painted by prefetch (tools/tilecost.mjs)
-    uploadedAhead: 0,           // look-ahead tiles put on the GPU before they were in view
     lastStep: null,
     drawnN: 0,                  // art px per tile the last frame was DRAWN at (tools/hwwobble.mjs)
     standIn: false,             // this frame had tiles in view still to paint (tools: pop-in)
@@ -613,6 +527,13 @@ export function createTiles(view: View, cam: Cam, settings: Settings, helpers: T
   };
   const tcx: TilesCtx = {
     view, cam, helpers, state: tileState, tiles, TILE_PX, WORN_TILES: new WeakSet(),
+  };
+  tcx.ops = {
+    blitStep: (sink, step, budget) => blitStep(tcx, sink, step, budget),
+    countMissing: (step) => countMissing(tcx, step),
+    paintTile: (step, i, j) => paintTile(tcx, step, i, j),
+    prefetch: (step, centreX, centreY, zoom, budget) =>
+      prefetch(tcx, step, centreX, centreY, zoom, budget),
   };
   return {
     tileState, tiles, TILE_PX, zOfStep,
@@ -639,6 +560,21 @@ export function createTiles(view: View, cam: Cam, settings: Settings, helpers: T
       const budget = { n: maxTiles };
       prefetch(tcx, FIXED_STEP, centreX, centreY, z, budget);
       return budget.n === 0;
+    },
+    /**
+     * ?tiledensity=1, behind the loading screen: plans the fly-in's tiles (a new level's cache
+     * emptied first), then paints and uploads them a slice at a time.
+     * @param views the fly-in's views from the hand-over on (centre, m; zoom), the landing last
+     * @returns how many tiles the plan holds
+     */
+    planFly: (views: { x: number; y: number; zoom: number }[]) => {
+      resetOnChange(tcx);
+      return planFly(tcx, views);
+    },
+    paintPlan: (most: number) => paintPlan(tcx, tcx.ops!, most),
+    uploadPlan: (most: number) => {
+      const sink = helpers.groundSink();
+      return sink ? uploadPlan(tcx, sink, most) : false;
     },
   };
 }
