@@ -25,11 +25,15 @@ for (const [label, W, H] of [['landscape 844x390', 844, 390], ['portrait 390x844
   const after = await p.evaluate(() => window.__game.car.spec.id);
   // steering must NOT have been engaged by those taps
   const steer = await p.evaluate(() => window.__game.in.steer);
-  // RESTART must be reachable and return to spawn
+  // RESTART must be reachable and return to spawn - once the start's loading screen is gone (it takes
+  // every tap while it is up, as it should: the player cannot reach RESTART under it either), and
+  // read once the restart's own loading screen is gone again
+  await p.waitForFunction(() => { const s = document.getElementById('loadscreen'); return !s || s.className === 'gone'; }, null, { timeout: 30000, polling: 50 });
   await p.evaluate(() => { window.__game.car.x = 40; });
   const rb = await p.evaluate(() => window.__game.hudLayout());
   await p.touchscreen.tap(rb.restart.x + rb.restart.w / 2, rb.restart.y + rb.restart.h / 2);
   await p.waitForTimeout(120);
+  await p.waitForFunction(() => { const s = document.getElementById('loadscreen'); return !s || s.className === 'gone'; }, null, { timeout: 30000, polling: 50 });
   const resetX = await p.evaluate(() => window.__game.car.x);
   console.log(`${label.padEnd(20)} start=${start} after=${after} steer=${steer} resetX=${resetX.toFixed(1)}`);
   if (after !== start) fails.push(`${label}: a tap in the top-left changed the car (${start} -> ${after})`);
