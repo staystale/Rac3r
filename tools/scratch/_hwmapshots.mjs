@@ -1,8 +1,9 @@
 // _hwmapshots.mjs - THE HIGHWAY'S MINIMAP EXTRAS (?hwmap=1) photographed in the real game: the
 // autopilot down a highway with traffic, a photo when a petrol station, a road leaving the
-// motorway and a police car not chasing are each first in the minimap's reach ahead; then 1 star
-// held (a chaser sent) and two photos FLASH_GAP ms apart once it is in reach (the flash). Writes
-// <OUT>/<tag>-<W>x<H>-<what>.png. Without HWMAP=1 the same moments with the switch off.
+// motorway, a police car not chasing, a junction's roundabout and a road bridge's road are each
+// first in the minimap's reach ahead; then 1 star held (a chaser sent) and two photos FLASH_GAP ms
+// apart once it is in reach (the flash). Writes <OUT>/<tag>-<W>x<H>-<what>.png. Without HWMAP=1
+// the same moments with the switch off.
 // [VIEW=390x844] [ROAD=motorway] [SCENERY=countryside] [HWMAP=1] [OUT=dir] [LIMIT_S=240]
 //   node tools/scratch/_hwmapshots.mjs
 import { mkdirSync } from 'node:fs';
@@ -36,8 +37,16 @@ function inReach(reach) {
     && lane.pts.some(([x, y]) => near(x, y)));
   const cop = game.traffic.list.find((slot) => slot.police && !slot.police.angry
     && near(slot.car.x, slot.car.y));
+  // a junction's roundabout (a closed lane); a road bridge's approach (it shares a cut's points)
+  const ring = lanes.find((lane) => lane.pts.length > 8 && Math.hypot(lane.pts[0][0]
+    - lane.pts[lane.pts.length - 1][0], lane.pts[0][1] - lane.pts[lane.pts.length - 1][1]) < 1
+    && lane.pts.some(([x, y]) => near(x, y)));
+  const cutPts = new Set((level.cuts || []).map((cut) => cut.pts));
+  const bridge = lanes.find((lane) => cutPts.has(lane.pts) && lane.width === 7
+    && lane.pts.some(([x, y]) => near(x, y)));
   return { pump: pump ? Math.round(gap(pump.x, pump.y)) : null, side: side ? side.width : null,
-    cop: cop ? cop.police.mode : null };
+    cop: cop ? cop.police.mode : null, ring: ring ? 'ring' : null,
+    bridge: bridge ? 'road bridge' : null };
 }
 
 /**
@@ -77,7 +86,7 @@ try {
       if (heat) heat.stars = 0;
     }, 20);
   });
-  const want = new Set(['pump', 'side', 'cop']);
+  const want = new Set(['pump', 'side', 'cop', 'ring', 'bridge']);
   for (let waited = 0; waited < LIMIT_S * 4 && want.size; waited++) {
     const seen = await page.evaluate(inReach, REACH_M);
     for (const what of [...want]) {

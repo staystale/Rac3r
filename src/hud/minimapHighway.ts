@@ -1,10 +1,11 @@
 // hud/minimapHighway.ts - THE HIGHWAY'S MINIMAP EXTRAS (?hwmap=1, FIX.hwmap; TODO 3a2 item 11,
 // the owner's answers 11-15: "simple pixel icons"): on the endless roads the minimap window
 // (hud/minimap.ts) also shows the roads that leave the motorway - the slip roads, the side road,
-// a junction's slips and roundabouts, a road bridge's road - as thin road lines under the
-// motorway's (sat-nav style); each petrol station (a lay-by's, a services', Deaf Valley's) as a
-// small green pump; and the police in the window's range as blue dots, flashing only while
-// they chase someone (an angry driver chasing as police do has no lights: not shown).
+// a junction's slips and roundabouts - as thin road lines under the motorway's (sat-nav style; a
+// road bridge's road on into the country is not one: no crossing roads); each petrol station (a
+// lay-by's, a services', Deaf Valley's) as a small green pump; and the police in the window's
+// range as blue dots, flashing only while they chase someone (an angry driver chasing as police
+// do has no lights: not shown).
 import { LEVEL } from '../world/state.ts';
 import { COL } from '../world/colours.ts';
 import { SURFACES } from '../world/surfaces.ts';
@@ -22,7 +23,7 @@ const POLICE_R = 3, PUMP_W = 5, PUMP_H = 7;
 
 // the level's petrol stations and side roads, picked out when its lists change (not every frame)
 const picked = { props: null as Prop[] | null, propCount: -1, lanes: null as Lane[] | null,
-  laneCount: -1, pumps: [] as Prop[], roads: [] as Lane[] };
+  laneCount: -1, cutCount: -1, pumps: [] as Prop[], roads: [] as Lane[] };
 
 /**
  * The level's pumps and side roads, refreshed when the streamed lists grew or shrank.
@@ -30,17 +31,23 @@ const picked = { props: null as Prop[] | null, propCount: -1, lanes: null as Lan
  */
 function pickedNow() {
   const props = LEVEL.props || [], lanes = LEVEL.lanes || [];
+  // (a bridge's approach shares its points with the cut that shortens it: highway/cuts.ts)
+  const cuts = (LEVEL as { cuts?: { pts: unknown }[] }).cuts || [];
   if (props !== picked.props || props.length !== picked.propCount) {
     picked.props = props;
     picked.propCount = props.length;
     picked.pumps = props.filter((prop) => prop.kind === 'gasstation');
   }
-  if (lanes !== picked.lanes || lanes.length !== picked.laneCount) {
+  if (lanes !== picked.lanes || lanes.length !== picked.laneCount
+    || cuts.length !== picked.cutCount) {
     picked.lanes = lanes;
     picked.laneCount = lanes.length;
-    // tarmac and not a village's street: the slips, the side road, a junction's, a bridge's road
+    picked.cutCount = cuts.length;
+    const approaches = new Set(cuts.map((cut) => cut.pts));
+    // tarmac, not a village's street, not a bridge's approach: the slips, the side road, a
+    // junction's slips and roundabouts
     picked.roads = lanes.filter((lane) => lane.surface === SURFACES.tarmac && lane.field == null
-      && !lane.band && lane.pts.length > 1);
+      && !lane.band && lane.pts.length > 1 && !approaches.has(lane.pts));
   }
   return picked;
 }
