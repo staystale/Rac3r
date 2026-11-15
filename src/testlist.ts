@@ -13,6 +13,17 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'stopdodge',
+    added: '2026-11-15',
+    name: 'AI brake and steer round a stopped or slow car, then race on',
+    where: 'Test link + &stopdodge=1: a full grid on a circuit (Brands or Spa, 19 AI), Knobhill '
+      + 'RX, and the highway (Deaf Valley, the twisty road) - wherever cars spin or crash',
+    try: 'Watch the cars arriving at a spun or crashed car: they should brake and go round it at '
+      + 'the same time, then get back up to speed straight away; fewer cars piling into a crash.',
+    wrong: 'Cars stopping and queueing behind a crash, crawling round it, braking for cars that '
+      + 'are not in their way, or still ploughing into stopped cars at speed.',
+  },
+  {
     id: 'aislide',
     added: '2026-11-15',
     name: 'AI slides by the ground, uses kerbs, makes sliding mistakes',

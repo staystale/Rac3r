@@ -15,6 +15,7 @@ import type { AiCar, DriveCtx } from "./types.ts";
 import { rejoinCross, rejoinAim, lateralOf } from "./rejoin.ts";
 import { rejoinClear } from "./gapPick.ts";
 import { SWERVE_RATE } from "./dodge.ts";
+import { stopCap } from "./stopDodge.ts";
 import type { Drv, AiPath } from "./driverCtx.ts";
 
 /**
@@ -42,7 +43,12 @@ const EDGE_IN_M = 0.3, COME_IN_M = 1;
  * @returns m
  */
 function targetEdge(state: Drv["state"], latLim: number, onMain: boolean, lineOff: number) {
-  const edge = state.t < (state.wideUntil || 0) ? state.wide! : latLim;
+  // (?stopdodge=1: a plain guard - with no window set and the clock below 0 the old test read
+  // an unset width, NaN)
+  const isWide = FIX.stopdodge
+    ? state.wide !== undefined && state.t < (state.wideUntil ?? -Infinity)
+    : state.t < (state.wideUntil || 0);
+  const edge = isWide ? state.wide! : latLim;
   return FIX.aislide && onMain ? Math.max(edge, Math.abs(lineOff)) : edge;
 }
 
@@ -66,7 +72,7 @@ function trafficStep(drv: Drv, car: AiCar, ctx: DriveCtx, path: AiPath, nearIdx:
   const cars = carsStep(drv, car, others, path, nearIdx, idx, speed, prec, prof, lineOff, latT,
       startK, latLim, myLat);
   let dodgeT = cars.dodgeT, conflict = cars.conflict;
-  const followCap = cars.followCap;
+  let followCap = cars.followCap;
   const avoid = obstacleAvoid(drv, car, ctx, path, nearIdx, idx, speed, prec, lineOff, myLat,
       latLim, latT, dt, { dodgeT, conflict });
   ({ dodgeT, conflict } = avoid);
@@ -83,6 +89,13 @@ function trafficStep(drv: Drv, car: AiCar, ctx: DriveCtx, path: AiPath, nearIdx:
     ({ vMul, dodgeT, conflict, prof } = racecraftStep(drv, car, path, nearIdx, idx, speed, dt,
         lineOff, latLim, latT, myLat, cars, vMul, dodgeT, conflict, prof));
   } else { state.atk = null; state.cover = null; state.cc = -1; }
+  // (a stopped or much slower car still in line with where the car really is: brake to miss it,
+  // and steer round it as a move, not a soft rejoin - ai/stopDodge.ts)
+  if (FIX.stopdodge) {
+    const stop = stopCap(drv, car, { path, nearIdx, latT: latT + dodgeT }, cars.stopped ?? []);
+    followCap = Math.min(followCap, stop.cap);
+    conflict ||= stop.inLine;
+  }
   // (round a car in the way with no time to spare, the swerve's own rate: ai/dodge.ts)
   // (going round a car, the rate swerveCap counts on - the move was planned at SWERVE_RATE and
   // made at 2.5 m/s, arriving short)

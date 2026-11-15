@@ -61,4 +61,8 @@ export const FIX = {
   // step drawn only once all of its view is painted and on the GPU; the loading screen paints and
   // uploads all the fly-in will show, sized to the real screen (render/tiles.ts, game/loading.ts)
   tiledensity: atLoad('tiledensity'),
+  // a racer brakes enough to miss a stopped or much slower car in its path while going round it
+  // (ai/stopDodge.ts); and two plain guards: the driver's wide-window read with a negative clock
+  // (ai/driverDrive.ts targetEdge), a recovery clearing a NaN tyre wear (game/sim.ts recoverCar)
+  stopdodge: atLoad('stopdodge'),
 };
