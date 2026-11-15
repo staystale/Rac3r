@@ -82,4 +82,7 @@ export const FIX = {
   // the weather's notices (RAIN STARTING ...) only on the MOBILE difficulty; the weather changes
   // as before (game/loop.ts)
   weathermobile: atLoad('weathermobile'),
+  // a frame stamped before the last one has no game time, not a negative one (the menu race's
+  // camera car froze for good on a NaN when its driver got one) (game/pacing.ts)
+  menunan: atLoad('menunan'),
 };

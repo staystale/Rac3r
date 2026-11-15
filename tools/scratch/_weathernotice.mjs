@@ -1,15 +1,19 @@
 // _weathernotice.mjs - THE WEATHER'S NOTICES BY DIFFICULTY (scratch, ?weathermobile=1): Thruston
-// with SEASON weather, deterministic (tools/lib/determinism.mjs, nothing drawn), the player on the
-// demo driver, stepped SECONDS of game time at each difficulty mode in MODES; every 0.5 s it reads
-// the weather (its kind, rain) and the notice line. Prints per mode the weather's changes and the
-// notices shown, so a mode with the switch can be set against the same mode without it: the
+// with SEASON weather (SEASON, default 0: winter, the most changeable), deterministic
+// (tools/lib/determinism.mjs, nothing drawn, its random stream seeded by each of SEEDS - so each
+// seed deals its own weather), the player on the demo driver, stepped SECONDS of game time at each
+// difficulty mode in MODES; every 0.5 s it reads the weather (its kind) and the notice line.
+// Prints per mode the weather's changes and the notices shown, so a mode with the switch can be set against the same mode without it: the
 // weather must change the same way, the notices only on MOBILE (mode 0).
-// [RAC3R_QUERY=weathermobile=1] [SECONDS=600] [MODES=0,2,4] node tools/scratch/_weathernotice.mjs
+// [RAC3R_QUERY=weathermobile=1] [SECONDS=600] [MODES=0,2,4] [SEEDS=1,2] [SEASON=0]
+//   node tools/scratch/_weathernotice.mjs
 import { startServer, launchBrowser, extraQuery } from '../lib/browser.mjs';
 import { openPage, installDriver, SETTLE_MS } from '../lib/determinism.mjs';
 
 const SECONDS = Number(process.env.SECONDS || 600);
 const MODES = (process.env.MODES || '0,2,4').split(',').map(Number);
+const SEEDS = (process.env.SEEDS || '1,2').split(',').map(Number);
+const SEASON = Number(process.env.SEASON || 0);
 // frames of 1/60 s between reads
 const READ_EVERY = 30;
 
@@ -26,13 +30,13 @@ async function readNow() {
 const server = await startServer();
 const browser = await launchBrowser();
 try {
-  for (const mode of MODES) {
+  for (const seed of SEEDS) for (const mode of MODES) {
     const errors = [];
     const page = await openPage(browser, server.url, 'thruston', errors,
       '&skip=world,ground,car' + extraQuery());
-    await page.evaluate((seed) => window.__rt.seed(seed), 0x5eed);
-    await page.evaluate((diff) => window.__game.launch('thruston', 'hatch-rwd',
-      { ai: 0, diff, weather: { mode: 'season', season: 3 } }), mode);
+    await page.evaluate((value) => window.__rt.seed(value), seed);
+    await page.evaluate(([diff, season]) => window.__game.launch('thruston', 'hatch-rwd',
+      { ai: 0, diff, weather: { mode: 'season', season } }), [mode, SEASON]);
     await page.waitForTimeout(SETTLE_MS);
     await page.evaluate(installDriver);
     const changes = [], notices = [];
@@ -45,8 +49,8 @@ try {
       if (now.notice && now.at !== lastAt) notices.push(`${(frame / 60).toFixed(0)}s ${now.notice}`);
       lastAt = now.at;
     }
-    console.log(`mode ${mode}: weather ${changes.join(', ')}`);
-    console.log(`mode ${mode}: notices ${notices.join(', ') || 'none'}`
+    console.log(`seed ${seed} mode ${mode}: weather ${changes.join(', ')}`);
+    console.log(`seed ${seed} mode ${mode}: notices ${notices.join(', ') || 'none'}`
       + (errors.length ? ` | page errors: ${errors[0]}` : ''));
     await page.context().close();
   }
