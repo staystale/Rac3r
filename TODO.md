@@ -106,6 +106,45 @@ records in `TODO-DONE.md` (PASSED 11-12). On the phone now:
   rxDress drops them) - see the question in the hand-over. worldhash (LEVELS order): OFF SAME as
   db2919a2; ON differs only by the tape ids on 13 tape levels (nothing else; checked with each
   object's tape id left out) and Croughed RX 367 -> 355 loose objects.
+- OLD BANNERS, NO NEW ONES (owner 11-15: no new banners ever; "it should be clear from the game
+  what's happening"). BUILT, each behind its own switch (testlist 'wantedlost', 'weathermobile'):
+  - `?wantedlost=1` (FIX.wantedlost, game/police.ts): shaking off the police reads WANTED LEVEL
+    LOST, not LOST THEM (CATCH THEM / CLOSING IN / PULLING AWAY are the racers'). FITS
+    (tools/scratch/_noticeshots.mjs: the escape made by the game's own police step on the
+    highway, the box measured as drawHudNotice lays it): 274 x 46 px, 285 px clear each side at
+    844x390, 58 px at 390x844, over no HUD piece (LOST THEM: 165 px); photos looked at.
+  - `?weathermobile=1` (FIX.weathermobile, game/loop.ts): the weather's notices only on the
+    MOBILE difficulty (shared.aiDiff 0), the weather changing as before. MEASURED
+    (tools/scratch/_weathernotice.mjs, laptop, Thruston, winter SEASON weather, 600 s, two seeds,
+    MOBILE and REALISH): the weather's changes identical off and on (seed 1: rain at 264 s; seed
+    2: snow at 219 s, rain at 566 s); notices OFF on both modes (RAIN STARTING; SNOW FALLING, RAIN
+    STARTING), ON on MOBILE only, none on REALISH. Not photographed: the notice is the same line
+    as before, its words unchanged.
+  - PROOFS (every 11-15 switch here off - forestseed, wantedlost, weathermobile, menunan; the
+    second PC against db2919a2, both before and after the menunan commit): simhash SAME (all 13
+    runs); renderhash SAME on Thruston and the highway; worldhash --highway 20 SAME (laptop).
+- THE MENU RACE'S NaN (TODO 4 WATCH 11-04, again 11-14 in menucheck at 390x844). FOUND AND FIXED
+  behind `?menunan=1` (FIX.menunan, game/pacing.ts; testlist 'menunan').
+  TRIPWIRE (tools/scratch/_menunan.mjs): the menu opened many times over five sizes, each frame
+  the camera car's state and input in a ring, dumped when the game recovers a NaN. LAPTOP, 40
+  races of 15 s: 4 froze (Dieatona Road, X Gayms, Anglesleazy National, Sillystone); the second PC,
+  81 races: 8 froze (Castle Kum, Malarkey, Brands Indy, Croughed, Snotterton, Anglesleazy, the
+  highway twice; every size, 844x390 too): each time the camera car's input steer NaN from the
+  first frame, throttle 1, the car standing at its grid slot, recovered every step. CAUSE: the frame pacer returned a
+  frame stamped before the last one as it is - NEGATIVE game time (the first frame can be: main.ts
+  takes performance.now() after the frame began). The demo driver is driven with the frame's time
+  (sim.ts demoInput; ?autopilot too): its clock went below 0, and ai/driverDrive.ts's 'wide'
+  window test (state.t < (state.wideUntil || 0)) then read state.wide, never set: undefined, so
+  its lateral target and steer were NaN (node: a first drive with -4 ms gives steer NaN; 0 ms and
+  +16 ms do not). The NaN step left the car's tyre wear NaN, which no recovery clears, so it
+  stayed frozen. FIX (a plain bug, the AI untouched): such a frame has 0 ms. Forced (_menunan
+  AHEAD=30, the last frame time set 30 ms ahead): off, steer NaN for the next 6 frames, driver
+  clock -0.41 s; on, steer finite, clock from 0. WITH THE SWITCH: laptop 0 of 40 races froze, the
+  second PC 0 of 100 (off: 12 of 121, 10 %); menucheck with it OK at both sizes. simhash with
+  ?menunan=1 SAME as without (the tools' stepped clock never stamps a frame early).
+  NOT CHANGED (questions in the hand-over): the driver's wide-window test still reads an unset
+  state.wide when its clock is negative (ai/ - not touched); a recovery does not clear a NaN tyre
+  wear.
 
 ## 3. OPEN, IN THE OWNER'S ORDER
 
@@ -540,7 +579,7 @@ inputs and get the cars back. A SPIKE (two phones on the tunnel) before committi
 - WATCH: an AI F1 field spins more since the real aero (its braking without ABS) - when it comes up.
 - WATCH: the menu race on the highway sat still once (cars at 0 km/h) - not reproduced.
 - WATCH: markjump (a rim mark after a reset, 11-04) - "unless I see it again".
-- WATCH: a NaN car state once in menucheck (11-04, the menu demo car) - find it if it comes back.
+- WATCH (found 11-15, section 2 THE MENU RACE'S NaN): a NaN car state once in menucheck (11-04).
 
 ## 5. QUESTIONS FOR THE OWNER
 

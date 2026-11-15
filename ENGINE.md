@@ -55,6 +55,15 @@ Older design notes and measurements are in the git history of this file.
 4. Draw: `renderer.frame()` (world into the art-pixel buffer, then to the screen), then the HUD.
 5. Audio update and the fps meter.
 
+A frame's game time is whole display refreshes (`game/pacing.ts`, the learned refresh); a frame
+stamped before the last one, or 250 ms or more after it, is taken as it is - the first can be
+stamped before `main.ts` took `performance.now()`, so its time was NEGATIVE: the menu race's demo
+driver (driven with the frame's time, as `?autopilot`) took it as a step back, its clock went below
+0 inside a 'wide' window it never opened (`ai/driverDrive.ts`: `state.wideUntil` unset,
+`state.wide` undefined), its steer was NaN and the camera car froze, its tyre wear NaN through
+every recovery. Under test, `?menunan=1` (`FIX.menunan`): such a frame has 0 ms
+(`tools/scratch/_menunan.mjs` hunts the menu race's NaN; `AHEAD=` forces the case).
+
 THE LOADING SCREEN (the default since 11-14; `game/loading.ts`, its picture
 `menu/loadscreen.ts`): a START (`menuflow.ts launch`) or RESTART (`session.ts doRestart`) in a
 session puts a DOM screen up at once - the track's name and a bar, in the menu's pane, faces and
@@ -195,6 +204,15 @@ THE NIGHT FLY-IN (the default since 11-14): two parts.
   `eventglows.ts part`) stay live; the canopy cut follows. The heads' tint goes in before the
   cars' tints (live: after). `flyStats` / `?report=1` `flySets`: `nightMade`, `nightDrawn`,
   `nightFailed`, and `canopyCut` (canopies darkened / on the map, the last night frame).
+
+THE NOTICE LINE (`game.notice`, `hud/overlays.ts drawHudNotice`: one line centre-top at 30 % of
+the height, 2.2 s): no new notices (owner 11-15: "it should be clear from the game what's
+happening"). Under test: `?wantedlost=1` - the police's escape notice (`game/police.ts`) reads
+WANTED LEVEL LOST, not LOST THEM (the racers' notices are CATCH THEM / CLOSING IN / PULLING AWAY);
+`?weathermobile=1` - the weather's (`world/weather.ts changeWeather`: RAIN STARTING, HEAVY RAIN,
+SNOW FALLING, RAIN STOPPING, HOT TRACK) shown only on the MOBILE difficulty (`game/loop.ts`,
+`shared.aiDiff` 0); the weather changes as before. `tools/scratch/_noticeshots.mjs` photographs
+the escape notice and measures its box; `_weathernotice.mjs` steps SEASON weather per difficulty.
 
 ## Sound (`audio.ts`)
 

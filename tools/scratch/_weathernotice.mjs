@@ -34,6 +34,11 @@ try {
     const errors = [];
     const page = await openPage(browser, server.url, 'thruston', errors,
       '&skip=world,ground,car' + extraQuery());
+    // (a key, as renderhash: the game waits for one before it runs)
+    await page.evaluate(() => {
+      dispatchEvent(new KeyboardEvent('keydown', { key: 'x' }));
+      window.__rt.step(10);
+    });
     await page.evaluate((value) => window.__rt.seed(value), seed);
     await page.evaluate(([diff, season]) => window.__game.launch('thruston', 'hatch-rwd',
       { ai: 0, diff, weather: { mode: 'season', season } }), [mode, SEASON]);

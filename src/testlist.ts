@@ -13,6 +13,36 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'menunan',
+    added: '2026-11-15',
+    name: 'The menu race\'s own car never frozen at the start',
+    where: 'Test link + &menunan=1: open the game to the main menu many times (reload), phone '
+      + 'upright mostly; also with the game started from the home screen',
+    try: 'Watch the race behind the menu each time: every car, the one the camera follows too, '
+      + 'pulls away.',
+    wrong: 'The camera\'s car standing still at the start while the others race; any other '
+      + 'change to the menu race or to driving.',
+  },
+  {
+    id: 'wantedlost',
+    added: '2026-11-15',
+    name: 'Police: WANTED LEVEL LOST when you shake them off (was LOST THEM)',
+    where: 'Test link + &wantedlost=1: a highway, speed past a camera or hit a car till the police '
+      + 'chase, then get away; phone upright and on its side',
+    try: 'Lose the police and read the notice.',
+    wrong: 'LOST THEM still shown; the notice cut off or over a button or panel.',
+  },
+  {
+    id: 'weathermobile',
+    added: '2026-11-15',
+    name: 'Weather notices only on MOBILE difficulty; the weather itself unchanged',
+    where: 'Test link + &weathermobile=1: any track, weather SEASON, a long session or race; once '
+      + 'with MOBILE, once with any other difficulty',
+    try: 'Wait for the rain to start or stop (a few minutes).',
+    wrong: 'RAIN STARTING (or any weather notice) shown on GAME, REALISH, RICH or REAL; none on '
+      + 'MOBILE; the rain coming or going differently from before.',
+  },
+  {
     id: 'forestseed',
     added: '2026-11-15',
     name: 'Forest stage and other tracks built the same whatever you raced before',
