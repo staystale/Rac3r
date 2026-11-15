@@ -41,7 +41,10 @@ const SEED = Number(process.env.SEED || 1);
 const CAR = process.env.CAR || 'hatch-rwd';
 const OUT = process.env.OUT || '';
 const CHUNK = 600;
-const SKIP = '&skip=world,ground,car' + extraQuery();
+// AUTOPILOT=0: the demo driver on your car instead of the game's ?autopilot (the AI's own driver,
+// which the game puts back when it stops for 3 s: a stopped player car holds up the traffic)
+const AUTOPILOT = process.env.AUTOPILOT !== '0';
+const SKIP = '&skip=world,ground,car' + (AUTOPILOT ? '&autopilot=1' : '') + extraQuery();
 
 /** Page side: load the game's modules the tracker reads. */
 async function installTracker() {
@@ -59,7 +62,7 @@ function tickTracker() {
   const dt = 1 / 60;
   stk.t += dt;
   const all = [game.car, ...game.ai.map((entry) => entry.car), ...(game.traffic?.cars || [])];
-  const nearAhead = (car) => {
+  const nearAhead = window.__stkAhead = (car) => {
     const cos = Math.cos(car.heading), sin = Math.sin(car.heading);
     let best = null;
     for (const other of all) {
@@ -95,15 +98,17 @@ function tickTracker() {
     const jump = Math.hypot(car.x - rec.px - rec.pvx * dt, car.y - rec.py - rec.pvy * dt);
     if (jump > 4) {
       const prev = rec.prev;
-      const kind = prev.giveUp ? 'giveUp' : prev.stuckT > 2.8 ? 'stuck3s'
-        : prev.offT > 2.8 ? 'hwOff' : prev.rolled ? 'roll' : prev.hurt ? 'injury' : 'other';
+      const kind = prev.watchT > 5.9 ? 'stayed' : prev.progressT > 9.9 ? 'noProgress'
+        : prev.stuckT > 2.8 ? 'stuck3s' : prev.offT > 2.8 ? 'hwOff' : prev.rolled ? 'roll'
+        : prev.hurt ? 'injury' : prev.giveUp || prev.outN >= 2 ? 'giveUp' : 'other';
       const others = all.filter((other) => other !== car);
       const nearest = Math.min(...others.map((other) => Math.hypot(other.x - car.x,
         other.y - car.y)));
       stk.resets.push({ car: rec.num, t: +stk.t.toFixed(2), kind,
         stuckFor: +(stk.t - rec.anchorT).toFixed(1),
         gain: prog != null && prev.prog != null ? +(prog - prev.prog).toFixed(1) : null,
-        nearest: +nearest.toFixed(1), x: Math.round(rec.px), y: Math.round(rec.py) });
+        nearest: +nearest.toFixed(1), x: Math.round(rec.px), y: Math.round(rec.py),
+        queued: prev.queued, held: stk.order.startHeld() });
       if (rec.ep) rec.ep.end = 'reset:' + kind;
     }
     const held = LEVEL.stage ? stk.order.carHeld(car) : stk.order.startHeld();
@@ -136,7 +141,8 @@ function tickTracker() {
       }
     }
     rec.prev = { giveUp: entry.drv.state.giveUp, stuckT: entry.stuckT, offT: entry.offT || 0,
-      rolled: !!car.roll, hurt: entry.hurtWait != null, prog };
+      rolled: !!car.roll, hurt: entry.hurtWait != null, prog, outN: entry.drv.state.outN || 0,
+      watchT: entry.stuckWatch?.t ?? 0, progressT: entry.progressT ?? 0, queued: !!(nearAhead(car)?.speed < 2) };
     rec.px = car.x; rec.py = car.y; rec.pvx = car.vx; rec.pvy = car.vy;
   }
   tickTraffic(stk, game, dt);
@@ -191,6 +197,8 @@ function tickTraffic(stk, game, dt) {
         ep.rolled += car.roll ? 1 : 0;
         ep.wreck = ep.wreck || !!slot.wreck;
         ep.seen += stk.session.onScreen(car.x, car.y) ? 1 : 0;
+        const ahead = window.__stkAhead(car);
+        ep.queue += ahead && ahead.speed < 2 ? 1 : 0;
         ep.near += Math.hypot(car.x - game.car.x, car.y - game.car.y);
         if (why) ep.why = why;
       }
@@ -236,7 +244,7 @@ async function runOne(browser, base, id) {
   await page.evaluate((seed) => window.__rt.seed(seed), SEED);
   await page.evaluate(launchLevel, [level, { car: CAR, ...opts }]);
   await page.waitForTimeout(SETTLE_MS);
-  if (level !== 'lab') await page.evaluate(installDriver);
+  if (level !== 'lab' && !AUTOPILOT) await page.evaluate(installDriver);
   await page.evaluate(installTracker);
   await page.evaluate(`window.__stkTick = ${tickTracker.toString()};
     window.__stkClose = window.closeEpisode = ${closeEpisode.toString()};
@@ -270,6 +278,7 @@ try {
         + out.errors[0] : ''}`);
     for (const ep of out.episodes) console.log('   AI  ' + JSON.stringify(ep));
     for (const ep of out.traffic) console.log('   TR  ' + JSON.stringify(ep));
+    for (const put of out.resets) console.log('   PUT ' + JSON.stringify(put));
   }
 } finally {
   await browser.close();

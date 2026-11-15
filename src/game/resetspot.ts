@@ -74,11 +74,15 @@ export function resetOthers(): SpotBody[] {
  * @param poseOf where a spot puts the car and which way it faces
  * @param next the spot one try further back, or null when there is no road further back
  * @param aheadM m more kept clear in front (a rolling put-back), 0 for a standing one
+ * @param mover the car put back and the cars it keeps clear of (default: yours, resetOthers)
+ * @param mover.spec its length and width, m
+ * @param mover.others the cars in the way
  * @returns the spot
  */
 export function firstFree<T>(first: T, poseOf: (spot: T) => { x: number; y: number;
-  heading: number }, next: (spot: T) => T | null, aheadM = 0): T {
-  const others = resetOthers(), spec = game.car.spec;
+  heading: number }, next: (spot: T) => T | null, aheadM = 0,
+mover?: { spec: { len: number; wid: number }; others: readonly SpotBody[] }): T {
+  const others = mover ? mover.others : resetOthers(), spec = mover ? mover.spec : game.car.spec;
   let spot = first;
   for (let tries = 0; tries < FREE_TRIES; tries++) {
     if (spotFree(poseOf(spot), spec, others, aheadM)) return spot;

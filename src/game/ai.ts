@@ -17,6 +17,8 @@ import { startHeld, carHeld, atPace, formationWant } from './order.ts';
 import { RESET_BACK, RESET_ANG } from './session.ts';
 import { shared, game } from './state.ts';
 import { activeLamps } from '../world/lamps.ts';
+import { FIX } from '../core/fixes.ts';
+import { TRYING_GAIN, behindRecord, freeLapSpot, stuckWatchFires } from './aistuck.ts';
 import type { AiEntry, HurtEntry } from './state.ts';
 import type { CarInput } from '../vehicle.ts';
 import type { RaceFlow } from '../raceflow.ts';
@@ -25,8 +27,15 @@ import type { RaceFlow } from '../raceflow.ts';
 // RESET_BACK m behind the last point it was on the road, centred on the edge it left by (half on /
 // half off), nose RESET_ANG deg back toward the road — as doReset does for you. No record (never on
 // the road yet): the nearest centreline point, as before.
-export function aiReset(entry: HurtEntry) {
-  const car = entry.car, sub = LEVEL.subtrack!, rec = car._lastOn;
+/**
+ * Puts an AI car back on the road, mended, its hazards on.
+ * @param entry the AI entry
+ * @param behind ?stuckreset=1's stuck put-back on a lap or stage: never ahead of where the car is,
+ *   the next free spot behind a car in the way (game/aistuck.ts)
+ */
+export function aiReset(entry: HurtEntry, behind = false) {
+  const car = entry.car, sub = LEVEL.subtrack!;
+  const rec = behind && !LEVEL.endless ? behindRecord(sub, car) : car._lastOn;
   hazardsAfterReset(car);
   // the HIGHWAY: 15 m back from where it was, on the hard shoulder, facing up the road, rolling
   // (highwayrace.ts hwPutBack)
@@ -47,9 +56,10 @@ export function aiReset(entry: HurtEntry) {
   }
   if (rec) {
     const side = Math.sign(rec.off) || (Math.random() < 0.5 ? -1 : 1),
-      dist = clearOfUnder(sub, (rec.dist - RESET_BACK + sub.totalDist) % sub.totalDist);
-    const point = onTrack(sub, dist, side * sub.width / 2, {}),
       ang = (RESET_ANG[0] + Math.random() * (RESET_ANG[1] - RESET_ANG[0])) * Math.PI / 180;
+    let dist = clearOfUnder(sub, (rec.dist - RESET_BACK + sub.totalDist) % sub.totalDist);
+    if (behind) dist = freeLapSpot(car, sub, dist, side * sub.width / 2, -side * ang);
+    const point = onTrack(sub, dist, side * sub.width / 2, {});
     reset(car, point.x, point.y, point.rot - side * ang);
     car._lastOn = { dist: dist, off: side * (sub.width / 2 - 0.5) };
   } else {
@@ -189,9 +199,6 @@ export function stepAIJoker(entry: AiEntry) {
   }
 }
 
-// m/s gained over the 3 s that says trying, not stuck (ai/driveOut.ts TRYING_GAIN)
-const TRYING_GAIN = 0.08;
-
 /**
  * Counts the seconds an AI car has been under 1 m/s (entry.stuckT); (A9) going forwards
  * and gaining since it went slow is TRYING (an icy start creeping away, its wheels spinning), not
@@ -212,6 +219,23 @@ function noteStuck(entry: AiEntry, held: boolean, dt: number) {
 }
 
 /**
+ * The HIGHWAY: more than 8 m off the carriageway for 3 s (or 40 m out) - there is no lap to come
+ * back to, so it is put back.
+ * @param entry the AI entry
+ * @param dt the step in seconds
+ * @returns true when it must be put back
+ */
+function highwayOffTooLong(entry: AiEntry, dt: number): boolean {
+  const car = entry.car;
+  if (!LEVEL.endless || !car._hwf) return false;
+  const out = Math.abs(car._hwf.off) - hwLevel()._hw.geo.hw;
+  entry.offT = out > 8 ? (entry.offT || 0) + dt : 0;
+  if (!(entry.offT > 3 || out > 40)) return false;
+  entry.offT = 0;
+  return true;
+}
+
+/**
  * Resets an AI car that is stuck (beached, off the highway, or out of tries driving itself out).
  * @param entry the AI entry
  * @param dt the step in seconds
@@ -219,19 +243,17 @@ function noteStuck(entry: AiEntry, held: boolean, dt: number) {
 export function stepAIStuck(entry: AiEntry, dt: number) {
   const car = entry.car;
   const held = LEVEL.stage ? carHeld(car) : startHeld();
+  // ?stuckreset=1: only a car truly stuck, put back behind on a free spot (game/aistuck.ts); the
+  // highway's off-road rule as before
+  if (FIX.stuckreset) {
+    if (stuckWatchFires(entry, held || entry.hurtWait != null, dt)) aiReset(entry, true);
+    else if (highwayOffTooLong(entry, dt)) aiReset(entry);
+    return;
+  }
   // STUCK (beached, nose in a wall, spun backwards): under 1 m/s for 3 s after the green ->
   // back on the road, as the player's RESET
   noteStuck(entry, held, dt);
-  // the HIGHWAY: more than 8 m off the carriageway for 3 s (or 40 m out) also counts — there is
-  // no lap to come back to
-  if (LEVEL.endless && car._hwf) {
-    const out = Math.abs(car._hwf.off) - hwLevel()._hw.geo.hw;
-    entry.offT = out > 8 ? (entry.offT || 0) + dt : 0;
-    if (entry.offT > 3 || out > 40) {
-      entry.offT = 0;
-      entry.stuckT = 4;
-    }
-  }
+  if (highwayOffTooLong(entry, dt)) entry.stuckT = 4;
   // (an AI first tries to DRIVE ITSELF OUT - aidriver.js DRIVE OUT - and gives up after three
   // tries: then this resets it)
   if (entry.stuckT > 3 || entry.drv.state.giveUp) {

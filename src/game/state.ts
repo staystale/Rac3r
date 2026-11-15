@@ -71,6 +71,9 @@ export interface LaunchOpts {
   aiTune?: AiTune | null;   // the AI DRIVERS dials (ai/tune.ts)
 }
 
+/** A racing AI's stuck watch (game/aistuck.ts): its spot, m; s held there; m/s then; reversed. */
+export interface StuckWatch { x: number; y: number; t: number; from: number; backed: boolean }
+
 /** A circuit / stage AI driver (ai/circuit.ts). */
 export type AiDriver = ReturnType<typeof createAIDriver>;
 
@@ -80,6 +83,9 @@ export interface AiEntry extends FormKeeper {
   stuckT: number; inGate: boolean;
   stuckFrom?: number;   // m/s when it went slow (gaining since = trying, not stuck)
   offT?: number;   // seconds off the road
+  // ?stuckreset=1: where it has stood, since when, and whether it has backed up (game/aistuck.ts)
+  stuckWatch?: StuckWatch;
+  progressFrom?: number; progressT?: number;   // race progress, m, and s since it last gained
   obs?: LooseObstacle[]; obsT?: number;   // loose objects near it (the driver steers round them)
   hurtWait?: number | null; hurtT?: number;   // a hurt car waiting to be repaired
   jLap?: number | null;   // the lap it took its joker

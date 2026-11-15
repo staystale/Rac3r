@@ -18,6 +18,7 @@ import { holdsOncoming } from "./trafficReset.ts";
 import { POLICE_PHYS_M, mayWait, stepAngry, stepPolice } from "./trafficPolice.ts";
 import { SIGHT_M } from "./policeHeat.ts";
 import { mayPlaceAtPump } from "./trafficFuel.ts";
+import { findLead } from "./trafficLane.ts";
 
 /** The inputs of a step: you, the AI cars and the renderer's screen test. */
 export interface StepArgs {
@@ -25,6 +26,8 @@ export interface StepArgs {
   others?: AiCar[];
   visible?: VisFn;
   held?: boolean;   // the race not started yet (a single carriageway's other way waits)
+  // ?stuckreset=1: a car standing stuck STUCK_GO_S goes, in view or not (standsStuck)
+  stuckGo?: boolean;
 }
 
 /** Everyone in road coordinates: s along, off sideways (+ = right), v along the road. */
@@ -167,9 +170,30 @@ function dealPutBack(ctx: TrafficCtx, slot: TrafficCar,
   ent.v = dirOf(slot) * slot.vAl;
 }
 
+// s a car stands stuck before it goes (the owner's 5-10 s; out of view one already goes after 6 s)
+const STUCK_GO_S = 6;
+// m bumper to bumper, and m/s, within which a car in front makes a queue
+const QUEUE_GAP_M = 8, QUEUE_STILL_MS = 2;
+
+/**
+ * ?stuckreset=1: whether a car stands TRULY stuck - still (its physics' deadT, under 1 m/s) for
+ * STUCK_GO_S, wrecked or not, and not on purpose: not broken down or at a pump, not a police car
+ * (those go by their own rules), not queued behind a car close in front that is itself nearly
+ * still (the head of the queue is what is stuck: once it goes the queue moves).
+ * @param slot the car
+ * @param ents everyone on the road
+ * @returns true when it must go
+ */
+function standsStuck(slot: TrafficCar, ents: TrafficEnt[]): boolean {
+  if (!(slot.deadT > STUCK_GO_S) || slot.broke || slot.police) return false;
+  const { lead, gap } = findLead(slot, ents);
+  return !(lead && gap < QUEUE_GAP_M
+    && Math.hypot(lead.car.vx, lead.car.vy) < QUEUE_STILL_MS);
+}
+
 /** RECYCLE (out of view only) + place the parked slots; true if the live cars changed. */
 function recycle(ctx: TrafficCtx, ents: TrafficEnt[], playerS: number, vis: VisFn,
-  held = false, youV = 0) {
+  held = false, youV = 0, stuckGo = false) {
   const span = roadSpan(ctx.level!);
   // (a single carriageway's other way joins only once the race has started)
   const waits = (dir: number) => dir < 0 && held && holdsOncoming(ctx);
@@ -197,7 +221,7 @@ function recycle(ctx: TrafficCtx, ents: TrafficEnt[], playerS: number, vis: VisF
     }
     const relS = slot.s - playerS, seen = vis(slot.car.x, slot.car.y, slot.s);
     const { away, forced } = leaving(slot, relS, seen, span, youV);
-    if (!away && !forced) continue;
+    if (!away && !forced && !(stuckGo && standsStuck(slot, ents))) continue;
     if (forced && seen) ctx.visHits++;
     drop(slot);
     // (the other way's traffic always comes from ahead; yours dealt its driver, from behind when
@@ -295,7 +319,9 @@ export function stepTraffic(ctx: TrafficCtx, dt: number, args: StepArgs) {
   const playerS = level._hw.q.s;
   const vis = args.visible || ((x, y, dist) => dist - playerS > -90 && dist - playerS < 270);
   const ents = collectEnts(ctx, args);
-  if (recycle(ctx, ents, playerS, vis, args.held, speedOf(ents, args.player))) rebuildCars(ctx);
+  if (recycle(ctx, ents, playerS, vis, args.held, speedOf(ents, args.player), args.stuckGo)) {
+    rebuildCars(ctx);
+  }
   // (the police's orders - a chase, its chasers sent - before the cars are driven)
   stepPolice(ctx, dt, args.player, ents, vis);
   // (the angry drivers after you)
