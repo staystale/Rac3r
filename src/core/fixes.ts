@@ -55,4 +55,8 @@ export function dialAtLoad(name: string): number {
 export const FIX = {
   // a chasing police car sounds a siren, the light bar's twin (game/sirens.ts, audiosiren.ts)
   siren: atLoad('siren'),
+  // UNDER THE SKIN: what a lost panel shows - the engine and radiator in the bay, a corner's
+  // suspension and drive shaft in a wing's well, the crash bar and radiator behind a bumper - by
+  // each car's own layout (render/underskin.ts, carbits.ts mount / radiator)
+  underskin: atLoad('underskin'),
 };
