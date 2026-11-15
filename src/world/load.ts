@@ -1,4 +1,4 @@
-import { BASE_FLOOR, setFloor, setRect } from "./bounds.ts";
+import { BASE_FLOOR, inStandardFloor, setFloor, setRect } from "./bounds.ts";
 import { LEVEL, setActiveLevel } from "./state.ts";
 import { SURFACES, SURFACE_TRAP } from "./surfaces.ts";
 import { alongTrack, prepBarriers } from "./barriers.ts";
@@ -14,6 +14,7 @@ import { LEVELS } from "./levels/index.ts";
 import { staticCovers } from "./puddles.ts";
 import { planBushes } from "./bushplan.ts";
 import { makeRoom, noteLevelBuilt, noteLevelPlayed } from "../core/memorybudget.ts";
+import { FIX } from "../core/fixes.ts";
 import type { Barrier, Cone, Lane, Level, Patch, Point, Prop, Subtrack } from "./types.ts";
 /**
  * Build (or reuse) the level's blend patches and surface inclusions.
@@ -225,6 +226,8 @@ function tapePass(level: Level): void {
   // road: tape may cross them.
   const roads = (level.lanes || []).filter((lane: Lane) => lane.out == null);
   const posts: Cone[] = [];
+  // (?forestseed=1: this level's runs from 0, not on from every level's taped before it)
+  if (FIX.forestseed) tapeId = 0;
   for (const pts of runs) {
     const runId = tapeId++;
     pts.forEach(([x, y]: Point, i: number) => {
@@ -286,6 +289,8 @@ export function buildLevel(level: Level): Level {
   // its stub kept, so the memory budget can put it back (core/memorybudget.ts)
   noteLevelBuilt(level);
   delete level._build;
+  // ?forestseed=1: in the standard world, whatever level is current (bounds.ts inStandardFloor)
+  if (FIX.forestseed) return inStandardFloor(() => finishLevel(Object.assign(level, build())));
   Object.assign(level, build());
   return finishLevel(level);
 }

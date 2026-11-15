@@ -55,6 +55,15 @@ Older design notes and measurements are in the git history of this file.
 4. Draw: `renderer.frame()` (world into the art-pixel buffer, then to the screen), then the HUD.
 5. Audio update and the fps meter.
 
+A frame's game time is whole display refreshes (`game/pacing.ts`, the learned refresh); a frame
+stamped before the last one, or 250 ms or more after it, is taken as it is - the first can be
+stamped before `main.ts` took `performance.now()`, so its time was NEGATIVE: the menu race's demo
+driver (driven with the frame's time, as `?autopilot`) took it as a step back, its clock went below
+0 inside a 'wide' window it never opened (`ai/driverDrive.ts`: `state.wideUntil` unset,
+`state.wide` undefined), its steer was NaN and the camera car froze, its tyre wear NaN through
+every recovery. Under test, `?menunan=1` (`FIX.menunan`): such a frame has 0 ms
+(`tools/scratch/_menunan.mjs` hunts the menu race's NaN; `AHEAD=` forces the case).
+
 THE LOADING SCREEN (the default since 11-14; `game/loading.ts`, its picture
 `menu/loadscreen.ts`): a START (`menuflow.ts launch`) or RESTART (`session.ts doRestart`) in a
 session puts a DOM screen up at once - the track's name and a bar, in the menu's pane, faces and
@@ -212,6 +221,15 @@ THE NIGHT FLY-IN (the default since 11-14): two parts.
   `eventglows.ts part`) stay live; the canopy cut follows. The heads' tint goes in before the
   cars' tints (live: after). `flyStats` / `?report=1` `flySets`: `nightMade`, `nightDrawn`,
   `nightFailed`, and `canopyCut` (canopies darkened / on the map, the last night frame).
+
+THE NOTICE LINE (`game.notice`, `hud/overlays.ts drawHudNotice`: one line centre-top at 30 % of
+the height, 2.2 s): no new notices (owner 11-15: "it should be clear from the game what's
+happening"). Under test: `?wantedlost=1` - the police's escape notice (`game/police.ts`) reads
+WANTED LEVEL LOST, not LOST THEM (the racers' notices are CATCH THEM / CLOSING IN / PULLING AWAY);
+`?weathermobile=1` - the weather's (`world/weather.ts changeWeather`: RAIN STARTING, HEAVY RAIN,
+SNOW FALLING, RAIN STOPPING, HOT TRACK) shown only on the MOBILE difficulty (`game/loop.ts`,
+`shared.aiDiff` 0); the weather changes as before. `tools/scratch/_noticeshots.mjs` photographs
+the escape notice and measures its box; `_weathernotice.mjs` steps SEASON weather per difficulty.
 
 ## Sound (`audio.ts`)
 
@@ -492,6 +510,16 @@ traced track), generated stages from `stagegen.ts`, and the endless highway (`hi
 parody pun (CLAUDE.md). A level is loaded by `world/load.ts`; `world/state.ts` holds the active one and its
 lists (zones, bumps, props, barriers), which the physics and the renderer both read, so what you see is
 what you drive on.
+A LEVEL BUILT ON FIRST USE (`Level._build`: the venues, the set rally stages, the generator's
+stage; `world/load.ts buildLevel`) read the floor of whatever level was set before it: `kit.ts`
+`trackKit`'s `clear` and `rxDress`'s `free` keep a prop or a bale 5-6 m inside the live
+`bounds.ts FLOOR`, so after Spa (613 m) the forest stage kept 26 more trees at its edge (853
+props, 827 alone) and Croughed RX 41 more bales and stacks round Clervaux and Hawthorn (396
+loose objects, 355 alone); and `load.ts tapePass` numbered its tape runs on from every level
+taped before it. Under test, `?forestseed=1` (`FIX.forestseed`): the build runs in the standard
+world (`bounds.ts inStandardFloor`: BASE_FLOOR, no rectangle, as when it is the first built; the
+current level's floor put back after) and each level's tape runs number from 0, so every level
+builds the same whatever came before (`tools/scratch/_buildorder.mjs`).
 
 THE ENDLESS ROAD'S GUARD (`highway.ts highwayGuard`, the player only, each step after
 `stepHighway`): WRONG WAY - moving back down the road faster than BACK_V (3 m/s) for BACK_T s, or
