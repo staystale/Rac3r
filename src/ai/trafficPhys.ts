@@ -110,6 +110,21 @@ function physicsInput(
     + (slot.edge ?? 0))),
     lookAhead = Math.max(10, Math.min(32, 8 + 0.5 * speed)),
     target = roadPose(ctx.level!, slot.s + (slot.dir ?? 1) * lookAhead, offT);
+  return pursuitInput(car, target, speed, vTarget, slot.vAl, brakeX);
+}
+
+/**
+ * The traffic's pursuit law: steered round the arc to a point ahead, the pedals to a speed.
+ * @param car the car
+ * @param target the point it steers for, world m
+ * @param speed its speed, m/s
+ * @param vTarget the speed it wants, m/s
+ * @param vAl its speed along its way, m/s
+ * @param brakeX an emergency brake 0..1
+ * @returns the input
+ */
+export function pursuitInput(car: TrafficCar['car'], target: { x: number; y: number },
+  speed: number, vTarget: number, vAl: number, brakeX: number): DriveInput {
   const cosH = Math.cos(car.heading), sinH = Math.sin(car.heading),
     toX = target.x - car.x, toY = target.y - car.y,
     xLocal = toX * cosH + toY * sinH, yLocal = -toX * sinH + toY * cosH;
@@ -117,7 +132,7 @@ function physicsInput(
     LOCK = car.spec.steerMax || 0.56;
   const steer = Math.max(-1, Math.min(1,
     (Math.atan(curv * car.spec.L) - 0.02 * (car.yawRate - speed * curv)) / LOCK));
-  const err = vTarget - slot.vAl,
+  const err = vTarget - vAl,
     brake = Math.max(brakeX, err < -0.8 ? Math.min(1, -err * 0.12) : 0);
   return {
     steer, throttle: brake > 0 || err <= 0 ? 0 : Math.min(0.75, err * 0.25),

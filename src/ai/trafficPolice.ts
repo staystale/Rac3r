@@ -386,6 +386,8 @@ function ramAt(ram: RamCtx, seat: number, stars: number, speed: number): DriveIn
 export function makeChaser(ctx: TrafficCtx, slot: TrafficCar) {
   seatRacer(ctx, slot, CHASE_DIFF, CHASE_AGG);
   slot.broke = null;
+  // (?hwtrips=1: a chaser never leaves the road or stops for fuel)
+  if (slot.trip) slot.trip = null;
   slot.police!.mode = 'chase';
 }
 
@@ -451,7 +453,7 @@ function joinBySight(ctx: TrafficCtx, chasers: TrafficCar[]) {
     const police = slot.police;
     // (?hwparked=1: a waiting car wakes as one passes it: ai/policeWake.ts)
     if (slot.parked || !police || police.mode === 'chase' || (slot.dir ?? 1) < 0 || slot.wreck
-      || (FIX.hwparked && police.mode === 'wait')
+      || (FIX.hwparked && police.mode === 'wait') || slot.trip?.path
       || !orders.suspects.some((each) => each.car !== slot.car && sameLevel(slot.car, each.car)
         && Math.hypot(slot.car.x - each.car.x, slot.car.y - each.car.y) < JOIN_M)) continue;
     makeChaser(ctx, slot);
@@ -726,6 +728,7 @@ export function makeAngry(ctx: TrafficCtx, slot: TrafficCar,
   target: AiCar & { crossing?: number }) {
   seatRacer(ctx, slot, CHASE_DIFF, CHASE_AGG);
   slot.broke = null;
+  if (slot.trip) slot.trip = null;
   slot.yieldT = 0;
   slot.police = { mode: 'chase', seat: 0, wreckT: 0, target, targetT: Infinity, angry: true,
     angryT: ANGRY_S[0] + ctx.rnd() * (ANGRY_S[1] - ANGRY_S[0]) };

@@ -14,6 +14,7 @@ import type { DriveEnv } from './trafficLane.ts';
 import { carryKinematic, drivePhysics } from './trafficPhys.ts';
 import { cruise, setSpeed } from './trafficSpawn.ts';
 import { PARKED, roadsideFree } from './trafficBreak.ts';
+import { FIX } from '../core/fixes.ts';
 import type { TrafficCar, TrafficEnt } from './types.ts';
 
 // the share of a nearside car's passes of a station it stops at (MEASURED, _police.mjs PART=
@@ -40,7 +41,7 @@ const IN_MS = 8, SLOW_MS2 = 2.5, STOP_MS2 = 3, AWAY_MS2 = 2;
 const CLEAR_BEHIND_M = 70, CLEAR_AHEAD_M = 20, CLEAR_ACROSS_M = 2.4;
 
 /** The roadside stations on our side: each one's middle's road s and its offset, m. */
-interface Station { s: number; off: number }
+export interface Station { s: number; off: number }
 // the stations by road (the props seen last), and the road's end then (a new stretch: looked again)
 const STATIONS = new WeakMap<object, { end: number; list: Station[] }>();
 
@@ -49,7 +50,7 @@ const STATIONS = new WeakMap<object, { end: number; list: Station[] }>();
  * @param ctx the traffic
  * @returns their middles (s, off), m
  */
-function stationsOf(ctx: TrafficCtx): Station[] {
+export function stationsOf(ctx: TrafficCtx): Station[] {
   const level = ctx.level!, end = roadSpan(level).s1;
   let known = STATIONS.get(level);
   if (known && known.end === end) return known.list;
@@ -81,15 +82,47 @@ const mayRefuel = (slot: TrafficCar) => !slot.broke && !slot.racer && !slot.poli
  * @param env the step's road
  */
 export function mayStopForFuel(ctx: TrafficCtx, slot: TrafficCar, env: DriveEnv) {
-  if (!mayRefuel(slot)) return;
-  const station = stationsOf(ctx).find((each) => each.s - slot.s > CHOOSE_M[0]
-    && each.s - slot.s < CHOOSE_M[1]);
+  // (?hwtrips=1: the roll comes earlier, in every lane, police too - ai/trafficTrips.ts)
+  if (FIX.hwtrips || !mayRefuel(slot)) return;
+  const station = stationsOf(ctx).find((each) => inPullInReach(slot, each));
   if (!station || station.s === slot.stationAt) return;
   slot.stationAt = station.s;
+  if (ctx.rnd() >= STOP_SHARE) return;
+  pullIn(ctx, slot, env, station);
+}
+
+/**
+ * Whether a station is near enough ahead of a car to pull in for it (CHOOSE_M: time to slow).
+ * @param slot the car
+ * @param station the station
+ * @returns in reach
+ */
+export const inPullInReach = (slot: TrafficCar, station: Station) =>
+  station.s - slot.s > CHOOSE_M[0] && station.s - slot.s < CHOOSE_M[1];
+
+/**
+ * Whether a car is too near a station (or past it) to pull in for it now.
+ * @param slot the car
+ * @param station the station
+ * @returns too near
+ */
+export const pastPullIn = (slot: TrafficCar, station: Station) =>
+  station.s - slot.s <= CHOOSE_M[0];
+
+/**
+ * A car pulls in at a station's pumps, if they are free: its stop begun.
+ * @param ctx the traffic
+ * @param slot the car
+ * @param env the step's road
+ * @param station the station
+ * @returns pulling in
+ */
+export function pullIn(ctx: TrafficCtx, slot: TrafficCar, env: DriveEnv, station: Station) {
   const stopOff = station.off + PUMP_IN_M;
-  if (ctx.rnd() >= STOP_SHARE || !roadsideFree(env.ents, station.s, stopOff)) return;
+  if (!roadsideFree(env.ents, station.s, stopOff)) return false;
   slot.broke = { stopOff, v: slot.vAl, off: slot.off, stopped: false, at: station.s,
     wait: PUMP_S[0] + ctx.rnd() * (PUMP_S[1] - PUMP_S[0]), out: false };
+  return true;
 }
 
 /**

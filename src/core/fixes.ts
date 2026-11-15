@@ -63,4 +63,8 @@ export const FIX = {
   // a police car waiting at the highway's roadside pulls out and joins the chase ~1 s after a
   // driver with heat passes it (ai/policeWake.ts)
   hwparked: atLoad('hwparked'),
+  // the highway traffic's trips (TODO 3a2 item 15): 2 in 12 leave by the next slip road, 5 in 40
+  // pull in for fuel (moving over to the nearside lane first; cruising police too), and cars join
+  // from the on-ramps (ai/trafficTrips.ts)
+  hwtrips: atLoad('hwtrips'),
 };

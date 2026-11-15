@@ -19,6 +19,8 @@ import { POLICE_PHYS_M, mayWait, stepAngry, stepPolice } from "./trafficPolice.t
 import { SIGHT_M } from "./policeHeat.ts";
 import { mayPlaceAtPump } from "./trafficFuel.ts";
 import { findLead } from "./trafficLane.ts";
+import { hasLeft, isOffOnTrip, mayJoin } from "./trafficTrips.ts";
+import { FIX } from "../core/fixes.ts";
 
 /** The inputs of a step: you, the AI cars and the renderer's screen test. */
 export interface StepArgs {
@@ -75,7 +77,7 @@ function leaving(slot: TrafficCar, relS: number, seen: boolean,
   return {
     away: !seen && ((relS < -RECYCLE_BEHIND && !catchingUp(slot, youV) && !chasing(slot, relS))
       || relS > RECYCLE_AHEAD
-      || pullingAway(slot, relS, youV) || (slot.deadT > 6 && !waits)),
+      || pullingAway(slot, relS, youV) || (slot.deadT > 6 && !waits) || hasLeft(slot)),
     forced: relS < -HARD_BEHIND || slot.s < span.s0 + 30 || slot.s > span.s1 - 30,
   };
 }
@@ -152,8 +154,9 @@ function putBack(ctx: TrafficCtx, dir: number, youV: number) {
  * @param ents everyone on the road
  */
 function dealPutBack(ctx: TrafficCtx, slot: TrafficCar,
-  back: { from: string; kind: Kind }, ents: TrafficEnt[], youV = 0) {
+  back: { from: string; kind: Kind }, ents: TrafficEnt[], youV = 0, vis: VisFn | null = null) {
   applyKind(ctx, slot, back.kind);
+  if (joinsFromRamp(ctx, slot, back, ents, vis)) return;
   // (one put back behind you comes past)
   if (back.from === 'behind' && dirOf(slot) > 0 && slot.vWant < youV + PASS_MS) {
     slot.vWant = youV + PASS_MS;
@@ -166,6 +169,24 @@ function dealPutBack(ctx: TrafficCtx, slot: TrafficCar,
   const ent = ents[ents.length - 1];
   ent.off = slot.off;
   ent.v = dirOf(slot) * slot.vAl;
+}
+
+/**
+ * ?hwtrips=1: now and then a cruising car put back ahead comes down an on-ramp instead
+ * (ai/trafficTrips.ts mayJoin); its road entry (the last) follows it.
+ * @param ctx the traffic
+ * @param slot the car
+ * @param back how it comes back (putBack)
+ * @param ents everyone on the road
+ * @param vis the screen test (none: no joining)
+ * @returns it joins
+ */
+function joinsFromRamp(ctx: TrafficCtx, slot: TrafficCar, back: { from: string; kind: Kind },
+  ents: TrafficEnt[], vis: VisFn | null): boolean {
+  if (!FIX.hwtrips || !vis || back.kind !== 'cruise' || back.from !== 'ahead' || dirOf(slot) < 0
+    || !mayJoin(ctx, slot, ents, vis)) return false;
+  Object.assign(ents[ents.length - 1], { s: slot.s, off: slot.off, v: slot.vAl });
+  return true;
 }
 
 // s a car stands stuck before it goes (the owner's 5-10 s; out of view one already goes after 6 s)
@@ -185,7 +206,7 @@ const QUEUE_GAP_M = 8, QUEUE_STILL_MS = 2;
  */
 function noteStuckCars(ctx: TrafficCtx, ents: TrafficEnt[], dt: number) {
   for (const slot of ctx.list) {
-    if (slot.parked || !(slot.deadT > 0) || slot.broke || slot.police) {
+    if (slot.parked || !(slot.deadT > 0) || slot.broke || slot.police || isOffOnTrip(slot)) {
       slot.stuckGoT = 0;
       continue;
     }
@@ -227,7 +248,7 @@ function recycle(ctx: TrafficCtx, ents: TrafficEnt[], playerS: number, vis: VisF
       const place = spot(ctx, ents, playerS, 'ahead', vis, dir);
       if (place) {
         join(slot, place, dir);
-        dealPutBack(ctx, slot, { from: 'ahead', kind: dealKind(ctx, dir) }, ents);
+        dealPutBack(ctx, slot, { from: 'ahead', kind: dealKind(ctx, dir) }, ents, 0, vis);
         ctx.placed++;
       }
       continue;
@@ -243,7 +264,7 @@ function recycle(ctx: TrafficCtx, ents: TrafficEnt[], playerS: number, vis: VisF
     const place = spot(ctx, ents, playerS, back.from, vis, dir);
     if (place) {
       join(slot, place, dir);
-      dealPutBack(ctx, slot, back, ents, youV);
+      dealPutBack(ctx, slot, back, ents, youV, vis);
       ctx.recycled++;
     } else {
       slot.parked = true;
