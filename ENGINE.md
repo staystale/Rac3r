@@ -173,8 +173,10 @@ its severity), nothing is held, a 'late' one has no understeer lift, and both ar
 (`MIST_GROW`). `tools/scratch/_aislip.mjs` (AISLIDE=1) measures it; `_aislideshot.mjs` photographs it.
 
 A STOPPED OR MUCH SLOWER CAR IN THE WAY (under test, `?stopdodge=1`, `FIX.stopdodge`;
-`ai/stopDodge.ts`). A car ahead "not racing" (`driverTraffic.ts racingNot`: under max(5 m/s, half my
-speed) along my way, not coming back at more than 2 m/s) is read, with the switch, where it STANDS
+`ai/stopDodge.ts`). A car ahead HALTED (`driverTraffic.ts haltedAhead`: under 3 m/s, or slower than
+max(5 m/s, half my speed) AND under half the racing speed where it is - my plan there; not coming
+back at more than 2 m/s; and NOT PULLING AWAY: speeding up under 1 m/s/s along my way, read with its
+braking, `dodge.ts readGain`; and none at all within 2 s of my own getaway, `goT`) is read, with the switch, where it STANDS
 ACROSS THE ROAD held to my point (`placeAcross`: off the line at its point + the line's place across
 the road there - the line's here), the frame the steering keeps off the line (`driverSteps.ts
 offRoad`): read off the line at its own point, a way round planned 3.5 m off the line here ended on

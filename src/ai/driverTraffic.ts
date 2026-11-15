@@ -5,7 +5,9 @@ import { GRAVITY } from "../cars.ts";
 import { OBST_CLEAR, carGrip, profileOf } from "./line.ts";
 import type { AiCar, CarsAcc, CarsEnv, DriveCtx } from "./types.ts";
 import type { Drv, AiPath } from "./driverCtx.ts";
-import { OBJECT_MORE, clearOf, matchSpeed, reachOf, readBraking, swerveCap } from "./dodge.ts";
+import {
+  OBJECT_MORE, clearOf, matchSpeed, reachOf, readBraking, readGain, swerveCap,
+} from "./dodge.ts";
 import { blockOn, gapLine, seeCar } from "./gapPick.ts";
 import type { SeenCar } from "./gapPick.ts";
 import { FIX } from "../core/fixes.ts";
@@ -171,7 +173,7 @@ function followCapOf(drv: Drv, env: CarsEnv, fwd: number, vAlong: number, closeI
 
 /** A car alongside (or just behind): remember its place and keep a gap from it. */
 export function alongsideCar(drv: Drv, acc: CarsAcc, env: CarsEnv, fwd: number, otherLat: number,
-    vAlong: number) {
+    vAlong: number, halted = false) {
   const { latT, startK, myLat } = env;
   if (fwd > -2.5) acc.side = acc.side || Math.sign(otherLat - myLat);
   acc.alg.push(otherLat);
@@ -188,9 +190,10 @@ export function alongsideCar(drv: Drv, acc: CarsAcc, env: CarsEnv, fwd: number, 
     }
     return;
   }
-  // (?stopdodge=1: not to a car stopped or crawling - it is no race for the line; held to its
-  // speed, a car half a length short of a stopped one never got round it: ai/stopDodge.ts brakes)
-  const racing = !FIX.stopdodge || !racingNot(vAlong, env.speed);
+  // (?stopdodge=1: not to a car stopped or stranded - haltedAhead - it is no race for the line;
+  // held to its speed, a car half a length short of a stopped one never got round it:
+  // ai/stopDodge.ts brakes)
+  const racing = !halted;
   if (racing && fwd >= half && Math.sign(latT - myLat) === side) {
     // it leads and my line is across it: give way - drop in behind it, then take the line
     acc.followCap = Math.min(acc.followCap, vAlong - YIELD_V);
@@ -224,6 +227,46 @@ const offTrackOk = (vAlong: number, speed: number) => racingNot(vAlong, speed);
 
 // m/s back down my way a car may be going and still count as stopped (rolling back), not oncoming
 const STOPPED_BACK_V = -2;
+// m/s/s a car ahead speeding up by this much is PULLING AWAY (a start, out of a slow corner), not
+// stopped: held a stopping distance behind the car ahead on the grid, a field hesitated at the
+// green (owner: "hesitant on grid starts"); from rest at full throttle a car gains 3-6 m/s/s
+const PULL_AWAY = 1;
+// m/s under which a car counts as stopped; and the share of the racing speed where it is (my plan
+// there) under which a slow car is stranded, not racing - a car braking for a corner is at it
+const STOPPED_V = 3, STRANDED_SHARE = 0.5;
+// s from my own getaway (driverLane.ts goT) in which no car ahead counts as stopped - the grid
+// pulling away: a car ahead still at rest read as stopped held the next row to a crawl until its
+// own getaway was read (_gridstart.mjs, Knobhill RX: 7 car-s held in the first 3 s)
+const GETAWAY_S = 2;
+
+/**
+ * ?stopdodge=1: a car ahead STOPPED (under STOPPED_V) or STRANDED (much slower than me and than
+ * the racing speed where it is), and NOT pulling away.
+ * @param fwd m it is ahead
+ * @param vAlong its m/s along my way
+ * @param speed my m/s
+ * @param read how fast it speeds up along my way (m/s/s, ai/dodge.ts readGain) and my plan's
+ *   speed where it is (m/s)
+ * @param read.gain m/s/s
+ * @param read.planV m/s
+ * @returns true when it counts as stopped
+ */
+function haltedAhead(fwd: number, vAlong: number, speed: number,
+  read: { gain: number; planV: number }): boolean {
+  if (fwd <= 0 || vAlong < STOPPED_BACK_V || read.gain >= PULL_AWAY) return false;
+  return vAlong < STOPPED_V || (racingNot(vAlong, speed) && vAlong < STRANDED_SHARE * read.planV);
+}
+/**
+ * On the grid or within GETAWAY_S of my getaway (the start).
+ * @param state my state (my clock, goT: when I first moved off)
+ * @param state.t s
+ * @param state.goT s, undefined before
+ * @returns true at the start
+ */
+const gettingAway = (state: { t: number; goT?: number }) => state.goT == null
+  || state.t - state.goT < GETAWAY_S;
+// (one read, reused: no allocation per car)
+const haltRead = { gain: 0, planV: 0 };
 
 /**
  * A car ahead not racing - stopped or crawling against my speed (racingNot) - kept for the
@@ -234,9 +277,8 @@ const STOPPED_BACK_V = -2;
  * @param envO the cars' environment sized to it (clear, along)
  */
 function noteStopped(acc: CarsAcc, other: AiCar, seenAs: { fwd: number; otherLat: number;
-  vAlong: number; speed: number }, envO: CarsEnv) {
-  const { fwd, otherLat, vAlong, speed } = seenAs;
-  if (fwd <= 0 || vAlong < STOPPED_BACK_V || !racingNot(vAlong, speed)) return;
+  vAlong: number }, envO: CarsEnv) {
+  const { fwd, otherLat, vAlong } = seenAs;
   (acc.stopped ??= []).push({ car: other, fwd, lat: otherLat, v: vAlong, clear: envO.clear,
     along: envO.along ?? 0 });
 }
@@ -339,17 +381,13 @@ function viewOf(car: AiCar, other: AiCar, byRoad: boolean) {
  * @param env the cars' environment (my path, my point, my m/s)
  * @param other the car
  * @param closeIdx its point on my path
- * @param fwd m it is ahead
- * @param vAlong its m/s along my way
+ * @param halted a car stopped or stranded ahead (haltedAhead)
  * @returns m off my path
  */
-function placeAcross(env: CarsEnv, other: AiCar, closeIdx: number, fwd: number,
-  vAlong: number): number {
+function placeAcross(env: CarsEnv, other: AiCar, closeIdx: number, halted: boolean): number {
   const pts = env.path.pts, point = pts[closeIdx];
   const lat = (other.x - point.x) * -Math.sin(point.h) + (other.y - point.y) * Math.cos(point.h);
-  if (!FIX.stopdodge || fwd <= 0 || vAlong < STOPPED_BACK_V || !racingNot(vAlong, env.speed)) {
-    return lat;
-  }
+  if (!halted) return lat;
   return lat + (point.off ?? 0) - (pts[env.nearIdx].off ?? 0);
 }
 
@@ -384,17 +422,24 @@ export function carsStep(drv: Drv, car: AiCar, others: AiCar[], path: AiPath, ne
     // its lateral place relative to MY path
     const closeIdx = closestPathIdx(drv, env, other, fwd);
     const point = path.pts[closeIdx];
-    const otherLat = placeAcross(env, other, closeIdx, fwd, vAlong);
+    const dec = readBraking(state.seenV ??= new WeakMap(), other, vAlong, state.t, traits.skill);
+    // (?stopdodge=1: a car stopped or stranded ahead - not one pulling away)
+    haltRead.gain = readGain(state.seenV, other);
+    haltRead.planV = prof[closeIdx];
+    const halted = FIX.stopdodge && !gettingAway(state) && haltedAhead(fwd, vAlong, speed,
+      haltRead);
+    const otherLat = placeAcross(env, other, closeIdx, halted);
     const envO = sizedEnv(env, car, other, point.h);
-    envO.dec = readBraking(state.seenV ??= new WeakMap(), other, vAlong, state.t, traits.skill);
+    envO.dec = dec;
     // (not the car I am attacking: the attack is passing it - going round it as traffic undid the
     // pass, MEASURED circuit fields 118 -> 83 passes)
     const attacked = state.atk && other === state.atk.car;
     if (!attacked) seen.push({ ...seeCar(other, fwd, otherLat, vAlong, point.h),
       dec: envO.dec });
     noteLeadThreat(drv, acc, env, other, fwd, otherLat, vAlong);
-    if (FIX.stopdodge) noteStopped(acc, other, { fwd, otherLat, vAlong, speed }, envO);
-    reactTo(drv, acc, [env, envO], { fwd, otherLat, vAlong, closeIdx, attacked: !!attacked });
+    if (halted) noteStopped(acc, other, { fwd, otherLat, vAlong }, envO);
+    reactTo(drv, acc, [env, envO], { fwd, otherLat, vAlong, closeIdx, attacked: !!attacked,
+      halted });
   }
   gapStep(drv, car, acc, seen, { myLat, latT, lineOff, latLim, speed, look });
   acc.seen = seen;
@@ -411,9 +456,9 @@ export function carsStep(drv: Drv, car: AiCar, others: AiCar[], path: AiPath, ne
  */
 function reactTo(drv: Drv, acc: CarsAcc, envs: [CarsEnv, CarsEnv], seenAs: { fwd: number;
   otherLat: number;
-  vAlong: number; closeIdx: number; attacked: boolean }) {
+  vAlong: number; closeIdx: number; attacked: boolean; halted: boolean }) {
   const { traits } = drv, [env, envO] = envs, { speed, myLat, latT } = env;
-  const { fwd, otherLat, vAlong, closeIdx, attacked } = seenAs;
+  const { fwd, otherLat, vAlong, closeIdx, attacked, halted } = seenAs;
   if (attacked) { attackedCar(drv, acc, env, fwd, otherLat, vAlong); return; }
   if (fwd > 2.5) {
     // FOLLOWING only while closing, with a short gap: it rubs and bumps in braking zones
@@ -424,7 +469,7 @@ function reactTo(drv: Drv, acc: CarsAcc, envs: [CarsEnv, CarsEnv], seenAs: { fwd
       followAhead(drv, acc, envO, fwd, otherLat, vAlong, closeIdx);
     }
   } else if (fwd > -4) {
-    alongsideCar(drv, acc, env, fwd, otherLat, vAlong);
+    alongsideCar(drv, acc, env, fwd, otherLat, vAlong, halted);
   } else if (!acc.conflict && traits.defence > 0.5 && vAlong > speed + 0.5 && fwd > -14) {
     acc.dodgeT = Math.max(-1.2, Math.min(1.2, (otherLat - latT) * 0.5)) * traits.defence;
   }
