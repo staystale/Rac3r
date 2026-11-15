@@ -64,11 +64,17 @@ records in `TODO-DONE.md` (PASSED 11-12). On the phone now:
   Thruston, 396 after Spa), and X Gayms and Holy Jeez only their tape ids. ON: 0 of 50 differ,
   after Spa, Naffcar, Croughed RX or the highway (a 100 km floor). The level is always the
   "built alone" one, so in the game: the stages lose the extra edge trees they had after a big
-  menu-race track (the menu race picks a random circuit, oval or RX track, or the highway), and
-  CROUGHED RX LOSES ITS 32-41 BALES AND STACKS OUTSIDE 255 M (its own floor is 546 m: built alone,
-  rxDress drops them) - see the question in the hand-over. worldhash (LEVELS order): OFF SAME as
-  db2919a2; ON differs only by the tape ids on 13 tape levels (nothing else; checked with each
-  object's tape id left out) and Croughed RX 367 -> 355 loose objects.
+  menu-race track (the menu race picks a random circuit, oval or RX track, or the highway).
+  CROUGHED RX KEEPS ITS BALES (owner rule "never change what's passed"): a rallycross venue's
+  bales and tyre stacks are kept inside the level's OWN floor (rallycross-venue.ts passes
+  level.floor to kit.ts rxDress), as the tape is: Croughed RX (546 m) 396 loose objects after
+  every level (the standard 260 m world dropped 41 of them: 355). ON, MEASURED again: 0 of 50
+  levels differ by build order (after Spa, Naffcar, the highway); Croughed RX, Holy Jeez and X
+  Gayms after Spa, Naffcar, Croughed, Thruston: the same (396 / 545 / 585); every other lazily
+  built level the same count as before. (In node the highway does not load: "after the
+  highway" is after the level before it.) worldhash (LEVELS order): OFF SAME as round49
+  (330cae71); ON against the old ?forestseed=1, only Croughed RX (cones 355 -> 396); ON against
+  OFF, the tape ids on the tape levels and Croughed RX 367 -> 396 loose objects.
 - OLD BANNERS, NO NEW ONES (owner 11-15: no new banners ever; "it should be clear from the game
   what's happening"). BUILT, each behind its own switch (testlist 'wantedlost', 'weathermobile'):
   - `?wantedlost=1` (FIX.wantedlost, game/police.ts): shaking off the police reads WANTED LEVEL

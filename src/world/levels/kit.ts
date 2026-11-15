@@ -94,8 +94,11 @@ export function trackKit(sub: Subtrack, seed: number, lanes: Lane[] = []): Track
 // x 3 block of TYRE STACKS on each inside apex (hw + 2.5) — kept off the road, every
 // lane (joker, start, traps, paddock) and 1.6 m clear of any existing object.
 // lined: [[d0, d1]] stretches with bales along BOTH sides every 4.4 m
+// floorM: the half-size of the level's world, m (bales kept 5 m inside it); the live FLOOR unless
+// the level passes its own (?forestseed=1: world/levels/rallycross-venue.ts)
 export function rxDress(
-  sub: Subtrack, lanes: Lane[], existing: Cone[], lined: Point[] = []): Cone[] {
+  sub: Subtrack, lanes: Lane[], existing: Cone[], lined: Point[] = [],
+  floorM: number = FLOOR): Cone[] {
   const halfWidth = sub.width / 2, out: Cone[] = [], have = [...existing];
   const onLane = (x: number, y: number) => lanes.some((lane) => lane.pts.some(
     ([startX, startY], i) => {
@@ -109,8 +112,8 @@ export function rxDress(
   const free = (x: number, y: number) =>
     querySubtrack(sub, x, y).dist > halfWidth + 1.5
     && !onLane(x, y)
-    && Math.abs(x) < FLOOR - 5
-    && Math.abs(y) < FLOOR - 5
+    && Math.abs(x) < floorM - 5
+    && Math.abs(y) < floorM - 5
     && !have.some((cone) => Math.hypot(cone.x - x, cone.y - y) < 1.6);
   const add = (cone: Cone) => {
     if (free(cone.x, cone.y)) {

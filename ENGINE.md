@@ -519,7 +519,10 @@ loose objects, 355 alone); and `load.ts tapePass` numbered its tape runs on from
 taped before it. Under test, `?forestseed=1` (`FIX.forestseed`): the build runs in the standard
 world (`bounds.ts inStandardFloor`: BASE_FLOOR, no rectangle, as when it is the first built; the
 current level's floor put back after) and each level's tape runs number from 0, so every level
-builds the same whatever came before (`tools/scratch/_buildorder.mjs`).
+builds the same whatever came before (`tools/scratch/_buildorder.mjs`). A rallycross venue's bales
+and tyre stacks (`rallycross-venue.ts rallycrossLevel` -> `rxDress(..., floorM)`) are kept inside
+the LEVEL'S OWN floor (`level.floor`, as the tape's `onFloor` reads it), not the standard 260 m:
+Croughed RX (546 m) keeps all 396 loose objects.
 
 THE ENDLESS ROAD'S GUARD (`highway.ts highwayGuard`, the player only, each step after
 `stepHighway`): WRONG WAY - moving back down the road faster than BACK_V (3 m/s) for BACK_T s, or

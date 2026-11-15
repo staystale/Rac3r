@@ -52,8 +52,10 @@ export const TEST_LIST: TestEntry[] = [
       + 'forest stage, a set rally stage and Croughed RX; then the same with a small one first '
       + '(Naffcar)',
     try: 'Look at the forest\'s edge on the stage and at the bales round Clervaux and Hawthorn on '
-      + 'Croughed RX: both visits should look the same.',
-    wrong: 'Trees or bales that come and go with the track raced before; anything else changed.',
+      + 'Croughed RX: both visits should look the same, Croughed RX with all its bales and tyre '
+      + 'stacks there both times.',
+    wrong: 'Trees or bales that come and go with the track raced before; bare grass round '
+      + 'Clervaux and Hawthorn where bales were; anything else changed.',
   },
   {
     id: 'wantedlost',
