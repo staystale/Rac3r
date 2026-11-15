@@ -153,6 +153,10 @@ RACE TRACKS:
       where a race needs it; charged in career / story later.
     - Pit lane: automatic limiter, no penalty. AI: the same rules, a short skill-based delay for the menu.
     - Cost: free in test mode, charged later.
+    - WALKTHROUGH (owner 11-15: "Make sure it's all explained in the walk thru the first time an event of
+      that type ect starts"): the event rules walkthrough (guide.ts RULES) gets pit-stop cards shown the first
+      time a race WITH pit stops starts: the pit lane and limiter, stopping in your box, the menu, compulsory
+      stops where they apply, fuel.
 17. LITTER / JUNK on race tracks: very light (props we have). To discuss.
 18. F1 vs WORLD CIRCUITS in the menu (split where a level opens a sub-menu).
 

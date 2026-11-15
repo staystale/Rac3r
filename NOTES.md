@@ -865,6 +865,9 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   `checks` failed), `git push origin HEAD:refs/heads/main`,
   delete the branch, then move the served clone: `git fetch -q origin && git checkout -q --detach
   origin/main`.
+- EVERY NEW MECHANIC IS EXPLAINED IN THE WALKTHROUGH (owner 11-15: "Make sure it's all explained in the
+  walk thru the first time an event of that type ect starts"): the first time an event of that type
+  starts, its rules cards (guide.ts RULES) say what is new - in the same task as the mechanic.
 - Commit tags (11-07): a commit MEANT to change the simulation / the AI says [sim], level data
   [world], the pixels [look] - the `checks` workflow then reports that hash instead of failing it.
   Untagged, a difference fails: it was not meant. A level change that moves anything drawn (a
