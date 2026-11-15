@@ -1,4 +1,4 @@
-// hud/keepclear.ts - the HUD pieces the player's car must never be drawn under (?hudclear=1): the
+// hud/keepclear.ts - the HUD pieces the player's car must never be drawn under: the
 // rectangles of every piece the HUD draws now, for the camera (render/hudclear.ts). The same
 // tests as the drawing: a chip only on a car with that aid, a hidden panel takes no room, the
 // pedals only with touch controls. Not listed: the steering stick (it sits under the thumb) and

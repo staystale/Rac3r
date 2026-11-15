@@ -166,7 +166,7 @@ export function createHud() {
 
   return {
     draw, hit, layout,
-    // the pieces drawn now, for the camera (?hudclear=1, hud/keepclear.ts)
+    // the pieces drawn now, for the camera (hud/keepclear.ts)
     keepout: (game: HudGame, width: number, height: number) => hudKeepout(state, game, width,
       height),
     get tyreHud() { return state.tyreHud; }, setTyreHud,

@@ -159,24 +159,7 @@ BUGS (each behind its own switch, measured, then a test link):
      runs, 441c130c...); worldhash SAME off and TYRESMOKE=1; renderhash --only thruston,knobhill
      SAME off and SAME on (its 20 s drives leave the tyres at 43-57 C: no smoke under either
      rule, so the pixel check cannot see the switch; the photos do).
-3. THE HUD COVERS THE PLAYER'S CAR on the highways: the car must never be under a control or HUD.
-   BUILT 11-15 behind ?hudclear=1 (testlist 'hudclear'). MEASURED (tools/scratch/_hudcover.mjs on
-   the PC: the game's autopilot, touch controls, 10 phone sizes - 844x390, 667x375, 932x430,
-   915x412, 740x360 and each upright - x 9 runs: Thruston, Knobhill RX, a rally stage, the Lab, the
-   highway as motorway, twisty, Deaf Valley, interstate and walled; the car's footprint read
-   against the HUD's own pixels every 12 frames). OFF, the car under the HUD on every upright
-   phone on every highway (390x844: 12-21 % of the samples, up to 85 % of the car hidden; 375x667
-   up to 45 %; 360x740 up to 50 %), mostly under the ABS / TCS chips and the pedals, as the road's
-   bends slide the car sideways 3/4 down the screen; elsewhere: the Lab under the chips
-   (844x390, 667x375, 740x360), Knobhill RX under the chips (667x375, 740x360), a stage under
-   RESTART (915x412), a circuit under the ABS chip (375x667). ON: never under a control, panel,
-   pedal or the minimap in any of the 90 runs; left only a moment under the passing overlays
-   (the speed camera's flash, the finish flag), not avoided by design. The view: the push moves
-   with its speed changing at most 3 px / frame / frame (render/hudclear.ts followPush), so the
-   largest change of the car's per-frame move on screen is 3.0-8.2 px, as off (the hand-over
-   from the fly-in; resets aside, the same frames off and on); the aid chips taken away and
-   given back mid-push (APPEAR, 667x375 Lab, 390x844 twisty): no jump over 4 px, never covered.
-   The push reads the car where the follow put it, so it cannot fight the look-ahead.
+3. THE HUD COVERS THE PLAYER'S CAR: PASSED 11-15, the default (TODO-DONE).
 4. RESETS: never put you ahead of where you were (inline or behind only); a car in the way: the
    next free spot BEHIND; a reset does not clear the police (they go only when too damaged, or
    having caught someone).

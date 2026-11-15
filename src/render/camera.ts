@@ -1,5 +1,4 @@
 // The CAMERA of the renderer: follow, speed zoom, the level fly-in and the overview picture.
-import { FIX } from '../core/fixes.ts';
 import { FX0, FX1, FY0, FY1 } from "../world/bounds.ts";
 import { LEVEL } from "../world/state.ts";
 import { meterEvent } from "../ui/meter.ts";
@@ -379,7 +378,7 @@ function springZoom(ctx: CameraCtx, target: number, wallDt: number) {
 }
 
 /**
- * The car kept out from under the HUD (?hudclear=1): after the follow and the zoom, the camera
+ * The car kept out from under the HUD: after the follow and the zoom, the camera
  * moves just enough that the car's box on screen (its length x width at its heading) clears
  * every HUD piece (render/hudclear.ts), moved toward that with its speed changing smoothly
  * (followPush: the fly-in's hand-over and a piece that appears too - MEASURED, taken whole at the
@@ -392,7 +391,7 @@ function springZoom(ctx: CameraCtx, target: number, wallDt: number) {
  */
 function clearHud(ctx: CameraCtx, car: ClearCar, wallDt: number) {
   const { view, cam, camState, clear } = ctx;
-  if (!FIX.hudclear || !ctx.keepout || camState.fly || camState.menuView) return;
+  if (!ctx.keepout || camState.fly || camState.menuView) return;
   const rects = ctx.keepout(view.W, view.H);
   const ppm = ctx.PPMz(), cos = Math.abs(Math.cos(car.heading)),
     sin = Math.abs(Math.sin(car.heading)), halfLen = car.spec.len / 2 * ppm,

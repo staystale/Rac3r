@@ -66,9 +66,6 @@ export const FIX = {
   // the endless road's wrong-way guard gives time to turn round, to be knocked back and to
   // reverse a little: 4 s back down the road or 50 m behind the furthest point (highway.ts)
   wrongway: atLoad('wrongway'),
-  // the player's car never drawn under a HUD piece: the camera moves it clear
-  // (render/hudclear.ts, hud/keepclear.ts)
-  hudclear: atLoad('hudclear'),
   // the countryside highway's exit signs: the four real towns as parody puns (highway/extras.ts)
   exitpuns: atLoad('exitpuns'),
   // the night's canopy cut on the endless road too, worked out stretch by stretch as its props

@@ -20,7 +20,6 @@ import {
 } from './hud/minimap.ts';
 import { createMeter } from './ui/meter.ts';
 import { createReporter } from './ui/report.ts';
-import { FIX } from './core/fixes.ts';
 import type { HudGame } from './hud/hudtypes.ts';
 import { createFramePacer } from './game/pacing.ts';
 import { createChurn } from './core/churn.ts';
@@ -246,10 +245,8 @@ window.__game.setAutopilot = (isOn: boolean) => {
 };
 window.__game.paintThumbsNow = paintThumbsNow;   // (tools/thumbs.mjs)
 // the car kept out from under the HUD: the camera reads the pieces drawn now
-if (FIX.hudclear) {
-  shared.renderer.setHudKeepout((width: number, height: number) =>
-    shared.hud.keepout(game as unknown as HudGame, width, height));
-}
+shared.renderer.setHudKeepout((width: number, height: number) =>
+  shared.hud.keepout(game as unknown as HudGame, width, height));
 Object.defineProperty(window.__game, 'level', { get: () => LEVEL });
 window.__game.renderer = shared.renderer;
 window.__game.input = shared.input;

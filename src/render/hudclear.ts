@@ -1,4 +1,4 @@
-// render/hudclear.ts - THE CAR NEVER UNDER THE HUD (?hudclear=1). MEASURED before
+// render/hudclear.ts - THE CAR NEVER UNDER THE HUD. MEASURED before
 // (tools/scratch/_hudcover.mjs, the game's autopilot, 2 min a run): on a 390x844 phone the
 // endless highway put the car 3/4 down the screen and a bend slid it right, under the ABS / TCS
 // chips and the pedals, in 15 % of the samples (worst 85 % of the car hidden). The camera keeps

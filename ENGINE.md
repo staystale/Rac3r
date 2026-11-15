@@ -343,7 +343,7 @@ off / on): racing laps fronts smoke 5-8 % -> 1 % of the time; a held 1.1 g corne
   zoom 1) and blitted to the screen with smoothing off. The camera is snapped to whole art pixels and the
   leftover fraction is applied when blitting. The HUD is drawn afterwards at full resolution.
 - `render/camera.ts`: follow with look-ahead, speed zoom (`ZOOM_MIN` 0.30), the level fly-in and the
-  whole-level overview picture used during it. Under `?hudclear=1` the car is never drawn under a
+  whole-level overview picture used during it. The car is never drawn under a
   HUD piece: after the follow and the zoom, `clearHud` moves the camera just enough that the
   car's box on screen clears every piece the HUD draws now (`hud/keepclear.ts hudKeepout`: the
   button row, the panels, the minimap, the aid chips on a car with that aid, the pedals with touch

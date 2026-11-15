@@ -13,6 +13,19 @@ rolls - OWNER 11-07; the AI rework - Where we are 11-04; the driving root fix, t
 LIST 11-01; TypeScript, mud, grass, lamps - Queue; weather, surfaces, car systems, damage,
 lighting, bushes and trees - OWNER LIST 10-24; the checking tools - Tools that are wrong.
 
+## PASSED 11-15 (owner: "The rest is pass") - TODO 3a2's bugs and the boot bar; now the default
+
+Each switch removed with its test entry; proved by the base with the switch on against the new
+code plain (simhash, worldhash, renderhash the same).
+
+- THE CAR NEVER UNDER THE HUD (was ?hudclear=1; render/hudclear.ts, hud/keepclear.ts). MEASURED
+  (tools/scratch/_hudcover.mjs, 10 phone sizes x 9 runs): before, the car under the HUD on every
+  upright phone on every highway (390x844: 12-21 % of the time, up to 85 % of the car hidden),
+  mostly under the ABS / TCS chips and the pedals; with it never under a control, panel, pedal or
+  the minimap in all 90 runs (only a moment under the passing overlays, by design). The push's
+  speed changes at most 3 px / frame / frame: the car's largest per-frame move on screen 3.0-8.2
+  px, as before.
+
 ## PASSED 11-14 (owner: "Pass all four") - THE LOADING SCREEN, THE RESTART FIX, THE SMOOTH FLY-IN, THE NIGHT FLY-IN; now the default
 
 The switches ?loadscreen=1, ?onestart=1, ?smoothfly=1 and ?nightfly=1 removed with their test
