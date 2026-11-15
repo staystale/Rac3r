@@ -19,7 +19,6 @@ import { LEVEL } from '../world/state.ts';
 import { MARGIN } from './widgets.ts';
 import { jokerLane } from '../world/joker.ts';
 import { inTrackUnderpass } from '../world/trackunder.ts';
-import { FIX } from '../core/fixes.ts';
 import { drawHighwayMarks, drawHighwaySideRoads } from './minimapHighway.ts';
 import type { HudState, HudGame } from './hudtypes.ts';
 import type { HudRects } from './layout.ts';
@@ -405,15 +404,15 @@ function drawWindow(ctx: CanvasRenderingContext2D, game: HudGame, x: number, y: 
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
   drawJokerLane(ctx, scale);
-  // (?hwmap=1: the roads leaving the motorway, under it; a side road's points are ~30 m apart)
+  // (the roads leaving the motorway, under it; a side road's points are ~30 m apart)
   const reach = (radius + lead) / scale;
-  if (FIX.hwmap) drawHighwaySideRoads(ctx, game, reach + SIDE_ROAD_PAD_M, scale);
+  drawHighwaySideRoads(ctx, game, reach + SIDE_ROAD_PAD_M, scale);
   drawRoad(ctx, pts, idx, closed ? sub.totalDist : null, scale, span);
   ctx.globalAlpha = OPACITY;
   drawRivals(ctx, game, reach, scale);
   ctx.restore();
-  // (?hwmap=1: the petrol stations and the police, over the road)
-  if (FIX.hwmap) drawHighwayMarks(ctx, game, carX, carY, scale, reach);
+  // (the petrol stations and the police, over the road)
+  drawHighwayMarks(ctx, game, carX, carY, scale, reach);
   drawCarMark(ctx, carX, carY, car.heading);
   ctx.restore();
 }

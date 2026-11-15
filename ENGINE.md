@@ -303,7 +303,7 @@ must be; the gauge, FPS strip, cone tally and the ABS / TCS chips' clearance fol
 bottom as before. Solo (no position) the joker line keeps the second row. Off: two rows, the joker
 line beside the position. `tools/scratch/_jokerrowshots.mjs` photographs every joker state.
 
-THE HIGHWAY'S MINIMAP EXTRAS (under test, `?hwmap=1`, `FIX.hwmap`; `hud/minimapHighway.ts`, called
+THE HIGHWAY'S MINIMAP EXTRAS (passed 11-15; `hud/minimapHighway.ts`, called
 from `hud/minimap.ts drawWindow`; the endless roads only): the roads leaving the motorway - the
 level's tarmac lanes but a village's street, a bridge's approach kept only where it leads on from
 a junction's roundabout (an approach shares its points with the cut that shortens it,

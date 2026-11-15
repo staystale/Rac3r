@@ -60,7 +60,4 @@ export const FIX = {
   aipace: atLoad('aipace'),
   // a chasing police car sounds a siren, the light bar's twin (game/sirens.ts, audiosiren.ts)
   siren: atLoad('siren'),
-  // the endless roads' minimap shows the roads leaving the motorway, the petrol stations and the
-  // police (hud/minimapHighway.ts)
-  hwmap: atLoad('hwmap'),
 };

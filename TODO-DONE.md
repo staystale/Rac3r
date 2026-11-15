@@ -13,6 +13,20 @@ rolls - OWNER 11-07; the AI rework - Where we are 11-04; the driving root fix, t
 LIST 11-01; TypeScript, mud, grass, lamps - Queue; weather, surfaces, car systems, damage,
 lighting, bushes and trees - OWNER LIST 10-24; the checking tools - Tools that are wrong.
 
+## PASSED 11-15 (owner: "Mini map Pass") - THE HIGHWAY MINIMAP EXTRAS, the default (was ?hwmap=1).
+
+11. MINIMAP: fuel stations, exits / road splits / slip roads, police.
+    OWNER 11-15: simple pixel icons - a small green pump; the slip road as a thin road line
+    (sat-nav style); police blue dots within the minimap's range, flashing only with aggro.
+    BUILT behind `?hwmap=1` (FIX.hwmap; hud/minimapHighway.ts; testlist 'hwmap'; ENGINE.md THE
+    HIGHWAY'S MINIMAP EXTRAS). Roads drawn: the slips, the side road, a junction's slips,
+    roundabouts and the roads on from them; NOT a plain road bridge's road (a crossing, not an
+    exit), nor village streets, footpaths or railways. COST (second PC, x4 CPU, the motorway with the
+    autopilot): the two calls 0.027 + 0.006 ms a frame (75 props, 8 lanes, 22 traffic cars in
+    the stream); whole-frame work on that PC wanders 42-59 ms median run to run (a run with an
+    ignored switch 58), so its A/B (on 42-56, off 47-50) shows nothing above that. Switch off:
+    renderhash --only highway SAME (f845dc16). Photos: tools/scratch/_hwmapshots.mjs.
+
 ## PASSED 11-15 (owner: "Much better", "Yes") - STOPPED-CAR AVOIDANCE, ITS START FIX AND THE TWO GUARDS, the
 default (was ?stopdodge=1). PROOF: round62 with ?stopdodge=1 vs the default - below.
 

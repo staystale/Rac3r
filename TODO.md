@@ -211,17 +211,7 @@ BUGS (each behind its own switch, measured, then a test link):
     default (TODO-DONE).
     STOPPED-CAR AVOIDANCE + THE TWO GUARDS (with the start fix): PASSED 11-15 ("Much better", "Yes"),
     the default (TODO-DONE).
-11. MINIMAP: fuel stations, exits / road splits / slip roads, police.
-    OWNER 11-15: simple pixel icons - a small green pump; the slip road as a thin road line
-    (sat-nav style); police blue dots within the minimap's range, flashing only with aggro.
-    BUILT behind `?hwmap=1` (FIX.hwmap; hud/minimapHighway.ts; testlist 'hwmap'; ENGINE.md THE
-    HIGHWAY'S MINIMAP EXTRAS). Roads drawn: the slips, the side road, a junction's slips,
-    roundabouts and the roads on from them; NOT a plain road bridge's road (a crossing, not an
-    exit), nor village streets, footpaths or railways. COST (second PC, x4 CPU, the motorway with the
-    autopilot): the two calls 0.027 + 0.006 ms a frame (75 props, 8 lanes, 22 traffic cars in
-    the stream); whole-frame work on that PC wanders 42-59 ms median run to run (a run with an
-    ignored switch 58), so its A/B (on 42-56, off 47-50) shows nothing above that. Switch off:
-    renderhash --only highway SAME (f845dc16). Photos: tools/scratch/_hwmapshots.mjs.
+11. MINIMAP (fuel stations, slip roads, police): PASSED 11-15, the default (TODO-DONE).
 12. CHEVRON SIGNS in the country highways' lay-bys; on Deaf Valley too, fewer.
 13. BARRELS (impact attenuators) at the ends of central reservations, walled edges and slip-road
     barriers, as in real life; infinite highways only. A barrel hit sprays water 2-6 squares.

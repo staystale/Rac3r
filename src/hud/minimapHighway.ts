@@ -1,4 +1,4 @@
-// hud/minimapHighway.ts - THE HIGHWAY'S MINIMAP EXTRAS (?hwmap=1, FIX.hwmap; TODO 3a2 item 11,
+// hud/minimapHighway.ts - THE HIGHWAY'S MINIMAP EXTRAS (passed 11-15; TODO-DONE item 11,
 // the owner's answers 11-15: "simple pixel icons"): on the endless roads the minimap window
 // (hud/minimap.ts) also shows the roads that leave the motorway - the slip roads, the side road,
 // a junction's slips, roundabouts and the roads on from them - as thin road lines under the
