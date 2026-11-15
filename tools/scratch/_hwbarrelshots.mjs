@@ -3,10 +3,10 @@
 // start of a Jersey barrier's or Armco's run in the central reservation after an open one (found
 // from the barriers, so the same spot with the switch off); MODE=gore: a cluster at a slip's nose.
 // Then: a photo of it with your car held beside it (zoom pinned 1.2), and a CRASH - your car put
-// 45 m before the end (median) or the cluster's front (gore) on its line at KMH, let go with no
+// RUN_M before the end (median) or the cluster's front (gore) on its line at KMH, let go with no
 // input; photos as it meets it and after; then the damage (the four corners' sum), the speed left,
 // the barrels popped / leaking and the wet cells near. Writes <OUT>/<on|off>-<mode>-<W>x<H>-*.png.
-// [VIEW=844x390] [MODE=median] [ROAD=motorway] [SCENERY=countryside] [HWBARRELS=1] [KMH=90]
+// [VIEW=844x390] [MODE=median] [TARGET_S=m] [ROAD=motorway] [SCENERY=countryside] [HWBARRELS=1] [KMH=90]
 //   [OUT=dir] [LIMIT_S=300] CHECK_PORT=8092 node tools/scratch/_hwbarrelshots.mjs
 import { mkdirSync } from 'node:fs';
 import { startServer, launchBrowser, gotoGame } from '../lib/browser.mjs';
@@ -16,21 +16,29 @@ const MODE = process.env.MODE || 'median', ROAD = process.env.ROAD || 'motorway'
 const SCENERY = process.env.SCENERY || 'countryside', KMH = +(process.env.KMH || 90);
 const OUT = process.env.OUT || 'tools/scratch/_hwbarrels', ON = process.env.HWBARRELS === '1';
 const LIMIT_S = +(process.env.LIMIT_S || 300);
+// m before the end / the cluster's front the car is let go (a median's street lights stand on its
+// line: from 45 m back the car met a column first)
+const RUN_M = +(process.env.RUN_M || 12);
+// a median end's road distance to go to instead of the first found (MEASURED: a run found an
+// Armco piece's start at a stretch join where the piece before had been dropped - no end there)
+const TARGET_S = +(process.env.TARGET_S || 0);
 const tag = `${ON ? 'on' : 'off'}-${MODE}-${SCENERY}-${ROAD}-${width}x${height}`;
 mkdirSync(OUT, { recursive: true });
 
 /**
  * Page side: the target ahead, or null - its road distance (median: the barrier's start; gore:
  * the cluster's front barrel) and offset.
- * @param mode 'median' or 'gore'
+ * @param args the mode ('median' or 'gore'), a fixed median end, m (0: none), and whether a
+ *   median end must have barrels
  * @returns { s, off } or null
  */
-async function targetAhead(mode) {
+async function targetAhead([mode, fixedS, withBarrels]) {
   const { roadFrame } = await import('/src/highway.ts');
   const game = window.__game, level = game.level, car = game.car;
   const here = roadFrame(level, car.x, car.y, null);
   if (!here) return null;
   const ahead = (dist) => dist - here.s > 80 && dist - here.s < 500;
+  if (fixedS) return ahead(fixedS) ? { s: fixedS, off: 0 } : null;
   if (mode === 'median') {
     const onLine = [];
     for (const barrier of level.barriers) {
@@ -44,7 +52,12 @@ async function targetAhead(mode) {
       if (barrier.kind !== 'jersey' && barrier.kind !== 'armco') continue;
       const first = roadFrame(level, barrier.pts[0][0], barrier.pts[0][1], here.s);
       if (!first || Math.abs(first.off) > 0.5 || !ahead(first.s)) continue;
-      if (!onLine.some((dist) => dist < first.s - 0.1 && dist > first.s - 8))
+      const [endX, endY] = barrier.pts[0];
+      // (with the switch: only an end the barrels stand at - a piece's start at a stretch join can
+      // look like an end once the piece before it is dropped behind)
+      const guarded = !withBarrels || game.cones.list.some((obj) => obj.kind === 'cushion'
+        && Math.hypot(obj.x - endX, obj.y - endY) < 5);
+      if (guarded && !onLine.some((dist) => dist < first.s - 0.1 && dist > first.s - 8))
         return { s: first.s, off: 0 };
     }
     return null;
@@ -71,7 +84,8 @@ async function holdAt(spot) {
   game.renderer.debugZoom(1.2);
   clearInterval(window.__hold);
   window.__hold = setInterval(() => {
-    Object.assign(car, { x: pose.x, y: pose.y, vx: 0, vy: 0, heading: pose.h, yawRate: 0 });
+    Object.assign(car, { x: pose.x, y: pose.y, vx: 0, vy: 0, heading: pose.h, yawRate: 0,
+      delta: 0 });
   }, 4);
 }
 
@@ -122,7 +136,7 @@ try {
   await page.waitForTimeout(6000);
   let target = null;
   for (let waited = 0; waited < LIMIT_S * 2 && !target; waited++) {
-    target = await page.evaluate(targetAhead, MODE);
+    target = await page.evaluate(targetAhead, [MODE, TARGET_S, ON]);
     if (!target) await page.waitForTimeout(500);
   }
   if (!target) console.log(`${tag}: no target met in ${LIMIT_S} s`);
@@ -132,11 +146,11 @@ try {
       : target.off + 4 });
     await page.waitForTimeout(1500);
     await page.screenshot({ path: `${OUT}/${tag}-cluster.png` });
-    await page.evaluate(holdAt, { s: target.s - 45, off: target.off });
+    await page.evaluate(holdAt, { s: target.s - RUN_M, off: target.off });
     await page.waitForTimeout(800);
     const speed = KMH / 3.6;
     await page.evaluate(letGo, speed);
-    await page.waitForTimeout(Math.round((43 / speed) * 1000));
+    await page.waitForTimeout(Math.round(((RUN_M - 2) / speed) * 1000));
     await page.screenshot({ path: `${OUT}/${tag}-hit.png` });
     await page.waitForTimeout(700);
     await page.screenshot({ path: `${OUT}/${tag}-after.png` });

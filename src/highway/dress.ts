@@ -13,7 +13,7 @@ import { layRoadLamps } from "./roadlamps.ts";
 import { dressCanyon } from "./canyon.ts";
 import { medianAt } from "./medians.ts";
 import { FIX } from "../core/fixes.ts";
-import { layCushions, noteMedianPiece } from "./cushions.ts";
+import { layCushions, noteLeftBarrier, noteMedianPiece } from "./cushions.ts";
 import type { LevelObj } from '../cones/coneTypes.ts';
 import type { Point, BarrierKind } from '../world/types.ts';
 import type { HwPose, HwLevel, DressCtx, Stamp } from './hwtypes.ts';
@@ -259,8 +259,10 @@ function layArmco(ctx: DressCtx) {
           continue;
         }
         // (out round a lay-by)
-        const pos = pointAt(j, runNow.side * (halfWidth + 1.8
-          + bayOut(level, road[j].s, runNow.side)));
+        const off = runNow.side * (halfWidth + 1.8 + bayOut(level, road[j].s, runNow.side));
+        // (?hwbarrels=1: starting again after a slip's gap - its nose)
+        noteLeftBarrier(ctx, j, off, runNow.side);
+        const pos = pointAt(j, off);
         pts.push([pos.x, pos.y]);
       }
       flush();
@@ -302,6 +304,8 @@ function layWalls(ctx: DressCtx) {
           }
           // (out round a lay-by)
           const edge = halfWidth + wallGap + bayOut(level, road[j].s, side);
+          // (?hwbarrels=1: the left wall starting again after a slip's gap - its nose)
+          noteLeftBarrier(ctx, j, side * edge, side);
           const pos = pointAt(
             j,
             sideOffset

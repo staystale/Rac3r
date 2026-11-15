@@ -16,14 +16,16 @@ export const TEST_LIST: TestEntry[] = [
     id: 'hwbarrels',
     added: '2026-11-15',
     name: 'Highway crash-cushion barrels (water-filled) that leak or pop',
-    where: 'Test link + &hwbarrels=1: the highway, motorway or interstate (the most), in the '
-      + 'countryside (blue) and Deaf Valley (yellow); zoom out to spot them',
-    try: 'Find a cluster where a slip road or a services road leaves (in the gap between it and '
-      + 'the road), or at the end of the central barrier where it stops. Drive into one slowly, '
-      + 'then fast: soft hits shove or leak a barrel, hard ones pop them (water sprayed, a wet '
-      + 'patch that dries); behind them the barrier end hits far softer.',
-    wrong: 'Barrels on the road or a slip lane, a gap or exit with none, barrels missing at a '
-      + 'central barrier end, popped barrels you cannot drive over, no water, or a car launched.',
+    where: 'Test link + &hwbarrels=1: the highway - a motorway or interstate for the '
+      + 'central barrier ends, the WALLED road for the slip noses; countryside (blue), Deaf '
+      + 'Valley (yellow)',
+    try: 'Find a triangle of barrels (1-2-3) just before the tip of the central barrier where '
+      + 'it starts, and at the nose of the wall where a slip road leaves the walled road. Drive '
+      + 'into one slowly, then fast: soft hits shove or leak a barrel, hard ones pop them (water '
+      + 'sprayed, a wet patch that dries); the barrier end behind hits softer.',
+    wrong: 'Barrels along the side of a barrier, at a join, in an open gap, or on the road; a '
+      + 'central barrier tip or a wall nose with none; popped barrels you cannot drive over; no '
+      + 'water.',
   },
   {
     id: 'aipace',

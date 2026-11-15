@@ -215,6 +215,35 @@ BUGS (each behind its own switch, measured, then a test link):
 12. CHEVRON BOARDS by the real-life rule: PASSED 11-15, the default (TODO-DONE).
 13. BARRELS (impact attenuators) at the ends of central reservations, walled edges and slip-road
     barriers, as in real life; infinite highways only. A barrel hit sprays water 2-6 squares.
+    OWNER 11-15: water-filled clusters (~3-9) where a slip road leaves and at the ends of central
+    reservation barriers; BLUE (#2b56b5) on the countryside, YELLOW on Deaf Valley; a hit LEAKS or
+    POPS by how hard (a chance), water over 2-6 squares that dries; softer than the wall; back the
+    next time the stretch streams in.
+    BUILT behind `?hwbarrels=1` (FIX.hwbarrels; highway/cushions.ts, cones/coneCushion.ts,
+    render/props/cushions.ts; testlist 'hwbarrels'; ENGINE.md THE HIGHWAYS' CRASH-CUSHION
+    BARRELS). First build (a70e3253) put clusters of 3-9 at every slip's GORE (where the slip's
+    gap to the road reached 3.6 m) and at the reservation barrier's ends. OWNER 11-15 (on the
+    phone): the barrels work, the PLACEMENT is wrong - "placed just before the tips of the arm
+    coat or the ends ... in little triangle formations or in like threes in front of it".
+    WHY: the gore rule placed by the slip's gap, not by a barrier: _hwbarrelwhere.mjs sorted
+    every gore cluster as FREE (no barrier within 2.5 m: 9-14 a road in 20 km, e.g. in the walled
+    road's wall gap, i.e. "at a join"); every reservation cluster was already at an end.
+    NOW: a TRIANGLE 1-2-3 (rows 0.9 m apart, centred on the end, back row 0.15 m clear of it)
+    ONLY at an exposed barrier end: where the LEFT barrier starts again after a leaving slip's gap
+    (the nose between road and slip) and the reservation's Jersey / Armco ends with an open
+    reservation beyond (its start for our traffic, its end for the far carriageway's). A row that
+    would stand on tarmac loses barrels: the walled road's noses are 1-2-2 (the wall 1.2 m off
+    the edge). A slip with no barrier beside it gets none (the open roads, the services road the
+    wall swings out with, Deaf Valley's rock).
+    MEASURED (20 km each, seed as the game's): _hwbarrelwhere.mjs - every cluster AT AN END (0
+    alongside, 0 free); _hwbarrelcount.mjs triangles a km, countryside / Deaf Valley: motorway 0.30
+    / 0.30 (all reservation), interstate 0.20 / 0.20, dual 0.05 / 0.05, walled 0.25 / 0.20 (all
+    noses, 5 of its 5 slips + junctions through the wall; 4 of 7 in Deaf Valley - its junctions
+    open the rock all along), single lane 0; 0 barrels on tarmac, a lane, a barrier, a light or
+    litter. CRASH (_hwbarrelcrash.mjs, node, a hatch coasting into a triangle, 5 runs, km/h where
+    the end stands, none in brackets): 50 -> 6-11 (38), 80 -> 12-25 (74), 120 -> 20-28 (116);
+    popped 0-5, wet cells 1-12.
+    worldhash --highway 20: off SAME, on DIFFERENT (highway only) [world][look].
 14. PARKED POLICE wake when passed with a wanted level on.
 15. TRAFFIC (and unaggravated police) stop for fuel now and then and take slip roads (the petrol
     station stops exist, ai/trafficFuel.ts, 11-11: check how often); aggravated police as now.
