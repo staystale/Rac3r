@@ -1,0 +1,298 @@
+{
+  "osm": "croughed.osm.json",
+  "out": "src/world/levels/venues/croughedrx.ts",
+  "exportName": "CROUGHEDRX_VENUE",
+  "origin": [
+    54.4553,
+    -1.5564
+  ],
+  "turnDeg": 0,
+  "clip": [
+    -200,
+    -560,
+    520,
+    360
+  ],
+  "reachM": 150,
+  "skip": [
+    108510895,
+    25805724,
+    26261433,
+    26261439,
+    26261513,
+    26261521,
+    26261526,
+    222641544,
+    222641545,
+    222641547,
+    222641548,
+    725974978,
+    1087325823
+  ],
+  "trim": {
+    "222641542": [
+      0,
+      7
+    ]
+  },
+  "names": {
+    "26261511": "Main Straight north",
+    "222641546": "Clervaux run"
+  },
+  "layouts": {
+    "rx": {
+      "through": [
+        "Clervaux run",
+        "Clervaux",
+        "Hawthorn",
+        "Chicane",
+        "Rallycross",
+        "Rallycross 2",
+        "Rallycross 3"
+      ],
+      "avoid": [
+        "Joker",
+        "Chicane 2",
+        "Main Straight north"
+      ]
+    },
+    "joker": {
+      "through": [
+        "Joker",
+        "Rallycross",
+        "Clervaux"
+      ],
+      "avoid": [
+        "Rallycross 2",
+        "Chicane 2",
+        "Main Straight north"
+      ]
+    }
+  },
+  "extra": [
+    {
+      "source": "OpenStreetMap way 108510895 (Rallycross), its own nodes, carried here with the surface the map leaves off: gravel, the loose section off the circuit (BRX reports 2016-2018: the loose-surface hairpin, the dust off the gravel parts; aerial photographs, ESRI World Imagery: a loose track from the chicane down the infield, round the hairpin and back up to the Main Straight). The circuit pieces it runs on (Clervaux, Hawthorn, the chicane) are tarmac.",
+      "tags": {
+        "highway": "raceway",
+        "name": "Rallycross",
+        "oneway": "yes",
+        "sport": "motor",
+        "surface": "gravel"
+      },
+      "pts": [
+        [
+          54.4573432,
+          -1.552393
+        ],
+        [
+          54.4573271,
+          -1.5527718
+        ],
+        [
+          54.4573026,
+          -1.552892
+        ],
+        [
+          54.4572572,
+          -1.5530056
+        ],
+        [
+          54.4572217,
+          -1.5530766
+        ],
+        [
+          54.4570755,
+          -1.5531617
+        ],
+        [
+          54.4568426,
+          -1.5532428
+        ],
+        [
+          54.4564922,
+          -1.5533487
+        ],
+        [
+          54.4561497,
+          -1.5534313
+        ],
+        [
+          54.4557128,
+          -1.5536124
+        ],
+        [
+          54.4553202,
+          -1.5538205
+        ],
+        [
+          54.4549549,
+          -1.5539649
+        ],
+        [
+          54.4547842,
+          -1.5541932
+        ],
+        [
+          54.4545577,
+          -1.5545488
+        ],
+        [
+          54.4544341,
+          -1.55508
+        ],
+        [
+          54.4544121,
+          -1.5553808
+        ],
+        [
+          54.454443,
+          -1.5554674
+        ],
+        [
+          54.4545313,
+          -1.5555711
+        ],
+        [
+          54.4546453,
+          -1.5555026
+        ],
+        [
+          54.4548114,
+          -1.5551838
+        ],
+        [
+          54.4550218,
+          -1.5548993
+        ],
+        [
+          54.4551992,
+          -1.5547888
+        ],
+        [
+          54.4554103,
+          -1.5547331
+        ],
+        [
+          54.4555511,
+          -1.554714
+        ],
+        [
+          54.4557418,
+          -1.5547256
+        ],
+        [
+          54.4565523,
+          -1.5547884
+        ],
+        [
+          54.4569957,
+          -1.5548089
+        ]
+      ]
+    },
+    {
+      "source": "NOT REAL: Croft ran no joker (BRX reports 2017, 2018). A gravel joker laid by hand into the open infield east of the return leg, from its node at the leg south of the finish to its node north of it, for the owner to judge (TODO 3b)",
+      "tags": {
+        "highway": "raceway",
+        "name": "Joker",
+        "oneway": "yes",
+        "sport": "motor",
+        "surface": "gravel"
+      },
+      "pts": [
+        [
+          54.4554103,
+          -1.5547331
+        ],
+        [
+          54.4554976,
+          -1.5545766
+        ],
+        [
+          54.4556414,
+          -1.5543757
+        ],
+        [
+          54.455821,
+          -1.5542367
+        ],
+        [
+          54.4560186,
+          -1.5542057
+        ],
+        [
+          54.4562163,
+          -1.5542985
+        ],
+        [
+          54.4563959,
+          -1.5545148
+        ],
+        [
+          54.4565523,
+          -1.5547884
+        ]
+      ]
+    },
+    {
+      "source": "aerial photographs (ESRI World Imagery), traced 11-09: the gravel trap on the outside of Clervaux",
+      "tags": {
+        "natural": "shingle"
+      },
+      "pts": [
+        [
+          54.458878,
+          -1.553979
+        ],
+        [
+          54.458878,
+          -1.55373
+        ],
+        [
+          54.458888,
+          -1.553249
+        ],
+        [
+          54.458864,
+          -1.552957
+        ],
+        [
+          54.458843,
+          -1.552872
+        ],
+        [
+          54.458813,
+          -1.552957
+        ],
+        [
+          54.458788,
+          -1.553061
+        ],
+        [
+          54.458739,
+          -1.553387
+        ],
+        [
+          54.458684,
+          -1.553773
+        ],
+        [
+          54.458633,
+          -1.554082
+        ],
+        [
+          54.458642,
+          -1.554159
+        ],
+        [
+          54.458723,
+          -1.554221
+        ],
+        [
+          54.458878,
+          -1.553979
+        ]
+      ]
+    }
+  ]
+}

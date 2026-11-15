@@ -85,7 +85,8 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   Champions head-to-head event = HEAD-TO-HEADBUTT; its stadiums Wembley = Wobbly Stadium, Stade de
   France = Stade de Prance, the Bird's Nest = The Bird's Mess, Accor Stadium = Accordion Stadium,
   Esprit Arena = Dusseldork Arena; the old Wembley (the Empire Stadium, its stock car oval) = Old
-  Wobbly; X Games = X Gayms (the owner's), L.A. Live = L.A. Lively, Holjes = Holy Jeez (owner 11-13).
+  Wobbly; X Games = X Gayms (the owner's), L.A. Live = L.A. Lively, Holjes = Holy Jeez (owner 11-13),
+  Croft RX = Croughed RX (owner 11-13: its own full-size level of the Croughed venue).
 - No keys, tokens, tunnel URLs or process IDs in the repo. No itch.io push until the owner says so.
 - The foreman may push to `main` once the change is proven (routine below).
 - Keep the test server and the tunnel running.

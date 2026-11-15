@@ -73,4 +73,6 @@ export const FIX = {
   bootbar: atLoad('bootbar'),
   // Holy Jeez mostly firs: its own share of firs (Level.firShare; render/trees.ts)
   hjfirs: atLoad('hjfirs'),
+  // Croughed RX, Croft's rallycross lap traced from the map at full size (croughedrx-venue.ts)
+  croughedrx: atLoad('croughedrx'),
 };

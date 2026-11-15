@@ -19,7 +19,7 @@ import type { Level, Point } from "../types.ts";
 // a row of blocks on it. Real m, OSM's lines (simplified to 0.5 m), followed as rails (the edge's
 // Armco at the rim beside them; behind the gravel at Clervaux and Barcroft); the pit wall, the
 // walls round the paddock and the huts and an infield wall 40 m off the road left out
-const CR_RAILS: Point[][] = [
+export const CR_RAILS: Point[][] = [
   // the wood's edge inside the Complex, the Hairpin and the Esses
   [[-165.7, 204.2], [-162.5, 196.8], [-50.0, 107.8], [-38.2, 112.8], [-35.5, 118.7],
     [-33.0, 143.9], [-64.7, 267.0], [-71.8, 269.9], [-118.9, 233.8], [-165.7, 204.2]],
