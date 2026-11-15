@@ -19,6 +19,8 @@ export const TEST_LIST: TestEntry[] = [
     where: 'Test link + &nighthw=1&report=1: a countryside highway at night, drive a few km',
     try: 'Drive past lamps and trees with your headlights on; watch tree tops near the lights.',
     wrong: 'A tree top lit by a lamp or headlight, a hitch as the road ahead appears.',
+  },
+  {
     id: 'tyresmoke',
     added: '2026-11-14',
     name: 'Tyre smoke only past grip, by each tyre\'s own heat window (all four tyres alike)',
