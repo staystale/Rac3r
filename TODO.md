@@ -271,6 +271,57 @@ BUGS (each behind its own switch, measured, then a test link):
      rise); the highway's at 6.0 s as before, the pace there then 15 m/s (was up to 16).
    - bumps in the 5 s after the green (racing, not changed): 18 / 14 over the same 36 runs.
 8. STUCK AI AND TRAFFIC: reset or vanish after 5-10 s stuck.
+   BUILT 11-15 behind ?stuckreset=1 (FIX.stuckreset, game/aistuck.ts; testlist 'stuckreset').
+   HOW IT WAS (game/ai.ts stepAIStuck): an AI put back after 3 s under 1 m/s, or when its drive-outs
+   gave up (3 reverses inside 15 s), 4 m behind where it last was on the road; highway traffic: a
+   still car out of view recycled after 6 s, one in view (a wreck) stays.
+   MEASURED (tools/scratch/_stuckai.mjs: the real game, deterministic, nothing drawn, your car on
+   ?autopilot, 180 s a run; Thruston, Brands, Knobhill, Spa, Naffcar (rolling start) with 19 AI,
+   Grass Track 12; RX Knobhill 19, Holy Jeez and X Gayms 12; the forest and Sahara stages; the
+   highway race (motorway, twisty: 5 AI, traffic 1.5); free drive (motorway, twisty, Thruston); the
+   Lab. STUCK = an AI after its green gaining under 3 m of race progress for 5 s or more;
+   tools/scratch/_stucksum.mjs checks the logs):
+   - OLD: most stuck spells are lap-1 pile-ups the cars crawl out of in 5-10 s (Brands 14 of 16,
+     Knobhill 11 of 11). MISSED: cars rocking on their drive-outs (over 1 m/s while reversing, so
+     the 3 s clock starts again: 10-15 s; Knobhill RX: one car put back 5 times into the same jam at
+     one bank); two cars bogged in the Sahara's sand at ~2 m/s, 20-31 s at a time (8 spells over 12
+     s). FALSE: a stage's later starters put back at ~10 s while still WAITING AT THEIR START (the
+     drive-out's hold is your start, not theirs: 3 tries -> give up -> reset 4-6 m back) - both
+     stages, every run. PUT-BACKS AHEAD: 7 in the Sahara, +1 058 m (a car crossing the sand to a
+     later stretch of the stage had its last on-road point there), 1 on twisty; ONTO another car:
+     1-3 a circuit or RX run, 3 in the Sahara. TRAFFIC: a wreck in view stays (25.6 s on
+     twisty to the run's end; 54-95 s round your stopped car in an earlier run).
+   - BUILT: STAYED - within 5 m of one spot for 6 s - or NO PROGRESS - under 4 m/s with no 3 m of
+     race progress in 10 s - put back; never while the start holds it (a stage's own start too) or a
+     crash plays out; not while QUEUED (a car close in front facing its way, under 2 m/s, not itself
+     stood put over 1 s: then it is a pile-up and the pile is put back) or PULLING AWAY (forwards
+     and gaining, never backed up). The 3 s and give-up resets are off; the drive-outs, the
+     highway's off-road rule, the roll and injury resets unchanged. The put-back is your reset's:
+     never ahead of where the car is, the next free spot 6 m back past a car (the highway: its
+     hard-shoulder spot 15 m back, then 6 m further back at a time past you, the racers and the
+     traffic). Traffic: a car standing still 6 s, not broken down, at a pump, a
+     police car or queued behind a still car within 8 m, goes - in view too - and rejoins off screen
+     as a recycled car.
+   - NEW (the same 17 runs): no stuck spell over 10.3 s anywhere (old: up to 31.1 s; 13 over 12 s);
+     no put-back ahead (old 8), none onto a car (old 1-3 a run), none at a stage's
+     start (old: every run); the Sahara and forest stages no put-backs at all (old 28 and 10);
+     traffic standing stuck in view at most 6.5 s (old 25.6 s). MORE PUT-BACKS IN LAP-1 PILE-UPS: in
+     the first 45 s Brands 12 (old 1), Spa 5 (2), Knobhill RX 5 (3) - cars that used to crawl out of
+     a pile in 5-10 s are put back at 6 s (see the question in the hand-over). QUEUES: your car
+     stopped on the motorway with the traffic queued behind (180 s): the queued cars in view stay
+     (24-90 s, as off), the wreck among them goes at 6 s (off: 54.7 s to the run's end). One
+     put-back with a slow car 10-12 m in front at 40 deg (Knobhill): not in its path, so not a
+     queue. Left as before (not stuck handling): two racers flung 40 m off the highway in the same
+     step are put back onto one spot, and an injured racer's put-back can land on a traffic car (off
+     and on alike, 1-4 a twisty run). Photos (tools/scratch/_stuckshot.mjs, 844x390 and 390x844): an
+     AI stranded with no power on Thruston put back after 6 s, behind, then a second time, behind
+     again; a highway wreck 25 m ahead of you gone at 7.5 s (off: still there).
+   - PROOFS (laptop, against a700d67a): simhash switch off SAME (441c130c..., all 13 runs);
+     worldhash --highway 20 SAME off and on; renderhash --only thruston,highway SAME off and on (its
+     20 s drives have no stuck car). simhash ON [sim] DIFFERENT in 4 runs: the two stages from 10 s
+     (old: a later starter put back while waiting at its start, the give-up reset; new: not),
+     knobhill and knobhill-rx from 43.5 s (a racer put back at another moment, then the wake and
+     contacts).
 9. AI SLOW ON SLIPPERY SURFACES (measure first: an AI change).
 10. HIGHWAY AI NOT DODGING ONCOMING TRAFFIC: back on (owner 11-13). Before: "ai don't dodge
     properly", to measure what they miss (traffic, the player, wrecks); parked 11-10 ("let's leave

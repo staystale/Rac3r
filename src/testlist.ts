@@ -13,6 +13,18 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'stuckreset',
+    added: '2026-11-15',
+    name: 'Stuck AI put back after 6-10 s, behind; stuck highway cars go',
+    where: 'Test link + &stuckreset=1: circuit and rallycross races with a big grid, a rally '
+      + 'stage, a highway race and free drive with traffic; phone upright and on its side',
+    try: 'Watch the first-lap pile-ups and cars beached or rocking off the road; crash a '
+      + 'highway car and stop near it; wait in traffic queued behind a wreck or your stopped car.',
+    wrong: 'An AI left stuck over ~10 s, or put back ahead of where it was or onto a car; a car '
+      + 'put back while waiting at the lights, in a queue or pulling away; a wreck in view over '
+      + '~7 s; a car vanishing from a queue, a pump or the roadside where it broke down.',
+  },
+  {
     id: 'offroadwin',
     added: '2026-11-15',
     name: 'No highway race won by pulling away off the road',

@@ -100,6 +100,36 @@ put-back keeping 1.5 s of its speed clear ahead; the police are not cleared from
 (`traffic.clearAround(..., true)`: they go only when wrecked or after a bust). Your resets only: the
 AI's own (`game/ai.ts aiReset`) are as before. `tools/scratch/_resetback.mjs` tries each mode.
 
+STUCK AI AND TRAFFIC. A racing AI first drives itself out (`ai/driveOut.ts`: nearly still 1.2 s ->
+reverse 1-1.5 s with the wheel turned toward the road; three tries inside 15 s = `giveUp`); the
+game puts it back (`game/ai.ts stepAIStuck` -> `aiReset`) after 3 s under 1 m/s (going forwards and
+gaining 0.08 m/s since it went slow = trying, not stuck), on `giveUp`, or on the highway 8 m off the
+carriageway for 3 s (40 m out at once); a rolled AI once still 1.5 s and a too-injured one after its
+pause also. Lap / stage put-back: 4 m behind where it last was on the road, its middle on that edge;
+the highway's 15 m back on the hard shoulder past any car (`highwayrace.ts hwPutBack`). Highway
+traffic: a physics car under 1 m/s counts `deadT`; out of view past 6 s it is recycled
+(`ai/trafficStep.ts leaving`); a wreck brakes with its hazards on and stays while in view. Under
+test, `?stuckreset=1` (`FIX.stuckreset`, `game/aistuck.ts`): the AI is put back only when TRULY
+stuck - STAYED within 5 m of one spot for 6 s (not queued: you, a highway car or a racer not itself
+stood put over 1 s, close in front, facing its way within 60 deg and under 2 m/s - a racer stood
+put in front makes a pile-up, put back as one; not pulling away: forwards and gaining since the
+watch began, never backed up), or
+NO PROGRESS: under 4 m/s and not queued with no 3 m of race progress (`_prog`, the highway's
+`_hwf.s`) in 10 s; never while the start holds it or a crash plays out. The 3 s and `giveUp` resets
+are off (the drive-outs and the highway's off-road rule as before). Its lap / stage put-back is
+your reset's (`?resetback=1` rules): from where it last was on the road but never ahead of where it
+is (`resetspot.ts notAheadOf`), the next spot 6 m further back while a racer is on it (`firstFree`
+with the AI's own size and the other racers, `aistuck.ts freeLapSpot`); the highway's hard-shoulder
+spot (`hwPutBack`, 15 m back) stepped back 6 m at a time until clear of you, the racers and the
+traffic, 1.5 s of its rolling speed clear in front (`freeShoulderSpot`: `hwPutBack`'s own test reads
+each car's `_hwf`, which traffic cars do not have). A highway car standing stuck 6 s goes in view too (recycled,
+rejoining off screen): its own clock (`slot.stuckGoT`, `ai/trafficStep.ts noteStuckCars`) runs
+only while it is still (`deadT` running) and did not stop on purpose (broken down, at a pump), is
+not a police car (their own rules) and is not queued (`findLead`: a car within 8 m in front under
+2 m/s) - a car queued behind a wreck starts from 0 when the wreck goes.
+`tools/scratch/_stuckai.mjs` measures every mode, `_stucksum.mjs` checks the logs,
+`_stuckshot.mjs` photographs it.
+
 THE SMOOTH FLY-IN (the default since 11-14; `render/flylayers.ts`): zoomed out, a fly-in frame
 drew every prop and loose object one by one. With the switch, the layers that hold still while the
 field waits at the lights - the deck (run-off, kerbs, bumps, paint), fence, barriers, props, the
