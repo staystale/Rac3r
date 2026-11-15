@@ -78,7 +78,11 @@ function trafficStep(drv: Drv, car: AiCar, ctx: DriveCtx, path: AiPath, nearIdx:
   // past the usual edge only while going round a car (above)
   const edge = state.t < (state.wideUntil || 0) ? state.wide! : latLim;
   latT = Math.max(-edge, Math.min(edge, lineOff + latT)) - lineOff;
-  if (keepMax < Infinity) latT = Math.min(latT, keepMax - lineOff);
+  // (back over at a move's rate, not a rejoin's: ai/driverOncoming.ts)
+  if (latT > keepMax - lineOff) {
+    latT = keepMax - lineOff;
+    conflict = true;
+  }
   if (path === main && cars.seen) latT = lookFirst(car, path, nearIdx, lineOff,
     latT, { hw: line.hw, speed, seen: cars.seen, state });
   return { latT, vMul, prof, followCap, conflict };
