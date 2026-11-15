@@ -547,17 +547,28 @@ function regripPath(path: Path) {
   path.wetEpoch = groundEpoch();
 }
 
-export function profileOf(
-  path: Path, spec: AiCar["spec"], main?: Path, kBo?: number,
-): SpeedProfile {
-  const { id: carId, gripG, brakeG } = carGrip(spec);
+/**
+ * The speed plan's corner and braking grip factors for a car.
+ * @param spec the car
+ * @param kBo the driver's braking grip, if its own
+ * @param paceK ?aipace=1's PACE dial (ai/tune.ts), 1 without it
+ * @returns the corner and braking factors
+ */
+function planGrips(spec: AiCar["spec"], kBo: number | undefined, paceK: number) {
   // aiK (cars.js, optional): a per-car confidence on the plan — a front-heavy AWD road car on loose
   // gravel ran 3 m/s hot into Sweaty Lamb corners and slid off 22 s a lap at Real with the roster's
   // numbers (MEASURED, aidrivecheck; the Subaroo WRZ)
   // (the two casts: debugValue is unknown; the tools set __AI_K / __AI_KB to numbers)
-  const aiK = spec.aiK || 1,
-    kCorner = (debugValue("AI_K") as number || K_CORNER) * aiK,
-    kBrake = (kBo || debugValue("AI_KB") as number || K_BRAKE) * aiK,
+  const aiK = spec.aiK || 1;
+  return { kCorner: (debugValue("AI_K") as number || K_CORNER) * aiK * paceK,
+    kBrake: (kBo || debugValue("AI_KB") as number || K_BRAKE) * aiK * paceK };
+}
+
+export function profileOf(
+  path: Path, spec: AiCar["spec"], main?: Path, kBo?: number, paceK = 1,
+): SpeedProfile {
+  const { id: carId, gripG, brakeG } = carGrip(spec);
+  const { kCorner, kBrake } = planGrips(spec, kBo, paceK),
     key = carId + ':' + kCorner + ':' + kBrake;
   if (path.wetEpoch !== groundEpoch()) regripPath(path);
   if (path.prof[key]) return path.prof[key];
@@ -572,7 +583,8 @@ export function profileOf(
   }
   // (a branch ends on its main line's speed; an open MAIN line - the highway's - has no rejoin)
   if (!path.closed && main && main !== path)
-    speed[count - 1] = Math.min(speed[count - 1], profileOf(main, spec)[path.rejoin!]);
+    speed[count - 1] = Math.min(speed[count - 1],
+      profileOf(main, spec, undefined, undefined, paceK)[path.rejoin!]);
   // backward braking pass (twice round a closed path so it wraps)
   for (let pass = 0; pass < (path.closed ? 2 : 1); pass++)
     for (let i = (path.closed ? count - 1 : count - 2); i >= 0; i--) {

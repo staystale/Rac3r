@@ -8,7 +8,8 @@ import { inTrackUnderpass, underSpan } from "../world/trackunder.ts";
 import type { AiCar, CarsAcc, CircuitState, LinePoint, PathPoint } from "./types.ts";
 import type { Drv, AiPath } from "./driverCtx.ts";
 import { cornerNudge } from "./cornerLine.ts";
-import { MIST_GROW } from "./driverSlide.ts";
+import { MIST_GROW, SPIN_THROTTLE_S, spinChance } from "./driverSlide.ts";
+import { FIX } from "../core/fixes.ts";
 
 // extra braking grip planned while ATTACKING (late braking into the corner)
 const ATK_KB = 0.12;
@@ -63,6 +64,10 @@ export function startMistake(drv: Drv, cIdx: number) {
     kind, sev: Math.min(1, (0.3 + 0.7 * rnd()) * (1.2 - traits.skill)), corner: cIdx, inside:
         false, t: 0
   };
+  // (?aislide=1: now and then one that really spins - ai/driverSlide.ts)
+  if (FIX.aislide && (kind === 'late' || kind === 'throttle')) {
+    state.mist.spin = rnd() < spinChance(traits.skill);
+  }
 }
 
 /** Puts a car that has no place yet on the RX start branch or the main line. */
@@ -104,7 +109,25 @@ export function applyMistake(drv: Drv, mist: NonNullable<CircuitState["mist"]>, 
     mist.fired = true;
     state.thrUntil = state.t + 0.3 * MIST_GROW + 0.5 * mist.sev * MIST_GROW;
   }
+  armSpin(state, mist, corner.turn, pastApex);
   return { latT, vMul };
+}
+
+/**
+ * A mistake that spins, past the apex (once, while it runs): the throttle held and the wheel held
+ * turned in (ai/driverSlide.ts).
+ * @param state the driver's state
+ * @param mist the mistake
+ * @param turn the corner's way, +1 / -1
+ * @param pastApex past the corner's apex
+ */
+function armSpin(state: CircuitState, mist: NonNullable<CircuitState["mist"]>, turn: number,
+  pastApex: boolean) {
+  if (!state.mist || !mist.spin || !pastApex || mist.spun) return;
+  mist.spun = true;
+  state.thrUntil = Math.max(state.thrUntil, state.t + SPIN_THROTTLE_S);
+  state.spinUntil = state.t + SPIN_THROTTLE_S;
+  state.spinTurn = turn;
 }
 
 /** Draws a mistake per corner ~45 m out and applies the running one: line, speed, throttle. */
@@ -229,7 +252,8 @@ export function racecraftStep(drv: Drv, car: AiCar, path: AiPath, nearIdx: numbe
   if (state.atk) {
     conflict = true;
     dodgeT = attackAim(state.atk.side, latLim, lineOff, cars.atkLat) - lineOff - latT;
-    prof = profileOf(path, spec, main, (drv.traits.kBrake ?? K_BRAKE) + ATK_KB);
+    prof = profileOf(path, spec, main, (drv.traits.kBrake ?? K_BRAKE) + ATK_KB,
+      drv.traits.paceK);
   }
   else if (state.cover) {
     conflict = true;

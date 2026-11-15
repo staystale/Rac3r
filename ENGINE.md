@@ -171,6 +171,24 @@ kerbs lie outside the edge), and the driver's lateral clamp allows the line's ow
 applyMistake`): while a 'late' or 'throttle' mistake runs in its corner the catch is x (1 + 1.5 x
 its severity), nothing is held, a 'late' one has no understeer lift, and both are twice as big
 (`MIST_GROW`). `tools/scratch/_aislip.mjs` (AISLIDE=1) measures it; `_aislideshot.mjs` photographs it.
+MISTAKES THAT SPIN (same switch; `driverSlide.ts spinChance`, `spinSteer`): a 'late' or 'throttle'
+mistake is drawn as one that spins with 0.25 x (1 - skill) (the driver's own stream); then its slide
+is never caught (no catch, no understeer lift) and past the apex the throttle is held 1.2 s with the
+wheel held 0.7 of the lock into the corner. MEASURED: the cars do not spin from it (below).
+
+THE AI DRIVERS DIALS LIVE AND THE PACE DIAL (under test, `?aipace=1`, `FIX.aipace`; `ai/tune.ts`,
+`game/aitune.ts`, `menu/aidrivers.ts showLiveDials`). A seventh dial, PACE (0..1, 0.5 = x1): every
+driver's speed plan - the corner grip (`line.ts K_CORNER`) and the braking grip (its `kBrake`) - x
+`paceOf(pace)`, 0.8 at 0 .. 1.3 at 1, rounded to 0.01 (`traits.paceK`, `profileOf`'s fifth
+argument; the plans are cached per value). It shows in the setup's AI DRIVERS panel and, in the
+pause menu with a field racing, AI DRIVERS > (test mode): the seven dials LIVE. A dial moved deals
+each racer again from its own place in the field (`AiEntry.seat`: index, field size, the race's
+seed) and changes its traits in place, so its driver reads them from the next step; its engine
+share follows its skill; its reaction time (set from its skill when the driver was made) and its
+random stream do not change. The dials become the session's (a RESTART keeps them; the setup's
+remembered dials are not touched); RESET puts back the ones the race was launched with
+(`shared.aiTuneStart`). `tools/scratch/_aidialshot.mjs` photographs the panel and checks the
+traits follow; `_aislip.mjs` AIPACE=1 PACE=x measures laps.
 
 A STOPPED OR MUCH SLOWER CAR IN THE WAY (since 11-15, passed;
 `ai/stopDodge.ts`). A car ahead HALTED (`driverTraffic.ts haltedAhead`: under 3 m/s, or slower than

@@ -4,12 +4,32 @@
 // the game always had), RISK, AGGRESSION, DEFENCE (each the field's centre, 0.5 = as before) and
 // MISTAKES (0.5 = x1). A dial moves the whole field; each driver keeps its own place round it
 // (persona + chance, ai/traits.ts), so a better driver stays better.
-
+// ?aipace=1: a seventh, PACE (0.5 = as before): every driver's speed plan - its corner and braking
+// grip (ai/line.ts K_CORNER, K_BRAKE) - x paceOf(pace); and the dials move live, mid-race, from the
+// test-mode pause menu (game/aitune.ts).
+import { FIX } from "../core/fixes.ts";
 
 /** The field's AI dials, each 0..1; custom once a dial moved off the difficulty's preset. */
 export interface AiTune {
   skill: number; spread: number; risk: number; aggression: number; defence: number;
   mistakes: number; custom?: boolean;
+  pace?: number;   // ?aipace=1 (absent: 0.5)
+}
+
+// the speed plan's grip x this at PACE 0 and at PACE 1 (0.5 = x1). MEASURED (bug 9, _aislip): the
+// plan x1.15 was 6-8 % a lap quicker on tarmac and stayed on the road; x1.3-1.5 went off
+const PACE_LOW = 0.8, PACE_HIGH = 1.3;
+
+/**
+ * The speed plan's multiplier for a PACE dial, rounded to 0.01 (the plans are cached per value).
+ * @param pace the dial, 0..1 (0.5 = x1)
+ * @returns the multiplier
+ */
+export function paceOf(pace: number): number {
+  const dial = Math.max(0, Math.min(1, pace));
+  const mul = dial < 0.5 ? 1 - (1 - PACE_LOW) * (0.5 - dial) / 0.5
+    : 1 + (PACE_HIGH - 1) * (dial - 0.5) / 0.5;
+  return Math.round(mul * 100) / 100;
 }
 
 // the field's SKILL centre by difficulty, Mobile .. Real (owner 11-04: "smaller championships
@@ -40,6 +60,9 @@ export const TUNE_DIALS: [keyof Omit<AiTune, 'custom'>, string, string][] = [
   ['aggression', 'AGGRESSION', 'GOES FOR GAPS, ATTACKS SOONER, BUMPS'],
   ['defence', 'DEFENCE', 'COVERS THE INSIDE, HARD TO PASS'],
   ['mistakes', 'MISTAKES', 'ERRORS A CORNER FOR EVERYONE - A BETTER DRIVER STILL MAKES FEWER'],
+  ...(FIX.aipace ? [['pace', 'PACE', 'HOW HARD EVERY DRIVER PUSHES: CORNER SPEED AND BRAKING - '
+    + 'HIGHER IS QUICKER UNTIL THEY RUN OFF'] as [keyof Omit<AiTune, 'custom'>, string, string]]
+    : []),
 ];
 
 /**
@@ -50,6 +73,7 @@ export const TUNE_DIALS: [keyof Omit<AiTune, 'custom'>, string, string][] = [
  */
 export function dialWords(key: string, value: number): string {
   if (key === 'mistakes') return 'x' + (value * 2).toFixed(1);
+  if (key === 'pace') return 'x' + paceOf(value).toFixed(2);
   if (key === 'spread') {
     return value < 0.15 ? 'ALL ALIKE' : value < 0.4 ? 'CLOSE' : value < 0.65 ? 'MIXED'
       : value < 0.85 ? 'WIDE' : 'ROOKIES + PROS';

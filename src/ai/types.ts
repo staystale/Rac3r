@@ -38,6 +38,7 @@ export interface Traits {
   seed: number;
   risk?: number;     // 0..1, later braking / faster entries
   kBrake?: number;   // the braking grip it plans (line.ts K_BRAKE by default)
+  paceK?: number;    // ?aipace=1: its speed plan's corner and braking grip x this (ai/tune.ts)
   power?: number;    // its engine power share (a weak driver gives a little away)
 }
 
@@ -223,6 +224,8 @@ export interface Mistake {
   inside: boolean;
   t: number;
   fired?: boolean;   // the "throttle" kind: the slide has been started
+  spin?: boolean;    // ?aislide=1: one that really spins (ai/driverSlide.ts spinChance)
+  spun?: boolean;    // ... its throttle held
 }
 
 // An overtake in progress: the car attacked, the side taken, the corner (-1 = a tow pass).
@@ -327,6 +330,8 @@ export interface CircuitState extends DriveOutState {
   wideUntil?: number;   // drive: set with wide
   // ai/stopDodge.ts: the stopped car in my way judged last, and how far off that judgement is
   stopCar?: AiCar | null; stopJudge?: number;
+  // ai/driverSlide.ts: a mistake that spins - turning in until then, the corner's way (+1 / -1)
+  spinUntil?: number; spinTurn?: number;
   obst?: number;   // drive: seconds spent dodging loose objects
   nearT?: number;   // drive: seconds with a car ahead
   nAtk?: number;   // drive: attacks made

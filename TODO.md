@@ -180,6 +180,33 @@ BUGS (each behind its own switch, measured, then a test link):
      up. OWNER TO DECIDE the angle (1.25 kept).
    NOT MEASURED: a full field (contact), the real weather's patches, the native loose levels'
    own laps (Sweaty Lamb photographed only), mud.
+   OWNER 11-15 (JOB 1b): hold angle 1.25 kept; the gravel-edge brushes fine (no change).
+   MISTAKES THAT SPIN ("yes but rare-ish"): BUILT inside ?aislide=1 (driverSlide.ts spinChance):
+   a 'late' / 'throttle' mistake spins with 0.25 x (1 - skill); never caught, the throttle held
+   1.2 s past the apex, the wheel held 0.7 of the lock into the corner. MEASURED (_aislip, laps
+   2-4, Thruston + Knobhill laid in tarmac and gravel, hatch-rwd + rally-4x4, Mobile + Realish,
+   5 drivers x 2 seeds = 160 runs): mistakes meant to spin 21 (all at skill under 0.4, ~13 % of
+   their 159 mistakes), SPINS 0 - the most a car turned from where it went in one was 0.14-0.32
+   rad (hatch) and 0.31-0.66 rad (4x4; a spin counts past 1.22). Laps and offs as before (within
+   0.3 s). So the cars do not spin from it; not forced further (asked).
+   PACE DIAL + THE AI DRIVERS DIALS LIVE: BUILT behind ?aipace=1 (FIX.aipace; ai/tune.ts paceOf,
+   game/aitune.ts, menu/aidrivers.ts showLiveDials; testlist 'aipace'; ENGINE THE AI DRIVERS DIALS
+   LIVE): PACE x0.8 (0) .. x1 (0.5) .. x1.3 (1) on every driver's corner and braking grip; in the
+   test-mode pause menu AI DRIVERS > moves all seven dials mid-race (photos tools/scratch/
+   _aidials-*.png; _aidialshot: PACE 0.9 + SKILL 0.9 -> paceK 1.24, skill +0.4 on the field's
+   cars, RESET back). MEASURED (_aislip AIPACE=1, ?aislide=1 on, Realish, 5 drivers, laps 2-3,
+   mean lap s / offs over the 5 / s off; PACE 0.3, 0.5, 0.7, 0.9):
+   - tarmac Thruston hatch 70.5 / 68.9 / 67.0 / 65.4, no offs; 4x4 64.5 / 62.6 / 60.1 / 58.2, no
+     offs. Knobhill hatch 46.8 / 46.1 / 45.5 / 44.9, no offs; 4x4 43.5 / 42.3 / 41.3 / 40.4, offs
+     0 / 1 / 3 / 4 (0 / 0.5 / 2.2 / 5.1 s).
+   - gravel Thruston hatch 83.4 / 81.5 / 79.1 / 77.8, offs 0 / 3 / 4 / 16 (0 / 1.8 / 3.4 / 15.8 s);
+     4x4 78.4 / 75.7 / 72.5 / 69.9, offs 7 / 6 / 6 / 18 (4.4 / 5.5 / 6.4 / 17.5 s). Knobhill hatch
+     51.1 / 50.6 / 49.9 / 49.2, offs 0 / 1 / 4 / 4 (0 / 0.3 / 7.2 / 7.8 s); 4x4 47.9 / 46.6 / 45.3
+     / 44.5, offs 1 / 0 / 4 / 11 (0.3 / 0 / 4.6 / 14.7 s).
+   A starting point: 0.7 (x1.12) is 1-4 % a lap quicker than 0.5, a few more offs on gravel; 0.9
+   (x1.24) 3-8 % quicker, still clean on tarmac for the hatch, 3-9x the time off on gravel. NOT
+   MEASURED: a full field (contact), the highway, stages, the live dials' effect mid-race (only
+   that the traits change).
 10. HIGHWAY AI AND ONCOMING TRAFFIC, and two racers put back onto one spot: PASSED 11-15, the
     default (TODO-DONE).
     STOPPED-CAR AVOIDANCE + THE TWO GUARDS (with the start fix): PASSED 11-15 ("Much better", "Yes"),
