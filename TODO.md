@@ -52,7 +52,7 @@ records in `TODO-DONE.md` (PASSED 11-12). On the phone now:
   (3a2 item 10 below).
 - THE JOKER LINE ON ITS OWN ROW: PASSED 11-15, the default (TODO-DONE).
 - THE AI EXTRAS (owner passed the list 11-15 morning; JOB 2, one switch each):
-  2a. THE AI'S OWN PUT-BACKS BY YOUR RESET'S RULES (bug 4 Q8): BUILT behind ?aireset=1
+  2a. THE AI'S OWN PUT-BACKS BY YOUR RESET'S RULES (bug 4 Q8): BUILT behind the AI crash put-back rule (passed 11-15, the default)
   (FIX.aireset, game/ai.ts; testlist 'aireset'): a rolled AI once still and a too-injured one after
   its pause are put back as the stuck put-back is - from where it last was on the road but never
   ahead of where it is, the next spot 6 m further back while a racer is on it; on the endless road
@@ -229,7 +229,7 @@ BUGS (each behind its own switch, measured, then a test link):
     ROLLING STARTS ON THE SINGLE LANE (owner 11-15: "Rolling start on single lane roads tho seem to
     suffer from the start issue ... It's bad"; "they weave out of oncoming traffic and brake because
     someone weaved and then it gets worse and they don't dodge well enough"): BUILT behind
-    ?rollfix=1 (FIX.rollfix; ai/driverDrive.ts plannedLat, ai/driverTraffic.ts; testlist
+    the rolling-start fix (passed 11-15, the default) (FIX.rollfix; ai/driverDrive.ts plannedLat, ai/driverTraffic.ts; testlist
     'rollfix'). TRACED (tools/scratch/_rollstop.mjs, a per-car trace at the twisty road's green):
     the racers read the cars from where they MEANT to be across the road before the oncoming car's
     keep-to-your-side clamp, so an oncoming car in its own lane was "in the way" and FOLLOWED - its

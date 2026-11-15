@@ -51,7 +51,7 @@ function targetEdge(state: Drv["state"], latLim: number, onMain: boolean, lineOf
 }
 
 /**
- * Where I mean to be across the path - with ?rollfix=1 on my side while an oncoming car keeps me
+ * Where I mean to be across the path - on my side while an oncoming car keeps me
  * there (ai/driverOncoming.ts): read from the plan before it is kept, an oncoming car in its own
  * lane was "in the way" and followed - its speed coming at me made a cap below 0 (the single
  * lane's rolling start, tools/scratch/_rollstop.mjs: the field braked to a stop at the green).
@@ -61,7 +61,7 @@ function targetEdge(state: Drv["state"], latLim: number, onMain: boolean, lineOf
  * @returns m off my path
  */
 function plannedLat(planned: number, keepMax: number, lineOff: number): number {
-  return FIX.rollfix ? Math.min(planned, keepMax - lineOff) : planned;
+  return Math.min(planned, keepMax - lineOff);
 }
 
 /** Other cars and obstacles, then racecraft: the lateral target, speed scale and gap cap. */
@@ -103,8 +103,8 @@ function trafficStep(drv: Drv, car: AiCar, ctx: DriveCtx, path: AiPath, nearIdx:
   } else { state.atk = null; state.cover = null; state.cc = -1; }
   // (a stopped or much slower car still in line with where the car really is: brake to miss it,
   // and steer round it as a move, not a soft rejoin - ai/stopDodge.ts)
-  // (?rollfix=1: the plan as the oncoming car's keep-to-my-side will let it be)
-  const planned = FIX.rollfix ? Math.min(latT + dodgeT, keepMax - lineOff) : latT + dodgeT;
+  // (the plan as the oncoming car's keep-to-my-side will let it be)
+  const planned = Math.min(latT + dodgeT, keepMax - lineOff);
   const stop = stopCap(drv, car, { path, nearIdx, latT: planned }, cars.stopped ?? []);
   followCap = Math.min(followCap, stop.cap);
   conflict ||= stop.inLine;
@@ -154,13 +154,13 @@ function lookFirst(car: AiCar, path: AiPath, nearIdx: number, lineOff: number, l
 }
 
 /**
- * ?rollfix=1: the last think the start held me (a rolling start's formation), read by the
+ * The last think the start held me (a rolling start's formation), read by the
  * stopped-car brake (driverTraffic.ts gettingAway).
  * @param state my state
  * @param ctx the drive context (hold)
  */
 function noteHeld(state: Drv["state"], ctx: DriveCtx) {
-  if (FIX.rollfix && ctx.hold) state.heldT = state.t;
+  if (ctx.hold) state.heldT = state.t;
 }
 
 /** One drive tick: the controls for this car from the driver context, or a drive-out move. */

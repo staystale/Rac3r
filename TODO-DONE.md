@@ -13,6 +13,9 @@ rolls - OWNER 11-07; the AI rework - Where we are 11-04; the driving root fix, t
 LIST 11-01; TypeScript, mud, grass, lamps - Queue; weather, surfaces, car systems, damage,
 lighting, bushes and trees - OWNER LIST 10-24; the checking tools - Tools that are wrong.
 
+## PASSED 11-15 (owner: "Pass") - THE SINGLE-LANE ROLLING-START FIX AND THE AI CRASH PUT-BACKS BY YOUR RESET'S
+RULES, the default (were ?rollfix=1, ?aireset=1). Numbers: TODO 3a2 item 10 (rolling starts) and the AI extras' 2a note.
+
 ## PASSED 11-15 (owner: "Pass") - THE HIGHWAY CRASH-CUSHION BARRELS, the default (was ?hwbarrels=1): triangles
 only before exposed LEADING barrier ends (reservation starts and ends, slip noses, roadside runs); the
 single lane's ~3.6 a km, the barrels' own damage and the far-end triangles kept as built.

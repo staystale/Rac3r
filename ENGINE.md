@@ -120,7 +120,7 @@ m/s and not queued with no 3 m of race progress (`_prog`, the highway's `_hwf.s`
 while the start holds it or a crash plays out - or on the highway 8 m off the carriageway for 3 s
 (40 m out at once); a rolled AI once still 1.5 s and a too-injured one after its pause also (those
 at the old spot: 4 m behind where it last was on the road, the highway's 15 m back on the hard
-shoulder, `highwayrace.ts hwPutBack`; under test, `?aireset=1`, `FIX.aireset`: by the stuck
+shoulder, `highwayrace.ts hwPutBack`; under test, (since 11-15, passed), `FIX.aireset`: by the stuck
 put-back's rules below). Its stuck put-back is your reset's:
 from where it last was on the road but never ahead of where it is (`resetspot.ts notAheadOf`), the
 next spot 6 m further back while a racer is on it (`firstFree` with the AI's own size and the other
@@ -191,7 +191,7 @@ remembered dials are not touched); RESET puts back the ones the race was launche
 (`shared.aiTuneStart`). `tools/scratch/_aidialshot.mjs` photographs the panel and checks the
 traits follow; `_aislip.mjs` AIPACE=1 PACE=x measures laps.
 
-THE ONCOMING CAR AND THE PLAN (under test, `?rollfix=1`, `FIX.rollfix`): where a racer means to be
+THE ONCOMING CAR AND THE PLAN (under test, (since 11-15, passed), `FIX.rollfix`): where a racer means to be
 across the road is kept to its side while an oncoming car keeps it there (`driverDrive.ts
 plannedLat`, ai/driverOncoming.ts keepMax) before it reads the cars; an oncoming car beyond that
 limit is passed, not followed (`driverTraffic.ts passingOncoming`); the gap picker's room and the
@@ -203,7 +203,7 @@ A STOPPED OR MUCH SLOWER CAR IN THE WAY (since 11-15, passed;
 max(5 m/s, half my speed) AND under half the racing speed where it is - my plan there; not coming
 back at more than 2 m/s; and NOT PULLING AWAY: speeding up under 1 m/s/s along my way, read with its
 braking, `dodge.ts readGain`; and none at all within 2 s of my own getaway, `goT`; under test,
-`?rollfix=1`: none through a rolling start's formation and 2 s past its green, `heldT`, and
+(since 11-15, passed): none through a rolling start's formation and 2 s past its green, `heldT`, and
 "much slower" under half my own speed with no 5 m/s floor) is read, with the switch, where it STANDS
 ACROSS THE ROAD held to my point (`placeAcross`: off the line at its point + the line's place across
 the road there - the line's here), the frame the steering keeps off the line (`driverSteps.ts

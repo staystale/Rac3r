@@ -330,7 +330,7 @@ export interface CircuitState extends DriveOutState {
   wideUntil?: number;   // drive: set with wide
   // ai/stopDodge.ts: the stopped car in my way judged last, and how far off that judgement is
   stopCar?: AiCar | null; stopJudge?: number;
-  heldT?: number;   // drive: the last think the start held it (?rollfix=1, driverTraffic.ts)
+  heldT?: number;   // drive: the last think the start held it (driverTraffic.ts)
   // ai/driverSlide.ts: a mistake that spins - turning in until then, the corner's way (+1 / -1)
   spinUntil?: number; spinTurn?: number;
   obst?: number;   // drive: seconds spent dodging loose objects

@@ -55,17 +55,9 @@ export const FIX = {
   // the AI's slides (TODO 3a2 bug 9): held at each surface's own best slip angle, more corner speed
   // off tarmac, the kerbs used, mistakes by skill (ai/driverSlide.ts)
   aislide: atLoad('aislide'),
-  // the stopped-car brake at a ROLLING start and on a two-way road (ai/driverTraffic.ts): no car
-  // counts as stopped through the formation and 2 s past the green; "much slower" is under half my
-  // own speed (no 5 m/s floor); a way round a slow car never into the other way's lane while an
-  // oncoming car keeps me to my side (the gap picker's room, the brake's plan)
-  rollfix: atLoad('rollfix'),
   // the AI DRIVERS dials' PACE (the speed plan's corner and braking grip, ai/tune.ts) and the dials
   // moved LIVE from the test-mode pause menu (menu/aidrivers.ts showLiveDials, game/aitune.ts)
   aipace: atLoad('aipace'),
-  // the AI's own crash, roll and injury put-backs by your reset's rules - never ahead of where the
-  // car is, the next free spot behind a car in the way - as its stuck put-backs (game/ai.ts)
-  aireset: atLoad('aireset'),
   // a chasing police car sounds a siren, the light bar's twin (game/sirens.ts, audiosiren.ts)
   siren: atLoad('siren'),
 };
