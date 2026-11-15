@@ -11,19 +11,8 @@ not repeated here), then `TODO.md`, then this page. The 11-07 version of this pa
   joker: Croft had none), the boot bar with the logo fade: all PASSED and the default. Test list
   empty. Only switch left: `?siren=1` (PARKED until the sound pass, owner).
 - **ITCH RULE:** ask before EVERY push; push only on the owner's yes, after CI is green.
-- **Worker A** (agent a519a84a1d0ed2559, worktree `bugfix`, port 8091, PC folder
-  `rac3r-proofepo`): BUG 10 behind `?hwdodge=1` (owner chose A + B: read cars along the road
-  frame; own lanes when oncoming, overtake only when clear, skill can misjudge; NOT C), then
-  `?hwputback=1` (two racers put back onto one spot). Then BUG 9 (owner GO, one switch: hold a slide
-  at each surface's best slip angle - on ice slide MORE but fast; more corner speed off tarmac; use
-  kerbs / other lines when quicker; mistakes by skill). Briefs: scratchpad briefA2.md.
-- **Worker B** (agent a6dd9ec310acc785b, worktree `barriercull`, port 8092, PC folder
-  `rac3r-proofepo2` port 8093): `?forestseed=1` (gen-forest seed leak), `?wantedlost=1` (LOST
-  THEM -> WANTED LEVEL LOST), `?weathermobile=1` (weather notices on MOBILE difficulty only), the
-  menu demo car's NaN (find first). THEN the highway off-road jerk (owner: after itch; ~87 frames/min
-  over 20 ms since 11-14 vs 39-47 on 11-13; drop seconds have ~20 % more tile builds), THEN the
-  tracks (answers in hand: Pembreezy RX + circuit as ONE, Blighty Park, Glen Hellish, Swapsies
-  head-to-head real / full field in test mode, quarry). Brief: scratchpad briefB2.md.
+- **Worker A** (worktree `bugfix`, port 8091, PC `rac3r-proofepo` 8094): BUG 10 + the highway put-back PASSED 11-15, the default (round51). Next: BUG 9 (owner GO: hold a slide at each surface's best slip angle - on ice slide MORE but fast; more corner speed off tarmac; kerbs / other lines when quicker; mistakes by skill), then the AI extras, then CAR TOOLS -> under-skin layer -> 10 cars -> two-wheel state. Brief: scratchpad briefA3.md.
+- **Worker B** (worktree `barriercull`, port 8092, PC `rac3r-proofepo2` 8093): queue in scratchpad briefB3.md, hand-back per job: 0 forestseed keeps Croughed RX bales (done, round50); 1 highway off-road jerk; 2 joker line always its own line; 3 highway extras one switch each; 4 F1 vs world split (proposal first); 5 tracks.
 - **Queued, approved:** JOKER TAKEN on its own line in the lap box; the AI using your reset rules; the wrong-way guard on R's verge
   rule; the off-road countdown running 8-16 m out; start lights keeping the car clear. Pit stops:
   questions first (not every race; test-mode option; a real race turns them on where real life
