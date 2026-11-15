@@ -5,6 +5,7 @@ import { driveOut } from "./driveOut.ts";
 import { jokerStep } from "./driverJoker.ts";
 import { carsStep, obstacleAvoid } from "./driverTraffic.ts";
 import { ownSideCap } from "./driverOncoming.ts";
+import { FIX } from "../core/fixes.ts";
 import { steerSlideStep, pedalStep } from "./driverPedals.ts";
 import { coolStep, COOL_LOOK } from './driverCool.ts';
 import {
@@ -29,6 +30,21 @@ const WANDER_EDGE = 1.1;
 // look before pulling on: m inside the track's edge a car's middle counts as at the edge, and the
 // m it must be coming in by to look first
 const EDGE_IN_M = 0.3, COME_IN_M = 1;
+
+/**
+ * How far off the track's middle the lateral target may go: the usual edge, past it only while
+ * going round a car; with ?aislide=1 the line's own place too (by a kerb it is past the usual
+ * edge: line.ts kerbReach).
+ * @param state the driver's state
+ * @param latLim m, the usual edge
+ * @param onMain on the racing line's path
+ * @param lineOff m, the line's place off the middle here
+ * @returns m
+ */
+function targetEdge(state: Drv["state"], latLim: number, onMain: boolean, lineOff: number) {
+  const edge = state.t < (state.wideUntil || 0) ? state.wide! : latLim;
+  return FIX.aislide && onMain ? Math.max(edge, Math.abs(lineOff)) : edge;
+}
 
 /** Other cars and obstacles, then racecraft: the lateral target, speed scale and gap cap. */
 function trafficStep(drv: Drv, car: AiCar, ctx: DriveCtx, path: AiPath, nearIdx: number,
@@ -76,7 +92,7 @@ function trafficStep(drv: Drv, car: AiCar, ctx: DriveCtx, path: AiPath, nearIdx:
   state.follow = followCap < Infinity;
   latT += state.dodge;
   // past the usual edge only while going round a car (above)
-  const edge = state.t < (state.wideUntil || 0) ? state.wide! : latLim;
+  const edge = targetEdge(state, latLim, path === main, lineOff);
   latT = Math.max(-edge, Math.min(edge, lineOff + latT)) - lineOff;
   // (back over at a move's rate, not a rejoin's: ai/driverOncoming.ts)
   if (latT > keepMax - lineOff) {

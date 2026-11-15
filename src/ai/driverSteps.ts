@@ -6,6 +6,8 @@ import { K_BRAKE, carGrip } from "./line.ts";
 import type { profileOf } from "./line.ts";
 import { lateralAhead } from "./rejoin.ts";
 import { steerCap, steerDemand } from "./steerLaw.ts";
+import { slideFeel, slideHeld, slideLimits } from "./driverSlide.ts";
+import type { SlideFeel } from "./driverSlide.ts";
 import type { RejoinAim } from "./rejoin.ts";
 import type { AiCar, CircuitState, RacingLine, Traits } from "./types.ts";
 
@@ -186,9 +188,16 @@ export function createSlideStep(
     }
   }
 
+  /** ?aislide=1: a slide held here - not banned, away from the edge, held (ai/driverSlide.ts). */
+  function heldHere(car: AiCar, slide: SlideFeel, slipRear: number, speed: number, turn: number,
+      edgeRoom: number) {
+    return state.t > (state.driftBan || 0) && edgeRoom > slide.room
+      && slideHeld(car, slide, slipRear, speed, turn);
+  }
+
   /** DRIFT HOLD: held on loose ground, in a corner, in a rear-driven car, away from the edge. */
   function driftHold(car: AiCar, path: AiPath, nearIdx: number, speed: number,
-      lineOff: number, loose: number, slipRear: number) {
+      lineOff: number, loose: number, slipRear: number, slide: SlideFeel | null) {
     const pts = path.pts, spec = car.spec;
     // DRIFT HOLD (requirement: really need AI to drift and handbrake sometimes / aggressive
     // off-road driving): on loose ground, in a corner, in a car with the drive at the back (RWD
@@ -203,10 +212,14 @@ export function createSlideStep(
     const nearPt = pts[nearIdx], edgeRoom = path === main ? line.hw - Math.abs(
         lineOff + (car.x - nearPt.x) * -Math.sin(nearPt.h) + (car.y - nearPt.y) * Math.cos(
         nearPt.h)) : 0;
+    // (?aislide=1 on slippery ground: any corner, every driver, held at the ground's own slip -
+    // ai/driverSlide.ts; a driver who ran off drifting still backs off for DRIFT_BAN s)
+    if (slide) return { drifting: inCorner && heldHere(car, slide, slipRear, speed, nearPt.turn,
+      edgeRoom), edgeRoom, hold: slide.hold };
     const drifting = state.driftOn && inCorner && loose > 0.3 && (spec.drive ?? 1) < 0.5 &&
         slipRear > 0.12 && slipRear < DRIFT_MAX && speed > 6 && edgeRoom > EDGE_DRIFT && pts[
         line.corners[line.cid[nearIdx]].apex].R < DRIFT_R;
-    return { drifting, edgeRoom };
+    return { drifting, edgeRoom, hold: DRIFT_SLIP };
   }
 
   /** Slip, the held drift (per corner, never near the edge), over / understeer and the steer. */
@@ -215,13 +228,18 @@ export function createSlideStep(
     const { deltaS, LOCK, cap } = aim;
     const loose = Math.max(0, Math.min(1, (1 - car.surface.mu) / 0.5));
     const slipFront = Math.abs(car.t.slipF || 0), slipRear = Math.abs(car.t.slipR || 0);
-    const { drifting, edgeRoom } = driftHold(car, path, nearIdx, speed, lineOff, loose, slipRear);
-    const over = slipRear > 0.18 && speed > 5 && !drifting,
-        under = slipFront > 0.14 + 0.06 * loose && speed > 5 && !over && !drifting;
+    const underBefore = 0.14 + 0.06 * loose, slide = slideFeel(car, underBefore);
+    const held = driftHold(car, path, nearIdx, speed, lineOff, loose, slipRear, slide);
+    const { edgeRoom, hold } = held, limits = slideLimits(slide, state.mist, underBefore);
+    // (a slide in a mistake is not held: ai/driverSlide.ts)
+    const drifting = held.drifting && !limits.mistaken;
+    const over = slipRear > limits.overAt && speed > 5 && !drifting,
+        under = slipFront > limits.underAt && speed > 5 && !over && !drifting;
     const steer = over || drifting ? Math.max(-1, Math.min(1, deltaS / LOCK)) : Math.max(
         -cap, Math.min(cap, deltaS / LOCK));
     state.cap = cap;
-    return { loose, slipRear, drifting, edgeRoom, over, under, steer };
+    return { loose, slipRear, drifting, edgeRoom, over, under, steer, hold,
+      feelK: slide ? slide.feelK : 1 };
   }
 
   return slideStep;

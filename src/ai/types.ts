@@ -4,6 +4,7 @@
 import type { Lane } from "../world/types.ts";
 import type { Spec, Surface } from "../cars.ts";
 import type { Car, CarTelemetry } from "../vehicle.ts";
+import type { AxlePeaks } from "../physics/wheelspin.ts";
 import type { DamageCar } from "../damage.ts";
 import type { HwLevel } from '../highway/hwtypes.ts';
 import type { TrafficPolice } from './trafficPolice.ts';
@@ -72,7 +73,8 @@ export interface AiCar {
   dmgBill?: number;
   spec: AiSpec;
   surface: Pick<Surface, 'mu'>;
-  t: Pick<CarTelemetry, 'slipR'> & Partial<Pick<CarTelemetry, 'slipF' | 'spinR' | 'spinF'>>;
+  t: Pick<CarTelemetry, 'slipR'> & Partial<Pick<CarTelemetry, 'slipF' | 'spinR' | 'spinF'>>
+    & AxlePeaks;
   _hwf?: RoadFrame | null;
   _trOff?: number | null;   // traffic.ts: the lane offset a lane-changing car is heading for
   traffic?: boolean;   // traffic.ts: a traffic car, not another racer

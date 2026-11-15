@@ -1,7 +1,7 @@
 // ai/driverPedals.ts: the circuit driver's steering, slide, throttle, brake and handbrake
 // controls. Functions take the driver context.
 import { profileOf } from "./line.ts";
-import { steerAim, profileSpeed, DRIFT_SLIP } from "./driverSteps.ts";
+import { steerAim, profileSpeed } from "./driverSteps.ts";
 import type { AiCar } from "./types.ts";
 import type { RejoinAim } from "./rejoin.ts";
 import { footThrottle } from "./driverFoot.ts";
@@ -41,11 +41,12 @@ type Slide = ReturnType<typeof steerSlideStep>;
 /** Throttle for the target speed: held drift, loose understeer, over / understeer, grip. */
 export function throttleFor(drv: Drv, speed: number, targetSpeed: number, slide: Slide,
     looseUnder: boolean) {
-  const { drifting, slipRear, under, over } = slide;
+  const { drifting, slipRear, under, over, hold, feelK } = slide;
+  // (the slip feel's angles x the ground's peak over tarmac's: ai/driverSlide.ts, 1 without it)
   const feel = speed < FEEL_FROM ? 1
-    : Math.max(0, 1 - Math.max(0, slipRear - 0.07) / 0.12);
+    : Math.max(0, 1 - Math.max(0, slipRear - 0.07 * feelK) / (0.12 * feelK));
   const gap = (targetSpeed - speed) * 0.6;
-  return drifting ? Math.max(0.25, Math.min(1, 0.6 + (DRIFT_SLIP - slipRear) * 3)) * (
+  return drifting ? Math.max(0.25, Math.min(1, 0.6 + (hold - slipRear) * 3)) * (
       speed < targetSpeed * 1.1 ? 1 : 0.4) : looseUnder ? Math.min(
       UNDER_LOOSE, speed < targetSpeed ? gap : 0) : under ? 0 : over ? (
       speed < targetSpeed ? Math.min(0.2, gap) : 0) :
