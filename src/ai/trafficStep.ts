@@ -26,7 +26,7 @@ export interface StepArgs {
   others?: AiCar[];
   visible?: VisFn;
   held?: boolean;   // the race not started yet (a single carriageway's other way waits)
-  // ?stuckreset=1: a car standing stuck STUCK_GO_S goes, in view or not (standsStuck)
+  // ?stuckreset=1: a car standing stuck STUCK_GO_S goes, in view or not (noteStuckCars)
   stuckGo?: boolean;
 }
 
@@ -178,9 +178,9 @@ const QUEUE_GAP_M = 8, QUEUE_STILL_MS = 2;
 /**
  * ?stuckreset=1: counts each car's time standing TRULY stuck (slot.stuckGoT) - still (its physics'
  * deadT running: under 1 m/s), wrecked or not, and not on purpose: not broken down or at a pump,
- * not a police car (those go by their own rules), not queued behind a car close in front that is
- * itself nearly still (the head of the queue is what is stuck: once it goes the queue moves on,
- * its clock never started).
+ * not a police car (those go by their own rules), not queued (a wreck never is) behind a car close
+ * in front that is itself nearly still (the head of the queue is what is stuck: once it goes the
+ * queue moves on, its clock never started).
  * @param ctx the traffic
  * @param ents everyone on the road
  * @param dt the step, s
@@ -191,7 +191,8 @@ function noteStuckCars(ctx: TrafficCtx, ents: TrafficEnt[], dt: number) {
       slot.stuckGoT = 0;
       continue;
     }
-    const { lead, gap } = findLead(slot, ents);
+    // (a wreck cannot drive on whatever is in front of it)
+    const { lead, gap } = slot.wreck ? { lead: null, gap: Infinity } : findLead(slot, ents);
     const queued = !!lead && gap < QUEUE_GAP_M
       && Math.hypot(lead.car.vx, lead.car.vy) < QUEUE_STILL_MS;
     slot.stuckGoT = queued ? 0 : (slot.stuckGoT ?? 0) + dt;
