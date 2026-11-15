@@ -40,7 +40,7 @@ Older design notes and measurements are in the git history of this file.
 | `hud.ts`, `hud/` | The HUD on the full-resolution canvas: `layout.js` every rectangle and tap hit-test, `gauges.js`, `laps.js`, `overlays.js`, `controls.js`, `widgets.js`, `minimap.js` (minimap + progress bar). The pause menu's HUD list (`?hudmenu=0` = the old MINIMAP row) (`menu/race.ts`, `game/menuflow.ts` hudActions) turns each display piece on or off. |
 | `menu.ts`, `menu/` | Main menu, test mode, garage (paint, tyres), race setup and results. |
 | `input.ts` | One normalised input state from keyboard and touch; the car never sees an event. |
-| `audio.ts` | Procedural Web Audio: engine note, tyre squeal, surface sounds. |
+| `audio.ts`, `audiosiren.ts` | Procedural Web Audio: engine note, tyre squeal, surface sounds; the police siren (`?siren=1`). See Sound. |
 | `guide.ts`, `testlist.ts`, `tune.ts` | How-to-play cards, the owner's to-test list, the debug tuning panel. |
 
 ## One frame
@@ -168,6 +168,32 @@ THE NIGHT FLY-IN (the default since 11-14): two parts.
   `eventglows.ts part`) stay live; the canopy cut follows. The heads' tint goes in before the
   cars' tints (live: after). `flyStats` / `?report=1` `flySets`: `nightMade`, `nightDrawn`,
   `nightFailed`, and `canopyCut` (canopies darkened / on the map, the last night frame).
+
+## Sound (`audio.ts`)
+
+All sound is synthesised with Web Audio (no sound files); `?noaudio=1` never starts it. One
+context, made in the first tap (`menuflow.ts start / launch`), every voice into one master gain:
+the pause menu's SOUND slider and MUTE (and the HUD's VOL button) set that gain and are remembered
+(`localStorage rac3r.vol`, `rac3r.mute`; the default 50 %). Only your own car is heard: the engine
+(three oscillators -> soft-clip shaper -> low-pass -> formant, pitch from rpm and cylinders), the
+tyre squeal and the surface textures and bumps (one looping noise buffer through band-passes).
+`game/sim.ts updateAudio` drives them once a frame after the sim, fenced by a try (a throw never
+stops the frame). No other car makes a sound, nothing is panned and there is no Doppler.
+
+THE POLICE SIREN (`?siren=1`, `FIX.siren`, under test): `game/sirens.ts stepSirens` (each frame,
+from `updateAudio`) finds the nearest `SIREN_VOICES` (2) police cars whose light bar flashes
+(`car.blues`: chasing, set by `ai/trafficPolice.ts stepPolice`; a cruising, waiting or angry one is
+silent); each voice keeps its car while that car stays among the nearest. `audiosiren.ts` is the
+sound: per voice a square-wave carrier whose pitch a slow oscillator sweeps on the audio thread
+(`SIREN_TONES`: the UK two-tone 600 / 800 Hz, ~0.6 s each, the default `SIREN_TONE`; the wail and
+the yelp are one constant away), a low-pass that dulls it with distance, a gain (half its level at
+30 m, silent past 260 m), a stereo pan by how far left or right of you it is (the view is
+north-up), into the master gain. Silent on the menu, at pause, behind the loading screen and a
+walkthrough, when the chase ends, and while the page is hidden. The voices are built on the first
+chase heard (switch off: none). `audio.sirensOn` counts the voices sounding (tools). Its visual
+twins: the flashing light bar (`render/lightbar.ts`) and the HUD's flashing blue behind the stars
+(`hud/heat.ts`). Rendered to .wav by `tools/scratch/_sirenwav.mjs`; checked live by
+`tools/scratch/_siren.mjs`.
 
 ## The car (`vehicle.ts` and `physics/`)
 

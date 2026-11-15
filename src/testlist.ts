@@ -111,4 +111,16 @@ export const TEST_LIST: TestEntry[] = [
     try: 'Race a lap, by day (autumn if you can) and at night. Look at the forest round the lap.',
     wrong: 'Leafy trees still most of them; every tree alike; any other level\'s trees changed.',
   },
+  {
+    id: 'siren',
+    added: '2026-11-15',
+    name: 'A police siren (the UK two-tone) from every police car chasing, its lights flashing',
+    where: 'Test link + &siren=1, SOUND ON: a highway with traffic; get chased (speed past a '
+      + 'police car or a speed camera); headphones help for left / right',
+    try: 'Listen as a chaser closes, passes and drops back; two or three chasing; pause, MUTE, '
+      + 'the volume slider, MAIN MENU; lose them or get busted. Is two-tone the one you want?',
+    wrong: 'A siren from a police car whose lights are not flashing, or none from one that is; '
+      + 'still sounding at pause, on the menu, muted, or after the chase; the wrong side; a '
+      + 'wall of noise with three chasing; clicks; your engine drowned out.',
+  },
 ];
