@@ -42,11 +42,8 @@ records in `TODO-DONE.md` (PASSED 11-12). On the phone now:
   the menu; behind its own switch.
 - BOOT BAR (owner 11-14: "There's no loading bar when the game first loads"): PASSED 11-15 with
   the logo, the default (TODO-DONE).
-- LOGO FADE (owner 11-15: "It seems to show a cheap version of the logo first ? And then pop into
-  the full one"): BUILT behind `?logofade=1` (index.html): the logo's box empty until it has come,
-  then faded in (150 ms); asked for at high priority; the words (RAC3R, the blue 3) only after 3 s
-  or if it fails. Photos tools/scratch/_bootbar-logofade1-* (BOOTBAR_QUERY=logofade=1). The test
-  tools (navigator.webdriver) get no boot bar: they click to start at once and the bar took it.
+- LOGO FADE (owner 11-15: no "cheap version of the logo first"): PASSED 11-15, the default
+  (TODO-DONE). The test tools (navigator.webdriver) get no boot bar: they click to start at once.
 
 ## 3. OPEN, IN THE OWNER'S ORDER
 

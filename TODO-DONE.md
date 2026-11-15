@@ -13,6 +13,10 @@ rolls - OWNER 11-07; the AI rework - Where we are 11-04; the driving root fix, t
 LIST 11-01; TypeScript, mud, grass, lamps - Queue; weather, surfaces, car systems, damage,
 lighting, bushes and trees - OWNER LIST 10-24; the checking tools - Tools that are wrong.
 
+## PASSED 11-15 (owner: "Pass") - THE LOGO FADE: the boot bar's logo box empty until the logo has
+come (asked for at high priority), then faded in over 150 ms; the words (RAC3R, the blue 3) only
+after 3 s or if it fails. Was ?logofade=1 (index.html). Photos tools/scratch/_bootbar-logofade1-*.
+
 ## PASSED 11-15 (owner: "The rest is pass") - TODO 3a2's bugs and the boot bar; now the default
 
 Each switch removed with its test entry; proved by the base with the switch on against the new

@@ -12,13 +12,4 @@ export interface TestEntry {
 }
 
 export const TEST_LIST: TestEntry[] = [
-  {
-    id: 'logofade',
-    added: '2026-11-15',
-    name: 'Loading bar: the logo fades in, no cheap text version first',
-    where: 'Test link + &logofade=1: open the link, then reload once',
-    try: 'Watch the box above the bar: empty until the logo has come, then the logo fading in.',
-    wrong: 'The RAC3R text showing first and the logo popping in over it; the box jumping in '
-      + 'size; the logo never coming on a good connection.',
-  },
 ];

@@ -61,19 +61,15 @@
     font-size: clamp(14px, 4.2vw, 22px); line-height: 1.35; letter-spacing: .02em;
     color: #ff4a1a; text-shadow: 2px 2px 0 #000, 3px 3px 0 #5a2f1c; }
   /* the owner's logo (the main menu's), its box kept from the first paint so nothing moves when
-     it comes; until then the name in words, its 3 big and in the logo's blue */
+     it comes: empty until it has come, then faded in; the name in words (its 3 big and in the
+     logo's blue) only if the logo has not come in 3 s or fails */
   #bootbar .logo { display: block; width: 100%; max-height: 42vh; aspect-ratio: 1200 / 556;
-    object-fit: contain; visibility: hidden; }
-  #bootbar .name.ready .logo { visibility: visible; }
+    object-fit: contain; opacity: 0; transition: opacity 150ms linear; }
+  #bootbar .name.ready .logo { opacity: 1; }
   #bootbar .word { position: absolute; inset: 0; display: flex; align-items: center;
-    justify-content: center; font-size: clamp(22px, 7vw, 40px); }
+    justify-content: center; font-size: clamp(22px, 7vw, 40px); visibility: hidden; }
+  #bootbar .name.late .word { visibility: visible; }
   #bootbar .name.ready .word { display: none; }
-  /* ?logofade=1: no words first - the logo's box empty until it has come, then faded in; the words
-     only if it has not come in LOGO_LATE_MS or fails */
-  #bootbar .name.fade .word { visibility: hidden; }
-  #bootbar .name.fade.late .word { visibility: visible; }
-  #bootbar .name.fade .logo { visibility: visible; opacity: 0; transition: opacity 150ms linear; }
-  #bootbar .name.fade.ready .logo { opacity: 1; }
   #bootbar .three { color: #35c4ff; font-size: 1.9em; line-height: 1;
     text-shadow: 2px 2px 0 #000, 3px 3px 0 #0b3b66; }
   #bootbar .well { height: 18px; background: #241c23; border: 2px solid #000;
@@ -82,7 +78,7 @@
     transform: scaleX(0); will-change: transform; }
 </style>
 <div id="bootbar"><div class="pane"><div class="what">LOADING</div><div class="name"><img class="logo"
-  src="assets/logo.jpg" alt=""><div class="word">RAC<span class="three">3</span>R</div></div>
+  src="assets/logo.jpg" alt="" fetchpriority="high"><div class="word">RAC<span class="three">3</span>R</div></div>
   <div class="well"><div class="fill"></div></div></div></div>
 </template>
 <script>
@@ -94,12 +90,7 @@
   // and the bar would take that click; tools/scratch/_bootbarshots.mjs hides the flag to see it)
   (() => {
     if (navigator.webdriver) return;
-    const params = new URLSearchParams(location.search);
-    const page = document.getElementById('bootbar-page').content;
-    // (?logofade=1: the logo asked for first, ahead of the code)
-    const isFade = params.get('logofade') === '1';
-    if (isFade) page.querySelector('.logo').fetchPriority = 'high';
-    document.body.appendChild(page.cloneNode(true));
+    document.body.appendChild(document.getElementById('bootbar-page').content.cloneNode(true));
     let last = null;
     try {
       last = JSON.parse(localStorage.getItem('rac3r.bootbar') || 'null');
@@ -112,17 +103,13 @@
     const bar = document.getElementById('bootbar'), fill = bar.querySelector('.fill');
     bar.dataset.share = share;
     bar.dataset.readyMs = readyMs;
-    // (the logo shown once it has come; a logo that fails leaves the words - with ?logofade=1 the
-    // words only after LOGO_LATE_MS, 3 s, or the logo failing)
+    // (the logo faded in once it has come; the words only after 3 s, or if it fails)
     const logo = bar.querySelector('.logo'), name = bar.querySelector('.name');
     const showLogo = () => {
       if (logo.naturalWidth) name.classList.add('ready');
       else name.classList.add('late');
     };
-    if (isFade) {
-      name.classList.add('fade');
-      setTimeout(() => name.classList.add('late'), 3000);
-    }
+    setTimeout(() => name.classList.add('late'), 3000);
     if (logo.complete) showLogo();
     else {
       logo.addEventListener('load', showLogo);
