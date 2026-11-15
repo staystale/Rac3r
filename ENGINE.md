@@ -637,16 +637,18 @@ THE HIGHWAYS' CRASH-CUSHION BARRELS (`?hwbarrels=1`, `FIX.hwbarrels`; `highway/c
 `cushion`, 0.9 m, 400 kg, bounce 0.1, a car's impulse capped at 8 m/s a hit as a bale's) in a
 TRIANGLE pointing at the traffic (`CUSHION_ROWS` 1-2-3, rows 0.9 m apart, centred on the end, the
 back row 0.15 m clear of it; a row that would stand on tarmac - a carriageway with its shoulder
-and edge strip, a slip, a junction road - loses barrels: the walled road's noses are 1-2-2), blue
+and edge strip, a slip, a junction road - or a barrier or street light loses barrels: a wall's
+end 1.2 m off the edge gets 1-2-2), blue
 (`COL.cushionBlue`) on the countryside, yellow (`COL.cushionYellow`) on Deaf Valley. ONLY in
-front of an EXPOSED barrier END traffic drives at: (1) the NOSE between the road and a leaving
-slip - `noteSlipLeaving` (a slip, a junction's off-slip) notes it, and the first point where the
-LEFT barrier starts again after the verge's gap within 200 m (`noteLeftBarrier`, from
-`dress.ts layWalls / layArmco`) gets the triangle before it; a slip with no barrier beside it
-(the open roads' slips, the services' side road the wall swings out with, Deaf Valley's rock)
-gets none; (2) the central reservation's Jersey barrier / Armco ENDS (`noteMedianPiece`, from
-`layMedian`'s pieces in road order): its start after an open reservation (our way's traffic) and
-its end before one (the other carriageway's); none at a join of two pieces, a change between the
+front of an EXPOSED LEADING barrier END: (1) every ROADSIDE Armco (a bend's, a gorge lip's), wall
+or river parapet run (`roadsideEnds`, read from the barriers each stretch lays: `markBarriers`
+at `dress.ts dressStretch`'s start) - the end its side's traffic drives at (the left's start,
+the right's end), so the nose between the road and a leaving slip (the wall starting again after
+the gap) is one; judged once the NEXT stretch is laid (`layCushions`) - exposed when no other
+barrier lies within 1 m of it (a join; a run carried on into the next stretch) and none between
+it and the road (`isExposed`); (2) the central reservation's Jersey barrier / Armco ENDS
+(`noteMedianPiece`, from `layMedian`'s pieces in road order): its start after an open
+reservation (our way's traffic) and its end before one (the other carriageway's); none at a join of two pieces, a change between the
 two kinds or to / from a fence. Litter under a barrel is taken (`clearUnderBarrels`). No random
 stream read: the switch moves nothing else. Laid with the stretch, so a popped triangle is back
 when the stretch is built again. A HIT (`hitCushion`, distinct hits 0.6 s apart): pops by a
