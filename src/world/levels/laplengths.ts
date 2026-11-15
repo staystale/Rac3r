@@ -15,7 +15,6 @@ export const LAP_METRES: Record<string, number> = {
   'castle-cum': 1485.2,
   'croughed': 1711.5,
   'croughed-club': 955.2,
-  'croughedrx': 1254.9,
   'dieatona': 2015.9,
   'dieatona-road': 2883.3,
   'dongington': 2009.9,
