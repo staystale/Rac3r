@@ -52,6 +52,9 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
+  // the AI's slides (TODO 3a2 bug 9): held at each surface's own best slip angle, more corner speed
+  // off tarmac, the kerbs used, mistakes by skill (ai/driverSlide.ts)
+  aislide: atLoad('aislide'),
   // the rallycross walkthrough says not every rallycross has a joker (guide.ts RULES.rx)
   rxguide: atLoad('rxguide'),
   // a chasing police car sounds a siren, the light bar's twin (game/sirens.ts, audiosiren.ts)

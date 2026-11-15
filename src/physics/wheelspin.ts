@@ -83,9 +83,14 @@ interface AxleIn {
 }
 
 /** The axle's grip numbers for the law, fixed over its substeps. */
+/** The telemetry's peak slip angles (rad, each axle's this step): read, never fed back - the AI's
+ * slide feel (ai/driverSlide.ts). */
+export interface AxlePeaks { aPeakF?: number; aPeakR?: number }
+
 interface Law {
   vx: number; vRef: number; kPeak: number; ny: number;
   FxPk: number; FyPk: number; sgLat: number; sgLong: number;
+  aPeak: number;   // rad: the slip angle at the lateral peak
 }
 
 // LOCK FADE (passed 11-02): rubber sliding on tarmac grips less the faster it slides (it
@@ -138,7 +143,7 @@ function axleLaw(car: Car, carSpec: Spec, tick: { muBase: number; longK: number;
       * tick.peakK);
   const sgLat = carSpec.slideGrip;
   return { vx: inp.vx, vRef: Math.max(SLIP_V_MIN, Math.abs(inp.vx)), kPeak: KAPPA_PEAK * tick.peakK,
-    ny: inp.slip / aPeak, FxPk: FmaxRoll, FyPk, sgLat,
+    ny: inp.slip / aPeak, FxPk: FmaxRoll, FyPk, sgLat, aPeak,
     sgLong: LOCK_SHARE * (carSpec.tyre && carSpec.tyre.slide || 1) };
 }
 
@@ -211,6 +216,10 @@ function stepWheel(wheelU: number, law: Law, drive: number, brake: number, mass:
 function stepAxles(car: Car, carSpec: Spec, tick: WheelTick, inps: [AxleIn, AxleIn],
     absOn: boolean) {
   const laws = inps.map((inp) => axleLaw(car, carSpec, tick, inp));
+  // (read, never fed back: the AI's slide feel - ai/driverSteps.ts)
+  const peaks = car.t as AxlePeaks;
+  peaks.aPeakF = laws[0].aPeak;
+  peaks.aPeakR = laws[1].aPeak;
   const wheels = car.wU!, sub = tick.dt / SUBSTEPS, sumX = [0, 0], sumY = [0, 0];
   const couple = carSpec.drive > 0.01 && carSpec.drive < 0.99 ? AWD_COUPLE * car.clutch : 0;
   for (let i = 0; i < SUBSTEPS; i++) {

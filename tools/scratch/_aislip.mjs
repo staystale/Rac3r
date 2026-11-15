@@ -11,6 +11,12 @@
 // braking / full throttle / part throttle / coasting, the time BELOW its own target by > 1.5 m/s
 // and why (full throttle = the physics; part throttle: understeer lift, oversteer catch, slip
 // feel, ramp), mean front / rear slip in corners, and the speed at each corner's apex vs its plan.
+// BUG 9 additions: AISLIDE=1 (the game's switch, read by core/fixes.ts) turns the slide work on;
+// DIFF (difficulty 0-4, default 4), SEAT (place in the field: the persona, default 0) and TSEED
+// (the traits' seed, default 3) pick the driver; LAPS (default 1) flying laps are tallied (laps
+// 2..LAPS+1). Per run also: each lap's time, SLIDING (s with the rear past its tyre's peak slip
+// angle, car.t.aPeakR), SPINS (the car turned over 70 deg from where it is going at over 3 m/s,
+// once per spin) and OFFS (times it left the road), the driver's skill and persona.
 // node tools/scratch/_aislip.mjs <level> <car> <surface|native> <kMul>        one run
 // node tools/scratch/_aislip.mjs --all <levels> <cars> <surfaces> <kMuls>      every run, one
 //   process each (comma lists), a table on stdout; OUT=<file.json> keeps every run
@@ -46,16 +52,21 @@ async function runOne([level, carId, surfId, kMulText]) {
   L.clearWear();
   const line = racingLine(L.LEVEL), sub = L.LEVEL.subtrack, car = makeCar(carId);
   reset(car, line.pts[0].x, line.pts[0].y, line.pts[0].h);
-  const ai = createAIDriver(L.LEVEL, aiTraits(4, 0, 1, 3));
+  const traits = aiTraits(Number(process.env.DIFF ?? 4), Number(process.env.SEAT ?? 0), 1,
+    Number(process.env.TSEED ?? 3));
+  const ai = createAIDriver(L.LEVEL, traits);
+  const LAPS = Number(process.env.LAPS ?? 1);
   const { createAutoDriver } = await import('../../src/ai/autodrive.ts');
   const auto = isAuto ? createAutoDriver(sub) : null;
   const drv = isAuto ? autoShim(auto, ai, sub, querySubtrack) : ai;
   const lapStarts = [];
   let time = 0, lastLap = drv.state.lap;
   const acc = { n: 0, off: 0, brake: 0, full: 0, part: 0, coast: 0, below: 0, bFull: 0, bBrake: 0,
-    under: 0, over: 0, feel: 0, ramp: 0, slipF: 0, slipR: 0, cornerN: 0, vSum: 0, vtSum: 0 };
+    under: 0, over: 0, feel: 0, ramp: 0, slipF: 0, slipR: 0, cornerN: 0, vSum: 0, vtSum: 0,
+    slide: 0, peakF: 0, peakR: 0, spins: 0, spun: false, offs: 0, wasOff: false,
+    mist: null, mists: {}, mistOut: { slid: 0, spun: 0, off: 0 }, mistSeen: null };
   const apex = new Map();
-  while (time < 420 && lapStarts.length < 3) {
+  while (time < 420 * LAPS && lapStarts.length < LAPS + 2) {
     L.applyGround(car, dt);
     const input = noFeel(drv.drive(car, dt, { cars: [], lap: 2, laps: 5 }), car, drv);
     step(car, input, dt);
@@ -64,11 +75,18 @@ async function runOne([level, carId, surfId, kMulText]) {
       lastLap = drv.state.lap;
       lapStarts.push(time);
     }
-    if (lapStarts.length !== 1) continue;
+    if (lapStarts.length < 1 || lapStarts.length > LAPS) continue;
     noteStep(acc, apex, car, drv, input, sub, querySubtrack, dt);
   }
-  const lapS = lapStarts.length >= 2 ? lapStarts[1] - lapStarts[0] : null;
-  return summarise({ level, carId, surfId, kMul: isAuto ? 'auto' : kMul, lapS, acc, apex, dt });
+  const laps = lapStarts.slice(1, LAPS + 1).map((end, i) => +(end - lapStarts[i]).toFixed(2));
+  const lapS = laps.length === LAPS ? laps.reduce((sum, lap) => sum + lap, 0) / LAPS : null;
+  const out = summarise({ level, carId, surfId, kMul: isAuto ? 'auto' : kMul, lapS, acc, apex,
+    dt });
+  return { ...out, laps, slide: +acc.slide.toFixed(1),
+    peakF: +(acc.peakF / Math.max(1e-6, acc.cornerN)).toFixed(3),
+    peakR: +(acc.peakR / Math.max(1e-6, acc.cornerN)).toFixed(3), spins: acc.spins, offs: acc.offs, mists: acc.mists,
+    mistOut: acc.mistOut,
+    skill: +traits.skill.toFixed(2), persona: traits.persona, aislide: process.env.AISLIDE === '1' };
 }
 
 /**
@@ -111,7 +129,35 @@ function noteStep(acc, apex, car, drv, input, sub, querySubtrack, dt) {
   acc.n += dt;
   acc.vSum += speed * dt;
   acc.vtSum += target * dt;
-  if (near.dist > sub.width / 2 + 1) acc.off += dt;
+  const isOff = near.dist > sub.width / 2 + 1;
+  if (isOff) acc.off += dt;
+  if (isOff && !acc.wasOff) acc.offs++;
+  acc.wasOff = isOff;
+  if (Math.abs(car.t.slipR || 0) > (car.t.aPeakR ?? 0.1)) acc.slide += dt;
+  // a SPIN: the car turned over 70 deg from where it is going (re-armed under 30 deg)
+  const drift = Math.abs(Math.atan2(Math.sin(Math.atan2(car.vy, car.vx) - car.heading),
+    Math.cos(Math.atan2(car.vy, car.vx) - car.heading)));
+  if (speed > 3 && drift > 1.22 && !acc.spun) { acc.spins++; acc.spun = true; }
+  if (drift < 0.52) acc.spun = false;
+  // MISTAKES (ai/driverLane.ts): each one drawn, by kind, and whether it slid (rear past its peak
+  // over 0.3 s), spun or left the road before it ended
+  const mist = drv.state.mist;
+  if (mist && mist !== acc.mist) {
+    acc.mists[mist.kind] = (acc.mists[mist.kind] || 0) + 1;
+    acc.mistSeen = { slideT: 0, spun: false, off: false };
+  }
+  if (mist && acc.mistSeen) {
+    if (Math.abs(car.t.slipR || 0) > (car.t.aPeakR ?? 0.1)) acc.mistSeen.slideT += dt;
+    if (acc.spun) acc.mistSeen.spun = true;
+    if (isOff) acc.mistSeen.off = true;
+  }
+  if (!mist && acc.mist && acc.mistSeen) {
+    if (acc.mistSeen.slideT > 0.3) acc.mistOut.slid++;
+    if (acc.mistSeen.spun) acc.mistOut.spun++;
+    if (acc.mistSeen.off) acc.mistOut.off++;
+    acc.mistSeen = null;
+  }
+  acc.mist = mist;
   if (input.brake > 0.05) acc.brake += dt;
   else if (input.throttle >= 0.95) acc.full += dt;
   else if (input.throttle > 0.05) acc.part += dt;
@@ -122,6 +168,8 @@ function noteStep(acc, apex, car, drv, input, sub, querySubtrack, dt) {
     acc.cornerN += dt;
     acc.slipF += slipF * dt;
     acc.slipR += slipR * dt;
+    acc.peakF += (car.t.aPeakF ?? 0) * dt;
+    acc.peakR += (car.t.aPeakR ?? 0) * dt;
   }
   if (target > speed + 1.5) {
     acc.below += dt;

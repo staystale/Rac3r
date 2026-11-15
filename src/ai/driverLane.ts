@@ -8,6 +8,7 @@ import { inTrackUnderpass, underSpan } from "../world/trackunder.ts";
 import type { AiCar, CarsAcc, CircuitState, LinePoint, PathPoint } from "./types.ts";
 import type { Drv, AiPath } from "./driverCtx.ts";
 import { cornerNudge } from "./cornerLine.ts";
+import { MIST_GROW } from "./driverSlide.ts";
 
 // extra braking grip planned while ATTACKING (late braking into the corner)
 const ATK_KB = 0.12;
@@ -92,7 +93,8 @@ export function applyMistake(drv: Drv, mist: NonNullable<CircuitState["mist"]>, 
   if (inC) mist.inside = true;
   if (mist.inside && !inC) state.mist = null;    // through the corner: done
   // brakes late: runs wide, maybe off
-  else if (mist.kind === 'late' && !pastApex) vMul = 1.06 + 0.14 * mist.sev;
+  // (?aislide=1: bigger - MIST_GROW, ai/driverSlide.ts)
+  else if (mist.kind === 'late' && !pastApex) vMul = 1.06 + 0.14 * mist.sev * MIST_GROW;
   // turns in early: clips the inside
   else if (mist.kind === 'early' && !pastApex) latT += corner.turn * (1 + 2 * mist.sev);
   // hesitates: just slow
@@ -100,7 +102,7 @@ export function applyMistake(drv: Drv, mist: NonNullable<CircuitState["mist"]>, 
   // too much, too soon: a slide
   else if (mist.kind === 'throttle' && pastApex && !mist.fired) {
     mist.fired = true;
-    state.thrUntil = state.t + 0.3 + 0.5 * mist.sev;
+    state.thrUntil = state.t + 0.3 * MIST_GROW + 0.5 * mist.sev * MIST_GROW;
   }
   return { latT, vMul };
 }
