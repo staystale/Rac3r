@@ -78,4 +78,6 @@ export const FIX = {
   hjfirs: atLoad('hjfirs'),
   // Croughed RX, Croft's rallycross lap traced from the map at full size (croughedrx-venue.ts)
   croughedrx: atLoad('croughedrx'),
+  // a chasing police car sounds a siren, the light bar's twin (game/sirens.ts, audiosiren.ts)
+  siren: atLoad('siren'),
 };

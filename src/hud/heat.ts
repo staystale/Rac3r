@@ -1,8 +1,8 @@
 // hud/heat.ts - THE POLICE ON THE HUD (game/police.ts): the heat as three very small
 // yellow stars just above the LIGHTS / indicator row (its own rect: hud/layout.ts heat), filled one
 // a star; while a chaser sees you a blue light flashes behind them left and right in turn, as its
-// light bar does - the siren's twin (the siren's sound waits for the owner). And the BUSTED card,
-// as the speed camera's (hud/overlays.ts drawHudCamera), with its fine.
+// light bar does - the siren's twin (the siren's sound: ?siren=1, audiosiren.ts). And the BUSTED
+// card, as the speed camera's (hud/overlays.ts drawHudCamera), with its fine.
 import { COL } from '../world/colours.ts';
 import { bluesSide } from '../render/lightbar.ts';
 import { BTN_H, MARGIN, drawHudLabel, drawHudPanel } from './widgets.ts';

@@ -1,6 +1,9 @@
 // audio.ts — procedural Web Audio API engine synthesis, tyre screech, and surface textures.
 // Runs purely client-side; safely no-ops in Node or headless test runners (CLAUDE.md §5).
 
+import { buildSirens, countSounding, updateSirenVoices } from './audiosiren.ts';
+import type { SirenSpot, SirenVoice } from './audiosiren.ts';
+
 // remembered between sessions (the pause menu's SOUND slider / MUTE)
 /** The engine voice: oscillators -> shaper -> filter -> formant -> gain. */
 interface EngineVoice {
@@ -17,6 +20,8 @@ interface AudioState {
   volume: number; muted: boolean;   // remembered between sessions
   engine: EngineVoice; tyre: NoiseVoice; surface: NoiseVoice;
   bump: { filter: BiquadFilterNode; gain: GainNode };
+  // the police sirens (?siren=1: audiosiren.ts), built on the first chase heard
+  sirens: SirenVoice[] | null;
 }
 /** The audio state once its context and master gain exist. */
 type LiveAudio = AudioState & { ctx: AudioContext; masterGain: GainNode };
@@ -446,6 +451,25 @@ function updateAudio(state: AudioState, car: AudioCar) {
 }
 
 /**
+ * The police sirens per frame (?siren=1: game/sirens.ts): built on the first frame a chase is
+ * heard, into the master gain (so the volume and MUTE hold); each voice follows its car.
+ * @param state the audio state
+ * @param spots each voice's car this frame
+ * @returns {void}
+ */
+function updateSirens(state: AudioState, spots: SirenSpot[]) {
+  const { ctx, masterGain } = state;
+  if (!ctx || !masterGain) return;
+  if (!state.sirens) {
+    let isAnyOn = false;
+    for (const spot of spots) isAnyOn ||= spot.isOn;
+    if (!isAnyOn) return;
+    state.sirens = buildSirens(ctx, masterGain);
+  }
+  updateSirenVoices(state.sirens, spots, ctx.currentTime);
+}
+
+/**
  * Sets and stores the master volume.
  * @param state the audio state
  * @param level 0..1
@@ -490,6 +514,8 @@ export function createAudio(enabled: boolean = true) {
     return {
       init: () => {},
       update: () => {},
+      sirens: () => {},
+      get sirensOn() { return 0; },
       toggleMute: () => false,
       setVolume: () => {},
       get volume() { return 0; },
@@ -513,11 +539,15 @@ export function createAudio(enabled: boolean = true) {
     surface: { noiseSource: null, filter: null, gain: null },
     // Surface bump & kerb chatter nodes
     bump: { filter: null, gain: null },
+    sirens: null,
   } as unknown as AudioState;   // the voices are built by initAudio
 
   return {
     init: () => initAudio(state, AudioCtx),
     update: (car: AudioCar) => updateAudio(state, car),
+    sirens: (spots: SirenSpot[]) => updateSirens(state, spots),
+    // the siren voices sounding now (tools)
+    get sirensOn() { return state.sirens ? countSounding(state.sirens) : 0; },
     setVolume: (level: number) => setVolume(state, level),
     toggleMute: () => toggleMute(state),
     get volume() { return state.volume; },

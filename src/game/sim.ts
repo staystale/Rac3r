@@ -33,6 +33,7 @@ import { noteTouches, notePoliceCamera, stepPoliceGame } from './police.ts';
 import { stepFlashes } from './flashes.ts';
 import { FIX } from '../core/fixes.ts';
 import { ROLL_CLEAR_S, respawnBehind } from './resetspot.ts';
+import { stepSirens } from './sirens.ts';
 
 export function recoverCar(why: unknown) {
   if (shared.nanReports++ < 5)
@@ -365,6 +366,7 @@ export function updateAudio() {
   // game.
   try {
     shared.audio.update(game.car);
+    if (FIX.siren) stepSirens();
   } catch (err) {
     if (shared.nanReports++ < 5) console.error('[car sim] audio.update threw:',
       (err as Error).message);

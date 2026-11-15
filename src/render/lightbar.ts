@@ -1,7 +1,7 @@
 // render/lightbar.ts - A POLICE CAR'S BLUES (ai/trafficPolice.ts): a roof light bar -
 // two blue halves across the roof, dark while it cruises or waits (you can still tell what it is),
-// flashing left and right in turn while it chases, the siren's twin (the siren's sound waits for
-// the owner) - and, while it chases, two blue flashers in the front grille and two in the back
+// flashing left and right in turn while it chases, the siren's twin (the siren's sound: ?siren=1,
+// audiosiren.ts) - and, while it chases, two blue flashers in the front grille and two in the back
 // window, each pair flashing against the bar's half on its side (owner 11-11: "more lights - some
 // on the front grille / back window like real life"). By day a small blue halo round each lit
 // lamp; at night each throws its blue glow (render/light.ts, litPoliceLamps), the bar's furthest.
