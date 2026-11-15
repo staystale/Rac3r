@@ -267,8 +267,7 @@ BUGS (each behind its own switch, measured, then a test link):
 13. BARRELS (crash cushions): PASSED 11-15, the default (TODO-DONE).
 14. PARKED POLICE wake when passed with a star; speeding past one gives a star: PASSED 11-15, the default
     (TODO-DONE). OWNER 11-15: the wake counts for ANY driver with heat ("Everyone breaking the law"); 60 m
-    witness OK. NEXT (owner): a CAP of ~5 police chasing at once overall, and spread over the whole field
-    ("making sure the whole field get bothered not jsut slow drivers") - behind its own switch.
+    witness OK; no cap or spread needed ("police already bother whoever is nearest").
 15. TRAFFIC (and unaggravated police) stop for fuel now and then and take slip roads (the petrol
     station stops exist, ai/trafficFuel.ts, 11-11: check how often); aggravated police as now.
 
