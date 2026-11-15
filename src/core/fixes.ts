@@ -63,6 +63,9 @@ export const FIX = {
   // the AI DRIVERS dials' PACE (the speed plan's corner and braking grip, ai/tune.ts) and the dials
   // moved LIVE from the test-mode pause menu (menu/aidrivers.ts showLiveDials, game/aitune.ts)
   aipace: atLoad('aipace'),
+  // the AI's own crash, roll and injury put-backs by your reset's rules - never ahead of where the
+  // car is, the next free spot behind a car in the way - as its stuck put-backs (game/ai.ts)
+  aireset: atLoad('aireset'),
   // a chasing police car sounds a siren, the light bar's twin (game/sirens.ts, audiosiren.ts)
   siren: atLoad('siren'),
 };

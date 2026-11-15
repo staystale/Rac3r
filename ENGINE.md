@@ -120,7 +120,8 @@ m/s and not queued with no 3 m of race progress (`_prog`, the highway's `_hwf.s`
 while the start holds it or a crash plays out - or on the highway 8 m off the carriageway for 3 s
 (40 m out at once); a rolled AI once still 1.5 s and a too-injured one after its pause also (those
 at the old spot: 4 m behind where it last was on the road, the highway's 15 m back on the hard
-shoulder, `highwayrace.ts hwPutBack`). Its stuck put-back is your reset's:
+shoulder, `highwayrace.ts hwPutBack`; under test, `?aireset=1`, `FIX.aireset`: by the stuck
+put-back's rules below). Its stuck put-back is your reset's:
 from where it last was on the road but never ahead of where it is (`resetspot.ts notAheadOf`), the
 next spot 6 m further back while a racer is on it (`firstFree` with the AI's own size and the other
 racers, `aistuck.ts freeLapSpot`); the highway's hard-shoulder spot (`hwPutBack`, 15 m back) stepped

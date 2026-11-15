@@ -51,6 +51,21 @@ records in `TODO-DONE.md` (PASSED 11-12). On the phone now:
   clock and a recovery that does not clear a NaN tyre wear - BUILT as plain guards, passed 11-15 with stopped-car avoidance
   (3a2 item 10 below).
 - THE JOKER LINE ON ITS OWN ROW: PASSED 11-15, the default (TODO-DONE).
+- THE AI EXTRAS (owner passed the list 11-15 morning; JOB 2, one switch each):
+  2a. THE AI'S OWN PUT-BACKS BY YOUR RESET'S RULES (bug 4 Q8): BUILT behind ?aireset=1
+  (FIX.aireset, game/ai.ts; testlist 'aireset'): a rolled AI once still and a too-injured one after
+  its pause are put back as the stuck put-back is - from where it last was on the road but never
+  ahead of where it is, the next spot 6 m further back while a racer is on it; on the endless road
+  the hard-shoulder spot stepped back until clear of every car (you, racers, traffic). MEASURED
+  (tools/scratch/_aiputback.mjs, the real game: an AI 30 m back down the run-off from its last spot
+  on the road, its injury pause ended; then with that put-back's spot taken by another AI): off -
+  put back 24-25.5 m AHEAD of where it was on Thruston, Knobhill RX and a forest stage, onto the
+  other AI on Knobhill RX and the stage; on - 4.5-5.9 m behind, and 10.5-11.6 m behind with the spot
+  taken, on no car. The endless road (twisty): a racer on the spot - on no car either way (the old
+  spot already steps past racers; the traffic is the new part). In the field (tools/scratch/
+  _stuckai.mjs, 180 s, seeds 1 and 2, Thruston / Brands / Knobhill RX / a stage / the twisty and
+  the motorway): roll and injury put-backs 15 off, 16 on; ahead 0 / 0; onto a car 2 (the twisty)
+  / 0; the stuck put-backs as before (98 / 93).
 - THE GROUND AT THE ZOOM'S DENSITY + THE PC LOADING DRAW-IN, and THE HIGHWAY OFF-ROAD JERK:
   PASSED 11-15, the default (TODO-DONE).
 

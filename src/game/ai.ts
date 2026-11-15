@@ -17,6 +17,7 @@ import { startHeld, carHeld, atPace, formationWant } from './order.ts';
 import { RESET_BACK, RESET_ANG } from './session.ts';
 import { shared, game } from './state.ts';
 import { activeLamps } from '../world/lamps.ts';
+import { FIX } from '../core/fixes.ts';
 import {
   behindRecord, freeLapSpot, freeShoulderSpot, stuckWatchFires,
 } from './aistuck.ts';
@@ -31,7 +32,8 @@ import type { RaceFlow } from '../raceflow.ts';
 /**
  * Puts an AI car back on the road, mended, its hazards on.
  * @param entry the AI entry
- * @param behind the stuck put-back (and the highway's off-road one): on a lap or stage
+ * @param behind the stuck put-back (the highway's off-road one; ?aireset=1 the crash, roll and
+ *   injury ones too): on a lap or stage
  *   never ahead of where the car is, the next free spot behind a car in the way; on the highway
  *   its spot past every car, the traffic too (game/aistuck.ts)
  */
@@ -94,7 +96,8 @@ export function stepAIInjury(entry: HurtEntry, dt: number) {
     entry.hurtT = 0;
   }
   if (entry.hurtWait != null && (entry.hurtT = (entry.hurtT ?? 0) + dt) >= entry.hurtWait) {
-    aiReset(entry);
+    // (?aireset=1: by your reset's rules, as the stuck put-back)
+    aiReset(entry, FIX.aireset);
     entry.hurtWait = null;
     car._dmgResets = (car._dmgResets || 0) + 1;
   }
@@ -178,8 +181,9 @@ export function stepAIPhysics(entry: AiEntry, want: CarInput, dt: number) {
     stepRoll(car, dt, (kind, side, weight) => hitRoll(car, kind, side, weight));
     // an overturned AI, once it has stopped: back on its wheels on the road (as a marshal
     // would), mended - not a held car
+    // (?aireset=1: by your reset's rules, as the stuck put-back)
     if (car.roll && car.roll.phase !== 'rolling' && car.roll.still > 1.5 && !entry.held)
-      aiReset(entry);
+      aiReset(entry, FIX.aireset);
   } else {
     const formed = held && game.start.rolling && formationWant(car, car._slot || 0, entry);
     step(car, formed || (held ? (game.start.rolling ? atPace(want, car)
