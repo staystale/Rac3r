@@ -37,17 +37,19 @@ export interface FormationPlace {
  * @param pole the pole car (the front of the formation)
  * @param sub the lap
  * @param paceMps the formation's speed, m/s
+ * @param throttleMax the most throttle it may use (?rollhold=1: whatever holds the pace)
  * @returns the controls
  */
 export function formationInput(car: AiCar, driver: ColumnDriver, place: FormationPlace,
-    pole: AiCar, sub: Subtrack, paceMps: number): DriveInput {
+    pole: AiCar, sub: Subtrack, paceMps: number, throttleMax = THROTTLE_MAX): DriveInput {
   const steer = driver.drive(car, 0, { offsetM: place.columnM }).steer;
   const total = sub.totalDist;
   const myDist = querySubtrack(sub, car.x, car.y).trackDist;
   const slotDist = querySubtrack(sub, pole.x, pole.y).trackDist - place.backM;
   let gapM = slotDist - myDist;
   gapM -= Math.round(gapM / total) * total;
-  return { steer, ...slotPedals(car, gapM, stationPace(car, pole, paceMps)), handbrake: 0 };
+  return { steer, ...slotPedals(car, gapM, stationPace(car, pole, paceMps), throttleMax),
+    handbrake: 0 };
 }
 
 /**
@@ -70,12 +72,23 @@ function stationPace(car: AiCar, pole: AiCar, paceMps: number) {
  * @param car the car
  * @param gapM m to its slot (> 0: the slot is ahead)
  * @param paceMps the formation's speed, m/s
+ * @param throttleMax the most throttle it may use
  * @returns throttle and brake
  */
-function slotPedals(car: AiCar, gapM: number, paceMps: number) {
+function slotPedals(car: AiCar, gapM: number, paceMps: number, throttleMax = THROTTLE_MAX) {
   const target = paceMps + Math.max(-FORM_SPREAD, Math.min(FORM_SPREAD, gapM * FORM_GAIN));
-  const speed = Math.hypot(car.vx, car.vy);
-  const throttle = speed < target ? Math.min(THROTTLE_MAX, (target - speed) * THROTTLE_GAIN) : 0;
+  return holdSpeed(Math.hypot(car.vx, car.vy), target, throttleMax);
+}
+
+/**
+ * The pedals that hold a speed: throttle and brake by how far off it the car is.
+ * @param speed the car's speed, m/s
+ * @param target the speed to hold, m/s
+ * @param throttleMax the most throttle (default the formation's gentle THROTTLE_MAX)
+ * @returns throttle and brake
+ */
+export function holdSpeed(speed: number, target: number, throttleMax = THROTTLE_MAX) {
+  const throttle = speed < target ? Math.min(throttleMax, (target - speed) * THROTTLE_GAIN) : 0;
   const brake = speed > target + 0.5 ? Math.min(BRAKE_MAX, (speed - target) * BRAKE_GAIN) : 0;
   return { throttle, brake };
 }
@@ -91,10 +104,11 @@ function slotPedals(car: AiCar, gapM: number, paceMps: number) {
  * @param pole the pole car
  * @param level the highway
  * @param paceMps the formation's speed, m/s
+ * @param throttleMax the most throttle it may use (?rollhold=1: whatever holds the pace)
  * @returns the controls, or null (off the road there is)
  */
 export function roadFormationInput(car: AiCar, place: FormationPlace, pole: AiCar,
-    level: HighwayLevel, paceMps: number): DriveInput | null {
+    level: HighwayLevel, paceMps: number, throttleMax = THROTTLE_MAX): DriveInput | null {
   const half = car.spec.L / 2, cosH = Math.cos(car.heading), sinH = Math.sin(car.heading);
   const axle = roadFrame(level, car.x + cosH * half, car.y + sinH * half, car._hwf ? car._hwf.s
     : null);
@@ -110,5 +124,5 @@ export function roadFormationInput(car: AiCar, place: FormationPlace, pole: AiCa
   const cap = steerCap(car.spec.L, (car.spec.mu || 1) * (car.surface.mu || 1), speed, lock);
   const steer = Math.max(-cap, Math.min(cap, demand / lock));
   return { steer, ...slotPedals(car, poleAt.s - place.backM - (axle.s - half),
-    stationPace(car, pole, paceMps)), handbrake: 0 };
+    stationPace(car, pole, paceMps), throttleMax), handbrake: 0 };
 }

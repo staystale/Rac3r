@@ -18,6 +18,11 @@ const RUNS = Number(process.env.RUNS || 2);
 async function sampleRun([levelId, carId]) {
   const game = window.__game;
   game.launch(levelId, carId, { ai: 5, diff: 2, aiCars: 'class', traffic: 0 });
+  // (the launch's stages run over the next frames: wait for the new start, lights not yet green)
+  for (let tries = 0; tries < 100; tries++) {
+    await new Promise((done) => setTimeout(done, 100));
+    if (game.start.on && !game.start.green && game.start.t < 1.5) break;
+  }
   const boxGap = (first, second) => {
     let best = -Infinity;
     for (const angle of [first.heading, first.heading + Math.PI / 2, second.heading,
@@ -73,8 +78,9 @@ try {
   const errors = [];
   const page = await browser.newPage({ viewport: { width: 844, height: 390 } });
   page.on('pageerror', (err) => errors.push(err.message));
+  // (the autopilot drives your car after the green: a car left standing would be hit)
   await gotoGame(page, `${server.url}/?pc=1&guide=0&menu=0&rules=0&noaudio=1&loadscreen=0`
-    + extraQuery());
+    + `&autopilot=1${extraQuery()}`);
   await page.mouse.click(422, 195);
   await page.waitForTimeout(800);
   for (const levelId of LEVELS) {

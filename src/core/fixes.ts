@@ -54,6 +54,9 @@ export const FIX = {
   // no highway race won by pulling away off the road: the getaway's count runs only while you
   // are on it, from the start each time you come back (ai/hwFlowStep.ts)
   offroadwin: atLoad('offroadwin'),
+  // the rolling start's formation holds a SPEED: one pace rising at ROLL_ACCEL for every car, each
+  // car's throttle whatever holds it (game/order.ts formationWant, ai/formation.ts)
+  rollhold: atLoad('rollhold'),
   // a reset never puts you ahead of where you were, takes the next free spot behind a car in the
   // way, and leaves the police (game/resetspot.ts)
   resetback: atLoad('resetback'),
