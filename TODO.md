@@ -11,9 +11,7 @@ build's full record (what was built, every number) is in `TODO-DONE.md` under it
 
 The 11-11 round (14 entries, 11 switches) passed 11-12, and the performance round (carcache,
 carcull, the texture warm-up) and the stadium crossovers passed 11-12 ("mostly pass"), their
-records in `TODO-DONE.md` (PASSED 11-12). On the phone now (11-16 night, the owner's link = foreman/round140): ?underskin (the damage look -
-the foreman's arms / hub / thrown-parts / engine / torn-panel fixes), ?carparts (steps 1-6: each
-car's own crash parts), ?carshade (every closed car shaded), ?reversefix, ?f1menu, ?corolla.
+records in `TODO-DONE.md` (PASSED 11-12). On the phone now (11-17 night, the owner's link = foreman/round147): ?underskin, ?carparts, ?carshade (PASSED, being defaulted by Worker B), ?lowrange (LOW_GRIP 1.3), the rolled-car underside (in ?underskin).
 
 ## 2. BEING BUILT
 
