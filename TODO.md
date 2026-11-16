@@ -613,6 +613,8 @@ after measuring today's chances (Q8).
   sets its own limits (the series baseline, caps, weight limits); the player upgrades up to them,
   and if over a limit must downgrade, or buy another car - the player juggles it. Upgrades and
   downgrades both exist.
+  AI CARS VARY TOO (owner 11-16): each AI car's upgrade level is spread between the series'
+  bottom and top limits, like driver skill, so the field has variety.
 - THE AGREED GARAGE (owner 11-03, mockup "RAC3R Menu Redesign"; the menu look is done): the
   upgradeable parts' level bars head the sections they apply to (Engine, Drivetrain, Suspension,
   Body, Quality); tap a stat -> its upgrade screen (levels, now vs that level, gains, price);
