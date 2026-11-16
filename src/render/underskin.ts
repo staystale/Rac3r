@@ -309,8 +309,8 @@ function openCarPart(skin: SkinCtx, kind: string, corner: number, region: Region
 }
 
 /**
- * What a closed car's lost part shows, clipped to its hole (a bumper's and a door's reaching in as
- * far as the crush pushed their structure).
+ * What a closed car's lost part shows, clipped to its own hole: a structure the crush pushed in
+ * past it is under the panels still on (the bonnet, the boot lid, the wing), not drawn over them.
  * @param skin the painter's context
  * @param kind the part
  * @param corner its corner
@@ -327,14 +327,10 @@ function closedCarPart(skin: SkinCtx, kind: string, corner: number, region: Regi
       engineAt(skin, (region.x0 + region.x1) / 2, (region.y0 + region.y1) / 2);
     else bootFloor(skin, region);
   } else if (kind === 'panel') {
-    const push = sidePushAt(skin, corner % 2 === 1);
-    clipTo(ctx, corner % 2 === 1 ? { ...region, y0: region.y0 - push }
-      : { ...region, y1: region.y1 + push });
+    clipTo(ctx, region);
     doorHole(skin, region, corner);
   } else if (kind === 'bumper') {
-    const push = pushAt(skin, corner < 2);
-    clipTo(ctx, corner < 2 ? { ...region, x0: region.x0 - push }
-      : { ...region, x1: region.x1 + push });
+    clipTo(ctx, region);
     behindBumper(skin, corner);
   }
 }
@@ -374,6 +370,14 @@ export function drawUnderSkin(sprite: CarSprite, spec: RenderCarSpec, lost: stri
       openCarPart(skin, kind, corner, region);
     } else closedCarPart(skin, kind, corner, region);
     ctx.restore();
+  }
+  // (a lost or torn wing's opening is clear to the road and its wheel: nothing of a bumper's or
+  // door's structure over it)
+  for (const entry of entries) {
+    const [kind, cornerText] = entry.split(':');
+    if (kind !== 'wing' || isBare(spec)) continue;
+    const wing = partRegion(spec, sprite, 'wing', +cornerText);
+    ctx.clearRect(2 + wing.x0, 2 + wing.y0, wing.x1 - wing.x0 + 1, wing.y1 - wing.y0 + 1);
   }
   // (only where the crushed body still is)
   ctx.globalCompositeOperation = 'destination-in';
