@@ -83,7 +83,7 @@ function stepWorld(world) {
   const all = [you, ...traffic.cars], startVel = all.map((car) => [car.vx, car.vy]);
   const touches = carContacts(all);
   world.contacts += touches;
-  if (touches) world.tripContacts += tripTouches(world, all);
+  world.tripContacts += tripTouches(world, all);
   if (touches && process.env.DEBUG) logTouch(world, all);
   all.forEach((car, i) => hit(car, startVel[i][0], startVel[i][1]));
   const drivers = [{ car: you, frame: level._hw.q, isYou: true, camera: !!cam, kind: 'you',
@@ -91,16 +91,45 @@ function stepWorld(world) {
     ({ car: slot.car, frame: slot, isYou: false, camera: false, kind: 'traffic', owner: slot,
       touched: false }))];
   stepHeats(world.orders, drivers, { dt: DT, level, slots: traffic.list, cars: traffic.cars });
+  if (world.heat.stars > (world.lastStars || 0)) (world.starLog ||= []).push(`${world.time.toFixed(0)}s:${world.heat.offences.join("+")}`);
+  world.lastStars = world.heat.stars;
+  for (const slot of traffic.list) {
+    const heat = world.orders.heats.get(slot.car), had = (world.had ||= new WeakMap()).get(slot.car) || 0;
+    if (heat && heat.stars > had) (world.trafficStars ||= []).push(`${heat.offences.join("+")}${slot.trip ? "/" + slot.trip.kind + (slot.trip.path ? "-path" : "") : ""}${slot.broke ? "/broke" : ""}`);
+    if (heat) world.had.set(slot.car, heat.stars);
+  }
   world.time += DT;
 }
 
 /** The touching pairs (within 5 m) with a car on a trip in them. */
 function tripTouches(world, all) {
-  const onTrip = new Set(world.traffic.list.filter((slot) => slot.trip).map((slot) => slot.car));
+  const list = world.traffic.list;
+  const onTrip = new Set(list.filter((slot) => slot.trip).map((slot) => slot.car));
+  const police = new Set(list.filter((slot) => slot.police).map((slot) => slot.car));
+  const pumps = new Set(list.filter((slot) => slot.broke?.at != null).map((slot) => slot.car));
+  // (each kind counted once a touch: a pair touching now that was not touching the step before)
+  const kinds = (world.kinds ||= { you: 0, police: 0, pumps: 0, trip: 0, other: 0 });
+  const ids = (world.ids ||= new WeakMap()), idOf = (car) => {
+    if (!ids.has(car)) ids.set(car, world.nextId = (world.nextId || 0) + 1);
+    return ids.get(car);
+  };
+  const before = world.touching || new Set(), now = new Set();
+  world.touching = now;
   let count = 0;
-  for (let i = 0; i < all.length; i++) for (let j = i + 1; j < all.length; j++)
-    if ((onTrip.has(all[i]) || onTrip.has(all[j]))
-      && Math.hypot(all[i].x - all[j].x, all[i].y - all[j].y) < 5) count++;
+  for (let i = 0; i < all.length; i++) for (let j = i + 1; j < all.length; j++) {
+    const first = all[i], second = all[j];
+    if (Math.hypot(first.x - second.x, first.y - second.y) >= 5) continue;
+    if (onTrip.has(first) || onTrip.has(second)) count++;
+    const key = Math.min(idOf(first), idOf(second)) + ':' + Math.max(idOf(first), idOf(second));
+    now.add(key);
+    if (before.has(key)) continue;
+    const has = (set) => set.has(first) || set.has(second);
+    if (has(onTrip)) kinds.trip++;
+    if (first === world.you || second === world.you) kinds.you++;
+    else if (has(police)) kinds.police++;
+    else if (has(pumps)) kinds.pumps++;
+    else kinds.other++;
+  }
   return count;
 }
 
@@ -179,7 +208,11 @@ function run(road, scenery, seed) {
           seen.joinT = world.time;
         }
         if (seen.trip && !trip) {
-          if (seen.trip.kind === 'exit' && !seen.trip.path) rolls.slipMissed++;
+          if (seen.trip.kind === 'exit' && !seen.trip.path) {
+            rolls.slipMissed++;
+            note(world, 'exit missed', { ...seen.last, lane: slot.lane, laneT: slot.laneT,
+              recycled: seen.car !== slot.car });
+          }
           if (seen.trip.kind === 'fuel' && !slot.broke) rolls.fuelMissed++;
           if (seen.trip.kind === 'join') {
             joins.merged++;
@@ -233,7 +266,8 @@ function run(road, scenery, seed) {
       + ` s), held ${joins.held} (median ${median(joins.holdS)} s), lost before merging`
       + ` ${joins.lost}`,
     `  SAFETY contact steps ${world.contacts} (${(world.contacts / Math.max(0.1, km)).toFixed(1)}`
-      + `/km), with a car on a trip ${world.tripContacts}, traffic step ${(world.stepMs / Math.max(1, world.steps) * 1000).toFixed(0)} us`]
+      + `/km), with a car on a trip ${world.tripContacts} ${JSON.stringify(world.kinds || {})},`
+      + ` stars ${(world.starLog || []).join(" ")}; traffic stars ${(world.trafficStars || []).join(" ")}, traffic step ${(world.stepMs / Math.max(1, world.steps) * 1000).toFixed(0)} us`]
     .join('\n');
 }
 

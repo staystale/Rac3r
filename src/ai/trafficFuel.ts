@@ -110,6 +110,17 @@ export const pastPullIn = (slot: TrafficCar, station: Station) =>
   station.s - slot.s <= CHOOSE_M[0];
 
 /**
+ * ?hwtrips=1: whether another car is already pulling in at (or out of) a station's pumps - two
+ * pulling in at once met at the pumps (MEASURED, tools/scratch/_hwtrips.mjs DEBUG=1).
+ * @param ents everyone on the road
+ * @param slot the car asking
+ * @param dist the station's road s, m
+ * @returns one is
+ */
+const isBoundFor = (ents: TrafficEnt[], slot: TrafficCar, dist: number) => FIX.hwtrips
+  && ents.some((ent) => ent.t && ent.t !== slot && ent.t.broke?.at === dist);
+
+/**
  * A car pulls in at a station's pumps, if they are free: its stop begun.
  * @param ctx the traffic
  * @param slot the car
@@ -120,6 +131,7 @@ export const pastPullIn = (slot: TrafficCar, station: Station) =>
 export function pullIn(ctx: TrafficCtx, slot: TrafficCar, env: DriveEnv, station: Station) {
   const stopOff = station.off + PUMP_IN_M;
   if (!roadsideFree(env.ents, station.s, stopOff)) return false;
+  if (isBoundFor(env.ents, slot, station.s)) return false;
   slot.broke = { stopOff, v: slot.vAl, off: slot.off, stopped: false, at: station.s,
     wait: PUMP_S[0] + ctx.rnd() * (PUMP_S[1] - PUMP_S[0]), out: false };
   return true;
@@ -137,7 +149,7 @@ export function mayPlaceAtPump(ctx: TrafficCtx, slot: TrafficCar, ents: TrafficE
   const station = stationsOf(ctx).find((each) => Math.abs(each.s - slot.s) < CHOOSE_M[1]);
   if (!station || ctx.rnd() >= AT_PUMP_SHARE) return false;
   const stopOff = station.off + PUMP_IN_M;
-  if (!roadsideFree(ents, station.s, stopOff)) return false;
+  if (!roadsideFree(ents, station.s, stopOff) || isBoundFor(ents, slot, station.s)) return false;
   const pose = roadPose(ctx.level!, station.s, stopOff);
   reset(slot.car, pose.x, pose.y, pose.h);
   setSpeed(slot, 0);

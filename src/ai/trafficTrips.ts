@@ -64,6 +64,9 @@ const DECIDE_M = 500, ROLL_MIN_M = 40;
 const INTO_SLIP_M = 30, LEAD_M = 55, LATE_M = 15;
 // m before the slip's start a car leaving indicates left (the exit's countdown boards)
 const SIGNAL_M = 250;
+// m before its slip / station a car not yet in the nearside lane eases off, and the share of its
+// speed it holds then (a gap comes)
+const EASE_M = 300, EASE_SHARE = 0.8;
 // m short of its line's end a car leaving by a slip stops (its gate 3 m past the end)
 const GATE_SHORT_M = 6;
 // m along the bridge's road past a junction's roundabout a car leaving drives; radians a step
@@ -428,6 +431,20 @@ export function signalTrip(slot: TrafficCar) {
   const trip = slot.trip;
   if (trip && trip.kind === 'exit' && !trip.path && slot.lane === 0 && slot.laneT === 0
     && trip.at - slot.s < SIGNAL_M) slot.car.indicator = -1;
+}
+
+/**
+ * The share of its speed a car going for a slip or a station holds: still not in the nearside lane
+ * EASE_M before it, it eases off to let a gap come (MEASURED, tools/scratch/_hwtrips.mjs: without
+ * it 17 of 61 cars going for a slip missed it, held in a middle lane beside a slower nearside lane
+ * for 500 m).
+ * @param slot the car
+ * @returns 0..1
+ */
+export function tripSlowing(slot: TrafficCar): number {
+  const trip = slot.trip;
+  return trip && trip.kind !== 'join' && !trip.path && slot.lane > 0 && slot.laneT === slot.lane
+    && trip.at - slot.s < EASE_M ? EASE_SHARE : 1;
 }
 
 /**

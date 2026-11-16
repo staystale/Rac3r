@@ -11,7 +11,7 @@ import { driveSpeeder } from "./trafficSpeeder.ts";
 import { edgeOver, isYielding, yieldSlowing } from "./trafficYield.ts";
 import { driveFuelStop, mayStopForFuel } from "./trafficFuel.ts";
 import { drivePolice } from "./trafficPolice.ts";
-import { driveTrip, signalTrip } from "./trafficTrips.ts";
+import { driveTrip, signalTrip, tripSlowing } from "./trafficTrips.ts";
 import { FIX } from "../core/fixes.ts";
 import type { TrafficCar, TrafficEnt } from "./types.ts";
 
@@ -88,7 +88,9 @@ export function driveOne(ctx: TrafficCtx, slot: TrafficCar, env: DriveEnv) {
   const target = speedTarget(slot, lead, gap), brakeX = target.brakeX;
   // (asked over with the lane on its left taken alongside, it eases off to drop in
   // behind - ai/trafficYield.ts)
-  const vTarget = target.vTarget * yieldSlowing(slot);
+  // (?hwtrips=1: and one that cannot get across to its exit in time eases off for a gap - 1
+  // with no trip)
+  const vTarget = target.vTarget * yieldSlowing(slot) * tripSlowing(slot);
   // ---- LOD (MEASURED, tools/_tfprof: applyGround alone is ~17 us per car-step,
   // 18 cars = 0.57 ms a step = a phone frame's budget gone): a car OUT OF VIEW and > PHYS_NEAR
   // m from every real car (you, the AI) is KINEMATIC — the same decisions, then carried
