@@ -34,6 +34,7 @@ const SHAPES: Record<string, RollShape> = {
   'porch-gt3r': { round: 0.6, side: 0.2 },   // 911 GT3 R: a round coupe, wide and low, a big wing
   'seven-420r': { round: 0.2, side: 0.15 },   // Seven: open, a roll bar, wheels and wings out wide
   'transfit-van': { round: 0.15, side: 0.9 },   // Transit: a tall box, tips and stops on a side
+  'effing-tt': { round: 0.25, side: 0.5 },   // trophy truck: tall, a cage, wheels out wide
 };
 
 // the dig: its chance at round 0, and the share of the spin it leaves

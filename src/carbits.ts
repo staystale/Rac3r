@@ -96,6 +96,10 @@ export const CAR_BITS: Record<string, CarBits> = {
   // EcoBlue four across the front
   'transfit-van': { pipes: 1, pipesAt: 'left', front: 'bonnet', rear: 'boot', engine: 'front',
     cyl: 4, layout: 'inline', mount: 'trans', radiator: 'front' },
+  // F-150 Trophy Truck: a pipe out each side of the bed (EST), the bonnet, an open bed (no lid),
+  // the V8 set back behind the front axle, the radiators in the bed
+  'effing-tt': { pipes: 2, pipesAt: 'sides', front: 'bonnet', rear: 'none', engine: 'front',
+    cyl: 8, layout: 'v', mount: 'long', radiator: 'rear' },
 };
 
 /**

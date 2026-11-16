@@ -50,4 +50,6 @@ export const REAL_FIGURES = {
     note: '0-60 mph 3.8 s (Caterham); 0-100 km/h EST' },
   'transfit-van': { real: 'Ford Transit Mk8 290 L2 H2 FWD 2.0 EcoBlue 130 PS (2019)', topKph: 155,
     zeroTo100: null, note: 'top speed EST (by its power and drag); no published 0-100' },
+  'effing-tt': { real: 'Ford F-150 Trophy Truck (open class, 850 PS)', topKph: 225, zeroTo100: null,
+    note: 'top speed EST (~140 mph as trophy trucks are quoted); no published 0-100' },
 };

@@ -83,9 +83,34 @@ const TRANSFIT: RosterRow = {
   paint: '#f0f0ea', trim: '#2a2d34', glass: '#2a2f38', rim: '#5a5f69',
 };
 
+// Ford F-150 Trophy Truck (an open-class SCORE trophy truck; Auto Bild's track test): a 7.2 V8
+// set back ahead of the cabin, 850 PS (625 kW), RWD, a 3.15 m wheelbase, ~2.5 tonnes, 80-90 cm of
+// wheel travel, ~60 cm of ground clearance. EST (no published figures): the torque (900 Nm) and
+// the power's rpm (6,000), the 6,500 limit, a three-speed automatic's ratios (a TH400's) and the
+// final drive (5.0), the size (5.6 x 2.35 m, track 2.0), 39x13.5 R17 desert tyres, Cd 0.6 x 3.2
+// m^2, 50 / 50, the CG height, the soft long-travel springs, the tyres' grip and stiffness.
+const TROPHY: RosterRow = {
+  id: 'effing-tt', name: 'Fjord Effing-150 Trophy Truck', kind: 'trophy', cls: 'offroad',
+  sub: 'Trophy truck', rimIn: 17,   // its real rim, inches (what tyres fit)
+  cg: 0.95, rideH: 0.6, cyl: 8,
+  aids: { abs: false, tcs: false },
+  mass: 2500, lf: 1.575, lr: 1.575, len: 5.6, wid: 2.35, trackWidth: 2.0,
+  // 39 x 13.5 R17: 0.99 m across, 0.34 m wide
+  tyreWidth: 0.34, wheelR: 0.495,
+  drive: 0.0, brakeBiasF: 0.6, caF: 150000, caR: 160000, mu: 1.0,
+  curve: realCurve({ idle: 1000, low: 0.6, nm: 900, nmFrom: 4000, nmTo: 5000,
+    kw: 625, kwAt: 6000, redline: 6500 }),
+  redline: 6500, upshiftRpm: 6200, downshiftRpm: 3200, idleRpm: 1000,
+  gears: [2.48, 1.48, 1.0], finalDrive: 5.0, dragC: dragOf(0.6, 3.2),
+  susF: 0.9, susZ: 0.45,
+  // white, the race blue (big), an orange line, black wheels
+  paint: '#f0f0ea', trim: '#1d3f9a', glass: '#2a2f38', rim: '#16181d',
+};
+
 /** The new cars switched on: their roster rows, in the list's order. */
 export const NEW_CARS: RosterRow[] = [...(FIX.porch ? [PORCH] : []),
-  ...(FIX.seven ? [SEVEN] : []), ...(FIX.transfit ? [TRANSFIT] : [])];
+  ...(FIX.seven ? [SEVEN] : []), ...(FIX.transfit ? [TRANSFIT] : []),
+  ...(FIX.trophy ? [TROPHY] : [])];
 
 /** The classes only new cars race in, while one of them is switched on. */
 export const NEW_CLASSES = [...(FIX.porch ? [GT_CLASS] : [])];

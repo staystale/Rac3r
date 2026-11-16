@@ -254,5 +254,18 @@ export const CAR_STATS: Record<string, CarStat> = {
       "abs": true,
       "tcs": true
     }
+  },
+  // (measured alone, tools/carstats.mjs effing-tt with TROPHY=1: a new car behind its switch)
+  "effing-tt": {
+    "topKph": 236,
+    "zeroTo100": 6.7,
+    "brake100": 69.2,
+    "gripG": 0.88,
+    "massKg": 2500,
+    "drive": "RWD",
+    "aids": {
+      "abs": false,
+      "tcs": false
+    }
   }
 };

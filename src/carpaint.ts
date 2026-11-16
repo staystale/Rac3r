@@ -29,6 +29,7 @@ export const PAINT_STOCK: Record<string, { trim?: string; third?: string; rim?: 
   'porch-gt3r': { third: '#16181d' },
   'seven-420r': { third: '#f2a900' },
   'transfit-van': { third: '#1d3f9a' },
+  'effing-tt': { third: '#e0603a' },
 };
 /**
  * A rim choice's colour: a palette colour, a RIM_FINISH name, or empty for the stock rims.
@@ -64,4 +65,5 @@ export const TYRE_LOOK: Record<string, { wF: number; wR: number; dia: number; ri
   'porch-gt3r': { wF: 0.300, wR: 0.310, dia: 0.695, rim: 0.457 },
   'seven-420r': { wF: 0.195, wR: 0.195, dia: 0.576, rim: 0.381 },   // 195/50 R15
   'transfit-van': { wF: 0.215, wR: 0.215, dia: 0.660, rim: 0.381 },   // 215/65 R15
+  'effing-tt': { wF: 0.343, wR: 0.343, dia: 0.991, rim: 0.432 },   // EST 39 x 13.5 R17
 };

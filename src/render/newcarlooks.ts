@@ -331,9 +331,99 @@ function paintTransfit(spr: SpriteCtx): void {
   block(-1, 4, 1, 2, CHR);
 }
 
+/**
+ * How far inside a span a share is, ramping over its edges: 0 outside, 1 well inside.
+ * @param share along the car, 0..1
+ * @param from the span's start
+ * @param until its end
+ * @param ramp the share over which it ramps in and out
+ * @returns 0..1
+ */
+function inside(share: number, from: number, until: number, ramp: number): number {
+  return Math.max(0, Math.min(1, (share - from) / ramp, (until - share) / ramp));
+}
+
+/**
+ * The trophy truck's plan, a half width at a share of its length (0 tail, 1 nose), as a share of
+ * the sprite's half: the body, the big fenders over the wheels, the rounded nose.
+ * @param share along the car, 0..1
+ * @returns the half width, 0..1
+ */
+function trophyPlan(share: number): number {
+  const fender = Math.max(inside(share, 0.06, 0.38, 0.04), inside(share, 0.62, 0.94, 0.04));
+  const nose = share > 0.95 ? Math.sqrt(1 - 0.5 * ((share - 0.95) / 0.05) ** 2) : 1;
+  return (0.8 + 0.2 * fender) * nose;
+}
+
+/**
+ * The trophy truck's bed: the dark floor, the two spare tyres behind the cab, the radiators' two
+ * fans at the back, the cage's tubes down both sides.
+ * @param spr the painting context
+ */
+function trophyBed(spr: SpriteCtx): void {
+  const { mid, block, along } = spr;
+  const half = Math.round(mid * 0.7), from = along(0.03), until = along(0.36);
+  block(from, mid - half, until - from, half * 2 + 1, '#1c1e24');
+  // the spares, lying flat side by side
+  const tyre = Math.round(half * 0.9);
+  for (const centre of [mid - Math.round(half / 2), mid + Math.round(half / 2)]) {
+    block(along(0.26) - tyre / 2, centre - tyre / 2 + 1, tyre, tyre - 2, INK);
+    block(along(0.26) - tyre / 2 + 1, centre - tyre / 2, tyre - 2, tyre, INK);
+    block(along(0.26) - 2, centre - 2, 4, 4, STEEL);
+  }
+  // the radiators across the back with their two fans
+  block(from + 1, mid - half + 1, along(0.12), half * 2 - 1, MESH);
+  for (const centre of [mid - Math.round(half / 2), mid + Math.round(half / 2)]) {
+    block(from + 2, centre - 3, along(0.10) - 1, 7, '#6a6f78');
+    block(from + 4, centre - 1, along(0.06) - 2, 3, INK);
+  }
+  // the cage's tubes along the bed's sides and across its back
+  block(from, mid - half, until - from, 1, CHR);
+  block(from, mid + half, until - from, 1, CHR);
+  block(from, mid - half, 1, half * 2 + 1, CHR);
+}
+
+/**
+ * FJORD EFFING-150 TROPHY TRUCK (a Ford F-150 trophy truck): big fenders over the long-travel
+ * wheels, the long bonnet with its vents and scoop, the cab with its roof scoop (the second
+ * colour), the open bed with two spares, the radiators' fans and the cage, the tube bumper with
+ * its light bar, an orange line (the third colour).
+ * @param spr the painting context
+ */
+function paintTrophy(spr: SpriteCtx): void {
+  const { lengthPx: len, widthPx: wid, mid, outline, light, trim, third, roof2, block,
+    along } = spr;
+  planBody(spr, (x) => mid * trophyPlan(x / (len - 1)));
+  trophyBed(spr);
+  // the cab: rear glass, the roof (the second colour) with its scoop, the raked windscreen
+  const cabHalf = Math.round(mid * 0.68);
+  block(along(0.37), mid - cabHalf, along(0.02), cabHalf * 2 + 1, GLASS);
+  block(along(0.39), mid - cabHalf, along(0.17), cabHalf * 2 + 1, roof2);
+  block(along(0.39), mid - cabHalf, along(0.17), 1, light);
+  block(along(0.52), mid - 3, along(0.04), 7, INK);
+  block(along(0.53), mid - 2, along(0.02), 5, MESH);
+  for (let x = along(0.56); x < along(0.61); x++) {
+    const rake = Math.round((x - along(0.56)) * 0.3);
+    block(x, mid - cabHalf - 1 + rake, 1, (cabHalf + 1 - rake) * 2 + 1, GLASS);
+  }
+  block(along(0.57), mid - cabHalf + 1, 1, cabHalf * 2 - 1, GLASS_HI);
+  // the bonnet: its band (the second colour), vents, the line along the body (the third)
+  block(along(0.62), mid - 4, along(0.32), 9, trim);
+  block(along(0.80), mid - 2, along(0.08), 5, INK);
+  for (const y of [mid - 11, mid + 9]) block(along(0.66), y, along(0.10), 3, INK);
+  block(along(0.04), mid - Math.round(mid * 0.8) + 2, along(0.88), 1, third);
+  block(along(0.04), mid + Math.round(mid * 0.8) - 2, along(0.88), 1, third);
+  // the tube bumper and its light bar, the lamps; the tail lamps
+  block(len - 1, 4, 2, wid - 8, outline);
+  for (let y = 6; y < wid - 6; y += 4) block(len - 3, y, 2, 2, HEAD);
+  block(1, mid - 8, 1, 4, TAIL);
+  block(1, mid + 5, 1, 4, TAIL);
+}
+
 /** The new cars' bodies by id (render/carlooks.ts LOOKS takes them). */
 export const NEW_LOOKS: [string, { paint: (spr: SpriteCtx) => void; bare?: boolean }][] = [
   ['porch-gt3r', { paint: paintPorch, bare: true }],
   ['seven-420r', { paint: paintSeven, bare: true }],
   ['transfit-van', { paint: paintTransfit, bare: true }],
+  ['effing-tt', { paint: paintTrophy, bare: true }],
 ];

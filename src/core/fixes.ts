@@ -71,4 +71,6 @@ export const FIX = {
   porch: atLoad('porch'),
   seven: atLoad('seven'),
   transfit: atLoad('transfit'),
+  // the Fjord Effing-150 Trophy Truck
+  trophy: atLoad('trophy'),
 };
