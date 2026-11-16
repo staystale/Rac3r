@@ -108,6 +108,9 @@ export const CAR_BITS: Record<string, CarBits> = {
   // rear door, the Puma four along the front, the radiator in the nose
   'defunder-110': { pipes: 1, pipesAt: 'left', front: 'bonnet', rear: 'boot', engine: 'front',
     cyl: 4, layout: 'inline', mount: 'long', radiator: 'front' },
+  // Focus ST Mk4: one tailpipe each side, the tailgate, the 2.3 four across the front
+  'focust-st': { pipes: 2, pipesAt: 'sides', front: 'bonnet', rear: 'boot', engine: 'front',
+    cyl: 4, layout: 'inline', mount: 'trans', radiator: 'front' },
 };
 
 /**

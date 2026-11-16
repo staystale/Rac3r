@@ -50,6 +50,8 @@ const REAL_SIZE: Record<string, RealSize> = {
   // Defender 110 Station Wagon: 4.785 (with the spare) x 1.79, wheelbase 2.794; 52 / 48 and the
   // track 1.486 EST
   'defunder-110': { len: 4.785, wid: 1.79, lf: 1.341, lr: 1.453, trackWidth: 1.486 },
+  // Focus ST Mk4: 4.388 x 1.825, wheelbase 2.70, track 1.567 / 1.556; 61 / 39 EST
+  'focust-st': { len: 4.388, wid: 1.825, lf: 1.053, lr: 1.647, trackWidth: 1.562 },
 };
 
 /**

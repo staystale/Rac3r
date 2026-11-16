@@ -32,6 +32,7 @@ export const PAINT_STOCK: Record<string, { trim?: string; third?: string; rim?: 
   'effing-tt': { third: '#e0603a' },
   'civvic-btcc': { third: '#16181d' },
   'defunder-110': { third: '#16181d' },
+  'focust-st': { third: '#16181d' },
 };
 /**
  * A rim choice's colour: a palette colour, a RIM_FINISH name, or empty for the stock rims.
@@ -70,4 +71,5 @@ export const TYRE_LOOK: Record<string, { wF: number; wR: number; dia: number; ri
   'effing-tt': { wF: 0.343, wR: 0.343, dia: 0.991, rim: 0.432 },   // EST 39 x 13.5 R17
   'civvic-btcc': { wF: 0.265, wR: 0.265, dia: 0.66, rim: 0.457 },   // 265/660 R18
   'defunder-110': { wF: 0.235, wR: 0.235, dia: 0.806, rim: 0.406 },   // 235/85 R16
+  'focust-st': { wF: 0.235, wR: 0.235, dia: 0.647, rim: 0.483 },   // 235/35 R19
 };
