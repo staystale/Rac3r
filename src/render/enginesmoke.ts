@@ -57,6 +57,7 @@ export const EXHAUST_SPOTS: Record<string, { pipes: Pipe[]; up?: boolean }> = {
   // the Civic BTCC's side exit, ahead of the left rear wheel (EST)
   btcc: { pipes: [[-0.22, -0.5]] },
   corolla: { pipes: [[-0.22, -0.5]] },
+  e36peak: { pipes: [[-0.2, -0.5], [-0.2, 0.5]] },
   // the Defender's pipe on the left, behind the rear wheel (EST)
   defunder: { pipes: [[-0.4, -0.45]] },
   focust: { pipes: [[-0.5, -0.3], [-0.5, 0.3]] },

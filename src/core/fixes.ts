@@ -76,6 +76,9 @@ export const FIX = {
   // the Fjord Transfit Custom (a Ford Transit Custom L1 H1, 2012-23), ROAD / Van, in the traffic:
   // the four Transfits split the vans' share
   transitcustom: atLoad('transitcustom'),
+  // the BMV E36 Peak (BimmerWorld's Pikes Peak E36 M3, the "Bergsteiger") and its HILL CLIMB
+  // class (Unlimited)
+  e36peak: atLoad('e36peak'),
   // EVERY CAR'S OWN CRASH PARTS (carbits.ts): step 1, its own doors - a 2-door's two, a
   // 4-door's four, each from its own place and at its own length; none on an open car; a stock
   // car's welded door skins without glass

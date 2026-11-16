@@ -15,7 +15,10 @@ const TOURING_CLASS = { id: 'touring', name: 'TOURING', subs: ['BTCC', 'One-make
 /** Every new class's id (the tyres they fit: cars.ts TYRES). */
 // PROTOTYPE: the Le Mans prototypes (Le Manky), a class of their own on race tyres
 const PROTO_CLASS = { id: 'proto', name: 'PROTOTYPE', subs: ['Group C', 'LMP1'] };
-export const NEW_CLS_IDS = [GT_CLASS.id, TOURING_CLASS.id, PROTO_CLASS.id];
+// HILL CLIMB: the hill climb specials (Pikes Peak's Unlimited), a class of their own on race tyres
+const HILLCLIMB_CLASS = { id: 'hillclimb', name: 'HILL CLIMB', subs: ['Unlimited'] };
+export const NEW_CLS_IDS = [GT_CLASS.id, TOURING_CLASS.id, PROTO_CLASS.id,
+  ...(FIX.e36peak ? [HILLCLIMB_CLASS.id] : [])];
 
 // Porsche 911 GT3 R (992, 2023; Porsche Motorsport's data): 4,194 cc flat six behind the rear
 // axle, ~416 kW (565 PS; BoP), 9,250 rpm max, 6-speed sequential, RWD, ~1,250 kg (BoP), 4,619 x
@@ -584,10 +587,39 @@ const TRANSFIT_CUSTOM: RosterRow = {
   paint: '#f0f0ea', trim: '#2a2d34', glass: '#2a2f38', rim: '#5a5f69',
 };
 
+// BimmerWorld's "Bergsteiger" (the Pikes Peak E36 M3, James Clay, 2022 on; BimmerWorld's build
+// journal, Grassroots Motorsports, BMWBlog): a twin-turbo 4.4 V8 (BMW S63 / P63) along the front,
+// a Holinger six-speed sequential transaxle, RWD, a part tube frame on the E36 shell, 2,650 lb
+// (1,202 kg) race weight, its big wing, splitter and dive planes. Conflicting: the power (1,000+
+// to 1,400+ hp): ~1,000 hp (746 kW) taken (owner: "about 1,000"). EST: the weight with its driver
+// (1,280 kg), the torque (1,100 Nm, 3,500-6,000) and the 7,500 limit, the ratios (to ~240 km/h, a
+// hill climb's gearing), the E36 coupe's 4,433 mm and 2,700 mm wheelbase on ~1.95 m of flares,
+// 52 / 48, the track, the downforce (more than the GT3s'), Cd 0.6 x 2.1 m^2, 330/680-18 slicks,
+// the CG, the springs; traction control on, no ABS.
+const E36PEAK: RosterRow = {
+  id: 'bmv-e36peak', name: 'BMV E36 Peak', kind: 'e36peak', cls: 'hillclimb', sub: 'Unlimited',
+  rimIn: 18,   // its real rim, inches (what tyres fit)
+  cg: 0.42, rideH: 0.07, cyl: 8,
+  aids: { abs: false, tcs: true },
+  mass: 1280, lf: 1.296, lr: 1.404, len: 4.433, wid: 1.95, trackWidth: 1.66,
+  // 330/680-18: 0.68 m across, 0.33 m wide
+  tyreWidth: 0.33, wheelR: 0.34,
+  drive: 0.0, brakeBiasF: 0.6, caF: 140000, caR: 190000, mu: 1.75,
+  curve: realCurve({ idle: 1200, low: 0.5, nm: 1100, nmFrom: 3500, nmTo: 6000,
+    kw: 746, kwAt: 6800, redline: 7500 }),
+  redline: 7500, upshiftRpm: 7300, downshiftRpm: 4200, idleRpm: 1200,
+  gears: [2.9, 2.1, 1.65, 1.35, 1.14, 1.0], finalDrive: 3.55, dragC: dragOf(0.6, 2.1),
+  aeroK: 2.2, downforceF: 1.4, downforceR: 2.0, susF: 2.6, susZ: 0.32,
+  // BimmerWorld's black, the white roof (the second colour), the blue wing and splitter
+  paint: '#1c1e24', trim: '#f0f0ea', glass: '#2a2f38', rim: '#16181d',
+};
+
 /** The new cars: their roster rows, in the list's order. */
 export const NEW_CARS: RosterRow[] = [PORCH, SEVEN, TRANSFIT, TROPHY, CIVVIC, DEFUNDER, FOCUST,
   CLEO, CLEO_RS, TRANSFIT_LWB, TRANSFIT_SWB, TS010, ROUTEMONSTER, SAXO, STRANGE, SAXO_VTR, TESLA,
-  M4GT3, COROLLA, R13, IBIZA, A4AVANT, ...(FIX.transitcustom ? [TRANSFIT_CUSTOM] : [])];
+  M4GT3, COROLLA, R13, IBIZA, A4AVANT, ...(FIX.transitcustom ? [TRANSFIT_CUSTOM] : []),
+  ...(FIX.e36peak ? [E36PEAK] : [])];
 
 /** The classes only new cars race in. */
-export const NEW_CLASSES = [GT_CLASS, TOURING_CLASS, PROTO_CLASS];
+export const NEW_CLASSES = [GT_CLASS, TOURING_CLASS, PROTO_CLASS,
+  ...(FIX.e36peak ? [HILLCLIMB_CLASS] : [])];

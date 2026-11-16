@@ -13,6 +13,17 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'e36peak',
+    added: '2026-11-16',
+    name: 'New car: the BMV E36 Peak (the BimmerWorld Pikes Peak E36), HILL CLIMB / Unlimited (a '
+      + 'new class)',
+    where: 'Test link + &e36peak=1: the garage, HILL CLIMB; a road stage or a hilly circuit '
+      + '(no hill climb stage yet); + &underskin=1&carparts=1 for a crash',
+    try: 'Its look (black, the white roof, the huge blue wing, shaded), about 1,000 hp with '
+      + 'traction control on and off, its grip in fast corners (the downforce).',
+    wrong: 'Not an E36 from above, undrivable even with the aids, slow in a straight line.',
+  },
+  {
     id: 'transitcustom',
     added: '2026-11-16',
     name: 'New car: the Fjord Transfit Custom (a Ford Transit Custom L1 H1), ROAD / Van, and in '

@@ -40,6 +40,7 @@ const SHAPES: Record<string, RollShape> = {
   'transfit-custom': { round: 0.2, side: 0.9 },   // Transit Custom: a smaller, rounder box
   'transfit-swb': { round: 0.15, side: 0.9 },   // the Mk7 short one: a tall box too
   'effing-tt': { round: 0.25, side: 0.5 },   // trophy truck: tall, a cage, wheels out wide
+  'bmv-e36peak': { round: 0.5, side: 0.5 },   // E36 Peak: a low coupe, flares and a big wing
   'toyoter-corolla': { round: 0.55, side: 0.7 },   // Corolla BTCC: as the Civic
   'civvic-btcc': { round: 0.55, side: 0.7 },   // Civic BTCC: a low hatch, wide arches, a wing
   'defunder-110': { round: 0.15, side: 0.85 },   // Defender: a tall flat-sided box
