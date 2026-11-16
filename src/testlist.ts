@@ -13,22 +13,6 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
-    id: 'dmgmore2',
-    added: '2026-11-17',
-    name: 'More damage 2, items 4 and 3: an exhaust or a torn bumper left HANGING; steam and '
-      + 'leaks from the real radiator and sump',
-    where: 'Test link + &dmgmore2=1: crash a hatch or a saloon tail-first hard, then drive on '
-      + '(tarmac, then grass); crash a hatch and the Sport quattro S1 nose-first, then park',
-    try: 'About half the time the exhaust hangs instead of flying off: its end trails behind the '
-      + 'tail, sparking on tarmac, and drops after 100-400 m (or the next hit at the back). A torn '
-      + 'bumper\'s hanging piece drags paint chips off its end and falls off by itself. A cracked '
-      + 'radiator steams where it is (the S1 at its tail), more with its panel off; the water and '
-      + 'oil drip under the radiator and the engine; a harder crash, or a second, leaks faster.',
-    wrong: 'An exhaust that never drops, sparks on grass, sparks off a bumper, a piece that hangs '
-      + 'on after it dropped, the Tesla or an open car dragging an exhaust; steam off the S1\'s '
-      + 'nose, puddles in the wrong place.',
-  },
-  {
     id: 'scanyah',
     added: '2026-11-16',
     name: 'New vehicle: the Scanyah R-Series (a Scania R 450 4x2 tractor unit), ROAD / Truck - the '
@@ -51,15 +35,5 @@ export const TEST_LIST: TestEntry[] = [
       + 'now and then drops back; ordinary cars on tarmac still slide, never lift.',
     wrong: 'A car lifting on plain tarmac in an ordinary corner, a lift that will not come down '
       + 'when you ease off, a juddering lean.',
-  },
-  {
-    id: 'marktrack',
-    added: '2026-11-17',
-    name: 'The rear-right skid mark at the rear wheel\'s own track (the Routemonster, the Skool '
-      + 'Bus)',
-    where: 'Test link + &marktrack=1: the Routemonster or the Skool Bus on any circuit',
-    try: 'Brake hard or slide: the rear-right tyre\'s mark lines up with the rear-left\'s, under '
-      + 'the twin rear wheels (it was 0.125 m too far out, at the front track).',
-    wrong: 'A rear mark outside its tyre, or any other car\'s marks changed.',
   },
 ];

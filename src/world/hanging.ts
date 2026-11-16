@@ -1,4 +1,4 @@
-// world/hanging.ts - ?dmgmore2: PARTS LEFT HANGING, DRAGGING (the owner's damage item 4). A hit
+// world/hanging.ts - PARTS LEFT HANGING, DRAGGING (the owner's damage item 4). A hit
 // that would throw the EXHAUST may leave it hanging from its mount instead - by a chance that falls
 // with the hit's size (about half of them overall) - its tail on the road: it drags a random
 // 100-400 m (sparks off its end on hard ground, render/particles.ts), then drops and lies as the
@@ -6,7 +6,6 @@
 // render/torncut.ts draws it) drags too - paint chips off its end, no sparks - and falls off by
 // itself after a random 100-400 m, sooner the worse its end is damaged. A hit on that end knocks
 // either off at once. The distance is the car's own travel (sim time); RESET mends it all.
-import { FIX } from '../core/fixes.ts';
 import { partHangs } from './torn.ts';
 import { groundAt } from './wear.ts';
 
@@ -52,7 +51,7 @@ const isOpenCar = (car: Pick<HangCar, 'spec'>) => car.spec?.kind === 'track'
   || car.spec?.kind === 'grass';
 
 /**
- * ?dmgmore2: whether an exhaust a hit would throw is left hanging instead (then it is gone from
+ * Whether an exhaust a hit would throw is left hanging instead (then it is gone from
  * the sprite, 'exhaust:2', and drags its random distance).
  * @param car the car
  * @param size the hit's size (the damage it added; a roll's ROLL_HANG_SIZE)
@@ -62,7 +61,7 @@ const isOpenCar = (car: Pick<HangCar, 'spec'>) => car.spec?.kind === 'track'
 export function exhaustHangs(
   car: Pick<HangCar, 'spec' | 'partLost' | 'exhaustHang' | '_exhaustNew'>,
   size: number, rnd: () => number): boolean {
-  if (!FIX.dmgmore2 || isOpenCar(car)) return false;
+  if (isOpenCar(car)) return false;
   const chance = Math.max(HANG_MIN, Math.min(HANG_MAX, HANG_FROM - size));
   if (rnd() >= chance) return false;
   car.exhaustHang = HANG_M_MIN + rnd() * HANG_M_SPAN;
@@ -72,14 +71,13 @@ export function exhaustHangs(
 }
 
 /**
- * ?dmgmore2: a hit on an end knocks off what hangs there (it drops on the next step) - not what
+ * A hit on an end knocks off what hangs there (it drops on the next step) - not what
  * the same hit has just left hanging (its other corner).
  * @param car the car
  * @param front the front end
  */
 export function knockHanging(car: Pick<HangCar, 'exhaustHang' | 'bumperHang' | '_exhaustNew'>,
   front: boolean): void {
-  if (!FIX.dmgmore2) return;
   if (!front && car.exhaustHang && !car._exhaustNew) car.exhaustHang = Number.MIN_VALUE;
   const hang = car.bumperHang;
   if (hang) for (let corner = 0; corner < 4; corner++)
@@ -106,7 +104,7 @@ function newHangingBumpers(car: HangCar, rnd: () => number): void {
 }
 
 /**
- * ?dmgmore2, each physics step: the hanging parts drag the car's travel off their distance; the
+ * Each physics step: the hanging parts drag the car's travel off their distance; the
  * exhaust sparks on hard ground, a bumper's piece sheds chips; each drops when its distance runs
  * out - the exhaust thrown (as before), a bumper's piece gone from the car ('drop:bumper:<c>').
  * @param car the car

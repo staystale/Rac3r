@@ -10,7 +10,6 @@ import { tyreSmokeStrength } from './tyresmoke.ts';
 import { halfTrackAt } from '../world/wheels.ts';
 import { dragReach } from '../world/debris.ts';
 import { EXHAUST_TRAIL_M } from '../world/hanging.ts';
-import { FIX } from '../core/fixes.ts';
 
 // what createParticles destructures from the renderer
 interface ParticleHelpers {
@@ -404,12 +403,12 @@ function emitDragDirt(ctx: ParticleCtx, car: ParticleCar, wallDt: number) {
   }
 }
 
-// ?dmgmore2: paint chips a second off a hanging bumper's dragging end at full work, and the work's
+// paint chips a second off a hanging bumper's dragging end at full work, and the work's
 // speed for full (m/s); m out from the middle to the hanging piece's end (its share of the width)
 const BUMPER_CHIP_RATE = 12, BUMPER_CHIP_FULL_MS = 20, BUMPER_END_SHARE = 0.35;
 
 /**
- * ?dmgmore2: what the parts left hanging throw (world/hanging.ts): sparks off a hanging exhaust's
+ * What the parts left hanging throw (world/hanging.ts): sparks off a hanging exhaust's
  * end on hard ground (behind the tail), paint chips off a hanging bumper's end, wall clock.
  * @param ctx particle context
  * @param car the car
@@ -568,7 +567,7 @@ function sparksOwed(debt: number, rate: number, wallDt: number): number {
  */
 function emitSparks(ctx: ParticleCtx, car: ParticleCar, wallDt: number) {
   emitDragDirt(ctx, car, wallDt);
-  if (FIX.dmgmore2) emitHangingDrag(ctx, car, wallDt);
+  emitHangingDrag(ctx, car, wallDt);
   const rims = car.rimSparks;
   if (rims) for (let corner = 0; corner < 4; corner++) {
     if (!rims[corner]) continue;

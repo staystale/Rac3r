@@ -1,4 +1,4 @@
-// _hangcount.mjs - ?dmgmore2 item 4 measured (world/hanging.ts): per car, CRASHES rear-end and
+// _hangcount.mjs - measured (world/hanging.ts): per car, CRASHES rear-end and
 // front-end hits (damage.ts hit, the sizes renderhash's crash uses, scaled), then the car driven
 // straight at 15 m/s on the Lab until everything hanging has dropped: how many exhausts were
 // thrown vs left hanging, how far each hanging exhaust and bumper piece dragged before it dropped.

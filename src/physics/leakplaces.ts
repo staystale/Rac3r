@@ -1,4 +1,4 @@
-// physics/leakplaces.ts - ?dmgmore2: WHERE A CAR'S RADIATOR AND ENGINE ARE, for what leaks and
+// physics/leakplaces.ts - WHERE A CAR'S RADIATOR AND ENGINE ARE, for what leaks and
 // steams from them (the owner's damage item 3): the radiator by its layout (carbits.ts radiator:
 // in the nose, in the tail - the Sport quattro S1, the RX supercars - or in the sides ahead of the
 // rear wheels - the mid-engined cars), the sump under the engine (carbits.ts engine: front, mid,

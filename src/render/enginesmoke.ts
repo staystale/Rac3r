@@ -2,14 +2,13 @@
 // approved): EXHAUST from each car's pipe - more on the throttle and in the cold (white at 2 C,
 // faint at 15 C, almost nothing at 30 C), none from a seized engine; BACKFIRES (an orange pop and
 // dark puffs) at a power cut - the moment it seizes, now and then while the heat fades the
-// power, and sometimes a lift-off near the redline; STEAM from a cracked radiator's nose while
+// power, and sometimes a lift-off near the redline; STEAM from a cracked radiator while
 // there is water to boil; DARK SMOKE from an overheating engine, thinning after it seizes.
 // Puffs go into the particle layer's pools (render/particles.ts emitPuff): exhaust and backfires
 // at road level under the cars, steam and engine smoke OVER them (they rise off the bonnet). The
 // dice are the drawing's own (fxRandom), never the race's. Wall clock (rule 5).
 import { fxRandom } from './shared.ts';
 import { WEATHER } from '../world/weather.ts';
-import { FIX } from '../core/fixes.ts';
 import { isRadiatorExposed, radiatorAt, sumpAt } from '../physics/leakplaces.ts';
 
 /** A puff's look, as render/particles.ts emitPuff takes it (size / lift m, life s). */
@@ -105,7 +104,7 @@ const STEAM_BASE = 6, STEAM_PER_LEAK = 400, STEAM_FROM_C = 60;
 const STEAM = { rgb: '246,248,252', size: 0.18, lift: 1.4, life: 0.7, grow: 0.6 };
 // standing still the puffs pile up: STEAM_STILL of the rate, all of it from STEAM_FULL_MPS
 const STEAM_STILL = 0.3, STEAM_FULL_MPS = 10;
-// ?dmgmore2: the steam of a radiator out in the open (its panel lost), x the seeping one's (owner:
+// the steam of a radiator out in the open (its panel lost), x the seeping one's (owner:
 // "denser steam when exposed")
 const STEAM_EXPOSED = 1.5;
 // dark engine smoke: from SMOKE_FROM_C, SMOKE_RATE a second when fully over; a seized engine
@@ -202,24 +201,22 @@ function emitBackfires(puffAt: PuffAt, car: SmokeCar, wallDt: number) {
 }
 
 /**
- * Steam from a cracked radiator while there is water to boil: from its nose (?dmgmore2: from the
- * radiator where it is, denser out in the open - physics/leakplaces.ts).
+ * Steam from a cracked radiator while there is water to boil: from the radiator where it is,
+ * denser out in the open (physics/leakplaces.ts).
  * @param puffAt the particle layer's emitter over the cars
  * @param car the car
- * @param nose the nose's point, world [x, y]
  * @param wallDt wall-clock frame time, s
  */
-function emitSteam(puffAt: PuffAt, car: SmokeCar, nose: [number, number], wallDt: number) {
+function emitSteam(puffAt: PuffAt, car: SmokeCar, wallDt: number) {
   const moving = Math.min(1, Math.hypot(car.vx, car.vy) / STEAM_FULL_MPS);
   const carId = car.spec.id || '';
-  const exposed = FIX.dmgmore2 && isRadiatorExposed(carId, car.partLost);
+  const exposed = isRadiatorExposed(carId, car.partLost);
   const steamRate = (STEAM_BASE + STEAM_PER_LEAK * (car.engLeak || 0))
     * (STEAM_STILL + (1 - STEAM_STILL) * moving) * (exposed ? STEAM_EXPOSED : 1);
   car._stDebt = Math.min(4, (car._stDebt || 0) + steamRate * wallDt);
   while (car._stDebt >= 1) {
     car._stDebt--;
-    const [steamX, steamY] = FIX.dmgmore2
-      ? partPoint(car, radiatorAt(carId, fxRandom() < 0.5 ? 1 : -1)) : nose;
+    const [steamX, steamY] = partPoint(car, radiatorAt(carId, fxRandom() < 0.5 ? 1 : -1));
     puffAt(steamX, steamY, car.vx * 0.4, car.vy * 0.4, STEAM, 0.6);
   }
 }
@@ -231,17 +228,17 @@ function emitSteam(puffAt: PuffAt, car: SmokeCar, nose: [number, number], wallDt
  * @param wallDt wall-clock frame time, s
  */
 function emitNose(puffAt: PuffAt, car: SmokeCar, wallDt: number) {
-  const engT = car.engT || 0, nose = carPoint(car, car.spec.len * 0.45, 0);
+  const engT = car.engT || 0;
   if ((car.engLeak || 0) > 0 && (car.engWater || 0) > 0 && engT > STEAM_FROM_C)
-    emitSteam(puffAt, car, nose, wallDt);
+    emitSteam(puffAt, car, wallDt);
   let rate = SMOKE_RATE * Math.max(0, Math.min(1, (engT - SMOKE_FROM_C) / SMOKE_SPAN_C));
   if (car.engSeized) {
     rate = SEIZED_RATE * Math.max(0, 1 - (car._seizeAge || 0) / SEIZED_FADE_S);
   }
   if (rate <= 0) return;
   car._esDebt = Math.min(4, (car._esDebt || 0) + rate * wallDt);
-  // (?dmgmore2: off the engine where it is - physics/leakplaces.ts)
-  const [smokeX, smokeY] = FIX.dmgmore2 ? partPoint(car, [sumpAt(car.spec.id || ''), 0]) : nose;
+  // (off the engine where it is - physics/leakplaces.ts)
+  const [smokeX, smokeY] = partPoint(car, [sumpAt(car.spec.id || ''), 0]);
   while (car._esDebt >= 1) {
     car._esDebt--;
     puffAt(smokeX, smokeY, car.vx * 0.4, car.vy * 0.4, ENGINE_SMOKE, 0.6);

@@ -14,8 +14,9 @@ carcull, the texture warm-up) and the stadium crossovers passed 11-12 ("mostly p
 records in `TODO-DONE.md` (PASSED 11-12). ?underskin (the damage look), ?carparts (steps 1-6:
 each car's own crash parts) and ?carshade (every closed car shaded) PASSED 11-17, the default
 (TODO-DONE, PASSED 11-17, THE PASS BATCH 4). ?dmgmore (the rolled cars, dragging) PASSED 11-17, the default (TODO-DONE, PASSED 11-17, MORE DAMAGE).
-PASSED 11-17 (owner), to be made the default on resume: ?dmgmore2 (the hanging exhaust and bumper, steam
-and leaks), ?scanyah (the tractor - its trailer then behind its own ?trailer), ?tipping, ?marktrack.
+?dmgmore2 (the hanging exhaust and bumper, steam and leaks) and ?marktrack PASSED 11-17, the default
+(TODO-DONE, PASSED 11-17, MORE DAMAGE 2 AND MARK TRACK). PASSED 11-17 (owner), to be made the default
+on resume: ?scanyah (the tractor - its trailer then behind its own ?trailer), ?tipping.
 
 ## 2. BEING BUILT
 
@@ -27,7 +28,7 @@ and leaks), ?scanyah (the tractor - its trailer then behind its own ?trailer), ?
     the back of a mixed grid), a solo start slides back to a spot with the rig's length clear; the
     GARAGE gets a TRAILER row for tractor units: WITHOUT, or the CURTAINSIDER HALF-FULL only (no load
     chooser). Later trailer types: a flatbed with visible cargo first (owner: "I don't mind").
-  - WORKER B (paused): damage items 4 and 3 built (behind ?dmgmore2, under test). Blighty Park
+  - WORKER B (paused): damage items 4 and 3 passed 11-17, the default. Blighty Park
     RX and the Outer circuit - WIP worker/b4-blighty 7ac09580, built and checked; left: photos, docs,
     the RX's 8.9 m corner, the proof.
   - PARKED: PIT STOPS (item 16 below) - owner 11-16: "needs more work and discussion, I have images
@@ -216,48 +217,6 @@ out of date for the Formula Won (saved 347 km/h, 2.8 s, 32.3 m, 1.83 g; measured
 34.0, 1.87 - re-run tools/carstats.mjs); tools/tyrecheck.mjs's full run fails 5 of its claims on
 the base (the burnout and drift times of the hatch-rwd, the muscle car, the F1 and the Naffcar: the
 tyres heat faster than its limits; it is not in CI) - its --car mode shows those times unjudged.
-MORE DAMAGE 2 (?dmgmore2=1, FIX.dmgmore2; testlist 'dmgmore2'), the owner's damage items 4 and 3.
-HANGING PARTS (item 4; owner's answers 11-17: the exhaust hangs by a chance by the damage, about half
-overall, and drags a random 100-400 m; a hanging bumper falls off by itself by distance and damage;
-the Tesla and open cars as they are): world/hanging.ts. A hit that would throw the exhaust leaves it
-hanging HANG_FROM 1.55 less the hit's size of the time (0.2-0.8; a roll's impact as 0.75) - gone from
-the sprite, drawn under the body with its tailpipes 0.35 m behind the tail (render/hanging.ts), its
-end SPARKING on hard ground over 2 m/s (render/particles.ts emitHangingDrag) - and it drops after a
-random 100-400 m of the car's travel (thrown as before), or at the next hit on the tail. A torn bumper
-that leaves a piece hanging (world/torn.ts partHangs, shared now with render/torncut.ts) drags 100-400
-m x (1 - 0.5 x its end's damage), shedding PAINT CHIPS from its end (no sparks), then the piece drops
-('drop:bumper:<c>' in partLost: render/carparts.ts no longer draws it). MEASURED
-(tools/scratch/_hangcount.mjs, 200 crashes a car - a rear and a front hit of 10-28 m/s - then driven
-at 15 m/s, RANDOM_SEED 1): exhausts left hanging / thrown, hatch-fwd 25 / 18, saloon-rwd 21 / 35,
-estate-4x4 28 / 21 (74 / 74 pooled: a half); no exhaust hangs on an open car (track-rwd: 0) or the Tesla (none to throw); each dragged 104-400 m (means 231-249) before it
-dropped; bumper pieces 196-206 a car, dragged 51-324 m (means 143-153). The switch off: no hanging.
-FIXED while building it: a rear hit's second corner knocked off the exhaust the same hit had just
-left hanging (0 m drags); a part left hanging that step is not knocked. Photos
-(tools/scratch/_hangshots.mjs: the hatch and the saloon on the Test Track): the sparks behind the
-tail, the bumper's piece and its chips; no page errors. AWAITING THE PHONE TEST.
-STEAM AND LEAKS (item 3; owner's answers 11-17: oil by the hit's size, later hits widen by their
-size, the radiator too; puddles under the real radiator and sump; denser steam when exposed):
-physics/leakplaces.ts gives each car's radiator (carbits.ts: nose, tail - the Sport quattro S1 -
-or sides, mid-engined) and sump (under its engine); the water lands under the radiator and the
-oil under the sump (physics/engineheat.ts stepLeaks: they were 0.3 and 0.15 of the length ahead
-for every car); the steam rises from the radiator (render/enginesmoke.ts emitSteam: it came off a
-fixed point at the nose), x1.5 when the panel over it is lost (isRadiatorExposed), and the hot
-engine's smoke off the engine. The SUMP cracks by the hit's size (120 s to drain from a 0.35 hit
-down to 60 s from 0.8; a roll as 0.5; it was a random 60-120 s), and a later crack, radiator or
-sump, WIDENS a leaking one by its own rate (each at most 1/30 a second). MEASURED
-(tools/scratch/_leaks.mjs: a front hit, then a second of 0.4; off -> on): water after a 0.35 hit 74
--> 74 s, + the 0.4 hit 49 -> 34 s; after 0.6: 40 -> 40, then 34 -> 30; oil after 0.35: 60 -> 120 s,
-then 60 -> 57; after 0.8: 60 -> 60, then 60 -> 39. Where they land, parked (m ahead of the middle,
-1.5 m cells): the hatch water +2.25, oil +0.75; the S1 water -2.25 (its tail), oil +0.75; the
-Huracan water +2.25, oil -0.75 (its mid engine); off: every car's in the same cell, +0.75. Visible
-drips in the plan: left out - under the body they cannot be seen; the trail is the wet and oil
-cells. Photos (tools/scratch/_steamshots.mjs: the hatch, the S1, the Huracan, panel on and off):
-the steam off the nose, the S1's tail, denser with the panel gone; no page errors. AWAITING THE
-PHONE TEST.
-MARK TRACK (?marktrack=1, owner 11-17: fix it, its own switch): marks.ts listWheels laid the rear-right
-wheel's mark at the FRONT track; it now uses the rear one (spec.trackR) - only the Routemonster and
-the Skool Bus have their own (2.05 front / 1.80 and 1.85 rear: 0.125 and 0.10 m in). AWAITING THE
-PHONE TEST.
 
 THE 10 NEW CARS (owner-approved names 11-16; one switch and one hand-back each; src/newcars.ts):
 1-7 PASSED 11-16, the default with the launches (owner: "all pass apart from my earlier comments"):

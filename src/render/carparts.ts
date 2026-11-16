@@ -684,7 +684,7 @@ export function withoutParts(spec: RenderCarSpec, sprite: CarSprite, lost: strin
   for (const entry of lost.split(',').filter(Boolean)) {
     const [kind, corner] = entry.split(':');
     // (the wing is left out by the painters - spec.noWing; the engine shows in the bay; a
-    // dropped piece - ?dmgmore2, world/hanging.ts - is read with its part below)
+    // dropped piece - world/hanging.ts - is read with its part below)
     if (kind === 'spoiler' || kind === 'engine' || kind === 'drop') continue;
     const region = partRegion(spec, sprite, kind, +corner);
     for (let y = region.y0 + 2; y <= region.y1 + 2; y++) for (let x = region.x0 + 2;
@@ -693,7 +693,7 @@ export function withoutParts(spec: RenderCarSpec, sprite: CarSprite, lost: strin
       const i = (y * canvas.width + x) * 4;
       lostPixel(rgba, i, { spec, kind, corner: +corner, region }, x - 2, y - 2);
     }
-    // (its hanging piece, unless it has dropped off - ?dmgmore2)
+    // (its hanging piece, unless it has dropped off)
     if (torn && !lost.includes('drop:' + entry))
       drawHanging(torn, { kind, corner: +corner, region });
   }

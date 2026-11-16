@@ -471,7 +471,7 @@ the rubber comes off by a chance rising with the metres run flat (half by ~1 km)
 snapped arm or subframe (`debris.ts dragReach`; `metalscrape.ts touchPoint`, `marks.ts markAcross`,
 `particles.ts wheelPlace`), throws its ground's spray on soft ground (`car.dragSpray`,
 `emitDragDirt`), and pulls by what drags (`debris.ts dragPull`, `damage.ts sideDrag`).
-?dmgmore2: PARTS LEFT HANGING (`world/hanging.ts`): `exhaustHangs` (from `debris.ts` bigParts /
+PARTS LEFT HANGING (`world/hanging.ts`): `exhaustHangs` (from `debris.ts` bigParts /
 shedOnRoll) leaves an exhaust hanging (`car.exhaustHang` m left; drawn by `render/hanging.ts`), a torn
 bumper's piece (`world/torn.ts partHangs`) drags `car.bumperHang`; `stepHanging` (`damage.ts stepDamage`)
 runs their distance off, sets `exhaustDrag` / `bumperDrag` (sparks / chips: `particles.ts
@@ -492,7 +492,7 @@ axle's longitudinal peak by `rangeGrip` (`LOW_GRIP`). `requestRange` changes it 
 (the lever, `hud/lowlever.ts`, through `hitHud` -> `controls.ts hudToggles`; a refusal stamps
 `car.rangeRefusedAt` for the lever's 1 s STOP); the AI's `stepAIRange` (`game/ai.ts`) takes low
 bogged on loose ground or slow on a 1 in 3 climb and high again on firm gentle ground.
-?dmgmore2: `physics/leakplaces.ts` gives each car's radiator and sump places (carbits.ts layout):
+`physics/leakplaces.ts` gives each car's radiator and sump places (carbits.ts layout):
 the leaks land there (`engineheat.ts stepLeaks`), the steam and hot smoke rise there
 (`render/enginesmoke.ts emitSteam`, x1.5 exposed: `isRadiatorExposed`); the sump cracks by the hit's
 size and a later crack widens a leak by its own (`crackSump`, `crackOnHit`).

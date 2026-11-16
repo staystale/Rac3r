@@ -19,7 +19,6 @@ import { WEATHER } from "./world/weather.ts";
 import { CORNER_OF_WHEEL, halfTrackAt, wheelGone, metalCorner } from "./world/wheels.ts";
 import { MARK_GOUGE } from "./world/metalscrape.ts";
 import { dragReach } from "./world/debris.ts";
-import { FIX } from "./core/fixes.ts";
 import { addTrailPoint, clearWetTrails } from "./wettrail.ts";
 import { acrossOf, alongOf } from "./world/crossinggeo.ts";
 import type { Crossing, Mark, Spray, Surface, WheelGround } from './world/types.ts';
@@ -621,7 +620,7 @@ function listWheels(car: MarkCar): MarkWheel[] {
     ['fl', spec.lf, -halfTrack, telem.slipSpeedF, 0],
     ['fr', spec.lf, halfTrack, telem.slipSpeedF, 1],
     ['rl', -spec.lr, -halfRear, telem.slipSpeedR, 2],
-    ['rr', -spec.lr, FIX.marktrack ? halfRear : halfTrack, telem.slipSpeedR, 3],
+    ['rr', -spec.lr, halfRear, telem.slipSpeedR, 3],
   ] as [string, number, number, number, number][]) {
     // a wheel gone leaves no rubber, trail or spray: only its hub's score while it sparks
     const gone = wheelGone(car, corner), gouge = !!(rims && rims[corner]);

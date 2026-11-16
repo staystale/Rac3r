@@ -1,6 +1,6 @@
-// world/torn.ts - WHICH TORN PANELS LEAVE A PIECE HANGING (the drawing: render/torncut.ts; with
-// ?dmgmore2 the sim drags them: world/hanging.ts). Seeded per car corner and part, the same every
-// frame and on every machine.
+// world/torn.ts - WHICH TORN PANELS LEAVE A PIECE HANGING (the drawing: render/torncut.ts; the sim
+// drags them: world/hanging.ts). Seeded per car corner and part, the same every frame and on every
+// machine.
 
 /**
  * A seeded 0..range-1 per (first, second).
