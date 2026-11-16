@@ -13,10 +13,97 @@ rolls - OWNER 11-07; the AI rework - Where we are 11-04; the driving root fix, t
 LIST 11-01; TypeScript, mud, grass, lamps - Queue; weather, surfaces, car systems, damage,
 lighting, bushes and trees - OWNER LIST 10-24; the checking tools - Tools that are wrong.
 
+## PASSED 11-16 (owner: "A and b"; "pembreezy has messy fences but mostly good") - PEMBREEZY, the
+circuit at half size and Pembreezy RX at full size, plain levels (was ?pembreezy=1), the fences tidied
+
+PROOF (the three 11-16 passes together; the second PC, both sides there): the code before them
+(6f01047a) with ?gpustat=1&hwtrips=1&pembreezy=1 (HWTRIPS=1 PEMBREEZY=1 for the node tools) against
+the new code (497c9c30, 6c5d53af on round92) plain - simhash SAME (13 runs, plus drive runs on
+Pembreezy and Pembreezy RX), worldhash --highway 20 SAME (every level and the highway's 20 km),
+renderhash SAME (Pembreezy, Pembreezy RX, Thruston, the highway); tools/scratch/_hwtrips.mjs (160
+km, the laptop) the same line for line (but the step timings); the report
+(tools/scratch/_gpustat.mjs, day, 12 s, the laptop): the base with ?report=1&gpustat=1 and the new
+with ?report=1 both post the 22 extra numbers (35 a frame) and the device's hints, phonereport
+printing them.
+
+  PEMBREEZY BUILT 11-16 behind ?pembreezy=1 (owner's answers 11-15: fail point both the gravel
+  hairpin and the fast tarmac sweeper onto gravel; the real joker; coastal dressing; the circuit the
+  National / BTCC lap, all tarmac, half size, one venue with the RX): pembreezy-venue.ts (Pembreezy
+  Circuit, 1159 m in game, 2333 m mapped / 2343 real) and pembreezyrx-venue.ts (Pembreezy RX, full
+  size, 2045 m in game, 2063 traced; gravel 1055-1629 m, 28 %; the joker round the outside of the
+  gravel loop's right-hander, BRX 2022 clockwise "Hansen's"), one map download, one dressing, two
+  builds (two scales). barriercheck OK and venueaudit clean on both. ENGINE: PEMBREEZY.
+  OWNER QUESTIONS (11-16): the RX route (the map's classic lap is 2.06 km; BRX lists Pembrey's
+  rallycross at 1400 m and the layout has changed since 2022 and runs both ways); the scale (the
+  full-size RX is longer than the half-size circuit; one build needs one scale); the unraced circuit
+  pieces left out of the RX build (as Croughed RX); a proper Welsh flag drawing (today the flag
+  prop in white, green and red in turn); whether the foreign-weather rule covers Wales.
+  OWNER 11-16 ("ok yes" to the recommendations): the classic clockwise RX lap as built; the scales
+  as built (RX full, circuit half); the unraced circuit pieces left out of the RX; the plain Welsh
+  flag (a dragon flag later); the dunes as placed; Wales is in the UK (no foreign weather); the tyre
+  walls decided after the clean frame numbers.
+  MESSY FENCES (owner 11-16: "pembreezy has messy fences but mostly good"): FOUND (tools/venueplan.mjs
+  plans, now with the loose objects by kind; tools/scratch/_tyrechains.mjs; photos at the flat-out
+  zoom 0.32, tools/scratch/_pbzshots.mjs ZOOM=): the map's tyre walls (19 lines round the circuit,
+  15 in the RX build) were laid wherever mapped - on the RX the circuit's Speedway, Brooklands,
+  outer south and paddock-side walls stood in open grass 44-121 m (median) from the raced road, one
+  across the paddock; on the circuit the rallycross section's wall stood alone in the infield 45 m
+  off; where the edge's own two rows run beside a mapped wall its stacks more than 1 m off them
+  stood as a jagged fringe; and lone tyres and 3-13 m stubs were left where a road or the edge's
+  rows cut a wall. FIX (VenueSpec.tidyTyres on both levels, world/venuetyres.ts; every other venue
+  as before): a wall standing mostly more than 40 real m past every raced road's edge left out, its
+  stacks within 3 m of the edge's rows left out, runs under 20 real m left out. MEASURED: tyre stacks
+  circuit 1366 -> 1231 (chains 18 -> 11, lone tyres 3 -> 0), RX 2746 -> 1336 (the mapped walls kept
+  round the raced road whole; the lone stacks left on the RX, 11, are the shared rallycross
+  dressing's apex blocks squeezed by its bales - kit.ts rxDress, not changed). barriercheck OK,
+  venueaudit nothing overlaps, propcheck clean on both; the menu thumbnails unchanged. Photos before /
+  after (844x390, 390x844, zoom 0.32, and the plans) in the hand-back.
+  BEFORE THE DEFAULT (the last worker's open checks, 11-16; the second PC, CHECK_PORT 8093):
+  - FULL-FIELD RACES (tools/scratch/_pbzrace.mjs, 20 AI, 4 laps, your car on the racing AI as
+    well): Pembreezy RX (rx-super) seed 1 / 2 - 20 of 20 AI finished both; AI off the road a
+    median 32 / 29.5 s a race (max 53.6 / 95.9), put back 33 / 32 times (about half of them at lap
+    1200-1300 m, the gravel right-hander and the joker's mouth: Hansen's), 4 / 8 rolls; YOUR car
+    (the tool's own racing driver, which has no stuck put-back) stuck both times on the gravel -
+    seed 1 at lap 1492 m 14.6 m off its centre, seed 2 at lap 1224 m 10 m off (the joker's mouth),
+    not finished. Pembreezy Circuit (saloon-rwd) seed 1 / 2: your car finished both (4.8 / 0 s off);
+    AI off a median 4.7 / 0.9 s, put back 3 / 1, 1 / 0 rolls; 8 / 10 AI on their last lap when
+    the race closed (a 1.16 km lap). No page errors.
+  - aijokercheck (the racing AI alone, rx-super, difficulty 4, seeds 1-5, the laptop): the joker
+    branch found (357 points); one gate entry on 4 of 5 (seed 3, planned on lap 5, none: its
+    progress jumped a lap on the joker loop and the 5-lap run ended before the gate - the same
+    split laps as Holy Jeez's, 12.0 + 38.3 s, a tool artifact, not proven either way); off the
+    road 18.4-34.9 s in 360-388 s (Holy Jeez 7.5-10.1 s in 234-239 s, Knobhill 5.4-6.9 in
+    224-230 s, the same run).
+  - CLEAN FRAME A/B (tools/framecheck.mjs, CPU x4, rx-super; the PC with nothing else running;
+    our work a frame, median ms; A = Pembreezy RX before the tidy, B = after it, C = Croughed RX,
+    D = Pembreezy RX with no mapped tyre walls, "leaveOut": ["tyres"] for this run only):
+    | | A | B | C | D |
+    |---|---|---|---|---|
+    | 20 AI | 202.0, 219.3 | 208.3, 203.6 | 185.9, 200.3 | 190.4, 203.9 |
+    | no AI | 38.3, 35.0 | 33.2, 31.5 | 22.8, 22.4 | 28.7, 16.3 |
+    With 20 AI every run is in the PC's catch-up loop (12 steps a frame): the AI's cost, no level
+    clearly apart. With no AI (the drawing): the tidy took ~4 ms off (A -> B), Pembreezy RX is
+    ~10 ms a frame heavier than Croughed RX (B 32 vs C 23), the remaining mapped tyre walls ~3-4 ms
+    of it (B 33.2 vs D 28.7; D's second run 16.3 painted 376 tiles to the others' ~900 - not a
+    like run). (A 20-AI B run at 07:08 overlapped another job and is left out; another A run hung
+    and was stopped.) THE OWNER DECIDES whether to thin the RX's remaining tyre walls.
+  The switch ?pembreezy=1 removed with its test entry; both levels plain in TEST MODE (CIRCUITS,
+  RALLYCROSS).
+
 ## PASSED 11-16 (owner: "A and b"; yes to "raise to a measured 2 in 12 ... a missed car stays left until the
 next exit") - THE TRAFFIC'S TRIPS, the default (was ?hwtrips=1): leaving by the slips, fuel stops, joins
 from the on-ramps, at the raised rolls; the old nearside-only fuel roll (trafficFuel.ts mayStopForFuel,
 STOP_SHARE) deleted.
+
+PROOF (the three 11-16 passes together; the second PC, both sides there): the code before them
+(6f01047a) with ?gpustat=1&hwtrips=1&pembreezy=1 (HWTRIPS=1 PEMBREEZY=1 for the node tools) against
+the new code (497c9c30, 6c5d53af on round92) plain - simhash SAME (13 runs, plus drive runs on
+Pembreezy and Pembreezy RX), worldhash --highway 20 SAME (every level and the highway's 20 km),
+renderhash SAME (Pembreezy, Pembreezy RX, Thruston, the highway); tools/scratch/_hwtrips.mjs (160
+km, the laptop) the same line for line (but the step timings); the report
+(tools/scratch/_gpustat.mjs, day, 12 s, the laptop): the base with ?report=1&gpustat=1 and the new
+with ?report=1 both post the 22 extra numbers (35 a frame) and the device's hints, phonereport
+printing them.
 
 15. TRAFFIC (and unaggravated police) stop for fuel now and then and take slip roads (the petrol
     station stops exist, ai/trafficFuel.ts, 11-11: check how often); aggravated police as now.
@@ -61,6 +148,16 @@ STOP_SHARE) deleted.
 ## PASSED 11-16 (owner: "A and b") - THE PHONE REPORT'S GPU AND LAYER NUMBERS, the default with every
 `?report=1` (was ?gpustat=1); nothing runs without the report. The fences (one frame a second
 made to wait) come with every report run now.
+
+PROOF (the three 11-16 passes together; the second PC, both sides there): the code before them
+(6f01047a) with ?gpustat=1&hwtrips=1&pembreezy=1 (HWTRIPS=1 PEMBREEZY=1 for the node tools) against
+the new code (497c9c30, 6c5d53af on round92) plain - simhash SAME (13 runs, plus drive runs on
+Pembreezy and Pembreezy RX), worldhash --highway 20 SAME (every level and the highway's 20 km),
+renderhash SAME (Pembreezy, Pembreezy RX, Thruston, the highway); tools/scratch/_hwtrips.mjs (160
+km, the laptop) the same line for line (but the step timings); the report
+(tools/scratch/_gpustat.mjs, day, 12 s, the laptop): the base with ?report=1&gpustat=1 and the new
+with ?report=1 both post the 22 extra numbers (35 a frame) and the device's hints, phonereport
+printing them.
 
 THE FRAME-DROP HUNT, PREP (JOB 3b; owner 11-15: "The frame rate drop needs to be chased down").
   KNOWN: the phone gives 53-92 frames/min over 20 ms on the highway zoomed out while our JS is
