@@ -13,6 +13,18 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'f1menu',
+    added: '2026-11-16',
+    name: 'F1 vs WORLD in the menu: an F1 CIRCUITS type card (the Grand Prix calendar) above '
+      + 'WORLD CIRCUITS (endurance, GT, mountain)',
+    where: 'Test link + &f1menu=1: TEST MODE, the types screen',
+    try: 'F1 CIRCUITS holds Sillystone GP, Moanaco, Spa, Monzarella, Snoozuka and Yass Marina; '
+      + 'WORLD CIRCUITS holds Nordschlep, Le Manky and Bathworst; Sillystone National is still '
+      + 'under CIRCUITS. Pick one from each and race it.',
+    wrong: 'A track missing or listed twice, Spa anywhere but F1, the wrong card opening, or the '
+      + 'menu remembering the wrong type after a race.',
+  },
+  {
     id: 'carshade',
     added: '2026-11-16',
     name: 'Shading, every closed car (batches 1-3) the TS010 way (lit crests, soft slopes, shadow '
