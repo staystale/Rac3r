@@ -116,6 +116,22 @@ export const CAR_DOORS: Record<string, CarDoors> = {
     { at: [0.3, 0.5], shape: 'skirt' }], bumpers: ['grille', 'staircase'], glass: 8 },
 };
 
+// ?carparts step 3: the cars whose REAR WINGS are bolted on and come off - the race cars' composite
+// panels and arches, the Defender's aluminium body, the Seven's cycle wings, the trophy truck's
+// fibreglass, the tractor's mudguards; every other closed car's are welded quarter panels (they
+// crush, not fly off); the single-seaters and the buggy keep their own open parts
+const BOLTED_REAR_WINGS = new Set(['porch-gt3r', 'bmv-m4gt3', 'civvic-btcc', 'cleo-cup', 'saxo-kit',
+  'kit-2l', 'rx-super', 'rally-4x4', 'drift-s13', 'naffcar', 'ts010', 'defunder-110', 'seven-420r',
+  'effing-tt', 'tractor']);
+
+/**
+ * ?carparts: whether a car's rear wing is a welded quarter panel (not thrown: it crushes).
+ * @param carId the car
+ * @returns welded
+ */
+export const isRearWingWelded = (carId: string) => !!CAR_DOORS[String(carId).split('#')[0]]
+  && !BOLTED_REAR_WINGS.has(String(carId).split('#')[0]);
+
 /**
  * ?carparts: a car's own row (its doors and parts), or none.
  * @param carId the car
