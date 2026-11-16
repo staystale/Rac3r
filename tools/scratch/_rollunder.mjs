@@ -6,7 +6,7 @@
 // node tools/scratch/_rollunder.mjs <dir> [cars] [extra query]
 import { mkdirSync } from 'node:fs';
 import { startServer, launchBrowser, gotoGame } from '../lib/browser.mjs';
-const [OUT = 'tools/scratch/rollunder', carsArg = 'hatch-fwd,saloon-rwd', query = 'dmgmore=1']
+const [OUT = 'tools/scratch/rollunder', carsArg = 'hatch-fwd,saloon-rwd', query = 'x=1']
   = process.argv.slice(2);
 mkdirSync(OUT, { recursive: true });
 const server = await startServer();

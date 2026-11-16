@@ -5,7 +5,7 @@
 import { writeFileSync } from 'node:fs';
 import { startServer, launchBrowser, gotoGame } from '../lib/browser.mjs';
 const [OUT = 'tools/scratch/_underpic.png', carsArg = 'hatch-fwd,saloon-rwd,wrz-awd',
-  query = 'dmgmore=1'] = process.argv.slice(2);
+  query = 'x=1'] = process.argv.slice(2);
 const server = await startServer();
 const browser = await launchBrowser();
 try {

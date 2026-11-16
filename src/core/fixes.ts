@@ -27,7 +27,7 @@
 // cleo (as the Clio III Cup), cleoroad, transfitlwb, transfitswb, saxo, strange, saxovtr,
 // fuelcarry and rollguard passed 11-16; then ts010 (with its PROTOTYPE class), tesla,
 // routemonster and m4gt3 passed 11-16; then corolla, reversefix, f1menu, r13, ibiza and a4avant
-// passed 11-16; lowrange passed 11-17; transitcustom, e36peak and schoolbus passed 11-17.)
+// passed 11-16; lowrange, dmgmore, transitcustom, e36peak and schoolbus passed 11-17.)
 import { envValue } from './debug.ts';
 
 /**
@@ -66,11 +66,6 @@ export const FIX = {
   driftbrake: atLoad('driftbrake'),
   // a chasing police car sounds a siren, the light bar's twin (game/sirens.ts, audiosiren.ts)
   siren: atLoad('siren'),
-  // MORE DAMAGE (the owner's damage items, one switch): a ROLLED car's underside as it really is
-  // and snapped where a wheel was torn off (render/carprofile.ts underCorners, render/rollbody.ts),
-  // a front wheel's TRACK ROD thrown with it (world/debris.ts SUSP_ROD), a roll tearing off only
-  // the wheels on the face that hits (physics/openwheel.ts rollCorners)
-  dmgmore: atLoad('dmgmore'),
   // the rear-right wheel's skid mark at the REAR track (marks.ts listWheels: it was laid at the
   // front track - off on a car whose rear track is its own, spec.trackR)
   marktrack: atLoad('marktrack'),
@@ -80,4 +75,7 @@ export const FIX = {
   // THE TWO-WHEEL STATE (physics/tip.ts): a car may lift onto its two outside wheels before it
   // rolls - steering into it or lifting off brings it down; a dice trip starts there too
   tipping: atLoad('tipping'),
+  // MORE DAMAGE 2 (the owner's damage items 4 and 3): an exhaust or a torn bumper's piece left
+  // HANGING, dragging until it drops (world/hanging.ts, render/hanging.ts)
+  dmgmore2: atLoad('dmgmore2'),
 };

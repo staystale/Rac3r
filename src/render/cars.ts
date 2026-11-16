@@ -15,6 +15,8 @@ import { drawUnderSkin } from "./underskin.ts";
 import { cornerShift, drawExposedCorner, drawExposedStrut, isWingTorn, drawSubframe,
   drawSnappedCorner } from "./carcorners.ts";
 import { SUBFRAME_M } from "../world/debris.ts";
+import { drawHangingExhaust } from "./hanging.ts";
+import { FIX } from "../core/fixes.ts";
 import type { CornerShift } from "./carcorners.ts";
 import { bitsOf } from '../carbits.ts';
 import { halfTrackAt } from '../world/wheels.ts';
@@ -646,6 +648,8 @@ function drawPixelCar(carsCtx: CarsContext, car: RenderCar, heading = car.headin
   view.ctx.globalAlpha = 1;
   // the wheels show their own air (render/tyrelook.ts: squashed, flat, on the rim)
   drawCarWheels(carsCtx, car, sprite, lost);
+  // (?dmgmore2: a hanging exhaust under the body, its end on the road - render/hanging.ts)
+  if (FIX.dmgmore2 && car.exhaustHang) drawHangingExhaust(view.ctx, spec, sprite);
   view.ctx.drawImage(sprite.c, -sprite.Lp / 2 - 2, -sprite.Wp / 2 - 2);
   if (car.flaps) drawRoofFlaps(view.ctx, car.flaps, sprite);
   drawCarLamps(carsCtx, car, sprite);

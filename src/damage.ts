@@ -14,6 +14,8 @@ import { levelStingers, tyresOnStinger } from './world/stingers.ts';
 import { LEVEL } from './world/state.ts';
 import { crashOil, rollOil } from './world/oil.ts';
 import { crashDebris, wheelBits, rollParts, crushedEngine, dragPull } from './world/debris.ts';
+import { mendHanging, stepHanging, type HangCar } from './world/hanging.ts';
+import { FIX } from './core/fixes.ts';
 import {
   takePost, postDeltaV, postShares, radiatorScale, type PostNote,
 } from './physics/posthit.ts';
@@ -110,6 +112,7 @@ export function damageInit(car: DamageCar): asserts car is DamagedCar {
   car.partLost = '';
   car.glassOut = 0;
   car.suspOff = [0, 0, 0, 0];
+  if (FIX.dmgmore2) mendHanging(car as DamageCar & HangCar);
   pressureInit(car);
   engineInit(car as DamageCar & EngineCar);
   derive(car as DamagedCar);
@@ -341,7 +344,7 @@ function pushEvent(car: DamageCar, event: DamageEvent) {
 const TOE = 0.008, TOE_OFF = 0.02;
 /**
  * A side's pull from its wheels gone: the most its two corners drag (world/debris.ts dragPull:
- * 1 without ?dmgmore), 0 with both wheels on.
+ * 0 with both wheels on.
  * @param car the car
  * @param front the side's front corner
  * @param rear its rear corner
@@ -393,6 +396,8 @@ export function stepDamage(car: DamageCar & ScrapeCar & EngineCar, dt: number): 
   const airMoved = stepTyrePressure(car, dt);
   if (stepEngine(car, dt) || airMoved) derive(car as DamagedCar);
   scrapeMetal(car);
+  // (?dmgmore2: the parts left hanging drag - world/hanging.ts)
+  if (FIX.dmgmore2) stepHanging(car as DamageCar & ScrapeCar & HangCar, dt, Math.random);
 }
 
 /**

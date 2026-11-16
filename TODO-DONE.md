@@ -36,6 +36,46 @@ The default 11-17, their switches deleted:
   Routemonster's London red). Its own parts, shaded.
 PROOF (second PC, old with the switches on -> this plain): follows.
 
+## PASSED 11-17, MORE DAMAGE (owner: ?dmgmore passed - the rolled cars, the dragging, the 3 px hot end)
+
+The default 11-17, the switch deleted: a rolled closed car's underside as it is, snapped where a
+wheel was torn off; a front wheel's track rod thrown; a roll tears off only the wheels on the face
+that hits; a torn-off corner drags its snapped arm or subframe (sparks, score, dig and dirt from
+there, a pull by what drags). PROOF: round155 WITH ?dmgmore=1 against this plain - see the commit.
+The records as built:
+MORE DAMAGE (?dmgmore=1, FIX.dmgmore; testlist 'dmgmore'), the owner's damage items one by one.
+ROLLED CARS (owner's damage item 5, plan approved 11-16; moved behind ?dmgmore 11-17 when
+?underskin passed): the UNDERSIDE a rolled car
+shows is what is really there (render/carprofile.ts underCorner, painted once per damage step in
+render/rollbody.ts paintsOf): each corner's subframe rail, its wishbone's arms, a driven wheel's
+drive shaft from the middle (only driven axles: the bar across every axle gone), a front's track
+rod; a wheel torn off leaves them snapped as the upright car draws them (the arms 0.6 / 0.3 of the
+way, the shaft's and rod's stubs when they went, a strut's tower hole). A FRONT wheel torn off takes
+its TRACK ROD (world/debris.ts SUSP_ROD, thrown as a 'rod' - render/carparts.ts flatRod - and drawn
+as a stub at the rack on the upright corner, render/carcorners.ts drawSnappedCorner). Rolling tears
+off only the wheels on the face that meets the ground (physics/openwheel.ts rollCorners): a side's
+two; back on its wheels the LANDING side's two (roll.ts now passes the side it came off); on its roof
+none on a closed car (in the air), all four on an open car (they stand proud). MEASURED
+(tools/scratch/_rollthrow.mjs, 300 rolls a car, RANDOM_SEED 1, off -> on): wheels torn off on the
+roof, hatch-fwd 22 -> 0, saloon-rwd 16 -> 0, track-rwd (open) 91 -> 94; back on the wheels 9 -> 4,
+23 -> 9, 18 -> 3, each on the landing side (4/4, 9/9, 3/3; off: 5/9, 10/23, 12/18); on a side 39 ->
+56, 36 -> 44, 220 -> 212 (the draws part ways); track rods thrown 0 -> 40, 29, 151. Photos
+(tools/scratch/_rollunder.mjs, _underpic.mjs): no page errors. PASSED 11-17.
+DRAGGING (owner's damage item 2, plan approved 11-16: "more drag, more pull"; the dirt spray yes):
+a corner whose wheel was torn off touches the road where the car shows it - its snapped arm's
+end, or its subframe's with the wishbone gone (world/debris.ts dragReach, the upright drawing's
+SNAP_SHAREs) - so its sparks, its score on hard ground and its dig on soft ground come from there
+(world/metalscrape.ts touchPoint, marks.ts markAcross, render/particles.ts wheelPlace), not from
+the empty hub's place; on soft ground it throws its ground's spray (dragSpray, particles
+emitDragDirt: 30 puffs a second at 15 m/s+); on hard ground the snapped end glows while it sparks
+(render/carcorners.ts drawSnappedCorner, 3 px: owner "only a tiny bit bigger"). The PULL by what drags (damage.ts sideDrag,
+debris.ts dragPull): the snapped arm 0.7 of the old lost-wheel toe, the subframe 1.4 (the owner's
+numbers). MEASURED (_drift.mjs: 60 km/h on tarmac, a wheel torn off, 3 s hands off; off -> arm ->
+subframe): hatch-fwd front 12.8 -> 9.0 -> 17.7 deg (5.4 -> 3.8 -> 7.5 m sideways), rear 33.3 ->
+23.8 -> 44.0 deg; saloon-rwd front 12.7 -> 9.0 -> 17.7, rear 31.3 -> 22.2 -> 44.5; the switch off
+unchanged. tools/scratch/_dragshots.mjs (Test Track, tarmac and grass, 844x390 and 390x844): the
+sparks off the torn corners, the dig on grass; no page errors. PASSED 11-17.
+
 ## PASSED 11-17, LOW RANGE (owner: "Low gear works perfectly as is")
 
 The default 11-17, its switch deleted: every car with a two-speed transfer box (the Defunder 110,

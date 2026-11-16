@@ -12,7 +12,7 @@
 // field, render/glfield.ts, glints moving with the view). It changes no grip; the first tyre
 // pass sweeps the cell clean and may puncture that tyre slowly (PASS: world/pass.ts).
 import { bitsOf, doorAt, doorsOf, hasNo, isRearWingWelded } from '../carbits.ts';
-import { FIX } from '../core/fixes.ts';
+import { exhaustHangs, knockHanging, ROLL_HANG_SIZE, type HangCar } from './hanging.ts';
 import { getCell, wearDirty, WEAR_CELL } from "./wear.ts";
 import { PASS } from "./pass.ts";
 import { DEBRIS } from "../cones/coneConsts.ts";
@@ -52,7 +52,7 @@ const GLASS_POP = 0.15;
 const NO_GLASS = new Set(['track', 'banger', 'grass']);
 
 /** A car as the debris reads it. */
-export interface DebrisCar {
+export interface DebrisCar extends Pick<HangCar, 'exhaustHang' | 'bumperHang' | '_exhaustNew'> {
   x?: number; y?: number; vx: number; vy: number; heading: number; crossing?: number;
   spec?: { id?: string; kind?: string; paint?: string; trim?: string; lf?: number; lr?: number;
     trackWidth?: number; trackR?: number; drive?: number };
@@ -204,12 +204,16 @@ function bigParts(car: DebrisCar, corner: number, add: number, endW: number,
     rnd: () => number) {
   if (add < PART_HIT) return;
   const bits = bitsOf(car.spec?.id || ''), front = corner < 2;
+  // (?dmgmore2: what hangs at this end is knocked off - world/hanging.ts)
+  knockHanging(car, front);
   const has = (kind: string) => (car.partLost || '').split(',').some((entry) =>
     entry.startsWith(kind));
   const off = (kind: string, chance: number) => {
     if (hasNo(bits, kind) || hasNoDoor(car, kind, corner)
       || has(kind === 'mirror' || isTwin(car, kind) ? kind + ':' + corner
       : kind) || rnd() >= chance) return;
+    // (?dmgmore2: the exhaust may be left hanging instead - world/hanging.ts)
+    if (kind === 'exhaust' && exhaustHangs(car, add, rnd)) return;
     car.partLost = (car.partLost ? car.partLost + ',' : '') + kind + ':' + corner;
     (car.partSpawn || (car.partSpawn = [])).push({ corner, kind });
   };
@@ -224,6 +228,21 @@ function bigParts(car: DebrisCar, corner: number, add: number, endW: number,
 }
 
 /**
+ * Whether a part is gone already: an own part (bumper / wing / door) by its bit, the rest by its
+ * name - a mirror (and a van's rear door) by its side.
+ * @param car the car
+ * @param kind the part
+ * @param corner its corner
+ * @param bit an own part's bit (0: not one)
+ * @returns gone already
+ */
+function isShedAlready(car: DebrisCar, kind: string, corner: number, bit: number): boolean {
+  if (bit) return ((car.partsOff || 0) & bit) !== 0;
+  const name = kind === 'mirror' || isTwin(car, kind) ? kind + ':' + corner : kind;
+  return (car.partLost || '').split(',').some((entry) => entry.startsWith(name));
+}
+
+/**
  * one part off by a roll's impact, if still on (a bumper / wing / door by its bit, the
  * rest by its name - a mirror by its side).
  * @param car the car
@@ -234,10 +253,8 @@ function bigParts(car: DebrisCar, corner: number, add: number, endW: number,
 function shedOnRoll(car: DebrisCar, kind: string, corner: number, chance: number): void {
   const own = ['bumper', 'wing', 'panel'].includes(kind);
   const bit = !own ? 0 : kind !== 'bumper' ? 1 << corner : corner < 2 ? FRONT_BUMPER : REAR_BUMPER;
-  const name = kind === 'mirror' || isTwin(car, kind) ? kind + ':' + corner : kind;
-  const gone = own ? ((car.partsOff || 0) & bit) !== 0
-    : (car.partLost || '').split(',').some((entry) => entry.startsWith(name));
-  if (gone || Math.random() >= chance) return;
+  if (isShedAlready(car, kind, corner, bit) || Math.random() >= chance) return;
+  if (kind === 'exhaust' && exhaustHangs(car, ROLL_HANG_SIZE, Math.random)) return;
   if (own) car.partsOff = (car.partsOff || 0) | bit;
   car.partLost = (car.partLost ? car.partLost + ',' : '') + kind + ':' + corner;
   (car.partSpawn || (car.partSpawn = [])).push({ corner, kind });
@@ -324,13 +341,13 @@ export const SUBFRAME_M = 0.6;
 // a wheel torn off (owner 11-16: "the hub is still attached"): its hub went with it; what stayed is
 // SNAPPED - the arms (and a driven wheel's inner shaft) end this share of the way out from the
 // subframe to where the hub was, shorter when the wishbone went too (render/carcorners.ts draws
-// it; with ?dmgmore it is what DRAGS on the road, dragReach)
+// it; it is what DRAGS on the road, dragReach)
 export const SNAP_SHARE = 0.6, SNAP_SHARE_NO_WISHBONE = 0.3;
-// ?dmgmore (owner: "more drag, more pull"): the pull of a corner dragging its snapped arm, and of
+// (owner: "more drag, more pull"): the pull of a corner dragging its snapped arm, and of
 // one dragging its subframe (the wishbone gone too), against the toe a lost wheel gave (damage.ts
 // TOE_OFF) - the owner's numbers
 export const DRAG_PULL_ARM = 0.7, DRAG_PULL_SUBFRAME = 1.4;
-// ?dmgmore: a FRONT wheel torn off takes its TRACK ROD - the steering's part at that corner
+// a FRONT wheel torn off takes its TRACK ROD - the steering's part at that corner
 // (owner 11-16: rolling throws "steering and suspension parts")
 export const SUSP_ROD = 8;
 // the tearing hit's size, 0..1 (damage.ts: (add - WHEEL_HIT) / WHEEL_HIT), from which it takes the
@@ -339,9 +356,9 @@ export const SUSP_ROD = 8;
 const STRUT_FROM = 0.3, WISHBONE_FROM = 0.65, OPEN_SECOND = 0.5;
 
 /**
- * ?dmgmore: how far out from the car's middle line a torn-off wheel's corner touches the road, m:
+ * How far out from the car's middle line a torn-off wheel's corner touches the road, m:
  * the snapped arm's end, or with the wishbone gone the subframe's (as render/carcorners.ts draws
- * them). Without the switch, the wheel's place (the hub, as before).
+ * them).
  * @param car the car (its spec and suspOff)
  * @param corner the damage corner
  * @returns m from the middle line
@@ -349,20 +366,18 @@ const STRUT_FROM = 0.3, WISHBONE_FROM = 0.65, OPEN_SECOND = 0.5;
 export function dragReach(car: { spec: { wid?: number; trackWidth?: number; trackR?: number };
   suspOff?: number[] }, corner: number): number {
   const hub = halfTrackAt(car.spec, corner >= 2);
-  if (!FIX.dmgmore) return hub;
   const inner = (car.spec.wid ?? 1.8) / 2 - SUBFRAME_M;
   const share = (car.suspOff?.[corner] ?? 0) & SUSP_WISHBONE ? SNAP_SHARE_NO_WISHBONE : SNAP_SHARE;
   return inner + (hub - inner) * share;
 }
 
 /**
- * ?dmgmore: the pull of a corner whose wheel was torn off, by what drags (1 without the switch).
+ * The pull of a corner whose wheel was torn off, by what drags.
  * @param car the car (its suspOff)
  * @param corner the damage corner
  * @returns the multiplier on the lost wheel's toe
  */
 export function dragPull(car: { suspOff?: number[] }, corner: number): number {
-  if (!FIX.dmgmore) return 1;
   return (car.suspOff?.[corner] ?? 0) & SUSP_WISHBONE ? DRAG_PULL_SUBFRAME : DRAG_PULL_ARM;
 }
 
@@ -440,7 +455,7 @@ function suspensionOff(car: Pick<DebrisCar, 'suspOff'>, corner: number,
     off[corner] |= bit;
   };
   if (wheel.driven) gone(SUSP_SHAFT, 'shaft');
-  if (FIX.dmgmore && corner < 2) gone(SUSP_ROD, 'rod');
+  if (corner < 2) gone(SUSP_ROD, 'rod');
   if (wheel.open) {
     gone(SUSP_WISHBONE, 'wishbone');
     if (wheel.size >= OPEN_SECOND) spawn('wishbone');

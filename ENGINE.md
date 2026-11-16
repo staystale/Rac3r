@@ -467,10 +467,15 @@ heat / wear bursts, debris, nails, bushes) ends in `damage.ts`, which starts a L
 over 10-30 s. Each tyre's pressure sets its axle's grip (1 -> 0.7 flat -> 0.45 on the rim), a pull
 toward it and extra rolling drag, folded into `car.wreck` by `damage.ts derive`; driven flat
 the rubber comes off by a chance rising with the metres run flat (half by ~1 km). `damage.ts stepDamage` runs it each physics step
-(player `game/sim.ts`, AI `game/ai.ts`). ?dmgmore: a torn-off wheel's corner touches the road at its
+(player `game/sim.ts`, AI `game/ai.ts`). A torn-off wheel's corner touches the road at its
 snapped arm or subframe (`debris.ts dragReach`; `metalscrape.ts touchPoint`, `marks.ts markAcross`,
 `particles.ts wheelPlace`), throws its ground's spray on soft ground (`car.dragSpray`,
 `emitDragDirt`), and pulls by what drags (`debris.ts dragPull`, `damage.ts sideDrag`).
+?dmgmore2: PARTS LEFT HANGING (`world/hanging.ts`): `exhaustHangs` (from `debris.ts` bigParts /
+shedOnRoll) leaves an exhaust hanging (`car.exhaustHang` m left; drawn by `render/hanging.ts`), a torn
+bumper's piece (`world/torn.ts partHangs`) drags `car.bumperHang`; `stepHanging` (`damage.ts stepDamage`)
+runs their distance off, sets `exhaustDrag` / `bumperDrag` (sparks / chips: `particles.ts
+emitHangingDrag`) and drops them; `knockHanging` drops them at a hit on their end.
 METAL ON HARD GROUND (`world/metalscrape.ts`): a rim, or
 a rolled body sliding (`roll.ts car.sparks`), sparks and may break each new wear cell a grade
 (race tarmac -> tarmac -> broken) through `gougeCell`; a rollover impact has its own chance; a
@@ -554,9 +559,7 @@ the side crush, each at most a tyre) and the arms run to it - drawn only, the ph
 where it was; the open cars' arms reach the pushed hub the same way (`drawWishbones`).
 ROUND 4 (and the owner's bug 2): a closed car's exposed arms, shaft and track rod keep a lighter
 steel edge round their dark line (`cars.ts WELL_EDGE`, `armLines`; dark alone was lost on dark
-tarmac), and a rolled car's underside picture carries each wheel's wishbone and a front's track rod
-(`carprofile.ts underArms`). ?dmgmore (`FIX.dmgmore`, under test): the underside carries each
-corner as it is (`carprofile.ts underCorner`, repainted per damage step by `rollbody.ts paintsOf`): its subframe rail, the
+tarmac), and a rolled car's underside picture carries each corner as it is (`carprofile.ts underCorner`, repainted per damage step by `rollbody.ts paintsOf`): its subframe rail, the
 wishbone's arms, a driven wheel's shaft, a front's track rod, snapped where the wheel was torn off
 (the upright's `SNAP_SHARE`s, the `SUSP_*` bits; a strut gone leaves its tower's hole). A front wheel
 torn off takes its track rod (`debris.ts SUSP_ROD`, thrown as a `rod`; its stub drawn at the rack,

@@ -13,7 +13,6 @@
 //    and the hit's damage lands mostly on that wheel's corner.
 import { wheelBits } from '../world/debris.ts';
 import { CORNER_OF_WHEEL } from '../world/wheels.ts';
-import { FIX } from '../core/fixes.ts';
 
 // a tyre's radius (its box's half length), m; a wheel this far past the body box is exposed, m
 const WHEEL_R = 0.33, EXPOSED_BY = 0.1;
@@ -201,8 +200,8 @@ const ALL_CORNERS = [0, 1, 2, 3], PLUS_CORNERS = [1, 3], MINUS_CORNERS = [0, 2];
 const NO_CORNERS: number[] = [];
 
 /**
- * The wheels a roll's impact can tear off: those on the face that meets the ground. ?dmgmore
- * (owner 11-16): back on its wheels only the landing side's two; on its roof a closed car's wheels
+ * The wheels a roll's impact can tear off: those on the face that meets the ground (owner
+ * 11-16): back on its wheels only the landing side's two; on its roof a closed car's wheels
  * are in the air - none - while an open car's stand proud of its body, all four.
  * @param kind 'side', 'roof' or 'wheels'
  * @param side +1 = +y, -1 = -y (a side; the landing side back on its wheels)
@@ -212,7 +211,6 @@ const NO_CORNERS: number[] = [];
 function rollCorners(kind: string, side: number, open: boolean): number[] {
   const sideCorners = side > 0 ? PLUS_CORNERS : MINUS_CORNERS;
   if (kind === 'side') return sideCorners;
-  if (!FIX.dmgmore) return ALL_CORNERS;
   if (kind === 'wheels') return sideCorners;
   return open ? ALL_CORNERS : NO_CORNERS;
 }

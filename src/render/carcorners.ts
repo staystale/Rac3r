@@ -17,7 +17,6 @@ import { SPRITE_PPM } from "./shared.ts";
 import type { CarSprite, RenderCar } from "./types.ts";
 import { SNAP_SHARE, SNAP_SHARE_NO_WISHBONE, SUBFRAME_M, SUSP_ROD, SUSP_STRUT, SUSP_WISHBONE }
   from "../world/debris.ts";
-import { FIX } from "../core/fixes.ts";
 
 // the strut's spring, its top mount, its nut
 const SPRING = '#d0d4da', MOUNT = '#5a5f69', NUT = '#16181d';
@@ -199,7 +198,7 @@ function strutTop(ctx: CanvasRenderingContext2D, centreX: number, centreY: numbe
 // the SUBFRAME rail (world/debris.ts SUBFRAME_M, where it sits): its colour, m either side of the
 // axle, px thick
 export const SUBFRAME = '#202227', SUBFRAME_HALF_M = 0.32, SUBFRAME_PX = 2;
-// ?dmgmore: a dragging arm's hot end (the sparks' hottest colour, render/particles.ts), px
+// a dragging arm's hot end (the sparks' hottest colour, render/particles.ts), px
 const HOT_END = '#ffcf6a', HOT_END_PX = 3;
 // a front's track rod torn away with its wheel (SUSP_ROD): its stub at the rack, this share of the
 // way out to where the steering arm was
@@ -245,8 +244,8 @@ export function drawSnappedCorner(ctx: CanvasRenderingContext2D, car: RenderCar,
   SNAP_HUB.y = innerY + (hubY - innerY) * share - hubY;
   drawSubframe(ctx, axleX, innerY, side);
   arms(SNAP_HUB, innerY);
-  // (?dmgmore: dragging on hard ground - its sparks fly - the snapped end glows)
-  if (FIX.dmgmore && car.rimSparks?.[corner]) {
+  // (dragging on hard ground - its sparks fly - the snapped end glows)
+  if (car.rimSparks?.[corner]) {
     ctx.fillStyle = HOT_END;
     ctx.fillRect(Math.round(axleX * SPRITE_PPM) - 1, Math.round(hubY + SNAP_HUB.y) - 1, HOT_END_PX,
       HOT_END_PX);

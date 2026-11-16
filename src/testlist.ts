@@ -13,6 +13,19 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'dmgmore2',
+    added: '2026-11-17',
+    name: 'More damage 2, item 4: an exhaust or a torn bumper left HANGING, dragging until it '
+      + 'drops',
+    where: 'Test link + &dmgmore2=1: crash a hatch or a saloon tail-first hard, then drive on '
+      + '(tarmac, then grass)',
+    try: 'About half the time the exhaust hangs instead of flying off: its end trails behind the '
+      + 'tail, sparking on tarmac, and drops after 100-400 m (or the next hit at the back). A torn '
+      + 'bumper\'s hanging piece drags paint chips off its end and falls off by itself.',
+    wrong: 'An exhaust that never drops, sparks on grass, sparks off a bumper, a piece that hangs '
+      + 'on after it dropped, the Tesla or an open car dragging an exhaust.',
+  },
+  {
     id: 'scanyah',
     added: '2026-11-16',
     name: 'New vehicle: the Scanyah R-Series (a Scania R 450 4x2 tractor unit), ROAD / Truck - the '
@@ -45,22 +58,5 @@ export const TEST_LIST: TestEntry[] = [
     try: 'Brake hard or slide: the rear-right tyre\'s mark lines up with the rear-left\'s, under '
       + 'the twin rear wheels (it was 0.125 m too far out, at the front track).',
     wrong: 'A rear mark outside its tyre, or any other car\'s marks changed.',
-  },
-  {
-    id: 'dmgmore',
-    added: '2026-11-17',
-    name: 'More damage, items 1-2: a rolled car\'s underside as it really is; rolls throw track '
-      + 'rods; a torn-off corner DRAGS its snapped arm (sparks, dirt, a pull by what drags)',
-    where: 'Test link + &dmgmore=1: roll a hatch and a saloon hard (the Lab\'s flip ramp, a '
-      + 'crash at speed); tear a wheel off and drive on tarmac and on grass',
-    try: 'On its roof or side its underside shows the subframe, arms, drive shafts (driven wheels '
-      + 'only) and track rods; a wheel torn off leaves them snapped short, and a front one throws '
-      + 'its track rod too. A closed car on its roof loses no wheels; landing back on its wheels '
-      + 'only that side\'s. Driving on a torn corner: sparks from the snapped arm (in from where '
-      + 'the wheel was) on tarmac, dirt thrown on grass and gravel; a stronger pull when the '
-      + 'wishbone went too.',
-    wrong: 'A closed car losing a wheel on its roof, a wheel lost on the far side as it lands, '
-      + 'arms reaching an empty hub, a tyre drawn where the wheel is gone; sparks out where the '
-      + 'tyre was, a pull too weak or too strong to drive home.',
   },
 ];
