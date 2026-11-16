@@ -293,6 +293,27 @@ panels off at frame 30 - most corners exposed - the laptop x1, round 1 / round 2
 work median 10.8 / 10.7 / 12.2 / 11.1 ms, p95 17.7 / 17.1 / 20.0 / 17.9, frame median 17.7 / 17.7 /
 17.7 / 17.6 - no cost to read.
 PROPOSED, NOT BUILT (a handling change, the owner decides): A BROKEN CORNER - see the hand-back.
+ROUND 3 (the steering in bright steel over the tyre, the hole following the pushed wheel) was taken
+off the link: the owner preferred round 2's look ("version 3 has panels that come off and things
+that obscure what's there"). ROUND 4, BUILT behind the same switch (render/carcorners.ts, cars.ts,
+carparts.ts, objects.ts), from round 2 with the owner's answers ("the wishbones were black on the
+F1 ... under the wheels ... The strut ... can be over the wheel"; "nothing underneath the wheel
+arch once that gets knocked off, and it should expose to the road"; the body's own layers - sills,
+bonnet bay, engine - stay):
+- A lost or torn wing's opening is clear to the ROAD: no dark well fill, no dark inner edge strip.
+- The arms, drive shaft and track rod as the F1 / F2 draw them (drawFixedArms, OPEN_ARMS: dark,
+  1 px), UNDER the tyre; the track rod to the steering arm at the hub turns with the wheel.
+- The strut's spring and top mount OVER the tyre, at its inner edge (the top of the arch).
+- Thrown suspension (wishbone, strut, shaft) drawn under the loose wheels (render/objects.ts).
+- Kept from round 2: the bonnet bay, engine and radiator, the bumper's beam and under-tray, the
+  door sill and floor, the boot floor - all clipped to the crushed body, so they crumple with it.
+PHOTOS (the laptop: the saloon's corner steered left / straight / right; the Golf and the Sport
+quattro crushed deeper - the owner's case stops short of their wheels; front / side / rear sets;
+a torn-off wheel's parts): no page errors. Owner 11-16: "that looks much better"; the one-piece
+wing and the arms fine. tools/scratch/_skinshots.mjs holds the wheels' steer (round 2's steered
+photos were not steered) and has DEEP sets; _thrownorder.mjs photographs a thrown wheel's parts.
+NEXT (plans to the owner first): a wing off shows only PART of the strut unless the corner is
+severely crushed; a big hit at an exposed strut may knock it off (?cornerbreak).
 
 THE 10 NEW CARS (owner-approved names 11-16; one switch and one hand-back each; src/newcars.ts):
 1-7 PASSED 11-16, the default with the launches (owner: "all pass apart from my earlier comments"):

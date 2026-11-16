@@ -9,6 +9,7 @@ import { drawStackShadow } from "./stackshadow.ts";
 import { pdisc, tyreSprite } from "./tyresprite.ts";
 import type { ObjSprite } from "./tyresprite.ts";
 import { trackCanvas } from '../core/memorybudget.ts';
+import { FIX } from '../core/fixes.ts';
 import { shade } from "../render.ts";   // read only at draw time (no load-time cycle)
 
 // what createObjects destructures from the renderer and the particles
@@ -708,14 +709,34 @@ function drawConeKind(env: ObjectsCtx, cone: RenderCone) {
   else drawLooseProp(env.view.ctx, cone, env.PPMz());
 }
 
+// a car's suspension thrown off with its wheel (world/debris.ts wheelBits): with ?underskin, on
+// the ground UNDER the loose wheels and the rest (thrown after the wheel, it lay on top of it)
+const SUSPENSION_KINDS = new Set(['wishbone', 'strut', 'shaft']);
+
 /**
- * Draws the loose objects (cones, tyres, debris, animals, props) that are on screen.
+ * Draws the loose objects (cones, tyres, debris, animals, props) that are on screen (?underskin:
+ * the thrown suspension first, under the rest).
  * @param env the objects context
  * @param cones the objects
  */
 function drawCones(env: ObjectsCtx, cones: RenderCone[]) {
+  if (!FIX.underskin) drawConeList(env, cones, null);
+  else {
+    drawConeList(env, cones, true);
+    drawConeList(env, cones, false);
+  }
+}
+
+/**
+ * Draws the loose objects on screen, all of them or only the thrown suspension (or all but it).
+ * @param env the objects context
+ * @param cones the objects
+ * @param suspension true only the thrown suspension, false all but it, null all
+ */
+function drawConeList(env: ObjectsCtx, cones: RenderCone[], suspension: boolean | null) {
   const { view, toScreenX, toScreenY } = env;
   for (const cone of cones) {
+    if (suspension !== null && SUSPENSION_KINDS.has(cone.kind) !== suspension) continue;
     const screenX = toScreenX(cone.x), screenY = toScreenY(cone.y);
     if (screenX < -60 || screenX > view.W + 60 || screenY < -60 || screenY > view.H
       + 60) continue;

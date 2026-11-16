@@ -12,7 +12,7 @@ import { drawAngryFlash, drawLightBar, isAngryFlashOn } from "./lightbar.ts";
 import { drawTyreByPressure, wheelTurn } from "./tyrelook.ts";
 import { drawRolledBody, prepareBody } from "./rollbody.ts";
 import { drawUnderSkin } from "./underskin.ts";
-import { cornerShift, drawExposedCorner, isWingTorn } from "./carcorners.ts";
+import { cornerShift, drawExposedCorner, drawExposedStrut, isWingTorn } from "./carcorners.ts";
 import type { CornerShift } from "./carcorners.ts";
 import { FIX } from '../core/fixes.ts';
 import { bitsOf } from '../carbits.ts';
@@ -27,10 +27,9 @@ const WISHBONE = '#2a2d34', DRIVE_SHAFT = '#4a4f57', CV_JOINT = '#16181d';
 interface ArmsLook { wishbone: string; shaft: string; joint: string; widePx: number }
 // an open car's arms, in the air (dark against the ground)
 const OPEN_ARMS: ArmsLook = { wishbone: WISHBONE, shaft: DRIVE_SHAFT, joint: CV_JOINT, widePx: 1 };
-// ?underskin: a closed car's arms seen in a lost wing's dark well - bright steel two px wide, so
-// they read at a phone's size
-const WELL_ARMS: ArmsLook = { wishbone: '#9aa0aa', shaft: '#c0c5cc', joint: '#16181d',
-  widePx: 2 };
+// ?underskin: a closed car's arms seen through a lost wing's opening - the open cars' own, dark
+// against the road under it, and under the tyre
+const WELL_ARMS: ArmsLook = OPEN_ARMS;
 
 // what createCars destructures from the renderer and the sprite layers
 interface CarsHelpers {
@@ -319,8 +318,8 @@ function drawExposed(ctx: CanvasRenderingContext2D, spec: RenderCarSpec, sprite:
   wheel: { axleX: number; side: number; steer: number; halfWidth: number },
   shift: CornerShift): void {
   const { axleX, side, halfWidth } = wheel;
-  drawExposedCorner(ctx, spec, { ...wheel, tyreWid: tyreBox(spec, axleX < 0).wid }, sprite,
-    shift, () => drawFixedArms(ctx, spec, axleX, side, halfWidth, WELL_ARMS, shift));
+  drawExposedCorner(ctx, wheel, shift,
+    () => drawFixedArms(ctx, spec, axleX, side, halfWidth, WELL_ARMS, shift), WELL_ARMS.wishbone);
 }
 
 /** A wheel's fixed arms painted once: the picture and where its corner sits, sprite px. */
@@ -398,6 +397,9 @@ function drawCarWheels(carsCtx: CarsContext, car: RenderCar, sprite: CarSprite, 
     drawCarWheel(carsCtx, spec, axleX, side, steer, metrics, car.tyreP ? {
       pressure: car.tyreP[corner], isOnRim: !!car.onRim?.[corner], turn,
     } : null, shift);
+    // (the strut over the tyre, at the top of the arch: the arms are under it)
+    if (shift.exposed && !isBare(spec)) drawExposedStrut(view.ctx, { axleX, side, halfWidth,
+      tyreWid: tyreBox(spec, axleX < 0).wid }, shift);
   }
   return halfWidth;
 }

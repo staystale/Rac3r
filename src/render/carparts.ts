@@ -436,8 +436,9 @@ function lostPixel(rgba: Uint8ClampedArray, i: number, part: LostPart, x: number
       y - region.y0, region);
     return;
   }
-  // GONE - the part cleared, only the bare structure left along its inner edge
-  if (rgba[i + 3] && atInner(region, kind, corner, x, y)) {
+  // GONE - the part cleared, only the bare structure left along its inner edge (?underskin: a
+  // wing's opening clear to the road - nothing under the arch but its arms, wheel and strut)
+  if (rgba[i + 3] && atInner(region, kind, corner, x, y) && !(underSkin && kind === 'wing')) {
     rgba[i] = 42; rgba[i + 1] = 45; rgba[i + 2] = 52;
   } else rgba[i + 3] = 0;
 }

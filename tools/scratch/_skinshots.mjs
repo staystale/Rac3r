@@ -42,8 +42,19 @@ const SETS = {
   // (the owner's photo: one front corner crushed in to its wheel, nothing off; then steered left,
   // straight, right - the exposed arms turn with the wheel)
   corner: { crushL: [0, 0.6, 0, 0], crushS: [0, 0.35, 0, 0], lost: () => [] },
-  cornerleft: { crushL: [0, 0.6, 0, 0], crushS: [0, 0.35, 0, 0], lost: () => [], steer: -1 },
-  cornerright: { crushL: [0, 0.6, 0, 0], crushS: [0, 0.35, 0, 0], lost: () => [], steer: 1 },
+  // (the same corner crushed deeper - on a car with a longer front overhang, the hatch-fwd and the
+  // rally 4x4, the owner's case's crush stops short of the wheel)
+  deep: { crushL: [0, 0.9, 0, 0], crushS: [0, 0.5, 0, 0], lost: () => [] },
+  deepleft: { crushL: [0, 0.9, 0, 0], crushS: [0, 0.5, 0, 0], lost: () => [], steer: -0.35 },
+  deepright: { crushL: [0, 0.9, 0, 0], crushS: [0, 0.5, 0, 0], lost: () => [], steer: 0.35 },
+  cornerleft: { crushL: [0, 0.6, 0, 0], crushS: [0, 0.35, 0, 0], lost: () => [], steer: -0.35 },
+  cornerright: { crushL: [0, 0.6, 0, 0], crushS: [0, 0.35, 0, 0], lost: () => [], steer: 0.35 },
+  // (?cornerbreak=1: the owner's corner breaking, steered right - before the break, broken (its
+  // wheel turned out, fixed, the track rod snapped), its wheel torn off; SETS=break1,break2,break3)
+  break1: { crushL: [0, 0.5, 0, 0], crushS: [0, 0.3, 0, 0], lost: () => [], steer: 0.35 },
+  break2: { crushL: [0, 0.7, 0, 0], crushS: [0, 0.4, 0, 0], lost: () => [], steer: 0.35 },
+  break3: { crushL: [0, 0.9, 0, 0], crushS: [0, 0.5, 0, 0], lost: () => [], steer: 0.35,
+    wheelOff: 1 },
   rear: { crushL: [0, 0, 0.5, 0.45], crushS: [0, 0, 0.1, 0.05],
     lost: (bits, open) => (open ? ['bumper:2', 'panel:1']
       : ['bumper:2', 'wing:2', bits.rear === 'boot' ? 'boot:2' : '']) },
@@ -63,11 +74,18 @@ async function standDamaged([id, set, zoom, levelId]) {
   car.crushL = set.crushL.slice();
   car.crushS = set.crushS.slice();
   car.partLost = set.lostList;
+  if (set.wheelOff !== undefined) (car.wheelOff ||= [false, false, false, false])[set.wheelOff] = true;
+  // (steered: the road wheels held at the set's angle each frame - the input's steer does not
+  // reach a car held still on the grid; rad)
+  if (set.steer) {
+    const hold = () => { if (game.car === car) { car.delta = set.steer; requestAnimationFrame(hold); } };
+    hold();
+  }
   if (zoom) game.renderer.debugZoom(zoom);
   await new Promise((done) => setTimeout(done, 600));
   // (where the car is on the screen, CSS px: the crops are centred on it)
   const renderer = game.renderer, toCss = innerWidth / renderer.W;
-  return { lost: car.partLost, x: renderer.toScreenX(car.x) * toCss,
+  return { lost: car.partLost, delta: car.delta, x: renderer.toScreenX(car.x) * toCss,
     y: renderer.toScreenY(car.y) * toCss };
 }
 
@@ -92,7 +110,7 @@ async function shootSets(browser, base, carId, sets, shot) {
       y: Math.max(0, Math.min(shot.height - clipH, at.y - clipH / 2)), width: clipW,
       height: clipH } : undefined;
     await page.screenshot({ path: file, clip });
-    console.log(`${file} ${set.lostList}${errors.length ? ' PAGE ERRORS ' + errors.join(' | ') : ''}`);
+    console.log(`${file} ${set.lostList} steer ${(+at.delta).toFixed(3)} rad${errors.length ? ' PAGE ERRORS ' + errors.join(' | ') : ''}`);
   }
   await page.close();
   return errors;
@@ -109,7 +127,8 @@ try {
   for (const carId of cars) {
     const kind = ROSTER.find((row) => row.id === carId)?.kind;
     const sets = Object.entries(SETS).filter(([name]) => WANTED.includes(name)).map(([setName,
-      set]) => [setName, { crushL: set.crushL, crushS: set.crushS, steer: set.steer || 0, lostList: set.lost(bitsOf(carId), kind === 'track' || kind === 'grass')
+      set]) => [setName, { crushL: set.crushL, crushS: set.crushS, steer: set.steer || 0,
+      wheelOff: set.wheelOff, lostList: set.lost(bitsOf(carId), kind === 'track' || kind === 'grass')
         .filter(Boolean).join(',') }]);
     for (const shot of SHOTS)
       if ((await shootSets(browser, server.url, carId, sets, shot)).length) failed = true;

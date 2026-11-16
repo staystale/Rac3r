@@ -538,6 +538,13 @@ driven wheel's shaft (`drawFixedArms`, `WELL_ARMS`), a front's track rod at `car
 the crush pushes the drawn wheel in (`cornerShift`: back by the end crush past the arch, inboard by
 the side crush, each at most a tyre) and the arms run to it - drawn only, the physics' wheel is
 where it was; the open cars' arms reach the pushed hub the same way (`drawWishbones`).
+ROUND 4: an exposed corner is open to the ROAD (no well fill; a lost wing's region cleared
+right through, `carparts.ts lostPixel` keeps no inner edge strip for a wing with the switch); the
+arms, shaft and track rod are the open cars' own (`WELL_ARMS = OPEN_ARMS`: dark, 1 px), drawn
+before the tyre (`carcorners.ts drawExposedCorner`), the strut's spring and top mount after it,
+over the tyre's inner edge (`drawExposedStrut`). Thrown suspension (`wishbone`, `strut`,
+`shaft`) is drawn first of the loose objects, under the loose wheels (`objects.ts drawCones`,
+`SUSPENSION_KINDS`).
 `tools/scratch/_skinshots.mjs` photographs every car crushed and with its parts off (front, side,
 rear; 844x390, 390x844, a close-up and the phone's view cropped).
 

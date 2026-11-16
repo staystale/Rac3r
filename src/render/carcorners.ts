@@ -7,25 +7,19 @@
 // that wing is TORN (render/cars.ts takes it off the sprite as a lost wing's, no part thrown). A
 // crushed corner also pushes its WHEEL in with the crumpled metal - back by the end crush past
 // the arch, inboard by the side crush there - and the arms run from the chassis to the wheel
-// where it now is (drawn only: the physics' wheel is where it was). The well a dark cavity, the
-// arms, shaft and spring bright steel two px wide, to read at a phone's size. Nothing is
-// allocated per frame.
+// where it now is (drawn only: the physics' wheel is where it was). The well a dark cavity; the
+// arms, shaft and track rod as the open cars draw theirs (render/cars.ts drawFixedArms), dark and
+// UNDER the tyre - seen inboard of it where the body is gone; the strut's spring and top mount
+// OVER the wheel, at the top of its arch (drawExposedStrut, after the tyre) - seen where the wing
+// over the wheel is gone. Nothing is allocated per frame.
 import { END_CRUSH_SHARE, REAR_CRUSH_SHARE, SIDE_CRUSH_SHARE } from "./cardamage.ts";
 import { SPRITE_PPM } from "./shared.ts";
-import type { CarSprite, RenderCar, RenderCarSpec } from "./types.ts";
+import type { CarSprite, RenderCar } from "./types.ts";
 
-// the inside of a wheel's well in shadow; the strut's spring, its top mount, its nut
-const WELL = '#2a2d33', SPRING = '#d0d4da', MOUNT = '#5a5f69', NUT = '#16181d';
-// the steering's track rod, bright steel (the arms' colour in a well)
-const TRACK_ROD = '#9aa0aa';
+// the strut's spring, its top mount, its nut
+const SPRING = '#d0d4da', MOUNT = '#5a5f69', NUT = '#16181d';
 // px a side's crush must reach to open its wheel's well (the arch's inner skin pushed in)
 const CRUSH_EXPOSE_PX = 3;
-// px the well reaches either side of the axle (as a wing's hole, render/carparts.ts partRegion)
-const WELL_HALF_PX = 7;
-// m the well reaches in from the car's side (render/carparts.ts WELL_DEPTH_M)
-const WELL_DEPTH_M = 0.45;
-// px a strut's top sits off the axle line toward the car's middle; px it sits inboard of the tyre
-const STRUT_OFFSET_PX = 3, STRUT_IN_PX = 3;
 // m of the steering arm from the hub (render/cars.ts drawWishbones)
 const STEER_ARM_M = 0.14;
 
@@ -102,40 +96,41 @@ function crushAtWheel(car: RenderCar, sprite: CarSprite, corner: number, wheel: 
 }
 
 /**
- * An exposed corner, under the body: the dark well inboard of the tyre, the arms and a driven
- * wheel's drive shaft from the chassis to the hub where it now is, a front's track rod at the
- * wheel's steer, and the strut's top.
+ * An exposed corner, under the body and before its tyre - nothing under the arch but the road:
+ * the arms and a driven wheel's drive shaft from the chassis to the hub where it now is, and a
+ * front's track rod to its steering arm at the wheel's steer (render/cars.ts drawWishbones' own).
  * @param ctx the canvas (the car's frame, sprite px)
- * @param spec the car as drawn
- * @param wheel the corner: its axle (m), side (-1 / 1), steer (rad), half the track and the tyre's
- *   width (px)
- * @param sprite the car's sprite (its width)
+ * @param wheel the corner: its axle (m), side (-1 / 1), steer (rad), half the track (px)
  * @param shift the wheel's push-in (px)
- * @param arms paints the fixed arms and shaft to the hub (render/cars.ts drawFixedArms, bright)
+ * @param arms paints the fixed arms and shaft to the hub (render/cars.ts drawFixedArms)
+ * @param rodColour the track rod's colour (the arms')
  */
-export function drawExposedCorner(ctx: CanvasRenderingContext2D, spec: RenderCarSpec,
-  wheel: { axleX: number; side: number; steer: number; halfWidth: number; tyreWid: number },
-  sprite: CarSprite, shift: CornerShift, arms: () => void): void {
-  const { axleX, side, steer, halfWidth, tyreWid } = wheel;
+export function drawExposedCorner(ctx: CanvasRenderingContext2D,
+  wheel: { axleX: number; side: number; steer: number; halfWidth: number },
+  shift: CornerShift, arms: () => void, rodColour: string): void {
+  const { axleX, side, steer, halfWidth } = wheel;
   const hubX = axleX * SPRITE_PPM + shift.x, hubY = side * halfWidth + shift.y;
-  const tyreIn = side * (halfWidth - tyreWid / 2) + shift.y;
-  // (the well from WELL_DEPTH_M in to the car's side: the tyre is drawn over it)
-  const deepIn = side * (sprite.Wp / 2 - WELL_DEPTH_M * SPRITE_PPM), outer = side * sprite.Wp / 2;
-  ctx.fillStyle = WELL;
-  ctx.fillRect(Math.round(hubX - WELL_HALF_PX), Math.round(Math.min(outer, deepIn)),
-    WELL_HALF_PX * 2, Math.round(Math.abs(outer - deepIn)));
   arms();
-  const front = axleX > 0;
-  if (front) {
-    // the track rod, turned with the wheel (render/cars.ts drawWishbones' steering arm)
-    const arm = STEER_ARM_M * SPRITE_PPM;
-    ctx.fillStyle = TRACK_ROD;
-    for (let line = 0; line < 2; line++)
-      steerRod(ctx, [hubX - arm, side * 2 + line], [hubX - Math.cos(steer) * arm,
-        hubY - Math.sin(steer) * arm + line]);
-  }
-  strutTop(ctx, hubX + (front ? -STRUT_OFFSET_PX : STRUT_OFFSET_PX),
-    tyreIn - side * STRUT_IN_PX);
+  if (axleX <= 0) return;
+  // the track rod from the rack to the steering arm, turned with the wheel (drawWishbones' own)
+  const arm = STEER_ARM_M * SPRITE_PPM;
+  ctx.fillStyle = rodColour;
+  steerRod(ctx, [hubX - arm, side * 2], [hubX - Math.cos(steer) * arm,
+    hubY - Math.sin(steer) * arm]);
+}
+
+/**
+ * An exposed corner's STRUT, over its tyre: the coil spring and top mount at the top of the arch,
+ * over the tyre's inner edge (seen where the wing over the wheel is gone).
+ * @param ctx the canvas (the car's frame, sprite px)
+ * @param wheel the corner: its axle (m), side (-1 / 1), half the track and the tyre's width (px)
+ * @param shift the wheel's push-in (px)
+ */
+export function drawExposedStrut(ctx: CanvasRenderingContext2D,
+  wheel: { axleX: number; side: number; halfWidth: number; tyreWid: number },
+  shift: CornerShift): void {
+  const { axleX, side, halfWidth, tyreWid } = wheel;
+  strutTop(ctx, axleX * SPRITE_PPM + shift.x, side * (halfWidth - tyreWid / 2) + shift.y);
 }
 
 /**
