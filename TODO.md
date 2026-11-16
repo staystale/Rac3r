@@ -373,6 +373,36 @@ THE 10 NEW CARS (owner-approved names 11-16; one switch and one hand-back each; 
    simhash SAME (no level uses the car). QUESTIONS for the owner: the Clio III 200 Cup (2009-12)
    or the Clio IV 200 Turbo (2013-16); the stock look (Liquid Yellow, a darker roof, black blade
    and diffuser); no stability control (EST); not in the traffic.
+THE TRANSITS (owner: "Shouldn't the Ford transit be a short wheel base and a long wheel base
+   variant"; "C for the transit, all 3"; the SWB "older mk7 please"). The L2 is the MWB (Fjord
+   Transfit MWB with either switch on). The vans' 2.4 of the traffic split among those on, SWB 30 /
+   MWB 40 / LWB 30 (EST, the owner's "Sure"); _trafficmix.mjs, 20 000 draws: none on - MWB 16.0 %;
+   the LWB on - 9.1 + 6.7 %; the SWB on - 9.1 + 6.7 %; both - MWB 6.4, LWB 4.8, SWB 4.7 % (15.9 %).
+   The Transit painter (render/newcarlooks.ts) keeps the cab on the nose on every wheelbase
+   (transfitCabShare) and is split into box / cab / tail; the L2's drawing unchanged (renderhash).
+   LWB: PASSED 11-16 ("Transit pass"; to make the default with the SWB's batch). BUILT 11-16 behind
+   ?transfitlwb=1 (0029e818): the Mk8 350 L3 H3 RWD - 3,750 mm wheelbase, 5,981 x 2,059 x 2,650 mm,
+   2,290 kg, RWD with the engine along the car, ABS + ESC; EST the engine as the L2's, the MT82's
+   ratios and the axle 3.73, 235/65 R16, Cd 0.37 x 4.8, 55 / 45, CG 0.85 m. tools/newcar.mjs (second
+   PC, &underskin=1; every step ran, the crash picture on its retry): top 145 km/h, 0-100 16.3 s,
+   100-0 51.4 m, grip 0.80 g, 40-100 12.77 s, gravel power-on body slip 14 deg; tyres all OK;
+   partcheck all 10 kinds OK; AI x6 Thruston 281 s, 0 incidents, laps 85.0-100.4 s; Sweaty Lamb
+   560 s (the cap), 657 put-backs, 0-2 laps each (the heavy 2WD bogging on the owner's list, as the
+   L2 and the trophy truck); rolled pictures 10 wheels / 172 side / 118 roof of 300. HIGHWAY
+   TRAFFIC, off -> on (PC): hwracecheck ALL OK both (racer-traffic 0 -> 0 steps); trafficcheck
+   (named; does not repeat run to run) 14 -> 12 FAILs - FOUND: on the motorway's slow phase an
+   LWB (a physics car, 79 km/h) spun off the carriageway at the phase's start (heading -142 deg;
+   motorway off 0 -> 2,193 car-steps) and one LWB touched a saloon (kin) on the dual; not traced
+   further - to ask. PROOF (PC, base round108): switch off worldhash (--highway 20), simhash,
+   renderhash (thruston, brands-snatch, highway) SAME; switch on simhash DIFFERENT in
+   highway-traffic only (the mix) - [sim].
+   SWB: BUILT 11-16 behind ?transfitswb=1 (d5a0fcea; testlist 'transfitswb'): the Mk7 T280 SWB
+   2.2 TDCi 110 FWD (2006-13) - 2,933 mm wheelbase, 4,863 x 1,974 mm, 81 kW, 285 Nm, five-speed,
+   ABS; EST the kerb weight 1,700 kg (the sheets 1,609-1,699), the torque band, the ratios and final
+   drive, 195/70 R15, Cd 0.39 x 4.0, 58 / 42, CG 0.72 m, no ESP; the Mk7's nose (the wide grille
+   with three chrome bars and the blue oval, the tall lamps back along the wings' corners, grey
+   bumpers). Measured (laptop): top 142 km/h, 0-100 15.1 s, 100-0 51.2 m, grip 0.81 g. Its PC
+   sheet and proofs follow.
 9. TOYOTER TS010 (Toyota TS010 Le Mans prototype, for Le Manky).
 10. AEC ROUTEMONSTER (London Routemaster double-decker bus: drivable, also traffic). After all 10:
    the two-wheel tipping state (its own job; the bus its showcase).

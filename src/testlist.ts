@@ -22,6 +22,17 @@ export const TEST_LIST: TestEntry[] = [
     wrong: 'A rolling start that never goes green, or goes green before the pole reaches the line.',
   },
   {
+    id: 'transfitswb',
+    added: '2026-11-16',
+    name: 'New van: the Fjord Transfit SWB (a Ford Transit Mk7 SWB, 2006-13), ROAD / Van, and in '
+      + 'the traffic; with it the L2 is named the Fjord Transfit MWB',
+    where: 'Test link + &transfitswb=1 (with &transfitlwb=1 for all three): the garage, ROAD / Van; '
+      + 'the highway traffic; + &underskin=1 for a crash',
+    try: 'Its Mk7 nose (three chrome bars, tall lamps, grey bumpers) beside the MWB and the LWB, '
+      + 'a drive, spot all three Transits in the traffic.',
+    wrong: 'It reads as a short Mk8, too quick for 110 PS, too many or too few vans on the road.',
+  },
+  {
     id: 'cleoroad',
     added: '2026-11-16',
     name: 'New car: the Renolt Cleo RS 200 (a Renaultsport Clio 200 Cup, Clio III), ROAD / Hatch',
