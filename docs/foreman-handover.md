@@ -1,47 +1,44 @@
 # Foreman handover
 
 Kept current as the work goes (owner 11-12: "update the handover as we go"). Last updated
-2026-11-17 (night). Read `CLAUDE.md`, then `NOTES.md` (the owner's rules and the Routine at its end,
+2026-11-17 (early morning). Read `CLAUDE.md`, then `NOTES.md` (the owner's rules and the Routine at its end,
 not repeated here), then `TODO.md`, then this page. The 11-07 version of this page is in git.
 
-## Where we are (11-16 into 11-17 night)
+## Where we are (11-17, early morning)
 
-- **ITCH** = `2026-11-15-7c4af37a` (unchanged). The owner HOLDS itch push #4 until ALL the cars and the
-  open bugs are passed (11-16: "All 21"; the list grew since). Ask before any push, every time.
-- **Main** = 2926ed0a (round100). CI jammed on 11-16 night (33 superseded runs cancelled with the
-  owner's yes); CI is re-running on round139 - when green, push it to main.
-- **The owner's link** = foreman/round140 (36af5616). Under test (switches): ?underskin (the damage
-  look), ?carparts (each car's own crash parts, steps 1-6), ?carshade (every closed car shaded),
-  ?reversefix (TCS in reverse, the 20 km/h cap holds), ?f1menu (F1 / WORLD cards), ?corolla.
-  Parked behind switches: ?pbzline / ?driftbrake (for the AI tune), ?siren (sound pass).
-- **The foreman FIXED the under-the-skin bug himself** (owner asked: "Can you take over"): branch
-  foreman/armsfix2 + foreman/torn. A torn-off wheel takes its hub and its suspension BY THE HIT, no
-  dice (world/debris.ts wheelBits + car.suspOff); snapped arms drawn on the subframe
-  (render/carcorners.ts); the arms the F1's dark bars, thicker on cars, thicker again on heavy
-  vehicles; the engine ejects only once exposed and reached (debris.ts crushedEngine); TORN PANELS
-  (render/torncut.ts). Tested with real crashes at the GAME'S zoom (tools/scratch/_armzoom.mjs) -
-  close-ups had hidden the problem for three rounds.
-- **Worker A** (a2fab314deb77a72b, worktree `bugfix`, PC `repo`): building cars, each a plan
-  first, the owner said yes to all: Corolla (done, link), R13, Ibeefa, A4 Avant, Transfit Custom (its
-  sliding door), E36 Peak (new HILL CLIMB class), Skool Bus (rare, school-run hours), then the
-  TWO-WHEEL TIPPING (?tipping, approved, realistic save, gravel trips through it), then the Scanyah
-  artic (jointed trailer, drivable, NOT in traffic until the owner tests). PIT STOPS PARKED: the owner
-  has IMAGES to share and wants to discuss first.
-- **Worker B** (aaf511f3d9d953888, scratch worktrees, PC `repo2`): damage items, each approved:
-  5 rolled cars (underside matches what's missing; rolling throws wheels / track rods by the face
-  that hits), low range finished as a small GRIP boost in LO (owner, not a crawl), 2 dragging (the
-  pull by what drags, sparks off the snapped arm, dirt spray), 4 hanging exhaust / bumper (chance by
-  damage, random distance), 3 steam and leaks (from the real radiator / engine; worse damage leaks
-  faster; puddles under the real parts). Then Blighty Park RX + a Blighty Park circuit.
-- **Owner rules added 11-16** (NOTES.md + memory): discuss and plan first, down to the fundamentals,
-  but ask BRIEFLY and expand only on request; every car has its own real crash parts; road cars
-  always go in traffic at their real share (don't ask); every test link carries everything under
-  test, and the pause-menu TESTING list must hold it all; no idle workers.
-- **Lessons 11-16:** a worker's proof must be AT THE GAME'S VIEW with REAL crashes; close-ups and set
-  damage passed three times while the phone showed nothing. Rebase stacking: two workers on one base
-  collide in the car rows - merge by patch (see round115). Many pushes queue many CI runs: push the
-  latest round only.
-- The morning notes: scratchpad morning.md (the session's), summarised here.
+- **ITCH** = `2026-11-15-7c4af37a` (unchanged). Push #4 HELD by the owner until all the cars and the
+  open bugs pass. Left: the Scanyah artic (the last car), the damage item 3 (steam / leaks), and the
+  owner's tests of ?tipping, ?marktrack, ?dmgmore2, ?scanyah. Then ASK about itch.
+- **Main** = ea383773 (round139). CI was started on round151 - check `gh run list`, push the newest
+  green round to main (push the LATEST round only: many pushed branches jam the CI queue).
+- **The owner's link** = foreman/round158 (5517179b). Under test (switches): ?scanyah (the tractor;
+  its trailer joint being built), ?tipping (two-wheel state, tall vehicles only - owner), ?marktrack
+  (the rear-right skid mark at the rear track), ?dmgmore2 (the hanging exhaust and bumper; the
+  exhaust being made darker / thicker). Parked: ?pbzline / ?driftbrake (AI tune), ?siren (sound).
+- **PASSED and DEFAULT since 11-16:** every new car (Porch, Seven, Transfits x4, Trophy, Civvic,
+  Defunder, Focust, Cleos, Saxos, Strange Rover, TS010, Tesla, Routemonster - always red in traffic,
+  M4 GT3, Corolla BTCC, R13 LMP1, Ibeefa, A4 Avant, E36 Peak - HILL CLIMB class, Skool Bus - school
+  runs only); under the skin (the foreman's fix: hubs go with torn wheels, snapped arms on a
+  subframe, dark F1-style arms thicker on heavy vehicles, engine ejects only exposed and reached,
+  torn panels); each car's own crash parts; every closed car shaded; rolled cars' underside;
+  dragging; low range (lever, LOW_GRIP 1.3); reverse TCS and the 20 km/h cap; the F1 / WORLD menu;
+  hudfit; fuel carry; Pembreezy.
+- **Worker A** (a2fab314deb77a72b, worktree `bugfix`, PC `repo`): the Scanyah trailer joint (owner yes
+  to all: 10 t, 85 deg stop, a broken pin, real reversing), drivable, NOT in traffic. Its PC job 2
+  (old proofs) and the tipping proofs are queued.
+- **Worker B** (aaf511f3d9d953888, scratch worktrees, PC `repo2`): the darker exhaust, then damage
+  item 3 (steam / leaks from the real radiator / engine, leaks by hit size, puddles under the real
+  parts, denser exposed steam) behind ?dmgmore2, then Blighty Park RX + circuit. PC queue b4q / b4r
+  / b4u / b4v (pass proofs).
+- **PARKED, the owner's next list:** PIT STOPS (the owner has IMAGES - ask for them, then discuss);
+  the AI rework (circuits' off-track and first-corner pile-ups, Pembreezy); a hill climb stage for
+  the E36; Glen Hellish, Swapsies; Story mode / upgrades (race conversions, the repair bill: pay or
+  debt); the sound pass.
+- **Owner rules added 11-16/17** (NOTES.md + memory): plan first, briefly, expand on request; every
+  car its own real parts; road cars always in traffic at their real share; every link carries all
+  under test and the pause TESTING list holds it; no idle workers; keep this page current.
+- **Lessons:** prove looks with REAL crashes at the GAME'S zoom (close-ups hid the arms bug three
+  times); two workers on one base collide in rows - merge by patch; push only the latest round.
 
 ## How the owner works
 
