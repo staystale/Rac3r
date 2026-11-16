@@ -9,6 +9,7 @@
 // (CLAUDE.md §4).
 
 import { curveSteer, stickReach } from './core/steerfeel.ts';
+import { FIX } from './core/fixes.ts';
 
 // r 36 -> 40 (requirement: driving buttons slightly larger, only a small bit) px; >=44px targets
 // via r*2 = 72
@@ -37,6 +38,11 @@ const THR_MIN = 0.26;      // initial opening on a quick stab
 // ramp.
 // 0.75 -> 1.5 (owner 11-02: "increase the throttle and brake control ramp timing"; passed)
 const THR_RAMP = 1.5;     // s to full throttle
+// FIX.launchramp (owner 11-16: "if you are holding throttle off the start, you will be revving up
+// effectively off the start, like in real life"): held at a STANDSTILL - the start's hold, a
+// standing grid, a stage start, a stop - the throttle is full at once, and stays full while it is
+// held (a launch); on the move the ramp above is unchanged. m/s under which the car is standing.
+const STANDSTILL_MS = 0.5;
 
 // HANDBRAKE: a short slew BOTH WAYS rather than a hold-ramp (requirement: very short like 0.1
 // seconds). Instant on/off is a force step, and today has repeatedly shown that a discontinuous
@@ -71,6 +77,7 @@ export interface InputState {
   pedals: Record<string, boolean>;
   tapped: { x: number; y: number } | null;
   brakeHeld: number; thrHeld: number; revHeld: number;   // s each has been held (the ramps)
+  thrLaunch: boolean;   // the throttle went down at a standstill: full, no ramp (FIX.launchramp)
   isTouch: () => boolean;
   pedalHits: typeof findPedalHits;
   releaseAll: () => void;
@@ -266,6 +273,7 @@ function makeInputState(opts: InputOpts): InputState {
     brakeHeld: 0,                     // s the brake has been down, for the progressive ramp
     thrHeld: 0,                       // s the throttle has been down, for the progressive ramp
     revHeld: 0,                       // s R has been down — R ramps like the throttle
+    thrLaunch: false,                 // held from a standstill: full throttle (FIX.launchramp)
     handbrake: 0,                     // 0..1, slewed both ways (see HB_SLEW)
   } as InputState;   // its methods are set by createInput
 }
@@ -290,6 +298,22 @@ function resolveInputSteer(state: InputState, keys: Set<string>) {
 }
 
 /**
+ * Resolve the throttle from the keys and the pedal for one frame: ramped while held (THR_RAMP);
+ * full at once when it went down at a standstill (FIX.launchramp).
+ * @param state the input state
+ * @param keys the held key actions
+ * @param wallDt wall-clock seconds since the last frame
+ */
+function resolveInputThrottle(state: InputState, keys: Set<string>, wallDt: number) {
+  const thrDown = Math.max(keys.has('up') ? 1 : 0, state.pedals.throttle ? 1 : 0) > 0;
+  state.thrHeld = thrDown ? state.thrHeld + wallDt : 0;
+  state.thrLaunch = thrDown && FIX.launchramp
+    && (state.thrLaunch || (state.speed || 0) < STANDSTILL_MS);
+  const ramped = Math.min(1, THR_MIN + (1 - THR_MIN) * (state.thrHeld / THR_RAMP));
+  state.throttle = thrDown ? (state.thrLaunch ? 1 : ramped) : 0;
+}
+
+/**
  * Resolve throttle, brake, handbrake, reverse and shifts from keys and pedals for one frame.
  * @param state the input state
  * @param keys the held key actions
@@ -300,13 +324,8 @@ function resolveInputPedals(state: InputState, keys: Set<string>, wallDt: number
   // Keyboard and stick are BOTH raw [-1..1]; the road-wheel rate limit in vehicle.js does the
   // smoothing, so one path serves both and a keyboard player and a thumb player feel the same
   // car.
-  const kThrottle = keys.has('up') ? 1 : 0;
+  resolveInputThrottle(state, keys, wallDt);
   const kBrake = keys.has('down') ? 1 : 0;
-  const thrDown = Math.max(kThrottle, state.pedals.throttle ? 1 : 0) > 0;
-  state.thrHeld = thrDown ? state.thrHeld + wallDt : 0;
-  state.throttle = thrDown
-    ? Math.min(1, THR_MIN + (1 - THR_MIN) * (state.thrHeld / THR_RAMP))
-    : 0;
 
   const brakeDown = Math.max(kBrake, state.pedals.brake ? 1 : 0) > 0;
   state.brakeHeld = brakeDown ? state.brakeHeld + wallDt : 0;

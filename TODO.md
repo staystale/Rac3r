@@ -407,6 +407,33 @@ THE 10 NEW CARS (owner-approved names 11-16; one switch and one hand-back each; 
    or ROAD; its share (it stands for the Land Rovers, ~1 in 31); the 0-100 (13.2 s against 15.8:
    slower shifts or drivetrain losses would close it); the stock look (green, a white roof, black
    arches and bumper); the exhaust on the left (EST).
+LAUNCHES (owner 11-16 on the Civvic: "touring car not wheel spinning when pulling away seems
+unlikely", both with and without TCS; option C: "if you are holding throttle off the start, you
+will be revving up effectively off the start, like in real life"): BUILT 11-16 behind
+?launchramp=1 (FIX.launchramp; testlist 'launchramp'). FOUND: the physics spins the Civvic's
+fronts (headless, floored at once: from 0.16 s, for 5.1 s); the player's held-button ramp
+(src/input.ts, 0.26 at once to full over 1.5 s) kept every car from spinning in its first ~1 s
+(first spin: the Golf 0.90 s, the M135i 0.97, the Chevelle 1.20, the Civvic 1.37; the Mini never).
+NOW: a throttle that goes down at a standstill (under 0.5 m/s) is full at once and stays full while
+held; a press on the move ramps as before. REAL GAME (tools/scratch/_launchgame.mjs, the player's
+own input path, a free start on Thruston, the first 3 s, off -> on; aids off / on): first spin -
+the Civvic 1.4 -> 0.2 s (both), the Golf 0.9 -> 0.1, the M135i 1.0 -> 0.1, the Chevelle 1.2 -> 0.1,
+the Sport quattro 1.2 -> 0.1; the Mini and the V70 no spin either way; km/h at 3 s, aids off / on:
+the Civvic 42 / 51 -> 45 / 58, the Golf 41 / 44 both, the M135i 46 / 52 -> 43 / 50, the Chevelle 32 /
+38 -> 29 / 38, the Mini 38 -> 47, the V70 58 -> 65, the S1 84 / 88 -> 88 / 89. START TYPES (the
+Civvic, aids off): a standing grid (Thruston, 5 AI) or a stage start (Sweaty Lamb, 5 AI) with the
+gas held through the countdown - the same either way (the ramp is full by the green: first spin
+4.1 s / 4.0 s, the same 50 / 51 of 90 samples spinning); the gas let go in the countdown and pressed
+at the green - first spin 5.6 -> 4.4 s (Thruston), 5.3 -> 4.3 s (Sweaty Lamb); the highway's rolling
+start (the formation drives the car) - the same either way; a free start on Sweaty Lamb 1.1 -> 0.1
+s; lift and press again at 30 km/h - the ramp the same either way (0.41, 0.56, 0.70, 0.85 at 0.3 s
+steps). The AI is not touched (input.ts is the player's only); simhash, switch off and on, SAME
+(PC; it drives the player with its own input). NOT TESTED: a RESET put-back that rolls on at
+speed (by construction: it is over 0.5 m/s, so the ramp applies; a throttle held for 1.5 s is
+full either way), a phone's touch pedal (the same path as the key), the walkthrough (no card:
+not a new mechanic). QUESTION for the owner: a stab of the gas from rest is now full throttle,
+so a gentle pull-away from rest is no longer possible on the button (the ramp was made for that,
+11-02); right?
 
 ### 3b. Tracks (the venue helper builds, the foreman reviews, the owner passes; one switch each)
 
