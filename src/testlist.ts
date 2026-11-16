@@ -13,6 +13,17 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'launchramp',
+    added: '2026-11-16',
+    name: 'Launches: the throttle held from a standstill is full at once (no ramp)',
+    where: 'Test link + &launchramp=1 (with &civvic=1 for the BTCC Civvic): a free drive from '
+      + 'rest, a race start (hold or press the gas at the green), a rally stage start',
+    try: 'Floor it from rest in the Civvic, the Golf, the M135i, the Chevelle: the driven wheels '
+      + 'should spin off the line; then lift and press again on the move (that still ramps).',
+    wrong: 'No spin off the line, a car that can no longer pull away gently, the ramp gone on '
+      + 'the move, anything different at a rolling (highway) start.',
+  },
+  {
     id: 'defunder',
     added: '2026-11-16',
     name: 'New car: the Lend Rover Defunder 110 (a Land Rover Defender 110), OFF-ROAD, and in '
