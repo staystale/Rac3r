@@ -1,0 +1,389 @@
+{
+  "osm": "pembreezy.osm.json",
+  "out": "src/world/levels/venues/pembreezyrx.ts",
+  "exportName": "PEMBREEZYRX_VENUE",
+  "origin": [
+    51.7056,
+    -4.3206
+  ],
+  "turnDeg": 0,
+  "clip": [
+    -380,
+    -400,
+    300,
+    400
+  ],
+  "reachM": 150,
+  "skip": [
+    893412418,
+    893412419,
+    893412420,
+    893412422,
+    893412423,
+    999853077,
+    999853078,
+    999853083,
+    999853104,
+    999853108,
+    1546857193,
+    1546857194,
+    1546857195,
+    1546857196,
+    1546857198,
+    1546857199,
+    1546857201,
+    1546857202,
+    1546857203
+  ],
+  "trim": {
+    "893412417": [
+      0,
+      3
+    ],
+    "1546857191": [
+      2,
+      6
+    ]
+  },
+  "names": {
+    "177186595": "Dibeni sweeper",
+    "893412417": "Taxiway",
+    "1546857186": "Spitfires exit",
+    "1546857188": "Hatchets exit",
+    "1546857190": "Hatchets approach",
+    "1546857191": "Woodlands exit",
+    "1546857192": "Cowles Straight",
+    "1546857200": "Cowles Straight north"
+  },
+  "layouts": {
+    "rx": {
+      "through": [
+        "Cowles Straight",
+        "Cowles Straight north",
+        "Hatchets approach",
+        "Hatchets Hairpin",
+        "Hatchets exit",
+        "Spitfires",
+        "Spitfires exit",
+        "Dibeni",
+        "Dibeni sweeper",
+        "Taxiway",
+        "Gravel hairpin",
+        "Rallycross",
+        "Woodlands exit",
+        "Honda"
+      ],
+      "avoid": [
+        "Joker"
+      ]
+    },
+    "joker": {
+      "through": [
+        "Joker",
+        "Gravel hairpin",
+        "Cowles Straight"
+      ],
+      "avoid": [
+        "Rallycross 2"
+      ]
+    }
+  },
+  "extra": [
+    {
+      "source": "OpenStreetMap way 893412417, its nodes 3-11 (the hairpin off the old taxiway and the leg north to the gravel loop), carried with the surface the map leaves off: gravel (aerial photographs, ESRI World Imagery: a loose track, the taxiway before it tarmac)",
+      "tags": {
+        "highway": "raceway",
+        "name": "Gravel hairpin",
+        "oneway": "yes",
+        "sport": "motor",
+        "surface": "gravel"
+      },
+      "pts": [
+        [
+          51.7042379,
+          -4.3192647
+        ],
+        [
+          51.7042066,
+          -4.3190606
+        ],
+        [
+          51.7042224,
+          -4.3189989
+        ],
+        [
+          51.7042665,
+          -4.3189238
+        ],
+        [
+          51.7043238,
+          -4.3188863
+        ],
+        [
+          51.7043845,
+          -4.3188688
+        ],
+        [
+          51.7044634,
+          -4.3188608
+        ],
+        [
+          51.7045507,
+          -4.3188608
+        ],
+        [
+          51.704628,
+          -4.3188688
+        ]
+      ]
+    },
+    {
+      "source": "OpenStreetMap way 893412420 (Rallycross), its own nodes, carried with the surface the map leaves off: gravel (aerial photographs, ESRI World Imagery: a loose track through the infield from the gravel loop to Woodlands; the circuit guide (motorsportcircuits.co.uk) draws the rallycross section there, off the tarmac)",
+      "tags": {
+        "highway": "raceway",
+        "name": "Rallycross",
+        "oneway": "yes",
+        "sport": "motor",
+        "surface": "gravel"
+      },
+      "pts": [
+        [
+          51.704628,
+          -4.3188688
+        ],
+        [
+          51.7045889,
+          -4.3188366
+        ],
+        [
+          51.7045648,
+          -4.3188044
+        ],
+        [
+          51.7045427,
+          -4.3187336
+        ],
+        [
+          51.7045349,
+          -4.3186033
+        ],
+        [
+          51.7045058,
+          -4.3184558
+        ],
+        [
+          51.7044742,
+          -4.3183471
+        ],
+        [
+          51.7044327,
+          -4.3182305
+        ],
+        [
+          51.7043299,
+          -4.3180761
+        ],
+        [
+          51.7042307,
+          -4.3179621
+        ],
+        [
+          51.7040798,
+          -4.3178913
+        ],
+        [
+          51.7039697,
+          -4.317922
+        ],
+        [
+          51.7038891,
+          -4.3179957
+        ],
+        [
+          51.703806,
+          -4.318091
+        ],
+        [
+          51.7037154,
+          -4.318205
+        ],
+        [
+          51.7036489,
+          -4.3183015
+        ],
+        [
+          51.7035891,
+          -4.3184102
+        ],
+        [
+          51.7035509,
+          -4.3185402
+        ],
+        [
+          51.7035243,
+          -4.3186717
+        ],
+        [
+          51.7035003,
+          -4.3189293
+        ],
+        [
+          51.7034794,
+          -4.3192872
+        ],
+        [
+          51.7034603,
+          -4.3194361
+        ],
+        [
+          51.7034428,
+          -4.3195233
+        ],
+        [
+          51.7034054,
+          -4.3195944
+        ],
+        [
+          51.703368,
+          -4.319644
+        ],
+        [
+          51.7033182,
+          -4.3196815
+        ],
+        [
+          51.7031818,
+          -4.3197298
+        ],
+        [
+          51.703122,
+          -4.3197526
+        ],
+        [
+          51.7030547,
+          -4.3198062
+        ],
+        [
+          51.7029982,
+          -4.3198733
+        ],
+        [
+          51.7029549,
+          -4.3199712
+        ],
+        [
+          51.7029126,
+          -4.3201
+        ],
+        [
+          51.7028976,
+          -4.3202287
+        ],
+        [
+          51.7028878,
+          -4.3204005
+        ],
+        [
+          51.7029383,
+          -4.3206525
+        ],
+        [
+          51.703073,
+          -4.3211608
+        ],
+        [
+          51.7031062,
+          -4.3213297
+        ],
+        [
+          51.703142,
+          -4.3215229
+        ],
+        [
+          51.7031644,
+          -4.321724
+        ],
+        [
+          51.7031602,
+          -4.3219534
+        ],
+        [
+          51.7031411,
+          -4.3221585
+        ],
+        [
+          51.7031021,
+          -4.3224683
+        ],
+        [
+          51.7030472,
+          -4.3227299
+        ],
+        [
+          51.7030173,
+          -4.3228626
+        ],
+        [
+          51.7029956,
+          -4.322999
+        ]
+      ]
+    },
+    {
+      "source": "OpenStreetMap way 999853104, the loop round the outside of the gravel loop's right-hander (the joker: BRX 2022, clockwise \"around the outside of Hansen's corner\"), carried as gravel (aerial photographs)",
+      "tags": {
+        "highway": "raceway",
+        "name": "Joker",
+        "oneway": "yes",
+        "sport": "motor",
+        "surface": "gravel"
+      },
+      "pts": [
+        [
+          51.7040798,
+          -4.3178913
+        ],
+        [
+          51.7037853,
+          -4.3176344
+        ],
+        [
+          51.7037071,
+          -4.3175706
+        ],
+        [
+          51.7036772,
+          -4.3175693
+        ],
+        [
+          51.7036398,
+          -4.3175787
+        ],
+        [
+          51.7035475,
+          -4.317639
+        ],
+        [
+          51.7034877,
+          -4.3177007
+        ],
+        [
+          51.7034611,
+          -4.317753
+        ],
+        [
+          51.7034453,
+          -4.3178563
+        ],
+        [
+          51.7034403,
+          -4.3179689
+        ],
+        [
+          51.7035003,
+          -4.3189293
+        ]
+      ]
+    }
+  ]
+}

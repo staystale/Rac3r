@@ -62,4 +62,7 @@ export const FIX = {
   // the phone report (?report=1) also records the GPU side and each draw layer's time, the
   // device's hints (ui/gpustat.ts, render/layerclock.ts): report only, nothing drawn changes
   gpustat: atLoad('gpustat'),
+  // Pembreezy, Pembrey Circuit and its rallycross from the map: the circuit at half size and the
+  // rallycross at full size, one venue (pembreezy-venue.ts, pembreezyrx-venue.ts)
+  pembreezy: atLoad('pembreezy'),
 };
