@@ -30,6 +30,8 @@ const PART_HIT = 0.3, PART_SPAN = 0.4, PART_P_MIN = 0.35, END_ON = 0.65, SIDE_ON
 // (both corners of an end are hit: ~2x these a crash - MEASURED _bittest.mjs)
 const BIG_HIT = 0.5, ENGINE_HIT = 0.8, BONNET_P = 0.14, EXHAUST_P = 0.17, REAR_P = 0.12;
 const MIRROR_P = 0.12, ENGINE_P = 0.04;
+// (?underskin: none by dice - an end crushed past its engine throws it: crushedEngine)
+const ENGINE_DICE_P = FIX.underskin ? 0 : ENGINE_P;
 // (owner 11-07: "can they have a chance to come off in smaller knocks but keep it low"):
 // a corner's hit from SMALL_FROM to PART_HIT knocks its part off at most SMALL_P of the time
 const SMALL_FROM = 0.08, SMALL_P = 0.06;
@@ -155,7 +157,8 @@ function bigParts(car: DebrisCar, corner: number, add: number, endW: number,
   if (front && bits.front === 'bonnet') off('bonnet', BONNET_P);
   if (!front) off('exhaust', EXHAUST_P);
   if (!front && bits.rear !== 'none') off(bits.rear, REAR_P);
-  if (add >= ENGINE_HIT && front === (bits.engine === 'front')) off('engine', ENGINE_P);
+  // (?underskin: the engine goes only when the crush reaches it - crushedEngine, no dice)
+  if (add >= ENGINE_HIT && front === (bits.engine === 'front')) off('engine', ENGINE_DICE_P);
 }
 
 /**
@@ -275,7 +278,11 @@ export function wheelBits(car: Pick<DebrisCar, 'spec' | 'partSpawn' | 'suspOff'>
 // at 1): a front engine's front sits ~0.12 of the length in from the nose, so ~0.5; a rear
 // engine's back ~0.1 in from the tail (0.22 a length at 1), ~0.45; a mid engine, behind the cabin,
 // ~0.8 at the rear
-const ENGINE_REACHED: Record<string, number> = { front: 0.5, rear: 0.45, mid: 0.8 };
+// - and only once the engine is EXPOSED (its bonnet / lid off): the 0.5 / 0.45 of the drawing threw
+// it at 25 m/s through a closed bonnet. Deep: the bumper well past the engine's front
+const ENGINE_REACHED: Record<string, number> = { front: 0.75, rear: 0.7, mid: 0.95 };
+// an end crushed this far has crumpled its bonnet / lid away from the bay: the engine is exposed
+const CRUSHED_OPEN = 0.9;
 
 /**
  * ?underskin: an end crushed past its engine throws the engine (once, until a repair).
@@ -284,11 +291,12 @@ const ENGINE_REACHED: Record<string, number> = { front: 0.5, rear: 0.45, mid: 0.
  */
 export function crushedEngine(car: DebrisCar, crushEnds: number[]): void {
   if (!FIX.underskin) return;
-  const bits = bitsOf(car.spec?.id || ''), where = bits.engine;
-  if (hasNo(bits, 'engine') || (car.partLost || '').includes('engine')) return;
-  const front = where === 'front', reach = ENGINE_REACHED[where] ?? 1;
+  const bits = bitsOf(car.spec?.id || ''), lost = car.partLost || '';
+  if (hasNo(bits, 'engine') || lost.includes('engine')) return;
+  const front = bits.engine === 'front';
   const crush = front ? (crushEnds[0] + crushEnds[1]) / 2 : (crushEnds[2] + crushEnds[3]) / 2;
-  if (crush < reach) return;
+  const exposed = lost.includes(front ? 'bonnet' : bits.rear) || crush >= CRUSHED_OPEN;
+  if (crush < ENGINE_REACHED[bits.engine] || !exposed) return;
   const corner = front ? 0 : 2;
   car.partLost = (car.partLost ? car.partLost + ',' : '') + 'engine:' + corner;
   (car.partSpawn || (car.partSpawn = [])).push({ corner, kind: 'engine' });

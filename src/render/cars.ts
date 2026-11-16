@@ -36,7 +36,20 @@ const OPEN_ARMS: ArmsLook = { wishbone: WISHBONE, shaft: DRIVE_SHAFT, joint: CV_
 // ?underskin: a closed car's arms seen through a lost wing's opening or past its crushed end -
 // the open cars' own look, dark and under the tyre (owner 11-16: "they should keep their old look
 // still just be drawn correctly" - the lighter edge is gone), bolted to its SUBFRAME
-const WELL_ARMS: ArmsLook = OPEN_ARMS;
+// - THICKER on a road car than a single-seater's (owner: "maybe thicker wishbones on cars / vans
+// etc like real life"): lines side by side per arm; a heavier vehicle's (a van, a 4x4, the bus,
+// the trophy truck: from HEAVY_KG) thicker again
+const WELL_ARMS: ArmsLook = { ...OPEN_ARMS, widePx: 2 };
+const HEAVY_ARMS: ArmsLook = { ...OPEN_ARMS, widePx: 3 };
+const HEAVY_KG = 2000;
+
+/**
+ * A closed car's exposed arms' look: thicker on a heavier vehicle.
+ * @param spec the car as drawn
+ * @returns the look
+ */
+const wellArms = (spec: RenderCarSpec): ArmsLook => ((spec.mass ?? 0) >= HEAVY_KG ? HEAVY_ARMS
+  : WELL_ARMS);
 
 
 // what createCars destructures from the renderer and the sprite layers
@@ -278,8 +291,9 @@ function armLines(ctx: CanvasRenderingContext2D, spec: RenderCarSpec,
   const drive = spec.drive ?? 0;
   if (front ? drive > 0 : drive < 1) {
     ctx.fillStyle = edge ? look.edge! : look.shaft;
-    pixelLine(ctx, [innerX, body], [hubX, hubY], sizePx);
-    pixelLine(ctx, [innerX + 1, body], [hubX + 1, hubY], sizePx);
+    // (as thick as the arms, two lines at the least)
+    for (let line = 0; line < Math.max(2, look.widePx); line++)
+      pixelLine(ctx, [innerX + line, body], [hubX + line, hubY], sizePx);
     if (!edge) {
       ctx.fillStyle = look.joint;
       ctx.fillRect(Math.round(innerX) - 1, Math.round(body + side * 2) - 1, 3, 2);
@@ -360,7 +374,7 @@ function drawExposed(ctx: CanvasRenderingContext2D, spec: RenderCarSpec, sprite:
   drawExposedCorner(ctx, wheel, shift,
     () => {
       drawSubframe(ctx, axleX, innerY, side);
-      drawFixedArms(ctx, spec, axleX, side, halfWidth, WELL_ARMS, shift, innerY);
+      drawFixedArms(ctx, spec, axleX, side, halfWidth, wellArms(spec), shift, innerY);
     }, { colour: WELL_ARMS.wishbone }, innerY);
 }
 
@@ -371,7 +385,7 @@ function drawLostWheel(ctx: CanvasRenderingContext2D, car: RenderCar, spec: Rend
     const tyre = tyreBox(spec, wheel.axleX < 0);
     drawSnappedCorner(ctx, car, sprite, { ...wheel, tyreLen: tyre.len, tyreWid: tyre.wid },
       (hub, innerY) => drawFixedArms(ctx, spec, wheel.axleX, wheel.side, wheel.halfWidth,
-        WELL_ARMS, hub, innerY));
+        wellArms(spec), hub, innerY));
     return;
   }
   // DAMAGE: wheel gone, a hub stub
