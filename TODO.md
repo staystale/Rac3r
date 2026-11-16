@@ -220,8 +220,7 @@ HANGING PARTS (item 4; owner's answers 11-17: the exhaust hangs by a chance by t
 overall, and drags a random 100-400 m; a hanging bumper falls off by itself by distance and damage;
 the Tesla and open cars as they are): world/hanging.ts. A hit that would throw the exhaust leaves it
 hanging HANG_FROM 1.55 less the hit's size of the time (0.2-0.8; a roll's impact as 0.75) - gone from
-the sprite, drawn under the body with its tailpipes 0.35 m behind the tail (render/hanging.ts; dark
-and thick, owner 11-17 - about 2 px at game zoom, tools/scratch/_hangshots.mjs with ZOOM=0), its
+the sprite, drawn under the body with its tailpipes 0.35 m behind the tail (render/hanging.ts), its
 end SPARKING on hard ground over 2 m/s (render/particles.ts emitHangingDrag) - and it drops after a
 random 100-400 m of the car's travel (thrown as before), or at the next hit on the tail. A torn bumper
 that leaves a piece hanging (world/torn.ts partHangs, shared now with render/torncut.ts) drags 100-400
