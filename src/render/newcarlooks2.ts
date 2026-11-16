@@ -182,8 +182,86 @@ function paintFocust(spr: SpriteCtx): void {
   block(-1, wid - 9, 1, 3, CHR);
 }
 
+/**
+ * The Clio's plan, a half width at a share of its length (0 tail, 1 nose), as a share of the
+ * sprite's half: the rounded tail, the full hips over the rear wheels, the waist at the doors, the
+ * front wings, the round nose.
+ * @param share along the car, 0..1
+ * @returns the half width, 0..1
+ */
+function cleoPlan(share: number): number {
+  const arch = Math.max(inside(share, 0.05, 0.3, 0.06), inside(share, 0.62, 0.86, 0.06));
+  const tail = share < 0.05 ? 0.8 + 0.2 * Math.sqrt(share / 0.05) : 1;
+  const nose = share > 0.86 ? Math.sqrt(1 - 0.65 * ((share - 0.86) / 0.14) ** 2) : 1;
+  return (0.93 + 0.07 * arch) * tail * nose;
+}
+
+/**
+ * The Clio's glasshouse: a hatch's short rear screen, the roof (the second colour) almost to the
+ * back, the side glass, the raked windscreen, the mirrors (the third colour).
+ * @param spr the painting context
+ */
+function cleoCabin(spr: SpriteCtx): void {
+  const { mid, roof2, light, third, block, along } = spr;
+  const rearFrom = along(0.05), roofFrom = along(0.12), roofTo = along(0.55),
+    screenTo = along(0.66), cabinHalf = Math.round(mid * 0.72);
+  for (let x = rearFrom; x < roofFrom; x++) {
+    const half = Math.round(cabinHalf - 3 * (roofFrom - x) / (roofFrom - rearFrom));
+    block(x, mid - half, 1, half * 2 + 1, GLASS);
+  }
+  block(roofFrom, mid - cabinHalf, roofTo - roofFrom, cabinHalf * 2 + 1, roof2);
+  block(roofFrom, mid - cabinHalf, roofTo - roofFrom, 1, light);
+  block(roofFrom + 1, mid - cabinHalf - 1, roofTo - roofFrom - 2, 1, GLASS);
+  block(roofFrom + 1, mid + cabinHalf + 1, roofTo - roofFrom - 2, 1, GLASS);
+  for (let x = roofTo; x < screenTo; x++) {
+    const half = Math.round(cabinHalf + 1 + 2 * (x - roofTo) / (screenTo - roofTo));
+    const rake = Math.round((x - roofTo) * 0.3);
+    block(x, mid - half + rake, 1, (half - rake) * 2 + 1, GLASS);
+  }
+  block(roofTo + 1, mid - cabinHalf + 1, 1, cabinHalf * 2 - 1, GLASS_HI);
+  block(screenTo - 2, mid - cabinHalf - 4, 2, 2, third);
+  block(screenTo - 2, mid + cabinHalf + 3, 2, 2, third);
+}
+
+/**
+ * RENOLT CLEO CUP (Renault Clio Cup, Clio V): the hatch's round plan on its wider arches, the
+ * short rear screen and the roof (the second colour) almost to the back, the raked screen and
+ * mirrors, the bonnet's creases, the C-shaped lamps, the grille, the splitter (the third colour),
+ * the wing across the tailgate unless knocked off, the exhaust.
+ * @param spr the painting context
+ */
+function paintCleo(spr: SpriteCtx): void {
+  const { spec, lengthPx: len, widthPx: wid, mid, outline, light, dark, third, block,
+    along } = spr;
+  planBody(spr, (x) => mid * cleoPlan(x / (len - 1)));
+  cleoCabin(spr);
+  block(along(0.68), mid - 6, along(0.2), 1, light);
+  block(along(0.68), mid + 6, along(0.2), 1, dark);
+  // the C-shaped lamps on the nose's corners, the grille, the splitter
+  for (const y of [3, wid - 6]) {
+    block(len - 6, y, 4, 3, HEAD);
+    block(len - 5, y + 1, 2, 1, outline);
+  }
+  block(len - 2, mid - 5, 2, 11, INK);
+  block(len - 2, mid - 4, 1, 9, MESH);
+  block(len, 2, 1, wid - 4, third);
+  // the tail lamps on the corners, the tailpipe (EST: left of centre)
+  for (const y of [2, wid - 6]) block(0, y, 2, 4, TAIL);
+  block(-1, mid - 5, 1, 2, CHR);
+  if (spec.noWing) return;
+  // the WING across the tailgate: its shadow, the plane, the endplates, the stands
+  block(3, 2, 4, wid - 4, 'rgba(0,0,0,0.25)');
+  block(1, 1, 4, wid - 2, outline);
+  block(2, 2, 2, wid - 4, third);
+  block(3, 2, 1, wid - 4, light);
+  block(1, 0, 4, 2, INK);
+  block(1, wid - 2, 4, 2, INK);
+  for (const y of [mid - 6, mid + 5]) block(4, y, 3, 2, STEEL);
+}
+
 /** Cars 6 on: their bodies by id (render/carlooks.ts LOOKS takes them). */
 export const NEW_LOOKS_2: [string, { paint: (spr: SpriteCtx) => void; bare?: boolean }][] = [
   ['defunder-110', { paint: paintDefunder, bare: true }],
   ['focust-st', { paint: paintFocust, bare: true }],
+  ['cleo-cup', { paint: paintCleo, bare: true }],
 ];

@@ -52,6 +52,8 @@ const REAL_SIZE: Record<string, RealSize> = {
   'defunder-110': { len: 4.785, wid: 1.79, lf: 1.341, lr: 1.453, trackWidth: 1.486 },
   // Focus ST Mk4: 4.388 x 1.825, wheelbase 2.70, track 1.567 / 1.556; 61 / 39 EST
   'focust-st': { len: 4.388, wid: 1.825, lf: 1.053, lr: 1.647, trackWidth: 1.562 },
+  // Clio Cup V: 4.05 x 1.798, wheelbase 2.579, track 1.55 / 1.49; 60 / 40 EST
+  'cleo-cup': { len: 4.05, wid: 1.798, lf: 1.032, lr: 1.547, trackWidth: 1.52 },
 };
 
 /**

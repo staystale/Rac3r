@@ -69,4 +69,6 @@ export const FIX = {
   // the Focust read as a five-door HATCH from above: the roof almost to the back, a short steep
   // rear screen under its spoiler, no boot deck (render/newcarlooks2.ts FOCUST_CABIN)
   focustlook: atLoad('focustlook'),
+  // the Renolt Cleo Cup (TOURING / Cup)
+  cleo: atLoad('cleo'),
 };

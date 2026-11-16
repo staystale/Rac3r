@@ -4,12 +4,13 @@
 // the owner passes it. Each row follows the real car (src/realcars.ts helpers); EST marks a figure
 // no source gave. Drafted with tools/newcarstart.mjs, checked with tools/newcar.mjs <id>.
 import type { RosterRow } from './cars.ts';
+import { FIX } from './core/fixes.ts';
 import { dragOf, realCurve, tyreR } from './realcars.ts';
 
 // GT: the GT3 racers (TODO CHAMPIONSHIPS: GT), a class of their own on race tyres
 const GT_CLASS = { id: 'gt', name: 'GT', subs: ['GT3'] };
 // TOURING: the touring cars (TODO CHAMPIONSHIPS: BTCC), a class of their own on race tyres
-const TOURING_CLASS = { id: 'touring', name: 'TOURING', subs: ['BTCC'] };
+const TOURING_CLASS = { id: 'touring', name: 'TOURING', subs: ['BTCC', 'Cup'] };
 /** Every new class's id (the tyres they fit: cars.ts TYRES). */
 export const NEW_CLS_IDS = [GT_CLASS.id, TOURING_CLASS.id];
 
@@ -188,8 +189,36 @@ const FOCUST: RosterRow = {
   paint: '#2f6fd0', trim: '#1d3f9a', glass: '#2a2f38', rim: '#2a2d34',
 };
 
+// Renault Clio Cup (Clio V, 2020 on: the one-make racer; Alpine Racing's sheets and the Clio Cup
+// GB rules): the 1.33 TCe turbo four (H5H) across the front, "200+ bhp" (149 kW; 180 at its 2020
+// launch), 300 Nm, 6,500 rpm, a Sadev ST82 five-speed sequential with a ZF limited-slip
+// differential (not modelled), FWD, 1,120 kg with the driver (Clio Cup GB), 4,050 x 1,798 mm (the
+// 1,988 quoted is with the mirrors, as the road Clio V's), height 1,400, wheelbase 2,579, track
+// 1,550 / 1,490, Michelin 20/61-17 slicks on 7 x 17. EST (not published): the power's rpm (5,500)
+// and the torque's band (2,500-4,500), the ratios and final drive (to ~210 km/h), Cd 0.36 x 2.0
+// m^2, 60 / 40, the CG and ride height, the splitter and wing's downforce (ClA 0.55), the slicks'
+// grip and stiffness, the springs; race ABS, no traction control (to ask).
+const CLEO: RosterRow = {
+  id: 'cleo-cup', name: 'Renolt Cleo Cup', kind: 'cleo', cls: 'touring', sub: 'Cup',
+  rimIn: 17,   // its real rim, inches (what tyres fit)
+  cg: 0.43, rideH: 0.08, cyl: 4,
+  aids: { abs: true, tcs: false },
+  mass: 1120, lf: 1.032, lr: 1.547, len: 4.05, wid: 1.798, trackWidth: 1.52,
+  // 20/61-17: 0.61 m across, 0.20 m of tread
+  tyreWidth: 0.2, wheelR: 0.305,
+  drive: 1.0, brakeBiasF: 0.65, caF: 95000, caR: 95000, mu: 1.45,
+  curve: realCurve({ idle: 1200, low: 0.6, nm: 300, nmFrom: 2500, nmTo: 4500,
+    kw: 149, kwAt: 5500, redline: 6500 }),
+  redline: 6500, upshiftRpm: 6300, downshiftRpm: 3600, idleRpm: 1200,
+  gears: [2.62, 1.95, 1.55, 1.27, 1.06], finalDrive: 3.36, dragC: dragOf(0.36, 2.0),
+  aeroK: 1.15, downforceF: 0.25, downforceR: 0.3, susF: 2.3, susZ: 0.32,
+  // white, the Renault Sport yellow roof (big), black details (wing, splitter, mirrors)
+  paint: '#f0f0ea', trim: '#f2a900', glass: '#2a2f38', rim: '#16181d',
+};
+
 /** The new cars: their roster rows, in the list's order. */
-export const NEW_CARS: RosterRow[] = [PORCH, SEVEN, TRANSFIT, TROPHY, CIVVIC, DEFUNDER, FOCUST];
+export const NEW_CARS: RosterRow[] = [PORCH, SEVEN, TRANSFIT, TROPHY, CIVVIC, DEFUNDER, FOCUST,
+  ...(FIX.cleo ? [CLEO] : [])];
 
 /** The classes only new cars race in. */
 export const NEW_CLASSES = [GT_CLASS, TOURING_CLASS];

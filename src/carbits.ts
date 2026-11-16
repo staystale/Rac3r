@@ -111,6 +111,10 @@ export const CAR_BITS: Record<string, CarBits> = {
   // Focus ST Mk4: one tailpipe each side, the tailgate, the 2.3 four across the front
   'focust-st': { pipes: 2, pipesAt: 'sides', front: 'bonnet', rear: 'boot', engine: 'front',
     cyl: 4, layout: 'inline', mount: 'trans', radiator: 'front' },
+  // Clio Cup V: one pipe (EST: left of centre), the tailgate with the wing on it, the 1.3 four
+  // across the front, the radiator in the nose
+  'cleo-cup': { pipes: 1, pipesAt: 'left', front: 'bonnet', rear: 'boot', engine: 'front',
+    cyl: 4, layout: 'inline', mount: 'trans', radiator: 'front', wingOnLid: true },
 };
 
 /**
