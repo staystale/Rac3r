@@ -13,6 +13,43 @@ rolls - OWNER 11-07; the AI rework - Where we are 11-04; the driving root fix, t
 LIST 11-01; TypeScript, mud, grass, lamps - Queue; weather, surfaces, car systems, damage,
 lighting, bushes and trees - OWNER LIST 10-24; the checking tools - Tools that are wrong.
 
+## PASSED 11-16 (owner: "A and b") - THE PHONE REPORT'S GPU AND LAYER NUMBERS, the default with every
+`?report=1` (was ?gpustat=1); nothing runs without the report. The fences (one frame a second
+made to wait) come with every report run now.
+
+THE FRAME-DROP HUNT, PREP (JOB 3b; owner 11-15: "The frame rate drop needs to be chased down").
+  KNOWN: the phone gives 53-92 frames/min over 20 ms on the highway zoomed out while our JS is
+  ~7 ms; halving the ground uploads did not change it; the 11-13 build gives the same.
+  BUILT behind `?gpustat=1` (FIX.gpustat, report only; ui/gpustat.ts, render/layerclock.ts,
+  tools/phonereport.mjs; testlist 'gpustat'; ENGINE.md One frame): the GPU ground's WebGL timer
+  where the browser has one, fences once a second (the GPU ground's finish and the 2D screen
+  canvas's paint, each less the same fence with nothing queued), how late each frame's callback
+  began, our whole work, every draw layer's ms, the props drawn, and the device's hints (timer,
+  GPU name, battery, CPU pressure, visibility / focus, long tasks). NO THERMAL OR LOW-POWER API
+  on iOS: the report's "capped at 30 fps" and the fences rising over a run are the only proxies.
+  MEASURED (tools/scratch/_gpustat.mjs, the laptop: AMD Radeon iGPU via ANGLE D3D11, 440x738 dpr
+  3, CPU x1, the highway on the autopilot zoomed out, traffic 0.6, 40 s each; medians, ms):
+  | | work | draw | gpu (WebGL ground) | GL finish work | 2D paint work | night | blit | cars | rest |
+  |---|---|---|---|---|---|---|---|---|---|
+  | day | 7.6 | 4.2 | 0.9 | 6.6 | 7.3 | 0 | 0.6 | 0.6 | 1.7 |
+  | night 0.9 | 7.4 | 4.6 | 0.8 | 7.5 | 6.9 | 0.7 | 0.6 | 0.7 | 1.5 |
+  | rain 0.8 | 6.9 | 3.8 | 1.0 | 6.1 | 5.8 | 0.3 | 0.6 | 0.4 | 1.5 |
+  | skip=world | 3.9 | 1.5 | 0.9 | 2.1 | 6.0 | 0 | 0.2 | 0.2 | 0.9 |
+  (rest: draw less the named layers - the marks, the camera, the art buffer's clears; ground,
+  deck, still, props, overhead, fx, rain each 0.0-0.2; HUD 0.6.) Skipping props, the cars, the
+  night or the rain did not move the fences (2D paint 8.9-9.3 ms raw each). CANDIDATES: (1) the
+  2D screen canvas's own paint, ~6 ms of GPU work a frame here whatever is drawn (the full-screen
+  clear, blits and HUD at this size); (2) the world's 2D drawing on the GPU: GL finish work 6-7.5
+  ms with the world, 2.1 without, while its CPU time is under 2 ms; (3) slow frames here are our
+  JS (work 18-20 ms) begun late (5-6 ms: something ran before the frame - 4-8 long tasks, 0.5-1.3 s,
+  in 40 s). THE PC (GTX 980 Ti via ANGLE, 4 cores, its browser in the services session - each
+  frame's callback began ~10 ms late there; the same run): 2D paint work day 5.7, NIGHT 8.6, RAIN
+  10.2 ms; GL finish work 1.0-1.3; the night layer's CPU 4.0 ms (5.4 in slow frames); slow frames
+  day 3.3 %, night 47.8 %, rain 27.5 % - (4) the night layer and the rain add 2D paint there, and
+  the night layer's CPU, on a slower CPU, is the biggest named slice. The phone's numbers decide;
+  nothing is changed yet.
+  Switch off: renderhash highway + thruston SAME (PC, against round80).
+
 ## PASSED 11-15 (owner: "Pass") - THE WAITING POLICE WAKE, the default (was ?hwparked=1); any driver with heat
 wakes them, the 60 m witness kept.
 

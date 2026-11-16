@@ -1,6 +1,7 @@
-// ui/gpustat.ts - THE FRAME-DROP HUNT'S EXTRA REPORT (?gpustat=1 with ?report=1; report only:
-// nothing drawn changes). The phone drops frames while our JS is short (sim ~4 + draw ~3 ms), so
-// what eats the frame is outside what the report measured. Each frame now also carries:
+// ui/gpustat.ts - THE PHONE REPORT'S GPU AND LAYER NUMBERS (with ?report=1; nothing drawn
+// changes; nothing runs without the report). The phone drops frames while our JS is short (sim
+// ~4 + draw ~3 ms), so what eats the frame is outside the report's older numbers. Each frame also
+// carries:
 // - the GPU ground's own time (WebGL EXT_disjoint_timer_query_webgl2, where the browser has it:
 //   the result of a frame a few frames back, -1 none yet / no timer, -2 a disjoint result);
 // - once every FENCE_EVERY frames, two FENCES timed at the end of our work: gl.finish() +
@@ -14,7 +15,11 @@
 //   screen.ts) and the HUD's, and the props drawn / walked.
 // Each post also carries the device's hints: the timer's name or none, visibility / focus changes,
 // the battery, the CPU pressure (Compute Pressure, where there is one), long tasks, the GPU's name.
-import { FIX } from '../core/fixes.ts';
+import { atLoad } from '../core/fixes.ts';
+
+// on with the phone report (?report=1; REPORT=1 for the node tools), read as this module loads:
+// the renderer's layer painters are wrapped as it is made, before the reporter is
+const IS_ON = atLoad('report');
 
 /** The extra numbers each report frame carries (their order: tools/phonereport.mjs reads them). */
 export const STAT_FIELDS = ['gpuMs', 'glFenceMs', 'glIdleMs', 'canvasFenceMs', 'canvasIdleMs',
@@ -67,23 +72,23 @@ function webglOf(): WebGL2RenderingContext | null {
 }
 
 /**
- * Whether the extra report is on.
+ * Whether the report is on (?report=1).
  * @returns on
  */
-export const isStatOn = () => FIX.gpustat;
+export const isStatOn = () => IS_ON;
 
 /**
- * The time now when the extra report is on (0 when off: no clock read).
+ * The time now with the report on (0 without: no clock read).
  * @returns ms (performance.now)
  */
-export const statNow = () => (FIX.gpustat ? performance.now() : 0);
+export const statNow = () => (IS_ON ? performance.now() : 0);
 
 /**
  * A frame begins (the animation-frame callback): its start and how late it began.
  * @param rafNow the frame's own timestamp, ms
  */
 export function statFrameStart(rafNow: number) {
-  if (!FIX.gpustat) return;
+  if (!IS_ON) return;
   frame.start = performance.now();
   frame.late = frame.start - rafNow;
   frame.no++;
@@ -97,7 +102,7 @@ export function statFrameStart(rafNow: number) {
  * @param since performance.now when the layer began
  */
 export function addLayerMs(name: LayerName, since: number) {
-  if (!FIX.gpustat) return;
+  if (!IS_ON) return;
   layerMs[STAT_FIELDS.indexOf(name) - LAYER_FIRST] += performance.now() - since;
 }
 
@@ -106,7 +111,7 @@ export function addLayerMs(name: LayerName, since: number) {
  * @param isTree it is a tree
  */
 export function notePropDrawn(isTree: boolean) {
-  if (!FIX.gpustat) return;
+  if (!IS_ON) return;
   counts.drawn++;
   if (isTree) counts.trees++;
 }
@@ -116,13 +121,13 @@ export function notePropDrawn(isTree: boolean) {
  * @param walked how many
  */
 export function notePropsWalked(walked: number) {
-  if (FIX.gpustat) counts.walked += walked;
+  if (IS_ON) counts.walked += walked;
 }
 
 /** The GPU ground's frame begins: a timer query starts (where the browser has the timer). */
 export function statGpuBegin() {
   const webgl = webglOf();
-  if (!FIX.gpustat || !webgl) return;
+  if (!IS_ON || !webgl) return;
   if (timer.ext === undefined) {
     timer.ext = webgl.getExtension('EXT_disjoint_timer_query_webgl2') as TimerExt | null;
     const info = webgl.getExtension('WEBGL_debug_renderer_info');
@@ -136,7 +141,7 @@ export function statGpuBegin() {
 /** The GPU ground's frame ends: its timer query ends; the results come in (oldest first). */
 export function statGpuEnd() {
   const webgl = webglOf();
-  if (!FIX.gpustat || !timer.ext || !webgl) return;
+  if (!IS_ON || !timer.ext || !webgl) return;
   if (timer.running) {
     webgl.endQuery(timer.ext.TIME_ELAPSED_EXT);
     timer.pending.push(timer.running);
@@ -212,9 +217,9 @@ export function takeFrameStats(screen: HTMLCanvasElement) {
     counts.trees, counts.walked];
 }
 
-/** Starts listening for the device's hints (once, when the extra report is on). */
+/** Starts listening for the device's hints (once, with the report). */
 export function watchDeviceHints() {
-  if (!FIX.gpustat) return;
+  if (!IS_ON) return;
   const note = (what: string) => hints.events.push([Math.round(performance.now()), what]);
   document.addEventListener('visibilitychange', () => note(document.visibilityState));
   addEventListener('blur', () => note('blur'));
@@ -247,11 +252,11 @@ function readBattery() {
 
 /**
  * A post's extras: the field names, what the browser has, and the device's hints since the last
- * post (undefined when the extra report is off: the post is as before).
+ * post (undefined without the report).
  * @returns the extras, or undefined
  */
 export function takePostStats() {
-  if (!FIX.gpustat) return undefined;
+  if (!IS_ON) return undefined;
   readBattery();
   const nav = navigator as Navigator & { deviceMemory?: number };
   const post = {

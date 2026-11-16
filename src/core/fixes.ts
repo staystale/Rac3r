@@ -22,7 +22,7 @@
 // railbridges, roadtunnels, wobbly, stadeprance, police, trainlights, moveover, roadrage,
 // stationstops, carcache, carcull, coverlight passed 11-12; nighthw, exitpuns, hjfirs, rollhold,
 // stuckreset, croughedrx, tiledensity, aipace (its live pause-menu dials removed), aislide passed
-// 11-15.)
+// 11-15; gpustat (now always with ?report=1) passed 11-16.)
 import { envValue } from './debug.ts';
 
 /**
@@ -59,9 +59,6 @@ export const FIX = {
   // pull in for fuel (moving over to the nearside lane first; cruising police too), and cars join
   // from the on-ramps (ai/trafficTrips.ts)
   hwtrips: atLoad('hwtrips'),
-  // the phone report (?report=1) also records the GPU side and each draw layer's time, the
-  // device's hints (ui/gpustat.ts, render/layerclock.ts): report only, nothing drawn changes
-  gpustat: atLoad('gpustat'),
   // UNDER THE SKIN: what a lost panel shows - the engine and radiator in the bay, a corner's
   // suspension and drive shaft in a wing's well, the crash bar and radiator behind a bumper - by
   // each car's own layout (render/underskin.ts, carbits.ts mount / radiator)

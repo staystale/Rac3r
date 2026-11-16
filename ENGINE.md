@@ -55,8 +55,8 @@ Older design notes and measurements are in the git history of this file.
 4. Draw: `renderer.frame()` (world into the art-pixel buffer, then to the screen), then the HUD.
 5. Audio update and the fps meter.
 
-THE PHONE REPORT'S GPU AND LAYER NUMBERS (`?gpustat=1` with `?report=1`, `FIX.gpustat`, under
-test; report only). `ui/gpustat.ts`: each report frame gets 22 more numbers after its 13
+THE PHONE REPORT'S GPU AND LAYER NUMBERS (always with `?report=1`; nothing runs without it;
+report only). `ui/gpustat.ts`: each report frame gets 22 more numbers after its 13
 (`STAT_FIELDS`, named in each post's `stat.fields`): the GPU ground's WebGL time
 (`EXT_disjoint_timer_query_webgl2` where the browser has it - a frame a few frames back; -1 none,
 -2 disjoint), the FENCES once in `FENCE_EVERY` (60) frames - `gl.finish()` + a pixel read, and the

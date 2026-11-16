@@ -110,7 +110,7 @@ export function drawSharpCarLayers(ctx: ScreenCtx, game: RenderGame, lock: Scree
   // the tunnels' tyre marks over their portals' cuts (none shows under the ground)
   if (LEVEL.crossings) drawCrossingMarks(ctx, sharp, 'tunnel');
   drawSparksOnScreen(ctx, lock);
-  // (?gpustat=1: the cars' time - ui/gpustat.ts)
+  // (the phone report: the cars' time - ui/gpustat.ts)
   const carsT0 = statNow();
   forEachDrawnCar(ctx, game, (car) => {
     const way = crossingOf(car);
