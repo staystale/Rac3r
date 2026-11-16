@@ -13,6 +13,33 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'saxo',
+    added: '2026-11-16',
+    name: 'New car: the Citrone Saxo Max (the Saxo Kit Car, F2 1997-99), RALLY / 2L',
+    where: 'Test link + &saxo=1: the garage, RALLY; a rally stage or rallycross',
+    try: 'Its look, a stage against the Pugeot 306 Maxxi (it should be a little slower), '
+      + 'gravel and tarmac, crash it.',
+    wrong: 'Not a Saxo from above, quicker than the 306, twitchy on gravel.',
+  },
+  {
+    id: 'routemonster',
+    added: '2026-11-16',
+    name: 'New car: the AEC Routemonster (a London Routemaster bus), ROAD / Bus',
+    where: 'Test link + &routemonster=1: the garage, ROAD; the highway for it in the traffic',
+    try: 'Drive it (top speed about 68 km/h), throw it into a corner, look for it in the '
+      + 'traffic (about 1 in 250).',
+    wrong: 'Not a Routemaster from above, too quick, rolls over far too easily, too common in '
+      + 'the traffic.',
+  },
+  {
+    id: 'ts010',
+    added: '2026-11-16',
+    name: 'New car: the Toyoter TS010 (Toyota\'s 1992 Group C car), PROTOTYPE / Group C',
+    where: 'Test link + &ts010=1: the garage, PROTOTYPE; Le Manky for the straights',
+    try: 'Its look, top speed (about 344 km/h), braking and grip in fast corners.',
+    wrong: 'Undrivable, slower than the Porch, a shape that does not read as a Group C car.',
+  },
+  {
     id: 'rollguard',
     added: '2026-11-16',
     name: 'Rolling starts: green waits for the real line when the AI pole is far off the track',
