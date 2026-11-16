@@ -82,6 +82,8 @@ export const FIX = {
   carshade: atLoad('carshade'),
   // the Toyoter Corolla BTCC (Toyota Corolla GR Sport, the NGTC touring car), TOURING / BTCC
   corolla: atLoad('corolla'),
+  // the Rebelion R13 (Rebellion R13, the non-hybrid LMP1), PROTOTYPE / LMP1 (a new type)
+  r13: atLoad('r13'),
   // F1 vs WORLD in the menu: the six Grand Prix calendar circuits under their own type card, F1
   // CIRCUITS (world/levels/category.ts F1_LISTED); WORLD CIRCUITS keeps the rest (menu only)
   f1menu: atLoad('f1menu'),

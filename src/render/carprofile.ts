@@ -136,6 +136,10 @@ export const PROFILES: Record<string, CarProfile> = {
     [0.08, 1.28], [0.15, 1.34], [0.5, 1.35], [0.65, 0.92], [0.95, 0.75], [1, 0.45]] },
   'cleo-rs200': { len: 4.017, waist: 0.95, glass: [0.1, 0.63], roof: [[0, 0.5], [0.02, 1.0],
     [0.08, 1.36], [0.15, 1.46], [0.5, 1.47], [0.64, 0.98], [0.95, 0.78], [1, 0.45]] },
+  // R13: the wing on its pylon, the fin along the engine cover, the canopy, the raised nose (EST
+  // from photos)
+  'rebelion-r13': { len: 4.645, waist: 0.7, glass: [0.46, 0.68], roof: [[0, 0.95], [0.06, 0.95],
+    [0.08, 0.78], [0.4, 0.9], [0.48, 1.03], [0.6, 1.05], [0.68, 0.84], [0.92, 0.6], [1, 0.38]] },
   // TS010: the wing at the tail, the long low engine cover, the canopy bubble, the low nose (EST
   // from photos)
   ts010: { len: 4.8, waist: 0.72, glass: [0.42, 0.64], roof: [[0, 0.95], [0.06, 0.95],

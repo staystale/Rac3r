@@ -136,6 +136,7 @@ export const CAR_DOORS: Record<string, CarDoors> = {
   'cleo-cup': { doors: TWO_DOORS, mirrors: rimThird(0.635) },
   'cleo-rs200': { doors: TWO_DOORS, mirrors: rimThird(0.635) },
   ts010: { doors: [[0.46, 0.62]], mirrors: 'none' },   // the canopy's small doors
+  'rebelion-r13': { doors: [[0.48, 0.66]], mirrors: 'none' },   // R13: the canopy's doors
   'saxo-kit': { doors: TWO_DOORS, mirrors: rimThird(0.635) },
   'strange-l322': { doors: FOUR_DOORS, mirrors: { at: 0.62, col: 'third' }, splitTailgate: true },
   'saxo-vtr': { doors: TWO_DOORS, mirrors: rimThird(0.635) },
@@ -160,9 +161,8 @@ export const CAR_DOORS: Record<string, CarDoors> = {
 // fibreglass, the tractor's mudguards; every other closed car's are welded quarter panels (they
 // crush, not fly off); the single-seaters and the buggy keep their own open parts
 const BOLTED_REAR_WINGS = new Set(['porch-gt3r', 'bmv-m4gt3', 'civvic-btcc', 'toyoter-corolla',
-  'cleo-cup', 'saxo-kit',
-  'kit-2l', 'rx-super', 'rally-4x4', 'drift-s13', 'naffcar', 'ts010', 'defunder-110', 'seven-420r',
-  'effing-tt', 'tractor']);
+  'cleo-cup', 'saxo-kit', 'kit-2l', 'rx-super', 'rally-4x4', 'drift-s13', 'naffcar', 'ts010',
+  'rebelion-r13', 'defunder-110', 'seven-420r', 'effing-tt', 'tractor']);
 
 /**
  * ?carparts: whether a car's rear wing is a welded quarter panel (not thrown: it crushes).
@@ -353,6 +353,10 @@ export const CAR_BITS: Record<string, CarBits> = {
   // it, the V10 behind the driver, the radiators in the sidepods
   ts010: { pipes: 2, pipesAt: 'centre', front: 'bonnet', rear: 'boot', engine: 'mid',
     cyl: 10, layout: 'v', mount: 'long', radiator: 'sides', wingOnLid: true },
+  // R13: twin pipes high in the tail (EST), the front clip, the engine cover with the wing on its
+  // pylon, the V8 behind the driver, the radiators in the sidepods
+  'rebelion-r13': { pipes: 2, pipesAt: 'centre', front: 'bonnet', rear: 'boot', engine: 'mid',
+    cyl: 8, layout: 'v', mount: 'long', radiator: 'sides', wingOnLid: true },
 };
 
 /**

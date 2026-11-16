@@ -13,6 +13,16 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'r13',
+    added: '2026-11-16',
+    name: 'New car: the Rebelion R13 (the 2018 Rebellion LMP1), PROTOTYPE / LMP1 (a new type)',
+    where: 'Test link + &r13=1: the garage, PROTOTYPE; Le Manky against the TS010; '
+      + '+ &underskin=1&carparts=1 for a crash',
+    try: 'Its look (white, the black canopy and shark fin, the wing on its pylon, shaded), its top '
+      + 'speed (about 340 km/h) and braking, traction control out of the slow corners.',
+    wrong: 'Not an LMP1 from above, slower than the TS010 in a straight line by far.',
+  },
+  {
     id: 'corolla',
     added: '2026-11-16',
     name: 'New car: the Toyoter Corolla BTCC (Toyota Gazoo Racing UK, NGTC), TOURING / BTCC',

@@ -577,7 +577,7 @@ function paintRaceNumber(spr: SpriteCtx): void {
     defunder: [0.38, 2], focust: [0.40, 2], cleo: [0.38, 2], cleors: [0.38, 2],
     bus: [0.5, 2], saxo: [0.38, 2], rrover: [0.36, 2],
     saxovtr: [0.38, 2], tesla: [0.43, 2],
-    proto: [0.24, 2],
+    proto: [0.24, 2], lmp1: [0.24, 2],
   }[kind] || [0.365, 2];
   numPanel(spr, along(numSpot[0]), numSpot[1]);
 }

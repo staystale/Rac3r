@@ -45,6 +45,7 @@ export const PAINT_STOCK: Record<string, { trim?: string; third?: string; rim?: 
   'saxo-vtr': { third: '#16181d' },
   'tesla-m3': { third: '#16181d' },
   ts010: { third: '#16181d' },
+  'rebelion-r13': { third: '#c8342a' },
 };
 /**
  * A rim choice's colour: a palette colour, a RIM_FINISH name, or empty for the stock rims.
@@ -96,4 +97,5 @@ export const TYRE_LOOK: Record<string, { wF: number; wR: number; dia: number; ri
   'tesla-m3': { wF: 0.235, wR: 0.235, dia: 0.669, rim: 0.457 },   // EST 235/45 R18
   'cleo-rs200': { wF: 0.215, wR: 0.215, dia: 0.625, rim: 0.432 },   // 215/45 R17
   ts010: { wF: 0.29, wR: 0.355, dia: 0.71, rim: 0.457 },   // EST 290/640-17, 355/710-18
+  'rebelion-r13': { wF: 0.3, wR: 0.31, dia: 0.71, rim: 0.457 },   // EST 30/68-18, 31/71-18
 };

@@ -462,5 +462,18 @@ export const CAR_STATS: Record<string, CarStat> = {
       "abs": false,
       "tcs": false
     }
+  },
+  // (measured alone: tools/carstats.mjs rebelion-r13 with R13=1, behind its switch)
+  "rebelion-r13": {
+    "topKph": 343,
+    "zeroTo100": 2.7,
+    "brake100": 35.7,
+    "gripG": 1.64,
+    "massKg": 908,
+    "drive": "RWD",
+    "aids": {
+      "abs": false,
+      "tcs": true
+    }
   }
 };

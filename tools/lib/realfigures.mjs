@@ -81,6 +81,8 @@ export const REAL_FIGURES = {
     zeroTo100: 10.5, note: 'auto-data.net' },
   'tesla-m3': { real: 'Tesla Model 3 Long Range AWD (2019-20, two motors, 324 kW)', topKph: 233,
     zeroTo100: 4.6, note: 'ev-database.org, evspecifications.com' },
+  'rebelion-r13': { real: 'Rebellion R13 (2018-20 non-hybrid LMP1, Gibson GL458 4.5 V8)',
+    topKph: 340, zeroTo100: null, note: 'top speed EST (Le Mans 2018 trap ~340 km/h); no 0-100' },
   ts010: { real: 'Toyota TS010 (1992 Group C, RV10 3.5 V10, Le Mans trim c600 bhp)', topKph: 346,
     zeroTo100: null, note: "Toyota's 346 km/h (215 mph) at Le Mans; no published 0-100" },
 };

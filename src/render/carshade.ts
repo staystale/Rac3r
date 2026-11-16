@@ -75,6 +75,7 @@ export const CAR_SHADE: Record<string, Line[] | null> = {
     [0.03, 0.97, 0.12, 'shine'], [0.03, 0.97, 0.88, 'shade']],
   tractor: [[0.04, 0.96, 0.12, 'shine'], [0.04, 0.96, 0.88, 'shade']],
   ts010: null,
+  'rebelion-r13': null,
   'bmv-m4gt3': null,
   'toyoter-corolla': null,
 };

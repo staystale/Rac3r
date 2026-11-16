@@ -14,7 +14,8 @@ const GT_CLASS = { id: 'gt', name: 'GT', subs: ['GT3'] };
 const TOURING_CLASS = { id: 'touring', name: 'TOURING', subs: ['BTCC', 'One-make'] };
 /** Every new class's id (the tyres they fit: cars.ts TYRES). */
 // PROTOTYPE: the Le Mans prototypes (Le Manky), a class of their own on race tyres
-const PROTO_CLASS = { id: 'proto', name: 'PROTOTYPE', subs: ['Group C'] };
+const PROTO_CLASS = { id: 'proto', name: 'PROTOTYPE',
+  subs: FIX.r13 ? ['Group C', 'LMP1'] : ['Group C'] };
 export const NEW_CLS_IDS = [GT_CLASS.id, TOURING_CLASS.id, PROTO_CLASS.id];
 
 // Porsche 911 GT3 R (992, 2023; Porsche Motorsport's data): 4,194 cc flat six behind the rear
@@ -490,10 +491,36 @@ const COROLLA: RosterRow = {
   paint: '#f0f0ea', trim: '#d0202a', glass: '#2a2f38', rim: '#16181d',
 };
 
+// Rebellion R13 (2018-20, the non-hybrid LMP1; third at Le Mans 2018; Wikipedia / Wikiwand,
+// UltimateCarPage): the Gibson GL458 4.5 V8 behind the driver (no turbo), ~670 bhp (500 kW),
+// 9,000 rpm, the Xtrac P1159C six-speed sequential, RWD, 833 kg (LMP1), 4,645 mm long, wheelbase
+// 2,905. Conflicting: the width (1,895 or 1,995 mm: the LMP1 rule's 1,900 taken). EST: the
+// torque (560 Nm) and its band, the power's rpm (8,500), the weight with its driver (908 kg), the
+// ratios and final drive (to ~340 km/h, Le Mans trim), 45 / 55, the track, 30/68-18 and 31/71-18
+// slicks, Cd 0.36 x 1.85 m^2 and the downforce (Le Mans trim: the TS010's), the CG, the springs;
+// traction control on, no ABS (LMP1's).
+const R13: RosterRow = {
+  id: 'rebelion-r13', name: 'Rebelion R13', kind: 'lmp1', cls: 'proto', sub: 'LMP1',
+  rimIn: 18,   // its real rim, inches (what tyres fit)
+  cg: 0.3, rideH: 0.05, cyl: 8,
+  aids: { abs: false, tcs: true },
+  mass: 908, lf: 1.598, lr: 1.307, len: 4.645, wid: 1.895, trackWidth: 1.65,
+  // the rear 31/71-18: 0.71 m across, 0.31 m wide
+  tyreWidth: 0.31, wheelR: 0.355,
+  drive: 0.0, brakeBiasF: 0.58, caF: 140000, caR: 200000, mu: 1.75,
+  curve: realCurve({ idle: 2200, low: 0.55, nm: 560, nmFrom: 6500, nmTo: 7500,
+    kw: 500, kwAt: 8500, redline: 9000 }),
+  redline: 9000, upshiftRpm: 8800, downshiftRpm: 5500, idleRpm: 2200,
+  gears: [2.6, 2.0, 1.62, 1.36, 1.17, 1.02], finalDrive: 3.4, dragC: dragOf(0.36, 1.85),
+  aeroK: 1.8, downforceF: 1.2, downforceR: 1.8, susF: 3.0, susZ: 0.3,
+  // white, a black canopy roof and fin (the second colour), red details
+  paint: '#f0f0ea', trim: '#16181d', glass: '#2a2f38', rim: '#16181d',
+};
+
 /** The new cars: their roster rows, in the list's order. */
 export const NEW_CARS: RosterRow[] = [PORCH, SEVEN, TRANSFIT, TROPHY, CIVVIC, DEFUNDER, FOCUST,
   CLEO, CLEO_RS, TRANSFIT_LWB, TRANSFIT_SWB, TS010, ROUTEMONSTER, SAXO, STRANGE, SAXO_VTR, TESLA,
-  M4GT3, ...(FIX.corolla ? [COROLLA] : [])];
+  M4GT3, ...(FIX.corolla ? [COROLLA] : []), ...(FIX.r13 ? [R13] : [])];
 
 /** The classes only new cars race in. */
 export const NEW_CLASSES = [GT_CLASS, TOURING_CLASS, PROTO_CLASS];

@@ -74,6 +74,7 @@ export const EXHAUST_SPOTS: Record<string, { pipes: Pipe[]; up?: boolean }> = {
   tesla: { pipes: [] },
   // the TS010's twin pipes in its diffuser (EST)
   proto: { pipes: [[-0.5, -0.08], [-0.5, 0.08]] },
+  lmp1: { pipes: [[-0.45, -0.06], [-0.45, 0.06]] },
 };
 const DEFAULT_SPOT = EXHAUST_SPOTS.hatch;
 

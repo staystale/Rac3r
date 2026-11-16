@@ -76,6 +76,8 @@ const REAL_SIZE: Record<string, RealSize> = {
   'cleo-rs200': { len: 4.017, wid: 1.768, lf: 1.008, lr: 1.577, trackWidth: 1.52 },
   // TS010: 4.8 x 2.0, wheelbase 2.75; 42 / 58 and the track 1.6 EST
   ts010: { len: 4.8, wid: 2.0, lf: 1.595, lr: 1.155, trackWidth: 1.6 },
+  // R13: 4.645 x 1.895 (the rule's 1.9), wheelbase 2.905; 45 / 55 and the track EST
+  'rebelion-r13': { len: 4.645, wid: 1.895, lf: 1.598, lr: 1.307, trackWidth: 1.65 },
 };
 
 /**

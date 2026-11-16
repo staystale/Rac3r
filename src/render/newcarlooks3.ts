@@ -140,7 +140,99 @@ function paintCorolla(spr: SpriteCtx): void {
   corollaTail(spr);
 }
 
+
+/**
+ * The R13's plan, a half width at a share of its length (0 tail, 1 nose), as a share of the
+ * sprite's half: the four fender pods over the wheels (the front pair to the nose's corners), the
+ * waist between them at the sidepods' inlets, the long tail narrowing under the wing.
+ * @param share along the car, 0..1
+ * @returns the half width, 0..1
+ */
+function r13Plan(share: number): number {
+  const pods = Math.max(inside(share, 0.08, 0.34, 0.06), inside(share, 0.68, 0.97, 0.05));
+  const tail = share < 0.06 ? 0.72 + 0.28 * Math.sqrt(share / 0.06) : 1;
+  const nose = share > 0.95 ? Math.sqrt(1 - 0.5 * ((share - 0.95) / 0.05) ** 2) : 1;
+  return (0.84 + 0.16 * pods) * tail * nose;
+}
+
+/**
+ * The R13's body in shading: each fender pod lit along its crest and soft down its slope, the
+ * valleys between the pods and the tub in shadow with the sidepods' inlets in them, the raised
+ * nose between the front pods lit along its spine, the splitter's lip and the slim lamps.
+ * @param spr the painting context
+ */
+function r13Body(spr: SpriteCtx): void {
+  const { lengthPx: len, widthPx: wid, mid, third, block, along } = spr;
+  const pod = Math.round(mid * 0.4);
+  for (const [from, until] of [[0.07, 0.35], [0.67, 0.99]]) {
+    const startX = along(from), wide = along(until - from);
+    block(startX + 2, 2, wide - 4, 1, SHINE);
+    block(startX + 1, pod - 1, wide - 2, 1, SHADE_SOFT);
+    block(startX + 2, wid - 3, wide - 4, 1, SHADE);
+    block(startX + 1, wid - pod, wide - 2, 1, SHADE_SOFT);
+  }
+  for (const y of [pod, wid - pod - 2]) {
+    block(along(0.36), y, along(0.3), 2, SHADE);
+    block(along(0.46), y, along(0.1), 2, INK);
+  }
+  // the raised nose between the front pods: its spine lit, its sides soft
+  block(along(0.7), mid - 1, along(0.27), 1, SHINE);
+  for (const y of [mid - 4, mid + 4]) block(along(0.7), y, along(0.27), 1, SHADE_SOFT);
+  block(len, pod - 1, 1, wid - pod * 2 + 2, third);
+  for (const y of [2, wid - 5]) block(len - 6, y, 5, 2, HEAD);
+}
+
+/**
+ * The R13's cockpit and fin: the closed canopy (its roof the second colour) with the screen
+ * ahead, the shark fin (the second colour) from the roof along the engine cover to the wing, the
+ * engine cover's louvres either side of it.
+ * @param spr the painting context
+ */
+function r13Cockpit(spr: SpriteCtx): void {
+  const { mid, roof2, block, along } = spr;
+  const half = Math.round(mid * 0.32), canopyFrom = along(0.46), canopyTo = along(0.68);
+  for (let x = canopyFrom; x < canopyTo; x++) {
+    const share = (x - canopyFrom) / (canopyTo - canopyFrom);
+    const across = Math.max(1, Math.round(half * Math.sin(Math.PI * Math.min(1, 0.15 + share))));
+    block(x, mid - across, 1, across * 2 + 1, share > 0.6 ? GLASS : roof2);
+  }
+  block(along(0.48), mid - half + 2, along(0.1), 1, SHINE);
+  block(along(0.63), mid - 2, 1, 4, GLASS_HI);
+  block(canopyFrom, mid + half - 1, along(0.12), 1, SHADE);
+  // the shark fin, a 2 px blade down the middle with its shadow to one side
+  block(along(0.06), mid - 1, canopyFrom - along(0.06), 2, roof2);
+  block(along(0.06), mid + 1, canopyFrom - along(0.06), 1, SHADE);
+  for (let x = along(0.18); x < along(0.34); x += 2) {
+    block(x, mid - 5, 1, 3, INK);
+    block(x, mid + 3, 1, 3, INK);
+  }
+}
+
+/**
+ * REBELION R13 (Rebellion R13, the 2018-20 non-hybrid LMP1): the closed prototype's four fender
+ * pods, the narrow canopy and the shark fin to the wing, the raised nose, the long tail, the wing
+ * on its pylon overhanging it with its shadow; shaded the TS010's way.
+ * @param spr the painting context
+ */
+function paintR13(spr: SpriteCtx): void {
+  const { spec, lengthPx: len, widthPx: wid, mid, outline, light, third, block } = spr;
+  planBody(spr, (x) => mid * r13Plan(x / (len - 1)));
+  r13Body(spr);
+  r13Cockpit(spr);
+  for (const y of [3, wid - 5]) block(0, y, 1, 2, TAIL);
+  block(-1, mid - 2, 1, 4, CHR);
+  if (spec.noWing) return;
+  block(1, 1, 5, wid - 2, SHADE);
+  block(-2, 1, 4, wid - 2, outline);
+  block(-1, 2, 2, wid - 4, third);
+  block(1, 2, 1, wid - 4, light);
+  block(-2, 1, 5, 1, INK);
+  block(-2, wid - 2, 5, 1, INK);
+  block(2, mid - 1, 4, 2, STEEL);
+}
+
 /** The newest cars' bodies by id (render/carlooks.ts LOOKS takes them). */
 export const NEW_LOOKS_3: [string, { paint: (spr: SpriteCtx) => void; bare?: boolean }][] = [
   ['toyoter-corolla', { paint: paintCorolla, bare: true }],
+  ['rebelion-r13', { paint: paintR13, bare: true }],
 ];
