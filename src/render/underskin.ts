@@ -6,19 +6,32 @@
 // open car's sidepod its radiator, its nose and tail their crash structures; the buggy's panels and
 // bars its frame tubes. The engine, strut and arms are the drawings the crash throws and the open
 // cars wear (render/carparts.ts bitDrawing, render/cars.ts drawFixedArms), so they match.
-// Painted once onto the car's lost-parts sprite (render/cars.ts lostSprite), not each frame.
+// A DOOR's hole its sill and the floor; a front-engined car's BOOT its floor and the spare wheel.
+// Painted once onto the car's lost-parts sprite (render/cars.ts lostSprite), not each frame, and
+// only where the crushed body still is (the damaged sprite's own pixels): a crumpled corner's
+// structure is crumpled with it, never left standing past the dented edge.
+// Sized and lit to read at a phone's size: the well a dark cavity, the arms, drive shaft and
+// spring bright steel two pixels wide, the crash beam light against the dark under-tray.
 import { bitsOf, type CarBits } from "../carbits.ts";
 import { partRegion, isBare, bitDrawing, type Region } from "./carparts.ts";
 import { SPRITE_PPM } from "./shared.ts";
 import type { CarSprite, RenderCarSpec } from "./types.ts";
+import { shade } from "../render.ts";   // hoisted, only called at draw time (no cycle)
+import { endCrushPx, sideCrushPx } from "./cardamage.ts";
 
 // the bare metal's colours (render/carparts.ts's bits and the open cars' arms share them)
 const FRAME_DARK = '#16181d', STEEL = '#3a3d45', STEEL_LIGHT = '#5a5f69';
 const CORE = '#6f7782', FIN = '#4d545e', CARBON = '#1e2026', CARBON_LIGHT = '#2e3138';
-const TUBE = '#4a4f58', SPRING = '#a9aeb6';
-// the inside of a wing's well: the inner arch and the chassis leg, a road-grimed grey (the arms
-// and drive shaft, dark, read against it)
-const WELL = '#6e7178';
+const TUBE = '#4a4f58', SPRING = '#d0d4da';
+// the inside of a wing's well: the inner arch and the chassis leg in shadow (the arms, drive
+// shaft and spring, bright steel, read against it at a phone's size)
+const WELL = '#2a2d33';
+// the bumper beam's steel, light; the under-tray behind a bumper, in shadow; a door's floor and
+// carpet; a boot's floor; the spare wheel's tyre and its rim
+const BEAM = '#9aa0aa', UNDERTRAY = '#1e2026', FLOOR = '#2b2e35', CARPET = '#3a3d45';
+const BOOT_FLOOR = '#3a3d45', SPARE_TYRE = '#16181d', SPARE_RIM = '#8a9099';
+// m: a spare wheel's diameter from above
+const SPARE_M = 0.6;
 // px a strut's top sits off the axle line, toward the car's middle
 const STRUT_OFFSET_PX = 3;
 // m: a radiator's depth from above, a crash bar's
@@ -35,7 +48,12 @@ export interface UnderWheels {
 interface SkinCtx {
   ctx: CanvasRenderingContext2D; spec: RenderCarSpec; sprite: CarSprite; bits: CarBits;
   wheels: UnderWheels; lost: string;
+  // px each end's crush has pushed its structure in (the radiator, the beam, the cross-member
+  // go back with the crumpled front, as in a real crash)
+  push: { front: number; rear: number; minus: number; plus: number };
 }
+// px past an end's crush its structure stands (behind the crumpled skin, not in it)
+const PUSH_MARGIN_PX = 1;
 
 // px of a size in metres (at least 2)
 const pxOf = (metres: number) => Math.max(2, Math.round(metres * SPRITE_PPM));
@@ -96,9 +114,9 @@ function radiator(ctx: CanvasRenderingContext2D, x: number, y: number, along: nu
 function crashBar(ctx: CanvasRenderingContext2D, x: number, fromY: number, toY: number,
   front: boolean): void {
   const deep = pxOf(CRASH_BAR_M);
-  block(ctx, x, fromY, deep, toY - fromY + 1, STEEL);
-  // (its outer edge catches the light)
-  block(ctx, front ? x + deep - 1 : x, fromY, 1, toY - fromY + 1, STEEL_LIGHT);
+  block(ctx, x, fromY, deep, toY - fromY + 1, BEAM);
+  // (its inner edge in shadow, its ends bolted)
+  block(ctx, front ? x : x + deep - 1, fromY, 1, toY - fromY + 1, STEEL);
   block(ctx, x, fromY, deep, 1, FRAME_DARK);
   block(ctx, x, toY, deep, 1, FRAME_DARK);
 }
@@ -130,7 +148,8 @@ function engineAt(skin: SkinCtx, centreX: number, centreY: number): void {
  */
 function bonnetBay(skin: SkinCtx, region: Region): void {
   const { ctx, bits } = skin, deep = pxOf(RADIATOR_DEPTH_M);
-  const tall = region.y1 - region.y0 + 1, front = region.x1 - deep + 1;
+  const tall = region.y1 - region.y0 + 1, push = pushAt(skin, true);
+  const front = Math.max(region.x0, region.x1 - deep + 1 - push);
   if (bits.radiator === 'front') {
     // (one radiator across the front: a front-engined car's, and the 911's central one)
     if (bits.engine !== 'mid') {
@@ -143,7 +162,42 @@ function bonnetBay(skin: SkinCtx, region: Region): void {
     }
   }
   if (bits.engine === 'front')
-    engineAt(skin, (region.x0 + front) / 2, (region.y0 + region.y1) / 2);
+    engineAt(skin, Math.min((region.x0 + region.x1 - deep + 1) / 2, front - engineHalf(skin)),
+      (region.y0 + region.y1) / 2);
+}
+
+/**
+ * px an end's structure is pushed in by its crush (none with no crush).
+ * @param skin the painter's context
+ * @param front the front end
+ * @returns px
+ */
+const pushAt = (skin: SkinCtx, front: boolean) => {
+  const push = front ? skin.push.front : skin.push.rear;
+  return push > 0 ? Math.ceil(push) + PUSH_MARGIN_PX : 0;
+};
+
+/**
+ * px a side's structure is pushed in by its crush (none with no crush).
+ * @param skin the painter's context
+ * @param plus the +y side
+ * @returns px
+ */
+const sidePushAt = (skin: SkinCtx, plus: boolean) => {
+  const push = plus ? skin.push.plus : skin.push.minus;
+  return push > 0 ? Math.ceil(push) + PUSH_MARGIN_PX : 0;
+};
+
+/**
+ * Half the engine's length along the car as it sits (across: half its width), px.
+ * @param skin the painter's context
+ * @returns px
+ */
+function engineHalf(skin: SkinCtx): number {
+  const drawing = bitDrawing(skin.spec, 'engine');
+  if (!drawing) return 0;
+  const along = skin.bits.mount === 'trans' ? drawing.canvas.height : drawing.canvas.width;
+  return Math.ceil(along / 2);
 }
 
 /**
@@ -199,16 +253,58 @@ function behindBumper(skin: SkinCtx, corner: number): void {
   const { ctx, sprite, bits } = skin, front = corner < 2, wid = sprite.Wp;
   const bar = pxOf(CRASH_BAR_M), deep = pxOf(RADIATOR_DEPTH_M);
   const region = partRegion(skin.spec, sprite, 'bumper', corner);
-  // the radiator against the body where it sits at this end, the crash bar outside it
+  // the under-tray across the bumper's place, in shadow (the body's own pixels keep it inside)
+  block(ctx, region.x0, region.y0, region.x1 - region.x0 + 1, region.y1 - region.y0 + 1,
+    UNDERTRAY);
+  // the radiator against the body where it sits at this end
   const cooled = front ? bits.radiator === 'front' && bits.engine === 'front'
     : bits.radiator === 'rear';
   const across = Math.round(wid * 0.6), y = Math.round((wid - across) / 2);
-  const inner = front ? region.x0 : region.x1 - deep + 1;
+  const push = pushAt(skin, front);
+  const inner = front ? region.x0 - push : region.x1 - deep + 1 + push;
   if (cooled) radiator(ctx, inner, y, deep, across);
-  const outerOf = (body: number) => (front ? body : body - bar);
-  const barX = cooled ? outerOf(front ? inner + deep : inner)
-    : outerOf(front ? inner : region.x1 + 1);
+  // the beam just inside the bumper's skin (a px in from the car's end), on its two crash cans;
+  // a crushed end's pushed in with it
+  const barX = front ? sprite.Lp - 1 - bar - push : 1 + push;
+  for (const canY of [Math.round(wid * 0.22), Math.round(wid * 0.78) - 1]) {
+    const fromX = front ? region.x0 : barX + bar, toX = front ? barX : region.x1 + 1;
+    block(ctx, fromX, canY, toX - fromX, 2, STEEL_LIGHT);
+  }
   crashBar(ctx, barX, 3, wid - 4, front);
+}
+
+/**
+ * A lost DOOR's hole: the sill along the car's edge (the body's own metal, in its paint, a little
+ * dark), the floor and carpet inside it.
+ * @param skin the painter's context
+ * @param region the door's place
+ * @param corner its corner (odd = +y)
+ */
+function doorHole(skin: SkinCtx, region: Region, corner: number): void {
+  const { ctx, spec, sprite } = skin, plus = corner % 2 === 1, along = region.x1 - region.x0 + 1;
+  // (a caved-in side's sill pushed in with it)
+  const push = sidePushAt(skin, plus);
+  const sill = plus ? sprite.Wp - 1 - push : push, step = plus ? -1 : 1;
+  block(ctx, region.x0, sill, along, 1, shade(spec.paint || '#888888', 0.72));
+  block(ctx, region.x0, sill + step, along, 1, FLOOR);
+  block(ctx, region.x0, sill + step * 2, along, 1, CARPET);
+}
+
+/**
+ * A front-engined car's lost BOOT lid: the boot floor and the spare wheel in its well.
+ * @param skin the painter's context
+ * @param region the boot's place
+ */
+function bootFloor(skin: SkinCtx, region: Region): void {
+  const { ctx } = skin, wide = region.x1 - region.x0 + 1, tall = region.y1 - region.y0 + 1;
+  block(ctx, region.x0, region.y0, wide, tall, BOOT_FLOOR);
+  const size = Math.min(pxOf(SPARE_M), wide - 2, tall - 2);
+  const x = region.x0 + Math.round((wide - size) / 2);
+  const y = region.y0 + Math.round((tall - size) / 2);
+  block(ctx, x + 1, y, size - 2, size, SPARE_TYRE);
+  block(ctx, x, y + 1, size, size - 2, SPARE_TYRE);
+  const rim = Math.max(2, Math.round(size / 2)), rimAt = Math.round((size - rim) / 2);
+  block(ctx, x + rimAt, y + rimAt, rim, rim, SPARE_RIM);
 }
 
 /**
@@ -245,17 +341,59 @@ function openCarPart(skin: SkinCtx, kind: string, corner: number, region: Region
 }
 
 /**
- * Paints what each lost part shows onto the car's lost-parts sprite (withoutParts' copy).
+ * What a closed car's lost part shows, clipped to its hole (a bumper's and a door's reaching in as
+ * far as the crush pushed their structure).
+ * @param skin the painter's context
+ * @param kind the part
+ * @param corner its corner
+ * @param region its place
+ */
+function closedCarPart(skin: SkinCtx, kind: string, corner: number, region: Region): void {
+  const { ctx } = skin;
+  if (kind === 'bonnet') {
+    clipTo(ctx, region);
+    bonnetBay(skin, region);
+  } else if (kind === 'boot') {
+    clipTo(ctx, region);
+    if (skin.bits.engine !== 'front')
+      engineAt(skin, (region.x0 + region.x1) / 2, (region.y0 + region.y1) / 2);
+    else bootFloor(skin, region);
+  } else if (kind === 'panel') {
+    const push = sidePushAt(skin, corner % 2 === 1);
+    clipTo(ctx, corner % 2 === 1 ? { ...region, y0: region.y0 - push }
+      : { ...region, y1: region.y1 + push });
+    doorHole(skin, region, corner);
+  } else if (kind === 'wing') {
+    wheelWell(skin, region, corner);
+  } else if (kind === 'bumper') {
+    const push = pushAt(skin, corner < 2);
+    clipTo(ctx, corner < 2 ? { ...region, x0: region.x0 - push }
+      : { ...region, x1: region.x1 + push });
+    behindBumper(skin, corner);
+  }
+}
+
+/**
+ * Paints what each lost part shows onto the car's lost-parts sprite (withoutParts' copy), only
+ * where the crushed body still is, its structure pushed in by the crush.
  * @param sprite the sprite without its lost parts (its canvas is painted)
  * @param spec the car as drawn
  * @param lost the parts gone: "kind:corner" each, joined by ","
  * @param wheels where its wheels sit and its arms' painter
+ * @param body the crushed sprite's canvas, parts on (its pixels are where the body still is)
+ * @param crush the end-on and side-on crush per corner (damage.ts crushL, crushS)
  */
 export function drawUnderSkin(sprite: CarSprite, spec: RenderCarSpec, lost: string,
-  wheels: UnderWheels): void {
-  const ctx = sprite.c.getContext('2d') as CanvasRenderingContext2D | null;
-  if (!ctx) return;
-  const skin: SkinCtx = { ctx, spec, sprite, bits: bitsOf(String(spec.id)), wheels, lost };
+  wheels: UnderWheels, body: HTMLCanvasElement,
+  crush: { ends: number[]; sides: number[] } = { ends: [0, 0, 0, 0], sides: [0, 0, 0, 0] }): void {
+  const out = sprite.c.getContext('2d') as CanvasRenderingContext2D | null;
+  const ctx = scratchFor(sprite.c);
+  if (!out || !ctx) return;
+  const skin: SkinCtx = { ctx, spec, sprite, bits: bitsOf(String(spec.id)), wheels, lost,
+    push: { front: endCrushPx(sprite.Lp, crush.ends, true),
+      rear: endCrushPx(sprite.Lp, crush.ends, false),
+      minus: sideCrushPx(sprite.Wp, crush.sides, false),
+      plus: sideCrushPx(sprite.Wp, crush.sides, true) } };
   // (the wells first: a bay's radiators and engine, and a bumper's bar, lie over their corners)
   const entries = lost.split(',').filter(Boolean)
     .sort((one, two) => Number(two.startsWith('wing')) - Number(one.startsWith('wing')));
@@ -263,24 +401,33 @@ export function drawUnderSkin(sprite: CarSprite, spec: RenderCarSpec, lost: stri
     const [kind, cornerText] = entry.split(':'), corner = +cornerText;
     if (!['bonnet', 'boot', 'wing', 'bumper', 'panel'].includes(kind)) continue;
     const region = partRegion(spec, sprite, kind, corner);
+    // (an open car loses only its wings and nose - its 'bumpers' - and its sidepods)
+    if (isBare(spec) && kind !== 'panel' && kind !== 'bumper') continue;
     ctx.save();
     if (isBare(spec)) {
-      // (an open car loses only its wings and nose - its 'bumpers' - and its sidepods)
-      if (kind !== 'panel' && kind !== 'bumper') { ctx.restore(); continue; }
       clipTo(ctx, region);
       openCarPart(skin, kind, corner, region);
-    } else if (kind === 'bonnet') {
-      clipTo(ctx, region);
-      bonnetBay(skin, region);
-    } else if (kind === 'boot' && skin.bits.engine !== 'front') {
-      clipTo(ctx, region);
-      engineAt(skin, (region.x0 + region.x1) / 2, (region.y0 + region.y1) / 2);
-    } else if (kind === 'wing') {
-      wheelWell(skin, region, corner);
-    } else if (kind === 'bumper') {
-      clipTo(ctx, region);
-      behindBumper(skin, corner);
-    }
+    } else closedCarPart(skin, kind, corner, region);
     ctx.restore();
   }
+  // (only where the crushed body still is)
+  ctx.globalCompositeOperation = 'destination-in';
+  ctx.drawImage(body, 0, 0);
+  ctx.globalCompositeOperation = 'source-over';
+  out.drawImage(ctx.canvas, 0, 0);
+}
+
+// the one scratch canvas the under-skin is painted on before its mask (sized as each sprite)
+let scratch: HTMLCanvasElement | null = null;
+
+/**
+ * The scratch canvas, cleared and sized as a sprite's canvas.
+ * @param like the sprite's canvas
+ * @returns its context, or null
+ */
+function scratchFor(like: HTMLCanvasElement): CanvasRenderingContext2D | null {
+  scratch ??= document.createElement('canvas');
+  scratch.width = like.width;
+  scratch.height = like.height;
+  return scratch.getContext('2d');
 }
