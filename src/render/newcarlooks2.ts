@@ -358,11 +358,54 @@ function paintTs010(spr: SpriteCtx): void {
   for (const y of [mid - 6, mid + 5]) block(5, y, 4, 2, STEEL);
 }
 
+/**
+ * The Routemaster's plan, a half width at a share of its length (0 tail, 1 nose), as a share of
+ * the sprite's half: the box of a double-decker, its domed roof rounding at both ends.
+ * @param share along the bus, 0..1
+ * @returns the half width, 0..1
+ */
+function routemonsterPlan(share: number): number {
+  if (share < 0.03) return 0.88 + 0.12 * Math.sqrt(share / 0.03);
+  if (share > 0.97) return 0.88 + 0.12 * Math.sqrt((1 - share) / 0.03);
+  return 1;
+}
+
+/**
+ * AEC ROUTEMONSTER (AEC Routemaster, RM): the upper deck's roof from above - the London red
+ * body, the roof panel (the second colour) domed at both ends with its seams, the two roof
+ * vents, the cream relief band (the third colour) along both sides, the lamps at the front
+ * corners, the rear platform's corner and its lamps.
+ * @param spr the painting context
+ */
+function paintRoutemonster(spr: SpriteCtx): void {
+  const { lengthPx: len, widthPx: wid, mid, outline, light, dark, third, roof2, block,
+    along } = spr;
+  planBody(spr, (x) => mid * routemonsterPlan(x / (len - 1)));
+  // the cream band along both flanks, between the decks
+  block(along(0.03), 1, along(0.94), 1, third);
+  block(along(0.03), wid - 2, along(0.94), 1, third);
+  // the roof panel, its domes, the seams across it
+  const half = mid - 3;
+  block(along(0.04), mid - half, along(0.92), half * 2 + 1, roof2);
+  block(along(0.04), mid - half, along(0.92), 1, light);
+  block(along(0.04), mid + half, along(0.92), 1, dark);
+  for (let x = along(0.12); x < along(0.92); x += Math.max(4, along(0.1))) {
+    block(x, mid - half + 1, 1, half * 2 - 1, outline);
+  }
+  // the two vents on the roof, front and back
+  for (const share of [0.2, 0.8]) block(along(share), mid - 2, 3, 5, STEEL);
+  // the lamps at the front corners, the tail lamps by the platform
+  for (const y of [1, wid - 3]) block(len - 2, y, 2, 2, HEAD);
+  for (const y of [1, wid - 3]) block(0, y, 1, 2, TAIL);
+  block(-1, wid - 6, 1, 3, CHR);
+}
+
 /** Cars 6 on: their bodies by id (render/carlooks.ts LOOKS takes them). */
 export const NEW_LOOKS_2: [string, { paint: (spr: SpriteCtx) => void; bare?: boolean }][] = [
   ['defunder-110', { paint: paintDefunder, bare: true }],
   ['focust-st', { paint: paintFocust, bare: true }],
   ['cleo-cup', { paint: paintCleo, bare: true }],
   ['cleo-rs200', { paint: paintCleoRs, bare: true }],
+  ['routemonster', { paint: paintRoutemonster, bare: true }],
   ['ts010', { paint: paintTs010, bare: true }],
 ];

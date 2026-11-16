@@ -125,6 +125,10 @@ export const CAR_BITS: Record<string, CarBits> = {
     cyl: 4, layout: 'inline', mount: 'trans', radiator: 'front' },
   'transfit-lwb': { pipes: 1, pipesAt: 'left', front: 'bonnet', rear: 'boot', engine: 'front',
     cyl: 4, layout: 'inline', mount: 'long', radiator: 'front' },
+  // Routemaster: one pipe (EST: left), the bonnet, no boot (the open rear platform), the AV590
+  // six along the front, the radiator in the nose
+  routemonster: { pipes: 1, pipesAt: 'left', front: 'bonnet', rear: 'none', engine: 'front',
+    cyl: 6, layout: 'inline', mount: 'long', radiator: 'front' },
   'cleo-rs200': { pipes: 2, pipesAt: 'centre', front: 'bonnet', rear: 'boot', engine: 'front',
     cyl: 4, layout: 'inline', mount: 'trans', radiator: 'front' },
   // TS010: twin pipes in the diffuser (EST), the front clip, the rear clamshell with the wing on

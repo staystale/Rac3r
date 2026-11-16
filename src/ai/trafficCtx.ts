@@ -15,6 +15,8 @@ import { FIX } from "../core/fixes.ts";
 // The vans' 2.4 split between the Transfits switched on, by these parts (EST: no registration
 // split found; the MWB the commonest of the big Transits): the L2 MWB 40, the L3 LWB 30, the Mk7
 // SWB 30.
+// The Routemonster stands for the buses: 0.07 is ~0.5 % of the picks, the buses' and coaches'
+// share of Great Britain's road traffic (DfT road traffic estimates).
 const VANS = 2.4;
 const VAN_PARTS: [string, number, boolean][] = [['transfit-van', 40, true],
   ['transfit-lwb', 30, FIX.transfitlwb], ['transfit-swb', 30, FIX.transfitswb]];
@@ -25,7 +27,7 @@ const vanWeight = (part: number) => (vanParts.length === 1 ? VANS : VANS * part 
 export const VEH: [string, number][] = [
   ['hatch-fwd', 3], ['saloon-rwd', 3], ['estate-4x4', 2.5], ['mini-fwd', 1.5],
   ['hatch-rwd', 1], ['muscle-rwd', 0.4], ['lambo-awd', 0.12], ['transfit-van', vanWeight(40)],
-  ['defunder-110', 0.4], ['focust-st', 0.37],
+  ['defunder-110', 0.4], ['focust-st', 0.37], ['routemonster', 0.07],
   ...vanParts.slice(1).map(([vanId, part]): [string, number] => [vanId, vanWeight(part)]),
 ];
 // real-road colours: mostly silver / white / black / grey (each its own sprite, cached by

@@ -182,7 +182,8 @@ const CURVE_F2: Curve = [[1500, 330], [3000, 429], [4500, 495], [6000, 547], [70
 // subclass; upgrading never changes a car's class; split agreed as proposed). Each ROSTER row
 // carries cls + sub; events will ask for a class (and maybe a subclass).
 export const CLASSES = [
-  { id: 'road', name: 'ROAD', subs: ['Hatch', 'Saloon', 'Estate', 'Sports', 'Muscle', 'Van'] },
+  { id: 'road', name: 'ROAD',
+    subs: ['Hatch', 'Saloon', 'Estate', 'Sports', 'Muscle', 'Van', 'Bus'] },
   { id: 'rally', name: 'RALLY', subs: ['1L', '2L', '2L+', 'Group B'] },
   { id: 'rx', name: 'RALLYCROSS', subs: ['Supercar', 'Super 1600'] },
   { id: 'stock', name: 'STOCK / GRASS', subs: ['Stock car', 'Grass track'] },
@@ -307,8 +308,7 @@ export const TYRES = [
     [1.02, 1.35, 0.95, 0.95, 0.95, 0.92, 0.92, 0.85, 0.8], { rims: [13, 18],
     opt: [40, 80], peak: 60,
     note: 'standing water; dies on a dry line' }),
-  // MUSCLE TYRES (passed 11-03; owner: "suitable tyres for the muscle car / some that don't
-  // fit"):
+  // MUSCLE TYRES (passed 11-03; owner: "suitable tyres for the muscle car / some that don't fit"):
   // BIAS-BELTED Polyglass GT, the 1970 Chevelle SS's own F70-14 - far less grip than a modern
   // radial, so the car launches like the real one; a DRAG RADIAL (launches, scared of rain); a
   // 1970s street RADIAL. 13-15 / 14-17 inch rims: the old cars only.
