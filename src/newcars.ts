@@ -96,12 +96,14 @@ const TRANSFIT: RosterRow = {
 const TROPHY: RosterRow = {
   id: 'effing-tt', name: 'Fjord Effing-150 Trophy Truck', kind: 'trophy', cls: 'offroad',
   sub: 'Trophy truck', rimIn: 17,   // its real rim, inches (what tyres fit)
+  // its factory set: desert tyres, as the Dunflop All-Terrain (more bite on loose ground)
+  stockTyre: 'all-terrain',
   cg: 0.95, rideH: 0.6, cyl: 8,
   aids: { abs: false, tcs: false },
   mass: 2500, lf: 1.575, lr: 1.575, len: 5.6, wid: 2.35, trackWidth: 2.0,
   // 39 x 13.5 R17: 0.99 m across, 0.34 m wide
   tyreWidth: 0.34, wheelR: 0.495,
-  drive: 0.0, brakeBiasF: 0.6, caF: 150000, caR: 160000, mu: 1.0,
+  drive: 0.0, brakeBiasF: 0.6, caF: 150000, caR: 160000, mu: 1.07,
   curve: realCurve({ idle: 1000, low: 0.6, nm: 900, nmFrom: 4000, nmTo: 5000,
     kw: 625, kwAt: 6000, redline: 6500 }),
   redline: 6500, upshiftRpm: 6200, downshiftRpm: 3200, idleRpm: 1000,
