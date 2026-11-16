@@ -93,6 +93,17 @@ const transitMirrors = (lengthM: number): CarMirrors => ({ at: 1 - 0.265 * 5.531
  * @param lengthM the Transit's length, m
  * @returns the four corners' panels
  */
+/**
+ * The Transit Custom's side panels: the cab doors behind the front wheels, the nearside sliding
+ * door behind the cab, none at the offside rear (EST from its side view: the cab door 1.35-2.35 m
+ * and the slide 2.45-3.55 m back from its nose, on its 4,973 mm).
+ * @returns the four corners' panels
+ */
+function customPanels(): (SidePanel | null)[] {
+  const cab: SidePanel = { at: [0.527, 0.729], shape: 'door' };
+  return [cab, cab, null, { at: [0.286, 0.507], shape: 'sliding' }];
+}
+
 function transitPanels(lengthM: number): (SidePanel | null)[] {
   const fromNose = (share: number) => 1 - (1 - share) * 5.531 / lengthM;
   const cab: SidePanel = { at: [fromNose(0.56), fromNose(0.74)], shape: 'door' };
@@ -148,6 +159,8 @@ export const CAR_DOORS: Record<string, CarDoors> = {
     mirrors: transitMirrors(5.531) },
   'transfit-lwb': { doors: [], corners: transitPanels(5.981), twinRear: true, bumper: 'black',
     mirrors: transitMirrors(5.981) },
+  'transfit-custom': { doors: [], corners: customPanels(), twinRear: true, bumper: 'black',
+    mirrors: { at: 0.695, col: 'black', big: true } },
   'transfit-swb': { doors: [], corners: transitPanels(4.863), twinRear: true, bumper: 'grey',
     mirrors: transitMirrors(4.863) },
   // the Routemaster (no passenger doors: the open rear platform): the driver's cab door on the
@@ -328,6 +341,10 @@ export const CAR_BITS: Record<string, CarBits> = {
   // the car (RWD), the radiator in the nose
   // Transit Mk7 SWB FWD: one pipe on the left, the bonnet, the rear doors, the 2.2 across the
   // front, the radiator in the nose
+  // Transit Custom: one pipe on the left (EST), the bonnet, the twin rear doors, the EcoBlue four
+  // across the front, the radiator in the nose
+  'transfit-custom': { pipes: 1, pipesAt: 'left', front: 'bonnet', rear: 'boot', engine: 'front',
+    cyl: 4, layout: 'inline', mount: 'trans', radiator: 'front' },
   'transfit-swb': { pipes: 1, pipesAt: 'left', front: 'bonnet', rear: 'boot', engine: 'front',
     cyl: 4, layout: 'inline', mount: 'trans', radiator: 'front' },
   'transfit-lwb': { pipes: 1, pipesAt: 'left', front: 'bonnet', rear: 'boot', engine: 'front',

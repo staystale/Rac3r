@@ -3,6 +3,7 @@
 // trafficDrive.ts, trafficKin.ts).
 import type { HighwayLevel, TrafficCar, TrafficVehicle } from "./types.ts";
 import type { PoliceOrders } from "./trafficPolice.ts";
+import { FIX } from '../core/fixes.ts';
 
 // what is on the road (weights) — road cars only; vans / lorries come with the traffic
 // vehicles (TODO 4). A car not in the roster is left out (trafficSpawn.ts): a new car behind its
@@ -34,13 +35,21 @@ const IBIZAS = 0.074;
 // 0.67 %, 0.082 - about 1 car in 150.
 const AUDI_A4S = 0.082;
 const VANS = 2.4;
+// The vans' parts of 100: the L2 MWB 40, the L3 LWB 30, the Mk7 SWB 30; with the Transfit Custom
+// (?transitcustom) four ways - the Custom 40 (SMMT: the UK's best-selling van, 2013-23), the MWB
+// 25, the SWB 20, the LWB 15 (EST: no registration split by wheelbase found).
+const VAN_PART = FIX.transitcustom ? { custom: 40, mwb: 25, lwb: 15, swb: 20 }
+  : { custom: 0, mwb: 40, lwb: 30, swb: 30 };
 /** One Transit's weight: its part (of 100) of the vans' VANS. */
 const vanWeight = (part: number) => VANS * part / 100;
 export const VEH: [string, number][] = [
   ['hatch-fwd', 3], ['saloon-rwd', 3], ['estate-4x4', 2.5], ['mini-fwd', 1.5],
-  ['hatch-rwd', 1], ['muscle-rwd', 0.4], ['lambo-awd', 0.12], ['transfit-van', vanWeight(40)],
+  ['hatch-rwd', 1], ['muscle-rwd', 0.4], ['lambo-awd', 0.12],
+  ['transfit-van', vanWeight(VAN_PART.mwb)],
   ['defunder-110', DEFUNDERS], ['focust-st', 0.37], ['routemonster', 0.07],
-  ['transfit-lwb', vanWeight(30)], ['transfit-swb', vanWeight(30)],
+  ['transfit-lwb', vanWeight(VAN_PART.lwb)], ['transfit-swb', vanWeight(VAN_PART.swb)],
+  ...(VAN_PART.custom ? [['transfit-custom', vanWeight(VAN_PART.custom)] as [string, number]]
+    : []),
   ['strange-l322', STRANGE_ROVERS],
   ...RARE, ['tesla-m3', TESLAS], ['seat-ibiza', IBIZAS], ['ordi-a4', AUDI_A4S],
 ];

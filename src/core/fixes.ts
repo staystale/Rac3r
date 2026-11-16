@@ -73,6 +73,9 @@ export const FIX = {
   // the LOW RANGE of a car with a two-speed transfer box (the Defunder, the Strange Rover): a lever
   // by the speedo, switched only nearly stopped; the AI takes low when bogged (physics/lowrange.ts)
   lowrange: atLoad('lowrange'),
+  // the Fjord Transfit Custom (a Ford Transit Custom L1 H1, 2012-23), ROAD / Van, in the traffic:
+  // the four Transfits split the vans' share
+  transitcustom: atLoad('transitcustom'),
   // EVERY CAR'S OWN CRASH PARTS (carbits.ts): step 1, its own doors - a 2-door's two, a
   // 4-door's four, each from its own place and at its own length; none on an open car; a stock
   // car's welded door skins without glass

@@ -50,6 +50,8 @@ const REAL_SIZE: Record<string, RealSize> = {
   // Transit L3 H3 RWD: 5.981 x 2.059, wheelbase 3.75; 55 / 45 and the track 1.72 EST
   // Transit Mk7 SWB: 4.863 x 1.974, wheelbase 2.933; 58 / 42 and the track 1.70 EST
   'transfit-swb': { len: 4.863, wid: 1.974, lf: 1.232, lr: 1.701, trackWidth: 1.7 },
+  // Transit Custom L1: 4.973 x 1.986, wheelbase 2.933; 58 / 42 and the track EST
+  'transfit-custom': { len: 4.973, wid: 1.986, lf: 1.232, lr: 1.701, trackWidth: 1.72 },
   'transfit-lwb': { len: 5.981, wid: 2.059, lf: 1.688, lr: 2.062, trackWidth: 1.72 },
   // F-150 Trophy Truck: wheelbase 3.15; the size, 50 / 50 and track 2.0 EST
   'effing-tt': { len: 5.6, wid: 2.35, lf: 1.575, lr: 1.575, trackWidth: 2.0 },

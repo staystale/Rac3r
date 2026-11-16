@@ -501,5 +501,18 @@ export const CAR_STATS: Record<string, CarStat> = {
       "abs": true,
       "tcs": true
     }
+  },
+  // (measured alone: tools/carstats.mjs transfit-custom with TRANSITCUSTOM=1, behind its switch)
+  "transfit-custom": {
+    "topKph": 158,
+    "zeroTo100": 13.4,
+    "brake100": 50.8,
+    "gripG": 0.86,
+    "massKg": 1950,
+    "drive": "FWD",
+    "aids": {
+      "abs": true,
+      "tcs": true
+    }
   }
 };

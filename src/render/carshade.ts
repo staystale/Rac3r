@@ -78,6 +78,7 @@ export const CAR_SHADE: Record<string, Line[] | null> = {
   'rebelion-r13': null,
   'seat-ibiza': null,
   'ordi-a4': null,
+  'transfit-custom': null,
   'bmv-m4gt3': null,
   'toyoter-corolla': null,
 };

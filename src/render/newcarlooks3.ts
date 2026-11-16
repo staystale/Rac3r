@@ -387,10 +387,78 @@ function paintA4(spr: SpriteCtx): void {
   block(-1, 5, 1, 2, CHR);
 }
 
+
+/**
+ * The Transit Custom's plan, a half width at a share of its length (0 tail, 1 nose), as a share
+ * of the sprite's half: the square box, its tail's corners just rounded, the short nose tapering
+ * to its corners.
+ * @param share along the van, 0..1
+ * @returns the half width, 0..1
+ */
+function customPlan(share: number): number {
+  if (share < 0.02) return 0.9 + 0.1 * Math.sqrt(share / 0.02);
+  if (share > 0.9) return Math.sqrt(1 - 0.5 * ((share - 0.9) / 0.1) ** 2);
+  return 1;
+}
+
+/**
+ * The Transit Custom's roof and cab: the long smooth roof (lit along its top edge, soft along the
+ * lower) with its two low ribs, the steep raked windscreen, the side glass of the cab, the big
+ * black mirrors at the screen's foot.
+ * @param spr the painting context
+ */
+function customCab(spr: SpriteCtx): void {
+  const { widthPx: wid, mid, light, block, along } = spr;
+  const roofTo = along(0.7), screenTo = along(0.78), half = mid - 2;
+  block(along(0.02), 2, roofTo - along(0.02), 1, SHINE);
+  block(along(0.02), wid - 3, roofTo - along(0.02), 1, SHADE_SOFT);
+  for (const share of [0.24, 0.46]) {
+    block(along(share), 3, 1, wid - 6, light);
+    block(along(share) + 1, 3, 1, wid - 6, SHADE_SOFT);
+  }
+  for (let x = roofTo; x < screenTo; x++) {
+    const rake = Math.round((x - roofTo) * 0.25);
+    block(x, mid - half + rake, 1, (half - rake) * 2 + 1, GLASS);
+  }
+  block(roofTo + 1, mid - half + 2, 1, half * 2 - 3, GLASS_HI);
+  block(along(0.6), 1, roofTo - along(0.6), 1, GLASS);
+  block(along(0.6), wid - 2, roofTo - along(0.6), 1, GLASS);
+  for (const y of [-2, wid]) block(roofTo - 1, y, 3, 2, INK);
+}
+
+/**
+ * FJORD TRANSFIT CUSTOM (Ford Transit Custom, 2012-23, L1 H1): the square box and its long
+ * smooth roof, the steep screen, the short sloping bonnet with its creases, the wide three-bar
+ * grille (the third colour the blue badge) and the swept lamps, the black bumpers' corners, the
+ * twin rear doors' split down the tail, the tail lamps up the corners; shaded the TS010's way.
+ * @param spr the painting context
+ */
+function paintCustom(spr: SpriteCtx): void {
+  const { lengthPx: len, widthPx: wid, mid, third, block, along } = spr;
+  planBody(spr, (x) => mid * customPlan(x / (len - 1)));
+  customCab(spr);
+  for (const y of [mid - 6, mid + 5]) {
+    block(along(0.8), y, along(0.15), 1, SHINE);
+    block(along(0.8), y + 1, along(0.15), 1, SHADE_SOFT);
+  }
+  for (const y of [2, wid - 5]) {
+    block(len - 6, y, 4, 3, HEAD);
+    block(len - 3, y + (y < mid ? 1 : 0), 2, 2, HEAD);
+  }
+  block(len - 2, mid - 7, 2, 15, INK);
+  for (const y of [mid - 5, mid, mid + 5]) block(len - 2, y - 1, 1, 2, CHR);
+  block(len - 2, mid - 1, 1, 3, third);
+  for (const y of [0, wid - 2]) block(len - 3, y, 3, 2, INK);
+  block(0, mid, along(0.02) + 1, 1, INK);
+  for (const y of [1, wid - 5]) block(0, y, 1, 4, TAIL);
+  block(-1, 5, 1, 2, CHR);
+}
+
 /** The newest cars' bodies by id (render/carlooks.ts LOOKS takes them). */
 export const NEW_LOOKS_3: [string, { paint: (spr: SpriteCtx) => void; bare?: boolean }][] = [
   ['toyoter-corolla', { paint: paintCorolla, bare: true }],
   ['rebelion-r13', { paint: paintR13, bare: true }],
   ['seat-ibiza', { paint: paintIbiza, bare: true }],
   ['ordi-a4', { paint: paintA4, bare: true }],
+  ['transfit-custom', { paint: paintCustom, bare: true }],
 ];

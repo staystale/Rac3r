@@ -4,6 +4,7 @@
 // the owner passes it. Each row follows the real car (src/realcars.ts helpers); EST marks a figure
 // no source gave. Drafted with tools/newcarstart.mjs, checked with tools/newcar.mjs <id>.
 import type { RosterRow } from './cars.ts';
+import { FIX } from './core/fixes.ts';
 import { dragOf, realCurve, tyreR } from './realcars.ts';
 
 // GT: the GT3 racers (TODO CHAMPIONSHIPS: GT), a class of their own on race tyres
@@ -561,10 +562,32 @@ const A4AVANT: RosterRow = {
   paint: '#eceeea', trim: '#e1e3df', glass: '#2a2f38', rim: '#c9ccd4',
 };
 
+// Ford Transit Custom (2012-23) 290 L1 H1 2.0 EcoBlue 130 PS six-speed manual FWD (Ford UK's
+// brochure; L'argus): 96 kW (130 PS) at 3,500, 385 Nm, FWD, 4,973 x 1,986 x 2,000 mm, wheelbase
+// 2,933, ABS and ESC. EST: the kerb weight (1,950 kg: the 170 PS's 2,035), the torque's band
+// (1,500-2,000), the 4,500 limit, the ratios and final drive (the L2's), 215/65 R16, Cd 0.36 x
+// 3.6 m^2, an empty van's 58 / 42, its CG, the van tyres' grip and stiffness, the springs.
+const TRANSFIT_CUSTOM: RosterRow = {
+  id: 'transfit-custom', name: 'Fjord Transfit Custom', kind: 'custom', cls: 'road', sub: 'Van',
+  rimIn: 16,   // its real rim, inches (what tyres fit)
+  cg: 0.7, rideH: 0.17, cyl: 4,
+  aids: { abs: true, tcs: true },
+  mass: 1950, lf: 1.232, lr: 1.701, len: 4.973, wid: 1.986, trackWidth: 1.72,
+  tyreWidth: 0.215, wheelR: tyreR(215, 65, 16),
+  drive: 1.0, brakeBiasF: 0.68, caF: 115000, caR: 90000, mu: 0.92,
+  curve: realCurve({ idle: 800, low: 0.55, nm: 385, nmFrom: 1500, nmTo: 2000,
+    kw: 96, kwAt: 3500, redline: 4500 }),
+  redline: 4500, upshiftRpm: 4100, downshiftRpm: 1500, idleRpm: 800,
+  gears: [4.71, 2.53, 1.6, 1.1, 0.86, 0.7], finalDrive: 3.29, dragC: dragOf(0.36, 3.6),
+  susF: 1.3, susZ: 0.4,
+  // the white van: black bumpers and trim, the blue oval
+  paint: '#f0f0ea', trim: '#2a2d34', glass: '#2a2f38', rim: '#5a5f69',
+};
+
 /** The new cars: their roster rows, in the list's order. */
 export const NEW_CARS: RosterRow[] = [PORCH, SEVEN, TRANSFIT, TROPHY, CIVVIC, DEFUNDER, FOCUST,
   CLEO, CLEO_RS, TRANSFIT_LWB, TRANSFIT_SWB, TS010, ROUTEMONSTER, SAXO, STRANGE, SAXO_VTR, TESLA,
-  M4GT3, COROLLA, R13, IBIZA, A4AVANT];
+  M4GT3, COROLLA, R13, IBIZA, A4AVANT, ...(FIX.transitcustom ? [TRANSFIT_CUSTOM] : [])];
 
 /** The classes only new cars race in. */
 export const NEW_CLASSES = [GT_CLASS, TOURING_CLASS, PROTO_CLASS];
