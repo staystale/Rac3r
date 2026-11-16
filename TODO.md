@@ -336,6 +336,20 @@ THE 10 NEW CARS (owner-approved names 11-16; one switch and one hand-back each; 
    QUESTIONS for the owner: the open class (850 PS) or a Spec truck (525 hp); its estimated size
    and tyres; it rolled in each Deaf Valley run (1-2 in 150 s) - right for a tall truck?; its
    long name runs past the landscape garage's picker.
+   GRIP UP (owner 11-16: "trophy trucks grip was a bit low ... both slightly, try loose mostly and
+   a tiny rise on tarmac too"): its own factory set, desert tyres as the Dunflop All-Terrain
+   (tarmac x0.98, gravel / dirt x1.12, grass / sand x1.15; it plough less), and mu 1.0 -> 1.07.
+   tyrecheck peak lateral g (working): tarmac 0.89 -> 0.93 (+4.5 %), gravel 0.59 -> 0.70 (+19 %);
+   steady grip at 60 km/h (tools/scratch/_surfgrip.mjs): tarmac 0.88 -> 1.00, gravel 0.66 -> 0.73,
+   dirt 0.62 -> 0.69, grass 0.42 -> 0.52, sand 0.40 -> 0.47 - that sweep is coarse (it jumps: 0.88 up
+   to mu 1.04, 1.02 at 1.05), and it is the garage's grip figure too (now 1.0 g); 0-100 6.7 -> 6.5
+   s, 100-0 69.2 -> 66.1 m. PC, before -> after: Sweaty Lamb AI x6 (seed 7) - 560 s (the cap) both,
+   resets 454 -> 111, laps 0-2 -> 2-3 each (one counted 1.2 s: the short-lap credit, known); the
+   Sahara stage (seed 1) 1.39 -> 1.77 km, top 87 -> 94, 1 -> 0 put-backs, 0 rolls both; Deaf Valley
+   seed 1 3.31 -> 3.69 km, top 181 -> 201, rolls 1 -> 2 (both onto the roof); seed 2 2.81 -> 2.46 km,
+   top 157 -> 165, rolls 1 -> 2. Switch off and on: simhash SAME. QUESTIONS: the stock tyre (Pre-
+   Spun no longer fits it, as the muscle car's and the tractor's own sets); it rolls a little
+   more on Deaf Valley with the grip (2 a run, not 1).
 5. HONDER CIVVIC TYPE ARR BTCC (Honda Civic Type R FK8 BTCC, NGTC 2018-21, before the hybrid):
    BUILT 11-16 behind ?civvic=1 (FIX.civvic; testlist 'civvic'), with a new class TOURING (sub
    BTCC; fits the GT class's tyres: Pre-Spun, Semi-Slick, Wet, the Pirrelly slicks - newcars.ts
