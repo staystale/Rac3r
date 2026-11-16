@@ -115,6 +115,9 @@ export const PROFILES: Record<string, CarProfile> = {
   // long flat bonnet (EST from photos)
   'strange-l322': { len: 4.95, waist: 1.2, glass: [0.06, 0.66], roof: [[0, 0.6], [0.02, 1.1],
     [0.04, 1.78], [0.08, 1.86], [0.62, 1.86], [0.68, 1.25], [0.97, 1.1], [1, 0.6]] },
+  // Model 3: the low nose, the long glass roof sweeping down to the short boot (EST from photos)
+  'tesla-m3': { len: 4.694, waist: 0.95, glass: [0.2, 0.66], roof: [[0, 0.62], [0.03, 0.98],
+    [0.14, 1.04], [0.28, 1.36], [0.5, 1.44], [0.66, 0.96], [0.96, 0.74], [1, 0.5]] },
   // Saxo VTR: the short round hatch (EST from photos)
   'saxo-vtr': { len: 3.718, waist: 0.92, glass: [0.1, 0.64], roof: [[0, 0.55], [0.02, 0.95],
     [0.08, 1.3], [0.15, 1.36], [0.5, 1.37], [0.65, 0.92], [0.95, 0.75], [1, 0.45]] },

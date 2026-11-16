@@ -21,7 +21,19 @@ export interface CarBits {
   mount: 'long' | 'trans'; radiator: 'front' | 'rear' | 'sides';
   // the wing stands on the boot lid (the 911 GT3 R's swan necks): it goes when the lid goes
   wingOnLid?: boolean;
+  // an ELECTRIC car (the Tesla): no exhaust and no engine to lose, its frunk under the bonnet
+  // (render/underskin.ts), no petrol stations (ai/trafficTrips.ts)
+  electric?: boolean;
 }
+
+/**
+ * Whether a car has no such part to lose: an electric car's exhaust or engine.
+ * @param bits the car's bits
+ * @param kind the part
+ * @returns it has none
+ */
+export const hasNo = (bits: CarBits, kind: string) => !!bits.electric
+  && (kind === 'exhaust' || kind === 'engine');
 
 // (the radiators: the Sport quattro S1 E2 carried its radiator at the back, as World RX supercars
 // do (EST for the Fiesta RX); the autograss buggy's transverse four and rear radiator EST; the
@@ -140,6 +152,10 @@ export const CAR_BITS: Record<string, CarBits> = {
   // Saxo VTR: one tailpipe on the left (EST), the tailgate, the 1.6 across the front
   'saxo-vtr': { pipes: 1, pipesAt: 'left', front: 'bonnet', rear: 'boot', engine: 'front',
     cyl: 4, layout: 'inline', mount: 'trans', radiator: 'front' },
+  // Model 3: no pipes, the frunk under the bonnet (the front motor under it), the radiator in the
+  // nose; the rear motor under the boot floor
+  'tesla-m3': { pipes: 0, pipesAt: 'centre', front: 'bonnet', rear: 'boot', engine: 'front',
+    cyl: 0, layout: 'inline', mount: 'trans', radiator: 'front', electric: true },
   'cleo-rs200': { pipes: 2, pipesAt: 'centre', front: 'bonnet', rear: 'boot', engine: 'front',
     cyl: 4, layout: 'inline', mount: 'trans', radiator: 'front' },
   // TS010: twin pipes in the diffuser (EST), the front clip, the rear clamshell with the wing on

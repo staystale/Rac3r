@@ -411,13 +411,39 @@ const SAXO_VTR: RosterRow = {
   paint: '#c8342a', trim: '#a52a22', glass: '#2a2f38', rim: '#c9ccd4',
 };
 
+// Tesla Model 3 Long Range AWD (2019-20; EV Database, evspecifications.com): two motors, 324 kW
+// (441 PS), 493 Nm, one fixed reduction, AWD, 1,847 kg, 4,694 x 1,849 mm, wheelbase 2,875, Cd
+// 0.23 (Tesla's), 233 km/h (limited), 0-100 4.6 s. The motor's curve by hand: its 493 Nm flat to
+// ~6,300 rpm, then its 324 kW (the torque falling as power / speed) to the limit. Owner: its
+// regen, 0.2 g off the throttle (regenG, in place of the engines' drag); no exhaust, the frunk
+// under its bonnet, no petrol stations (carbits.ts electric). idle 100 / shift 200 rpm: no clutch
+// to slip at a start (one gear never shifts). EST: the 9.03 reduction (widely quoted), the limit
+// (set to its 233), 235/45 R18, 47 / 53, the front motor's share of the drive (0.4), the track,
+// the frontal area (2.22 m^2), the CG (low: the battery in the floor), the tyres' grip and
+// stiffness; ABS and traction control on.
+const TESLA: RosterRow = {
+  id: 'tesla-m3', name: 'Teslur Model Why', kind: 'tesla', cls: 'road', sub: 'Saloon',
+  rimIn: 18,   // its real rim, inches (what tyres fit)
+  cg: 0.46, rideH: 0.14, regenG: 0.2,
+  aids: { abs: true, tcs: true },
+  mass: 1847, lf: 1.524, lr: 1.351, len: 4.694, wid: 1.849, trackWidth: 1.58,
+  tyreWidth: 0.235, wheelR: tyreR(235, 45, 18),
+  drive: 0.4, brakeBiasF: 0.65, caF: 115000, caR: 120000, mu: 1.3,
+  curve: [[100, 493], [6300, 493], [8000, 387], [10000, 309], [12000, 258], [14000, 221],
+    [16000, 193], [17000, 182]],
+  redline: 16600, upshiftRpm: 200, downshiftRpm: 150, idleRpm: 100,
+  gears: [1.0], finalDrive: 9.03, dragC: dragOf(0.23, 2.22),
+  // Pearl White, the glass roof (the second colour, big), black details, the aero wheels' grey
+  paint: '#f2f2ee', trim: '#1c2026', glass: '#2a2f38', rim: '#9aa0a8',
+};
+
 /** The new cars: their roster rows, in the list's order. */
 export const NEW_CARS: RosterRow[] = [PORCH, SEVEN, TRANSFIT, TROPHY, CIVVIC, DEFUNDER, FOCUST,
   ...(FIX.cleo ? [CLEO] : []), ...(FIX.cleoroad ? [CLEO_RS] : []),
   ...(FIX.transfitlwb ? [TRANSFIT_LWB] : []), ...(FIX.transfitswb ? [TRANSFIT_SWB] : []),
   ...(FIX.ts010 ? [TS010] : []), ...(FIX.routemonster ? [ROUTEMONSTER] : []),
   ...(FIX.saxo ? [SAXO] : []), ...(FIX.strange ? [STRANGE] : []),
-  ...(FIX.saxovtr ? [SAXO_VTR] : [])];
+  ...(FIX.saxovtr ? [SAXO_VTR] : []), ...(FIX.tesla ? [TESLA] : [])];
 
 /** The classes only new cars race in. */
 export const NEW_CLASSES = [GT_CLASS, TOURING_CLASS, ...(FIX.ts010 ? [PROTO_CLASS] : [])];

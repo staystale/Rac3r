@@ -11,7 +11,7 @@
 // take the cover 'glass' (like the oil and the tyres' water - one cover system; drawn by the GPU
 // field, render/glfield.ts, glints moving with the view). It changes no grip; the first tyre
 // pass sweeps the cell clean and may puncture that tyre slowly (PASS: world/pass.ts).
-import { bitsOf } from '../carbits.ts';
+import { bitsOf, hasNo } from '../carbits.ts';
 import { getCell, wearDirty, WEAR_CELL } from "./wear.ts";
 import { PASS } from "./pass.ts";
 import { DEBRIS } from "../cones/coneConsts.ts";
@@ -131,7 +131,8 @@ function bigParts(car: DebrisCar, corner: number, add: number, endW: number,
   const has = (kind: string) => (car.partLost || '').split(',').some((entry) =>
     entry.startsWith(kind));
   const off = (kind: string, chance: number) => {
-    if (has(kind === 'mirror' ? 'mirror:' + corner : kind) || rnd() >= chance) return;
+    if (hasNo(bits, kind) || has(kind === 'mirror' ? 'mirror:' + corner : kind)
+      || rnd() >= chance) return;
     car.partLost = (car.partLost ? car.partLost + ',' : '') + kind + ':' + corner;
     (car.partSpawn || (car.partSpawn = [])).push({ corner, kind });
   };
@@ -196,8 +197,9 @@ function openRollParts(shed: (part: string, corner: number, chance: number) => v
  */
 export function rollParts(car: DebrisCar, kind: string, side: number, scale: number): void {
   const bits = bitsOf(car.spec?.id || ''), front = side > 0 ? 1 : 0, rear = side > 0 ? 3 : 2;
-  const shed = (part: string, corner: number, chance: number) =>
-    shedOnRoll(car, part, corner, chance * scale);
+  const shed = (part: string, corner: number, chance: number) => {
+    if (!hasNo(bits, part)) shedOnRoll(car, part, corner, chance * scale);
+  };
   if (car.spec?.kind === 'track' || car.spec?.kind === 'grass') {
     openRollParts(shed, kind, front, rear);
     return;

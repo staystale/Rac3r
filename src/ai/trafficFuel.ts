@@ -9,6 +9,7 @@
 // roadside road, PARKED, roadsideFree): its stop is a place, not wherever it slows to a halt.
 import { roadFrame, roadPose, roadSpan } from '../highway.ts';
 import { reset } from '../vehicle.ts';
+import { bitsOf } from '../carbits.ts';
 import { geo } from './trafficCtx.ts';
 import type { TrafficCtx } from './trafficCtx.ts';
 import type { DriveEnv } from './trafficLane.ts';
@@ -119,7 +120,9 @@ export function pullIn(ctx: TrafficCtx, slot: TrafficCar, env: DriveEnv, station
  */
 export function mayPlaceAtPump(ctx: TrafficCtx, slot: TrafficCar, ents: TrafficEnt[]): boolean {
   const station = stationsOf(ctx).find((each) => Math.abs(each.s - slot.s) < CHOOSE_M[1]);
-  if (!station || ctx.rnd() >= AT_PUMP_SHARE) return false;
+  // (never an electric car: the dice still roll)
+  if (!station || ctx.rnd() >= AT_PUMP_SHARE || bitsOf(String(slot.car.spec.id)).electric)
+    return false;
   const stopOff = station.off + PUMP_IN_M;
   if (!roadsideFree(ents, station.s, stopOff) || isBoundFor(ents, slot, station.s)) return false;
   const pose = roadPose(ctx.level!, station.s, stopOff);

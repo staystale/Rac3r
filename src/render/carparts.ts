@@ -430,7 +430,8 @@ function lostPixel(rgba: Uint8ClampedArray, i: number, part: LostPart, x: number
   if (kind === 'bonnet' || kind === 'boot') {
     // (the engine shows under a front-engined car's bonnet, not a mid-engined car's front lid)
     // (with ?underskin the bay is left empty: render/underskin.ts draws the engine in it)
-    const engine = !underSkin && kind === 'bonnet' && bitsOf(String(spec.id)).engine === 'front'
+    const bits = bitsOf(String(spec.id));
+    const engine = !underSkin && kind === 'bonnet' && bits.engine === 'front' && !bits.electric
       && !lost.includes('engine');
     bayPixel(rgba, i, engine, x - region.x0,
       y - region.y0, region);

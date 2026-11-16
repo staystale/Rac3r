@@ -13,6 +13,19 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'tesla',
+    added: '2026-11-16',
+    name: 'New car: the Teslur Model Why (the Tesla Model 3 Long Range AWD), ROAD / Saloon, and '
+      + 'in the traffic',
+    where: 'Test link + &tesla=1: the garage, ROAD / Saloon; a circuit, the highway (about 1 car '
+      + 'in 260, as on the real roads); + &underskin=1 for a crash',
+    try: 'Its look (Pearl White, the glass roof), the pull from a standstill (one gear, no '
+      + 'shifts), lift off at speed (its regen slows it harder than an engine), no exhaust smoke, '
+      + 'knock the bonnet off (the frunk), no Tesla at the petrol stations.',
+    wrong: 'A gear change, revs at a standstill, smoke from the back, an engine under the bonnet, '
+      + 'a Tesla at the pumps.',
+  },
+  {
     id: 'saxovtr',
     added: '2026-11-16',
     name: 'New car: the Citrone Saxo VTR (the road Saxo the Saxmax racers start from), ROAD / '

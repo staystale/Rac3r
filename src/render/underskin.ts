@@ -31,6 +31,9 @@ const BOOT_FLOOR = '#3a3d45', SPARE_TYRE = '#16181d', SPARE_RIM = '#8a9099';
 const SPARE_M = 0.6;
 // m: a radiator's depth from above, a crash bar's
 const RADIATOR_DEPTH_M = 0.12, CRASH_BAR_M = 0.1;
+// an electric car's frunk: its plastic tub and lip; the front motor's casing, its orange
+// high-voltage cable
+const TUB = '#25282e', TUB_LIP = '#4a4f58', MOTOR = '#8a9099', HV_CABLE = '#e07a1f';
 
 /** What each painter needs: the canvas, the car, its sprite, its bits. */
 interface SkinCtx {
@@ -149,9 +152,30 @@ function bonnetBay(skin: SkinCtx, region: Region): void {
       radiator(ctx, front - deep, region.y1 - across + 1, deep * 2, across);
     }
   }
-  if (bits.engine === 'front')
+  if (bits.electric) frunkBay(skin, region, front);
+  else if (bits.engine === 'front')
     engineAt(skin, Math.min((region.x0 + region.x1 - deep + 1) / 2, front - engineHalf(skin)),
       (region.y0 + region.y1) / 2);
+}
+
+/**
+ * An ELECTRIC car's bay (carbits.ts electric): the frunk's tub behind the radiator, and behind
+ * the tub the front motor's casing across the car with its orange high-voltage cable.
+ * @param skin the painter's context
+ * @param region the bay
+ * @param front sprite px of the radiator's rear edge
+ */
+function frunkBay(skin: SkinCtx, region: Region, front: number): void {
+  const { ctx } = skin, tall = region.y1 - region.y0 + 1, room = front - region.x0;
+  const tubFrom = region.x0 + Math.round(room * 0.4), tubAcross = Math.round(tall * 0.72);
+  const tubY = region.y0 + Math.round((tall - tubAcross) / 2);
+  block(ctx, tubFrom, tubY, front - tubFrom, tubAcross, TUB_LIP);
+  block(ctx, tubFrom + 1, tubY + 1, front - tubFrom - 2, tubAcross - 2, TUB);
+  const motorAcross = Math.round(tall * 0.5), motorLong = Math.max(2, tubFrom - region.x0 - 2);
+  const motorY = region.y0 + Math.round((tall - motorAcross) / 2);
+  block(ctx, region.x0 + 1, motorY, motorLong, motorAcross, STEEL);
+  block(ctx, region.x0 + 1, motorY + 1, motorLong, motorAcross - 2, MOTOR);
+  block(ctx, region.x0, motorY + 2, motorLong + 1, 1, HV_CABLE);
 }
 
 /**

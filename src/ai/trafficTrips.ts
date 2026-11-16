@@ -34,6 +34,7 @@ import type { TrafficCar, TrafficEnt } from './types.ts';
 import type { HwLevel } from '../highway/hwtypes.ts';
 import type { Point, Prop } from '../world/types.ts';
 import { FIX } from '../core/fixes.ts';
+import { bitsOf } from '../carbits.ts';
 
 /** A way off the road: where its slip starts (road s), its line, m it stops short of the end. */
 interface Exit { s: number; pts: () => Point[]; stopShort: number }
@@ -272,7 +273,9 @@ function planTrip(ctx: TrafficCtx, slot: TrafficCar) {
     if (ctx.rnd() < LEAVE_ROLL) slot.trip = { kind: 'exit', at: exit.s, exit };
   } else if (station) {
     slot.stationAt = station.s;
-    if (ctx.rnd() < FUEL_ROLL) slot.trip = { kind: 'fuel', at: station.s, station };
+    // (an electric car rolls too, so the dice run the same, but never goes for fuel)
+    if (ctx.rnd() < FUEL_ROLL && !bitsOf(String(slot.car.spec.id)).electric)
+      slot.trip = { kind: 'fuel', at: station.s, station };
   }
 }
 

@@ -470,6 +470,71 @@ function paintStrangeRover(spr: SpriteCtx): void {
   block(-1, wid - 7, 1, 2, CHR);
 }
 
+/**
+ * The Model 3's plan, a half width at a share of its length (0 tail, 1 nose), as a share of the
+ * sprite's half: the rounded tail, the hips over the rear wheels, the doors' slight waist, the
+ * long round nose with no grille.
+ * @param share along the car, 0..1
+ * @returns the half width, 0..1
+ */
+function teslaPlan(share: number): number {
+  const arch = Math.max(inside(share, 0.08, 0.32, 0.06), inside(share, 0.64, 0.86, 0.06));
+  const tail = share < 0.05 ? 0.8 + 0.2 * Math.sqrt(share / 0.05) : 1;
+  const nose = share > 0.84 ? Math.sqrt(1 - 0.7 * ((share - 0.84) / 0.16) ** 2) : 1;
+  return (0.94 + 0.06 * arch) * tail * nose;
+}
+
+/**
+ * The Model 3's glass: the rear screen sweeping into the glass roof (the second colour) with the
+ * roof's bar across it over the rear seats, the side glass, the raked windscreen, the black
+ * mirrors (the third colour).
+ * @param spr the painting context
+ */
+function teslaGlass(spr: SpriteCtx): void {
+  const { mid, roof2, third, block, along } = spr;
+  const rearFrom = along(0.13), roofFrom = along(0.22), bar = along(0.42), roofTo = along(0.6),
+    screenTo = along(0.68), half = Math.round(mid * 0.74);
+  for (let x = rearFrom; x < roofFrom; x++) {
+    const narrow = Math.round(3 * (roofFrom - x) / (roofFrom - rearFrom));
+    block(x, mid - half + narrow, 1, (half - narrow) * 2 + 1, GLASS);
+  }
+  block(roofFrom, mid - half, roofTo - roofFrom, half * 2 + 1, roof2);
+  block(rearFrom + 3, mid - half + 4, 1, half * 2 - 7, GLASS_HI);
+  block(bar, mid - half, 2, half * 2 + 1, INK);
+  block(bar + 4, mid - half + 3, 1, half * 2 - 5, GLASS_HI);
+  block(roofFrom + 1, mid - half - 1, roofTo - roofFrom - 2, 1, GLASS);
+  block(roofFrom + 1, mid + half + 1, roofTo - roofFrom - 2, 1, GLASS);
+  for (let x = roofTo; x < screenTo; x++) {
+    const wide = Math.round(half + 1 + 2 * (x - roofTo) / (screenTo - roofTo));
+    const rake = Math.round((x - roofTo) * 0.3);
+    block(x, mid - wide + rake, 1, (wide - rake) * 2 + 1, GLASS);
+  }
+  block(roofTo + 1, mid - half + 1, 1, half * 2 - 1, GLASS_HI);
+  block(screenTo - 2, mid - half - 4, 2, 2, third);
+  block(screenTo - 2, mid + half + 3, 2, 2, third);
+}
+
+/**
+ * TESLUR MODEL WHY (Tesla Model 3 Long Range AWD, 2019-20): the smooth saloon's plan, the short
+ * boot lid, the glass from the rear screen over the roof, the bonnet's soft creases, the slim
+ * swept lamps, no grille (a slot low in the nose), the tail lamps across the corners; no pipes.
+ * @param spr the painting context
+ */
+function paintTesla(spr: SpriteCtx): void {
+  const { lengthPx: len, widthPx: wid, mid, light, dark, block, along } = spr;
+  planBody(spr, (x) => mid * teslaPlan(x / (len - 1)));
+  teslaGlass(spr);
+  block(along(0.72), mid - 7, along(0.16), 1, light);
+  block(along(0.72), mid + 7, along(0.16), 1, dark);
+  for (const y of [3, wid - 5]) {
+    block(len - 7, y, 5, 2, HEAD);
+    block(len - 4, y + (y < mid ? 1 : -1), 2, 2, HEAD);
+  }
+  block(len - 1, mid - 4, 1, 9, INK);
+  for (const y of [2, wid - 6]) block(0, y, 2, 4, TAIL);
+  block(0, 6, 1, wid - 12, dark);
+}
+
 /** Cars 6 on: their bodies by id (render/carlooks.ts LOOKS takes them). */
 export const NEW_LOOKS_2: [string, { paint: (spr: SpriteCtx) => void; bare?: boolean }][] = [
   ['defunder-110', { paint: paintDefunder, bare: true }],
@@ -479,6 +544,7 @@ export const NEW_LOOKS_2: [string, { paint: (spr: SpriteCtx) => void; bare?: boo
   ['routemonster', { paint: paintRoutemonster, bare: true }],
   ['saxo-kit', { paint: paintSaxo, bare: true }],
   ['saxo-vtr', { paint: paintSaxoVtr, bare: true }],
+  ['tesla-m3', { paint: paintTesla, bare: true }],
   ['strange-l322', { paint: paintStrangeRover, bare: true }],
   ['ts010', { paint: paintTs010, bare: true }],
 ];

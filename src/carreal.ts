@@ -65,6 +65,8 @@ const REAL_SIZE: Record<string, RealSize> = {
   // Range Rover L322: 4.95 x 2.009, wheelbase 2.88; 50 / 50 and the track 1.63 EST
   // Saxo VTR: 3.718 x 1.62, wheelbase 2.385, track 1.401 / 1.321; 62 / 38 EST
   'saxo-vtr': { len: 3.718, wid: 1.62, lf: 0.906, lr: 1.479, trackWidth: 1.36 },
+  // Model 3: 4.694 x 1.849, wheelbase 2.875; 47 / 53 and the track EST
+  'tesla-m3': { len: 4.694, wid: 1.849, lf: 1.524, lr: 1.351, trackWidth: 1.58 },
   'strange-l322': { len: 4.95, wid: 2.009, lf: 1.44, lr: 1.44, trackWidth: 1.63 },
   'saxo-kit': { len: 3.717, wid: 1.74, lf: 0.906, lr: 1.479, trackWidth: 1.55 },
   'cleo-rs200': { len: 4.017, wid: 1.768, lf: 1.008, lr: 1.577, trackWidth: 1.52 },

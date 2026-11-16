@@ -423,5 +423,18 @@ export const CAR_STATS: Record<string, CarStat> = {
       "abs": true,
       "tcs": false
     }
+  },
+  // (measured alone: tools/carstats.mjs tesla-m3 with TESLA=1, behind its switch)
+  "tesla-m3": {
+    "topKph": 233,
+    "zeroTo100": 4.8,
+    "brake100": 36.6,
+    "gripG": 1.18,
+    "massKg": 1847,
+    "drive": "4WD",
+    "aids": {
+      "abs": true,
+      "tcs": true
+    }
   }
 };

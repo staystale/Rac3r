@@ -182,7 +182,10 @@ export function computeLongitudinalDemand(car: Car, carSpec: Spec, mass: number,
     const drivenShare = carSpec.drive * (carSpec.lr / carSpec.L) + (1 - carSpec.drive)
         * (carSpec.lf / carSpec.L);
     const ebMax = 0.5 * carSpec.mu * car.surface.mu * mass * gravity * drivenShare;
-    const Feb = Math.min(ENGINE_BRAKE * mass * gravity * revK, ebMax) * car.clutch;
+    // an electric car's REGEN (owner: regenG, its own g): a set drag, not by the revs
+    const dragForce = carSpec.regenG !== undefined ? carSpec.regenG * mass * gravity
+      : ENGINE_BRAKE * mass * gravity * revK;
+    const Feb = Math.min(dragForce, ebMax) * car.clutch;
     torque = -Feb * carSpec.wheelR / Math.max(0.1, totalRatio * carSpec.driveEff);
   }
   let driveForce = (torque * totalRatio * carSpec.driveEff) / carSpec.wheelR;

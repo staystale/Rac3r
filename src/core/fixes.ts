@@ -90,6 +90,9 @@ export const FIX = {
   strange: atLoad('strange'),
   // the Citrone Saxo VTR (the road Saxo the Saxmax racers start from), ROAD / Hatch, in the traffic
   saxovtr: atLoad('saxovtr'),
+  // the Teslur Model Why (a Tesla Model 3 Long Range AWD), ROAD / Saloon, in the traffic: its
+  // regen (regenG), no exhaust, its frunk, no petrol stations
+  tesla: atLoad('tesla'),
   // the Toyoter TS010 (a Toyota TS010 Group C car) and its PROTOTYPE class
   ts010: atLoad('ts010'),
   // a rolling start's AI pole car out of the track's range holds its place: green waits for the

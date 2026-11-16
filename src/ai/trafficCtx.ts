@@ -25,6 +25,9 @@ const LAND_ROVERS = FIX.strange ? [0.15, 0.25] : [0.4, 0];
 // 0.0068 %, 0.00083 - about 1 car in 15,000; the Clio Renaultsport Cup, 210 (2025) - 0.00062 %,
 // 0.000076 - about 1 car in 160,000.
 const RARE: [string, number][] = [['saxo-vtr', 0.00083], ['cleo-rs200', 0.000076]];
+// The Model 3 at its share the same way: ~133,000 licensed (2025 Q4, DVLA via
+// howmanyleft.co.uk) - 0.39 %, 0.048 - about 1 car in 260.
+const TESLAS = 0.048;
 const VANS = 2.4;
 const VAN_PARTS: [string, number, boolean][] = [['transfit-van', 40, true],
   ['transfit-lwb', 30, FIX.transfitlwb], ['transfit-swb', 30, FIX.transfitswb]];
@@ -38,7 +41,7 @@ export const VEH: [string, number][] = [
   ['defunder-110', LAND_ROVERS[0]], ['focust-st', 0.37], ['routemonster', 0.07],
   ...vanParts.slice(1).map(([vanId, part]): [string, number] => [vanId, vanWeight(part)]),
   ...(FIX.strange ? [['strange-l322', LAND_ROVERS[1]] as [string, number]] : []),
-  ...RARE,
+  ...RARE, ['tesla-m3', TESLAS],
 ];
 // real-road colours: mostly silver / white / black / grey (each its own sprite, cached by
 // id + paint)

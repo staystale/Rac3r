@@ -67,6 +67,8 @@ export const EXHAUST_SPOTS: Record<string, { pipes: Pipe[]; up?: boolean }> = {
   saxo: { pipes: [[-0.2, 0.5]] },
   rrover: { pipes: [[-0.5, -0.3], [-0.5, 0.3]] },
   saxovtr: { pipes: [[-0.5, -0.3]] },
+  // the Tesla: no exhaust (no puffs, no backfires)
+  tesla: { pipes: [] },
   // the TS010's twin pipes in its diffuser (EST)
   proto: { pipes: [[-0.5, -0.08], [-0.5, 0.08]] },
 };
