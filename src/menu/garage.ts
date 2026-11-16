@@ -17,6 +17,7 @@ import type { RosterRow, Tyre } from '../cars.ts';
 import { saveProfile } from './profile.ts';
 import { addPane, addButton, addElement, drawLift } from './widgets.ts';
 import { showMainMenu } from './tracks.ts';
+import { FIX } from '../core/fixes.ts';
 import type { Menu } from '../menu.ts';
 import { MENU_COL } from './palette.ts';
 import { trackCanvas } from '../core/memorybudget.ts';
@@ -124,7 +125,9 @@ export function showGarage(menu: Menu, back?: () => void) {
   const panel = addPane(menu, true);
   addElement(panel, 'h2', 'GARAGE');
   addElement(panel, 'div', 'TEST GARAGE · free to try', 'sub');
-  const box = addElement(panel, 'div', '', 'garage');
+  // (?garagewide=1: on a landscape screen the picker's column takes more of the width, so a long
+  // car name fits its row - menu/style.ts .garage.widepick)
+  const box = addElement(panel, 'div', '', FIX.garagewide ? 'garage widepick' : 'garage');
   const left = addElement(box, 'div', ''), right = addElement(box, 'div', '');
   const lift = trackCanvas(document.createElement('canvas'));
   lift.className = 'lift';

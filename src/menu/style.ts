@@ -83,6 +83,10 @@ font-size: 8px; } } #menu .res .me { color: #4cc2a0; } #menu .res .pen { color: 
 vertical-align: -2px; margin-right: 4px; }
 #menu .garage { display: flex; gap: 12px; flex-wrap: wrap; } #menu .garage > * { flex: 1 1 240px; \
 min-width: 0; }
+/* ?garagewide=1: on a landscape screen the picker's column the wider, so a long car name fits \
+its row (the trophy truck's wrapped to three lines and pushed its count out of sight) */ \
+@media (orientation: landscape) { #menu .garage.widepick > :first-child { flex: 2.4 1 360px; } \
+#menu .garage.widepick > :last-child { flex: 1 1 200px; } }
 #menu .test { background: #17191e; border: 2px solid #000; box-shadow: inset 0 0 0 2px #2a2d36; \
 padding: 8px 10px; display: flex; flex-direction: column; gap: 4px; }
 #menu .test .nm { font-size: 13px; color: #4cc2a0; } #menu .test .nm span { font-size: 9px; \

@@ -13,6 +13,17 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'garagewide',
+    added: '2026-11-16',
+    name: 'The garage car picker wider on a landscape screen',
+    where: 'Test link + &garagewide=1 (with &trophy=1&civvic=1 for the long names): test mode, '
+      + 'GARAGE, the phone held sideways',
+    try: 'Step the CAR row to the Fjord Effing-150 Trophy Truck and the Honder Civvic Type Arr '
+      + 'BTCC: each name on two lines with its "1 / 1" count under it. Upright: as before.',
+    wrong: 'A name on three lines or its count cut off, the stats on the right cut off or '
+      + 'overlapping, the car picture squashed.',
+  },
+  {
     id: 'fuelcarry',
     added: '2026-11-16',
     name: 'Traffic going for fuel that misses a station tries the next one',

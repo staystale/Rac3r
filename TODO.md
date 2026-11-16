@@ -594,6 +594,15 @@ inputs and get the cars back. A SPIKE (two phones on the tunnel) before committi
 
 ### 3e. Small open items
 
+- THE GARAGE PICKER WIDER IN LANDSCAPE (owner 11-16 OK; JOB 3a): BUILT behind ?garagewide=1
+  (FIX.garagewide; menu/garage.ts the garage box's class 'widepick', menu/style.ts; testlist
+  'garagewide'): on a landscape screen the picker's column flex 2.4 / basis 360 px, the stats column
+  1 / 200 px (was 1 / 240 each). PHOTOS (844x390, tools/scratch/_newcargarage.mjs): the Fjord
+  Effing-150 Trophy Truck's name 3 lines with its count pushed out of sight -> 2 lines with "2 / 2"
+  shown; the Honder Civvic Type Arr BTCC 3 lines -> 2 with "1 / 1"; the stats wrap more (CLASS 4
+  lines, TYRES 3) and still fit. 390x844 unchanged (landscape only). menucheck with the switch: no
+  page errors at both sizes. Not touched: the race setup's picker (asked: the garage).
+
 - FARTMOOR (owner 11-08): a highway theme - a super country lane with crossroads and traffic.
 - THE WOODEN-FENCE CENTRAL RESERVATION (11-09 NEXT on the varied reservation): the varied
   reservation passed 11-09 (git 3195055; the dual carriageway has wood 15 %, highway/presets.ts) -
