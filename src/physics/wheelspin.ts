@@ -307,7 +307,7 @@ function axleMasses(car: Car, carSpec: Spec, inp: WheelStepIn): [number, number]
  */
 function wheelTick(car: Car, carSpec: Spec, inp: WheelStepIn): WheelTick {
   const tyreK = carSpec.tyre ? tyreGripOn(carSpec.tyre, car.surface) : 1;
-  // (?tipping: up on two wheels the axles lose some grip - physics/tip.ts tipGrip, 1 otherwise)
+  // (up on two wheels the axles lose some grip - physics/tip.ts tipGrip, 1 otherwise)
   return { mass: inp.mass, gravity: inp.gravity,
     muBase: carSpec.mu * car.surface.mu * tyreK * tipGrip(car),
     longK: car.surface.longK || 1, peakK: car.surface.peakK || 1,

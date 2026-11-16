@@ -15,7 +15,8 @@ records in `TODO-DONE.md` (PASSED 11-12). ?underskin (the damage look), ?carpart
 each car's own crash parts) and ?carshade (every closed car shaded) PASSED 11-17, the default
 (TODO-DONE, PASSED 11-17, THE PASS BATCH 4). ?dmgmore (the rolled cars, dragging) PASSED 11-17, the default (TODO-DONE, PASSED 11-17, MORE DAMAGE).
 PASSED 11-17 (owner), to be made the default on resume: ?dmgmore2 (the hanging exhaust and bumper, steam
-and leaks), ?scanyah (the tractor - its trailer then behind its own ?trailer), ?tipping, ?marktrack.
+and leaks), ?marktrack. ?scanyah (the tractor; its trailer next, behind its own ?trailer) and
+?tipping PASSED 11-17, the default (TODO-DONE, PASSED 11-17, THE TRACTOR AND THE TWO-WHEEL STATE).
 
 ## 2. BEING BUILT
 
@@ -273,7 +274,8 @@ THE 10 NEW CARS (owner-approved names 11-16; one switch and one hand-back each; 
    11-16, THE PASS BATCH).
 9 / 10. THE TS010 (reshaped) AND THE ROUTEMONSTER (its wheels, glass, mirrors), and cars 13 / 14,
    THE TESLA and THE M4 GT3: PASSED 11-16, the default (TODO-DONE, PASSED 11-16, THE PASS BATCH 2).
-   OPEN: the two-wheel tipping state (its own job; the bus its showcase). Every car's own crash
+   The two-wheel tipping state (?tipping) and the Scanyah tractor (?scanyah): PASSED 11-17, the
+   default (TODO-DONE, PASSED 11-17, THE TRACTOR AND THE TWO-WHEEL STATE). Every car's own crash
    parts (?carparts) and the shading (?carshade): PASSED 11-17 (TODO-DONE, THE PASS BATCH 4).
 
 ### 3b. Tracks (the venue helper builds, the foreman reviews, the owner passes; one switch each)

@@ -23,7 +23,6 @@ import { levelFlipRamps, rampFlip } from './world/flipramps.ts';
 import { LEVEL } from './world/state.ts';
 import { groundAt } from './world/wear.ts';
 import type { CarRoll } from './vehicle.ts';
-import { FIX } from './core/fixes.ts';
 import { TIP_PHASE, startTip } from './physics/tip.ts';
 /** The rollover state (car.roll; vehicle.ts CarRoll). */
 // (sideOk: whether it may come to rest on a side, decided once as it settles)
@@ -100,7 +99,7 @@ function muBody(surface: { id?: string }) {
   // metal on tarmac / concrete
   return 0.45;
 }
-// (?tipping: a car up on two wheels is driven, not rolling - physics/tip.ts)
+// (a car up on two wheels is driven, not rolling - physics/tip.ts)
 export const rolling = (car: RollCar) => !!(car.roll && car.roll.phase !== 'none'
   && car.roll.phase !== TIP_PHASE);
 
@@ -230,9 +229,8 @@ function tripGround(car: RollCar, vLat: number, stability: number, rnd: () => nu
       : Math.min(2.5, 1 + (speed - MPH60) / 9);
   const chance = (pctOf(car.surface || {}) / 100) * ang * spd * Math.min(1.6, 1 / stability);
   if (rnd() < chance) {
-    // (?tipping: it lifts first - some trips are saved: physics/tip.ts)
-    if (FIX.tipping) startTip(car, Math.sign(vLat), rnd);
-    else startRoll(car, Math.sign(vLat), Math.abs(vLat));
+    // (it lifts first - some trips are saved: physics/tip.ts)
+    startTip(car, Math.sign(vLat), rnd);
     return true;
   }
   return false;

@@ -541,7 +541,7 @@ export const CAR_STATS: Record<string, CarStat> = {
       "tcs": false
     }
   },
-  // (measured alone: tools/carstats.mjs scanyah-r450 with SCANYAH=1, behind its switch)
+  // (measured alone: tools/carstats.mjs scanyah-r450)
   "scanyah-r450": {
     "topKph": 90,
     "zeroTo100": null,

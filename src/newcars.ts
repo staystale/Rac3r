@@ -4,7 +4,6 @@
 // the owner passes it. Each row follows the real car (src/realcars.ts helpers); EST marks a figure
 // no source gave. Drafted with tools/newcarstart.mjs, checked with tools/newcar.mjs <id>.
 import type { RosterRow } from './cars.ts';
-import { FIX } from './core/fixes.ts';
 import { dragOf, realCurve, tyreR } from './realcars.ts';
 
 // GT: the GT3 racers (TODO CHAMPIONSHIPS: GT), a class of their own on race tyres
@@ -691,7 +690,7 @@ export const SCANYAH_TRAILER: RosterRow = {
 export const NEW_CARS: RosterRow[] = [PORCH, SEVEN, TRANSFIT, TROPHY, CIVVIC, DEFUNDER, FOCUST,
   CLEO, CLEO_RS, TRANSFIT_LWB, TRANSFIT_SWB, TS010, ROUTEMONSTER, SAXO, STRANGE, SAXO_VTR, TESLA,
   M4GT3, COROLLA, R13, IBIZA, A4AVANT, TRANSFIT_CUSTOM, E36PEAK, SCHOOLBUS,
-  ...(FIX.scanyah ? [SCANYAH] : [])];
+  SCANYAH];
 
 /** The classes only new cars race in. */
 export const NEW_CLASSES = [GT_CLASS, TOURING_CLASS, PROTO_CLASS,

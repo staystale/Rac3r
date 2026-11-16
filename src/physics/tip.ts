@@ -1,4 +1,4 @@
-// physics/tip.ts - ?tipping: THE TWO-WHEEL STATE (owner: "two wheel state approved so long as it
+// physics/tip.ts - THE TWO-WHEEL STATE (owner: "two wheel state approved so long as it
 // meets performance requirements", "global apply"; the Routemonster its showcase: "it should use
 // the first 1-2 roll over frames to show it's tipping - but steering into it etc should correct
 // it"). Between four wheels and a roll (roll.ts) a car may be up on its two outside wheels -
@@ -145,7 +145,7 @@ export function tipSave<T extends { steer: number; throttle: number; brake: numb
 }
 
 /**
- * ?tipping, after a car's step on its wheels: a tipping car's lean steps; one on four wheels may
+ * After a car's step on its wheels: a tipping car's lean steps; one on four wheels may
  * lift.
  * @param car the car
  * @param dt the step, s

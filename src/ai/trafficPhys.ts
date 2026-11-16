@@ -10,7 +10,6 @@ import { applyGround } from "../world/wear.ts";
 import { clampWorld } from "../world/crossings.ts";
 import { hit, tooInjured } from "../damage.ts";
 import { rolling, tripCheck, stepRoll } from "../roll.ts";
-import { FIX } from '../core/fixes.ts';
 import { isTipping, stepTipping, tipSave } from '../physics/tip.ts';
 import type { DriveInput, TrafficCar } from "./types.ts";
 
@@ -176,9 +175,9 @@ export function drivePhysics(
     slot.wreck = true;
   }
   else {
-    // (?tipping: up on two wheels the driver eases the steering and lifts)
-    step(car, FIX.tipping && isTipping(car) ? tipSave(input) : input, dt);
+    // (up on two wheels the driver eases the steering and lifts: physics/tip.ts)
+    step(car, isTipping(car) ? tipSave(input) : input, dt);
     tripCheck(car, dt);
-    if (FIX.tipping) stepTipping(car, dt);
+    stepTipping(car, dt);
   }
 }

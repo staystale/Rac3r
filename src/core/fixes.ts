@@ -69,12 +69,6 @@ export const FIX = {
   // the rear-right wheel's skid mark at the REAR track (marks.ts listWheels: it was laid at the
   // front track - off on a car whose rear track is its own, spec.trackR)
   marktrack: atLoad('marktrack'),
-  // the Scanyah R-Series (a Scania R 450 4x2 tractor unit), ROAD / Truck, drivable (its trailer:
-  // the joint to come), not in the traffic
-  scanyah: atLoad('scanyah'),
-  // THE TWO-WHEEL STATE (physics/tip.ts): a car may lift onto its two outside wheels before it
-  // rolls - steering into it or lifting off brings it down; a dice trip starts there too
-  tipping: atLoad('tipping'),
   // MORE DAMAGE 2 (the owner's damage items 4 and 3): an exhaust or a torn bumper's piece left
   // HANGING, dragging until it drops (world/hanging.ts, render/hanging.ts)
   dmgmore2: atLoad('dmgmore2'),

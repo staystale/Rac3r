@@ -257,7 +257,7 @@ export function stepCarPhysics(inp: CarInput) {
     else {
       step(game.car, inp, PHYSICS_STEP_SECONDS);
       tripCheck(game.car, PHYSICS_STEP_SECONDS);
-      if (FIX.tipping) stepTipping(game.car, PHYSICS_STEP_SECONDS);
+      stepTipping(game.car, PHYSICS_STEP_SECONDS);
     }
     // a tyre burst (heat, wear, debris): a puncture, and news on the HUD
     // a tyre burst (heat, wear, debris): no written notice - the wheel and the tyre diagram

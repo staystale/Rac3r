@@ -17,6 +17,26 @@ lighting, bushes and trees - OWNER LIST 10-24; the checking tools - Tools that a
 
 
 
+## PASSED 11-17, THE TRACTOR AND THE TWO-WHEEL STATE (owner: ?tipping and the ?scanyah tractor passed)
+
+The default 11-17, their switches deleted:
+- THE TWO-WHEEL STATE (95526f44; physics/tip.ts): a car may lift onto its two outside wheels before
+  it rolls - its sideways pull (smoothed over the body's 0.25 s roll lag) against gravity times its
+  static stability, less a roll compliance for a tall vehicle only (CG over 0.6 m; owner: "just tall
+  vehicles for now"); steering into it or lifting off brings it down; on two wheels its axles lose up
+  to 15 % of their grip; a dice trip on loose ground lifts first. The AI and the traffic's drivers
+  save it (the steering to 30 %, off the throttle). No notice: the rolled-body frames show it.
+  MEASURED (tools/scratch/_tipcheck.mjs, full lock 4 s on warm race tarmac at 30-80 km/h): only the
+  buses lift - the Routemonster at 40 km/h (1.1 deg, down), the school bus at 60 (4.0 deg) and 80
+  (9.8 deg), down again; with the save 0.2-0.3 deg. _tiptrip.mjs (200 trips across gravel, over /
+  down): at 60 km/h the Golf 189 / 11, the 3 Series 189 / 11, the Strange Rover 190 / 6, the S1
+  198 / 1, the Routemonster 200 / 0; at 40 the Golf 174 / 26. Cost 0.016 us a call on four wheels.
+- THE SCANYAH R-SERIES (977c41fc; a Scania R 450 4x2 tractor unit; ROAD / Truck, now in the garage;
+  NOT in the traffic): measured top 90 km/h (the UK lorry limiter), 100-0 54.0 m, grip 0.81 g. Its
+  own parts (a cab door a side, the black steel bumper, the big mirrors, the stack), shaded. Its
+  trailer (the pin joint) follows behind its own ?trailer.
+PROOF (second PC, old with the switches on -> this plain): follows.
+
 ## PASSED 11-17, THE PASS BATCH 4 (owner: the Skool Bus, the E36 Peak and the Transfit Custom passed)
 
 The default 11-17, their switches deleted:
