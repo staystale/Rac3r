@@ -15,6 +15,7 @@ const WISHBONE_STEEL = '#4a4f58';
 import type { CarSprite, RenderCarSpec } from "./types.ts";
 import { trackCanvas } from '../core/memorybudget.ts';
 import { FIX } from '../core/fixes.ts';
+import { drawHanging, tornPixel } from './torncut.ts';
 
 // m a lost wing's well reaches in from the car's side with ?underskin (render/underskin.ts): past
 // the tyre to the strut and the drive shaft (the old hole, 3 px, was all tyre)
@@ -528,6 +529,9 @@ function bayPixel(rgba: Uint8ClampedArray, i: number, engine: boolean, x: number
 interface LostPart { spec: RenderCarSpec; kind: string; corner: number; region: Region;
   lost: string; underSkin: boolean }
 
+// the parts that leave nothing behind on the sprite (a mirror, the pipes)
+const CLEARED_PARTS = new Set(['mirror', 'exhaust']);
+
 /**
  * A sprite px on a lost part: an open car's part, a mirror or the pipes cleared; a bonnet's or
  * boot lid's place the bay; else (?partsoff) cleared to its bare structure line, or darkened.
@@ -539,7 +543,9 @@ interface LostPart { spec: RenderCarSpec; kind: string; corner: number; region: 
  */
 function lostPixel(rgba: Uint8ClampedArray, i: number, part: LostPart, x: number, y: number) {
   const { spec, kind, corner, region, lost, underSkin } = part;
-  if (isBare(spec) || kind === 'mirror' || kind === 'exhaust') { rgba[i + 3] = 0; return; }
+  if (isBare(spec) || CLEARED_PARTS.has(kind)) { rgba[i + 3] = 0; return; }
+  // (?underskin: the hole in the panel's own outline, its edge torn - render/torncut.ts)
+  if (underSkin && tornPixel(rgba, i, part, [x, y])) return;
   if (kind === 'bonnet' || kind === 'boot') {
     // (the engine shows under a front-engined car's bonnet, not a mid-engined car's front lid)
     // (with ?underskin the bay is left empty: render/underskin.ts draws the engine in it)
@@ -558,6 +564,21 @@ function lostPixel(rgba: Uint8ClampedArray, i: number, part: LostPart, x: number
 }
 
 /**
+ * ?underskin: the sprite's pixels and a copy of them as they were, for the torn panels' hanging
+ * pieces (render/torncut.ts); none on an open car.
+ * @param spec the car as drawn
+ * @param underSkin the switch's state
+ * @param rgba the pixels
+ * @param canvas their canvas
+ * @returns the pixels, or null
+ */
+function tornPixels(spec: RenderCarSpec, underSkin: boolean, rgba: Uint8ClampedArray,
+  canvas: { width: number; height: number }) {
+  if (!underSkin || isBare(spec)) return null;
+  return { rgba, from: rgba.slice(), width: canvas.width, height: canvas.height };
+}
+
+/**
  * The car without the parts it has lost: each region darkened to the bare structure (a closed
  * car's bumper / wing / panel) or cleared (an open-wheeler's wing or sidepod - nothing under it).
  * @param spec the car as drawn
@@ -569,6 +590,8 @@ function lostPixel(rgba: Uint8ClampedArray, i: number, part: LostPart, x: number
 export function withoutParts(spec: RenderCarSpec, sprite: CarSprite, lost: string,
   underSkin = false): CarSprite {
   const { canvas, ctx, img } = spriteToWork(sprite.c), rgba = img.data;
+  // (?underskin: the panels as they were, for the pieces left hanging - render/torncut.ts)
+  const torn = tornPixels(spec, underSkin, rgba, canvas);
   for (const entry of lost.split(',').filter(Boolean)) {
     const [kind, corner] = entry.split(':');
     // (the wing is left out by the painters - spec.noWing; the engine shows in the bay)
@@ -580,6 +603,7 @@ export function withoutParts(spec: RenderCarSpec, sprite: CarSprite, lost: strin
       const i = (y * canvas.width + x) * 4;
       lostPixel(rgba, i, { spec, kind, corner: +corner, region, lost, underSkin }, x - 2, y - 2);
     }
+    if (torn) drawHanging(torn, { kind, corner: +corner, region });
   }
   ctx.putImageData(img, 0, 0);
   return { ...sprite, c: canvas };
