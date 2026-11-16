@@ -235,6 +235,25 @@ FIXED while building it: a rear hit's second corner knocked off the exhaust the 
 left hanging (0 m drags); a part left hanging that step is not knocked. Photos
 (tools/scratch/_hangshots.mjs: the hatch and the saloon on the Test Track): the sparks behind the
 tail, the bumper's piece and its chips; no page errors. AWAITING THE PHONE TEST.
+STEAM AND LEAKS (item 3; owner's answers 11-17: oil by the hit's size, later hits widen by their
+size, the radiator too; puddles under the real radiator and sump; denser steam when exposed):
+physics/leakplaces.ts gives each car's radiator (carbits.ts: nose, tail - the Sport quattro S1 -
+or sides, mid-engined) and sump (under its engine); the water lands under the radiator and the
+oil under the sump (physics/engineheat.ts stepLeaks: they were 0.3 and 0.15 of the length ahead
+for every car); the steam rises from the radiator (render/enginesmoke.ts emitSteam: it came off a
+fixed point at the nose), x1.5 when the panel over it is lost (isRadiatorExposed), and the hot
+engine's smoke off the engine. The SUMP cracks by the hit's size (120 s to drain from a 0.35 hit
+down to 60 s from 0.8; a roll as 0.5; it was a random 60-120 s), and a later crack, radiator or
+sump, WIDENS a leaking one by its own rate (each at most 1/30 a second). MEASURED
+(tools/scratch/_leaks.mjs: a front hit, then a second of 0.4; off -> on): water after a 0.35 hit 74
+-> 74 s, + the 0.4 hit 49 -> 34 s; after 0.6: 40 -> 40, then 34 -> 30; oil after 0.35: 60 -> 120 s,
+then 60 -> 57; after 0.8: 60 -> 60, then 60 -> 39. Where they land, parked (m ahead of the middle,
+1.5 m cells): the hatch water +2.25, oil +0.75; the S1 water -2.25 (its tail), oil +0.75; the
+Huracan water +2.25, oil -0.75 (its mid engine); off: every car's in the same cell, +0.75. Visible
+drips in the plan: left out - under the body they cannot be seen; the trail is the wet and oil
+cells. Photos (tools/scratch/_steamshots.mjs: the hatch, the S1, the Huracan, panel on and off):
+the steam off the nose, the S1's tail, denser with the panel gone; no page errors. AWAITING THE
+PHONE TEST.
 MARK TRACK (?marktrack=1, owner 11-17: fix it, its own switch): marks.ts listWheels laid the rear-right
 wheel's mark at the FRONT track; it now uses the rear one (spec.trackR) - only the Routemonster and
 the Skool Bus have their own (2.05 front / 1.80 and 1.85 rear: 0.125 and 0.10 m in). AWAITING THE

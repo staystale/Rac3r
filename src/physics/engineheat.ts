@@ -18,6 +18,8 @@ import { SPRAY_WET } from '../world/surfaces.ts';
 import { getCell, wearDirty, WEAR_CELL } from '../world/wear.ts';
 import { spillOil, DRIP_GEN } from '../world/oil.ts';
 import { deckShiftOf } from '../world/deckwear.ts';
+import { FIX } from '../core/fixes.ts';
+import { radiatorAt, sumpAt } from './leakplaces.ts';
 
 /** The engine state on a car. */
 export interface EngineState {
@@ -36,7 +38,7 @@ export interface EngineState {
 export interface EngineCar extends Partial<EngineState> {
   x: number; y: number; vx: number; vy: number; heading: number; rpm: number;
   crossing?: number;   // the bridge / tunnel it is on (world/crossings.ts)
-  spec: { redline: number; len: number };
+  spec: { redline: number; len: number; wid?: number; id?: string };
   throttleUsed?: number;
   wheelSurf?: ({ spray?: unknown } | null)[] | null;
 }
@@ -63,6 +65,12 @@ const CRACK_HIT = 0.15, CRACK_SPAN = 0.45, SLOW_LEAK_S = 240, FAST_LEAK_S = 40;
 // a front hit adding SUMP_HIT+ cracks the sump SUMP_P of the time, a rollover impact ROLL_SUMP_P;
 // the oil drains in OIL_MIN_S..OIL_MIN_S + OIL_SPREAD_S; the light comes on under OIL_LOW
 const SUMP_HIT = 0.35, SUMP_P = 0.3, ROLL_SUMP_P = 0.1, OIL_MIN_S = 60, OIL_SPREAD_S = 60;
+// ?dmgmore2 (owner: "worse damage leaks faster"): the sump's crack by the hit's size, as the
+// radiator's - drained in OIL_SLOW_S from a SUMP_HIT hit down to OIL_FAST_S from SUMP_HIT +
+// SUMP_SPAN; a roll's impact as ROLL_SUMP_SIZE; a later crack WIDENS a leaking one by its own
+// size's rate (each leak at most MAX_LEAK a second: emptied in 30 s)
+const OIL_SLOW_S = 120, OIL_FAST_S = 60, SUMP_SPAN = 0.45, ROLL_SUMP_SIZE = 0.5;
+const MAX_LEAK = 1 / 30;
 export const OIL_LOW = 0.2;
 // a full radiator's water, in wear cells of water on the ground (1.5 m squares); where it
 // leaves the car (share of the length ahead of the centre)
@@ -157,6 +165,19 @@ export function wetCellAt(x: number, y: number) {
  * @param state the engine state
  * @param dt the step, s
  */
+/**
+ * Where a leak lands: a point of the car (on a bridge or in a tunnel, its own ground).
+ * @param car the car
+ * @param along share of its length ahead of the middle
+ * @param across share of its width to the right
+ * @returns world [x, y]
+ */
+function leakPoint(car: EngineCar, along: number, across: number): [number, number] {
+  const ahead = car.spec.len * along, out = (car.spec.wid ?? 1.8) * across;
+  const cosH = Math.cos(car.heading), sinH = Math.sin(car.heading);
+  return [car.x + deckShiftOf(car) + cosH * ahead - sinH * out, car.y + sinH * ahead + cosH * out];
+}
+
 function stepLeaks(car: EngineCar, state: EngineState, dt: number) {
   if (state.engLeak > 0 && state.engWater > 0) {
     const lost = Math.min(state.engWater, state.engLeak * dt);
@@ -164,10 +185,12 @@ function stepLeaks(car: EngineCar, state: EngineState, dt: number) {
     state.leakCells += lost * WATER_CELLS;
     if (state.leakCells >= 1) {
       state.leakCells -= 1;
-      // (on a bridge or in a tunnel, its own ground: world/deckwear.ts)
-      const ahead = car.spec.len * LEAK_AT, shiftX = deckShiftOf(car);
-      wetCellAt(car.x + shiftX + Math.cos(car.heading) * ahead,
-        car.y + Math.sin(car.heading) * ahead);
+      // (on a bridge or in a tunnel, its own ground: world/deckwear.ts; ?dmgmore2: under the
+      // radiator where it really is - physics/leakplaces.ts)
+      const [along, across] = FIX.dmgmore2 ? radiatorAt(car.spec.id || '', state.leakCells > 0.5
+        ? 1 : -1) : [LEAK_AT, 0];
+      const [x, y] = leakPoint(car, along, across);
+      wetCellAt(x, y);
     }
   }
   if (state.oilLeak > 0 && state.engOil > 0) {
@@ -176,9 +199,9 @@ function stepLeaks(car: EngineCar, state: EngineState, dt: number) {
     state.oilCells += lost * OIL_CELLS;
     if (state.oilCells >= 1) {
       state.oilCells -= 1;
-      const ahead = car.spec.len * LEAK_AT * 0.5;
-      spillOil(car.x + deckShiftOf(car) + Math.cos(car.heading) * ahead,
-        car.y + Math.sin(car.heading) * ahead, DRIP_GEN);
+      // (?dmgmore2: under the sump, below its engine)
+      const [x, y] = leakPoint(car, FIX.dmgmore2 ? sumpAt(car.spec.id || '') : LEAK_AT * 0.5, 0);
+      spillOil(x, y, DRIP_GEN);
     }
   }
 }
@@ -222,10 +245,14 @@ export function crackOnHit(car: EngineCar, frontAdd: number, rnd: () => number):
   const state = car as EngineCar & EngineState;
   const size = Math.min(1, (frontAdd - CRACK_HIT) / CRACK_SPAN);
   const rate = 1 / SLOW_LEAK_S + size * (1 / FAST_LEAK_S - 1 / SLOW_LEAK_S);
-  // a second crack opens it further
-  const reopen = state.engLeak ? rate * 0.3 : 0;
-  state.engLeak = Math.min(1 / 30, Math.max(state.engLeak, rate) + reopen);
-  if (frontAdd >= SUMP_HIT && rnd() < SUMP_P) crackSump(state, rnd);
+  if (FIX.dmgmore2) state.engLeak = Math.min(MAX_LEAK, state.engLeak + rate);
+  else {
+    // a second crack opens it further
+    const reopen = state.engLeak ? rate * 0.3 : 0;
+    state.engLeak = Math.min(MAX_LEAK, Math.max(state.engLeak, rate) + reopen);
+  }
+  if (frontAdd >= SUMP_HIT && rnd() < SUMP_P)
+    crackSump(state, rnd, Math.min(1, (frontAdd - SUMP_HIT) / SUMP_SPAN));
 }
 
 /**
@@ -235,15 +262,21 @@ export function crackOnHit(car: EngineCar, frontAdd: number, rnd: () => number):
  */
 export function crackOnRoll(car: EngineCar, rnd: () => number): void {
   if (car.engT === undefined) return;
-  if (rnd() < ROLL_SUMP_P) crackSump(car as EngineCar & EngineState, rnd);
+  if (rnd() < ROLL_SUMP_P) crackSump(car as EngineCar & EngineState, rnd, ROLL_SUMP_SIZE);
 }
 
 /**
- * The oil starts to drain (once).
+ * The oil starts to drain (once; ?dmgmore2: by the hit's size, a later crack widening it).
  * @param state the engine state
  * @param rnd the random source
+ * @param size the hit's size, 0..1 (?dmgmore2)
  */
-function crackSump(state: EngineState, rnd: () => number) {
+function crackSump(state: EngineState, rnd: () => number, size: number) {
+  if (FIX.dmgmore2) {
+    const rate = 1 / OIL_SLOW_S + size * (1 / OIL_FAST_S - 1 / OIL_SLOW_S);
+    state.oilLeak = Math.min(MAX_LEAK, state.oilLeak + rate);
+    return;
+  }
   if (state.oilLeak > 0) return;
   state.oilLeak = 1 / (OIL_MIN_S + OIL_SPREAD_S * rnd());
 }

@@ -15,15 +15,18 @@ export const TEST_LIST: TestEntry[] = [
   {
     id: 'dmgmore2',
     added: '2026-11-17',
-    name: 'More damage 2, item 4: an exhaust or a torn bumper left HANGING, dragging until it '
-      + 'drops',
+    name: 'More damage 2, items 4 and 3: an exhaust or a torn bumper left HANGING; steam and '
+      + 'leaks from the real radiator and sump',
     where: 'Test link + &dmgmore2=1: crash a hatch or a saloon tail-first hard, then drive on '
-      + '(tarmac, then grass)',
+      + '(tarmac, then grass); crash a hatch and the Sport quattro S1 nose-first, then park',
     try: 'About half the time the exhaust hangs instead of flying off: its end trails behind the '
       + 'tail, sparking on tarmac, and drops after 100-400 m (or the next hit at the back). A torn '
-      + 'bumper\'s hanging piece drags paint chips off its end and falls off by itself.',
+      + 'bumper\'s hanging piece drags paint chips off its end and falls off by itself. A cracked '
+      + 'radiator steams where it is (the S1 at its tail), more with its panel off; the water and '
+      + 'oil drip under the radiator and the engine; a harder crash, or a second, leaks faster.',
     wrong: 'An exhaust that never drops, sparks on grass, sparks off a bumper, a piece that hangs '
-      + 'on after it dropped, the Tesla or an open car dragging an exhaust.',
+      + 'on after it dropped, the Tesla or an open car dragging an exhaust; steam off the S1\'s '
+      + 'nose, puddles in the wrong place.',
   },
   {
     id: 'scanyah',
