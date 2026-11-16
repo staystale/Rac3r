@@ -9,6 +9,10 @@ import { dragOf, realCurve, tyreR } from './realcars.ts';
 
 // GT: the GT3 racers (TODO CHAMPIONSHIPS: GT), a class of their own on race tyres
 const GT_CLASS = { id: 'gt', name: 'GT', subs: ['GT3'] };
+// TOURING: the touring cars (TODO CHAMPIONSHIPS: BTCC), a class of their own on race tyres
+const TOURING_CLASS = { id: 'touring', name: 'TOURING', subs: ['BTCC'] };
+/** Every new class's id, switched on or not (the tyres they fit: cars.ts TYRES). */
+export const NEW_CLS_IDS = [GT_CLASS.id, TOURING_CLASS.id];
 
 // Porsche 911 GT3 R (992, 2023; Porsche Motorsport's data): 4,194 cc flat six behind the rear
 // axle, ~416 kW (565 PS; BoP), 9,250 rpm max, 6-speed sequential, RWD, ~1,250 kg (BoP), 4,619 x
@@ -107,10 +111,38 @@ const TROPHY: RosterRow = {
   paint: '#f0f0ea', trim: '#1d3f9a', glass: '#2a2f38', rim: '#16181d',
 };
 
+// Honda Civic Type R BTCC (FK8, 2018-21: an NGTC touring car, before the 2022 hybrid; NGTC, TOCA
+// and the team's published figures): a 2.0 turbo four across the front, "350+ bhp" (261 kW),
+// FWD, an Xtrac six-speed sequential, a base weight of 1,280 kg with the driver, the FK8's 4,557 mm
+// length and 2,700 mm wheelbase, NGTC's 1,875 mm width, Goodyear 265/660 R18 slicks on 18-inch
+// centre-lock wheels, no ABS or traction control. EST (not published): the torque (450 Nm) and
+// its band, the power's rpm (6,500) and the 7,000 limit, the ratios and final drive (to ~250 km/h:
+// 145-160 mph is quoted at Thruxton), Cd 0.40 x 2.1 m^2, the weight split (58 / 42), the track
+// (1.68), the CG and ride height, the downforce (splitter and wing: ClA 0.8, ~220 kg at 240 km/h),
+// the tyres' grip and stiffness (slicks), the springs (a race car's 2+ Hz).
+const CIVVIC: RosterRow = {
+  id: 'civvic-btcc', name: 'Honder Civvic Type Arr BTCC', kind: 'btcc', cls: 'touring',
+  sub: 'BTCC', rimIn: 18,   // its real rim, inches (what tyres fit)
+  cg: 0.45, rideH: 0.07, cyl: 4,
+  aids: { abs: false, tcs: false },
+  mass: 1280, lf: 1.134, lr: 1.566, len: 4.557, wid: 1.875, trackWidth: 1.68,
+  // 265/660 R18: 0.66 m across
+  tyreWidth: 0.265, wheelR: 0.33,
+  drive: 1.0, brakeBiasF: 0.65, caF: 115000, caR: 115000, mu: 1.5,
+  curve: realCurve({ idle: 1500, low: 0.6, nm: 450, nmFrom: 3500, nmTo: 5500,
+    kw: 261, kwAt: 6500, redline: 7000 }),
+  redline: 7000, upshiftRpm: 6800, downshiftRpm: 3800, idleRpm: 1500,
+  gears: [2.92, 2.21, 1.8, 1.52, 1.31, 1.15], finalDrive: 3.0, dragC: dragOf(0.4, 2.1),
+  aeroK: 1.2, downforceF: 0.35, downforceR: 0.45, susF: 2.4, susZ: 0.32,
+  // white, a red roof (big), black details (the wing, the splitter, the mirrors), black wheels
+  paint: '#f0f0ea', trim: '#c8342a', glass: '#2a2f38', rim: '#16181d',
+};
+
 /** The new cars switched on: their roster rows, in the list's order. */
 export const NEW_CARS: RosterRow[] = [...(FIX.porch ? [PORCH] : []),
   ...(FIX.seven ? [SEVEN] : []), ...(FIX.transfit ? [TRANSFIT] : []),
-  ...(FIX.trophy ? [TROPHY] : [])];
+  ...(FIX.trophy ? [TROPHY] : []), ...(FIX.civvic ? [CIVVIC] : [])];
 
 /** The classes only new cars race in, while one of them is switched on. */
-export const NEW_CLASSES = [...(FIX.porch ? [GT_CLASS] : [])];
+export const NEW_CLASSES = [...(FIX.porch ? [GT_CLASS] : []),
+  ...(FIX.civvic ? [TOURING_CLASS] : [])];

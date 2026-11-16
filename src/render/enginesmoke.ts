@@ -51,6 +51,8 @@ export const EXHAUST_SPOTS: Record<string, { pipes: Pipe[]; up?: boolean }> = {
   seven: { pipes: [[-0.22, 0.42]] },
   van: { pipes: [[-0.48, -0.35]] },
   trophy: { pipes: [[-0.25, -0.5], [-0.25, 0.5]] },
+  // the Civic BTCC's side exit, ahead of the left rear wheel (EST)
+  btcc: { pipes: [[-0.22, -0.5]] },
 };
 const DEFAULT_SPOT = EXHAUST_SPOTS.hatch;
 

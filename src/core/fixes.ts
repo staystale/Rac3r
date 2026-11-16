@@ -73,4 +73,6 @@ export const FIX = {
   transfit: atLoad('transfit'),
   // the Fjord Effing-150 Trophy Truck
   trophy: atLoad('trophy'),
+  // the Honder Civvic Type Arr BTCC and its TOURING class
+  civvic: atLoad('civvic'),
 };

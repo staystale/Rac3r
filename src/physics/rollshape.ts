@@ -35,6 +35,7 @@ const SHAPES: Record<string, RollShape> = {
   'seven-420r': { round: 0.2, side: 0.15 },   // Seven: open, a roll bar, wheels and wings out wide
   'transfit-van': { round: 0.15, side: 0.9 },   // Transit: a tall box, tips and stops on a side
   'effing-tt': { round: 0.25, side: 0.5 },   // trophy truck: tall, a cage, wheels out wide
+  'civvic-btcc': { round: 0.55, side: 0.7 },   // Civic BTCC: a low hatch, wide arches, a wing
 };
 
 // the dig: its chance at round 0, and the share of the spin it leaves

@@ -81,6 +81,11 @@ export const PROFILES: Record<string, CarProfile> = {
   'effing-tt': { len: 5.6, waist: 1.55, glass: [0.38, 0.58], roof: [[0, 1.0], [0.02, 1.4],
     [0.3, 1.42], [0.34, 1.55], [0.38, 2.05], [0.58, 2.1], [0.66, 1.6], [0.95, 1.42],
     [1, 1.05]] },
+  // Civic Type R BTCC (FK8): the wing over the tailgate, the long sloping hatch, the low roof, the
+  // raked screen and the long bonnet to the splitter (EST from photos)
+  'civvic-btcc': { len: 4.557, waist: 0.9, glass: [0.12, 0.62], roof: [[0, 0.55], [0.02, 1.05],
+    [0.08, 1.12], [0.24, 1.3], [0.32, 1.36], [0.52, 1.36], [0.65, 0.95], [0.95, 0.78],
+    [1, 0.45]] },
 };
 
 /**

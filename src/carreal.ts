@@ -45,6 +45,8 @@ const REAL_SIZE: Record<string, RealSize> = {
   'transfit-van': { len: 5.531, wid: 2.059, lf: 1.386, lr: 1.914, trackWidth: 1.495 },
   // F-150 Trophy Truck: wheelbase 3.15; the size, 50 / 50 and track 2.0 EST
   'effing-tt': { len: 5.6, wid: 2.35, lf: 1.575, lr: 1.575, trackWidth: 2.0 },
+  // Civic Type R BTCC (FK8): 4.557 long, 1.875 wide (NGTC), wheelbase 2.70; 58 / 42, track 1.68 EST
+  'civvic-btcc': { len: 4.557, wid: 1.875, lf: 1.134, lr: 1.566, trackWidth: 1.68 },
 };
 
 /**

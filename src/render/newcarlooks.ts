@@ -420,10 +420,126 @@ function paintTrophy(spr: SpriteCtx): void {
   block(1, mid + 5, 1, 4, TAIL);
 }
 
+/**
+ * The Civic BTCC's plan, a half width at a share of its length (0 tail, 1 nose), as a share of
+ * the sprite's half: the squared tail, the wide arches over both axles (NGTC's 1,875 mm) with the
+ * narrower doors between, the nose tapering to its corners.
+ * @param share along the car, 0..1
+ * @returns the half width, 0..1
+ */
+function civvicPlan(share: number): number {
+  const arch = Math.max(inside(share, 0.04, 0.28, 0.04), inside(share, 0.63, 0.87, 0.04));
+  const tail = share < 0.03 ? 0.85 + 0.15 * Math.sqrt(share / 0.03) : 1;
+  const nose = share > 0.9 ? Math.sqrt(1 - 0.55 * ((share - 0.9) / 0.1) ** 2) : 1;
+  return (0.92 + 0.08 * arch) * tail * nose;
+}
+
+/**
+ * The Civic BTCC's glasshouse: the long sloping hatch glass narrowing to the tail, the roof (the
+ * second colour), the side glass, the raked windscreen, the mirrors (the third colour).
+ * @param spr the painting context
+ */
+function civvicCabin(spr: SpriteCtx): void {
+  const { mid, roof2, light, third, block, along } = spr;
+  const rearFrom = along(0.16), roofFrom = along(0.29), roofTo = along(0.55),
+    screenTo = along(0.65), cabinHalf = Math.round(mid * 0.72);
+  for (let x = rearFrom; x < roofFrom; x++) {
+    const half = Math.round(cabinHalf - 3 * (roofFrom - x) / (roofFrom - rearFrom));
+    block(x, mid - half, 1, half * 2 + 1, GLASS);
+  }
+  block(rearFrom + 3, mid - cabinHalf + 4, 1, cabinHalf * 2 - 7, GLASS_HI);
+  block(roofFrom, mid - cabinHalf, roofTo - roofFrom, cabinHalf * 2 + 1, roof2);
+  block(roofFrom, mid - cabinHalf, roofTo - roofFrom, 1, light);
+  block(roofFrom + 1, mid - cabinHalf - 1, roofTo - roofFrom - 2, 1, GLASS);
+  block(roofFrom + 1, mid + cabinHalf + 1, roofTo - roofFrom - 2, 1, GLASS);
+  for (let x = roofTo; x < screenTo; x++) {
+    const half = Math.round(cabinHalf + 1 + 2 * (x - roofTo) / (screenTo - roofTo));
+    const rake = Math.round((x - roofTo) * 0.3);
+    block(x, mid - half + rake, 1, (half - rake) * 2 + 1, GLASS);
+  }
+  block(roofTo + 1, mid - cabinHalf + 1, 1, cabinHalf * 2 - 1, GLASS_HI);
+  // the mirrors on their stalks at the screen's base
+  block(screenTo - 2, mid - cabinHalf - 4, 2, 2, third);
+  block(screenTo - 2, mid + cabinHalf + 3, 2, 2, third);
+}
+
+/**
+ * The Civic BTCC's nose: the bonnet's centre scoop, the vents over the front wheels, the swept
+ * lamps at the corners, the grille and intakes, the splitter (the third colour) ahead.
+ * @param spr the painting context
+ * @param axleX the front axle, px from the tail
+ */
+function civvicNose(spr: SpriteCtx, axleX: number): void {
+  const { lengthPx: len, widthPx: wid, mid, light, dark, third, block, along } = spr;
+  // the bonnet's creases and the scoop on its centre line
+  block(along(0.67), mid - 8, along(0.24), 1, light);
+  block(along(0.67), mid + 8, along(0.24), 1, dark);
+  block(along(0.74), mid - 3, along(0.07), 7, INK);
+  block(along(0.75), mid - 2, along(0.05), 5, MESH);
+  // the extraction vents on top of the front wings, behind the wheels' centres
+  for (const y of [3, wid - 6]) {
+    block(axleX - 6, y, 7, 3, INK);
+    for (let x = axleX - 5; x < axleX + 1; x += 2) block(x, y, 1, 3, MESH);
+  }
+  // the swept lamps on the nose's corners
+  for (const y of [3, wid - 6]) {
+    block(len - 6, y, 4, 3, HEAD);
+    block(len - 5, y + (y < mid ? 1 : 0), 1, 2, '#ffffff');
+  }
+  // the grille, the corner intakes and the splitter's lip under the nose
+  block(len - 2, mid - 6, 2, 13, INK);
+  block(len - 2, mid - 5, 1, 11, MESH);
+  block(len - 2, 5, 1, 3, INK);
+  block(len - 2, wid - 8, 1, 3, INK);
+  block(len, 2, 1, wid - 4, third);
+}
+
+/**
+ * The Civic BTCC's tail: the corner lamps, the side exit ahead of the left rear wheel, and the
+ * wing across the tailgate (the third colour) unless knocked off.
+ * @param spr the painting context
+ */
+function civvicTail(spr: SpriteCtx): void {
+  const { spec, widthPx: wid, mid, outline, light, third, block, along } = spr;
+  for (const y of [1, wid - 5]) block(0, y, 2, 4, TAIL);
+  block(-1, mid - 6, 1, 13, INK);
+  block(along(0.27), 0, 3, 2, CHR);
+  block(along(0.27) + 1, 0, 1, 1, INK);
+  if (spec.noWing) return;
+  // the WING: its shadow, the plane across the tail, the endplates, the two stands
+  block(3, 2, 5, wid - 4, 'rgba(0,0,0,0.25)');
+  block(1, 1, 5, wid - 2, outline);
+  block(2, 2, 3, wid - 4, third);
+  block(4, 2, 1, wid - 4, light);
+  block(1, 0, 5, 2, INK);
+  block(1, wid - 2, 5, 2, INK);
+  for (const y of [mid - 7, mid + 6]) block(5, y, 4, 2, STEEL);
+}
+
+/**
+ * HONDER CIVVIC TYPE ARR BTCC (Honda Civic Type R FK8, an NGTC touring car): the five-door
+ * hatch's plan on wide arches, the long sloping hatch glass, the roof (the second colour), the
+ * raked screen, the bonnet's scoop and wing vents, swept lamps, the splitter, the wing across the
+ * tailgate and the side exit (the third colour the details).
+ * @param spr the painting context
+ */
+function paintCivvic(spr: SpriteCtx): void {
+  const { spec, lengthPx: len, mid, block, along } = spr;
+  planBody(spr, (x) => mid * civvicPlan(x / (len - 1)));
+  const axleX = Math.round(len / 2 + spec.lf * SPRITE_PPM);
+  civvicCabin(spr);
+  civvicNose(spr, axleX);
+  // the doors' shut lines along both flanks
+  for (const share of [0.43, 0.58]) block(along(share), 2, 1, 2, INK);
+  for (const share of [0.43, 0.58]) block(along(share), spr.widthPx - 4, 1, 2, INK);
+  civvicTail(spr);
+}
+
 /** The new cars' bodies by id (render/carlooks.ts LOOKS takes them). */
 export const NEW_LOOKS: [string, { paint: (spr: SpriteCtx) => void; bare?: boolean }][] = [
   ['porch-gt3r', { paint: paintPorch, bare: true }],
   ['seven-420r', { paint: paintSeven, bare: true }],
   ['transfit-van', { paint: paintTransfit, bare: true }],
   ['effing-tt', { paint: paintTrophy, bare: true }],
+  ['civvic-btcc', { paint: paintCivvic, bare: true }],
 ];
