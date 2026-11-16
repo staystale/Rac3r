@@ -26,8 +26,9 @@ const STEER_ARM_M = 0.14;
 // its damage to this (physics/cornerbreak.ts BREAK_AT, a broken corner), or its wheel pushed in or
 // back by this share of the tyre
 const STRUT_ALL_DAMAGE = 0.65, STRUT_ALL_PUSH = 0.5;
-// px either side of the strut's centre (strutTop draws 5 x 5)
-const STRUT_HALF_PX = 2;
+// m a wing's opening reaches in from the car's side (render/carparts.ts WELL_DEPTH_M): a strut
+// not severely crushed stands at its inner lip
+const OPENING_DEPTH_M = 0.45;
 
 /** Where a corner's wheel is drawn off its place (px, car frame) and whether it is exposed. */
 export interface CornerShift { x: number; y: number; exposed: boolean }
@@ -109,68 +110,64 @@ function crushAtWheel(car: RenderCar, sprite: CarSprite, corner: number, wheel: 
  * @param wheel the corner: its axle (m), side (-1 / 1), steer (rad), half the track (px)
  * @param shift the wheel's push-in (px)
  * @param arms paints the fixed arms and shaft to the hub (render/cars.ts drawFixedArms)
- * @param rodColour the track rod's colour (the arms')
+ * @param rod the track rod's colour and its lighter edge (the arms')
  */
 export function drawExposedCorner(ctx: CanvasRenderingContext2D,
   wheel: { axleX: number; side: number; steer: number; halfWidth: number },
-  shift: CornerShift, arms: () => void, rodColour: string): void {
+  shift: CornerShift, arms: () => void, rod: { colour: string; edge: string }): void {
   const { axleX, side, steer, halfWidth } = wheel;
   const hubX = axleX * SPRITE_PPM + shift.x, hubY = side * halfWidth + shift.y;
   arms();
   if (axleX <= 0) return;
   // the track rod from the rack to the steering arm, turned with the wheel (drawWishbones' own)
   const arm = STEER_ARM_M * SPRITE_PPM;
-  ctx.fillStyle = rodColour;
-  steerRod(ctx, [hubX - arm, side * 2], [hubX - Math.cos(steer) * arm,
-    hubY - Math.sin(steer) * arm]);
+  const from = [hubX - arm, side * 2], dest = [hubX - Math.cos(steer) * arm,
+    hubY - Math.sin(steer) * arm];
+  ctx.fillStyle = rod.edge;
+  steerRod(ctx, from, dest, 3);
+  ctx.fillStyle = rod.colour;
+  steerRod(ctx, from, dest, 1);
 }
 
 /**
- * An exposed corner's STRUT, over its tyre: the coil spring and top mount at the top of the arch,
- * over the tyre's inner edge (seen where the wing over the wheel is gone). Only its INNER half -
- * the half toward the car's middle, under the arch's inner lip - unless the corner is severely
- * crushed (its damage to STRUT_ALL_DAMAGE, or its wheel pushed STRUT_ALL_PUSH of a tyre).
+ * An exposed corner's STRUT, never under its tyre: severely crushed (its damage to
+ * STRUT_ALL_DAMAGE, or its wheel pushed STRUT_ALL_PUSH of a tyre) it stands over the tyre's inner
+ * edge, all of it seen; else at the opening's inner lip, its inner half under the body still there
+ * (drawn before the body), so only part of it shows - never cut along the tyre.
  * @param ctx the canvas (the car's frame, sprite px)
- * @param wheel the corner: its axle (m), side (-1 / 1), half the track, the tyre's length and width
- *   (px), the corner's damage (0..1)
+ * @param wheel the corner: its axle (m), side (-1 / 1), half the track, the tyre's length and
+ *   width, half the body's width (px), the corner's damage (0..1)
  * @param shift the wheel's push-in (px)
  */
 export function drawExposedStrut(ctx: CanvasRenderingContext2D,
   wheel: { axleX: number; side: number; halfWidth: number; tyreLen: number; tyreWid: number;
-    damage: number },
+    bodyHalf: number; damage: number },
   shift: CornerShift): void {
-  const { axleX, side, halfWidth, tyreLen, tyreWid, damage } = wheel;
+  const { axleX, side, halfWidth, tyreLen, tyreWid, bodyHalf, damage } = wheel;
   const centreX = axleX * SPRITE_PPM + shift.x;
-  const centreY = side * (halfWidth - tyreWid / 2) + shift.y;
   const severe = damage >= STRUT_ALL_DAMAGE || Math.abs(shift.x) >= tyreLen * STRUT_ALL_PUSH
     || Math.abs(shift.y) >= tyreWid * STRUT_ALL_PUSH;
-  if (severe) {
-    strutTop(ctx, centreX, centreY);
-    return;
-  }
-  // (the inner half: its centre row and the rows toward the car's middle)
-  const x = Math.round(centreX) - STRUT_HALF_PX, y = Math.round(centreY);
-  ctx.save();
-  ctx.beginPath();
-  ctx.rect(x, side > 0 ? y - STRUT_HALF_PX : y, STRUT_HALF_PX * 2 + 1, STRUT_HALF_PX + 1);
-  ctx.clip();
+  const centreY = severe ? side * (halfWidth - tyreWid / 2) + shift.y
+    : side * (bodyHalf - OPENING_DEPTH_M * SPRITE_PPM);
   strutTop(ctx, centreX, centreY);
-  ctx.restore();
 }
 
 /**
- * A 1 px line on the car's pixel grid.
+ * A line on the car's pixel grid, a square sizePx wide at each step.
  * @param ctx the canvas
  * @param from [x, y]
  * @param dest [x, y]
+ * @param sizePx px (1: the line itself)
  */
-function steerRod(ctx: CanvasRenderingContext2D, from: number[], dest: number[]): void {
+function steerRod(ctx: CanvasRenderingContext2D, from: number[], dest: number[],
+  sizePx: number): void {
   const steps = Math.max(1, Math.round(Math.max(Math.abs(dest[0] - from[0]),
     Math.abs(dest[1] - from[1]))));
+  const back = Math.floor(sizePx / 2);
   for (let step = 0; step <= steps; step++) {
     const share = step / steps;
-    ctx.fillRect(Math.round(from[0] + (dest[0] - from[0]) * share),
-      Math.round(from[1] + (dest[1] - from[1]) * share), 1, 1);
+    ctx.fillRect(Math.round(from[0] + (dest[0] - from[0]) * share) - back,
+      Math.round(from[1] + (dest[1] - from[1]) * share) - back, sizePx, sizePx);
   }
 }
 

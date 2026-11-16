@@ -4,7 +4,8 @@
 // the hit comes from that corner's side as well as its end (centre: straight on).
 // Then a still photo of it at the phone's size (844x390 and its crop) and close, and what the
 // damage is (each corner's damage, end and side crush, the parts lost, the wheels off).
-// node tools/scratch/_realcrash.mjs [cars] [speed m/s] [front|rear] [left|centre|right] [query]
+// node tools/scratch/_realcrash.mjs [cars|all] [speed m/s] [front|rear] [left|centre|right] [query]
+//   ROLL=1: then rolled over (roll.ts startRoll) and caught upside down
 //   OUT=<folder> (default tools/scratch/realcrash)
 import { mkdirSync } from 'node:fs';
 import { startServer, launchBrowser, gotoGame } from '../lib/browser.mjs';
@@ -16,7 +17,7 @@ const OUT = process.env.OUT || 'tools/scratch/realcrash';
 const SHOTS = [{ name: 'phonecrop', zoom: null, clip: 150 }, { name: 'close', zoom: 1.2, clip: 110 }];
 
 /** Page side: the crash, then the car held still where it ended. */
-async function crash([id, speed, end, side]) {
+async function crash([id, speed, end, side, rolled]) {
   const game = window.__game;
   game.launch('test-track', id, { ai: 1, weather: { mode: 'dry', season: 2, seed: 4 } });
   // (past the start's countdown)
@@ -36,6 +37,15 @@ async function crash([id, speed, end, side]) {
   car.vx = 0; car.vy = 0;
   // (the other car out of the photo)
   other.x += 200; other.y += 200;
+  // (ROLL=1: then rolled over by the game's own roll, caught upside down)
+  if (rolled) {
+    const roll = await import('/src/roll.ts');
+    roll.startRoll(car, 1, 9);
+    const until = performance.now() + 4000;
+    while (performance.now() < until && !(car.roll && Math.abs(Math.abs(car.roll.phi % (2 * Math.PI))
+      - Math.PI) < 0.35)) await new Promise((done) => setTimeout(done, 16));
+    game.paused = true;
+  }
   return { dmg: (car.dmg || []).map((value) => +value.toFixed(2)),
     crushL: (car.crushL || []).map((value) => +value.toFixed(2)),
     crushS: (car.crushS || []).map((value) => +value.toFixed(2)),
@@ -46,7 +56,9 @@ mkdirSync(OUT, { recursive: true });
 const server = await startServer();
 const browser = await launchBrowser();
 try {
-  for (const carId of carsArg.split(',')) {
+  const { ROSTER } = await import('../../src/cars.ts');
+  const cars = carsArg === 'all' ? ROSTER.map((row) => row.id) : carsArg.split(',');
+  for (const carId of cars) {
     // (one crash, photographed at the phone's own zoom and then close: one page)
     const page = await browser.newPage({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 6 });
     const errors = [];
@@ -54,7 +66,7 @@ try {
     await gotoGame(page, `${server.url}/?pc=1&guide=0&menu=0&rules=0&noaudio=1${query ? '&' + query : ''}`);
     await page.mouse.click(422, 195);
     await page.waitForTimeout(1200);
-    const state = await page.evaluate(crash, [carId, +speedArg, endArg, sideArg]);
+    const state = await page.evaluate(crash, [carId, +speedArg, endArg, sideArg, !!process.env.ROLL]);
     for (const shot of SHOTS) {
       const at = await page.evaluate(async (zoom) => {
         const game = window.__game;
@@ -64,7 +76,7 @@ try {
         return { x: renderer.toScreenX(game.car.x) * toCss, y: renderer.toScreenY(game.car.y) * toCss };
       }, shot.zoom);
       const clipW = shot.clip, clipH = Math.round(clipW * 2 / 3);
-      const file = `${OUT}/${carId}-${endArg}-${sideArg}-${shot.name}.png`;
+      const file = `${OUT}/${carId}-${endArg}-${sideArg}${process.env.ROLL ? '-rolled' : ''}-${shot.name}.png`;
       await page.screenshot({ path: file, clip: { x: Math.max(0, Math.min(844 - clipW, at.x - clipW / 2)),
         y: Math.max(0, Math.min(390 - clipH, at.y - clipH / 2)), width: clipW, height: clipH } });
     }
