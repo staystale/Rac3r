@@ -73,6 +73,10 @@ export const FIX = {
   // the Teslur Model Why (a Tesla Model 3 Long Range AWD), ROAD / Saloon, in the traffic: its
   // regen (regenG), no exhaust, its frunk, no petrol stations
   tesla: atLoad('tesla'),
+  // REVERSE as in life, every car: traction control works going backwards too (it skipped
+  // reverse), and the 20 km/h cap holds - the drive fades by the driven wheels' speed at the cap,
+  // as the rev limiter's (it was cut by road speed only: spinning wheels carried cars to 23-32)
+  reversefix: atLoad('reversefix'),
   // the Toyoter TS010 (a Toyota TS010 Group C car) and its PROTOTYPE class
   ts010: atLoad('ts010'),
 };

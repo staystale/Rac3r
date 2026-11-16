@@ -13,6 +13,18 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'reversefix',
+    added: '2026-11-16',
+    name: 'Reverse as in life, every car: traction control works going backwards, and the 20 km/h '
+      + 'reverse cap holds',
+    where: 'Test link + &reversefix=1: any car, any level (a powerful one shows it best: the Tesla '
+      + 'with &tesla=1, the Huracan, the 3 Series), on tarmac and on gravel',
+    try: 'Hold reverse from a standstill: the car tops out at 20 km/h (it reached 23-32 before), '
+      + 'with only a short chirp of wheelspin; TCS off lets the wheels spin a little more.',
+    wrong: 'Reverse faster than about 20 km/h, a jolt at the cap, reverse that will not move off, '
+      + 'the AI stuck reversing.',
+  },
+  {
     id: 'tesla',
     added: '2026-11-16',
     name: 'New car: the Teslur Model Why (the Tesla Model 3 Long Range AWD), ROAD / Saloon, and '
