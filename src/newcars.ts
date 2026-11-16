@@ -1,17 +1,16 @@
-// newcars.ts - THE NEW CARS (owner-approved list, 11-16), each behind its own switch until the
-// owner passes it (core/fixes.ts): its ROSTER row and the class it races in. cars.ts adds them to
-// the roster and the classes only with the switch on, so the garage, the menus and every table
-// walk show them only then. Each row follows the real car (src/realcars.ts helpers); EST marks a
-// figure no source gave. Drafted with tools/newcarstart.mjs, checked with tools/newcar.mjs <id>.
+// newcars.ts - THE NEW CARS (owner-approved list, 11-16; passed cars 1-7 the same day): each
+// one's ROSTER row and the classes only they race in (GT, TOURING). cars.ts adds them to the
+// roster and the classes. A car still under test goes behind its own switch (core/fixes.ts) until
+// the owner passes it. Each row follows the real car (src/realcars.ts helpers); EST marks a figure
+// no source gave. Drafted with tools/newcarstart.mjs, checked with tools/newcar.mjs <id>.
 import type { RosterRow } from './cars.ts';
-import { FIX } from './core/fixes.ts';
 import { dragOf, realCurve, tyreR } from './realcars.ts';
 
 // GT: the GT3 racers (TODO CHAMPIONSHIPS: GT), a class of their own on race tyres
 const GT_CLASS = { id: 'gt', name: 'GT', subs: ['GT3'] };
 // TOURING: the touring cars (TODO CHAMPIONSHIPS: BTCC), a class of their own on race tyres
 const TOURING_CLASS = { id: 'touring', name: 'TOURING', subs: ['BTCC'] };
-/** Every new class's id, switched on or not (the tyres they fit: cars.ts TYRES). */
+/** Every new class's id (the tyres they fit: cars.ts TYRES). */
 export const NEW_CLS_IDS = [GT_CLASS.id, TOURING_CLASS.id];
 
 // Porsche 911 GT3 R (992, 2023; Porsche Motorsport's data): 4,194 cc flat six behind the rear
@@ -189,12 +188,8 @@ const FOCUST: RosterRow = {
   paint: '#2f6fd0', trim: '#1d3f9a', glass: '#2a2f38', rim: '#2a2d34',
 };
 
-/** The new cars switched on: their roster rows, in the list's order. */
-export const NEW_CARS: RosterRow[] = [...(FIX.porch ? [PORCH] : []),
-  ...(FIX.seven ? [SEVEN] : []), ...(FIX.transfit ? [TRANSFIT] : []),
-  ...(FIX.trophy ? [TROPHY] : []), ...(FIX.civvic ? [CIVVIC] : []),
-  ...(FIX.defunder ? [DEFUNDER] : []), ...(FIX.focust ? [FOCUST] : [])];
+/** The new cars: their roster rows, in the list's order. */
+export const NEW_CARS: RosterRow[] = [PORCH, SEVEN, TRANSFIT, TROPHY, CIVVIC, DEFUNDER, FOCUST];
 
-/** The classes only new cars race in, while one of them is switched on. */
-export const NEW_CLASSES = [...(FIX.porch ? [GT_CLASS] : []),
-  ...(FIX.civvic ? [TOURING_CLASS] : [])];
+/** The classes only new cars race in. */
+export const NEW_CLASSES = [GT_CLASS, TOURING_CLASS];

@@ -22,7 +22,8 @@
 // railbridges, roadtunnels, wobbly, stadeprance, police, trainlights, moveover, roadrage,
 // stationstops, carcache, carcull, coverlight passed 11-12; nighthw, exitpuns, hjfirs, rollhold,
 // stuckreset, croughedrx, tiledensity, aipace (its live pause-menu dials removed), aislide passed
-// 11-15; gpustat (now always with ?report=1), hwtrips, pembreezy passed 11-16.)
+// 11-15; gpustat (now always with ?report=1), hwtrips, pembreezy, and the new cars porch,
+// seven, transfit, trophy, civvic, defunder, focust and launchramp passed 11-16.)
 import { envValue } from './debug.ts';
 
 /**
@@ -59,20 +60,4 @@ export const FIX = {
   // suspension and drive shaft in a wing's well, the crash bar and radiator behind a bumper - by
   // each car's own layout (render/underskin.ts, carbits.ts mount / radiator)
   underskin: atLoad('underskin'),
-  // THE NEW CARS, one switch each (newcars.ts): the Porch 911 GT3 Arr and its GT class, the
-  // Caterpillar Seven, the Fjord Transfit (drivable, and in the highway traffic)
-  porch: atLoad('porch'),
-  seven: atLoad('seven'),
-  transfit: atLoad('transfit'),
-  // the Fjord Effing-150 Trophy Truck
-  trophy: atLoad('trophy'),
-  // the Honder Civvic Type Arr BTCC and its TOURING class
-  civvic: atLoad('civvic'),
-  // the Lend Rover Defunder 110 (drivable, and in the highway traffic)
-  defunder: atLoad('defunder'),
-  // the Fjord Focust ST (drivable, and in the highway traffic)
-  focust: atLoad('focust'),
-  // LAUNCH: the throttle held at a standstill is full at once (no ramp) - a launch spins the
-  // wheels as a real one; on the move the ramp is unchanged (input.ts STANDSTILL_MS)
-  launchramp: atLoad('launchramp'),
 };

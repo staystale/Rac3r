@@ -1,7 +1,7 @@
-// render/newcarlooks.ts - the NEW CARS' bodies from above (src/newcars.ts, each behind its own
-// switch), nose +x, in the house style of render/carlooks.ts (which lists them in LOOKS): a 1 px
-// dark outline, flat paint with a light band on the top flank and a dark one on the bottom, black
-// glass, the SECOND colour (trim) big and the THIRD as a detail.
+// render/newcarlooks.ts - the NEW CARS' bodies from above (src/newcars.ts), nose +x, in the house
+// style of render/carlooks.ts (which lists them in LOOKS): a 1 px dark outline, flat paint with a
+// light band on the top flank and a dark one on the bottom, black glass, the SECOND colour (trim)
+// big and the THIRD as a detail.
 import { shade } from "../render.ts";   // hoisted, only called at draw time (no cycle)
 import { SPRITE_PPM } from "./shared.ts";
 import { CHR, GLASS, HEAD, TAIL, type SpriteCtx } from "./carsprite.ts";

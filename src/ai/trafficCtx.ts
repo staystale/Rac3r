@@ -5,8 +5,8 @@ import type { HighwayLevel, TrafficCar, TrafficVehicle } from "./types.ts";
 import type { PoliceOrders } from "./trafficPolice.ts";
 
 // what is on the road (weights) — road cars only; vans / lorries come with the traffic
-// vehicles (TODO 4). A car not in the roster is left out (trafficSpawn.ts): the new cars behind
-// their switches (newcars.ts). The Transfit stands for all vans: 2.4 is 17 % of the picks, the
+// vehicles (TODO 4). A car not in the roster is left out (trafficSpawn.ts): a new car behind its
+// switch (newcars.ts). The Transfit stands for all vans: 2.4 is 17 % of the picks, the
 // vans' share of Great Britain's road traffic (DfT road traffic estimates 2023; cars 76 %).
 // The Defunder stands for the Land Rovers: 0.4 is ~3.4 % of the cars (1.1 M of Great Britain's
 // ~34 M licensed cars; DfT / DVLA licensing statistics), ~2.8 % of the picks. The Focust stands
