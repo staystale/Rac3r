@@ -308,7 +308,32 @@ THE 10 NEW CARS (owner-approved names 11-16; one switch and one hand-back each; 
    and 390x844. PROOF (PC, base round99): switch off renderhash SAME (thruston, brands-snatch,
    highway, and Thruston with the Focust as the player car).
    OPEN, one switch and one hand-back each:
-8. RENOLT CLEO CUP (Renault Clio Cup one-make racer).
+8. RENOLT CLEO CUP (Renault Clio Cup, Clio V, 2020 on: the one-make racer): BUILT 11-16 behind
+   ?cleo=1 (FIX.cleo; testlist 'cleo'), TOURING / One-make (a new type: the one-make cup racers on
+   the BTCC bill - owner: "Clio cup isn't a touring car it's a road car isn't it?"; the road Clio
+   RS 200 Cup follows as 8b). Real (Alpine Racing's sheets, the Clio Cup GB rules): the 1.33 TCe
+   turbo four across the front, "200+ bhp" (149 kW; 180 at the 2020 launch), 300 Nm, 6,500 rpm,
+   a Sadev ST82 five-speed sequential (its ZF limited-slip differential not modelled), FWD, 1,120
+   kg with the driver, 4,050 x 1,798 mm (the 1,988 quoted is with the mirrors), height 1,400,
+   wheelbase 2,579, track 1,550 / 1,490, Michelin 20/61-17 slicks. EST: the power's rpm (5,500),
+   the torque band (2,500-4,500), the ratios (2.62 1.95 1.55 1.27 1.06) and final drive 3.36 (to
+   ~210 km/h), Cd 0.36 x 2.0, 60 / 40, CG 0.43 m, the splitter and wing (ClA 0.55), mu 1.45,
+   springs 2.3 Hz; race ABS, no traction control. No published top speed or 0-100.
+   tools/newcar.mjs cleo-cup (second PC, &underskin=1; the rolled pictures timed out loading twice
+   in the run and were taken on their own after): top 209 km/h, 0-100 5.6 s, 100-0 33.6 m, grip
+   1.34 g (tyrecheck working: tarmac 1.35, gravel 0.90), 40-100 4.31 s; tyres all OK; partcheck
+   all 10 kinds OK; AI x6 Thruston 200 s, 3 incidents (1 off, 1 spin, 1 hit), laps 61.6-69.0 s (the
+   Civvic 197 s); Sweaty Lamb (loose, run apart) 413 s, 12 offs, laps 117.4-141.3 s - AI #3 was
+   credited 12 laps, seven of 0.1 s (the short-lap credit on the owner's list, worse here). LAUNCH:
+   no wheelspin even floored from rest (headless, cold tyres, aids off: as the Mini; the Golf
+   spins from 0.03 s) - 300 Nm on 20 cm slicks under 60 % of 1,120 kg; not changed, a question.
+   Rolled pictures: rests 89 wheels / 115 side / 96 roof of 300. PROOF (PC, base round102): switch
+   off worldhash (--highway 20), simhash, renderhash (thruston, brands-snatch, highway) SAME;
+   switch on simhash SAME (no level uses the car).
+   QUESTIONS for the owner: the Clio V Cup (2020 on) or the Clio IV Cup (2013-19, 1.6 turbo 220
+   PS); 200 bhp or the launch 180; no wheelspin off the line (EST torque and gearing would change
+   it); its aids (race ABS on, no TC: EST); the stock look (white, Renault Sport yellow roof,
+   black wing and splitter); the pipe left of centre (EST).
 9. TOYOTER TS010 (Toyota TS010 Le Mans prototype, for Le Manky).
 10. AEC ROUTEMONSTER (London Routemaster double-decker bus: drivable, also traffic). After all 10:
    the two-wheel tipping state (its own job; the bus its showcase).
