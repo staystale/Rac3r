@@ -581,6 +581,13 @@ after measuring today's chances (Q8).
 - [ ] UPGRADES + PROGRESSION: every car from base spec up (BRIEF.md's 10-pip system; the mods seam
   exists, every multiplier 1.0); limited by SERIES ELIGIBILITY (over-upgrade and the car no longer
   qualifies); mods shown with the stats ("Engine v2: top speed +10 mph"). Not started.
+- RACE CONVERSIONS AND SERIES ENTRY (owner 11-16): a road car is upgraded INCREMENTALLY, through the
+  normal upgrade levels (nothing new), towards its one-make race version: the road Renolt Cleo RS
+  200 (Clio III 200 Cup) towards the Cleo Cup race car (switched to the Clio III Cup to pair); the
+  road Citrone Saxo towards SAXMAX spec. Story entry rule, owner: "you can't enter Sax Max
+  Championship in story mode until you've upgraded your car ... max out bodywork ... because that
+  would cover strength and weight". So BODY must cover weight (a stripped, lighter shell) as well
+  as strength - today's plan has Body as damage and puncture chance only: confirm when H is built.
 - THE AGREED GARAGE (owner 11-03, mockup "RAC3R Menu Redesign"; the menu look is done): the
   upgradeable parts' level bars head the sections they apply to (Engine, Drivetrain, Suspension,
   Body, Quality); tap a stat -> its upgrade screen (levels, now vs that level, gains, price);
