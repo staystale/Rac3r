@@ -106,6 +106,12 @@ export interface ParticleCar extends CamCar {
   dragSpray?: (Spray | null)[];
   _rimDebt?: number;
   _dragDebt?: number;
+  // ?dmgmore2: a hanging exhaust sparking, a hanging bumper's pieces shedding chips
+  // (world/hanging.ts)
+  exhaustDrag?: boolean;
+  bumperDrag?: boolean[];
+  _exDebt?: number;
+  _chipDebt?: number;
   _spDebt?: number;
 }
 
@@ -218,6 +224,11 @@ export interface RenderCar extends CamCar, Pick<Car, 'heading' | 'delta' | 'cros
   // the suspension thrown with a lost wheel (world/debris.ts SUSP_*)
   suspOff?: number[];
   partLost?: string;   // the parts gone (world/debris.ts)
+  // ?dmgmore2: a hanging exhaust's metres left (drawn: render/hanging.ts) and its sparking, a
+  // hanging bumper piece shedding chips (world/hanging.ts)
+  exhaustHang?: number;
+  exhaustDrag?: boolean;
+  bumperDrag?: boolean[];
   // metal on hard ground sparking (world/metalscrape.ts rims, roll.ts the body): night glows
   rimSparks?: boolean[];
   sparks?: boolean;

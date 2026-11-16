@@ -10,6 +10,7 @@
 // Seeded per car corner and part, so the same every frame; painted once with the lost-parts sprite
 // (render/carparts.ts withoutParts), never per frame.
 import type { Region } from './carparts.ts';
+import { partHangs, tornHash, tornSeed } from '../world/torn.ts';
 
 /** A lost part as the cut reads it: its kind, corner and place (sprite px, inclusive). */
 export interface TornPart { kind: string; corner: number; region: Region }
@@ -27,26 +28,15 @@ const TOOTH_PX = 4, FLAP_LEN_MIN = 3, FLAP_LEN_SPAN = 4, FLAP_DEPTH_MIN = 3, FLA
 // px a bonnet's or boot lid's hole's corners are rounded by
 const LID_CORNER_PX = 4;
 
-/**
- * A seeded 0..range-1 per (first, second).
- * @param first a number
- * @param second a number
- * @param range the count
- * @returns 0..range-1
- */
-const tornHash = (first: number, second: number, range: number) =>
-  (((first * 73856093) ^ (second * 19349663)) >>> 0) % range;
-
-/** The part's seed: its kind and corner. */
-const seedOf = (part: TornPart) => part.corner * 7 + part.kind.length * 131;
+/** The part's seed: its kind and corner (world/torn.ts). */
+const seedOf = (part: TornPart) => tornSeed(part.kind, part.corner);
 
 /**
- * Whether this part hangs on (two times in three; never a bonnet or boot lid).
+ * Whether this part hangs on (world/torn.ts partHangs).
  * @param part the lost part
  * @returns it hangs
  */
-export const hangs = (part: TornPart) => part.kind !== 'bonnet' && part.kind !== 'boot'
-  && tornHash(seedOf(part), 5, 3) !== 0;
+export const hangs = (part: TornPart) => partHangs(part.kind, part.corner);
 
 /**
  * How deep the torn edge reaches into the hole at a place along one edge: a tooth, or a flap.

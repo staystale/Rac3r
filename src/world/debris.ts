@@ -12,6 +12,7 @@
 // field, render/glfield.ts, glints moving with the view). It changes no grip; the first tyre
 // pass sweeps the cell clean and may puncture that tyre slowly (PASS: world/pass.ts).
 import { bitsOf, doorAt, doorsOf, hasNo, isRearWingWelded } from '../carbits.ts';
+import { exhaustHangs, knockHanging, ROLL_HANG_SIZE, type HangCar } from './hanging.ts';
 import { getCell, wearDirty, WEAR_CELL } from "./wear.ts";
 import { PASS } from "./pass.ts";
 import { DEBRIS } from "../cones/coneConsts.ts";
@@ -51,7 +52,7 @@ const GLASS_POP = 0.15;
 const NO_GLASS = new Set(['track', 'banger', 'grass']);
 
 /** A car as the debris reads it. */
-export interface DebrisCar {
+export interface DebrisCar extends Pick<HangCar, 'exhaustHang' | 'bumperHang' | '_exhaustNew'> {
   x?: number; y?: number; vx: number; vy: number; heading: number; crossing?: number;
   spec?: { id?: string; kind?: string; paint?: string; trim?: string; lf?: number; lr?: number;
     trackWidth?: number; trackR?: number; drive?: number };
@@ -203,12 +204,16 @@ function bigParts(car: DebrisCar, corner: number, add: number, endW: number,
     rnd: () => number) {
   if (add < PART_HIT) return;
   const bits = bitsOf(car.spec?.id || ''), front = corner < 2;
+  // (?dmgmore2: what hangs at this end is knocked off - world/hanging.ts)
+  knockHanging(car, front);
   const has = (kind: string) => (car.partLost || '').split(',').some((entry) =>
     entry.startsWith(kind));
   const off = (kind: string, chance: number) => {
     if (hasNo(bits, kind) || hasNoDoor(car, kind, corner)
       || has(kind === 'mirror' || isTwin(car, kind) ? kind + ':' + corner
       : kind) || rnd() >= chance) return;
+    // (?dmgmore2: the exhaust may be left hanging instead - world/hanging.ts)
+    if (kind === 'exhaust' && exhaustHangs(car, add, rnd)) return;
     car.partLost = (car.partLost ? car.partLost + ',' : '') + kind + ':' + corner;
     (car.partSpawn || (car.partSpawn = [])).push({ corner, kind });
   };
@@ -223,6 +228,21 @@ function bigParts(car: DebrisCar, corner: number, add: number, endW: number,
 }
 
 /**
+ * Whether a part is gone already: an own part (bumper / wing / door) by its bit, the rest by its
+ * name - a mirror (and a van's rear door) by its side.
+ * @param car the car
+ * @param kind the part
+ * @param corner its corner
+ * @param bit an own part's bit (0: not one)
+ * @returns gone already
+ */
+function isShedAlready(car: DebrisCar, kind: string, corner: number, bit: number): boolean {
+  if (bit) return ((car.partsOff || 0) & bit) !== 0;
+  const name = kind === 'mirror' || isTwin(car, kind) ? kind + ':' + corner : kind;
+  return (car.partLost || '').split(',').some((entry) => entry.startsWith(name));
+}
+
+/**
  * one part off by a roll's impact, if still on (a bumper / wing / door by its bit, the
  * rest by its name - a mirror by its side).
  * @param car the car
@@ -233,10 +253,8 @@ function bigParts(car: DebrisCar, corner: number, add: number, endW: number,
 function shedOnRoll(car: DebrisCar, kind: string, corner: number, chance: number): void {
   const own = ['bumper', 'wing', 'panel'].includes(kind);
   const bit = !own ? 0 : kind !== 'bumper' ? 1 << corner : corner < 2 ? FRONT_BUMPER : REAR_BUMPER;
-  const name = kind === 'mirror' || isTwin(car, kind) ? kind + ':' + corner : kind;
-  const gone = own ? ((car.partsOff || 0) & bit) !== 0
-    : (car.partLost || '').split(',').some((entry) => entry.startsWith(name));
-  if (gone || Math.random() >= chance) return;
+  if (isShedAlready(car, kind, corner, bit) || Math.random() >= chance) return;
+  if (kind === 'exhaust' && exhaustHangs(car, ROLL_HANG_SIZE, Math.random)) return;
   if (own) car.partsOff = (car.partsOff || 0) | bit;
   car.partLost = (car.partLost ? car.partLost + ',' : '') + kind + ':' + corner;
   (car.partSpawn || (car.partSpawn = [])).push({ corner, kind });

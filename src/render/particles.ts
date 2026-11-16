@@ -9,6 +9,8 @@ import { dropChip, drawPuffsCheap } from './fxroom.ts';
 import { tyreSmokeStrength } from './tyresmoke.ts';
 import { halfTrackAt } from '../world/wheels.ts';
 import { dragReach } from '../world/debris.ts';
+import { EXHAUST_TRAIL_M } from '../world/hanging.ts';
+import { FIX } from '../core/fixes.ts';
 
 // what createParticles destructures from the renderer
 interface ParticleHelpers {
@@ -402,6 +404,56 @@ function emitDragDirt(ctx: ParticleCtx, car: ParticleCar, wallDt: number) {
   }
 }
 
+// ?dmgmore2: paint chips a second off a hanging bumper's dragging end at full work, and the work's
+// speed for full (m/s); m out from the middle to the hanging piece's end (its share of the width)
+const BUMPER_CHIP_RATE = 12, BUMPER_CHIP_FULL_MS = 20, BUMPER_END_SHARE = 0.35;
+
+/**
+ * ?dmgmore2: what the parts left hanging throw (world/hanging.ts): sparks off a hanging exhaust's
+ * end on hard ground (behind the tail), paint chips off a hanging bumper's end, wall clock.
+ * @param ctx particle context
+ * @param car the car
+ * @param wallDt wall-clock frame time
+ */
+function emitHangingDrag(ctx: ParticleCtx, car: ParticleCar, wallDt: number) {
+  const cosH = Math.cos(car.heading), sinH = Math.sin(car.heading);
+  if (car.exhaustDrag) {
+    const back = car.spec.len / 2 + EXHAUST_TRAIL_M;
+    const owed = sparksOwed(car._exDebt || 0, RIM_SPARK_RATE, wallDt), count = Math.floor(owed);
+    car._exDebt = owed - count;
+    for (let i = 0; i < count; i++)
+      throwSpark(ctx, car, car.x - cosH * back, car.y - sinH * back, dragAim(car, 0));
+  }
+  const drags = car.bumperDrag;
+  if (!drags) return;
+  const work = Math.min(1, Math.hypot(car.vx, car.vy) / BUMPER_CHIP_FULL_MS);
+  for (let corner = 0; corner < 4; corner++) {
+    if (!drags[corner]) continue;
+    const along = (corner < 2 ? 1 : -1) * car.spec.len / 2;
+    const across = (corner % 2 ? 1 : -1) * car.spec.wid * BUMPER_END_SHARE;
+    const owed = (car._chipDebt || 0) + BUMPER_CHIP_RATE * work * wallDt, count = Math.floor(owed);
+    car._chipDebt = owed - count;
+    for (let i = 0; i < Math.min(count, 4); i++) dragChip(ctx, car,
+      car.x + along * cosH - across * sinH, car.y + along * sinH + across * cosH);
+  }
+}
+
+/**
+ * One paint chip scraped off a dragging part: the car's colour, left behind on the road.
+ * @param ctx particle context
+ * @param car the car
+ * @param x world x
+ * @param y world y
+ */
+function dragChip(ctx: ParticleCtx, car: ParticleCar, x: number, y: number) {
+  const chips = ctx.state.chips;
+  if (chips.length >= MAX_CHIPS) dropChip(ctx, chips, MAX_CHIPS);
+  const angle = fxRandom() * 6.2832, speed = 0.5 + fxRandom() * 1.5;
+  chips.push({ x, y, vx: car.vx * 0.2 + Math.cos(angle) * speed,
+    vy: car.vy * 0.2 + Math.sin(angle) * speed, age: 0, life: 6 + fxRandom() * 6,
+    col: car.spec.paint || '#d0552f', sz: 2 });
+}
+
 /**
  * The puff when a tyre goes and the shreds when it reaches the rim.
  * @param ctx particle context
@@ -516,6 +568,7 @@ function sparksOwed(debt: number, rate: number, wallDt: number): number {
  */
 function emitSparks(ctx: ParticleCtx, car: ParticleCar, wallDt: number) {
   emitDragDirt(ctx, car, wallDt);
+  if (FIX.dmgmore2) emitHangingDrag(ctx, car, wallDt);
   const rims = car.rimSparks;
   if (rims) for (let corner = 0; corner < 4; corner++) {
     if (!rims[corner]) continue;

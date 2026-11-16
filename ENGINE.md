@@ -471,6 +471,11 @@ the rubber comes off by a chance rising with the metres run flat (half by ~1 km)
 snapped arm or subframe (`debris.ts dragReach`; `metalscrape.ts touchPoint`, `marks.ts markAcross`,
 `particles.ts wheelPlace`), throws its ground's spray on soft ground (`car.dragSpray`,
 `emitDragDirt`), and pulls by what drags (`debris.ts dragPull`, `damage.ts sideDrag`).
+?dmgmore2: PARTS LEFT HANGING (`world/hanging.ts`): `exhaustHangs` (from `debris.ts` bigParts /
+shedOnRoll) leaves an exhaust hanging (`car.exhaustHang` m left; drawn by `render/hanging.ts`), a torn
+bumper's piece (`world/torn.ts partHangs`) drags `car.bumperHang`; `stepHanging` (`damage.ts stepDamage`)
+runs their distance off, sets `exhaustDrag` / `bumperDrag` (sparks / chips: `particles.ts
+emitHangingDrag`) and drops them; `knockHanging` drops them at a hit on their end.
 METAL ON HARD GROUND (`world/metalscrape.ts`): a rim, or
 a rolled body sliding (`roll.ts car.sparks`), sparks and may break each new wear cell a grade
 (race tarmac -> tarmac -> broken) through `gougeCell`; a rollover impact has its own chance; a

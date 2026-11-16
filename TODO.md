@@ -215,6 +215,25 @@ out of date for the Formula Won (saved 347 km/h, 2.8 s, 32.3 m, 1.83 g; measured
 34.0, 1.87 - re-run tools/carstats.mjs); tools/tyrecheck.mjs's full run fails 5 of its claims on
 the base (the burnout and drift times of the hatch-rwd, the muscle car, the F1 and the Naffcar: the
 tyres heat faster than its limits; it is not in CI) - its --car mode shows those times unjudged.
+MORE DAMAGE 2 (?dmgmore2=1, FIX.dmgmore2; testlist 'dmgmore2'), the owner's damage items 4 and 3.
+HANGING PARTS (item 4; owner's answers 11-17: the exhaust hangs by a chance by the damage, about half
+overall, and drags a random 100-400 m; a hanging bumper falls off by itself by distance and damage;
+the Tesla and open cars as they are): world/hanging.ts. A hit that would throw the exhaust leaves it
+hanging HANG_FROM 1.55 less the hit's size of the time (0.2-0.8; a roll's impact as 0.75) - gone from
+the sprite, drawn under the body with its tailpipes 0.35 m behind the tail (render/hanging.ts), its
+end SPARKING on hard ground over 2 m/s (render/particles.ts emitHangingDrag) - and it drops after a
+random 100-400 m of the car's travel (thrown as before), or at the next hit on the tail. A torn bumper
+that leaves a piece hanging (world/torn.ts partHangs, shared now with render/torncut.ts) drags 100-400
+m x (1 - 0.5 x its end's damage), shedding PAINT CHIPS from its end (no sparks), then the piece drops
+('drop:bumper:<c>' in partLost: render/carparts.ts no longer draws it). MEASURED
+(tools/scratch/_hangcount.mjs, 200 crashes a car - a rear and a front hit of 10-28 m/s - then driven
+at 15 m/s, RANDOM_SEED 1): exhausts left hanging / thrown, hatch-fwd 25 / 18, saloon-rwd 21 / 35,
+estate-4x4 28 / 21 (74 / 74 pooled: a half); no exhaust hangs on an open car (track-rwd: 0) or the Tesla (none to throw); each dragged 104-400 m (means 231-249) before it
+dropped; bumper pieces 196-206 a car, dragged 51-324 m (means 143-153). The switch off: no hanging.
+FIXED while building it: a rear hit's second corner knocked off the exhaust the same hit had just
+left hanging (0 m drags); a part left hanging that step is not knocked. Photos
+(tools/scratch/_hangshots.mjs: the hatch and the saloon on the Test Track): the sparks behind the
+tail, the bumper's piece and its chips; no page errors. AWAITING THE PHONE TEST.
 MARK TRACK (?marktrack=1, owner 11-17: fix it, its own switch): marks.ts listWheels laid the rear-right
 wheel's mark at the FRONT track; it now uses the rear one (spec.trackR) - only the Routemonster and
 the Skool Bus have their own (2.05 front / 1.80 and 1.85 rear: 0.125 and 0.10 m in). AWAITING THE

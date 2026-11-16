@@ -13,6 +13,19 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'dmgmore2',
+    added: '2026-11-17',
+    name: 'More damage 2, item 4: an exhaust or a torn bumper left HANGING, dragging until it '
+      + 'drops',
+    where: 'Test link + &dmgmore2=1: crash a hatch or a saloon tail-first hard, then drive on '
+      + '(tarmac, then grass)',
+    try: 'About half the time the exhaust hangs instead of flying off: its end trails behind the '
+      + 'tail, sparking on tarmac, and drops after 100-400 m (or the next hit at the back). A torn '
+      + 'bumper\'s hanging piece drags paint chips off its end and falls off by itself.',
+    wrong: 'An exhaust that never drops, sparks on grass, sparks off a bumper, a piece that hangs '
+      + 'on after it dropped, the Tesla or an open car dragging an exhaust.',
+  },
+  {
     id: 'tipping',
     added: '2026-11-16',
     name: 'The two-wheel state: a car can lift onto its two outside wheels before it rolls - steer '
