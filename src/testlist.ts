@@ -18,7 +18,7 @@ export const TEST_LIST: TestEntry[] = [
     name: 'New car: the Fjord Transfit Custom (a Ford Transit Custom L1 H1), ROAD / Van, and in '
       + 'the traffic',
     where: 'Test link + &transitcustom=1: the garage, ROAD / Van; the highway (the four Transfits '
-      + 'share the vans: the Custom the commonest); + &underskin=1&carparts=1 for a crash',
+      + 'share the vans: the Custom the commonest)',
     try: 'Its look (the white van, the big black mirrors, shaded), its pull against the other '
       + 'Transfits, crash it: two cab doors, the nearside sliding door, the twin rear doors.',
     wrong: 'Not a Transit Custom from above, a car door off it, too common or rare in the traffic.',
