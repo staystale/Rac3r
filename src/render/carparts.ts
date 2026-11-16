@@ -496,6 +496,17 @@ function flatShaft(): FlatCanvas {
 }
 
 /**
+ * a TRACK ROD (?underskin: thrown with a front wheel) - a thin bar, its ball joint at the end.
+ * @returns the drawing
+ */
+function flatRod(): FlatCanvas {
+  const flat = bitCanvas(partPx(0.4), 2), { block } = flat, wide = flat.canvas.width;
+  block(0, 0, wide - 2, 1, '#5a5f69');
+  block(wide - 2, 0, 2, 2, '#16181d');
+  return flat;
+}
+
+/**
  * an ENGINE BLOCK - its size by its cylinders, the plugs in one row (inline), two
  * banks (a V) or two outer rows (a flat), the pulley at the front, the manifold's rust.
  * @param bits the car's bits
@@ -545,7 +556,8 @@ export function bitDrawing(spec: RenderCarSpec, kind: string): FlatCanvas | null
   const bits = bitsOf(String(spec.id));
   return kind === 'exhaust' ? flatExhaust(bits) : kind === 'mirror' ? flatMirror(spec)
     : kind === 'wishbone' ? flatWishbone() : kind === 'strut' ? flatStrut()
-      : kind === 'shaft' ? flatShaft() : kind === 'engine' ? flatEngine(bits) : null;
+      : kind === 'shaft' ? flatShaft() : kind === 'rod' ? flatRod()
+        : kind === 'engine' ? flatEngine(bits) : null;
 }
 
 /**

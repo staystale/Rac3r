@@ -13,6 +13,7 @@
 //    and the hit's damage lands mostly on that wheel's corner.
 import { wheelBits } from '../world/debris.ts';
 import { CORNER_OF_WHEEL } from '../world/wheels.ts';
+import { FIX } from '../core/fixes.ts';
 
 // a tyre's radius (its box's half length), m; a wheel this far past the body box is exposed, m
 const WHEEL_R = 0.33, EXPOSED_BY = 0.1;
@@ -195,6 +196,27 @@ export function ripWheel(car: { wheelOff: boolean[]; wheelSpawn?: number[]; dmgB
 const ROLL_RIP: Record<string, number> = { side: 0.35, roof: 0.15, wheels: 0.12 },
   ROLL_RIP_CLOSED: Record<string, number> = { side: 0.05, roof: 0.02, wheels: 0.04 };
 
+// (no allocation: the corners a face can reach)
+const ALL_CORNERS = [0, 1, 2, 3], PLUS_CORNERS = [1, 3], MINUS_CORNERS = [0, 2];
+const NO_CORNERS: number[] = [];
+
+/**
+ * The wheels a roll's impact can tear off: those on the face that meets the ground. ?underskin
+ * (owner 11-16): back on its wheels only the landing side's two; on its roof a closed car's wheels
+ * are in the air - none - while an open car's stand proud of its body, all four.
+ * @param kind 'side', 'roof' or 'wheels'
+ * @param side +1 = +y, -1 = -y (a side; the landing side back on its wheels)
+ * @param open an open car
+ * @returns the corners
+ */
+function rollCorners(kind: string, side: number, open: boolean): number[] {
+  const sideCorners = side > 0 ? PLUS_CORNERS : MINUS_CORNERS;
+  if (kind === 'side') return sideCorners;
+  if (!FIX.underskin) return ALL_CORNERS;
+  if (kind === 'wheels') return sideCorners;
+  return open ? ALL_CORNERS : NO_CORNERS;
+}
+
 /**
  * A car's wheels torn off as it rolls (damage.ts hitRoll).
  * @param car the car (its damage state made)
@@ -207,7 +229,7 @@ export function rollRipWheels(car: Parameters<typeof ripWheel>[0], kind: string,
   scale: number, rnd: () => number): void {
   const open = car.spec?.kind === 'track' || car.spec?.kind === 'grass',
     chance = ((open ? ROLL_RIP : ROLL_RIP_CLOSED)[kind] ?? 0) * scale,
-    corners = kind !== 'side' ? [0, 1, 2, 3] : side > 0 ? [1, 3] : [0, 2];
+    corners = rollCorners(kind, side, open);
   for (const corner of corners) {
     if (car.wheelOff[corner] || rnd() >= chance) continue;
     car.wheelOff[corner] = true;

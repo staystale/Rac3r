@@ -542,8 +542,14 @@ the side crush, each at most a tyre) and the arms run to it - drawn only, the ph
 where it was; the open cars' arms reach the pushed hub the same way (`drawWishbones`).
 ROUND 4 (and the owner's bug 2): a closed car's exposed arms, shaft and track rod keep a lighter
 steel edge round their dark line (`cars.ts WELL_EDGE`, `armLines`; dark alone was lost on dark
-tarmac), and a rolled car's underside picture carries each wheel's wishbone and a front's track rod
-(`carprofile.ts underArms`). An exposed corner is open to the ROAD (no well fill; a lost wing's region cleared
+tarmac), and a rolled car's underside picture carries each corner as it is (`carprofile.ts
+underCorner`, repainted per damage step by `rollbody.ts paintsOf`): its subframe rail, the
+wishbone's arms, a driven wheel's shaft, a front's track rod, snapped where the wheel was torn off
+(the upright's `SNAP_SHARE`s, the `SUSP_*` bits; a strut gone leaves its tower's hole). A front wheel
+torn off takes its track rod (`debris.ts SUSP_ROD`, thrown as a `rod`; its stub drawn at the rack,
+`carcorners.ts drawSnappedCorner`); a roll tears off only the wheels on the face that meets the
+ground (`openwheel.ts rollCorners`: a side's two, back on its wheels the landing side's two,
+`roll.ts` passing it; on the roof none on a closed car, all four on an open one). An exposed corner is open to the ROAD (no well fill; a lost wing's region cleared
 right through, `carparts.ts lostPixel` keeps no inner edge strip for a wing with the switch); the
 arms, shaft and track rod are the open cars' own (`WELL_ARMS = OPEN_ARMS`: dark, 1 px), drawn
 before the tyre (`carcorners.ts drawExposedCorner`), the strut's spring and top mount after it,

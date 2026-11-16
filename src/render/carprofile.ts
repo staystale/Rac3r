@@ -11,6 +11,9 @@ import { shade } from "../render.ts";   // hoisted, only called at draw time (no
 import { tyreBox } from "./cars.ts";
 import type { RenderCarSpec } from "./types.ts";
 import { FIX } from "../core/fixes.ts";
+import { ROD_STUB_SHARE, SNAP_SHARE, SNAP_SHARE_NO_WISHBONE, SUBFRAME, SUBFRAME_HALF_M,
+  SUBFRAME_M, SUBFRAME_PX } from "./carcorners.ts";
+import { SUSP_ROD, SUSP_SHAFT, SUSP_STRUT, SUSP_WISHBONE } from "../world/debris.ts";
 
 /** A wing of an open car: from / to share of the length (tail 0, nose 1), low / high m, span. */
 type Wing = [number, number, number, number, number];
@@ -307,30 +310,64 @@ function sideWheels(spec: RenderCarSpec, rect: (x: number, y: number, wide: numb
   }
 }
 
-// the arms seen from below: light steel (on the dark floor), each line 1 px
-const UNDER_ARM = '#8a8f98';
+// the arms seen from below: light steel (on the dark floor), each line 1 px; a strut gone leaves
+// its tower's hole in the floor
+const UNDER_ARM = '#8a8f98', STRUT_HOLE = '#0e0f12';
+
+/** A car's corners as the underside reads them: its wheels gone, what each took (SUSP_* bits). */
+export interface UnderState { wheelOff?: boolean[]; suspOff?: number[] }
+/** Where the underside's corners sit, px: the axles along, the middle, the track, the width. */
+interface UnderPlace { frontAxle: number; rearAxle: number; mid: number; track: number;
+  widthPx: number }
 
 /**
- * ?underskin: the arms on the underside picture - each wheel's two wishbone arms from by the
- * middle out to its hub, a front's track rod - lines of 1 px squares.
+ * Paints a line of 1 px squares (sizePx wide).
  * @param rect the picture's block painter
- * @param where the axles (px along), the middle and the track (px across)
+ * @param from [x, y] px
+ * @param dest [x, y] px
+ * @param col its colour
+ * @param sizePx its width
  */
-function underArms(rect: (x: number, y: number, w: number, h: number, col: string) => void,
-  where: { frontAxle: number; rearAxle: number; mid: number; track: number }): void {
-  const { frontAxle, rearAxle, mid, track } = where, spread = 0.2 * SPRITE_PPM;
-  const line = (fromX: number, fromY: number, toX: number, toY: number) => {
-    const steps = Math.max(1, Math.round(Math.max(Math.abs(toX - fromX), Math.abs(toY - fromY))));
-    for (let step = 0; step <= steps; step++)
-      rect(fromX + (toX - fromX) * step / steps, fromY + (toY - fromY) * step / steps, 1, 1,
-        UNDER_ARM);
-  };
-  for (const axle of [frontAxle, rearAxle]) for (const side of [-1, 1]) {
-    const hubY = mid + side * track / 2, inner = mid + side * 2;
-    line(axle - spread, inner, axle, hubY);
-    line(axle + spread, inner, axle, hubY);
-    if (axle === frontAxle) line(axle - spread * 0.7, inner, axle - spread * 0.7, hubY - side);
-  }
+function underLine(rect: (x: number, y: number, w: number, h: number, col: string) => void,
+  from: number[], dest: number[], col: string, sizePx = 1): void {
+  const steps = Math.max(1, Math.round(Math.max(Math.abs(dest[0] - from[0]),
+    Math.abs(dest[1] - from[1]))));
+  for (let step = 0; step <= steps; step++) rect(from[0] + (dest[0] - from[0]) * step / steps,
+    from[1] + (dest[1] - from[1]) * step / steps, sizePx, sizePx, col);
+}
+
+/**
+ * ?underskin: one corner seen from below, as the upright car draws it (render/carcorners.ts): the
+ * SUBFRAME rail; the wishbone's two arms from it to the hub; a driven wheel's DRIVE SHAFT from the
+ * middle; a front's TRACK ROD. A wheel torn off (state.wheelOff) leaves them snapped - the arms
+ * SNAP_SHARE of the way out (less with the wishbone gone), the shaft and rod stubs when they went
+ * too (SUSP_SHAFT, SUSP_ROD) - and a strut gone its tower's hole.
+ * @param rect the picture's block painter
+ * @param spec the car as drawn (its drive)
+ * @param place where the corners sit
+ * @param corner the damage corner (0, 1 front; odd +y)
+ * @param snap its wheel torn off, and what it took (SUSP_* bits)
+ */
+function underCorner(rect: (x: number, y: number, w: number, h: number, col: string) => void,
+  spec: RenderCarSpec, place: UnderPlace, corner: number,
+  snap: { gone: boolean; off: number }): void {
+  const { mid, track, widthPx } = place, front = corner < 2, side = corner % 2 ? 1 : -1;
+  const axle = front ? place.frontAxle : place.rearAxle, spread = 0.2 * SPRITE_PPM;
+  const { gone, off } = snap;
+  const innerY = mid + side * (widthPx / 2 - SUBFRAME_M * SPRITE_PPM);
+  const hubY = mid + side * track / 2;
+  const out = (share: number) => innerY + (hubY - innerY) * share;
+  const half = SUBFRAME_HALF_M * SPRITE_PPM;
+  rect(axle - half, innerY - SUBFRAME_PX / 2, half * 2, SUBFRAME_PX, SUBFRAME);
+  const armEnd = !gone ? hubY : out(off & SUSP_WISHBONE ? SNAP_SHARE_NO_WISHBONE : SNAP_SHARE);
+  underLine(rect, [axle - spread, innerY], [axle, armEnd], UNDER_ARM);
+  underLine(rect, [axle + spread, innerY], [axle, armEnd], UNDER_ARM);
+  const drive = spec.drive ?? 0, driven = front ? drive > 0 : drive < 1;
+  const shaftEnd = !gone ? hubY : off & SUSP_SHAFT ? out(SNAP_SHARE_NO_WISHBONE) : armEnd;
+  if (driven) underLine(rect, [axle - 1, mid], [axle - 1, shaftEnd], '#5a5d66', 2);
+  const rodX = axle - spread * 0.7, rodEnd = off & SUSP_ROD ? out(ROD_STUB_SHARE) : hubY - side;
+  if (front) underLine(rect, [rodX, innerY], [rodX, rodEnd], UNDER_ARM);
+  if (gone && off & SUSP_STRUT) rect(axle - 1.5, hubY - side * 2 - 1.5, 3, 3, STRUT_HOLE);
 }
 
 /**
@@ -339,9 +376,11 @@ function underArms(rect: (x: number, y: number, w: number, h: number, col: strin
  * engine, the wheels.
  * @param spec the car as drawn
  * @param widthPx the body's width, px (the top sprite's)
+ * @param state ?underskin: the wheels gone and what they took (render/rollbody.ts; none: whole)
  * @returns the picture
  */
-export function paintUnderProfile(spec: RenderCarSpec, widthPx: number): ProfilePicture {
+export function paintUnderProfile(spec: RenderCarSpec, widthPx: number,
+  state?: UnderState): ProfilePicture {
   const profile = profileOf(spec), lengthPx = Math.round(spec.len * SPRITE_PPM),
     { img, rect } = pictureOf(lengthPx, widthPx), mid = widthPx / 2;
   const paint = spec.paint || '#d0552f', floor = '#34353b', metal = '#5a5d66';
@@ -359,19 +398,50 @@ export function paintUnderProfile(spec: RenderCarSpec, widthPx: number): Profile
   }
   const frontAxle = lengthPx / 2 + spec.lf * SPRITE_PPM,
     rearAxle = lengthPx / 2 - spec.lr * SPRITE_PPM, track = (spec.trackWidth || 1.5) * SPRITE_PPM;
-  for (const axle of [frontAxle, rearAxle]) rect(axle - 1, mid - track / 2, 2, track, metal);
-  // (?underskin: each wheel's wishbone, and a front's track rod, seen from below - a rolled car's
-  // underside, as the arms the upright car shows through its damage)
-  if (FIX.underskin && !profile.open) underArms(rect, { frontAxle, rearAxle, mid, track });
+  // (?underskin: each corner as the upright car draws it through its damage - the subframe, the
+  // arms, a driven wheel's shaft, a front's track rod; snapped where a wheel was torn off - else a
+  // bar across each axle)
+  const place = { frontAxle, rearAxle, mid, track, widthPx };
+  if (FIX.underskin && !profile.open) underCorners(rect, spec, place, state);
+  else for (const axle of [frontAxle, rearAxle]) rect(axle - 1, mid - track / 2, 2, track, metal);
   // a prop shaft to a driven rear axle, the exhaust to the tail, the sump at the engine
   if ((spec.drive ?? 0) < 1 && !profile.open) rect(rearAxle, mid - 1, frontAxle - rearAxle, 2,
     metal);
   rect(0, mid + widthPx * 0.2, lengthPx * 0.6, 2, '#8a8d96');
   rect(frontAxle - lengthPx * 0.12, mid - 3, lengthPx * 0.1, 6, '#2a2b30');
+  underTyres(rect, spec, place, state);
+  return { img, Lp: lengthPx, Hp: widthPx };
+}
+
+/**
+ * ?underskin: the underside's four corners (underCorner), each snapped where its wheel was torn
+ * off.
+ * @param rect the picture's block painter
+ * @param spec the car as drawn
+ * @param place where the corners sit
+ * @param state the wheels gone and what they took (none: whole)
+ */
+function underCorners(rect: (x: number, y: number, w: number, h: number, col: string) => void,
+  spec: RenderCarSpec, place: UnderPlace, state?: UnderState): void {
+  for (let corner = 0; corner < 4; corner++) underCorner(rect, spec, place, corner,
+    { gone: !!state?.wheelOff?.[corner], off: state?.suspOff?.[corner] ?? 0 });
+}
+
+/**
+ * The underside's tyres, but those torn off (state.wheelOff).
+ * @param rect the picture's block painter
+ * @param spec the car as drawn
+ * @param place where the corners sit
+ * @param state the wheels gone (none: all on)
+ */
+function underTyres(rect: (x: number, y: number, w: number, h: number, col: string) => void,
+  spec: RenderCarSpec, place: UnderPlace, state?: UnderState): void {
+  const { frontAxle, rearAxle, mid, track } = place;
   for (const [axle, rear] of [[frontAxle, false], [rearAxle, true]] as [number, boolean][]) {
     const { len, wid } = tyreBox(spec, rear);
-    for (const side of [-1, 1]) rect(axle - len / 2, mid + side * track / 2 - wid / 2, len, wid,
-      '#16171c');
+    for (const side of [-1, 1]) {
+      if (state?.wheelOff?.[(rear ? 2 : 0) + (side > 0 ? 1 : 0)]) continue;
+      rect(axle - len / 2, mid + side * track / 2 - wid / 2, len, wid, '#16171c');
+    }
   }
-  return { img, Lp: lengthPx, Hp: widthPx };
 }

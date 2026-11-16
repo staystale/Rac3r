@@ -320,10 +320,11 @@ function spinStep(car: RollCar, state: RollState, dt: number, onHit: RollHit) {
     state.w *= hit.spin;
     car.vx *= hit.speed;
     car.vy *= hit.speed;
-    // rolling toward +y lands on its +y side first
+    // rolling toward +y lands on its +y side first; back on its wheels, the side it came off
+    // lands first (from the -y side rolling toward +y): that side's wheels (physics/openwheel.ts)
     if (onHit) onHit(
       face === 2 ? 'roof' : face === 0 ? 'wheels' : 'side',
-      face === 1 ? 1 : -1,
+      face === 1 || (face === 0 && state.w < 0) ? 1 : -1,
       Math.abs(state.w),
     );
   }

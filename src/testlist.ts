@@ -116,7 +116,10 @@ export const TEST_LIST: TestEntry[] = [
       + 'the tyre (as on the F1), the strut over it at the top of the arch (only its inner half '
       + 'until the corner is badly crushed), the wheel '
       + 'pushed in with the metal; steer - the wheel and track rod turn. Lose a wheel: its '
-      + 'wishbone and strut lie under it on the road.',
+      + 'wishbone and strut lie under it on the road. ROLL a car: on its roof or side its '
+      + 'underside shows the subframe, arms, drive shafts (driven wheels only) and track rods; a '
+      + 'wheel torn off leaves them snapped short, and a front one throws its track rod too. A '
+      + 'closed car on its roof loses no wheels; landing back on its wheels only that side\'s.',
     wrong: 'A dark block in the wheel arch, arms over the tyre, arms not reaching the wheel, a '
       + 'wheel floating off the car, the engine bay, door floor or boot floor not crumpling.',
   },

@@ -385,7 +385,7 @@ function drawLostWheel(ctx: CanvasRenderingContext2D, car: RenderCar, spec: Rend
     const tyre = tyreBox(spec, wheel.axleX < 0);
     drawSnappedCorner(ctx, car, sprite, { ...wheel, tyreLen: tyre.len, tyreWid: tyre.wid },
       (hub, innerY) => drawFixedArms(ctx, spec, wheel.axleX, wheel.side, wheel.halfWidth,
-        wellArms(spec), hub, innerY));
+        wellArms(spec), hub, innerY), WELL_ARMS.wishbone);
     return;
   }
   // DAMAGE: wheel gone, a hub stub

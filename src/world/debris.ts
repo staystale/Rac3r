@@ -319,6 +319,9 @@ export function rollParts(car: DebrisCar, kind: string, side: number, scale: num
 // piece thrown is gone from the car (SUSP_* bits in car.suspOff, render/cars.ts draws what stays,
 // snapped); a driven wheel always takes its drive shaft's outer end.
 export const SUSP_STRUT = 1, SUSP_WISHBONE = 2, SUSP_SHAFT = 4;
+// a FRONT wheel torn off takes its TRACK ROD - the steering's part at that corner (owner 11-16:
+// rolling throws "steering and suspension parts")
+export const SUSP_ROD = 8;
 // the tearing hit's size, 0..1 (damage.ts: (add - WHEEL_HIT) / WHEEL_HIT), from which it takes the
 // STRUT, and from which the WISHBONE too (a closed car); an open car always its wishbone, from
 // OPEN_SECOND a second
@@ -404,6 +407,7 @@ function suspensionOff(car: Pick<DebrisCar, 'suspOff'>, corner: number,
     off[corner] |= bit;
   };
   if (wheel.driven) gone(SUSP_SHAFT, 'shaft');
+  if (corner < 2) gone(SUSP_ROD, 'rod');
   if (wheel.open) {
     gone(SUSP_WISHBONE, 'wishbone');
     if (wheel.size >= OPEN_SECOND) spawn('wishbone');
@@ -518,7 +522,7 @@ function partLook(car: DebrisCar, corner: number, kind: string) {
 // engine block (and a wheel, thrown as a tyre) never
 const DRIVE_OVER_CHANCE: Record<string, number> = { mesh: 1, mirror: 0.7, panel: 0.6, wing: 0.6,
   bumper: 0.6, wishbone: 0.6, bonnet: 0.5, boot: 0.5, spoiler: 0.5, exhaust: 0.5, strut: 0.5,
-  shaft: 0.5, fencepost: 0.4, engine: 0 };
+  shaft: 0.5, rod: 0.5, fencepost: 0.4, engine: 0 };
 
 /**
  * The parts the cars in play knocked off this step are thrown out of their corners as loose

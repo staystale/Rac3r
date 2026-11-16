@@ -15,7 +15,7 @@
 import { END_CRUSH_SHARE, REAR_CRUSH_SHARE, SIDE_CRUSH_SHARE } from "./cardamage.ts";
 import { SPRITE_PPM } from "./shared.ts";
 import type { CarSprite, RenderCar } from "./types.ts";
-import { SUSP_STRUT, SUSP_WISHBONE } from "../world/debris.ts";
+import { SUSP_ROD, SUSP_STRUT, SUSP_WISHBONE } from "../world/debris.ts";
 
 // the strut's spring, its top mount, its nut
 const SPRING = '#d0d4da', MOUNT = '#5a5f69', NUT = '#16181d';
@@ -199,11 +199,14 @@ function strutTop(ctx: CanvasRenderingContext2D, centreX: number, centreY: numbe
 // "cars should have a sub frame too like real life or the wishbones attach to nothing" - a dark
 // rail along the car there, m either side of the axle, px thick
 export const SUBFRAME_M = 0.6;
-const SUBFRAME = '#202227', SUBFRAME_HALF_M = 0.32, SUBFRAME_PX = 2;
+export const SUBFRAME = '#202227', SUBFRAME_HALF_M = 0.32, SUBFRAME_PX = 2;
 // a wheel torn off (owner 11-16: "the hub is still attached"): its hub went with it; what stayed is
 // SNAPPED - the arms (and a driven wheel's inner shaft) end this share of the way out from the
 // subframe to where the hub was, shorter when the wishbone went too
-const SNAP_SHARE = 0.6, SNAP_SHARE_NO_WISHBONE = 0.3;
+export const SNAP_SHARE = 0.6, SNAP_SHARE_NO_WISHBONE = 0.3;
+// a front's track rod torn away with its wheel (SUSP_ROD): its stub at the rack, this share of the
+// way out to where the steering arm was
+export const ROD_STUB_SHARE = 0.3;
 // the snapped ends' hub and the strut's place, reused (nothing allocated per frame)
 const SNAP_HUB = { x: 0, y: 0 };
 const SNAP_SHIFT: CornerShift = { x: 0, y: 0, exposed: true };
@@ -233,17 +236,24 @@ export function drawSubframe(ctx: CanvasRenderingContext2D, axleX: number, inner
  * @param sprite its sprite
  * @param wheel the corner: its axle (m), side, half the track and the tyre (px), damage corner
  * @param arms paints the fixed arms to a hub (offset px) from innerY (render/cars.ts)
+ * @param rodColour the track rod's colour (a front's stub, SUSP_ROD)
  */
 export function drawSnappedCorner(ctx: CanvasRenderingContext2D, car: RenderCar,
   sprite: CarSprite, wheel: { axleX: number; side: number; halfWidth: number; corner: number;
     tyreLen: number; tyreWid: number },
-  arms: (hub: { x: number; y: number }, innerY: number) => void): void {
+  arms: (hub: { x: number; y: number }, innerY: number) => void, rodColour = SUBFRAME): void {
   const { axleX, side, halfWidth, corner } = wheel, off = car.suspOff?.[corner] ?? 0;
   const innerY = side * (sprite.Wp / 2 - SUBFRAME_M * SPRITE_PPM), hubY = side * halfWidth;
   const share = off & SUSP_WISHBONE ? SNAP_SHARE_NO_WISHBONE : SNAP_SHARE;
   SNAP_HUB.y = innerY + (hubY - innerY) * share - hubY;
   drawSubframe(ctx, axleX, innerY, side);
   arms(SNAP_HUB, innerY);
+  if (off & SUSP_ROD) {
+    // (the track rod's stub at the rack, in line with where the steering arm was, behind the hub)
+    const rodX = (axleX - STEER_ARM_M) * SPRITE_PPM;
+    ctx.fillStyle = rodColour;
+    steerRod(ctx, [rodX, innerY], [rodX, innerY + (hubY - innerY) * ROD_STUB_SHARE], 1);
+  }
   if (off & SUSP_STRUT) return;
   drawExposedStrut(ctx, { axleX, side, halfWidth, tyreLen: wheel.tyreLen, tyreWid: wheel.tyreWid,
     bodyHalf: sprite.Wp / 2, damage: car.dmg ? car.dmg[corner] : 0 }, SNAP_SHIFT);

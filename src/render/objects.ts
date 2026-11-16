@@ -339,7 +339,8 @@ const DEBRIS_KINDS = new Set(['pallet', 'box', 'crate', 'bin', 'sandbag', 'barre
   'bumper', 'wing', 'panel', 'tarp', 'splinters', 'cardboard', 'sand', 'fluff', 'mesh', 'twigs',
   'fencepost',
   // a bad crash's bits (render/carparts.ts draws them)
-  'bonnet', 'boot', 'spoiler', 'mirror', 'wishbone', 'strut', 'shaft', 'engine']);
+  'bonnet', 'boot', 'spoiler', 'mirror', 'wishbone', 'strut', 'shaft', 'rod',
+  'engine']);
 
 /**
  * Makes a drawer of filled rects in metres at the given pixels per metre.
@@ -711,7 +712,7 @@ function drawConeKind(env: ObjectsCtx, cone: RenderCone) {
 
 // a car's suspension thrown off with its wheel (world/debris.ts wheelBits): with ?underskin, on
 // the ground UNDER the loose wheels and the rest (thrown after the wheel, it lay on top of it)
-const SUSPENSION_KINDS = new Set(['wishbone', 'strut', 'shaft']);
+const SUSPENSION_KINDS = new Set(['wishbone', 'strut', 'shaft', 'rod']);
 
 /**
  * Draws the loose objects (cones, tyres, debris, animals, props) that are on screen (?underskin:
