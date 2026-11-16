@@ -13,6 +13,16 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'marktrack',
+    added: '2026-11-17',
+    name: 'The rear-right skid mark at the rear wheel\'s own track (the Routemonster, the Skool '
+      + 'Bus)',
+    where: 'Test link + &marktrack=1: the Routemonster or the Skool Bus on any circuit',
+    try: 'Brake hard or slide: the rear-right tyre\'s mark lines up with the rear-left\'s, under '
+      + 'the twin rear wheels (it was 0.125 m too far out, at the front track).',
+    wrong: 'A rear mark outside its tyre, or any other car\'s marks changed.',
+  },
+  {
     id: 'schoolbus',
     added: '2026-11-16',
     name: 'New vehicle: the Skool Bus (an American IC Bus CE school bus), ROAD / Bus, and in the '
