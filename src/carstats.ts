@@ -216,7 +216,7 @@ export const CAR_STATS: Record<string, CarStat> = {
     "drive": "RWD",
     "aids": null
   },
-  // (measured alone, tools/carstats.mjs porch-gt3r with PORCH=1: a new car behind its switch)
+  // (measured alone: tools/carstats.mjs porch-gt3r)
   "porch-gt3r": {
     "topKph": 280,
     "zeroTo100": 3,
@@ -229,7 +229,7 @@ export const CAR_STATS: Record<string, CarStat> = {
       "tcs": true
     }
   },
-  // (measured alone, tools/carstats.mjs seven-420r with SEVEN=1: a new car behind its switch)
+  // (measured alone: tools/carstats.mjs seven-420r)
   "seven-420r": {
     "topKph": 224,
     "zeroTo100": 4.2,
@@ -242,7 +242,7 @@ export const CAR_STATS: Record<string, CarStat> = {
       "tcs": false
     }
   },
-  // (measured alone, tools/carstats.mjs transfit-van with TRANSFIT=1: a new car behind its switch)
+  // (measured alone: tools/carstats.mjs transfit-van)
   "transfit-van": {
     "topKph": 148,
     "zeroTo100": 14.1,
@@ -255,7 +255,7 @@ export const CAR_STATS: Record<string, CarStat> = {
       "tcs": true
     }
   },
-  // (measured alone, tools/carstats.mjs effing-tt with TROPHY=1: a new car behind its switch)
+  // (measured alone: tools/carstats.mjs effing-tt)
   "effing-tt": {
     "topKph": 237,
     "zeroTo100": 6.5,
@@ -268,7 +268,7 @@ export const CAR_STATS: Record<string, CarStat> = {
       "tcs": false
     }
   },
-  // (measured alone, tools/carstats.mjs civvic-btcc with CIVVIC=1: a new car behind its switch)
+  // (measured alone: tools/carstats.mjs civvic-btcc)
   "civvic-btcc": {
     "topKph": 249,
     "zeroTo100": 4.7,
@@ -281,7 +281,7 @@ export const CAR_STATS: Record<string, CarStat> = {
       "tcs": false
     }
   },
-  // (measured alone, tools/carstats.mjs defunder-110 with DEFUNDER=1: a new car behind its switch)
+  // (measured alone: tools/carstats.mjs defunder-110)
   "defunder-110": {
     "topKph": 148,
     "zeroTo100": 13.2,
@@ -294,7 +294,7 @@ export const CAR_STATS: Record<string, CarStat> = {
       "tcs": true
     }
   },
-  // (measured alone, tools/carstats.mjs focust-st with FOCUST=1: a new car behind its switch)
+  // (measured alone: tools/carstats.mjs focust-st)
   "focust-st": {
     "topKph": 257,
     "zeroTo100": 5.5,

@@ -1,5 +1,5 @@
-// render/newcarlooks2.ts - the NEW CARS' bodies from above, cars 6 on (src/newcars.ts, each
-// behind its own switch; render/newcarlooks.ts holds the first five, its house style and the
+// render/newcarlooks2.ts - the NEW CARS' bodies from above, cars 6 on (src/newcars.ts;
+// render/newcarlooks.ts holds the first five, its house style and the
 // helpers shared here): nose +x, a 1 px dark outline, flat paint with a light band on the top
 // flank and a dark one on the bottom, black glass, the SECOND colour (trim) big, the THIRD a
 // detail.
