@@ -292,26 +292,7 @@ COST (framecheck Brands, 19 AI + you in the hatch-rwd, every car crushed on all 
 panels off at frame 30 - most corners exposed - the laptop x1, round 1 / round 2 / round 1 / round 2):
 work median 10.8 / 10.7 / 12.2 / 11.1 ms, p95 17.7 / 17.1 / 20.0 / 17.9, frame median 17.7 / 17.7 /
 17.7 / 17.6 - no cost to read.
-ROUND 3 (owner 11-16: "Crumples better but still not showing steering geometry / knocking off hub
-if steering arms etc have gone too"; the bigger arms a yes, the broken corner wanted):
-(a) THE STEERING READ AT A PHONE'S SIZE, BUILT behind the same switch (render/carcorners.ts
-drawExposedSteering, wellReach; render/cars.ts armLines; render/carparts.ts wellRegion):
-- FOUND: the exposed corner's carrier and steering arm were UNDER unbroken body - the crush pushes
-  the drawn wheel in (up to a tyre) but the well's hole stayed where the wing was, so what turned
-  was hidden; and the track rod ended at a steering arm 0.14 m from the hub, under the tyre. Now
-  the hole (and its dark cavity) reaches as far in and back as the wheel was pushed.
-- Over the tyre: the HUB CARRIER along its inner face, turned with the wheel; on a front the
-  STEERING ARM back and inboard, out from under the tyre, and the TRACK ROD from the rack to it.
-  Each line 2 px of bright steel in a 1 px dark rim (the wishbones and drive shaft in the well
-  too); the strut's top moved ahead of the axle, clear of the steering arm.
-- PHOTOS (the laptop, ?underskin=1; saloon-rwd, hatch-fwd, rally-4x4; the owner's case - a front
-  corner crushed in to its wheel, nothing off - steered -0.35 / 0 / +0.35 rad, and the front and
-  rear sets; 844x390, 390x844, close, the phone's crop; round 2 against round 3): no page errors.
-  CORRECTION: round 2's steered photos were not steered - the tool's input never reached a car held
-  still (car.delta 0.000 in all three); the tool now holds the wheels' angle (_skinshots.mjs
-  logs it: -0.350 / 0.000 / 0.350).
-- PROOF: switch off, renderhash SAME (the second PC).
-(b) A BROKEN CORNER (?cornerbreak=1): next.
+PROPOSED, NOT BUILT (a handling change, the owner decides): A BROKEN CORNER - see the hand-back.
 
 THE 10 NEW CARS (owner-approved names 11-16; one switch and one hand-back each; src/newcars.ts):
 1-7 PASSED 11-16, the default with the launches (owner: "all pass apart from my earlier comments"):

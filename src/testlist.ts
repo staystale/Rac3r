@@ -79,13 +79,12 @@ export const TEST_LIST: TestEntry[] = [
   {
     id: 'underskin',
     added: '2026-11-16',
-    name: 'Under the skin, round 3: a crushed wheel corner shows its steering, bigger, turning',
+    name: 'Under the skin, round 2: uneven folds, a crushed wheel corner shows its arms, steering',
     where: 'Test link + &underskin=1: crash a closed car front-corner first (a hatch, a saloon, '
       + 'the Huracan) until the corner is pushed in to the wheel, then steer; side and rear too',
-    try: 'The crushed wheel corner: a dark well with bright, dark-rimmed parts - the hub carrier '
-      + 'on the tyre, the steering arm and track rod, the wishbones, strut and (driven wheel) '
-      + 'drive shaft - joined to the wheel, pushed in with the metal; steer: the carrier, arm and '
-      + 'wheel turn together.',
+    try: 'The dent: crumpled, uneven folds. The crushed wheel corner: a dark well with the arms, '
+      + 'strut and (driven wheel) drive shaft, joined to the wheel, the wheel pushed in with the '
+      + 'metal; steer - the arms and wheel turn together.',
     wrong: 'Straight even stripes, see-through patches, arms not reaching the wheel or not turning '
       + 'with it, a wheel floating off the car, parts too small to make out.',
   },

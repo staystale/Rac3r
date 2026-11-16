@@ -538,17 +538,6 @@ driven wheel's shaft (`drawFixedArms`, `WELL_ARMS`), a front's track rod at `car
 the crush pushes the drawn wheel in (`cornerShift`: back by the end crush past the arch, inboard by
 the side crush, each at most a tyre) and the arms run to it - drawn only, the physics' wheel is
 where it was; the open cars' arms reach the pushed hub the same way (`drawWishbones`).
-ROUND 3, THE STEERING READ AT A PHONE'S SIZE: the well's arms and shaft each line in a dark rim
-(`WELL_ARMS.outline`; `cars.ts armLines`, the rim pass first), and over the TYRE
-(`carcorners.ts drawExposedSteering`, after `drawCarWheel`) the HUB CARRIER along the tyre's inner
-face (`CARRIER_HALF_M` 0.12 m either side of the axle), turned with the wheel, and on a front the
-STEERING ARM from its rear end back `STEER_ARM_M` (0.2 m) and `STEER_ARM_IN_PX` (3) inboard, out
-from under the tyre, the TRACK ROD from the rack (by the car's middle, behind the axle) to it -
-bright steel `STEEL_PX` (2) wide in a dark rim; the strut's top ahead of the axle, under them. The
-well's HOLE reaches as far as the crush pushed its wheel (`lostWithTorn` adds
-`well:corner:inward:back`, `carcorners.ts wellReach`; `carparts.ts wellRegion`, cut by
-`withoutParts`), and its dark cavity with it, so the carrier and steering arm are not under
-unbroken body where the wheel went.
 `tools/scratch/_skinshots.mjs` photographs every car crushed and with its parts off (front, side,
 rear; 844x390, 390x844, a close-up and the phone's view cropped).
 

@@ -67,27 +67,6 @@ export function partRegion(spec: RenderCarSpec, sprite: CarSprite, kind: string,
 }
 
 /**
- * ?underskin: the hole round a wheel the crush pushed in ("well:corner:inward:back" in the lost
- * parts, render/cars.ts lostWithTorn): the wing's hole reaching in as far as the wheel went and
- * back with it, so the wheel's hub carrier and steering arm show where the wheel now is (the
- * hole's own edges, not the crushed metal round it).
- * @param spec the car as drawn
- * @param sprite its sprite
- * @param corner the damage corner
- * @param inwardPx px the wheel was pushed in
- * @param backPx px it was pushed back (toward the car's middle)
- * @returns the region, sprite px inclusive
- */
-export function wellRegion(spec: RenderCarSpec, sprite: CarSprite, corner: number,
-  inwardPx: number, backPx: number): Region {
-  const wing = partRegion(spec, sprite, 'wing', corner), plus = corner % 2 === 1;
-  const reach = corner < 2 ? { x0: wing.x0 - backPx, x1: wing.x1 }
-    : { x0: wing.x0, x1: wing.x1 + backPx };
-  return { ...reach, ...(plus ? { y0: wing.y0 - inwardPx, y1: wing.y1 }
-    : { y0: wing.y0, y1: wing.y1 + inwardPx }) };
-}
-
-/**
  * A small seeded random stream (each part dented its own way, the same every frame).
  * @param seed the seed
  * @returns 0..1 draws
@@ -476,11 +455,10 @@ export function withoutParts(spec: RenderCarSpec, sprite: CarSprite, lost: strin
   underSkin = false): CarSprite {
   const { canvas, ctx, img } = spriteToWork(sprite.c), rgba = img.data;
   for (const entry of lost.split(',').filter(Boolean)) {
-    const [kind, corner, inward, back] = entry.split(':');
+    const [kind, corner] = entry.split(':');
     // (the wing is left out by the painters - spec.noWing; the engine shows in the bay)
     if (kind === 'spoiler' || kind === 'engine') continue;
-    const region = kind === 'well' ? wellRegion(spec, sprite, +corner, +inward, +back)
-      : partRegion(spec, sprite, kind, +corner);
+    const region = partRegion(spec, sprite, kind, +corner);
     for (let y = region.y0 + 2; y <= region.y1 + 2; y++) for (let x = region.x0 + 2;
       x <= region.x1 + 2; x++) {
       if (x < 0 || y < 0 || x >= canvas.width || y >= canvas.height) continue;

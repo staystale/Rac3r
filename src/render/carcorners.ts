@@ -12,26 +12,22 @@
 // allocated per frame.
 import { END_CRUSH_SHARE, REAR_CRUSH_SHARE, SIDE_CRUSH_SHARE } from "./cardamage.ts";
 import { SPRITE_PPM } from "./shared.ts";
-import type { CarSprite, RenderCar } from "./types.ts";
+import type { CarSprite, RenderCar, RenderCarSpec } from "./types.ts";
 
 // the inside of a wheel's well in shadow; the strut's spring, its top mount, its nut
 const WELL = '#2a2d33', SPRING = '#d0d4da', MOUNT = '#5a5f69', NUT = '#16181d';
-// the steering - the hub carrier, its steering arm and the track rod - bright steel, each line in
-// a dark rim (the well's arms' look, render/cars.ts WELL_ARMS), to read on the tyre and the body
-const STEER_STEEL = '#e2e5ea', STEER_RIM = '#0b0c0f';
+// the steering's track rod, bright steel (the arms' colour in a well)
+const TRACK_ROD = '#9aa0aa';
 // px a side's crush must reach to open its wheel's well (the arch's inner skin pushed in)
 const CRUSH_EXPOSE_PX = 3;
 // px the well reaches either side of the axle (as a wing's hole, render/carparts.ts partRegion)
 const WELL_HALF_PX = 7;
 // m the well reaches in from the car's side (render/carparts.ts WELL_DEPTH_M)
 const WELL_DEPTH_M = 0.45;
-// px a strut's top sits ahead of the axle line; px it sits inboard of the tyre
-const STRUT_OFFSET_PX = 3, STRUT_IN_PX = 4;
-// m of the steering arm behind the hub (render/cars.ts drawWishbones), and px it reaches inboard
-// of the tyre's inner face - out from under the tyre, where the track rod meets it
-const STEER_ARM_M = 0.2, STEER_ARM_IN_PX = 3;
-// m of the hub carrier along the wheel either side of the axle; px of steel each line is
-const CARRIER_HALF_M = 0.12, STEEL_PX = 2;
+// px a strut's top sits off the axle line toward the car's middle; px it sits inboard of the tyre
+const STRUT_OFFSET_PX = 3, STRUT_IN_PX = 3;
+// m of the steering arm from the hub (render/cars.ts drawWishbones)
+const STEER_ARM_M = 0.14;
 
 /** Where a corner's wheel is drawn off its place (px, car frame) and whether it is exposed. */
 export interface CornerShift { x: number; y: number; exposed: boolean }
@@ -59,21 +55,6 @@ export function cornerShift(car: RenderCar, sprite: CarSprite, corner: number,
   SHIFT.y = Math.round(-side * inward);
   SHIFT.exposed = back > 0 || sideDepth >= CRUSH_EXPOSE_PX || lost.includes('wing:' + corner);
   return SHIFT;
-}
-
-/**
- * px the crush pushed a corner's wheel in and back (its well's hole reaches as far:
- * render/carparts.ts wellRegion).
- * @param car the car (its crush)
- * @param sprite its sprite
- * @param corner the damage corner
- * @param wheel where the wheel sits
- * @returns "inward:back", whole px ("0:0" not pushed)
- */
-export function wellReach(car: RenderCar, sprite: CarSprite, corner: number,
-  wheel: WheelPlace): string {
-  const { back, inward } = crushAtWheel(car, sprite, corner, wheel);
-  return Math.ceil(inward) + ':' + Math.ceil(back);
 }
 
 /**
@@ -121,120 +102,55 @@ function crushAtWheel(car: RenderCar, sprite: CarSprite, corner: number, wheel: 
 }
 
 /**
- * An exposed corner, under the body and before its tyre: the dark well inboard of the tyre, the
- * arms and a driven wheel's drive shaft from the chassis to the hub where it now is.
+ * An exposed corner, under the body: the dark well inboard of the tyre, the arms and a driven
+ * wheel's drive shaft from the chassis to the hub where it now is, a front's track rod at the
+ * wheel's steer, and the strut's top.
  * @param ctx the canvas (the car's frame, sprite px)
- * @param wheel the corner: its axle (m), side (-1 / 1), half the track (px)
+ * @param spec the car as drawn
+ * @param wheel the corner: its axle (m), side (-1 / 1), steer (rad), half the track and the tyre's
+ *   width (px)
  * @param sprite the car's sprite (its width)
  * @param shift the wheel's push-in (px)
  * @param arms paints the fixed arms and shaft to the hub (render/cars.ts drawFixedArms, bright)
  */
-export function drawExposedCorner(ctx: CanvasRenderingContext2D,
-  wheel: { axleX: number; side: number },
+export function drawExposedCorner(ctx: CanvasRenderingContext2D, spec: RenderCarSpec,
+  wheel: { axleX: number; side: number; steer: number; halfWidth: number; tyreWid: number },
   sprite: CarSprite, shift: CornerShift, arms: () => void): void {
-  const { axleX, side } = wheel;
-  const axlePx = axleX * SPRITE_PPM, hubX = axlePx + shift.x;
-  // (the well from WELL_DEPTH_M in to the car's side and as far in as the wheel was pushed, from
-  // the axle's place to the wheel's - the hole's own reach, carparts.ts wellRegion: the tyre is
-  // drawn over it)
-  const deepIn = side * (sprite.Wp / 2 - WELL_DEPTH_M * SPRITE_PPM - Math.abs(shift.y));
-  const outer = side * sprite.Wp / 2;
-  const fromX = Math.min(axlePx, hubX) - WELL_HALF_PX, toX = Math.max(axlePx, hubX) + WELL_HALF_PX;
+  const { axleX, side, steer, halfWidth, tyreWid } = wheel;
+  const hubX = axleX * SPRITE_PPM + shift.x, hubY = side * halfWidth + shift.y;
+  const tyreIn = side * (halfWidth - tyreWid / 2) + shift.y;
+  // (the well from WELL_DEPTH_M in to the car's side: the tyre is drawn over it)
+  const deepIn = side * (sprite.Wp / 2 - WELL_DEPTH_M * SPRITE_PPM), outer = side * sprite.Wp / 2;
   ctx.fillStyle = WELL;
-  ctx.fillRect(Math.round(fromX), Math.round(Math.min(outer, deepIn)), Math.round(toX - fromX),
-    Math.round(Math.abs(outer - deepIn)));
+  ctx.fillRect(Math.round(hubX - WELL_HALF_PX), Math.round(Math.min(outer, deepIn)),
+    WELL_HALF_PX * 2, Math.round(Math.abs(outer - deepIn)));
   arms();
-}
-
-/** An exposed wheel as drawn: its axle (m), side, steer (rad), half the track and tyre (px). */
-export interface ExposedWheel {
-  axleX: number; side: number; steer: number; halfWidth: number; tyreWid: number
-}
-
-/**
- * An exposed corner's STEERING, over its tyre (the arms run in under it): the hub carrier at the
- * tyre's inner face, turned with the wheel; on a front its steering arm reaching back and inboard
- * out from under the tyre, and the track rod from the rack to it. Each line bright steel in a dark
- * rim, every rim drawn first, over the strut's top (inboard of the carrier; on a front ahead of the
- * axle, clear of the steering arm behind it).
- * @param ctx the canvas (the car's frame, sprite px)
- * @param wheel the corner as drawn
- * @param shift the wheel's push-in (px)
- */
-export function drawExposedSteering(ctx: CanvasRenderingContext2D, wheel: ExposedWheel,
-  shift: CornerShift): void {
-  const hubX = wheel.axleX * SPRITE_PPM + shift.x;
-  const tyreIn = wheel.side * (wheel.halfWidth - wheel.tyreWid / 2) + shift.y;
-  strutTop(ctx, hubX + STRUT_OFFSET_PX, tyreIn - wheel.side * STRUT_IN_PX);
-  for (const sizePx of [STEEL_PX + 2, STEEL_PX]) {
-    ctx.fillStyle = sizePx > STEEL_PX ? STEER_RIM : STEER_STEEL;
-    steeringLines(ctx, wheel, shift, sizePx);
+  const front = axleX > 0;
+  if (front) {
+    // the track rod, turned with the wheel (render/cars.ts drawWishbones' steering arm)
+    const arm = STEER_ARM_M * SPRITE_PPM;
+    ctx.fillStyle = TRACK_ROD;
+    for (let line = 0; line < 2; line++)
+      steerRod(ctx, [hubX - arm, side * 2 + line], [hubX - Math.cos(steer) * arm,
+        hubY - Math.sin(steer) * arm + line]);
   }
-}
-
-// a point on a wheel turned by its steer (reused: read at once)
-const TURNED = [0, 0];
-
-/**
- * A point in the wheel's own frame (along it from the hub, px; inboard of the tyre's inner face,
- * px) on the car's frame, turned with the wheel's steer.
- * @param wheel the corner as drawn
- * @param shift the wheel's push-in
- * @param along px along the wheel (forward +)
- * @param inboard px in from the tyre's inner face
- * @returns [x, y] car px (the same array every call)
- */
-function turnedPoint(wheel: ExposedWheel, shift: CornerShift, along: number,
-  inboard: number): number[] {
-  const across = -wheel.side * (wheel.tyreWid / 2 + inboard);
-  const cos = Math.cos(wheel.steer), sin = Math.sin(wheel.steer);
-  TURNED[0] = wheel.axleX * SPRITE_PPM + shift.x + along * cos - across * sin;
-  TURNED[1] = wheel.side * wheel.halfWidth + shift.y + along * sin + across * cos;
-  return TURNED;
+  strutTop(ctx, hubX + (front ? -STRUT_OFFSET_PX : STRUT_OFFSET_PX),
+    tyreIn - side * STRUT_IN_PX);
 }
 
 /**
- * The steering's lines at one size (the rim pass, then the steel's): the carrier along the
- * tyre's inner face; on a front, the steering arm from its rear end back and inboard, and the
- * track rod from the rack (by the car's middle, behind the axle) to the arm's end.
+ * A 1 px line on the car's pixel grid.
  * @param ctx the canvas
- * @param wheel the corner as drawn
- * @param shift the wheel's push-in
- * @param sizePx px of each step's square
+ * @param from [x, y]
+ * @param dest [x, y]
  */
-function steeringLines(ctx: CanvasRenderingContext2D, wheel: ExposedWheel, shift: CornerShift,
-  sizePx: number): void {
-  const carrier = CARRIER_HALF_M * SPRITE_PPM, inner = STEEL_PX / 2;
-  const [backX, backY] = turnedPoint(wheel, shift, -carrier, inner);
-  const [frontX, frontY] = turnedPoint(wheel, shift, carrier, inner);
-  squareLine(ctx, backX, backY, frontX, frontY, sizePx);
-  if (wheel.axleX <= 0) return;
-  const arm = STEER_ARM_M * SPRITE_PPM;
-  const [armX, armY] = turnedPoint(wheel, shift, -arm, inner + STEER_ARM_IN_PX);
-  squareLine(ctx, backX, backY, armX, armY, sizePx);
-  // (the rack's end: where the rod meets it at no steer, by the car's middle - its far end is
-  // under the body)
-  const rackX = wheel.axleX * SPRITE_PPM - arm, rackY = wheel.side * 2;
-  squareLine(ctx, rackX, rackY, armX, armY, sizePx);
-}
-
-/**
- * A line on the car's pixel grid, a square sizePx wide at each step.
- * @param ctx the canvas
- * @param fromX px
- * @param fromY px
- * @param toX px
- * @param toY px
- * @param sizePx px
- */
-function squareLine(ctx: CanvasRenderingContext2D, fromX: number, fromY: number, toX: number,
-  toY: number, sizePx: number): void {
-  const steps = Math.max(1, Math.round(Math.max(Math.abs(toX - fromX), Math.abs(toY - fromY))));
-  const back = Math.floor(sizePx / 2);
+function steerRod(ctx: CanvasRenderingContext2D, from: number[], dest: number[]): void {
+  const steps = Math.max(1, Math.round(Math.max(Math.abs(dest[0] - from[0]),
+    Math.abs(dest[1] - from[1]))));
   for (let step = 0; step <= steps; step++) {
     const share = step / steps;
-    ctx.fillRect(Math.round(fromX + (toX - fromX) * share) - back,
-      Math.round(fromY + (toY - fromY) * share) - back, sizePx, sizePx);
+    ctx.fillRect(Math.round(from[0] + (dest[0] - from[0]) * share),
+      Math.round(from[1] + (dest[1] - from[1]) * share), 1, 1);
   }
 }
 

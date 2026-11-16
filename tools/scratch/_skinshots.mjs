@@ -42,8 +42,8 @@ const SETS = {
   // (the owner's photo: one front corner crushed in to its wheel, nothing off; then steered left,
   // straight, right - the exposed arms turn with the wheel)
   corner: { crushL: [0, 0.6, 0, 0], crushS: [0, 0.35, 0, 0], lost: () => [] },
-  cornerleft: { crushL: [0, 0.6, 0, 0], crushS: [0, 0.35, 0, 0], lost: () => [], steer: -0.35 },
-  cornerright: { crushL: [0, 0.6, 0, 0], crushS: [0, 0.35, 0, 0], lost: () => [], steer: 0.35 },
+  cornerleft: { crushL: [0, 0.6, 0, 0], crushS: [0, 0.35, 0, 0], lost: () => [], steer: -1 },
+  cornerright: { crushL: [0, 0.6, 0, 0], crushS: [0, 0.35, 0, 0], lost: () => [], steer: 1 },
   rear: { crushL: [0, 0, 0.5, 0.45], crushS: [0, 0, 0.1, 0.05],
     lost: (bits, open) => (open ? ['bumper:2', 'panel:1']
       : ['bumper:2', 'wing:2', bits.rear === 'boot' ? 'boot:2' : '']) },
@@ -63,17 +63,11 @@ async function standDamaged([id, set, zoom, levelId]) {
   car.crushL = set.crushL.slice();
   car.crushS = set.crushS.slice();
   car.partLost = set.lostList;
-  // (steered: the road wheels held at the set's angle each frame - the input's steer does not
-  // reach a car held still on the grid; rad)
-  if (set.steer) {
-    const hold = () => { if (game.car === car) { car.delta = set.steer; requestAnimationFrame(hold); } };
-    hold();
-  }
   if (zoom) game.renderer.debugZoom(zoom);
   await new Promise((done) => setTimeout(done, 600));
   // (where the car is on the screen, CSS px: the crops are centred on it)
   const renderer = game.renderer, toCss = innerWidth / renderer.W;
-  return { lost: car.partLost, delta: car.delta, x: renderer.toScreenX(car.x) * toCss,
+  return { lost: car.partLost, x: renderer.toScreenX(car.x) * toCss,
     y: renderer.toScreenY(car.y) * toCss };
 }
 
@@ -98,7 +92,7 @@ async function shootSets(browser, base, carId, sets, shot) {
       y: Math.max(0, Math.min(shot.height - clipH, at.y - clipH / 2)), width: clipW,
       height: clipH } : undefined;
     await page.screenshot({ path: file, clip });
-    console.log(`${file} ${set.lostList} steer ${(+at.delta).toFixed(3)} rad${errors.length ? ' PAGE ERRORS ' + errors.join(' | ') : ''}`);
+    console.log(`${file} ${set.lostList}${errors.length ? ' PAGE ERRORS ' + errors.join(' | ') : ''}`);
   }
   await page.close();
   return errors;
