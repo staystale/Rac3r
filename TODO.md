@@ -22,7 +22,11 @@ exhaust - its own drawing, the redraw reverted - and bumper; steam and leaks).
 - THE 11-16 QUEUE (every item owner-approved after a brief plan; details in each worker's TODO
   entry as it lands):
   - WORKER A (paused): the Scanyah trailer joint - WIP worker/joint 020b0d07, works; left: the
-    trailer's own parts, test entry, night check. Owner questions: the slow tractor, the start posts.
+    trailer's own parts, test entry, night check. OWNER 11-17: no drips; the truck stays slow but its
+    box must stop hunting 1-2; the GRID gives each vehicle a slot as long as it is (a rig ~20 m, at
+    the back of a mixed grid), a solo start slides back to a spot with the rig's length clear; the
+    GARAGE gets a TRAILER row for tractor units: WITHOUT, or the CURTAINSIDER HALF-FULL only (no load
+    chooser). Later trailer types: a flatbed with visible cargo first (owner: "I don't mind").
   - WORKER B (paused): damage items 4 and 3 built (behind ?dmgmore2, under test). Blighty Park
     RX and the Outer circuit - WIP worker/b4-blighty 7ac09580, built and checked; left: photos, docs,
     the RX's 8.9 m corner, the proof.
