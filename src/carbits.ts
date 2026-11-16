@@ -31,6 +31,67 @@ export interface CarBits {
   electric?: boolean;
 }
 
+/** A car's DOORS (?carparts): each side's, front first, as the shares of its length it spans. */
+export interface CarDoors {
+  // [from, until], 0 tail .. 1 nose; one a side on a 2-door, two on a 4-door, none on an open car
+  doors: [number, number][];
+  // a stock car's welded door skin: a steel sheet, no window
+  sheet?: boolean;
+}
+
+// the shares a car's doors span (EST from the cars' side views: the front door from the
+// windscreen's foot back, a 4-door's rear door to the rear wheel's arch, a 2-door's one long door)
+const FOUR_DOORS: [number, number][] = [[0.48, 0.68], [0.3, 0.48]];
+const TWO_DOORS: [number, number][] = [[0.4, 0.68]];
+// each car's doors (the vans and the bus: ?carparts step 2; the single-seaters and the buggy have
+// their own open parts)
+export const CAR_DOORS: Record<string, CarDoors> = {
+  'hatch-fwd': { doors: FOUR_DOORS },   // Golf GTI Mk7: the 5-door (owner)
+  'hatch-rwd': { doors: FOUR_DOORS },   // M135i F20: 5-door
+  'saloon-rwd': { doors: FOUR_DOORS },
+  'wrz-awd': { doors: FOUR_DOORS },
+  'estate-4x4': { doors: FOUR_DOORS },
+  'muscle-rwd': { doors: [[0.38, 0.66]] },   // Chevelle: the long coupe door
+  'rally-4x4': { doors: [[0.4, 0.66]] },
+  naffcar: { doors: [[0.36, 0.64]], sheet: true },
+  tractor: { doors: [[0.38, 0.56]] },   // Fastrac: the cab's door (EST, both sides)
+  'mini-fwd': { doors: [[0.4, 0.66]] },
+  'lambo-awd': { doors: [[0.44, 0.68]] },
+  'mikra-r1': { doors: TWO_DOORS },
+  'kit-2l': { doors: TWO_DOORS },
+  'rx-super': { doors: TWO_DOORS },
+  'banger-f2': { doors: [[0.36, 0.62]], sheet: true },
+  'drift-s13': { doors: TWO_DOORS },
+  'porch-gt3r': { doors: [[0.44, 0.7]] },
+  'bmv-m4gt3': { doors: [[0.38, 0.64]] },
+  'seven-420r': { doors: [] },   // the Seven: no doors
+  'effing-tt': { doors: [[0.42, 0.62]] },
+  'civvic-btcc': { doors: FOUR_DOORS },
+  'defunder-110': { doors: [[0.47, 0.62], [0.32, 0.47]] },
+  'focust-st': { doors: FOUR_DOORS },
+  'cleo-cup': { doors: TWO_DOORS },
+  'cleo-rs200': { doors: TWO_DOORS },
+  ts010: { doors: [[0.46, 0.62]] },   // the canopy's small doors
+  'saxo-kit': { doors: TWO_DOORS },
+  'strange-l322': { doors: FOUR_DOORS },
+  'saxo-vtr': { doors: TWO_DOORS },
+  'tesla-m3': { doors: FOUR_DOORS },
+};
+
+/**
+ * ?carparts: the door at a damage corner - the front corners a car's front door, the rear its
+ * rear door; null where it has none there (a 2-door's rear corner: a side hit dents it and breaks
+ * glass, nothing comes off); undefined for a car with no row (its parts as before).
+ * @param carId the car
+ * @param corner the damage corner (0, 1 front)
+ * @returns the door's [from, until] shares, null, or undefined
+ */
+export function doorAt(carId: string, corner: number): [number, number] | null | undefined {
+  const row = CAR_DOORS[String(carId).split('#')[0]];
+  if (!row) return undefined;
+  return row.doors[corner < 2 ? 0 : 1] ?? null;
+}
+
 /**
  * Whether a car has no such part to lose: an electric car's exhaust or engine.
  * @param bits the car's bits

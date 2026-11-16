@@ -13,6 +13,19 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'carparts',
+    added: '2026-11-16',
+    name: 'Crash parts, step 1: each car with its own doors - a 2-door loses two, a 4-door four, '
+      + 'each from its own place and at its own length',
+    where: 'Test link + &carparts=1 (+ &underskin=1): side-swipe a 2-door (the Chevvy, the Mini, '
+      + 'the Porch, the Clio, the Saxo) and a 4-door (the Golf, the 3 Series, the Defunder)',
+    try: 'Hit a coupe hard at a rear corner side-on: it dents and loses glass, but no door comes '
+      + 'off; a 4-door loses its rear door from behind the front one; the Seven never loses a '
+      + 'door; the stock cars throw a windowless steel skin.',
+    wrong: 'A 2-door throwing a second door, a door hole in the wrong place, a door far too short '
+      + 'or long, a Seven door.',
+  },
+  {
     id: 'reversefix',
     added: '2026-11-16',
     name: 'Reverse as in life, every car: traction control works going backwards, and the 20 km/h '
