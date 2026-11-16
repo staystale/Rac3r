@@ -72,4 +72,8 @@ export const FIX = {
   // a big level's tyre marks kept whole in tiles, never wiped by the window's move: the oldest
   // fade first (marktiles.ts; marks.ts useTiles)
   marksage: atLoad('marksage'),
+  // BLIGHTY PARK, Blyton Park from the map: its rallycross at full size (the gravel loop invented:
+  // no map of the real course) and the Outer circuit at half size (blightyrx-venue.ts,
+  // blighty-venue.ts)
+  blighty: atLoad('blighty'),
 };

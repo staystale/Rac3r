@@ -1,0 +1,114 @@
+{
+  "osm": "blighty.osm.json",
+  "origin": [
+    53.46,
+    -0.69
+  ],
+  "turnDeg": 0,
+  "clip": [
+    -420,
+    -320,
+    280,
+    400
+  ],
+  "reachM": 150,
+  "skip": [
+    1240237936,
+    1240237937
+  ],
+  "race": [
+    367128319,
+    367128321,
+    451566692
+  ],
+  "names": {
+    "129241665": "Outer",
+    "367128319": "Link",
+    "367128321": "Spur",
+    "451566692": "Connector"
+  },
+  "out": "src/world/levels/venues/blightyrx.ts",
+  "exportName": "BLIGHTYRX_VENUE",
+  "layouts": {
+    "rx": {
+      "through": [
+        "Outer 6",
+        "Spur",
+        "Gravel",
+        "Spur 3",
+        "Outer 3",
+        "Link"
+      ],
+      "avoid": [
+        "Spur 2",
+        "Outer 7",
+        "Outer",
+        "Outer 2",
+        "Outer 4",
+        "Outer 5",
+        "Connector"
+      ]
+    }
+  },
+  "extra": [
+    {
+      "source": "INVENTED (no map of the real course found: the venue says only \"a mile-long course\" on \"the Northern part of the site\", \"part asphalt and part gravel\" - blytonpark.co.uk; the owner 11-17: the gravel loop as proposed, flagged not real): a gravel loop through the infield off the Spur and back onto it",
+      "tags": {
+        "highway": "raceway",
+        "name": "Gravel",
+        "sport": "motor",
+        "surface": "gravel"
+      },
+      "pts": [
+        [
+          53.4606413,
+          -0.6899244
+        ],
+        [
+          53.4605428,
+          -0.6904526
+        ],
+        [
+          53.4604071,
+          -0.6910562
+        ],
+        [
+          53.4602262,
+          -0.6915842
+        ],
+        [
+          53.4600452,
+          -0.6919313
+        ],
+        [
+          53.4598643,
+          -0.6921123
+        ],
+        [
+          53.4596834,
+          -0.692052
+        ],
+        [
+          53.4595477,
+          -0.6917804
+        ],
+        [
+          53.4595024,
+          -0.6913579
+        ],
+        [
+          53.4595477,
+          -0.6909053
+        ],
+        [
+          53.4595929,
+          -0.6906035
+        ],
+        [
+          53.4595126,
+          -0.6902343
+        ]
+      ]
+    }
+  ]
+}
