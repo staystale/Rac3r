@@ -154,6 +154,23 @@ BUGS (each behind its own switch, measured, then a test link):
     witness OK; no cap or spread needed ("police already bother whoever is nearest").
 15. TRAFFIC LEAVES BY THE SLIPS, STOPS FOR FUEL, JOINS FROM THE ON-RAMPS: PASSED 11-16 with the rates
     raised to a measured 2 in 12 / 5 in 40, the default (TODO-DONE).
+15b. FUEL MISSES CARRIED ON (owner 11-16: "Fuel misses stay left for the next station: YES"): BUILT
+    behind ?fuelcarry=1 (FIX.fuelcarry, ai/trafficTrips.ts goForFuel / goForNextStation; testlist
+    'fuelcarry'): a car going for fuel that is in reach with the pumps taken tries again while still
+    in reach; one past its station (not in the nearside lane in time, or the pumps never free) stays
+    in the nearside lane and goes for the next station ahead. The roll unchanged (FUEL_ROLL 0.36).
+    MEASURED (tools/scratch/_hwtrips.mjs, 480 km: motorway / dual x countryside / Deaf Valley x seeds
+    4242 / 7 / 11, 40 km each, traffic 0.6, the laptop; off is JOB 1's run of the same):
+    | | pulled in of the cars passing | traffic | police | won | missed | carried on |
+    |---|---|---|---|---|---|---|
+    | off | 58 / 433 (13.4 %) | 40 / 363 (11.0 %) | 18 / 70 (25.7 %) | 164 / 414 | 84 | - |
+    | on | 63 / 448 (14.1 %) | 42 / 355 (11.8 %) | 21 / 93 (22.6 %) | 183 / 437 | 7 | 17 |
+    | on, roll 0.32 | 62 / 432 (14.4 %) | 42 / 344 (12.2 %) | 20 / 88 (22.7 %) | 161 / 423 | 2 | 22 |
+    (the misses nearly gone, the share pulling in the same within the runs' noise, ~1.7 % either way at
+    this size - so the roll is kept; the owner's 5 in 40 is 12.5 %). Leaving 15.1 % on (16.0 % off: a
+    car waiting for its next station rolls for no slip). Joins 8, 5 merged, 3 held. Traffic step
+    121-256 us (node). PROOF: switch off, _hwtrips 160 km (seeds 4242 / 7) the same line for line as
+    the base (round95) but the step timings.
 
 RACE TRACKS:
 16. PIT STOPS - ALL QUESTIONS ANSWERED 11-15 (build after the 10 cars, one switch):

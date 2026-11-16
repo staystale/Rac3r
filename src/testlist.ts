@@ -13,6 +13,18 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'fuelcarry',
+    added: '2026-11-16',
+    name: 'Traffic going for fuel that misses a station tries the next one',
+    where: 'Test link + &fuelcarry=1: the highway (motorway, dual, Deaf Valley), petrol stations '
+      + 'in the lay-bys',
+    try: 'Watch a car indicating into the left lane before a station: if it is blocked or the '
+      + 'pumps are taken, it stays in the left lane and pulls in at the next one. About 1 car in '
+      + '8 passing a station should still pull in.',
+    wrong: 'A car crawling in the left lane for miles, a queue forming behind one, cars pulling '
+      + 'in much more often than before, a car swerving across lanes for the pumps.',
+  },
+  {
     id: 'focust',
     added: '2026-11-16',
     name: 'New car: the Fjord Focust ST (a Ford Focus ST Mk4), ROAD / Hatch, and in the '

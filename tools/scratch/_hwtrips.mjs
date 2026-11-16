@@ -169,7 +169,8 @@ function run(road, scenery, seed) {
   const world = newWorld(road, scenery, seed), list = world.traffic.list;
   const slips = tally(), fuel = tally();
   const joins = { put: 0, merged: 0, held: 0, holdS: [], lost: 0, rampS: [] };
-  const rolls = { slip: 0, slipWon: 0, slipMissed: 0, slipCarried: 0, fuel: 0, fuelWon: 0, fuelMissed: 0 };
+  const rolls = { slip: 0, slipWon: 0, slipMissed: 0, slipCarried: 0, fuel: 0, fuelWon: 0, fuelMissed: 0,
+    fuelCarried: 0 };
   const memo = new Map();
   while ((level._hw.driven || 0) < KM * 1000 && world.time < KM * 90) {
     stepWorld(world);
@@ -226,6 +227,8 @@ function run(road, scenery, seed) {
         seen.tripPath = false;
       }
       // (a car that missed its slip going on for the next one)
+      if (trip && trip === seen.trip && trip.kind === 'fuel' && trip.at !== seen.tripAt)
+        rolls.fuelCarried++;
       if (trip && trip === seen.trip && trip.kind === 'exit' && trip.at !== seen.tripAt) {
         rolls.slipCarried++;
         note(world, 'exit carried on', { from: seen.tripAt, to: trip.at, lane: slot.lane });
@@ -269,7 +272,7 @@ function run(road, scenery, seed) {
     `  SLIPS traffic took ${share(slips.took, slips.pass)}, police ${share(slips.polTook,
       slips.polPass)}; rolls ${rolls.slip} won ${rolls.slipWon} missed ${rolls.slipMissed} carried on ${rolls.slipCarried}`,
     `  FUEL  traffic in ${share(fuel.took, fuel.pass)}, police ${share(fuel.polTook,
-      fuel.polPass)}; rolls ${rolls.fuel} won ${rolls.fuelWon} missed ${rolls.fuelMissed}`,
+      fuel.polPass)}; rolls ${rolls.fuel} won ${rolls.fuelWon} missed ${rolls.fuelMissed} carried on ${rolls.fuelCarried}`,
     `  JOINS put ${joins.put}, merged ${joins.merged} (ramp to lane median ${median(joins.rampS)}`
       + ` s), held ${joins.held} (median ${median(joins.holdS)} s), lost before merging`
       + ` ${joins.lost}`,

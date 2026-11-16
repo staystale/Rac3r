@@ -53,6 +53,9 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
+  // the highway traffic going for fuel that misses its station (not in the nearside lane in
+  // reach, or the pumps taken) stays in the nearside lane for the next one (ai/trafficTrips.ts)
+  fuelcarry: atLoad('fuelcarry'),
   // a chasing police car sounds a siren, the light bar's twin (game/sirens.ts, audiosiren.ts)
   siren: atLoad('siren'),
   // UNDER THE SKIN: what a lost panel shows - the engine and radiator in the bay, a corner's

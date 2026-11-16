@@ -392,8 +392,10 @@ clear, no overtaking), indicates left from `SIGNAL_M` (250 m) before a slip, and
 nearside lane `LEAD_M` (55 m) before the slip's line `INTO_SLIP_M` (30 m) in - a curve from where it
 is onto the line (`junctions.ts curveBetween`), then the line - else it has missed it and, staying
 in the nearside lane, goes for the next slip ahead (`goForNextExit`; none loaded yet: it looks each
-step); for fuel the pull-in (`trafficFuel.ts pullIn`) once in reach. On its slip a car follows the
-line (`trafficPath.ts drivePath`): carried (its own path speed - the road frame reads only the share
+step); for fuel the pull-in (`trafficFuel.ts pullIn`) once in reach. (`?fuelcarry=1`,
+`FIX.fuelcarry`, under test: with the pumps taken it tries again while in reach; past its station it
+stays in the nearside lane for the next, `goForNextStation`.) On its slip a car follows the line
+(`trafficPath.ts drivePath`): carried (its own path speed - the road frame reads only the share
 along the road) or, near a real car, the traffic's pursuit law (`trafficPhys.ts pursuitInput`) at a
 point ahead on it; its speed eased for the bends (2.5 m/s^2 sideways), stopped `GATE_SHORT_M` (6 m)
 short of a slip's gate, behind any car on its path ahead. Out of sight a car that left is put back
