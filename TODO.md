@@ -93,7 +93,13 @@ records in `TODO-DONE.md` (PASSED 11-12). On the phone now:
   clear, blits and HUD at this size); (2) the world's 2D drawing on the GPU: GL finish work 6-7.5
   ms with the world, 2.1 without, while its CPU time is under 2 ms; (3) slow frames here are our
   JS (work 18-20 ms) begun late (5-6 ms: something ran before the frame - 4-8 long tasks, 0.5-1.3 s,
-  in 40 s). The phone's numbers decide; nothing is changed yet.
+  in 40 s). THE PC (GTX 980 Ti via ANGLE, 4 cores, its browser in the services session - each
+  frame's callback began ~10 ms late there; the same run): 2D paint work day 5.7, NIGHT 8.6, RAIN
+  10.2 ms; GL finish work 1.0-1.3; the night layer's CPU 4.0 ms (5.4 in slow frames); slow frames
+  day 3.3 %, night 47.8 %, rain 27.5 % - (4) the night layer and the rain add 2D paint there, and
+  the night layer's CPU, on a slower CPU, is the biggest named slice. The phone's numbers decide;
+  nothing is changed yet.
+  Switch off: renderhash highway + thruston SAME (PC, against round80).
 
 ## 3. OPEN, IN THE OWNER'S ORDER
 
