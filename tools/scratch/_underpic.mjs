@@ -5,7 +5,7 @@
 import { writeFileSync } from 'node:fs';
 import { startServer, launchBrowser, gotoGame } from '../lib/browser.mjs';
 const [OUT = 'tools/scratch/_underpic.png', carsArg = 'hatch-fwd,saloon-rwd,wrz-awd',
-  query = 'underskin=1'] = process.argv.slice(2);
+  query = 'dmgmore=1'] = process.argv.slice(2);
 const server = await startServer();
 const browser = await launchBrowser();
 try {
@@ -21,8 +21,8 @@ try {
     for (const id of ids) {
       const car = makeCar(id), spec = drawnSpec(car.spec);
       const torn = { wheelOff: [true, false, false, true], suspOff: [0, 0, 0, 0], spec: car.spec };
-      wheelBits(torn, 0, Math.random, 0.8);
-      wheelBits(torn, 3, Math.random, 0.4);
+      wheelBits(torn, 0, 0.8);
+      wheelBits(torn, 3, 0.4);
       const widthPx = Math.round(car.spec.wid * 17.3);
       pics.push(paintUnderProfile(spec, widthPx), paintUnderProfile(spec, widthPx, torn));
     }

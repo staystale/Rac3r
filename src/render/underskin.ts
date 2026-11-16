@@ -1,4 +1,4 @@
-// render/underskin.ts - UNDER THE SKIN (?underskin): what a lost panel shows, by the car's own
+// render/underskin.ts - UNDER THE SKIN: what a lost panel shows, by the car's own
 // layout (carbits.ts: where the engine sits and how it lies, where the radiator is; its driven
 // wheels): the bonnet's bay its engine and radiator (a mid-engined car's front lid its radiators);
 // a boot's bay the engine when it sits behind; a wing's well that corner's strut, arms and - on a

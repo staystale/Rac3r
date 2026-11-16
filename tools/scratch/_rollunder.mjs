@@ -6,7 +6,7 @@
 // node tools/scratch/_rollunder.mjs <dir> [cars] [extra query]
 import { mkdirSync } from 'node:fs';
 import { startServer, launchBrowser, gotoGame } from '../lib/browser.mjs';
-const [OUT = 'tools/scratch/rollunder', carsArg = 'hatch-fwd,saloon-rwd', query = 'underskin=1']
+const [OUT = 'tools/scratch/rollunder', carsArg = 'hatch-fwd,saloon-rwd', query = 'dmgmore=1']
   = process.argv.slice(2);
 mkdirSync(OUT, { recursive: true });
 const server = await startServer();
@@ -31,8 +31,8 @@ try {
           car.dmg = [0.05, 0.01, 0.01, 0.05];
           if (isTorn) {
             car.wheelOff = [true, false, false, true];
-            wheelBits(car, 0, Math.random, 0.8);
-            wheelBits(car, 3, Math.random, 0.4);
+            wheelBits(car, 0, 0.8);
+            wheelBits(car, 3, 0.4);
             car.partSpawn = [];
           }
           game.renderer.debugZoom(4);

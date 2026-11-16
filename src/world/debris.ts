@@ -29,9 +29,7 @@ const PART_HIT = 0.3, PART_SPAN = 0.4, PART_P_MIN = 0.35, END_ON = 0.65, SIDE_ON
 // engine only from ENGINE_HIT
 // (both corners of an end are hit: ~2x these a crash - MEASURED _bittest.mjs)
 const BIG_HIT = 0.5, ENGINE_HIT = 0.8, BONNET_P = 0.14, EXHAUST_P = 0.17, REAR_P = 0.12;
-const MIRROR_P = 0.12, ENGINE_P = 0.04;
-// (?underskin: none by dice - an end crushed past its engine throws it: crushedEngine)
-const ENGINE_DICE_P = FIX.underskin ? 0 : ENGINE_P;
+const MIRROR_P = 0.12;
 // (owner 11-07: "can they have a chance to come off in smaller knocks but keep it low"):
 // a corner's hit from SMALL_FROM to PART_HIT knocks its part off at most SMALL_P of the time
 const SMALL_FROM = 0.08, SMALL_P = 0.06;
@@ -59,14 +57,14 @@ export interface DebrisCar {
   spec?: { id?: string; kind?: string; paint?: string; trim?: string; lf?: number; lr?: number;
     trackWidth?: number; trackR?: number; drive?: number };
   partSpawn?: { corner: number; kind: string }[];
-  // ?carparts: loose wheels to throw (game/sim.ts; SPARE_CORNER the spare off the rear door)
+  // loose wheels to throw (game/sim.ts; SPARE_CORNER the spare off the rear door)
   wheelSpawn?: number[];
   partsOff?: number;     // a bit per part gone (until a repair): PART_BIT
   // the parts gone, "kind:corner" each joined by "," (render/carparts.ts draws the car without
   // them)
   partLost?: string;
   glassOut?: number;     // a bit per damage corner whose window is gone (until a repair)
-  // ?underskin: per corner, the suspension thrown with its wheel (SUSP_* bits; until a repair)
+  // per corner, the suspension thrown with its wheel (SUSP_* bits; until a repair)
   suspOff?: number[];
 }
 /** A loose part on the ground (a cones.ts object). */
@@ -122,7 +120,7 @@ function partOff(car: DebrisCar, corner: number, add: number, endW: number,
 }
 
 /**
- * ?carparts: a part asked of a corner where the car has none to throw - a door where it has
+ * a part asked of a corner where the car has none to throw - a door where it has
  * none (a 2-door's rear), a welded rear wing (it crushes; step 3), bumpers or mirrors it has none
  * of (the Seven; the trophy truck, the TS010).
  * @param car the car
@@ -131,7 +129,6 @@ function partOff(car: DebrisCar, corner: number, add: number, endW: number,
  * @returns no door there
  */
 function hasNoDoor(car: DebrisCar, kind: string, corner: number): boolean {
-  if (!FIX.carparts) return false;
   const carId = car.spec?.id || '', row = doorsOf(carId);
   if (kind === 'panel') return doorAt(carId, corner) === null;
   if (kind === 'wing') return corner >= 2 && isRearWingWelded(carId);
@@ -140,23 +137,23 @@ function hasNoDoor(car: DebrisCar, kind: string, corner: number): boolean {
 }
 
 /**
- * ?carparts: a van's rear doors - a pair, each lost on its own side.
+ * a van's rear doors - a pair, each lost on its own side.
  * @param car the car
  * @param kind the part
  * @returns its boot is a pair
  */
-const isTwin = (car: DebrisCar, kind: string) => FIX.carparts && kind === 'boot'
+const isTwin = (car: DebrisCar, kind: string) => kind === 'boot'
   && (!!doorsOf(car.spec?.id || '')?.twinRear || !!doorsOf(car.spec?.id || '')?.splitTailgate);
 
 /**
- * The part at a car's tail: its bits' boot lid or spoiler, or (?carparts) its own rear lid where
+ * The part at a car's tail: its bits' boot lid or spoiler, or its own rear lid where
  * its bits have none (the Huracan's engine cover).
  * @param car the car
  * @returns the part's kind, or 'none'
  */
 function rearLidKind(car: DebrisCar): string {
   const rear = bitsOf(car.spec?.id || '').rear;
-  if (rear !== 'none' || !FIX.carparts) return rear;
+  if (rear !== 'none') return rear;
   return doorsOf(car.spec?.id || '')?.rearLid ? 'boot' : 'none';
 }
 
@@ -166,13 +163,13 @@ export const SPARE_CORNER = 4;
 const SPARE_P = 0.25;
 
 /**
- * ?carparts: a hard hit at the back may throw the spare wheel off its rear door (the Defender) -
+ * a hard hit at the back may throw the spare wheel off its rear door (the Defender) -
  * once, as a loose wheel; gone from the sprite ('spare').
  * @param car the car
  * @param rnd the random source
  */
 function spareOff(car: DebrisCar, rnd: () => number): void {
-  if (!FIX.carparts || !doorsOf(car.spec?.id || '')?.spare) return;
+  if (!doorsOf(car.spec?.id || '')?.spare) return;
   if ((car.partLost || '').includes('spare') || rnd() >= SPARE_P) return;
   car.partLost = (car.partLost ? car.partLost + ',' : '') + 'spare:2';
   (car.wheelSpawn || (car.wheelSpawn = [])).push(SPARE_CORNER);
@@ -196,7 +193,7 @@ function rearParts(car: DebrisCar, off: (kind: string, chance: number) => void,
  * a bad hit may throw the car's own BITS (carbits.ts) - each at most once until a
  * repair: end-on at the front its bonnet (BONNET_P from BIG_HIT), at the back its exhaust
  * (EXHAUST_P) and its boot lid or spoiler (REAR_P), from the side a mirror (MIRROR_P from
- * PART_HIT); the engine only in the very worst, ENGINE_HIT+ at the end it sits (ENGINE_P).
+ * PART_HIT). The engine goes only when the crush reaches it (crushedEngine).
  * @param car the car
  * @param corner the damage corner (0, 1 front)
  * @param add the damage the hit added to it
@@ -220,8 +217,10 @@ function bigParts(car: DebrisCar, corner: number, add: number, endW: number,
   if (endW <= END_ON || add < BIG_HIT) return;
   if (front && bits.front === 'bonnet') off('bonnet', BONNET_P);
   if (!front) rearParts(car, off, rnd);
-  // (?underskin: the engine goes only when the crush reaches it - crushedEngine, no dice)
-  if (add >= ENGINE_HIT && front === (bits.engine === 'front')) off('engine', ENGINE_DICE_P);
+  // (the engine goes only when the crush reaches it - crushedEngine; the draw its old dice made
+  // here is still drawn, so a crash's random stream is the one it was)
+  if (add >= ENGINE_HIT && front === (bits.engine === 'front') && !hasNo(bits, 'engine')
+    && !has('engine')) rnd();
 }
 
 /**
@@ -314,13 +313,13 @@ export function rollParts(car: DebrisCar, kind: string, side: number, scale: num
   }
 }
 
-// ?underskin (owner 11-16: "they should all emit true to the amount knocked off the car"): a
+// (owner 11-16: "they should all emit true to the amount knocked off the car"): a
 // wheel torn off ALWAYS takes its hub, and its suspension by how hard the hit was - no dice. Each
 // piece thrown is gone from the car (SUSP_* bits in car.suspOff, render/cars.ts draws what stays,
 // snapped); a driven wheel always takes its drive shaft's outer end.
 export const SUSP_STRUT = 1, SUSP_WISHBONE = 2, SUSP_SHAFT = 4;
-// a FRONT wheel torn off takes its TRACK ROD - the steering's part at that corner (owner 11-16:
-// rolling throws "steering and suspension parts")
+// ?dmgmore: a FRONT wheel torn off takes its TRACK ROD - the steering's part at that corner
+// (owner 11-16: rolling throws "steering and suspension parts")
 export const SUSP_ROD = 8;
 // the tearing hit's size, 0..1 (damage.ts: (add - WHEEL_HIT) / WHEEL_HIT), from which it takes the
 // STRUT, and from which the WISHBONE too (a closed car); an open car always its wishbone, from
@@ -329,28 +328,23 @@ const STRUT_FROM = 0.3, WISHBONE_FROM = 0.65, OPEN_SECOND = 0.5;
 
 /**
  * a wheel torn off takes its suspension with it - an open car's WISHBONES, a closed car's STRUT
- * and maybe its lower arm, a driven wheel maybe its DRIVE SHAFT (damage.ts, physics/openwheel.ts).
- * With ?underskin it is decided by the hit's size and recorded (car.suspOff), never rolled.
+ * and maybe its lower arm, a driven wheel its DRIVE SHAFT (damage.ts, physics/openwheel.ts): by
+ * the hit's size, recorded (car.suspOff), never rolled.
  * @param car the car
  * @param corner the wheel's corner
- * @param rnd the random source
- * @param size the tearing hit's size, 0..1 (?underskin)
+ * @param size the tearing hit's size, 0..1
  */
 export function wheelBits(car: Pick<DebrisCar, 'spec' | 'partSpawn' | 'suspOff'>, corner: number,
-  rnd: () => number, size = 0.5): void {
+  size = 0.5): void {
   const open = car.spec?.kind === 'track' || car.spec?.kind === 'grass';
   const spawn = (kind: string) => (car.partSpawn || (car.partSpawn = [])).push({ corner, kind });
   // a DRIVEN wheel's drive shaft may come with it (owner 11-07: "can drive shafts also be an
   // object that can come out")
   const driven = isDrivenCorner(car.spec?.drive, corner);
-  if (FIX.underskin) { suspensionOff(car, corner, { open, driven, size }, spawn); return; }
-  if (driven && rnd() < 0.5) spawn('shaft');
-  if (open) { if (rnd() < 0.6) spawn('wishbone'); if (rnd() < 0.25) spawn('wishbone'); return; }
-  if (rnd() < 0.4) spawn('strut');
-  if (rnd() < 0.25) spawn('wishbone');
+  suspensionOff(car, corner, { open, driven, size }, spawn);
 }
 
-// ?underskin (owner 11-16: "if the car crumples so much the engine is exposed and the bumpers are
+// (owner 11-16: "if the car crumples so much the engine is exposed and the bumpers are
 // pushed past it the engine should eject"): an end crushed this deep (its corners' mean end
 // crush, 0..1) has reached its engine - the bumper pushed back past the engine's front - and
 // throws it, no dice. Measured on the drawing (render/cardamage.ts endCrushPx, 0.26 of the length
@@ -364,12 +358,11 @@ const ENGINE_REACHED: Record<string, number> = { front: 0.75, rear: 0.7, mid: 0.
 const CRUSHED_OPEN = 0.9;
 
 /**
- * ?underskin: an end crushed past its engine throws the engine (once, until a repair).
+ * An end crushed past its engine throws the engine (once, until a repair).
  * @param car the car
  * @param crushEnds each corner's end crush, 0..1 (damage.ts crushL)
  */
 export function crushedEngine(car: DebrisCar, crushEnds: number[]): void {
-  if (!FIX.underskin) return;
   const bits = bitsOf(car.spec?.id || ''), lost = car.partLost || '';
   if (hasNo(bits, 'engine') || lost.includes('engine')) return;
   const front = bits.engine === 'front';
@@ -392,7 +385,7 @@ function isDrivenCorner(drive = 0, corner: number): boolean {
 }
 
 /**
- * ?underskin: what a torn-off wheel takes, by the hit's size (no dice), each piece recorded as gone
+ * what a torn-off wheel takes, by the hit's size (no dice), each piece recorded as gone
  * from the car (car.suspOff, SUSP_* bits) and thrown.
  * @param car the car
  * @param corner the wheel's corner
@@ -407,7 +400,7 @@ function suspensionOff(car: Pick<DebrisCar, 'suspOff'>, corner: number,
     off[corner] |= bit;
   };
   if (wheel.driven) gone(SUSP_SHAFT, 'shaft');
-  if (corner < 2) gone(SUSP_ROD, 'rod');
+  if (FIX.dmgmore && corner < 2) gone(SUSP_ROD, 'rod');
   if (wheel.open) {
     gone(SUSP_WISHBONE, 'wishbone');
     if (wheel.size >= OPEN_SECOND) spawn('wishbone');
@@ -459,7 +452,7 @@ function shatterGlass(car: DebrisCar, corner: number, rnd: () => number) {
   const aimY = speed > 1 ? car.vy / speed : Math.sin(car.heading);
   // (a car with more glass - the bus's two decks - throws more of it, further: its cells by its
   // glass, its reach by the root of it, the same glass to the square metre)
-  const glass = (FIX.carparts && doorsOf(car.spec?.id || '')?.glass)
+  const glass = doorsOf(car.spec?.id || '')?.glass
     || bitsOf(car.spec?.id || '').glass || 1, reach = GLASS_REACH_M * Math.sqrt(glass);
   const count = Math.round((GLASS_CELLS_MIN + Math.floor(rnd() * (GLASS_CELLS_MORE + 1))) * glass);
   for (let i = 0; i < count; i++) {

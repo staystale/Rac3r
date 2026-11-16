@@ -509,7 +509,7 @@ objects (`cones.ts`; DEBRIS kinds `bumper`, `wing`, `panel` in the car's paint a
 may break a window (not the track car, banger, grass car): wear cells take the cover 'glass'
 (no grip change; GPU field kind 6, specks whose glints follow the camera); the first tyre pass
 sweeps it and may puncture that tyre (`world/pass.ts PASS`: the wheel making the pass).
-UNDER THE SKIN (under test, `?underskin=1`, `FIX.underskin`; `render/underskin.ts`): a car drawn
+UNDER THE SKIN (`render/underskin.ts`; the default since 11-17): a car drawn
 without a lost part (`render/carparts.ts withoutParts`, `render/cars.ts lostSprite`) shows what is
 under it by its own layout (`carbits.ts`: `engine` front / mid, `mount` long / trans, `radiator`
 front / rear / sides; its driven wheels `spec.drive`), painted once with that sprite: a BONNET's bay
@@ -550,21 +550,22 @@ the side crush, each at most a tyre) and the arms run to it - drawn only, the ph
 where it was; the open cars' arms reach the pushed hub the same way (`drawWishbones`).
 ROUND 4 (and the owner's bug 2): a closed car's exposed arms, shaft and track rod keep a lighter
 steel edge round their dark line (`cars.ts WELL_EDGE`, `armLines`; dark alone was lost on dark
-tarmac), and a rolled car's underside picture carries each corner as it is (`carprofile.ts
-underCorner`, repainted per damage step by `rollbody.ts paintsOf`): its subframe rail, the
+tarmac), and a rolled car's underside picture carries each wheel's wishbone and a front's track rod
+(`carprofile.ts underArms`). ?dmgmore (`FIX.dmgmore`, under test): the underside carries each
+corner as it is (`carprofile.ts underCorner`, repainted per damage step by `rollbody.ts paintsOf`): its subframe rail, the
 wishbone's arms, a driven wheel's shaft, a front's track rod, snapped where the wheel was torn off
 (the upright's `SNAP_SHARE`s, the `SUSP_*` bits; a strut gone leaves its tower's hole). A front wheel
 torn off takes its track rod (`debris.ts SUSP_ROD`, thrown as a `rod`; its stub drawn at the rack,
 `carcorners.ts drawSnappedCorner`); a roll tears off only the wheels on the face that meets the
 ground (`openwheel.ts rollCorners`: a side's two, back on its wheels the landing side's two,
 `roll.ts` passing it; on the roof none on a closed car, all four on an open one). An exposed corner is open to the ROAD (no well fill; a lost wing's region cleared
-right through, `carparts.ts lostPixel` keeps no inner edge strip for a wing with the switch); the
+right through, `carparts.ts lostPixel` keeps no inner edge strip for a wing); the
 arms, shaft and track rod are the open cars' own (`WELL_ARMS = OPEN_ARMS`: dark, 1 px), drawn
 before the tyre (`carcorners.ts drawExposedCorner`), the strut's spring and top mount after it,
 over the tyre's inner edge (`drawExposedStrut`) when the corner is severely crushed (damage 0.65,
 `STRUT_ALL_DAMAGE`, or the wheel pushed half a tyre, `STRUT_ALL_PUSH`); else at the opening's inner
 lip, its inner half under the body still there - never clipped against the tyre. Thrown suspension (`wishbone`, `strut`,
-`shaft`) is drawn first of the loose objects, under the loose wheels (`objects.ts drawCones`,
+`shaft`, `rod`) is drawn first of the loose objects, under the loose wheels (`objects.ts drawCones`,
 `SUSPENSION_KINDS`).
 `tools/scratch/_skinshots.mjs` photographs every car crushed and with its parts off (front, side,
 rear; 844x390, 390x844, a close-up and the phone's view cropped).

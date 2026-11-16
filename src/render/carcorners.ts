@@ -1,4 +1,4 @@
-// render/carcorners.ts - ?underskin: A WHEEL CORNER THE DAMAGE EXPOSES, drawn each frame under
+// render/carcorners.ts - A WHEEL CORNER THE DAMAGE EXPOSES, drawn each frame under
 // the body (render/cars.ts drawCarWheels), so it shows only through what the body really lacks -
 // a lost wing's hole (render/carparts.ts withoutParts) or the crushed edge cut back past the wheel
 // (render/cardamage.ts) - and so its arms, track rod and drive shaft STEER with the front wheel.
@@ -194,7 +194,7 @@ function strutTop(ctx: CanvasRenderingContext2D, centreX: number, centreY: numbe
   ctx.fillRect(x + 2, y + 2, 1, 1);
 }
 
-// ?underskin: m in from the car's side where a closed car's exposed arms meet the chassis (its
+// m in from the car's side where a closed car's exposed arms meet the chassis (its
 // SUBFRAME; from the car's middle they ran under the body and only the strut showed). Owner 11-16:
 // "cars should have a sub frame too like real life or the wishbones attach to nothing" - a dark
 // rail along the car there, m either side of the axle, px thick
@@ -212,7 +212,7 @@ const SNAP_HUB = { x: 0, y: 0 };
 const SNAP_SHIFT: CornerShift = { x: 0, y: 0, exposed: true };
 
 /**
- * ?underskin: a closed car's SUBFRAME rail at one corner, where its arms bolt on (drawn before the
+ * a closed car's SUBFRAME rail at one corner, where its arms bolt on (drawn before the
  * arms and the body: it shows only through the corner's opening).
  * @param ctx the canvas (the car's frame, sprite px)
  * @param axleX the axle, m
@@ -228,7 +228,7 @@ export function drawSubframe(ctx: CanvasRenderingContext2D, axleX: number, inner
 }
 
 /**
- * ?underskin: a closed car's corner whose wheel was torn off - no hub, the road through the torn
+ * a closed car's corner whose wheel was torn off - no hub, the road through the torn
  * wing, the subframe, the arms and shaft that stayed snapped short, the strut if it stayed
  * (world/debris.ts wheelBits: what was thrown is gone from the car, car.suspOff).
  * @param ctx the canvas (the car's frame, sprite px)

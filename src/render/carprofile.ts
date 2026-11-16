@@ -340,7 +340,25 @@ function underLine(rect: (x: number, y: number, w: number, h: number, col: strin
 }
 
 /**
- * ?underskin: one corner seen from below, as the upright car draws it (render/carcorners.ts): the
+ * The arms on the underside picture: each wheel's two wishbone arms from by the middle out to its
+ * hub, a front's track rod - lines of 1 px squares.
+ * @param rect the picture's block painter
+ * @param place where the corners sit
+ */
+function underArms(rect: (x: number, y: number, w: number, h: number, col: string) => void,
+  place: UnderPlace): void {
+  const { frontAxle, rearAxle, mid, track } = place, spread = 0.2 * SPRITE_PPM;
+  for (const axle of [frontAxle, rearAxle]) for (const side of [-1, 1]) {
+    const hubY = mid + side * track / 2, inner = mid + side * 2;
+    underLine(rect, [axle - spread, inner], [axle, hubY], UNDER_ARM);
+    underLine(rect, [axle + spread, inner], [axle, hubY], UNDER_ARM);
+    if (axle === frontAxle) underLine(rect, [axle - spread * 0.7, inner],
+      [axle - spread * 0.7, hubY - side], UNDER_ARM);
+  }
+}
+
+/**
+ * ?dmgmore: one corner seen from below, as the upright car draws it (render/carcorners.ts): the
  * SUBFRAME rail; the wishbone's two arms from it to the hub; a driven wheel's DRIVE SHAFT from the
  * middle; a front's TRACK ROD. A wheel torn off (state.wheelOff) leaves them snapped - the arms
  * SNAP_SHARE of the way out (less with the wishbone gone), the shaft and rod stubs when they went
@@ -379,7 +397,7 @@ function underCorner(rect: (x: number, y: number, w: number, h: number, col: str
  * engine, the wheels.
  * @param spec the car as drawn
  * @param widthPx the body's width, px (the top sprite's)
- * @param state ?underskin: the wheels gone and what they took (render/rollbody.ts; none: whole)
+ * @param state ?dmgmore: the wheels gone and what they took (render/rollbody.ts; none: whole)
  * @returns the picture
  */
 export function paintUnderProfile(spec: RenderCarSpec, widthPx: number,
@@ -401,12 +419,15 @@ export function paintUnderProfile(spec: RenderCarSpec, widthPx: number,
   }
   const frontAxle = lengthPx / 2 + spec.lf * SPRITE_PPM,
     rearAxle = lengthPx / 2 - spec.lr * SPRITE_PPM, track = (spec.trackWidth || 1.5) * SPRITE_PPM;
-  // (?underskin: each corner as the upright car draws it through its damage - the subframe, the
+  // (?dmgmore: each corner as the upright car draws it through its damage - the subframe, the
   // arms, a driven wheel's shaft, a front's track rod; snapped where a wheel was torn off - else a
-  // bar across each axle)
+  // bar across each axle, and a closed car's wishbones and front track rods whole)
   const place = { frontAxle, rearAxle, mid, track, widthPx };
-  if (FIX.underskin && !profile.open) underCorners(rect, spec, place, state);
-  else for (const axle of [frontAxle, rearAxle]) rect(axle - 1, mid - track / 2, 2, track, metal);
+  if (FIX.dmgmore && !profile.open) underCorners(rect, spec, place, state);
+  else {
+    for (const axle of [frontAxle, rearAxle]) rect(axle - 1, mid - track / 2, 2, track, metal);
+    if (!profile.open) underArms(rect, place);
+  }
   // a prop shaft to a driven rear axle, the exhaust to the tail, the sump at the engine
   if ((spec.drive ?? 0) < 1 && !profile.open) rect(rearAxle, mid - 1, frontAxle - rearAxle, 2,
     metal);
@@ -417,7 +438,7 @@ export function paintUnderProfile(spec: RenderCarSpec, widthPx: number,
 }
 
 /**
- * ?underskin: the underside's four corners (underCorner), each snapped where its wheel was torn
+ * ?dmgmore: the underside's four corners (underCorner), each snapped where its wheel was torn
  * off.
  * @param rect the picture's block painter
  * @param spec the car as drawn

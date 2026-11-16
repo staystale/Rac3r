@@ -14,14 +14,13 @@ const CHROME = '#c9ccd4', STEEL_GREY = '#3a3d45', HEAD_LAMP = '#fff3c4', TAIL_LA
 const WISHBONE_STEEL = '#4a4f58';
 import type { CarSprite, RenderCarSpec } from "./types.ts";
 import { trackCanvas } from '../core/memorybudget.ts';
-import { FIX } from '../core/fixes.ts';
 import { drawHanging, tornPixel } from './torncut.ts';
 
-// m a lost wing's well reaches in from the car's side with ?underskin (render/underskin.ts): past
-// the tyre to the strut and the drive shaft (the old hole, 3 px, was all tyre)
+// m a lost wing's well reaches in from the car's side (render/underskin.ts): past the tyre to the
+// strut and the drive shaft
 const WELL_DEPTH_M = 0.68;
-// px a lost wing reaches in from the side (3 without ?underskin)
-const WING_DEPTH_PX = FIX.underskin ? Math.round(WELL_DEPTH_M * SPRITE_PPM) : 3;
+// px a lost wing reaches in from the side
+const WING_DEPTH_PX = Math.round(WELL_DEPTH_M * SPRITE_PPM);
 
 // an open car - the single-seaters, the autograss buggy: its wings / nose and its side pods come
 // off, not bumpers and door skins, and nothing is under them
@@ -40,9 +39,9 @@ export interface Region { x0: number; x1: number; y0: number; y1: number }
  * @returns the region
  */
 function mirrorRegion(spec: RenderCarSpec, len: number, wid: number, plus: boolean): Region {
-  const own = FIX.carparts ? doorsOf(String(spec.id))?.mirrors : undefined;
+  const own = doorsOf(String(spec.id))?.mirrors;
   if (own && own !== 'none') {
-    // (?carparts: where its painter draws them - on the edge rows, or just outside)
+    // (where its painter draws them - on the edge rows, or just outside)
     const fromX = Math.round(len * own.at), span = { x0: fromX, x1: fromX + (own.big ? 3 : 2) };
     if (own.rim) return { ...span, ...(plus ? { y0: wid - 2, y1: wid - 1 } : { y0: 0, y1: 1 }) };
     return { ...span, ...(plus ? { y0: wid, y1: wid + 1 } : { y0: -2, y1: -1 }) };
@@ -81,7 +80,7 @@ export function partRegion(spec: RenderCarSpec, sprite: CarSprite, kind: string,
   if (kind === 'spoiler') return { x0: -4, x1: 6, y0: -4, y1: wid + 3 };
   if (kind === 'mirror') return mirrorRegion(spec, len, wid, plus);
   if (kind === 'exhaust') return { x0: -2, x1: -1, y0: -2, y1: wid + 1 };
-  // (?carparts: the Defender's spare on its rear door - render/newcarlooks2.ts paintDefunder)
+  // (the Defender's spare on its rear door - render/newcarlooks2.ts paintDefunder)
   if (kind === 'spare') return { x0: -2, x1: Math.round(len * 0.035), y0: Math.round(mid * 0.58),
     y1: Math.round(mid * 1.42) };
   if (kind === 'wing') {
@@ -92,7 +91,7 @@ export function partRegion(spec: RenderCarSpec, sprite: CarSprite, kind: string,
 }
 
 /**
- * Where a boot lid sits: across the tail; ?carparts a van's twin rear doors each their half.
+ * Where a boot lid sits: across the tail; a van's twin rear doors each their half.
  * @param spec the car as drawn
  * @param len the sprite's length, px
  * @param wid its width, px
@@ -100,7 +99,7 @@ export function partRegion(spec: RenderCarSpec, sprite: CarSprite, kind: string,
  * @returns the region
  */
 function bootRegion(spec: RenderCarSpec, len: number, wid: number, corner: number): Region {
-  const row = FIX.carparts ? doorsOf(String(spec.id)) : undefined;
+  const row = doorsOf(String(spec.id));
   const lid = row?.rearLid ? { x0: Math.round(len * row.rearLid[0]),
     x1: Math.round(len * row.rearLid[1]), y0: 2, y1: wid - 3 }
     : { x0: 4, x1: Math.round(len * 0.16), y0: 2, y1: wid - 3 };
@@ -113,14 +112,14 @@ function bootRegion(spec: RenderCarSpec, len: number, wid: number, corner: numbe
 }
 
 /**
- * Where a door sits along the sprite: ?carparts its own place, else the doors' middle.
+ * Where a door sits along the sprite: its own place, else the doors' middle.
  * @param spec the car as drawn
  * @param len the sprite's length, px
  * @param corner the damage corner
  * @returns its x0, x1, px
  */
 function doorSpan(spec: RenderCarSpec, len: number, corner: number) {
-  const door = FIX.carparts ? doorAt(String(spec.id), corner) : null;
+  const door = doorAt(String(spec.id), corner);
   return { x0: Math.round(len * (door ? door[0] : 0.36)),
     x1: Math.round(len * (door ? door[1] : 0.62)) };
 }
@@ -220,9 +219,9 @@ const partPx = (metres: number) => Math.max(3, Math.round(metres * SPRITE_PPM));
  * @returns the drawing
  */
 function flatBumper(spec: RenderCarSpec, front: boolean): FlatCanvas {
-  const own = FIX.carparts ? doorsOf(String(spec.id))?.bumpers : undefined;
+  const own = doorsOf(String(spec.id))?.bumpers;
   if (own) return front ? flatGrille() : flatStaircase(spec);
-  const material = FIX.carparts ? doorsOf(String(spec.id))?.bumper : undefined;
+  const material = doorsOf(String(spec.id))?.bumper;
   if (material) return flatOwnBumper(spec, front, material);
   const col = spec.kind === 'muscle' ? CHROME : spec.kind === 'banger' ? spec.third || STEEL_GREY
     : spec.paint;
@@ -235,11 +234,11 @@ function flatBumper(spec: RenderCarSpec, front: boolean): FlatCanvas {
   return flat;
 }
 
-// ?carparts: the bumpers' own materials - black and grey plastic, black-painted steel
+// the bumpers' own materials - black and grey plastic, black-painted steel
 const BUMPER_COL: Record<string, string> = { black: '#1c1e22', grey: '#5a5f69', steel: '#202226' };
 
 /**
- * ?carparts: a bumper of its own material lying flat - plastic or steel the car's width with its
+ * a bumper of its own material lying flat - plastic or steel the car's width with its
  * lamps, a steel TUBE bumper (two bars on their uprights), the tractor's front WEIGHT (its block of
  * plates on the linkage's frame).
  * @param spec the car as drawn
@@ -321,9 +320,9 @@ function flatWing(spec: RenderCarSpec, front: boolean): FlatCanvas {
  * @returns the drawing
  */
 function flatDoor(spec: RenderCarSpec, corner: number): FlatCanvas {
-  // (?carparts: its own length and drawing - a stock car's welded skin with no window, the bus's
+  // (its own length and drawing - a stock car's welded skin with no window, the bus's
   // cab door and riveted skirt panels, a van's sliding door)
-  const front = corner < 2, door = FIX.carparts ? doorAt(String(spec.id), corner) : null;
+  const front = corner < 2, door = doorAt(String(spec.id), corner);
   const shape = door ? doorShape(String(spec.id), corner) : 'door';
   if (shape === 'skirt' || shape === 'sliding') return flatSidePanel(spec, door!, shape);
   const flat = flatCanvas(partPx(door ? (door[1] - door[0]) * spec.len : 1.0),
@@ -342,7 +341,7 @@ function flatDoor(spec: RenderCarSpec, corner: number): FlatCanvas {
 }
 
 /**
- * ?carparts: a panel with no window lying flat - the bus's lower-deck skirt panel (~0.55 m tall,
+ * a panel with no window lying flat - the bus's lower-deck skirt panel (~0.55 m tall,
  * its cream band and rivets), a van's sliding door (~1.3 m tall, its rail and handle).
  * @param spec the car as drawn
  * @param door its span, shares of the length
@@ -438,8 +437,8 @@ function flatMirror(spec: RenderCarSpec): FlatCanvas {
     block(wide - 4, 0, 4, tall, '#16181d'); block(wide - 3, 1, 2, tall - 2, '#9aa3b0');
     return flat;
   }
-  // (?carparts: in its own colour, a van's big)
-  const own = FIX.carparts ? doorsOf(String(spec.id))?.mirrors : undefined;
+  // (in its own colour, a van's big)
+  const own = doorsOf(String(spec.id))?.mirrors;
   const col = own && own !== 'none' && own.col !== 'paint'
     ? (own.col === 'black' ? '#16181d' : spec.third || '#16181d') : spec.paint;
   const big = own && own !== 'none' && own.big;
@@ -496,7 +495,7 @@ function flatShaft(): FlatCanvas {
 }
 
 /**
- * a TRACK ROD (?underskin: thrown with a front wheel) - a thin bar, its ball joint at the end.
+ * a TRACK ROD (?dmgmore: thrown with a front wheel) - a thin bar, its ball joint at the end.
  * @returns the drawing
  */
 function flatRod(): FlatCanvas {
@@ -576,27 +575,18 @@ function atInner(region: Region, kind: string, corner: number, x: number, y: num
 }
 
 /**
- * a bonnet's or boot lid's place with it gone - the dark bay, the engine block in it
- * (its rocker cover light, a row of plugs) unless the engine has gone too.
+ * a bonnet's or boot lid's place with it gone - the dark bay (render/underskin.ts draws what is
+ * in it).
  * @param rgba the sprite's pixels
  * @param i the pixel's index
- * @param engine an engine to show
- * @param x px into the region
- * @param y px into the region
- * @param region the region
  */
-function bayPixel(rgba: Uint8ClampedArray, i: number, engine: boolean, x: number, y: number,
-  region: Region): void {
+function bayPixel(rgba: Uint8ClampedArray, i: number): void {
   if (!rgba[i + 3]) return;
-  const wide = region.x1 - region.x0, tall = region.y1 - region.y0;
-  const inBlock = engine && x > wide * 0.2 && x < wide * 0.85 && y > tall * 0.25 && y < tall * 0.75;
-  const plug = inBlock && Math.abs(y - tall / 2) < 0.6 && x % 2 === 0;
-  const col = plug ? [26, 28, 33] : inBlock ? [90, 95, 105] : [30, 32, 38];
-  rgba[i] = col[0]; rgba[i + 1] = col[1]; rgba[i + 2] = col[2];
+  rgba[i] = 30; rgba[i + 1] = 32; rgba[i + 2] = 38;
 }
 
 /**
- * ?carparts: a mirror drawn on the body's edge rows, gone - the edge it stood on, in its outline
+ * a mirror drawn on the body's edge rows, gone - the edge it stood on, in its outline
  * and its light (top) or dark (bottom) band.
  * @param rgba the sprite's pixels
  * @param i the pixel's index
@@ -616,17 +606,17 @@ function rimMirrorPixel(rgba: Uint8ClampedArray, i: number, part: LostPart, y: n
 }
 
 /**
- * ?carparts: whether a car's mirrors stand on its body's edge rows (their hole is the edge).
+ * whether a car's mirrors stand on its body's edge rows (their hole is the edge).
  * @param spec the car as drawn
  * @returns on the rim
  */
 function isRimMirror(spec: RenderCarSpec): boolean {
-  const own = FIX.carparts ? doorsOf(String(spec.id))?.mirrors : undefined;
+  const own = doorsOf(String(spec.id))?.mirrors;
   return !!own && own !== 'none' && !!own.rim;
 }
 
 /**
- * A cleared part's pixel: gone, or (?carparts) a rim mirror's the body's edge again.
+ * A cleared part's pixel: gone, or a rim mirror's the body's edge again.
  * @param rgba the sprite's pixels
  * @param i the pixel's index
  * @param part the lost part
@@ -637,8 +627,7 @@ function clearedPixel(rgba: Uint8ClampedArray, i: number, part: LostPart, y: num
 }
 
 /** One lost part, as the car shows it. */
-interface LostPart { spec: RenderCarSpec; kind: string; corner: number; region: Region;
-  lost: string; underSkin: boolean }
+interface LostPart { spec: RenderCarSpec; kind: string; corner: number; region: Region }
 
 // the parts that leave nothing behind on the sprite (a mirror, the pipes)
 const CLEARED_PARTS = new Set(['mirror', 'exhaust', 'spare']);
@@ -653,39 +642,30 @@ const CLEARED_PARTS = new Set(['mirror', 'exhaust', 'spare']);
  * @param y sprite px
  */
 function lostPixel(rgba: Uint8ClampedArray, i: number, part: LostPart, x: number, y: number) {
-  const { spec, kind, corner, region, lost, underSkin } = part;
+  const { spec, kind, corner, region } = part;
   if (isBare(spec) || CLEARED_PARTS.has(kind)) { clearedPixel(rgba, i, part, y); return; }
-  // (?underskin: the hole in the panel's own outline, its edge torn - render/torncut.ts)
-  if (underSkin && tornPixel(rgba, i, part, [x, y])) return;
-  if (kind === 'bonnet' || kind === 'boot') {
-    // (the engine shows under a front-engined car's bonnet, not a mid-engined car's front lid)
-    // (with ?underskin the bay is left empty: render/underskin.ts draws the engine in it)
-    const bits = bitsOf(String(spec.id));
-    const engine = !underSkin && kind === 'bonnet' && bits.engine === 'front' && !bits.electric
-      && !lost.includes('engine');
-    bayPixel(rgba, i, engine, x - region.x0,
-      y - region.y0, region);
-    return;
-  }
-  // GONE - the part cleared, only the bare structure left along its inner edge (?underskin: a
-  // wing's opening clear to the road - nothing under the arch but its arms, wheel and strut)
-  if (rgba[i + 3] && atInner(region, kind, corner, x, y) && !(underSkin && kind === 'wing')) {
+  // (the hole in the panel's own outline, its edge torn - render/torncut.ts)
+  if (tornPixel(rgba, i, part, [x, y])) return;
+  // (the bay is left empty: render/underskin.ts draws the engine in it)
+  if (kind === 'bonnet' || kind === 'boot') { bayPixel(rgba, i); return; }
+  // GONE - the part cleared, only the bare structure left along its inner edge (a wing's opening
+  // clear to the road - nothing under the arch but its arms, wheel and strut)
+  if (rgba[i + 3] && atInner(region, kind, corner, x, y) && kind !== 'wing') {
     rgba[i] = 42; rgba[i + 1] = 45; rgba[i + 2] = 52;
   } else rgba[i + 3] = 0;
 }
 
 /**
- * ?underskin: the sprite's pixels and a copy of them as they were, for the torn panels' hanging
- * pieces (render/torncut.ts); none on an open car.
+ * The sprite's pixels and a copy of them as they were, for the torn panels' hanging pieces
+ * (render/torncut.ts); none on an open car.
  * @param spec the car as drawn
- * @param underSkin the switch's state
  * @param rgba the pixels
  * @param canvas their canvas
  * @returns the pixels, or null
  */
-function tornPixels(spec: RenderCarSpec, underSkin: boolean, rgba: Uint8ClampedArray,
+function tornPixels(spec: RenderCarSpec, rgba: Uint8ClampedArray,
   canvas: { width: number; height: number }) {
-  if (!underSkin || isBare(spec)) return null;
+  if (isBare(spec)) return null;
   return { rgba, from: rgba.slice(), width: canvas.width, height: canvas.height };
 }
 
@@ -695,14 +675,12 @@ function tornPixels(spec: RenderCarSpec, underSkin: boolean, rgba: Uint8ClampedA
  * @param spec the car as drawn
  * @param sprite its sprite (damaged or not)
  * @param lost the parts gone: "kind:corner" each, joined by ","
- * @param underSkin the bays left empty for the under-skin layer (render/underskin.ts)
  * @returns a new sprite
  */
-export function withoutParts(spec: RenderCarSpec, sprite: CarSprite, lost: string,
-  underSkin = false): CarSprite {
+export function withoutParts(spec: RenderCarSpec, sprite: CarSprite, lost: string): CarSprite {
   const { canvas, ctx, img } = spriteToWork(sprite.c), rgba = img.data;
-  // (?underskin: the panels as they were, for the pieces left hanging - render/torncut.ts)
-  const torn = tornPixels(spec, underSkin, rgba, canvas);
+  // (the panels as they were, for the pieces left hanging - render/torncut.ts)
+  const torn = tornPixels(spec, rgba, canvas);
   for (const entry of lost.split(',').filter(Boolean)) {
     const [kind, corner] = entry.split(':');
     // (the wing is left out by the painters - spec.noWing; the engine shows in the bay)
@@ -712,7 +690,7 @@ export function withoutParts(spec: RenderCarSpec, sprite: CarSprite, lost: strin
       x <= region.x1 + 2; x++) {
       if (x < 0 || y < 0 || x >= canvas.width || y >= canvas.height) continue;
       const i = (y * canvas.width + x) * 4;
-      lostPixel(rgba, i, { spec, kind, corner: +corner, region, lost, underSkin }, x - 2, y - 2);
+      lostPixel(rgba, i, { spec, kind, corner: +corner, region }, x - 2, y - 2);
     }
     if (torn) drawHanging(torn, { kind, corner: +corner, region });
   }

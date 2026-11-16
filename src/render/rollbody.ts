@@ -238,8 +238,8 @@ function paintsOf(car: RenderCar, spec: RenderCarSpec, top: CarSprite, clean: Ca
   });
   let below = under.img;
   if (hurt) {
-    // (?underskin: a wheel torn off - its corner painted snapped, as it is: carprofile.ts)
-    const snapped = FIX.underskin && car.wheelOff?.some(Boolean);
+    // (?dmgmore: a wheel torn off - its corner painted snapped, as it is: carprofile.ts)
+    const snapped = FIX.dmgmore && car.wheelOff?.some(Boolean);
     below = snapped ? paintUnderProfile(spec, under.Hp, car).img : copyOf(under.img);
     crushPixels(car, below, under.Lp, under.Hp, false);
     lostTyres(car, spec, below, under.Hp);

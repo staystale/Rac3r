@@ -36,7 +36,7 @@ export interface CarBits {
 export type DoorShape = 'door' | 'cab' | 'skirt' | 'sliding';
 /** One side panel at a damage corner: where it spans (shares, 0 tail .. 1 nose), its drawing. */
 export interface SidePanel { at: [number, number]; shape: DoorShape }
-/** A car's DOORS (?carparts): each side's, front first, as the shares of its length it spans. */
+/** A car's DOORS: each side's, front first, as the shares of its length it spans. */
 export interface CarDoors {
   // [from, until], 0 tail .. 1 nose; one a side on a 2-door, two on a 4-door, none on an open car
   doors: [number, number][];
@@ -66,7 +66,7 @@ export interface CarDoors {
   glass?: number;
 }
 
-/** A car's mirrors on its sprite (?carparts step 5). */
+/** A car's mirrors on its sprite. */
 export interface CarMirrors { at: number; rim?: boolean; col: 'paint' | 'third' | 'black';
   big?: boolean }
 
@@ -103,7 +103,7 @@ function transitPanels(lengthM: number): (SidePanel | null)[] {
 // windscreen's foot back, a 4-door's rear door to the rear wheel's arch, a 2-door's one long door)
 const FOUR_DOORS: [number, number][] = [[0.48, 0.68], [0.3, 0.48]];
 const TWO_DOORS: [number, number][] = [[0.4, 0.68]];
-// each car's doors (the vans and the bus: ?carparts step 2; the single-seaters and the buggy have
+// each car's doors (the vans and the bus; the single-seaters and the buggy have
 // their own open parts)
 export const CAR_DOORS: Record<string, CarDoors> = {
   'hatch-fwd': { doors: FOUR_DOORS, mirrors: { at: 0.585, col: 'third' } },   // Golf: 5-door
@@ -158,7 +158,7 @@ export const CAR_DOORS: Record<string, CarDoors> = {
     { at: [0.3, 0.5], shape: 'skirt' }], bumpers: ['grille', 'staircase'], glass: 8 },
 };
 
-// ?carparts step 3: the cars whose REAR WINGS are bolted on and come off - the race cars' composite
+// the cars whose REAR WINGS are bolted on and come off - the race cars' composite
 // panels and arches, the Defender's aluminium body, the Seven's cycle wings, the trophy truck's
 // fibreglass, the tractor's mudguards; every other closed car's are welded quarter panels (they
 // crush, not fly off); the single-seaters and the buggy keep their own open parts
@@ -167,7 +167,7 @@ const BOLTED_REAR_WINGS = new Set(['porch-gt3r', 'bmv-m4gt3', 'civvic-btcc', 'to
   'rebelion-r13', 'defunder-110', 'seven-420r', 'effing-tt', 'tractor']);
 
 /**
- * ?carparts: whether a car's rear wing is a welded quarter panel (not thrown: it crushes).
+ * whether a car's rear wing is a welded quarter panel (not thrown: it crushes).
  * @param carId the car
  * @returns welded
  */
@@ -175,7 +175,7 @@ export const isRearWingWelded = (carId: string) => !!CAR_DOORS[String(carId).spl
   && !BOLTED_REAR_WINGS.has(String(carId).split('#')[0]);
 
 /**
- * ?carparts: a car's own row (its doors and parts), or none.
+ * a car's own row (its doors and parts), or none.
  * @param carId the car
  * @returns its row
  */
@@ -183,7 +183,7 @@ export const doorsOf = (carId: string): CarDoors | undefined =>
   CAR_DOORS[String(carId).split('#')[0]];
 
 /**
- * ?carparts: the drawing of the side panel at a damage corner.
+ * the drawing of the side panel at a damage corner.
  * @param carId the car
  * @param corner the damage corner
  * @returns its shape, or 'sheet' (a stock car's skin)
@@ -195,7 +195,7 @@ export function doorShape(carId: string, corner: number): DoorShape | 'sheet' {
 }
 
 /**
- * ?carparts: the door at a damage corner - the front corners a car's front door, the rear its
+ * the door at a damage corner - the front corners a car's front door, the rear its
  * rear door; null where it has none there (a 2-door's rear corner: a side hit dents it and breaks
  * glass, nothing comes off); undefined for a car with no row (its parts as before).
  * @param carId the car

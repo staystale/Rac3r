@@ -28,7 +28,8 @@ for (const row of ROSTER.filter((car) => !onlyCar || car.id === onlyCar)) {
   const car = makeCar(row.id);
   for (let corner = 0; corner < 4; corner++) {
     for (const endW of [0, 1]) crashDebris(car, corner, 1000, endW, always);
-    wheelBits(car, corner, always);
+    // (the biggest tearing hit: everything a wheel can take)
+    wheelBits(car, corner, 1);
   }
   for (const face of ['side', 'roof', 'wheels']) for (const side of [-1, 1])
     rollParts(car, face, side, 1);

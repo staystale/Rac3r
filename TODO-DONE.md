@@ -44,6 +44,152 @@ The default 11-16, their switches deleted:
 PROOF (second PC, old with the switches on -> this plain: worldhash, simhash, renderhash):
 follows.
 
+## PASSED 11-17, THE PASS BATCH 4 (owner: underskin, carparts and carshade passed on the phone)
+
+The default 11-17, their switches deleted with their old paths: underskin (the lost panels' holes
+torn in their own outline with the under-skin layer in them - the engine bay, the wells, the
+arms, struts, shafts and subframe, the crush's folded edges, a wheel torn off by the hit's size
+taking its suspension, an end crushed past its engine throwing it, the thrown suspension drawn
+under the loose parts), carparts (each car's own doors, mirrors, bumpers of their own material,
+the vans' and the bus's parts, welded rear wings, the extras - steps 1-6) and carshade (every
+closed car shaded). The rolled cars' underside and track rods (damage item 5, built on ?underskin)
+moved behind their own switch, ?dmgmore (TODO). PROOF: round146 WITH ?underskin=1&carparts=1&
+carshade=1 against the batch plain (?dmgmore off): simhash, worldhash --highway 20, renderhash -
+see the batch's commit. Kept: a crash's random draw where the engine's old dice was (world/debris.ts
+bigParts), so a crash's random stream is the one it was. Their records as built:
+
+UNDER THE SKIN: BUILT 11-16 behind ?underskin=1 (FIX.underskin, render/underskin.ts; testlist
+'underskin'; ENGINE.md UNDER THE SKIN): what a lost panel shows, by each car's real layout (carbits.ts
+mount, radiator): bonnet - engine (along / across) behind the radiator, a mid-engined car's front lid
+two corner radiators; boot - the engine where it sits behind (no car in the roster yet); wing - the
+well reaches 0.45 m in (was 3 px, all tyre), grey, the corner's arms and a driven wheel's drive shaft
+(the open cars' drawing) and the strut's top; bumper - the crash bar, and the radiator where it sits
+(the S1 and the RX supercar at the back); open cars - a sidepod its radiator, nose / tail their crash
+structures, the buggy its frame tubes; a DOOR shows nothing new (asked). PHOTOS (the second PC,
+tools/scratch/_partsoff.mjs, every car, front set and rear set, 844x390, 390x844 and a close-up, off
+and on): no page errors. COST: framecheck Brands, 19 AI + you all in the hatch-rwd, every car's
+panels off at frame 30, CPU x4 on the PC (on, off, on, off): work median 172.3 / 167.0 / 172.4 /
+168.1 ms, p95 208.9 / 221.9 / 206.3 / 202.1, worst 255.9 / 348.9 / 244.9 / 270.6 (the PC's x4 with
+20 cars is the catch-up loop, ~170 ms a frame either way); a car's picture made every frame
+(tools/scratch/_underskincost.mjs, laptop, x1): frame median 1.6-1.7 ms off, 1.9 on (+0.2-0.3 ms each
+time a car loses a part or its crush changes a step; nothing on the frames between).
+PROOF: switch off, renderhash SAME (the PC, thruston, brands-snatch, knobhill: ~3-7 min a level
+there without a GPU, so not all; CI runs the rest).
+FAILED ON THE PHONE 11-16 (owner: "We're getting a lot of see thru cars when damaged and it's not showing
+wishbones drive shafts or suspension beneath clearly / Also bumpers ect not denting and showing invisibly
+connected to car after crash / denting"; "it can be gaps where there is in real life but if it should
+expose something like wishbone or engine ect it should"; a lost DOOR shows the floor + sill; "Can the
+radiator move back when the front of the car deforms from crashes? Like in real life"). FIXED behind
+the same switch (render/cardamage.ts, render/underskin.ts, render/cars.ts; tools/scratch/_skinshots.mjs
+photographs every car crushed as a ~0.5 hit leaves it with its parts off - front, side, rear, and a
+lighter dent with nothing off - on tarmac). FOUND, the see-through: (1) the dent band's PRIMER CHIPS
+and pale creases (grey ~150, random single pixels across the whole band, the windows too) read as
+holes showing the road on grey tarmac; (2) the crumpled edge was cut per pixel at random (each
+pixel's own jag), leaving speckled holes inside the crush and loose pixels past it. The floating
+look: (3) the under-skin layer was painted at each part's place on the clean car, so a crushed end's
+radiator, crash bar and its bay stood out past the dented edge, "invisibly connected". FIX: the
+crumpled edge cut in 2 px teeth along it (one depth a tooth: no holes, nothing loose); the dent band
+FOLDED - the fold dark, a darker fold line every 2 px with a light crease between, fading over the
+band, no chips (the bumpers and panels show their dent at a phone's size); the under-skin painted
+only where the crushed body still is; each end's crush pushes its radiator, beam and crash cans back
+by its own depth (+1 px) and the engine with them once they meet; a side's crush pushes a lost
+door's sill in. Readable at a phone's size: a wing's well a dark cavity with the arms, drive shaft
+and spring bright steel two px wide; behind a lost bumper a dark under-tray, the light beam just
+inside the car's end on its two crash cans; a lost DOOR the sill (the body's paint, darkened), the
+floor and carpet; a front-engined car's lost boot lid its floor and spare wheel. Real gaps stay
+(through a wheel well past the tyre to the ground). PHOTOS (the laptop, every car - the 19 and the six
+behind their switches - 844x390, 390x844, close-up and the phone's view cropped, the base round93
+and the fix, both with ?underskin=1): no page errors; no speckled holes, no structure past a dented
+edge on any. COST (the second PC, framecheck Brands, 19 AI + you in the hatch-rwd, every car crushed
+and its panels off at frame 30, CPU x4, base / fix / base / fix): work median 172.7 / 164.1 / 161.6 /
+175.1 ms, worst 240.7 / 270.6 / 394.0 / 266.2 (the PC's catch-up loop: no difference to read);
+a car's picture made every frame (tools/scratch/_underskincost.mjs, the laptop, x1, the hatch-rwd, ?underskin=1): frame median 1.8 / 2.0 ms on the base, 2.1 / 2.1 with the fix (+0.1-0.3 ms each time a car loses a part or its crush steps; nothing on the frames between). PROOF: switch off, renderhash SAME (the PC: thruston, brands-snatch, knobhill).
+ROUND 2 (owner 11-16 on the phone: "crash wrinkles need to be more uneven rather than just straight
+lines"; "can't see drive shafts or wishbones when body work should expose it"; the damage "like in
+layers ... a wing ... shows you the suspension arm, drive shafts, and wishbone underneath connecting to
+the wheel. And that should all steer and move with the steering"; the parts underneath "should
+scrunch and move with the damaged car ... the wheel should actually move and stay connected to the
+end of the wishbone"). BUILT behind the same switch (render/cardamage.ts dentPixelFolded, render/
+carcorners.ts new, render/cars.ts drawCarWheels / lostWithTorn, render/underskin.ts):
+- THE FOLDS UNEVEN: each 2 px of a crushed edge shifts its fold lines by its own amount (up to 2.2
+  px, more the deeper the crush), each band of the crumple its own spacing (2-4 px) and each fold
+  its own depth - the car's seeded hash, the same every frame; still no pale pixels.
+- THE CRUSH EXPOSES A WHEEL: FOUND, the cause - the well, arms and shaft were painted only into a
+  LOST wing's hole, never where the crush itself reached the wheel. Now a corner whose end's crush
+  passes its wheel's arch, or whose side is crushed in 3 px or more where the wheel is, has its wing
+  TORN (taken off the sprite as a lost wing's; no part thrown), and an exposed corner (torn or lost)
+  draws each frame UNDER the body - so it shows only through what the body really lacks: the dark
+  well, the arms and a driven wheel's drive shaft from the chassis to the hub (the open cars' own
+  painter, render/cars.ts drawFixedArms, in bright steel two px wide), a front's track rod at the
+  wheel's steer, the strut's top.
+- STEERING: the exposed front's track rod and wheel turn with the steering each frame (the baked
+  well and arms in the lost-parts sprite removed).
+- SCRUNCH: a crushed corner pushes its drawn WHEEL in with the metal - back by the end crush past its
+  arch, inboard by the side crush where it is (each at most a tyre) - and the arms run from the
+  chassis to where the wheel now is; the radiator, beam and sill were already pushed (round 1).
+  Drawn only: the physics' wheel is where it was.
+PHOTOS (the laptop, every car - the 19 and the six behind their switches - with ?underskin=1:
+the owner's case, a saloon's front corner crushed in to its wheel and nothing off, round 1 / round 2,
+and a lighter dent; front / side / rear against round 1's; 844x390, 390x844, a close-up, the phone's
+view cropped; the corner steered left / straight / right): no page errors; on round 1 the crushed
+corner showed no well, now the well, arms and strut on every closed car; the open cars as before.
+COST (framecheck Brands, 19 AI + you in the hatch-rwd, every car crushed on all four corners and its
+panels off at frame 30 - most corners exposed - the laptop x1, round 1 / round 2 / round 1 / round 2):
+work median 10.8 / 10.7 / 12.2 / 11.1 ms, p95 17.7 / 17.1 / 20.0 / 17.9, frame median 17.7 / 17.7 /
+17.7 / 17.6 - no cost to read.
+PROPOSED, NOT BUILT (a handling change, the owner decides): A BROKEN CORNER - see the hand-back.
+ROUND 3 (the steering in bright steel over the tyre, the hole following the pushed wheel) was taken
+off the link: the owner preferred round 2's look ("version 3 has panels that come off and things
+that obscure what's there"). ROUND 4, BUILT behind the same switch (render/carcorners.ts, cars.ts,
+carparts.ts, objects.ts), from round 2 with the owner's answers ("the wishbones were black on the
+F1 ... under the wheels ... The strut ... can be over the wheel"; "nothing underneath the wheel
+arch once that gets knocked off, and it should expose to the road"; the body's own layers - sills,
+bonnet bay, engine - stay):
+- A lost or torn wing's opening is clear to the ROAD: no dark well fill, no dark inner edge strip.
+- The arms, drive shaft and track rod as the F1 / F2 draw them (drawFixedArms, OPEN_ARMS: dark,
+  1 px), UNDER the tyre; the track rod to the steering arm at the hub turns with the wheel.
+- The strut's spring and top mount OVER the tyre, at its inner edge (the top of the arch).
+- Thrown suspension (wishbone, strut, shaft) drawn under the loose wheels (render/objects.ts).
+- Kept from round 2: the bonnet bay, engine and radiator, the bumper's beam and under-tray, the
+  door sill and floor, the boot floor - all clipped to the crushed body, so they crumple with it.
+PHOTOS (the laptop: the saloon's corner steered left / straight / right; the Golf and the Sport
+quattro crushed deeper - the owner's case stops short of their wheels; front / side / rear sets;
+a torn-off wheel's parts): no page errors. Owner 11-16: "that looks much better"; the one-piece
+wing and the arms fine. tools/scratch/_skinshots.mjs holds the wheels' steer (round 2's steered
+photos were not steered) and has DEEP sets; _thrownorder.mjs photographs a thrown wheel's parts.
+PARTIAL STRUT (owner 11-16: "If the wing comes off, it should only partially expose the strut ...
+unless it's quite severely dented"; the plan: "sounds realistic"), BUILT behind the same switch
+(render/carcorners.ts drawExposedStrut): an exposed corner shows only its strut's inner half unless
+its damage is 0.65 or more or its wheel is pushed half a tyre or more; then all of it. PHOTOS (the
+saloon and the Golf: a wing off from a light knock - the half; the owner's case and a deep crush -
+all): no page errors. NEXT: a big hit at an exposed strut may knock it off (?cornerbreak).
+OWNER BUG 11-16 (the live link, a Minnie Cooped S in a garage paint, one end smashed: "no wishbones
+and the hub is on ... some parts under show over the bonnet"). FOUND, with REAL crashes
+(tools/scratch/_realcrash.mjs: the car driven into a parked one, nothing set by hand): a lost
+bumper's (and door's) under-skin layer was clipped to its hole PLUS the depth the crush pushed it
+in, so the pushed-in beam, cans, radiator and dark under-tray were painted ONTO the bonnet / boot
+lid still on - and that dark block lay over the torn wing's opening, hiding the arms. FIXED (behind
+?underskin, render/underskin.ts): each layer clipped to its own hole (a structure pushed in past
+it is under the panels still on), and a lost or torn wing's opening cleared of a bumper's or door's
+layer. The hub stays on in such a crash (end-on, ~0.5 a corner): a wheel comes off only when one
+hit adds 0.4 to a corner that ends at 0.85 (damage.ts) - ?cornerbreak (next) lets a broken corner
+lose it sooner. PHOTOS (real crashes at 25-28 m/s, front and rear, left / centre / right; the
+Minnie (FWD), the M135i (RWD), the saloon, the Sport quattro (AWD); before / after).
+OWNER BUG 2, 11-16 (the live link, the BriSKA F2 Stocker in the wet: "still seeing hubs attached with
+no steering arms / wishbones or driveshafts ... across all cars ... Why is this not showing"). FOUND
+(real crashes on every car): the arms WERE drawn - the F1's own dark 1 px lines, under the tyre -
+but dark on dark or wet tarmac they could not be seen, so a smashed end showed its wheel and the
+strut's ring (read as the hub) floating; and a ROLLED car's underside had no arms at all (an axle
+bar only). FIXED (behind ?underskin): a closed car's exposed arms, drive shaft and track rod keep
+their dark line with a lighter steel edge round it (render/cars.ts armLines, WELL_EDGE; the open
+cars unchanged); the underside picture a rolled car shows carries each wheel's wishbone and a
+front's track rod in light steel (render/carprofile.ts underArms). AND "why do the springs go under
+the tyres sometimes": FOUND - the partial strut was CLIPPED to its inner half along the tyre's edge,
+so its ring looked cut by the tyre; now a strut is never clipped: not severely crushed it stands at
+the wing opening's inner lip (its inner half under the body still there), severely crushed over the
+tyre (render/carcorners.ts drawExposedStrut). PHOTOS: every car of the roster (33) crashed nose
+first at 28 m/s, upright and then rolled over (roll.ts) and caught.
+
 ## PASSED 11-16, THE PASS BATCH 2 (owner: the TS010 "with the reshape", the Tesla "rev bar and stuff pass", the Routemaster with its wheels / glass / mirrors, the M4 GT3)
 
 The default 11-16, their switches deleted: ts010 (and the PROTOTYPE class), tesla, routemonster,

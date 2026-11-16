@@ -202,13 +202,13 @@ function hardHitCorners(
     if (add >= WHEEL_HIT && car.dmg[corner] >= WHEEL_AT && !car.wheelOff[corner]) {
       car.wheelOff[corner] = true;
       // (its strut / wishbone; the car carries its spec and parts queue)
-      wheelBits(car as Parameters<typeof wheelBits>[0], corner, rnd,
+      wheelBits(car as Parameters<typeof wheelBits>[0], corner,
         Math.min(1, (add - WHEEL_HIT) / WHEEL_HIT));
       car.dmgBill = (car.dmgBill || 0) + 400;
       (car.wheelSpawn || (car.wheelSpawn = [])).push(corner);
     }
   }
-  // (?underskin: an end crushed past its engine throws it)
+  // (an end crushed past its engine throws it)
   crushedEngine(car as Parameters<typeof crushedEngine>[0], car.crushL);
 }
 

@@ -184,7 +184,7 @@ export function ripWheel(car: { wheelOff: boolean[]; wheelSpawn?: number[]; dmgB
   if (rnd() >= Math.min(1, RIP_P0 + (1 - RIP_P0) * (note.into - RIP_FROM) / RIP_SPAN)) return;
   car.wheelOff[note.corner] = true;
   // (its wishbones)
-  wheelBits(car, note.corner, rnd, Math.min(1, (note.into - RIP_FROM) / RIP_SPAN));
+  wheelBits(car, note.corner, Math.min(1, (note.into - RIP_FROM) / RIP_SPAN));
   car.dmgBill = (car.dmgBill || 0) + LOST_WHEEL_BILL;
   (car.wheelSpawn || (car.wheelSpawn = [])).push(note.corner);
 }
@@ -201,7 +201,7 @@ const ALL_CORNERS = [0, 1, 2, 3], PLUS_CORNERS = [1, 3], MINUS_CORNERS = [0, 2];
 const NO_CORNERS: number[] = [];
 
 /**
- * The wheels a roll's impact can tear off: those on the face that meets the ground. ?underskin
+ * The wheels a roll's impact can tear off: those on the face that meets the ground. ?dmgmore
  * (owner 11-16): back on its wheels only the landing side's two; on its roof a closed car's wheels
  * are in the air - none - while an open car's stand proud of its body, all four.
  * @param kind 'side', 'roof' or 'wheels'
@@ -212,7 +212,7 @@ const NO_CORNERS: number[] = [];
 function rollCorners(kind: string, side: number, open: boolean): number[] {
   const sideCorners = side > 0 ? PLUS_CORNERS : MINUS_CORNERS;
   if (kind === 'side') return sideCorners;
-  if (!FIX.underskin) return ALL_CORNERS;
+  if (!FIX.dmgmore) return ALL_CORNERS;
   if (kind === 'wheels') return sideCorners;
   return open ? ALL_CORNERS : NO_CORNERS;
 }
@@ -233,7 +233,7 @@ export function rollRipWheels(car: Parameters<typeof ripWheel>[0], kind: string,
   for (const corner of corners) {
     if (car.wheelOff[corner] || rnd() >= chance) continue;
     car.wheelOff[corner] = true;
-    wheelBits(car, corner, rnd, scale);
+    wheelBits(car, corner, scale);
     car.dmgBill = (car.dmgBill || 0) + LOST_WHEEL_BILL;
     (car.wheelSpawn || (car.wheelSpawn = [])).push(corner);
   }
