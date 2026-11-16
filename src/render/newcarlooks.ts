@@ -313,14 +313,12 @@ function transfitCab(spr: SpriteCtx): void {
 }
 
 /**
- * FJORD TRANSFIT (Ford Transit Mk8, L2 H2): the long box - the roof with its cross ribs, a sliding
- * door's rail on the left - the cab's raked screen and van mirrors, the short bonnet, the grille
- * with its blue badge (the third colour), swept lamps, black bumpers (the second colour), the
- * tall rear lamps and the high brake light.
+ * Every Transit's box from above: the plan, the roof over the load area and cab with its cross
+ * ribs and rear header, a sliding door's rail on the left flank.
  * @param spr the painting context
  */
-function paintTransfit(spr: SpriteCtx): void {
-  const { lengthPx: len, widthPx: wid, mid, paint, trim, third, block, along } = spr;
+function transfitBox(spr: SpriteCtx): void {
+  const { lengthPx: len, widthPx: wid, mid, paint, block, along } = spr;
   planBody(spr, (x) => mid * transfitPlan(x / (len - 1)));
   // the roof over the load area and cab, its cross ribs, the rear header
   const roofTo = along(transfitCabShare(spr, 0.735)), rib = shade(paint, 0.86);
@@ -331,6 +329,31 @@ function paintTransfit(spr: SpriteCtx): void {
   block(2, 3, 1, wid - 6, rib);
   // the sliding door's rail on the left flank
   block(along(0.40), 1, along(0.22), 1, INK);
+}
+
+/**
+ * Every Transit's tail: the rear bumper (the second colour), the tall rear lamps on the back
+ * pillars, the high brake light, the pipe.
+ * @param spr the painting context
+ */
+function transfitTail(spr: SpriteCtx): void {
+  const { widthPx: wid, mid, trim, block } = spr;
+  block(-1, 2, 1, wid - 4, trim);
+  block(0, 1, 1, 4, TAIL);
+  block(0, wid - 5, 1, 4, TAIL);
+  block(1, mid - 2, 1, 5, TAIL);
+  block(-1, 4, 1, 2, CHR);
+}
+
+/**
+ * FJORD TRANSFIT (Ford Transit Mk8, L2 H2 and L3 H3): the long box, the cab's raked screen and
+ * van mirrors, the short bonnet, the grille with its blue badge (the third colour), swept lamps,
+ * black bumpers (the second colour), the tall rear lamps and the high brake light.
+ * @param spr the painting context
+ */
+function paintTransfit(spr: SpriteCtx): void {
+  const { lengthPx: len, widthPx: wid, mid, trim, third, block } = spr;
+  transfitBox(spr);
   transfitCab(spr);
   // the grille, its badge, the swept lamps, the bumpers
   block(len - 2, mid - 7, 2, 15, INK);
@@ -341,12 +364,26 @@ function paintTransfit(spr: SpriteCtx): void {
     block(len - 7, y + (y < mid ? 1 : 0), 2, 3, HEAD);
   }
   block(len, 3, 1, wid - 6, trim);
-  block(-1, 2, 1, wid - 4, trim);
-  // the tall rear lamps on the back pillars, the high brake light
-  block(0, 1, 1, 4, TAIL);
-  block(0, wid - 5, 1, 4, TAIL);
-  block(1, mid - 2, 1, 5, TAIL);
-  block(-1, 4, 1, 2, CHR);
+  transfitTail(spr);
+}
+
+/**
+ * FJORD TRANSFIT SWB (Ford Transit Mk7, 2006-13, the short wheelbase): the same box and cab,
+ * shorter; the Mk7's nose - the wide grille with three chrome bars and the blue oval (the third
+ * colour), the tall lamps running back up the wings' corners, the grey bumpers (the second colour).
+ * @param spr the painting context
+ */
+function paintTransfitMk7(spr: SpriteCtx): void {
+  const { lengthPx: len, widthPx: wid, mid, trim, third, block } = spr;
+  transfitBox(spr);
+  transfitCab(spr);
+  block(len - 2, mid - 8, 2, 17, INK);
+  for (const y of [mid - 5, mid, mid + 5]) block(len - 2, y, 1, 1, CHR);
+  block(len - 2, mid - 6, 1, 13, CHR);
+  block(len - 3, mid - 1, 2, 3, third);
+  for (const y of [1, wid - 4]) block(len - 9, y, 7, 3, HEAD);
+  block(len, 2, 1, wid - 4, trim);
+  transfitTail(spr);
 }
 
 /**
@@ -559,6 +596,7 @@ export const NEW_LOOKS: [string, { paint: (spr: SpriteCtx) => void; bare?: boole
   ['seven-420r', { paint: paintSeven, bare: true }],
   ['transfit-van', { paint: paintTransfit, bare: true }],
   ['transfit-lwb', { paint: paintTransfit, bare: true }],
+  ['transfit-swb', { paint: paintTransfitMk7, bare: true }],
   ['effing-tt', { paint: paintTrophy, bare: true }],
   ['civvic-btcc', { paint: paintCivvic, bare: true }],
 ];

@@ -72,7 +72,8 @@ const SEVEN: RosterRow = {
 // the final drive (3.29, top 0.70: the published 1,850 rpm), Cd 0.37 x 4.4 m^2, an empty van's
 // weight split (58 / 42) and its CG height, the tyres' grip and stiffness (van tyres), springs.
 const TRANSFIT: RosterRow = {
-  id: 'transfit-van', name: FIX.transfitlwb ? 'Fjord Transfit MWB' : 'Fjord Transfit', kind: 'van',
+  id: 'transfit-van', kind: 'van',
+  name: FIX.transfitlwb || FIX.transfitswb ? 'Fjord Transfit MWB' : 'Fjord Transfit',
   cls: 'road', sub: 'Van',
   rimIn: 15,   // its real rim, inches (what tyres fit)
   cg: 0.75, rideH: 0.18, cyl: 4,
@@ -87,6 +88,29 @@ const TRANSFIT: RosterRow = {
   susF: 1.3, susZ: 0.4,
   // the white van: black bumpers and trim, a blue badge
   paint: '#f0f0ea', trim: '#2a2d34', glass: '#2a2f38', rim: '#5a5f69',
+};
+
+// Ford Transit (Mk7, 2006-13) T280 SWB low roof FWD 2.2 TDCi 110 PS (Ford; dealers' sheets;
+// owner: "older mk7 please"): the short wheelbase 2,933 mm, 4,863 x 1,974 mm, height ~2.0 m,
+// 81 kW (110 PS) at 3,500, 285 Nm, a five-speed manual, FWD, ABS. EST: the kerb weight (1,700
+// kg: the sheets give 1,609-1,699), the torque's band (1,800-2,000), 4,500 rpm, the ratios and
+// final drive (to ~150 km/h at 3,500), 195/70 R15 tyres, Cd 0.39 x 4.0 m^2, an empty van's
+// 58 / 42, its CG, the van tyres' grip, the springs; no stability control (ESP an option).
+const TRANSFIT_SWB: RosterRow = {
+  id: 'transfit-swb', name: 'Fjord Transfit SWB', kind: 'van', cls: 'road', sub: 'Van',
+  rimIn: 15,   // its real rim, inches (what tyres fit)
+  cg: 0.72, rideH: 0.17, cyl: 4,
+  aids: { abs: true, tcs: false },
+  mass: 1700, lf: 1.232, lr: 1.701, len: 4.863, wid: 1.974, trackWidth: 1.7,
+  tyreWidth: 0.195, wheelR: tyreR(195, 70, 15),
+  drive: 1.0, brakeBiasF: 0.68, caF: 115000, caR: 85000, mu: 0.9,
+  curve: realCurve({ idle: 800, low: 0.55, nm: 285, nmFrom: 1800, nmTo: 2000,
+    kw: 81, kwAt: 3500, redline: 4500 }),
+  redline: 4500, upshiftRpm: 4100, downshiftRpm: 1500, idleRpm: 800,
+  gears: [4.06, 2.24, 1.36, 0.98, 0.76], finalDrive: 3.79, dragC: dragOf(0.39, 4.0),
+  susF: 1.3, susZ: 0.4,
+  // the white van, grey bumpers, the blue oval
+  paint: '#f0f0ea', trim: '#5a5f69', glass: '#2a2f38', rim: '#5a5f69',
 };
 
 // Ford Transit (Mk8) 350 L3 H3 RWD 2.0 EcoBlue 130 PS 6-speed manual (Ford; dealers' sheets): the
@@ -267,7 +291,7 @@ const CLEO_RS: RosterRow = {
 /** The new cars: their roster rows, in the list's order. */
 export const NEW_CARS: RosterRow[] = [PORCH, SEVEN, TRANSFIT, TROPHY, CIVVIC, DEFUNDER, FOCUST,
   ...(FIX.cleo ? [CLEO] : []), ...(FIX.cleoroad ? [CLEO_RS] : []),
-  ...(FIX.transfitlwb ? [TRANSFIT_LWB] : [])];
+  ...(FIX.transfitlwb ? [TRANSFIT_LWB] : []), ...(FIX.transfitswb ? [TRANSFIT_SWB] : [])];
 
 /** The classes only new cars race in. */
 export const NEW_CLASSES = [GT_CLASS, TOURING_CLASS];

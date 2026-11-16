@@ -13,10 +13,11 @@ import { FIX } from "../core/fixes.ts";
 // ~34 M licensed cars; DfT / DVLA licensing statistics), ~2.8 % of the picks. The Focust stands
 // for the Focus: 0.37 is ~3 % of the cars (1.05 M of ~35 M; SMMT Motorparc 2023).
 // The vans' 2.4 split between the Transfits switched on, by these parts (EST: no registration
-// split found; the MWB the commonest of the big Transits): the L2 MWB 40, the L3 LWB 30.
+// split found; the MWB the commonest of the big Transits): the L2 MWB 40, the L3 LWB 30, the Mk7
+// SWB 30.
 const VANS = 2.4;
 const VAN_PARTS: [string, number, boolean][] = [['transfit-van', 40, true],
-  ['transfit-lwb', 30, FIX.transfitlwb]];
+  ['transfit-lwb', 30, FIX.transfitlwb], ['transfit-swb', 30, FIX.transfitswb]];
 const vanParts = VAN_PARTS.filter(([, , isOn]) => isOn);
 const vanSum = vanParts.reduce((sum, [, part]) => sum + part, 0);
 /** One Transit's weight: its part of the vans' VANS (the L2 alone: all of it). */

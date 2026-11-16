@@ -35,6 +35,7 @@ const SHAPES: Record<string, RollShape> = {
   'seven-420r': { round: 0.2, side: 0.15 },   // Seven: open, a roll bar, wheels and wings out wide
   'transfit-van': { round: 0.15, side: 0.9 },   // Transit: a tall box, tips and stops on a side
   'transfit-lwb': { round: 0.15, side: 0.9 },   // the long one: the same tall box
+  'transfit-swb': { round: 0.15, side: 0.9 },   // the Mk7 short one: a tall box too
   'effing-tt': { round: 0.25, side: 0.5 },   // trophy truck: tall, a cage, wheels out wide
   'civvic-btcc': { round: 0.55, side: 0.7 },   // Civic BTCC: a low hatch, wide arches, a wing
   'defunder-110': { round: 0.15, side: 0.85 },   // Defender: a tall flat-sided box
