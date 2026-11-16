@@ -70,6 +70,8 @@ export const FIX = {
   civvic: atLoad('civvic'),
   // the Lend Rover Defunder 110 (drivable, and in the highway traffic)
   defunder: atLoad('defunder'),
+  // the Fjord Focust ST (drivable, and in the highway traffic)
+  focust: atLoad('focust'),
   // LAUNCH: the throttle held at a standstill is full at once (no ramp) - a launch spins the
   // wheels as a real one; on the move the ramp is unchanged (input.ts STANDSTILL_MS)
   launchramp: atLoad('launchramp'),

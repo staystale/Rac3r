@@ -13,6 +13,18 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'focust',
+    added: '2026-11-16',
+    name: 'New car: the Fjord Focust ST (a Ford Focus ST Mk4), ROAD / Hatch, and in the '
+      + 'highway traffic',
+    where: 'Test link + &focust=1: the garage, ROAD / Hatch; a circuit (Thruston, Brands '
+      + 'Snatch); the highway (~1 car in 34 of the traffic); + &underskin=1 for a crash',
+    try: 'Its look (blue, darker roof, the spoiler, black grille, twin pipes), a launch, the '
+      + 'brakes, a lap against the Golf, spot it in the traffic, crash it, roll it.',
+    wrong: 'Not a Focus ST from above, slower than the Golf (280 PS against 220 PS), '
+      + 'too many or too few of them on the highway.',
+  },
+  {
     id: 'launchramp',
     added: '2026-11-16',
     name: 'Launches: the throttle held from a standstill is full at once (no ramp)',

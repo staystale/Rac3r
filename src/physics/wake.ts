@@ -40,6 +40,7 @@ const SIDE_AIR: Record<string, number> = {
   tractor: 0.3, 'grass-special': 0.2, 'track-rwd': 0.15, 'f2-rwd': 0.15,
   'porch-gt3r': 0.5, 'seven-420r': 0.3, 'transfit-van': 1,
   'effing-tt': 0.85, 'civvic-btcc': 0.55, 'defunder-110': 0.95,
+  'focust-st': 0.55,
 };
 
 interface WakeCar {

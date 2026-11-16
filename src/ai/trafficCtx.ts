@@ -9,11 +9,12 @@ import type { PoliceOrders } from "./trafficPolice.ts";
 // their switches (newcars.ts). The Transfit stands for all vans: 2.4 is 17 % of the picks, the
 // vans' share of Great Britain's road traffic (DfT road traffic estimates 2023; cars 76 %).
 // The Defunder stands for the Land Rovers: 0.4 is ~3.4 % of the cars (1.1 M of Great Britain's
-// ~34 M licensed cars; DfT / DVLA licensing statistics), ~2.8 % of the picks.
+// ~34 M licensed cars; DfT / DVLA licensing statistics), ~2.8 % of the picks. The Focust stands
+// for the Focus: 0.37 is ~3 % of the cars (1.05 M of ~35 M; SMMT Motorparc 2023).
 export const VEH: [string, number][] = [
   ['hatch-fwd', 3], ['saloon-rwd', 3], ['estate-4x4', 2.5], ['mini-fwd', 1.5],
   ['hatch-rwd', 1], ['muscle-rwd', 0.4], ['lambo-awd', 0.12], ['transfit-van', 2.4],
-  ['defunder-110', 0.4],
+  ['defunder-110', 0.4], ['focust-st', 0.37],
 ];
 // real-road colours: mostly silver / white / black / grey (each its own sprite, cached by
 // id + paint)

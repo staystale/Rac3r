@@ -165,11 +165,35 @@ const DEFUNDER: RosterRow = {
   paint: '#1f4d2e', trim: '#f0f0ea', glass: '#2a2f38', rim: '#a9aeb6',
 };
 
+// Ford Focus ST (Mk4, 2019 on) 2.3 EcoBoost 280 PS six-speed manual 5-door (Ford; auto-data): the
+// 2.3 turbo four across the front, 206 kW at 5,500, 420 Nm at 3,000-4,000, FWD, 1,433 kg (DIN),
+// 4,388 x 1,825 mm, wheelbase 2,700, track 1,567 / 1,556, 235/35 R19, the ratios 2-6 1.952 1.321
+// 1.029 0.821 0.686 and the final drive 4.063, ABS and ESC; 250 km/h (limited), 0-100 5.7 s. EST:
+// first gear 3.231 (the Mk3 ST's, the same six-speed), the 6,500 limit, Cd 0.32 x 2.25 m^2, the
+// weight split (61 / 39), the CG height, the tyres' grip and stiffness, the springs. Its
+// electronic limited-slip front differential is not modelled (no new mechanic).
+const FOCUST: RosterRow = {
+  id: 'focust-st', name: 'Fjord Focust ST', kind: 'focust', cls: 'road', sub: 'Hatch',
+  rimIn: 19,   // its real rim, inches (what tyres fit)
+  cg: 0.53, rideH: 0.13, cyl: 4,
+  aids: { abs: true, tcs: true },
+  mass: 1433, lf: 1.053, lr: 1.647, len: 4.388, wid: 1.825, trackWidth: 1.562,
+  tyreWidth: 0.235, wheelR: tyreR(235, 35, 19),
+  drive: 1.0, brakeBiasF: 0.65, caF: 110000, caR: 112000, mu: 1.33,
+  curve: realCurve({ idle: 800, low: 0.6, nm: 420, nmFrom: 3000, nmTo: 4000,
+    kw: 206, kwAt: 5500, redline: 6500 }),
+  redline: 6500, upshiftRpm: 6200, downshiftRpm: 2600, idleRpm: 800,
+  gears: [3.231, 1.952, 1.321, 1.029, 0.821, 0.686], finalDrive: 4.063, dragC: dragOf(0.32, 2.25),
+  susF: 1.5, susZ: 0.38,
+  // Ford Performance blue, a darker roof, black details (grille, spoiler, mirrors), dark wheels
+  paint: '#2f6fd0', trim: '#1d3f9a', glass: '#2a2f38', rim: '#2a2d34',
+};
+
 /** The new cars switched on: their roster rows, in the list's order. */
 export const NEW_CARS: RosterRow[] = [...(FIX.porch ? [PORCH] : []),
   ...(FIX.seven ? [SEVEN] : []), ...(FIX.transfit ? [TRANSFIT] : []),
   ...(FIX.trophy ? [TROPHY] : []), ...(FIX.civvic ? [CIVVIC] : []),
-  ...(FIX.defunder ? [DEFUNDER] : [])];
+  ...(FIX.defunder ? [DEFUNDER] : []), ...(FIX.focust ? [FOCUST] : [])];
 
 /** The classes only new cars race in, while one of them is switched on. */
 export const NEW_CLASSES = [...(FIX.porch ? [GT_CLASS] : []),

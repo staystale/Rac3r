@@ -57,4 +57,6 @@ export const REAL_FIGURES = {
       + 'EST from the ~4.0 s 0-60 mph quoted for a BTCC car' },
   'defunder-110': { real: 'Land Rover Defender 110 Station Wagon 2.2 TDCi (2012-16, 6MT)',
     topKph: 145, zeroTo100: 15.8, note: "Land Rover's figures" },
+  'focust-st': { real: 'Ford Focus ST Mk4 2.3 EcoBoost 280 PS (2019, 6MT, 5-door)', topKph: 250,
+    zeroTo100: 5.7, note: 'top speed limited' },
 };

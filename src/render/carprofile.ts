@@ -91,6 +91,10 @@ export const PROFILES: Record<string, CarProfile> = {
   'defunder-110': { len: 4.785, waist: 1.3, glass: [0.1, 0.66], roof: [[0, 0.45], [0.005, 0.85],
     [0.035, 0.85], [0.04, 1.94], [0.07, 1.98], [0.66, 1.98], [0.69, 1.3], [0.97, 1.25],
     [1, 0.6]] },
+  // Focus Mk4 hatch: the spoiler over the sloping tailgate, the roof, the raked screen, the long
+  // bonnet (EST from photos)
+  'focust-st': { len: 4.388, waist: 0.98, glass: [0.1, 0.64], roof: [[0, 0.55], [0.02, 0.98],
+    [0.09, 1.4], [0.16, 1.46], [0.52, 1.46], [0.66, 0.98], [0.95, 0.82], [1, 0.5]] },
 };
 
 /**

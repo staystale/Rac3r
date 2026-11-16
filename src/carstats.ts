@@ -293,5 +293,18 @@ export const CAR_STATS: Record<string, CarStat> = {
       "abs": true,
       "tcs": true
     }
+  },
+  // (measured alone, tools/carstats.mjs focust-st with FOCUST=1: a new car behind its switch)
+  "focust-st": {
+    "topKph": 257,
+    "zeroTo100": 5.5,
+    "brake100": 36.4,
+    "gripG": 1.24,
+    "massKg": 1433,
+    "drive": "FWD",
+    "aids": {
+      "abs": true,
+      "tcs": true
+    }
   }
 };

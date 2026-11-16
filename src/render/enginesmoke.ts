@@ -55,6 +55,7 @@ export const EXHAUST_SPOTS: Record<string, { pipes: Pipe[]; up?: boolean }> = {
   btcc: { pipes: [[-0.22, -0.5]] },
   // the Defender's pipe on the left, behind the rear wheel (EST)
   defunder: { pipes: [[-0.4, -0.45]] },
+  focust: { pipes: [[-0.5, -0.3], [-0.5, 0.3]] },
 };
 const DEFAULT_SPOT = EXHAUST_SPOTS.hatch;
 

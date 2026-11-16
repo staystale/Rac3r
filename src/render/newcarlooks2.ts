@@ -5,7 +5,7 @@
 // detail.
 import { SPRITE_PPM } from "./shared.ts";
 import { CHR, GLASS, HEAD, TAIL, type SpriteCtx } from "./carsprite.ts";
-import { GLASS_HI, INK, STEEL, inside, planBody } from "./newcarlooks.ts";
+import { GLASS_HI, INK, MESH, STEEL, inside, planBody } from "./newcarlooks.ts";
 
 // the Defender's spare wheel on the rear door, a share of its length (0.17 m of the tyre's depth
 // past the body: 4,785 mm with it, 4,639 without)
@@ -101,7 +101,82 @@ function paintDefunder(spr: SpriteCtx): void {
   block(along(0.09), 0, 2, 1, CHR);
 }
 
+/**
+ * The Focus's plan, a half width at a share of its length (0 tail, 1 nose), as a share of the
+ * sprite's half: the rounded tail, the hips over the rear wheels, a slight waist at the doors, the
+ * front wings, the nose tapering to its corners.
+ * @param share along the car, 0..1
+ * @returns the half width, 0..1
+ */
+function focustPlan(share: number): number {
+  const arch = Math.max(inside(share, 0.06, 0.3, 0.06), inside(share, 0.62, 0.86, 0.06));
+  const tail = share < 0.04 ? 0.82 + 0.18 * Math.sqrt(share / 0.04) : 1;
+  const nose = share > 0.88 ? Math.sqrt(1 - 0.6 * ((share - 0.88) / 0.12) ** 2) : 1;
+  return (0.95 + 0.05 * arch) * tail * nose;
+}
+
+/**
+ * The Focus's glasshouse: the roof spoiler (the third colour) over the sloping tailgate glass,
+ * the roof (the second colour), the side glass, the raked windscreen, the mirrors (the third).
+ * @param spr the painting context
+ */
+function focustCabin(spr: SpriteCtx): void {
+  const { mid, roof2, light, third, block, along } = spr;
+  const rearFrom = along(0.1), roofFrom = along(0.26), roofTo = along(0.55),
+    screenTo = along(0.66), cabinHalf = Math.round(mid * 0.74);
+  for (let x = rearFrom; x < roofFrom; x++) {
+    const half = Math.round(cabinHalf - 3 * (roofFrom - x) / (roofFrom - rearFrom));
+    block(x, mid - half, 1, half * 2 + 1, GLASS);
+  }
+  block(rearFrom + 3, mid - cabinHalf + 4, 1, cabinHalf * 2 - 7, GLASS_HI);
+  block(roofFrom, mid - cabinHalf, roofTo - roofFrom, cabinHalf * 2 + 1, roof2);
+  block(roofFrom, mid - cabinHalf, roofTo - roofFrom, 1, light);
+  block(roofFrom - 2, mid - cabinHalf, 2, cabinHalf * 2 + 1, third);
+  block(roofFrom + 1, mid - cabinHalf - 1, roofTo - roofFrom - 2, 1, GLASS);
+  block(roofFrom + 1, mid + cabinHalf + 1, roofTo - roofFrom - 2, 1, GLASS);
+  for (let x = roofTo; x < screenTo; x++) {
+    const half = Math.round(cabinHalf + 1 + 2 * (x - roofTo) / (screenTo - roofTo));
+    const rake = Math.round((x - roofTo) * 0.3);
+    block(x, mid - half + rake, 1, (half - rake) * 2 + 1, GLASS);
+  }
+  block(roofTo + 1, mid - cabinHalf + 1, 1, cabinHalf * 2 - 1, GLASS_HI);
+  block(screenTo - 2, mid - cabinHalf - 4, 2, 2, third);
+  block(screenTo - 2, mid + cabinHalf + 3, 2, 2, third);
+}
+
+/**
+ * FJORD FOCUST ST (Ford Focus ST, Mk4): the five-door hatch's plan, the roof spoiler over the
+ * hatch glass, the roof (the second colour), the raked screen and mirrors, the bonnet's two
+ * creases, the swept lamps back along the wings, the wide black grille (the third colour), the
+ * corner lamps and the twin tailpipes, one each side.
+ * @param spr the painting context
+ */
+function paintFocust(spr: SpriteCtx): void {
+  const { lengthPx: len, widthPx: wid, mid, light, dark, third, block, along } = spr;
+  planBody(spr, (x) => mid * focustPlan(x / (len - 1)));
+  focustCabin(spr);
+  // the bonnet's creases
+  block(along(0.67), mid - 7, along(0.24), 1, light);
+  block(along(0.67), mid + 7, along(0.24), 1, dark);
+  // the swept lamps back along the wings, the grille and its lower intake
+  for (const y of [3, wid - 5]) {
+    block(len - 7, y, 5, 2, HEAD);
+    block(len - 4, y + (y < mid ? 1 : -1), 2, 2, HEAD);
+  }
+  block(len - 2, mid - 7, 2, 15, third);
+  block(len - 2, mid - 6, 1, 13, MESH);
+  // the doors' shut lines, the tail lamps on the corners, the twin tailpipes
+  for (const share of [0.42, 0.58]) {
+    block(along(share), 2, 1, 2, INK);
+    block(along(share), wid - 4, 1, 2, INK);
+  }
+  for (const y of [2, wid - 6]) block(0, y, 2, 4, TAIL);
+  block(-1, 6, 1, 3, CHR);
+  block(-1, wid - 9, 1, 3, CHR);
+}
+
 /** Cars 6 on: their bodies by id (render/carlooks.ts LOOKS takes them). */
 export const NEW_LOOKS_2: [string, { paint: (spr: SpriteCtx) => void; bare?: boolean }][] = [
   ['defunder-110', { paint: paintDefunder, bare: true }],
+  ['focust-st', { paint: paintFocust, bare: true }],
 ];
