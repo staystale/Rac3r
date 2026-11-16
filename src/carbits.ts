@@ -47,6 +47,10 @@ export interface CarDoors {
   // its bumpers drawn as its own parts, front and rear (the bus: its radiator grille, its
   // platform's staircase panel with the grab pole)
   bumpers?: ['grille', 'staircase'];
+  // its bumpers' own material where not the body's paint (step 4): black plastic (the Mk8
+  // Transits), grey plastic (the Mk7), black steel (the Defender), steel tube (the trophy truck,
+  // the stock car), the tractor's front weight; none - it has none (the Seven)
+  bumper?: 'black' | 'grey' | 'steel' | 'tube' | 'weight' | 'none';
   // its rear doors a pair, each its own part (the vans' twin rear doors)
   twinRear?: boolean;
   // its glass with its own parts (the bus's two decks: 8)
@@ -82,20 +86,21 @@ export const CAR_DOORS: Record<string, CarDoors> = {
   'muscle-rwd': { doors: [[0.38, 0.66]] },   // Chevelle: the long coupe door
   'rally-4x4': { doors: [[0.4, 0.66]] },
   naffcar: { doors: [[0.36, 0.64]], sheet: true },
-  tractor: { doors: [[0.38, 0.56]] },   // Fastrac: the cab's door (EST, both sides)
+  // Fastrac: the cab's door (EST, both sides), its front weight
+  tractor: { doors: [[0.38, 0.56]], bumper: 'weight' },
   'mini-fwd': { doors: [[0.4, 0.66]] },
   'lambo-awd': { doors: [[0.44, 0.68]] },
   'mikra-r1': { doors: TWO_DOORS },
   'kit-2l': { doors: TWO_DOORS },
   'rx-super': { doors: TWO_DOORS },
-  'banger-f2': { doors: [[0.36, 0.62]], sheet: true },
+  'banger-f2': { doors: [[0.36, 0.62]], sheet: true, bumper: 'tube' },
   'drift-s13': { doors: TWO_DOORS },
   'porch-gt3r': { doors: [[0.44, 0.7]] },
   'bmv-m4gt3': { doors: [[0.38, 0.64]] },
-  'seven-420r': { doors: [] },   // the Seven: no doors
-  'effing-tt': { doors: [[0.42, 0.62]] },
+  'seven-420r': { doors: [], bumper: 'none' },   // the Seven: no doors, no bumpers
+  'effing-tt': { doors: [[0.42, 0.62]], bumper: 'tube' },
   'civvic-btcc': { doors: FOUR_DOORS },
-  'defunder-110': { doors: [[0.47, 0.62], [0.32, 0.47]] },
+  'defunder-110': { doors: [[0.47, 0.62], [0.32, 0.47]], bumper: 'steel' },
   'focust-st': { doors: FOUR_DOORS },
   'cleo-cup': { doors: TWO_DOORS },
   'cleo-rs200': { doors: TWO_DOORS },
@@ -105,9 +110,9 @@ export const CAR_DOORS: Record<string, CarDoors> = {
   'saxo-vtr': { doors: TWO_DOORS },
   'tesla-m3': { doors: FOUR_DOORS },
   // step 2: the Transits - two cab doors, the nearside slide, the twin rear doors
-  'transfit-van': { doors: [], corners: transitPanels(5.531), twinRear: true },
-  'transfit-lwb': { doors: [], corners: transitPanels(5.981), twinRear: true },
-  'transfit-swb': { doors: [], corners: transitPanels(4.863), twinRear: true },
+  'transfit-van': { doors: [], corners: transitPanels(5.531), twinRear: true, bumper: 'black' },
+  'transfit-lwb': { doors: [], corners: transitPanels(5.981), twinRear: true, bumper: 'black' },
+  'transfit-swb': { doors: [], corners: transitPanels(4.863), twinRear: true, bumper: 'grey' },
   // the Routemaster (no passenger doors: the open rear platform): the driver's cab door on the
   // offside (-y) front, the lower deck's riveted side panels elsewhere (EST places), its radiator
   // grille and staircase panel for bumpers, the glass of its two decks

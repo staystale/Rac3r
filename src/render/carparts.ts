@@ -205,6 +205,8 @@ const partPx = (metres: number) => Math.max(3, Math.round(metres * SPRITE_PPM));
 function flatBumper(spec: RenderCarSpec, front: boolean): FlatCanvas {
   const own = FIX.carparts ? doorsOf(String(spec.id))?.bumpers : undefined;
   if (own) return front ? flatGrille() : flatStaircase(spec);
+  const material = FIX.carparts ? doorsOf(String(spec.id))?.bumper : undefined;
+  if (material) return flatOwnBumper(spec, front, material);
   const col = spec.kind === 'muscle' ? CHROME : spec.kind === 'banger' ? spec.third || STEEL_GREY
     : spec.paint;
   const flat = flatCanvas(partPx(spec.wid), partPx(0.3), col), { block } = flat;
@@ -212,6 +214,40 @@ function flatBumper(spec: RenderCarSpec, front: boolean): FlatCanvas {
   block(1, 1, 4, tall - 2, lamp);
   block(wide - 5, 1, 4, tall - 2, lamp);
   if (front) block(Math.round(wide / 2) - 5, 1, 10, tall - 2, '#16181d');
+  block(Math.round(wide / 2) - 3, tall - 3, 6, 2, front ? '#f2f2ee' : '#f2c94c');
+  return flat;
+}
+
+// ?carparts: the bumpers' own materials - black and grey plastic, black-painted steel
+const BUMPER_COL: Record<string, string> = { black: '#1c1e22', grey: '#5a5f69', steel: '#202226' };
+
+/**
+ * ?carparts: a bumper of its own material lying flat - plastic or steel the car's width with its
+ * lamps, a steel TUBE bumper (two bars on their uprights), the tractor's front WEIGHT (its block of
+ * plates on the linkage's frame).
+ * @param spec the car as drawn
+ * @param front the front one
+ * @param material its material
+ * @returns the drawing
+ */
+function flatOwnBumper(spec: RenderCarSpec, front: boolean, material: string): FlatCanvas {
+  if (material === 'tube') {
+    const flat = bitCanvas(partPx(spec.wid), partPx(0.3)), { block } = flat;
+    const wide = flat.canvas.width, tall = flat.canvas.height;
+    for (const y of [0, tall - 2]) block(0, y, wide, 2, STEEL_GREY);
+    for (const x of [2, Math.round(wide / 2) - 1, wide - 4]) block(x, 0, 2, tall, STEEL_GREY);
+    return flat;
+  }
+  if (material === 'weight') {
+    const flat = flatCanvas(partPx(0.9), partPx(0.5), '#2a2d34'), { block } = flat;
+    const wide = flat.canvas.width, tall = flat.canvas.height;
+    for (let x = 2; x < wide - 1; x += 3) block(x, 1, 1, tall - 2, '#16181d');
+    return flat;
+  }
+  const flat = flatCanvas(partPx(spec.wid), partPx(0.3), BUMPER_COL[material]), { block } = flat;
+  const wide = flat.canvas.width, tall = flat.canvas.height;
+  if (front) for (const x of [1, wide - 5]) block(x, 1, 4, tall - 2, HEAD_LAMP);
+  else for (const x of [1, wide - 5]) block(x, 1, 2, tall - 2, TAIL_LAMP);
   block(Math.round(wide / 2) - 3, tall - 3, 6, 2, front ? '#f2f2ee' : '#f2c94c');
   return flat;
 }

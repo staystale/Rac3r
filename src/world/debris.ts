@@ -129,7 +129,8 @@ function partOff(car: DebrisCar, corner: number, add: number, endW: number,
  */
 const hasNoDoor = (car: DebrisCar, kind: string, corner: number) => FIX.carparts
   && ((kind === 'panel' && doorAt(car.spec?.id || '', corner) === null)
-    || (kind === 'wing' && corner >= 2 && isRearWingWelded(car.spec?.id || '')));
+    || (kind === 'wing' && corner >= 2 && isRearWingWelded(car.spec?.id || ''))
+    || (kind === 'bumper' && doorsOf(car.spec?.id || '')?.bumper === 'none'));
 
 /**
  * ?carparts: a van's rear doors - a pair, each lost on its own side.
