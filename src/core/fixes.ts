@@ -65,4 +65,7 @@ export const FIX = {
   // suspension and drive shaft in a wing's well, the crash bar and radiator behind a bumper - by
   // each car's own layout (render/underskin.ts, carbits.ts mount / radiator)
   underskin: atLoad('underskin'),
+  // the Focust read as a five-door HATCH from above: the roof almost to the back, a short steep
+  // rear screen under its spoiler, no boot deck (render/newcarlooks2.ts FOCUST_CABIN)
+  focustlook: atLoad('focustlook'),
 };
