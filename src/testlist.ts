@@ -28,7 +28,7 @@ export const TEST_LIST: TestEntry[] = [
     name: 'New vehicle: the Skool Bus (an American IC Bus CE school bus), ROAD / Bus, and in the '
       + 'traffic on the school runs',
     where: 'Test link + &schoolbus=1: the garage, ROAD / Bus; the highway in TEST MODE at 08:00 '
-      + 'or 15:30 (the setup\'s TIME) to meet one, and at noon to see none; + &carparts=1',
+      + 'or 15:30 (the setup\'s TIME) to meet one, and at noon to see none',
     try: 'Its look (yellow, the white roof, the dog nose, shaded), drive it, crash it: the '
       + 'entrance door, side panels, the rear emergency door, lots of glass.',
     wrong: 'One outside the school runs, too common, not yellow in the traffic, a car door off it.',
