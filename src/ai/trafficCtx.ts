@@ -4,6 +4,7 @@
 import type { HighwayLevel, TrafficCar, TrafficVehicle } from "./types.ts";
 import type { PoliceOrders } from "./trafficPolice.ts";
 import { FIX } from '../core/fixes.ts';
+import { CLOCK, calendarAt } from '../world/clock.ts';
 
 // what is on the road (weights) — road cars only; vans / lorries come with the traffic
 // vehicles (TODO 4). A car not in the roster is left out (trafficSpawn.ts): a new car behind its
@@ -34,6 +35,28 @@ const IBIZAS = 0.074;
 // The A4 the same way (every A4): ~226,700 licensed (2025 Q4, DVLA via stillontheroad.co.uk) -
 // 0.67 %, 0.082 - about 1 car in 150.
 const AUDI_A4S = 0.082;
+// The school bus: rare (an American bus on British roads - owner: "rare"), 0.02 (EST: ~1 in 700
+// of the traffic), and only on the school runs (SCHOOL_RUNS, the game's clock: world/clock.ts).
+const SCHOOL_BUSES = 0.02;
+// hours of the school runs, morning and afternoon (EST, UK school hours); the days of the clock's
+// 7-day week that are the weekend (no school run: its last two)
+const SCHOOL_RUNS: [number, number][] = [[7.5, 9], [14.75, 16.5]], WEEKEND_DAYS = [5, 6];
+// vehicles that keep their own paint in the traffic (a school bus is yellow)
+export const OWN_PAINT = new Set(['skool-bus']);
+
+/**
+ * Whether a vehicle may be picked for the traffic now: the school bus only on the school runs of
+ * a weekday by the game's clock (never without the clock); every other always.
+ * @param vehId the vehicle
+ * @returns in service
+ */
+export function inService(vehId: string): boolean {
+  if (vehId !== 'skool-bus') return true;
+  if (!CLOCK.isOn) return false;
+  const { hour, dayInSeason } = calendarAt(CLOCK.eventS);
+  if (WEEKEND_DAYS.includes(dayInSeason)) return false;
+  return SCHOOL_RUNS.some(([from, until]) => hour >= from && hour < until);
+}
 const VANS = 2.4;
 // The vans' parts of 100: the L2 MWB 40, the L3 LWB 30, the Mk7 SWB 30; with the Transfit Custom
 // (?transitcustom) four ways - the Custom 40 (SMMT: the UK's best-selling van, 2013-23), the MWB
@@ -52,6 +75,7 @@ export const VEH: [string, number][] = [
     : []),
   ['strange-l322', STRANGE_ROVERS],
   ...RARE, ['tesla-m3', TESLAS], ['seat-ibiza', IBIZAS], ['ordi-a4', AUDI_A4S],
+  ['skool-bus', SCHOOL_BUSES],
 ];
 // real-road colours: mostly silver / white / black / grey (each its own sprite, cached by
 // id + paint)

@@ -614,11 +614,35 @@ const E36PEAK: RosterRow = {
   paint: '#1c1e24', trim: '#f0f0ea', glass: '#2a2f38', rim: '#16181d',
 };
 
+// IC Bus CE Series (the "dog-nose" Type C American school bus; IC Bus's spec sheet, Wikipedia):
+// the Cummins B6.7 diesel along the front, an Allison automatic, up to 83 seats, GVWR up to
+// 33,000 lb (15 t). EST (to source): 250 hp (186 kW) at 2,400, 895 Nm at 1,600, the Allison
+// 2500's six ratios and the axle, ~10.9 m long, 2.44 m wide (the US 96-inch limit), wheelbase
+// 5.6 m, ~11,000 kg empty, governed to ~105 km/h (set by the limit), 11R22.5 tyres (twins at the
+// rear: the tracks 2.05 / 1.85), Cd 0.75 x 7.4 m^2, the CG (1.3 m), the springs; ABS, no TC.
+const SCHOOLBUS: RosterRow = {
+  id: 'skool-bus', name: 'Skool Bus', kind: 'schoolbus', cls: 'road', sub: 'Bus',
+  rimIn: 22,   // its real rim, inches (what tyres fit)
+  cg: 1.3, rideH: 0.3, cyl: 6,
+  aids: { abs: true, tcs: false },
+  mass: 11000, lf: 2.464, lr: 3.136, len: 10.9, wid: 2.44, trackWidth: 2.05, trackR: 1.85,
+  // 11R22.5: 1.05 m across, 0.28 m wide
+  tyreWidth: 0.28, wheelR: 0.525,
+  drive: 0.0, brakeBiasF: 0.5, caF: 260000, caR: 420000, mu: 0.85,
+  curve: realCurve({ idle: 650, low: 0.7, nm: 895, nmFrom: 1400, nmTo: 1800,
+    kw: 186, kwAt: 2400, redline: 2600 }),
+  redline: 2600, upshiftRpm: 2400, downshiftRpm: 1200, idleRpm: 650,
+  gears: [3.51, 1.91, 1.43, 1.0, 0.75, 0.65], finalDrive: 4.88, dragC: dragOf(0.75, 7.4),
+  susF: 1.2, susZ: 0.35,
+  // school bus yellow (National School Bus Glossy Yellow), the white roof, black rails and bumpers
+  paint: '#f3a712', trim: '#eceeea', glass: '#2a2f38', rim: '#c9ccd4',
+};
+
 /** The new cars: their roster rows, in the list's order. */
 export const NEW_CARS: RosterRow[] = [PORCH, SEVEN, TRANSFIT, TROPHY, CIVVIC, DEFUNDER, FOCUST,
   CLEO, CLEO_RS, TRANSFIT_LWB, TRANSFIT_SWB, TS010, ROUTEMONSTER, SAXO, STRANGE, SAXO_VTR, TESLA,
   M4GT3, COROLLA, R13, IBIZA, A4AVANT, ...(FIX.transitcustom ? [TRANSFIT_CUSTOM] : []),
-  ...(FIX.e36peak ? [E36PEAK] : [])];
+  ...(FIX.e36peak ? [E36PEAK] : []), ...(FIX.schoolbus ? [SCHOOLBUS] : [])];
 
 /** The classes only new cars race in. */
 export const NEW_CLASSES = [GT_CLASS, TOURING_CLASS, PROTO_CLASS,

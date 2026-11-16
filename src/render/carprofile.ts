@@ -132,6 +132,9 @@ export const PROFILES: Record<string, CarProfile> = {
   // from photos)
   // Routemaster: the two decks to 4.38 m, the domed roof, the half-cab and bonnet at the front
   // (EST from photos)
+  // school bus: the dog nose's low bonnet, the tall square body (~3.1 m), its windows (EST)
+  'skool-bus': { len: 10.9, waist: 1.75, glass: [0.03, 0.86], roof: [[0, 0.55], [0.005, 3.0],
+    [0.86, 3.05], [0.875, 2.3], [0.885, 1.85], [0.99, 1.6], [1, 0.8]] },
   routemonster: { len: 8.38, waist: 2.3, glass: [0.05, 0.92], roof: [[0, 0.5], [0.01, 4.1],
     [0.04, 4.38], [0.95, 4.38], [0.99, 4.1], [1, 1.2]] },
   // Range Rover L322: the flat roof to 1.86 m, the short tailgate, the near upright screen, the

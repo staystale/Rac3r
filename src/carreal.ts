@@ -70,6 +70,8 @@ const REAL_SIZE: Record<string, RealSize> = {
   'cleo-cup': { len: 3.986, wid: 1.8, lf: 1.034, lr: 1.551, trackWidth: 1.53 },
   // Clio 200 Cup (Clio III): 4.017 x 1.768, wheelbase 2.585, track 1.52; 61 / 39 EST
   // Routemaster RM: 8.38 x 2.44; the wheelbase 5.08, 40 / 60 and the track 2.0 EST
+  // school bus (EST): ~10.9 x 2.44, wheelbase 5.6, the front track 2.05
+  'skool-bus': { len: 10.9, wid: 2.44, lf: 2.464, lr: 3.136, trackWidth: 2.05 },
   routemonster: { len: 8.38, wid: 2.44, lf: 3.048, lr: 2.032, trackWidth: 2.05 },
   // Saxo Kit Car: 3.717 x 1.74 (EST of 1.72-1.74), wheelbase 2.385; 62 / 38 and the track EST
   // Range Rover L322: 4.95 x 2.009, wheelbase 2.88; 50 / 50 and the track 1.63 EST

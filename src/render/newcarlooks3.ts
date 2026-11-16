@@ -550,6 +550,74 @@ function paintE36(spr: SpriteCtx): void {
   for (const y of [mid - 6, mid + 5]) block(3, y, 5, 2, STEEL);
 }
 
+
+/**
+ * The school bus's plan, a half width at a share of its length (0 tail, 1 nose), as a share of
+ * the sprite's half: the long square body, its tail's corners rounded, the narrower bonnet of the
+ * dog nose ahead of the body.
+ * @param share along the bus, 0..1
+ * @returns the half width, 0..1
+ */
+function schoolBusPlan(share: number): number {
+  if (share < 0.012) return 0.9 + 0.1 * Math.sqrt(share / 0.012);
+  if (share > 0.885) return share > 0.985 ? 0.6 : 0.72;
+  return 1;
+}
+
+/**
+ * The school bus's roof: white (the second colour) lit along its edge and soft along the lower,
+ * its ribs across, the two roof hatches, the warning lamps at its four corners (amber ahead of
+ * red), the windscreen ahead of the roof.
+ * @param spr the painting context
+ */
+function schoolBusRoof(spr: SpriteCtx): void {
+  const { mid, roof2, outline, block, along } = spr;
+  const half = mid - 5, roofTo = along(0.86);
+  block(along(0.01), mid - half, roofTo - along(0.01), half * 2 + 1, roof2);
+  block(along(0.01), mid - half, roofTo - along(0.01), 1, SHINE);
+  block(along(0.01), mid + half, roofTo - along(0.01), 1, SHADE_SOFT);
+  for (let x = along(0.06); x < roofTo; x += Math.max(4, along(0.06)))
+    block(x, mid - half + 1, 1, half * 2 - 1, SHADE_SOFT);
+  for (const share of [0.3, 0.62]) {
+    block(along(share), mid - 3, along(0.04), 7, outline);
+    block(along(share) + 1, mid - 2, along(0.04) - 2, 5, '#d9d6c8');
+  }
+  for (const [x, col] of [[roofTo - 3, '#f2a900'], [roofTo - 6, '#d8453c'],
+    [along(0.02), '#f2a900'], [along(0.02) + 3, '#d8453c']] as [number, string][]) {
+    block(x, mid - half + 1, 2, 2, col);
+    block(x, mid + half - 2, 2, 2, col);
+  }
+  block(roofTo, mid - half + 1, along(0.025), half * 2 - 1, GLASS);
+  block(roofTo + 1, mid - half + 3, 1, half * 2 - 5, GLASS_HI);
+}
+
+/**
+ * SKOOL BUS (an American school bus, the IC Bus CE, a "dog-nose" Type C): the long yellow body,
+ * the white roof with its hatches and warning lamps, the black rub rails down both flanks, the
+ * bonnet's dog nose with its grille, the big black mirrors on their arms, the stop arm folded on
+ * the driver's side, the rear emergency door; shaded the TS010's way.
+ * @param spr the painting context
+ */
+function paintSchoolBus(spr: SpriteCtx): void {
+  const { lengthPx: len, widthPx: wid, mid, block, along } = spr;
+  planBody(spr, (x) => mid * schoolBusPlan(x / (len - 1)));
+  schoolBusRoof(spr);
+  for (const y of [1, wid - 2]) block(along(0.01), y, along(0.87), 1, INK);
+  // the dog nose: the bonnet lit along its crest, the grille, the lamps
+  const half = Math.round(mid * 0.72);
+  block(along(0.89), mid - half + 1, along(0.1), 1, SHINE);
+  block(along(0.89), mid + half - 1, along(0.1), 1, SHADE);
+  block(len - 2, mid - 5, 2, 11, INK);
+  for (let y = mid - 4; y <= mid + 4; y += 2) block(len - 1, y, 1, 1, CHR);
+  for (const y of [mid - half + 1, mid + half - 3]) block(len - 3, y, 2, 2, HEAD);
+  // the big mirrors on their arms ahead of the body, the stop arm folded on the left flank
+  for (const y of [-2, wid]) block(along(0.885), y, 4, 2, INK);
+  block(along(0.8), wid, 3, 1, '#d8453c');
+  // the rear emergency door's frame, the tail lamps
+  block(0, mid - 4, 1, 9, INK);
+  for (const y of [1, wid - 4]) block(0, y, 1, 3, TAIL);
+}
+
 /** The newest cars' bodies by id (render/carlooks.ts LOOKS takes them). */
 export const NEW_LOOKS_3: [string, { paint: (spr: SpriteCtx) => void; bare?: boolean }][] = [
   ['toyoter-corolla', { paint: paintCorolla, bare: true }],
@@ -558,4 +626,5 @@ export const NEW_LOOKS_3: [string, { paint: (spr: SpriteCtx) => void; bare?: boo
   ['ordi-a4', { paint: paintA4, bare: true }],
   ['transfit-custom', { paint: paintCustom, bare: true }],
   ['bmv-e36peak', { paint: paintE36, bare: true }],
+  ['skool-bus', { paint: paintSchoolBus, bare: true }],
 ];

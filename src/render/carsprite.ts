@@ -575,7 +575,7 @@ function paintRaceNumber(spr: SpriteCtx): void {
     van: [0.40, 2], custom: [0.4, 2], trophy: [0.50, 2], btcc: [0.42, 2], corolla: [0.4, 2],
     e36peak: [0.4, 2],
     defunder: [0.38, 2], focust: [0.40, 2], cleo: [0.38, 2], cleors: [0.38, 2],
-    bus: [0.5, 2], saxo: [0.38, 2], rrover: [0.36, 2],
+    bus: [0.5, 2], schoolbus: [0.5, 2], saxo: [0.38, 2], rrover: [0.36, 2],
     saxovtr: [0.38, 2], tesla: [0.43, 2], ibiza: [0.38, 2], a4avant: [0.34, 2],
     proto: [0.24, 2], lmp1: [0.24, 2],
   }[kind] || [0.365, 2];

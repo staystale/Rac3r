@@ -4,7 +4,8 @@ import { makeCar, reset } from "../vehicle.ts";
 import { ROSTER } from "../cars.ts";
 import { roadPose, roadSpan } from "../highway.ts";
 import type { TrafficCar, TrafficVehicle } from "./types.ts";
-import { CHASE_BEHIND, PAINTS, SPAWN_AHEAD, SPAWN_BEHIND, VEH, geo } from "./trafficCtx.ts";
+import { CHASE_BEHIND, OWN_PAINT, PAINTS, SPAWN_AHEAD, SPAWN_BEHIND, VEH, geo, inService }
+  from "./trafficCtx.ts";
 import { bridgeCarBodies } from "./trafficBridge.ts";
 import type { TrafficCtx, VisFn } from "./trafficCtx.ts";
 
@@ -82,11 +83,14 @@ export function fresh(
  * @returns the car (not placed)
  */
 export function newTrafficVehicle(ctx: TrafficCtx): TrafficVehicle {
-  const ids = VEH.filter(([candId]) => ROSTER.some((entry) => entry.id === candId)),
+  const ids = VEH.filter(([candId]) => ROSTER.some((entry) => entry.id === candId)
+      && inService(candId)),
     [vehId] = pick(ctx, ids), paintIdx = PAINTS.indexOf(pick(ctx, PAINTS)),
     [paint, trim] = PAINTS[paintIdx];
   const car: TrafficVehicle = makeCar(vehId);
-  car.spec = { ...car.spec, id: vehId + '#t' + paintIdx, paint, trim };
+  // (a vehicle in its own paint keeps it - the dice still roll, so the rest run the same)
+  if (!OWN_PAINT.has(vehId)) car.spec = { ...car.spec, id: vehId + '#t' + paintIdx, paint, trim };
+  else car.spec = { ...car.spec, id: vehId + '#t' };
   car.traffic = true;
   car.absOn = !!(car.spec.aids && car.spec.aids.abs);
   car.tcsOn = !!(car.spec.aids && car.spec.aids.tcs);

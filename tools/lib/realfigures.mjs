@@ -75,6 +75,8 @@ export const REAL_FIGURES = {
     topKph: null, zeroTo100: null, note: 'no published top speed or 0-100 (a one-make racer)' },
   'cleo-rs200': { real: 'Renaultsport Clio 200 Cup (Clio III, 2009-12, 6MT, 3-door)', topKph: 225,
     zeroTo100: 6.9, note: "Renault's figures" },
+  'skool-bus': { real: 'IC Bus CE Series (Type C school bus, Cummins B6.7, Allison automatic)',
+    topKph: 105, zeroTo100: null, note: 'top speed EST (governed); no published 0-100' },
   routemonster: { real: 'AEC Routemaster RM (1959-68, AV590 9.6 115 bhp, 4-speed semi-automatic)',
     topKph: null, zeroTo100: null, note: 'no published top speed (~40 mph in London service)' },
   'saxo-kit': { real: 'Citroen Saxo Kit Car (F2, 1997-99, TU5J4 1.6 16v ~210 hp)', topKph: null,
