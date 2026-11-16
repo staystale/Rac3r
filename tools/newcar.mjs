@@ -10,6 +10,8 @@
 //             (LEVEL) and, for a loose-ground class (rally, rx, stock, off-road), on LOOSE
 //   PICTURES  (the browser; --no-browser skips them) tools/scratch/_carsheet.mjs its sprite;
 //             _rollbody.mjs rolled at 12 angles, clean and damaged, and a roll mid-spin;
+//             _partsoff.mjs standing with its front and then its rear panels off (both phone
+//             sizes and close up; RAC3R_QUERY=underskin=1 shows what is under them);
 //             _crashparts.mjs a real crash into a parked car; tools/carlapshot.mjs racing with
 //             AI at 844x390 and 390x844
 // -> shots/newcar/<id>/index.html (the sheet) and sheet.png (a photo of it).
@@ -75,6 +77,7 @@ for (const level of lapLevels)
 if (BROWSER) {
   steps.push(runTool('SPRITE', ['tools/scratch/_carsheet.mjs', `${OUT}/sprite.png`, '6', CAR]));
   steps.push(runTool('ROLLED', ['tools/scratch/_rollbody.mjs', CAR, QUERY || 'x=1'], { OUT }));
+  steps.push(runTool('PARTS OFF', ['tools/scratch/_partsoff.mjs', CAR, QUERY], { OUT }));
   steps.push(runTool('CRASH PIC', ['tools/scratch/_crashparts.mjs', CAR, '22', QUERY], { OUT }));
   steps.push(runTool('RACING', ['tools/carlapshot.mjs', CAR, LEVEL, OUT]));
 }
@@ -124,7 +127,8 @@ border:1px solid #444}figcaption{font-size:12px;color:#aaa}</style>
     .join(', ')}</span>` : '<span class="good">every step ran clean</span>'}</div>
 <h2>Numbers: measured vs the real car</h2><table><tr><th></th><th>measured</th><th>real</th>
 <th>vs real</th><th>garage (src/carstats.ts)</th></tr>${numbers.rows}</table>
-${steps.filter((step) => !['NUMBERS', 'SPRITE', 'ROLLED', 'CRASH PIC', 'RACING']
+${steps.filter((step) => !['NUMBERS', 'SPRITE', 'ROLLED', 'PARTS OFF', 'CRASH PIC',
+    'RACING']
     .includes(step.name)).map((step) => `<h2>${step.name}</h2>${outputBlock(step)}`).join('')}
 <h2>Pictures</h2>
 ${picture('sprite.png', 'sprite (the garage painter)')}
@@ -132,9 +136,11 @@ ${picture(`_rollbody-${CAR}.png`, 'rolled, 12 angles')}
 ${picture(`_rollbody-${CAR}-hurt.png`, 'rolled, damaged')}
 ${picture(`_rollbody-${CAR}-live.png`, 'a roll mid-spin')}
 ${picture(`_rollbody-${CAR}-hurt-live.png`, 'a damaged roll mid-spin')}
+${['front', 'rear'].flatMap((set) => ['close', ...views].map((shot) =>
+  picture(`_partsoff-${CAR}-${set}-${shot}.png`, `${set} panels off, ${shot}`))).join('')}
 ${picture(`_crashparts-${CAR}${QUERY ? `-${QUERY.replace(/[=&]/g, '')}` : ''}.png`, 'a real crash into a parked car (22 m/s)')}
 <h2>Racing with AI (${LEVEL})</h2>${lapShots.join('\n')}
-${steps.filter((step) => ['SPRITE', 'ROLLED', 'CRASH PIC', 'RACING'].includes(step.name))
+${steps.filter((step) => ['SPRITE', 'ROLLED', 'PARTS OFF', 'CRASH PIC', 'RACING'].includes(step.name))
     .map((step) => `<h3>${step.name}</h3>${outputBlock(step)}`).join('')}`;
 writeFileSync(`${OUT}/index.html`, html);
 
