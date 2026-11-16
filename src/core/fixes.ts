@@ -54,8 +54,6 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
-  // the garage's car picker wider on a landscape screen, so a long car name fits (menu/garage.ts)
-  garagewide: atLoad('garagewide'),
   // the highway traffic going for fuel that misses its station (not in the nearside lane in
   // reach, or the pumps taken) stays in the nearside lane for the next one (ai/trafficTrips.ts)
   fuelcarry: atLoad('fuelcarry'),

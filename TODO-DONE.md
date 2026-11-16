@@ -13,6 +13,17 @@ rolls - OWNER 11-07; the AI rework - Where we are 11-04; the driving root fix, t
 LIST 11-01; TypeScript, mud, grass, lamps - Queue; weather, surfaces, car systems, damage,
 lighting, bushes and trees - OWNER LIST 10-24; the checking tools - Tools that are wrong.
 
+## PASSED 11-16 (owner: "Name picker pass too") - THE GARAGE PICKER WIDER IN LANDSCAPE, the default (was ?garagewide=1)
+
+- THE GARAGE PICKER WIDER IN LANDSCAPE (owner 11-16 OK; JOB 3a): PASSED and the default; was ?garagewide=1
+  (FIX.garagewide; menu/garage.ts the garage box's class 'widepick', menu/style.ts; testlist
+  'garagewide'): on a landscape screen the picker's column flex 2.4 / basis 360 px, the stats column
+  1 / 200 px (was 1 / 240 each). PHOTOS (844x390, tools/scratch/_newcargarage.mjs): the Fjord
+  Effing-150 Trophy Truck's name 3 lines with its count pushed out of sight -> 2 lines with "2 / 2"
+  shown; the Honder Civvic Type Arr BTCC 3 lines -> 2 with "1 / 1"; the stats wrap more (CLASS 4
+  lines, TYRES 3) and still fit. 390x844 unchanged (landscape only). menucheck with the switch: no
+  page errors at both sizes. Not touched: the race setup's picker (asked: the garage).
+
 ## PASSED 11-16 (owner: "all pass apart from my earlier comments"; the comments are about
 underskin, still a switch) - THE NEW CARS 1-7 AND THE LAUNCHES, the default (was ?porch=1, ?seven=1,
 ?transfit=1, ?trophy=1, ?civvic=1, ?defunder=1, ?focust=1, ?launchramp=1)
