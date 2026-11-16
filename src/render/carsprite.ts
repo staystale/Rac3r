@@ -6,7 +6,6 @@ import { readSoon } from "./spritepixels.ts";
 import { COL } from "../world/colours.ts";
 import type { CarSprite, RenderCarSpec } from "./types.ts";
 import { trackCanvas } from '../core/memorybudget.ts';
-import { FIX } from '../core/fixes.ts';
 import { shadeSprite } from './carshade.ts';
 
 // A sprite per car, GENERATED on an integer grid in the reference style
@@ -652,7 +651,7 @@ function paintCarSprite(spec: RenderCarSpec): CarSprite {
     look.paint(spr);
   } else if (spr.kind === 'tractor') paintTractor(spr);
   else paintCarBody(spr);
-  if (FIX.carshade && !look?.bare) shadeSprite(spr);
+  if (!look?.bare) shadeSprite(spr);
   paintRaceNumber(spr);
   paintPolice(spr);
   return { c: spr.canvas, Lp: spr.lengthPx, Wp: spr.widthPx };

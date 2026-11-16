@@ -7,9 +7,8 @@ import type {
   CarSprite, RenderCar, RenderCarSpec, SilCanvas,
 } from "./types.ts";
 import { trackCanvas } from '../core/memorybudget.ts';
-import { FIX } from '../core/fixes.ts';
 
-// ?underskin: px of a crumpled edge's teeth along it (each tooth one depth: the edge a solid
+// px of a crumpled edge's teeth along it (each tooth one depth: the edge a solid
 // jagged line, no pixels left loose past it and no holes behind it); the crumple folds' spacing
 // behind the edge, px; how much a fold darkens and the crease after it lightens the paint
 const TOOTH_PX = 2, FOLD_PX = 2, FOLD_DARK = 0.32, CREASE_LIGHT = 1.12;
@@ -95,7 +94,7 @@ function nearestCrushEdge(edges: number[][]) {
 }
 
 /**
- * ?underskin: one pixel in the DENT band behind a crumpled edge, as crumpled sheet metal - the
+ * one pixel in the DENT band behind a crumpled edge, as crumpled sheet metal - the
  * fold itself dark, then the crumple's folds, each a darker line with a light crease after it,
  * fading over the band. The folds are uneven, as metal crumples: each KINK_PX of the edge shifts
  * its folds by its own amount (lines broken and kinked along it), each fold's spacing (FOLD_PX +
@@ -125,50 +124,6 @@ function dentPixelFolded(pixels: Uint8ClampedArray, i: number, best: number,
   for (const chan of [0, 1, 2]) pixels[i + chan] = Math.min(255, pixels[i + chan] * mul);
 }
 
-/**
- * Shade one pixel in the DENT band behind a fold: dark fold, pale crease, primer chips, shade.
- * @param pixels the image data
- * @param i the pixel's index into the data
- * @param pos the pixel's [x, y]
- * @param best distance past the fold
- * @param depth crush depth of the edge
- * @param hsh seeded hash
- */
-function dentPixel(
-  pixels: Uint8ClampedArray, i: number, pos: number[], best: number, depth: number,
-  hsh: HashFn,
-) {
-  const [x, y] = pos;
-  // DENT band behind the fold: clearly dark at the fold, fading over 2 + 1.5 x depth px; a
-  // pale crease line at the fold itself
-  const band = 2 + 1.5 * depth, fade = 1 - best / band;
-  if (fade > 0) {
-    const rnd = hsh(y, x);
-    if (best < 1) {
-      const darken = 0.45 + 0.2 * rnd;
-      pixels[i] *= darken;
-      pixels[i + 1] *= darken;
-      pixels[i + 2] *= darken;
-      return;
-    }   // the FOLD: a dark crumpled edge
-    if (best < 2 && rnd < 0.35 * Math.min(1, depth / 3)) {
-      pixels[i] = Math.min(255, pixels[i] * 0.6 + 110);
-      pixels[i + 1] = Math.min(255, pixels[i + 1] * 0.6 + 110);
-      pixels[i + 2] = Math.min(255, pixels[i + 2] * 0.6 + 118);
-      return;
-    }   // a pale crease just inside
-    if (rnd < 0.18 * fade + 0.08 * Math.min(1, depth / 3)) {
-      pixels[i] = 150;
-      pixels[i + 1] = 150;
-      pixels[i + 2] = 158;
-      return;
-    }   // CHIP: primer
-    const shadeMul = 1 - (0.25 + 0.4 * Math.min(1, depth / 4)) * fade * (0.8 + 0.4 * rnd);
-    pixels[i] *= shadeMul;
-    pixels[i + 1] *= shadeMul;
-    pixels[i + 2] *= shadeMul;   // DENT shade
-  }
-}
 
 /**
  * Crumple and dent one pixel of the top view.
@@ -201,18 +156,14 @@ function crushPixel(
   const { best, depth, edge } = nearestCrushEdge([[edgeFront, depthFront],
       [edgeRear, depthRear], [edgeNeg, depthNeg], [edgePos, depthPos]]);
   if (best === Infinity) return;
-  // (?underskin: the edge's teeth by where along it the pixel is - the ends' edges run across
-  // the car, the sides' along it - so each column of the crush is cut to one depth)
-  const jag = FIX.underskin
-    ? (hsh(Math.floor((edge < 2 ? y : x) / TOOTH_PX), edge) - 0.5) * 2.2
-    : (hsh(x, y >> 1) - 0.5) * 2.2;
+  // (the edge's teeth by where along it the pixel is - the ends' edges run across the car, the
+  // sides' along it - so each column of the crush is cut to one depth)
+  const jag = (hsh(Math.floor((edge < 2 ? y : x) / TOOTH_PX), edge) - 0.5) * 2.2;
   if (best < jag * Math.min(1, depth / 2)) {
     pixels[i + 3] = 0;
     return;
   }
-  if (FIX.underskin)
-    dentPixelFolded(pixels, i, best, { depth, edge, along: edge < 2 ? y : x, hsh });
-  else dentPixel(pixels, i, [x, y], best, depth, hsh);
+  dentPixelFolded(pixels, i, best, { depth, edge, along: edge < 2 ? y : x, hsh });
 }
 
 /**

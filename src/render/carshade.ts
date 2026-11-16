@@ -1,4 +1,4 @@
-// render/carshade.ts - ?carshade (owner: "Just shade all the cars, they're looking
+// render/carshade.ts - (owner: "Just shade all the cars, they're looking
 // better generally"): every car shaded the TS010's way, in the flat pixel style - a light 1 px
 // line along a crest, a soft dark line down its slope, shadow where the body meets the glass and
 // inside an arch's bulge. One shared step over the finished sprite (its own outline and colours),
@@ -172,7 +172,7 @@ function sharedMarks(spr: SpriteCtx, pixels: Pixels, marks: [number, number, Ton
 }
 
 /**
- * ?carshade: shades a finished closed car's sprite - the shared step, then its own crest lines -
+ * shades a finished closed car's sprite - the shared step, then its own crest lines -
  * only over its body's own colours (its lamps, grille, glass and details untouched).
  * @param spr the painting context
  */

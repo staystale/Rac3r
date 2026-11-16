@@ -1,4 +1,4 @@
-// render/torncut.ts - ?underskin: A PANEL TORN OFF AS A REAL ONE IS (owner 11-16: "the clean
+// render/torncut.ts - A PANEL TORN OFF AS A REAL ONE IS (owner 11-16: "the clean
 // square panels missing looks cheap - and isn't how cars look - copy how real cars work"). A lost
 // part's hole follows the panel's own outline, not its box: a wing's ARCH round its wheel (the rest
 // of the wing stays), a bonnet's and boot lid's rounded corners, a door's shut lines. Its edge is
@@ -124,7 +124,7 @@ export function foldPixel(rgba: Uint8ClampedArray, index: number, along: number)
 }
 
 /**
- * ?underskin: a lost part's pixel kept as torn metal, folded (render/carparts.ts lostPixel).
+ * a lost part's pixel kept as torn metal, folded (render/carparts.ts lostPixel).
  * @param rgba the sprite's pixels
  * @param index the pixel's index
  * @param part the lost part

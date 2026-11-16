@@ -497,7 +497,7 @@ export function stepLooseCones(tcars: TrafficVehicle[]) {
         sinH = Math.sin(racer.heading), spare = corner === SPARE_CORNER,
           alongOff = spare ? -racer.spec.len / 2 : (corner < 2 ? racer.spec.lf : -racer.spec.lr),
             sideOff = spare ? 0 : (corner % 2 ? 1 : -1) * halfTrackAt(racer.spec, corner >= 2);
-      // (?carparts: the Defender's spare off its rear door - world/debris.ts spareOff)
+      // (the Defender's spare off its rear door - world/debris.ts spareOff)
       const out = spare ? 0 : (corner % 2 ? 1 : -1) * 4;
       game.cones.add({ x: racer.x + cosH * alongOff - sinH * sideOff,
         y: racer.y + sinH * alongOff + cosH * sideOff, vx: racer.vx * 0.85 - sinH * out,

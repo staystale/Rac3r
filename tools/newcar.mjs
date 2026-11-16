@@ -11,7 +11,7 @@
 //   PICTURES  (the browser; --no-browser skips them) tools/scratch/_carsheet.mjs its sprite;
 //             _rollbody.mjs rolled at 12 angles, clean and damaged, and a roll mid-spin;
 //             _partsoff.mjs standing with its front and then its rear panels off (both phone
-//             sizes and close up; RAC3R_QUERY=underskin=1 shows what is under them);
+//             sizes and close up: what is under them shows);
 //             _crashparts.mjs a real crash into a parked car; tools/carlapshot.mjs racing with
 //             AI at 844x390 and 390x844
 // -> shots/newcar/<id>/index.html (the sheet) and sheet.png (a photo of it).
