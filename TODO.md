@@ -312,8 +312,12 @@ quattro crushed deeper - the owner's case stops short of their wheels; front / s
 a torn-off wheel's parts): no page errors. Owner 11-16: "that looks much better"; the one-piece
 wing and the arms fine. tools/scratch/_skinshots.mjs holds the wheels' steer (round 2's steered
 photos were not steered) and has DEEP sets; _thrownorder.mjs photographs a thrown wheel's parts.
-NEXT (plans to the owner first): a wing off shows only PART of the strut unless the corner is
-severely crushed; a big hit at an exposed strut may knock it off (?cornerbreak).
+PARTIAL STRUT (owner 11-16: "If the wing comes off, it should only partially expose the strut ...
+unless it's quite severely dented"; the plan: "sounds realistic"), BUILT behind the same switch
+(render/carcorners.ts drawExposedStrut): an exposed corner shows only its strut's inner half unless
+its damage is 0.65 or more or its wheel is pushed half a tyre or more; then all of it. PHOTOS (the
+saloon and the Golf: a wing off from a light knock - the half; the owner's case and a deep crush -
+all): no page errors. NEXT: a big hit at an exposed strut may knock it off (?cornerbreak).
 
 THE 10 NEW CARS (owner-approved names 11-16; one switch and one hand-back each; src/newcars.ts):
 1-7 PASSED 11-16, the default with the launches (owner: "all pass apart from my earlier comments"):

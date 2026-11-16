@@ -42,6 +42,9 @@ const SETS = {
   // (the owner's photo: one front corner crushed in to its wheel, nothing off; then steered left,
   // straight, right - the exposed arms turn with the wheel)
   corner: { crushL: [0, 0.6, 0, 0], crushS: [0, 0.35, 0, 0], lost: () => [] },
+  // (a front wing knocked off by a light knock - its strut partly shown - and the same corner
+  // severely crushed: all of it)
+  wing: { crushL: [0, 0.15, 0, 0], crushS: [0, 0.1, 0, 0], lost: () => ['wing:1'] },
   // (the same corner crushed deeper - on a car with a longer front overhang, the hatch-fwd and the
   // rally 4x4, the owner's case's crush stops short of the wheel)
   deep: { crushL: [0, 0.9, 0, 0], crushS: [0, 0.5, 0, 0], lost: () => [] },

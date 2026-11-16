@@ -542,7 +542,9 @@ ROUND 4: an exposed corner is open to the ROAD (no well fill; a lost wing's regi
 right through, `carparts.ts lostPixel` keeps no inner edge strip for a wing with the switch); the
 arms, shaft and track rod are the open cars' own (`WELL_ARMS = OPEN_ARMS`: dark, 1 px), drawn
 before the tyre (`carcorners.ts drawExposedCorner`), the strut's spring and top mount after it,
-over the tyre's inner edge (`drawExposedStrut`). Thrown suspension (`wishbone`, `strut`,
+over the tyre's inner edge (`drawExposedStrut`) - only its INNER half (the arch's inner lip) unless
+the corner is severely crushed (damage 0.65, `STRUT_ALL_DAMAGE`, or the wheel pushed half a tyre,
+`STRUT_ALL_PUSH`). Thrown suspension (`wishbone`, `strut`,
 `shaft`) is drawn first of the loose objects, under the loose wheels (`objects.ts drawCones`,
 `SUSPENSION_KINDS`).
 `tools/scratch/_skinshots.mjs` photographs every car crushed and with its parts off (front, side,

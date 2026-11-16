@@ -22,6 +22,12 @@ const SPRING = '#d0d4da', MOUNT = '#5a5f69', NUT = '#16181d';
 const CRUSH_EXPOSE_PX = 3;
 // m of the steering arm from the hub (render/cars.ts drawWishbones)
 const STEER_ARM_M = 0.14;
+// a corner SEVERELY crushed shows all its strut (else only its inner half, the arch's inner lip):
+// its damage to this (physics/cornerbreak.ts BREAK_AT, a broken corner), or its wheel pushed in or
+// back by this share of the tyre
+const STRUT_ALL_DAMAGE = 0.65, STRUT_ALL_PUSH = 0.5;
+// px either side of the strut's centre (strutTop draws 5 x 5)
+const STRUT_HALF_PX = 2;
 
 /** Where a corner's wheel is drawn off its place (px, car frame) and whether it is exposed. */
 export interface CornerShift { x: number; y: number; exposed: boolean }
@@ -121,16 +127,35 @@ export function drawExposedCorner(ctx: CanvasRenderingContext2D,
 
 /**
  * An exposed corner's STRUT, over its tyre: the coil spring and top mount at the top of the arch,
- * over the tyre's inner edge (seen where the wing over the wheel is gone).
+ * over the tyre's inner edge (seen where the wing over the wheel is gone). Only its INNER half -
+ * the half toward the car's middle, under the arch's inner lip - unless the corner is severely
+ * crushed (its damage to STRUT_ALL_DAMAGE, or its wheel pushed STRUT_ALL_PUSH of a tyre).
  * @param ctx the canvas (the car's frame, sprite px)
- * @param wheel the corner: its axle (m), side (-1 / 1), half the track and the tyre's width (px)
+ * @param wheel the corner: its axle (m), side (-1 / 1), half the track, the tyre's length and width
+ *   (px), the corner's damage (0..1)
  * @param shift the wheel's push-in (px)
  */
 export function drawExposedStrut(ctx: CanvasRenderingContext2D,
-  wheel: { axleX: number; side: number; halfWidth: number; tyreWid: number },
+  wheel: { axleX: number; side: number; halfWidth: number; tyreLen: number; tyreWid: number;
+    damage: number },
   shift: CornerShift): void {
-  const { axleX, side, halfWidth, tyreWid } = wheel;
-  strutTop(ctx, axleX * SPRITE_PPM + shift.x, side * (halfWidth - tyreWid / 2) + shift.y);
+  const { axleX, side, halfWidth, tyreLen, tyreWid, damage } = wheel;
+  const centreX = axleX * SPRITE_PPM + shift.x;
+  const centreY = side * (halfWidth - tyreWid / 2) + shift.y;
+  const severe = damage >= STRUT_ALL_DAMAGE || Math.abs(shift.x) >= tyreLen * STRUT_ALL_PUSH
+    || Math.abs(shift.y) >= tyreWid * STRUT_ALL_PUSH;
+  if (severe) {
+    strutTop(ctx, centreX, centreY);
+    return;
+  }
+  // (the inner half: its centre row and the rows toward the car's middle)
+  const x = Math.round(centreX) - STRUT_HALF_PX, y = Math.round(centreY);
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(x, side > 0 ? y - STRUT_HALF_PX : y, STRUT_HALF_PX * 2 + 1, STRUT_HALF_PX + 1);
+  ctx.clip();
+  strutTop(ctx, centreX, centreY);
+  ctx.restore();
 }
 
 /**

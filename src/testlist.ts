@@ -120,7 +120,8 @@ export const TEST_LIST: TestEntry[] = [
     where: 'Test link + &underskin=1: crash a closed car front-corner first (a hatch, a saloon, '
       + 'the Huracan) until the corner is pushed in to the wheel, then steer; side and rear too',
     try: 'The crushed wheel corner: the road seen through it, the dark arms and track rod under '
-      + 'the tyre (as on the F1), the strut and spring over it at the top of the arch, the wheel '
+      + 'the tyre (as on the F1), the strut over it at the top of the arch (only its inner half '
+      + 'until the corner is badly crushed), the wheel '
       + 'pushed in with the metal; steer - the wheel and track rod turn. Lose a wheel: its '
       + 'wishbone and strut lie under it on the road.',
     wrong: 'A dark block in the wheel arch, arms over the tyre, arms not reaching the wheel, a '

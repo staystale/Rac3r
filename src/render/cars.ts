@@ -398,8 +398,11 @@ function drawCarWheels(carsCtx: CarsContext, car: RenderCar, sprite: CarSprite, 
       pressure: car.tyreP[corner], isOnRim: !!car.onRim?.[corner], turn,
     } : null, shift);
     // (the strut over the tyre, at the top of the arch: the arms are under it)
-    if (shift.exposed && !isBare(spec)) drawExposedStrut(view.ctx, { axleX, side, halfWidth,
-      tyreWid: tyreBox(spec, axleX < 0).wid }, shift);
+    if (shift.exposed && !isBare(spec)) {
+      const tyre = tyreBox(spec, axleX < 0);
+      drawExposedStrut(view.ctx, { axleX, side, halfWidth, tyreLen: tyre.len, tyreWid: tyre.wid,
+        damage: car.dmg ? car.dmg[corner] : 0 }, shift);
+    }
   }
   return halfWidth;
 }
