@@ -13,6 +13,16 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'gpustat',
+    added: '2026-11-16',
+    name: 'Frame-drop hunt: the phone report also records the GPU side and each layer',
+    where: 'Test link + &report=1&gpustat=1: the highway (motorway, countryside), test mode',
+    try: 'Drive about 5 minutes at motorway speed so the view stays zoomed out, as when the frames '
+      + 'dropped. Nothing should look or play differently: it only writes numbers for the foreman.',
+    wrong: 'Anything drawn or driving differently from the plain link, or a hitch about once a '
+      + 'second (it times the graphics chip then; tell the foreman if you can feel it).',
+  },
+  {
     id: 'hwtrips',
     added: '2026-11-15',
     name: 'Traffic leaves by the slip roads, stops for fuel and joins from the on-ramps',

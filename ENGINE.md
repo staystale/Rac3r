@@ -55,6 +55,23 @@ Older design notes and measurements are in the git history of this file.
 4. Draw: `renderer.frame()` (world into the art-pixel buffer, then to the screen), then the HUD.
 5. Audio update and the fps meter.
 
+THE PHONE REPORT'S GPU AND LAYER NUMBERS (`?gpustat=1` with `?report=1`, `FIX.gpustat`, under
+test; report only). `ui/gpustat.ts`: each report frame gets 22 more numbers after its 13
+(`STAT_FIELDS`, named in each post's `stat.fields`): the GPU ground's WebGL time
+(`EXT_disjoint_timer_query_webgl2` where the browser has it - a frame a few frames back; -1 none,
+-2 disjoint), the FENCES once in `FENCE_EVERY` (60) frames - `gl.finish()` + a pixel read, and the
+screen canvas copied into a 1-pixel probe and read, each taken again at once with nothing queued
+(the fence's own cost; the work is the difference) - how late the animation-frame callback began,
+our whole work (sim, draw, HUD; the gap to the next frame is the browser's), each draw layer's ms
+(`render/layerclock.ts` wraps the renderer context's painters into buckets ground, shade, deck,
+still, props, overhead, fx, rain, night; `render/screen.ts` times the cars and the art buffer's
+blits; `game/loop.ts` the HUD) and the props drawn / trees / props looked at. Each post's `stat`:
+the timer's name, the GPU's name (`WEBGL_debug_renderer_info`), cores, memory, the battery and the
+CPU pressure where the browser has them, visibility / focus changes, long tasks. A fence makes its
+frame wait: `tools/phonereport.mjs` leaves that frame and the next out of the medians and prints
+all / slow / p95 medians per column plus the fences. `tools/scratch/_gpustat.mjs` runs the
+highway at the phone's size on a desktop (conditions `day;night;rain`, `/skip=` layers).
+
 A frame's game time is whole display refreshes (`game/pacing.ts`, the learned refresh); a frame
 stamped before the last one, or 250 ms or more after it, is taken as it is - the first can be
 stamped before `main.ts` took `performance.now()`, so its time was NEGATIVE: the menu race's demo
