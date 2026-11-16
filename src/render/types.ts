@@ -99,7 +99,7 @@ export interface ParticleCar extends CamCar {
   // tyre moments (physics/tyrepressure.ts) and rims sparking (world/metalscrape.ts)
   tyreFx?: { corner: number; kind: 'puff' | 'shreds' }[];
   rimSparks?: boolean[];
-  // ?dmgmore: the wheels gone and what they took (where a corner drags), the ground's spray a
+  // the wheels gone and what they took (where a corner drags), the ground's spray a
   // corner dragging on soft ground throws (world/metalscrape.ts)
   wheelOff?: boolean[];
   suspOff?: number[];

@@ -341,7 +341,7 @@ function pushEvent(car: DamageCar, event: DamageEvent) {
 const TOE = 0.008, TOE_OFF = 0.02;
 /**
  * A side's pull from its wheels gone: the most its two corners drag (world/debris.ts dragPull:
- * 1 without ?dmgmore), 0 with both wheels on.
+ * 0 with both wheels on.
  * @param car the car
  * @param front the side's front corner
  * @param rear its rear corner

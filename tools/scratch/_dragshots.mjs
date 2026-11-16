@@ -1,4 +1,4 @@
-// _dragshots.mjs - ?dmgmore: a car DRAGGING a torn-off corner (world/debris.ts dragReach): the
+// _dragshots.mjs - a car DRAGGING a torn-off corner (world/debris.ts dragReach): the
 // sparks off its snapped arm's end and the end glowing on tarmac, the dirt it throws on grass, the
 // score inboard of where the tyre ran. The hatch-fwd on the Test Track, its front-left torn off by
 // a big hit (the wishbone gone: the subframe drags) and its rear-right by a small one (the arm
@@ -6,7 +6,7 @@
 // node tools/scratch/_dragshots.mjs <dir> [extra query]
 import { mkdirSync } from 'node:fs';
 import { startServer, launchBrowser, gotoGame } from '../lib/browser.mjs';
-const [OUT = 'tools/scratch/dragshots', query = 'dmgmore=1'] = process.argv.slice(2);
+const [OUT = 'tools/scratch/dragshots', query = 'x=1'] = process.argv.slice(2);
 mkdirSync(OUT, { recursive: true });
 const server = await startServer();
 const browser = await launchBrowser();

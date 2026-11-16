@@ -28,7 +28,6 @@ import { SPRITE_PPM } from './shared.ts';
 import { readSoon, spritePixels } from './spritepixels.ts';
 import type { CarSprite, RenderCar, RenderCarSpec } from './types.ts';
 import { trackCanvas } from '../core/memorybudget.ts';
-import { FIX } from '../core/fixes.ts';
 
 // 12 pictures a turn; the light in BANDS steps, from above and AHEAD a little (the windscreen and
 // the rear screen shade apart from the roof); above the waist the cabin leans in, CABIN_IN of its
@@ -238,8 +237,8 @@ function paintsOf(car: RenderCar, spec: RenderCarSpec, top: CarSprite, clean: Ca
   });
   let below = under.img;
   if (hurt) {
-    // (?dmgmore: a wheel torn off - its corner painted snapped, as it is: carprofile.ts)
-    const snapped = FIX.dmgmore && car.wheelOff?.some(Boolean);
+    // (a wheel torn off - its corner painted snapped, as it is: carprofile.ts)
+    const snapped = car.wheelOff?.some(Boolean);
     below = snapped ? paintUnderProfile(spec, under.Hp, car).img : copyOf(under.img);
     crushPixels(car, below, under.Lp, under.Hp, false);
     lostTyres(car, spec, below, under.Hp);

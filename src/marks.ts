@@ -595,7 +595,7 @@ function marksNothing(car: MarkCar, corner: number, ground: MarkSurface): boolea
 }
 
 /**
- * How far across the car a wheel's mark lies: its wheel's place, or (?dmgmore) a torn-off
+ * How far across the car a wheel's mark lies: its wheel's place, or a torn-off
  * wheel's score from its snapped arm, in from the hub (world/debris.ts dragReach).
  * @param car the car
  * @param corner the damage corner
@@ -604,7 +604,7 @@ function marksNothing(car: MarkCar, corner: number, ground: MarkSurface): boolea
  * @returns m across (signed)
  */
 function markAcross(car: MarkCar, corner: number, side: number, gone: boolean): number {
-  return gone && FIX.dmgmore ? Math.sign(side) * dragReach(car, corner) : side;
+  return gone ? Math.sign(side) * dragReach(car, corner) : side;
 }
 
 function listWheels(car: MarkCar): MarkWheel[] {

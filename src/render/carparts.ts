@@ -495,7 +495,7 @@ function flatShaft(): FlatCanvas {
 }
 
 /**
- * a TRACK ROD (?dmgmore: thrown with a front wheel) - a thin bar, its ball joint at the end.
+ * a TRACK ROD (thrown with a front wheel) - a thin bar, its ball joint at the end.
  * @returns the drawing
  */
 function flatRod(): FlatCanvas {

@@ -68,21 +68,4 @@ export const TEST_LIST: TestEntry[] = [
       + 'Transfits, crash it: two cab doors, the nearside sliding door, the twin rear doors.',
     wrong: 'Not a Transit Custom from above, a car door off it, too common or rare in the traffic.',
   },
-  {
-    id: 'dmgmore',
-    added: '2026-11-17',
-    name: 'More damage, items 1-2: a rolled car\'s underside as it really is; rolls throw track '
-      + 'rods; a torn-off corner DRAGS its snapped arm (sparks, dirt, a pull by what drags)',
-    where: 'Test link + &dmgmore=1: roll a hatch and a saloon hard (the Lab\'s flip ramp, a '
-      + 'crash at speed); tear a wheel off and drive on tarmac and on grass',
-    try: 'On its roof or side its underside shows the subframe, arms, drive shafts (driven wheels '
-      + 'only) and track rods; a wheel torn off leaves them snapped short, and a front one throws '
-      + 'its track rod too. A closed car on its roof loses no wheels; landing back on its wheels '
-      + 'only that side\'s. Driving on a torn corner: sparks from the snapped arm (in from where '
-      + 'the wheel was) on tarmac, dirt thrown on grass and gravel; a stronger pull when the '
-      + 'wishbone went too.',
-    wrong: 'A closed car losing a wheel on its roof, a wheel lost on the far side as it lands, '
-      + 'arms reaching an empty hub, a tyre drawn where the wheel is gone; sparks out where the '
-      + 'tyre was, a pull too weak or too strong to drive home.',
-  },
 ];

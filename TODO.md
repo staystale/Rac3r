@@ -13,7 +13,7 @@ The 11-11 round (14 entries, 11 switches) passed 11-12, and the performance roun
 carcull, the texture warm-up) and the stadium crossovers passed 11-12 ("mostly pass"), their
 records in `TODO-DONE.md` (PASSED 11-12). ?underskin (the damage look), ?carparts (steps 1-6:
 each car's own crash parts) and ?carshade (every closed car shaded) PASSED 11-17, the default
-(TODO-DONE, PASSED 11-17, THE PASS BATCH 4). On the phone now: the rolled-car underside (?dmgmore).
+(TODO-DONE, PASSED 11-17, THE PASS BATCH 4). ?dmgmore (the rolled cars, dragging) PASSED 11-17, the default (TODO-DONE, PASSED 11-17, MORE DAMAGE).
 
 ## 2. BEING BUILT
 
@@ -23,7 +23,7 @@ each car's own crash parts) and ?carshade (every closed car shaded) PASSED 11-17
     sliding door), BMV E36 Peak (new HILL CLIMB class), Skool Bus (rare in traffic, school-run hours);
     then the TWO-WHEEL TIPPING (?tipping: realistic save, gravel trips through it); then the
     Scanyah artic (a jointed trailer; drivable, NOT in traffic until the owner tests).
-  - WORKER B, damage (behind ?dmgmore): rolled cars' underside matching what is missing, rolling
+  - WORKER B, damage (items 5 and 2 passed 11-17; 4 and 3 behind ?dmgmore2): rolled cars' underside matching what is missing, rolling
     throws wheels and track rods by the face that hits; LOW RANGE finished as a small grip boost in
     LO (owner: not a crawl); dragging (pull by what drags, sparks off the snapped arm, dirt spray);
     a hanging exhaust and bumper (chance by damage, random distance); steam and leaks from the real
@@ -215,42 +215,10 @@ out of date for the Formula Won (saved 347 km/h, 2.8 s, 32.3 m, 1.83 g; measured
 34.0, 1.87 - re-run tools/carstats.mjs); tools/tyrecheck.mjs's full run fails 5 of its claims on
 the base (the burnout and drift times of the hatch-rwd, the muscle car, the F1 and the Naffcar: the
 tyres heat faster than its limits; it is not in CI) - its --car mode shows those times unjudged.
-MORE DAMAGE (?dmgmore=1, FIX.dmgmore; testlist 'dmgmore'), the owner's damage items one by one.
-ROLLED CARS (owner's damage item 5, plan approved 11-16; moved behind ?dmgmore 11-17 when
-?underskin passed): the UNDERSIDE a rolled car
-shows is what is really there (render/carprofile.ts underCorner, painted once per damage step in
-render/rollbody.ts paintsOf): each corner's subframe rail, its wishbone's arms, a driven wheel's
-drive shaft from the middle (only driven axles: the bar across every axle gone), a front's track
-rod; a wheel torn off leaves them snapped as the upright car draws them (the arms 0.6 / 0.3 of the
-way, the shaft's and rod's stubs when they went, a strut's tower hole). A FRONT wheel torn off takes
-its TRACK ROD (world/debris.ts SUSP_ROD, thrown as a 'rod' - render/carparts.ts flatRod - and drawn
-as a stub at the rack on the upright corner, render/carcorners.ts drawSnappedCorner). Rolling tears
-off only the wheels on the face that meets the ground (physics/openwheel.ts rollCorners): a side's
-two; back on its wheels the LANDING side's two (roll.ts now passes the side it came off); on its roof
-none on a closed car (in the air), all four on an open car (they stand proud). MEASURED
-(tools/scratch/_rollthrow.mjs, 300 rolls a car, RANDOM_SEED 1, off -> on): wheels torn off on the
-roof, hatch-fwd 22 -> 0, saloon-rwd 16 -> 0, track-rwd (open) 91 -> 94; back on the wheels 9 -> 4,
-23 -> 9, 18 -> 3, each on the landing side (4/4, 9/9, 3/3; off: 5/9, 10/23, 12/18); on a side 39 ->
-56, 36 -> 44, 220 -> 212 (the draws part ways); track rods thrown 0 -> 40, 29, 151. Photos
-(tools/scratch/_rollunder.mjs, _underpic.mjs): no page errors. AWAITING THE PHONE TEST.
 MARK TRACK (?marktrack=1, owner 11-17: fix it, its own switch): marks.ts listWheels laid the rear-right
 wheel's mark at the FRONT track; it now uses the rear one (spec.trackR) - only the Routemonster and
 the Skool Bus have their own (2.05 front / 1.80 and 1.85 rear: 0.125 and 0.10 m in). AWAITING THE
 PHONE TEST.
-DRAGGING (owner's damage item 2, plan approved 11-16: "more drag, more pull"; the dirt spray yes):
-a corner whose wheel was torn off touches the road where the car shows it - its snapped arm's
-end, or its subframe's with the wishbone gone (world/debris.ts dragReach, the upright drawing's
-SNAP_SHAREs) - so its sparks, its score on hard ground and its dig on soft ground come from there
-(world/metalscrape.ts touchPoint, marks.ts markAcross, render/particles.ts wheelPlace), not from
-the empty hub's place; on soft ground it throws its ground's spray (dragSpray, particles
-emitDragDirt: 30 puffs a second at 15 m/s+); on hard ground the snapped end glows while it sparks
-(render/carcorners.ts drawSnappedCorner, 3 px: owner "only a tiny bit bigger"). The PULL by what drags (damage.ts sideDrag,
-debris.ts dragPull): the snapped arm 0.7 of the old lost-wheel toe, the subframe 1.4 (the owner's
-numbers). MEASURED (_drift.mjs: 60 km/h on tarmac, a wheel torn off, 3 s hands off; off -> arm ->
-subframe): hatch-fwd front 12.8 -> 9.0 -> 17.7 deg (5.4 -> 3.8 -> 7.5 m sideways), rear 33.3 ->
-23.8 -> 44.0 deg; saloon-rwd front 12.7 -> 9.0 -> 17.7, rear 31.3 -> 22.2 -> 44.5; the switch off
-unchanged. tools/scratch/_dragshots.mjs (Test Track, tarmac and grass, 844x390 and 390x844): the
-sparks off the torn corners, the dig on grass; no page errors. AWAITING THE PHONE TEST.
 
 THE 10 NEW CARS (owner-approved names 11-16; one switch and one hand-back each; src/newcars.ts):
 1-7 PASSED 11-16, the default with the launches (owner: "all pass apart from my earlier comments"):

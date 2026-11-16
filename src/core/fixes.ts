@@ -27,7 +27,7 @@
 // cleo (as the Clio III Cup), cleoroad, transfitlwb, transfitswb, saxo, strange, saxovtr,
 // fuelcarry and rollguard passed 11-16; then ts010 (with its PROTOTYPE class), tesla,
 // routemonster and m4gt3 passed 11-16; then corolla, reversefix, f1menu, r13, ibiza and a4avant
-// passed 11-16; lowrange passed 11-17.)
+// passed 11-16; lowrange and dmgmore passed 11-17.)
 import { envValue } from './debug.ts';
 
 /**
@@ -69,11 +69,6 @@ export const FIX = {
   // the Fjord Transfit Custom (a Ford Transit Custom L1 H1, 2012-23), ROAD / Van, in the traffic:
   // the four Transfits split the vans' share
   transitcustom: atLoad('transitcustom'),
-  // MORE DAMAGE (the owner's damage items, one switch): a ROLLED car's underside as it really is
-  // and snapped where a wheel was torn off (render/carprofile.ts underCorners, render/rollbody.ts),
-  // a front wheel's TRACK ROD thrown with it (world/debris.ts SUSP_ROD), a roll tearing off only
-  // the wheels on the face that hits (physics/openwheel.ts rollCorners)
-  dmgmore: atLoad('dmgmore'),
   // the rear-right wheel's skid mark at the REAR track (marks.ts listWheels: it was laid at the
   // front track - off on a car whose rear track is its own, spec.trackR)
   marktrack: atLoad('marktrack'),
