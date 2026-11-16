@@ -23,7 +23,10 @@ try {
   const errors = [];
   page.on('pageerror', (err) => errors.push(String(err)));
   await page.goto(`${srv.url}/?menu=1&guide=0&rules=0&seed=${seedArg}${extraQuery()}`);
-  await page.waitForTimeout(3000);
+  // (the game starts by a dynamic import: wait for it - a slow machine took over 3 s)
+  await page.waitForFunction(() => !!window.__game && !!window.__game.menu, null,
+    { timeout: 60000, polling: 250 });
+  await page.waitForTimeout(1000);
   await page.evaluate(startRace, [+aiArg, +lapsArg, carId, LEVEL]);
   const started = Date.now();
   let state = null;
