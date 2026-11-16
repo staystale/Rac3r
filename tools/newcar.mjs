@@ -63,6 +63,10 @@ function runTool(name, command, env = {}) {
   const step = { name, ok: result.status === 0, out: out.trim(),
     seconds: (Date.now() - start) / 1000 };
   console.log(`${step.ok ? 'ok' : 'FAILED'} (${step.seconds.toFixed(0)} s)`);
+  // a page that did not load in time is tried once more (the second PC's first load after a
+  // checkout timed out three times in a row, 11-15/16: the browser's cold start, not the car)
+  if (!step.ok && /waitForFunction: Timeout/.test(out) && !env.RETRIED)
+    return runTool(name, command, { ...env, RETRIED: '1' });
   return step;
 }
 

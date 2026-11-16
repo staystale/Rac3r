@@ -209,6 +209,8 @@ panels off at frame 30, CPU x4 on the PC (on, off, on, off): work median 172.3 /
 20 cars is the catch-up loop, ~170 ms a frame either way); a car's picture made every frame
 (tools/scratch/_underskincost.mjs, laptop, x1): frame median 1.6-1.7 ms off, 1.9 on (+0.2-0.3 ms each
 time a car loses a part or its crush changes a step; nothing on the frames between).
+PROOF: switch off, renderhash SAME (the PC, thruston, brands-snatch, knobhill: ~3-7 min a level
+there without a GPU, so not all; CI runs the rest).
 
 ### 3b. Tracks (the venue helper builds, the foreman reviews, the owner passes; one switch each)
 
