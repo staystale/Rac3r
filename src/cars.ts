@@ -14,7 +14,7 @@ import { PAINT_STOCK, rimColour } from './carpaint.ts';
 import { F1_AERO } from './carreal.ts';
 import type { Mark, Spray } from './world/types.ts';
 import { dragOf, realCurve, tyreR } from './realcars.ts';
-
+import { NEW_CARS, NEW_CLASSES } from './newcars.ts';
 export const GRAVITY = 9.81;
 
 // mods — THE ONLY SEAM between the game layer and the physics (CLAUDE.md rule 6). Every entry
@@ -189,7 +189,7 @@ export const CLASSES = [
   { id: 'oval', name: 'OVAL', subs: ['Naffcar'] },
   { id: 'single', name: 'SINGLE-SEATER', subs: ['F1', 'F2', 'FE'] },
   { id: 'drift', name: 'DRIFT', subs: ['Pro', 'Street'] },
-  { id: 'offroad', name: 'OFF-ROAD / ODD', subs: ['Odd'] },
+  { id: 'offroad', name: 'OFF-ROAD / ODD', subs: ['Odd'] }, ...NEW_CLASSES,
 ];
 export const classOf = (classId: string) => CLASSES.find((cls) => cls.id === classId);
 
@@ -241,7 +241,7 @@ export const TYRE_BRANDS = [
   // (NOTES register: Firestone = FIRESTONED)
   { id: 'firestoned', name: 'FIRESTONED', col: '#d8b04a', blurb: 'farm' },
 ];
-const ALLC = ['road', 'rally', 'rx', 'stock', 'oval', 'single', 'drift', 'offroad'];
+const ALLC = ['road', 'rally', 'rx', 'stock', 'oval', 'single', 'drift', 'offroad', 'gt'];
 // grip x per surface, in TYRE_SURFS order: tarmac wet gravel dirt grass mud sand snow ice
 const makeTyre = (tyreId: string, brand: string, name: string, price: number, fits: string[],
   grips: number[], extra: Partial<Tyre> = {}): Tyre =>
@@ -263,7 +263,8 @@ export const TYRES = [
   makeTyre('road-sport', 'kum', 'Road Sport', 520, ['road', 'stock', 'drift'],
     [1.1, 1.05, 0.98, 0.98, 0.97, 0.94, 0.96, 0.92, 0.92], { rims: [15, 20],
     note: 'fast road tyre' }),
-  makeTyre('semi-slick', 'kum', 'Semi-Slick', 780, ['road', 'rx', 'stock', 'oval', 'drift'],
+  makeTyre('semi-slick', 'kum', 'Semi-Slick', 780, ['road', 'rx', 'stock', 'oval', 'drift',
+    'gt'],
     [1.18, 0.9, 0.92, 0.92, 0.9, 0.85, 0.9, 0.8, 0.8], { rims: [13, 19],
     opt: [75, 120], peak: 100, cold: 0.8,
     note: 'track day: needs heat, hates rain' }),
@@ -271,7 +272,7 @@ export const TYRES = [
     [1.03, 0.95, 0.98, 0.98, 0.95, 0.92, 0.95, 0.9, 0.9], { rims: [15, 18],
     slide: 1.1, opt: [80, 150], peak: 110,
     heatHard: 0.8, note: 'holds a slide, hard to overheat' }),
-  makeTyre('kum-wet', 'kum', 'Wet', 480, ['road', 'rally', 'rx', 'stock', 'drift'],
+  makeTyre('kum-wet', 'kum', 'Wet', 480, ['road', 'rally', 'rx', 'stock', 'drift', 'gt'],
     [1, 1.22, 1, 1.02, 1.02, 1.05, 1, 1.04, 1], { rims: [10, 18],
     opt: [40, 85], peak: 60,
     note: 'rain tyre; overheats on a dry road' }),
@@ -294,15 +295,15 @@ export const TYRES = [
     'offroad'], [0.98, 1, 1.12, 1.12, 1.15, 1.18, 1.15, 1.08, 1.02],
     { rims: [15, 18], ploughK: 0.85,
     note: 'off the road and back' }),
-  makeTyre('p-soft', 'pirrelly', 'Soft', 1400, ['single', 'oval'],
+  makeTyre('p-soft', 'pirrelly', 'Soft', 1400, ['single', 'oval', 'gt'],
     [1.28, 0.85, 0.85, 0.85, 0.82, 0.75, 0.8, 0.7, 0.65], { rims: [13, 18],
     opt: [90, 125], peak: 105, cold: 0.78,
     heatHard: 1.2, note: 'fastest; must be hot' }),
-  makeTyre('p-medium', 'pirrelly', 'Medium', 1200, ['single', 'oval'],
+  makeTyre('p-medium', 'pirrelly', 'Medium', 1200, ['single', 'oval', 'gt'],
     [1.22, 0.88, 0.88, 0.88, 0.85, 0.78, 0.82, 0.72, 0.68], { rims: [13, 18],
     opt: [85, 130], peak: 100, cold: 0.8,
     note: 'a long stint' }),
-  makeTyre('p-wet', 'pirrelly', 'Full Wet', 1100, ['single', 'oval'],
+  makeTyre('p-wet', 'pirrelly', 'Full Wet', 1100, ['single', 'oval', 'gt'],
     [1.02, 1.35, 0.95, 0.95, 0.95, 0.92, 0.92, 0.85, 0.8], { rims: [13, 18],
     opt: [40, 80], peak: 60,
     note: 'standing water; dies on a dry line' }),
@@ -775,6 +776,7 @@ export const ROSTER: RosterRow[] = [
     aeroK: 1.3, downforceF: 1.12, downforceR: 1.62, susF: 2.2, susZ: 0.3,
     paint: '#2f6fd0', trim: '#16181d', glass: '#9aa0ae',
   },
+  ...NEW_CARS,
 ];
 
 // What spec(id) returns: SHARED + the row + L and Izz (+ what applyTyre / applyLivery set).

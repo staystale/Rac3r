@@ -44,4 +44,6 @@ export const REAL_FIGURES = {
   'drift-s13': { real: 'a pro drift Nissan Silvia S13 build', topKph: null, zeroTo100: null,
     note: 'a build: no sure figures' },
   'f2-rwd': { real: 'Dallara F2 (2018)', topKph: 335, zeroTo100: 2.9, note: '0-100 EST' },
+  'porch-gt3r': { real: 'Porsche 911 GT3 R (992, 2023)', topKph: 285, zeroTo100: null,
+    note: 'top speed EST (by the BoP and the wing); no published 0-100' },
 };

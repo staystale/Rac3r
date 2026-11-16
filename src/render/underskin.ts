@@ -132,7 +132,8 @@ function bonnetBay(skin: SkinCtx, region: Region): void {
   const { ctx, bits } = skin, deep = pxOf(RADIATOR_DEPTH_M);
   const tall = region.y1 - region.y0 + 1, front = region.x1 - deep + 1;
   if (bits.radiator === 'front') {
-    if (bits.engine === 'front') {
+    // (one radiator across the front: a front-engined car's, and the 911's central one)
+    if (bits.engine !== 'mid') {
       const across = Math.round(tall * 0.8);
       radiator(ctx, front, region.y0 + Math.round((tall - across) / 2), deep, across);
     } else {

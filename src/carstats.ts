@@ -215,5 +215,18 @@ export const CAR_STATS: Record<string, CarStat> = {
     "massKg": 755,
     "drive": "RWD",
     "aids": null
+  },
+  // (measured alone, tools/carstats.mjs porch-gt3r with PORCH=1: a new car behind its switch)
+  "porch-gt3r": {
+    "topKph": 280,
+    "zeroTo100": 3,
+    "brake100": 30.6,
+    "gripG": 1.47,
+    "massKg": 1250,
+    "drive": "RWD",
+    "aids": {
+      "abs": true,
+      "tcs": true
+    }
   }
 };

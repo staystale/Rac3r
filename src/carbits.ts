@@ -12,11 +12,15 @@ export interface CarBits {
   pipes: number; pipesAt: 'sides' | 'left' | 'right' | 'centre' | 'stack';
   front: 'bonnet' | 'none';   // the panel over the front
   rear: 'boot' | 'spoiler' | 'none';   // the boot lid / tailgate, or a wing on it
-  engine: 'front' | 'mid';   // where the engine sits
+  // where the engine sits: ahead of the cabin, between the cabin and the rear axle, or behind the
+  // rear axle (the 911)
+  engine: 'front' | 'mid' | 'rear';
   cyl: number; layout: 'inline' | 'v' | 'flat';   // what it is
   // how the engine lies (along the car or across it) and where the radiator sits: what shows
   // under a lost panel (render/underskin.ts)
   mount: 'long' | 'trans'; radiator: 'front' | 'rear' | 'sides';
+  // the wing stands on the boot lid (the 911 GT3 R's swan necks): it goes when the lid goes
+  wingOnLid?: boolean;
 }
 
 // (the radiators: the Sport quattro S1 E2 carried its radiator at the back, as World RX supercars
@@ -80,6 +84,10 @@ export const CAR_BITS: Record<string, CarBits> = {
   // Silvia S13: one pipe, the DUCKTAIL on the boot, the SR20 four
   'drift-s13': { pipes: 1, pipesAt: 'right', front: 'bonnet', rear: 'spoiler', engine: 'front',
     cyl: 4, layout: 'inline', mount: 'long', radiator: 'front' },
+  // 911 GT3 R: twin pipes in the middle, the front lid over the central radiator, the engine lid
+  // with the swan-neck wing on it, the flat six behind the rear axle
+  'porch-gt3r': { pipes: 2, pipesAt: 'centre', front: 'bonnet', rear: 'boot', engine: 'rear',
+    cyl: 6, layout: 'flat', mount: 'long', radiator: 'front', wingOnLid: true },
 };
 
 /**

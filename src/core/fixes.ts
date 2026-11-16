@@ -66,4 +66,6 @@ export const FIX = {
   // suspension and drive shaft in a wing's well, the crash bar and radiator behind a bumper - by
   // each car's own layout (render/underskin.ts, carbits.ts mount / radiator)
   underskin: atLoad('underskin'),
+  // THE NEW CARS, one switch each (newcars.ts): the Porch 911 GT3 Arr and its GT class
+  porch: atLoad('porch'),
 };

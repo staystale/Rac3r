@@ -46,6 +46,7 @@ export const EXHAUST_SPOTS: Record<string, { pipes: Pipe[]; up?: boolean }> = {
   banger: { pipes: [[-0.5, -0.3]] },
   grass: { pipes: [[-0.5, -0.3]] },
   drift: { pipes: [[-0.5, -0.15], [-0.5, 0.15]] },
+  porch: { pipes: [[-0.5, -0.08], [-0.5, 0.08]] },
 };
 const DEFAULT_SPOT = EXHAUST_SPOTS.hatch;
 

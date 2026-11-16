@@ -37,6 +37,8 @@ const REAL_SIZE: Record<string, RealSize> = {
   'mikra-r1': { len: 3.72, wid: 1.66, lf: 0.97, lr: 1.46, trackWidth: 1.47 },
   // Silvia S13: 4.52 x 1.69, wheelbase 2.475, track ~1.465
   'drift-s13': { len: 4.52, wid: 1.69, lf: 1.24, lr: 1.235, trackWidth: 1.465 },
+  // 911 GT3 R (992): 4.619 x 2.05, wheelbase 2.507, ~39 % front (EST), track ~1.72 (EST)
+  'porch-gt3r': { len: 4.619, wid: 2.05, lf: 1.529, lr: 0.978, trackWidth: 1.72 },
 };
 
 /**

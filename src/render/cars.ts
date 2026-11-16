@@ -13,6 +13,7 @@ import { drawTyreByPressure, wheelTurn } from "./tyrelook.ts";
 import { drawRolledBody, prepareBody } from "./rollbody.ts";
 import { drawUnderSkin } from "./underskin.ts";
 import { FIX } from '../core/fixes.ts';
+import { bitsOf } from '../carbits.ts';
 import type {
   Cam, CarSprite, RenderCar, RenderCarSpec, RenderCone, SilCanvas, View,
 } from "./types.ts";
@@ -451,9 +452,12 @@ function drawRoofFlaps(ctx: CanvasRenderingContext2D, raised: number, sprite: Ca
  */
 function drawPixelCar(carsCtx: CarsContext, car: RenderCar, heading = car.heading) {
   const { view, PPMz, toScreenX, toScreenY, pixelCar, damagedSprite, silhouette } = carsCtx;
-  // (a car whose wing / spoiler is off is painted without it)
-  const shown = drawnSpec(car.spec), spec = car.partLost?.includes('spoiler')
-    ? { ...shown, noWing: true } : shown, sp0 = pixelCar(spec),
+  // (a car whose wing / spoiler is off is painted without it - with its boot lid, where the
+  // wing stands on the lid: carbits.ts wingOnLid)
+  const lost = car.partLost || '', wingGone = lost.includes('spoiler')
+    || (lost.includes('boot') && bitsOf(String(car.spec.id)).wingOnLid === true);
+  const shown = drawnSpec(car.spec), spec = wingGone ? { ...shown, noWing: true } : shown,
+    sp0 = pixelCar(spec),
     hurt = car.dmg ? damagedSprite(car, sp0) : sp0, scale = PPMz() / SPRITE_PPM;
   // (without the parts it has lost - render/carparts.ts)
   const sprite = car.partLost ? lostSprite(car, spec, hurt) : hurt;
