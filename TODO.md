@@ -287,6 +287,29 @@ BUGS (each behind its own switch, measured, then a test link):
     star from 20 of 20 passed (one 22 m off). Photos of the card: tools/scratch/_policecard/.
 15. TRAFFIC (and unaggravated police) stop for fuel now and then and take slip roads (the petrol
     station stops exist, ai/trafficFuel.ts, 11-11: check how often); aggravated police as now.
+    OWNER 11-15: 2 in 12 take the next slip road and leave; 5 in 40 pull into a fuel station;
+    unaggravated police the same, chasing police never; traffic also joins from the on-ramps.
+    FOUND (tools/scratch/_hwtrips.mjs, 20 km at 100 km/h x motorway / dual x countryside / Deaf
+    Valley x seeds 4242 / 7, traffic 0.6, on the PC): today 13 of 136 cars of our way passing a
+    roadside station pulled in (9.6 %: a 15 % roll for nearside-lane cars only), no police car
+    ever; no car left by a slip or joined.
+    BUILT behind `?hwtrips=1` (FIX.hwtrips; ai/trafficTrips.ts, ai/trafficPath.ts; testlist
+    'hwtrips'; ENGINE.md THE TRAFFIC'S TRIPS): one roll per car per slip road (2 / 12) or station
+    (5 / 40) 500 m ahead, in any lane; the car moves over to the nearside lane, indicates, takes a
+    short / long slip to its gate or a junction's off-slip round the roundabout and on; out of sight
+    it is put back as a new car. A car put back ahead now and then (2 / 12, where one is in reach)
+    starts on a junction's on-slip or a side road's / services' end, gives way, merges. One car at
+    a time pulls in at the pumps (two met there). No walkthrough card (nothing the player must do).
+    MEASURED (switch on, the same 160 km): rolls at a slip 308, won 57 (18.5 %); of the cars
+    passing a slip 35 of 284 left (12.3 %: traffic 25 / 224, police 10 / 60); 15 winners missed it
+    (still not in the nearside lane 55 m before), the rest put back before they got there. Fuel: won
+    17 of 147 rolls (11.6 %), pulled in 10 of 131 passing (7.6 %), 6 missed; police 0 of 27. Joins:
+    4 placed, 3 merged in 12-14 s, 1 put back before merging, none held at the give-way. Paths
+    checked headless (a forced junction exit: 27 m/s on the slip, ~4-5 m/s round the ring, out).
+    Switch off: simhash highway-traffic / highway-ai SAME. Traffic step (node, PC) 263 -> 298 us
+    mean (different chases each way); framecheck highway, PC x4 (in its catch-up loop, one run
+    each): work median 39.4 -> 42.5 ms, frame median 83.3 both. Photos: tools/scratch/_trips/
+    (exit, junction, join).
 
 RACE TRACKS:
 16. PIT STOPS - ALL QUESTIONS ANSWERED 11-15 (build after the 10 cars, one switch):
