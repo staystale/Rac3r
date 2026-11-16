@@ -13,6 +13,19 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'defunder',
+    added: '2026-11-16',
+    name: 'New car: the Lend Rover Defunder 110 (a Land Rover Defender 110), OFF-ROAD, and in '
+      + 'the highway traffic',
+    where: 'Test link + &defunder=1: the garage, OFF-ROAD / 4x4; a loose stage (Sweaty Lamb); '
+      + 'the highway (it turns up in the traffic, ~1 car in 30); + &underskin=1 for a crash',
+    try: 'Its look (square body, white roof, spare on the back door), flat out (slow: 145 '
+      + 'km/h), the gravel, a slide (tall: it leans and can roll), spot it in the traffic, '
+      + 'crash it, roll it.',
+    wrong: 'Not a Defender from above, too quick or too grippy for 122 PS on all-terrain tyres, '
+      + 'rolling at every corner, too many or too few of them on the highway.',
+  },
+  {
     id: 'civvic',
     added: '2026-11-16',
     name: 'New car: the Honder Civvic Type Arr BTCC (a Honda Civic Type R BTCC), TOURING',

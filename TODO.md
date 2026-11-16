@@ -360,6 +360,39 @@ THE 10 NEW CARS (owner-approved names 11-16; one switch and one hand-back each; 
    sponsor livery); the side exit on the left (EST); the wing going with the tailgate (as the
    Porch) or able to break off alone; its long name wraps to three lines in the landscape
    garage's picker and pushes its "1 / 1" out of sight.
+6. LEND ROVER DEFUNDER 110 (Land Rover Defender 110 Station Wagon 2.2 TDCi, 2012-16): BUILT 11-16
+   behind ?defunder=1 (FIX.defunder; testlist 'defunder'), drivable as OFF-ROAD / 4x4 (a new type)
+   and in the highway traffic. Real (Land Rover): the Puma 2.2 diesel four along the front, 90 kW
+   at 3,500, 360 Nm at 2,000, six-speed manual 5.443 2.839 1.721 1.223 1.0 0.794, the transfer's
+   high range 1.211 on 3.538 axles (4.285), permanent 4WD, 1,987 kg, 4,785 mm with the spare on the
+   door x 1,790, wheelbase 2,794, 235/85 R16, ABS + traction control; 145 km/h, 0-100 15.8 s. EST:
+   the torque band (2,000-2,400), 4,500 rpm, Cd 0.55 x 2.8, 52 / 48, track 1,486, CG 0.8 m, the
+   all-terrain tyres' mu 0.85, springs 1.1 Hz; the low range not modelled (no new mechanic).
+   TRAFFIC (ai/trafficCtx.ts VEH 0.4; left out with the switch off): it stands for the Land Rovers,
+   ~3.4 % of the cars (1.1 M of GB's ~34 M licensed cars, DfT / DVLA licensing data via a tracker);
+   tools/scratch/_trafficmix.mjs, 20 000 draws: 3.2 % of the picks alone (~1 car in 31), 2.6 % with
+   the Transfit on too (~1 in 38; the vans 16.8 -> 16.3 %). tools/newcar.mjs defunder-110 (second
+   PC, &underskin=1; every step ran, the crash picture on its retry): top 148 km/h (real 145), 0-100
+   13.2 s (real 15.8: 16 % quick - not changed, a question), 100-0 53.7 m, grip 0.81 g (tyrecheck
+   working: tarmac 0.77, gravel 0.52), 40-100 11.15 s, gravel power-on body slip 9 deg; tyres all OK;
+   partcheck all 10 kinds OK; AI x6 Thruston 276 s, 1 incident, laps 84.1-99.7 s; Sweaty Lamb 519 s,
+   6 incidents (4 offs, 2 spins), every car 3 laps, laps 160.8-178.7 s (no bogging, unlike the van
+   and the truck). Rolled pictures rest on a side most (166 of 300; the Civvic 98). ROUGH GROUND
+   (_rolljump.mjs, 150 s real, seed 1, PC): Sweaty Lamb - 1.88 km, top 81, 1 jump (0.43 s), x2.24,
+   0 rolls (the V70 2.22 km, top 102, 1 jump 0.68 s, x2.60, 0 rolls); Deaf Valley - 3.56 km, top
+   134, 0 jumps, 0 rolls, 1 put-back (the V70 3.66 km, top 170, 3 jumps, 1 roll to its side, 2
+   put-backs). HIGHWAY TRAFFIC, switch off -> on (PC): hwracecheck (motorway, d2, 0.6, seed 4242)
+   ALL OK both, racer-traffic contact 1 -> 61 steps, racer-racer 372 -> 15, mean pace 115 -> 120
+   km/h; trafficcheck (not in CI) 10 FAILs both, but it does not repeat run to run (the same code
+   twice: dual off the carriageway 2,701 and 14,383 car-steps) - with every car named (a copy with
+   TFDBG fixed: its contact print threw on a car not in the list) no Defunder is in any contact,
+   off-road or wreck line; switch on, walled: one wreck (a Golf and a V70 rolled). PROOF (PC, base
+   round88): switch off worldhash (--highway 20), simhash, renderhash (thruston, brands-snatch,
+   highway) SAME; switch on simhash DIFFERENT in highway-traffic only (the mix) - [sim].
+   QUESTIONS for the owner: the classic Defender (to 2016) or the new one (2020 on); OFF-ROAD / 4x4
+   or ROAD; its share (it stands for the Land Rovers, ~1 in 31); the 0-100 (13.2 s against 15.8:
+   slower shifts or drivetrain losses would close it); the stock look (green, a white roof, black
+   arches and bumper); the exhaust on the left (EST).
 
 ### 3b. Tracks (the venue helper builds, the foreman reviews, the owner passes; one switch each)
 
