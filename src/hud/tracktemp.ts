@@ -91,7 +91,7 @@ export function drawHudTrackTemp(ctx: CanvasRenderingContext2D, state: { tempF: 
   if (!rect || !rect.h) return;
   const celsius = WEATHER.trackC, colour = trackTempColour(celsius);
   drawHudPanel(ctx, rect, { fill: 'rgba(14,15,18,0.82)' });
-  // (?hudfit=1, landscape: a compact chip - the temperature alone, no TRACK, no bar)
+  // (landscape, hud/hudfit.ts: a compact chip - the temperature alone, no TRACK, no bar)
   const compact = rect.w <= COMPACT_TEMP_W;
   drawHudLabel(ctx, (compact ? '' : 'TRACK ') + formatTemp(celsius, state.tempF), rect.x + 8,
     rect.y + rect.h / 2, { size: 10, weight: 800, col: colour });

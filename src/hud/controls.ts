@@ -135,7 +135,7 @@ export function drawHudDevReadout(ctx: CanvasRenderingContext2D, state: HudState
  * @returns {void}
  */
 export function drawHudFps(ctx: CanvasRenderingContext2D, game: HudGame, rects: HudRects) {
-  // (?hudfit=1: a landscape column too short drops FPS - its rect has no height)
+  // (a landscape column too short drops FPS - its rect has no height: hud/hudfit.ts)
   if (game.testMode && game.fps && rects.fps.h) {
     const fpsRect = rects.fps, fpsLow = game.fpsLow || game.fps,
       col = (value: number) => (value < 30 ? '#ff6a5c' : value < 50 ? '#e8a13a' : COL.live);

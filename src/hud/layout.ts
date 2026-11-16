@@ -152,8 +152,8 @@ export function layoutHud(state: HudState, width: number, height: number) {
 
   const { speed, lap, trackTemp, fps, tally } = layoutCornerPanels(state, width, btnY, narrow);
   const { absChip, tcsChip, indL, lights, indR, heat } = layoutBottomChips(width, height);
-  // (?hudfit=1, landscape: the compact temperature, FPS dropped when short, the aid chips at the
-  // bottom - hud/hudfit.ts)
+  // (landscape: the compact temperature, FPS dropped when short, the aid chips at the bottom -
+  // hud/hudfit.ts)
   const fit = isHudFit(width, height, narrow);
   if (fit) {
     fitCornerPanels({ lap, trackTemp, fps }, height);

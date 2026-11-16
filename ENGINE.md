@@ -963,7 +963,7 @@ a road or the edge's rows). With `?pbzline=1` (`FIX.pbzline`, under test) the RX
 `Level.looseLineMargin`, `ai/line.ts looseLimits` (the line's own edge limits on a level's loose
 sectors).
 
-HUDFIT (under test, `?hudfit=1`, `FIX.hudfit`; `hud/hudfit.ts`, called by `hud/layout.ts layoutHud`):
+HUDFIT (the default since 11-16, was `?hudfit=1`; `hud/hudfit.ts`, called by `hud/layout.ts layoutHud`):
 on a landscape screen only (not narrow, wider than tall) the track temperature is a compact
 `COMPACT_TEMP_W` (46 px) chip - `hud/tracktemp.ts` draws the temperature alone when its rect is
 that narrow -, FPS is dropped (its rect 0 tall) when it would reach past the brake pedal's touch
