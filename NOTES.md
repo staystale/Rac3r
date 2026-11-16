@@ -867,6 +867,10 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   `checks` failed), `git push origin HEAD:refs/heads/main`,
   delete the branch, then move the served clone: `git fetch -q origin && git checkout -q --detach
   origin/main`.
+- EVERY CAR HAS ITS OWN REAL PARTS (owner 11-16: "all cars get unique parts like that... don't
+  reuse stuff unless it's suitable"): the crash parts a car loses are that car's real ones - door
+  count, bonnet and boot shapes, a van's sliding and rear doors, a bus's own panels. A shared
+  generic part only where it truly matches.
 - DISCUSS AND PLAN FIRST, DOWN TO THE FUNDAMENTALS (owner 11-16: "always discuss things before we do
   them and plan them in detail and show me down to the fundamentals how it's working. Even if I
   don't understand code perfectly, show me it in brief"): before ANY build - a car, a fix, a look, a
