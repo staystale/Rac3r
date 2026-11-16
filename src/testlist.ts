@@ -13,6 +13,18 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'lowrange',
+    added: '2026-11-16',
+    name: 'Low range on the Defunder 110 and the Strange Rover: a HI / LO lever left of the speedo',
+    where: 'Test link + &lowrange=1: the Defunder or the Strange Rover; mud, sand, a steep climb '
+      + '(Holy Jeez, Slidden Hill, the Lab ramps)',
+    try: 'Stop, tap LO (the lower half of the lever): more pull and a little more grip, a low top '
+      + 'speed. Tap it above 10 km/h: the slot goes amber and says STOP. Climb and wade in HI and '
+      + 'LO and compare. The first time, a LOW RANGE card explains it.',
+    wrong: 'The lever covering anything, a tap on it steering the car, LO slower than HI where it '
+      + 'is steep or boggy, gears hunting in LO, AI 4x4s stuck in LO on tarmac.',
+  },
+  {
     id: 'ibiza',
     added: '2026-11-16',
     name: 'New car: the Seat Ibeefa (a Seat Ibiza Mk4 1.4 five-door), ROAD / Hatch, and in the '

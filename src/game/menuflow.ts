@@ -27,6 +27,7 @@ import type { HwLevel } from '../highway/hwtypes.ts';
 import type { ResultsFlow } from '../menu/menutypes.ts';
 import type { LaunchOpts } from './state.ts';
 import { MAX_AI } from '../core/settings.ts';
+import { hasLowRange } from '../physics/lowrange.ts';
 
 /**
  * Works out whether the minimap, the progress bar and the track gauge show (the pause settings
@@ -246,9 +247,12 @@ function launchSession(carId: string, opts: LaunchOpts) {
   // that is showing too. ?rules=1 forces them (photos), ?rules=0 / automation skips them, as the
   // guide.
   const rulesSetting = shared.settings.rules, kind = eventKind();
-  shared.rulesPending = kind
-    && (rulesSetting === '1' || (rulesSetting !== '0' && !rulesSeen(kind) && !navigator.webdriver))
-      ? kind : null;
+  const wants = (one: string) => rulesSetting === '1'
+    || (rulesSetting !== '0' && !rulesSeen(one) && !navigator.webdriver);
+  shared.rulesPending = kind && wants(kind) ? kind : null;
+  // (?lowrange=1: the low range's card the first time a car with one is driven, after the event's)
+  if (hasLowRange(game.car) && wants('lowrange'))
+    shared.rulesPending = shared.rulesPending ? shared.rulesPending + '+lowrange' : 'lowrange';
 }
 // which RULES walkthrough this session needs (guide.ts RULES keys), or null
 export function eventKind() {

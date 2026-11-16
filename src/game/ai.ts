@@ -23,6 +23,7 @@ import {
 import type { AiEntry, HurtEntry } from './state.ts';
 import type { CarInput } from '../vehicle.ts';
 import type { RaceFlow } from '../raceflow.ts';
+import { stepAIRange } from '../physics/lowrange.ts';
 
 // AI RESET (requirement: reset AI should reset like the player's, at the edge of the track):
 // RESET_BACK m behind the last point it was on the road, centred on the edge it left by (half on /
@@ -167,6 +168,21 @@ export function aiWant(entry: AiEntry, dt: number) {
 }
 
 /**
+ * The controls an AI car steps with: its own, or held on the grid (in formation at a rolling
+ * start, braked at a standing one).
+ * @param entry the AI entry
+ * @param want the wanted controls
+ * @param held it is held on the grid
+ * @returns the controls
+ */
+function heldInput(entry: AiEntry, want: CarInput, held: boolean): CarInput {
+  const car = entry.car;
+  const formed = held && game.start.rolling && formationWant(car, car._slot || 0, entry);
+  return formed || (held ? (game.start.rolling ? atPace(want, car)
+    : { steer: 0, throttle: 0, brake: 1, handbrake: 0, reverse: 0 }) : want);
+}
+
+/**
  * Steps an AI car's physics (or its roll), holding it on the grid before the start.
  * @param entry the AI entry
  * @param want the wanted controls
@@ -184,9 +200,10 @@ export function stepAIPhysics(entry: AiEntry, want: CarInput, dt: number) {
     if (car.roll && car.roll.phase !== 'rolling' && car.roll.still > 1.5 && !entry.held)
       aiReset(entry, true);
   } else {
-    const formed = held && game.start.rolling && formationWant(car, car._slot || 0, entry);
-    step(car, formed || (held ? (game.start.rolling ? atPace(want, car)
-      : { steer: 0, throttle: 0, brake: 1, handbrake: 0, reverse: 0 }) : want), dt);
+    const input = heldInput(entry, want, held);
+    // (?lowrange=1: a two-speed box's AI takes low when bogged - physics/lowrange.ts)
+    stepAIRange(car, input.throttle, car.surface.mu, dt);
+    step(car, input, dt);
     if (!held) tripCheck(car, dt);
     applyBurst(car);
   }   // start lights

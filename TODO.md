@@ -192,6 +192,23 @@ RACE TRACKS:
 17. LITTER / JUNK on race tracks: very light (props we have). To discuss.
 18. F1 vs WORLD CIRCUITS in the menu: BUILT behind ?f1menu=1 (layout A: an F1 CIRCUITS type card
     above WORLD CIRCUITS; world/levels/category.ts F1_LISTED). Awaiting the phone test.
+19. LOW RANGE (the Defunder 110's LT230 x3.320/1.211 = 2.742, the Strange Rover L322's x2.69; not
+    the trophy truck): BUILT behind ?lowrange=1 (physics/lowrange.ts; the lever hud/lowlever.ts
+    left of the speedo, HI top half / LO bottom half, 48 x 96, never hidden, a refused pull - 10
+    km/h or more - an amber slot and STOP for 1 s; the walkthrough card guide.ts RULES.lowrange the
+    first time such a car is driven). In LO the final drive x the ratio (powertrain.ts), the auto
+    box holds an upshift the road speed cannot hold (lowHoldsGear: it hunted 2nd-3rd every second
+    up a 1 in 3 slope), and the driven wheels' traction grip x LOW_GRIP 1.1 (owner: "turn grip up
+    slightly when it's in low range ... to simulate the effect"; the owner's number). The AI takes
+    LO bogged on loose ground or slow on a climb of 1 in 3+, HI again on firm gentle ground.
+    MEASURED (tools/scratch/_lowrange.mjs, 10 s flat out from rest, HIGH -> LOW, m): Defunder: thick
+    mud 41 -> 56, mud 94 -> 100, sand 77 -> 83, 1 in 3.3 dirt 41 -> 61, gravel 70 -> 74, 1 in 2.2
+    gravel 15 -> 46, tarmac 47 -> 58; Strange Rover: 1 in 2.2 tarmac 48 -> 98, gravel 41 -> 86, 1 in
+    3.3 tarmac 98 -> 124, gravel 89 -> 110; top speed in LO 74 / 109 km/h (HI 141 / 193). STILL
+    STUCK: SAND up 1 in 3.3 - the Strange Rover 44 m in HI, 1 m in LO (the low gearing spins the
+    wheels past their peak on sand: 3.3 m/s of spin, TCS at its floor); LOW_GRIP 1.2 -> 11 m, 1.3 ->
+    26 m, 1.5 -> 65 m (the Defunder: 0 m HI, 0 / 1 / 1 / 18 m LO). Awaiting the owner's number and
+    the phone test.
 
 TRACKS (after the RX queue in 3b): DRIFT tracks (none yet; the drift cars exist), PIKES PEAK, other
 hill climbs and time attacks.

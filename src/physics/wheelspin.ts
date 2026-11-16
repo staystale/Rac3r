@@ -25,6 +25,7 @@
 //
 // ABS releases and re-applies each axle's brake as its wheel passes the peak slip (car.absP), so
 // it PULSES: staggered marks, steering kept, a shorter stop than locked.
+import { rangeGrip } from './lowrange.ts';
 import type { Spec } from '../cars.ts';
 import type { Car } from '../vehicle.ts';
 import { TUNE, curveFactor, clamp } from '../vehicle.ts';
@@ -143,7 +144,7 @@ function axleLaw(car: Car, carSpec: Spec, tick: { muBase: number; longK: number;
       * tick.peakK);
   const sgLat = carSpec.slideGrip;
   return { vx: inp.vx, vRef: Math.max(SLIP_V_MIN, Math.abs(inp.vx)), kPeak: KAPPA_PEAK * tick.peakK,
-    ny: inp.slip / aPeak, FxPk: FmaxRoll, FyPk, sgLat, aPeak,
+    ny: inp.slip / aPeak, FxPk: FmaxRoll * rangeGrip(car, inp.axle), FyPk, sgLat, aPeak,
     sgLong: LOCK_SHARE * (carSpec.tyre && carSpec.tyre.slide || 1) };
 }
 

@@ -475,6 +475,14 @@ squashes progressively with its air, a rim bare), puffs / shreds / rim sparks in
 `render/particles.ts`, the HUD tyre ring by pressure (`hud/gauges.ts`), `?dev=1` line `air`.
 Tyre spikes (a police stinger, `world/stingers.ts`, drawn by `render/stingers.ts`) on the Lab and Test Track burst every wheel that rolls on. The Lab's
 flip ramp (`world/flipramps.ts`, an armco end; `roll.ts tripCheck` asks it) rolls a car run up it.
+LOW RANGE (?lowrange=1, `physics/lowrange.ts`): a car with a two-speed transfer box (`LOW_RANGE`
+by model: the Defunder 110, the Strange Rover) has `car.lowRange`; in low `powertrain.ts` multiplies
+the final drive by `rangeRatio`, `autoShift` holds an upshift the road speed cannot hold
+(`lowHoldsGear`, a 1.3 margin over the downshift rpm), and `wheelspin.ts axleLaw` raises a driven
+axle's longitudinal peak by `rangeGrip` (`LOW_GRIP`). `requestRange` changes it only under 10 km/h
+(the lever, `hud/lowlever.ts`, through `hitHud` -> `controls.ts hudToggles`; a refusal stamps
+`car.rangeRefusedAt` for the lever's 1 s STOP); the AI's `stepAIRange` (`game/ai.ts`) takes low
+bogged on loose ground or slow on a 1 in 3 climb and high again on firm gentle ground.
 ENGINE: `physics/engineheat.ts` keeps each car's engine C, radiator
 water, oil and a seize timer, stepped by `damage.ts stepDamage` (every car from the start). Heat
 in by throttle x revs (`car.throttleUsed`, set by `vehicle.ts step`); out through the radiator
