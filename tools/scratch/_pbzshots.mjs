@@ -1,7 +1,7 @@
 // _pbzshots.mjs - A PEMBREEZY LEVEL PHOTOGRAPHED (scratch): the whole-map overview (the menu
 // thumbnail's painter) and your car set down still at lap metres along the lap (and the joker's
 // middle on the rallycross), each at the phone's two sizes. Page errors read.
-// PEMBREEZY=1 is not needed in the page: the link carries ?pembreezy=1 while it is under test.
+// (Pembreezy is a plain level since 11-16: no switch.)
 // ZOOM=<0.3..1> pins the camera zoom (0.3: flat out, as the phone sees the fences at speed).
 // SHOTS=<folder> node tools/scratch/_pbzshots.mjs <level id> <lap m,lap m,...> [joker]
 import { mkdirSync, writeFileSync } from 'node:fs';

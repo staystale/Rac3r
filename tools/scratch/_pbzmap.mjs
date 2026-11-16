@@ -1,6 +1,6 @@
-// _pbzmap.mjs - A PEMBREEZY LEVEL AS DATA (scratch; PEMBREEZY=1 while it is under test): the lap's length, surfaces by sector, its
+// _pbzmap.mjs - A PEMBREEZY LEVEL AS DATA (scratch): the lap's length, surfaces by sector, its
 // least radius and where, and a JSON of every road, lane, barrier, prop and loose object (game m)
-// for a plan drawing (scratchpad). PEMBREEZY=1 node tools/scratch/_pbzmap.mjs <level id> <out.json>
+// for a plan drawing (scratchpad). node tools/scratch/_pbzmap.mjs <level id> <out.json>
 import fs from 'node:fs';
 import * as L from '../../src/lab.ts';
 

@@ -22,7 +22,7 @@
 // railbridges, roadtunnels, wobbly, stadeprance, police, trainlights, moveover, roadrage,
 // stationstops, carcache, carcull, coverlight passed 11-12; nighthw, exitpuns, hjfirs, rollhold,
 // stuckreset, croughedrx, tiledensity, aipace (its live pause-menu dials removed), aislide passed
-// 11-15; gpustat (now always with ?report=1), hwtrips passed 11-16.)
+// 11-15; gpustat (now always with ?report=1), hwtrips, pembreezy passed 11-16.)
 import { envValue } from './debug.ts';
 
 /**
@@ -66,9 +66,6 @@ export const FIX = {
   transfit: atLoad('transfit'),
   // the Fjord Effing-150 Trophy Truck
   trophy: atLoad('trophy'),
-  // Pembreezy, Pembrey Circuit and its rallycross from the map: the circuit at half size and the
-  // rallycross at full size, one venue (pembreezy-venue.ts, pembreezyrx-venue.ts)
-  pembreezy: atLoad('pembreezy'),
   // the Honder Civvic Type Arr BTCC and its TOURING class
   civvic: atLoad('civvic'),
   // the Lend Rover Defunder 110 (drivable, and in the highway traffic)

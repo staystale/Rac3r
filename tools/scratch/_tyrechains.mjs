@@ -1,6 +1,6 @@
 // _tyrechains.mjs - a level's tyre stacks as chains (stacks within LINK m of each other): each chain's
 // count, span, box and nearest metres past the raced road's edge, bales beside it - the lone tyres,
-// stubs and walls far from the road at a glance (world/venuetyres.ts). [PEMBREEZY=1 ...]
+// stubs and walls far from the road at a glance (world/venuetyres.ts).
 // node tools/scratch/_tyrechains.mjs <level> [linkM]
 import { pathToFileURL } from 'node:url';
 const imp = (p) => import(pathToFileURL(process.cwd() + p).href);
