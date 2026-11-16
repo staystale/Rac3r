@@ -140,7 +140,7 @@ function drawPropList(propCtx: PropCtx, overhead = false) {
   // the endless road changes its props as it goes (highway/*.ts): it walks the whole list
   const near = LEVEL.endless ? null : propsNear(PROPS, screenBox(propCtx.view,
     propCtx.toScreenX, propCtx.toScreenY, SCREEN_PAD_PX));
-  // (?gpustat=1: how many it looks at)
+  // (the phone report: how many it looks at)
   notePropsWalked(near ? near.length : PROPS.length);
   if (near) for (const idx of near) drawListedProp(propCtx, PROPS[idx], ppm, overhead);
   else for (const prop of PROPS) drawListedProp(propCtx, prop, ppm, overhead);

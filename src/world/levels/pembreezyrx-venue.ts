@@ -73,6 +73,9 @@ export const PEMBREEZYRX_SPEC: VenueSpec = {
   // the circuit opened on the old RAF airfield, 1989
   seed: 1989,
   followRails: true,
+  // the map's tyre walls tidied: those of the roads this level does not race, their fringe beside
+  // the edge's rows and their stubs left out (world/venuetyres.ts)
+  tidyTyres: true,
   // tidied and made even (world/venuetidy.ts, world/stadiumtidy.ts), as Holy Jeez and Croughed RX
   tidyEdge: true,
   evenEdge: true,

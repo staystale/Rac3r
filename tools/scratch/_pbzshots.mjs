@@ -2,6 +2,7 @@
 // thumbnail's painter) and your car set down still at lap metres along the lap (and the joker's
 // middle on the rallycross), each at the phone's two sizes. Page errors read.
 // PEMBREEZY=1 is not needed in the page: the link carries ?pembreezy=1 while it is under test.
+// ZOOM=<0.3..1> pins the camera zoom (0.3: flat out, as the phone sees the fences at speed).
 // SHOTS=<folder> node tools/scratch/_pbzshots.mjs <level id> <lap m,lap m,...> [joker]
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { startServer, launchBrowser, gotoGame, extraQuery } from '../lib/browser.mjs';
@@ -16,7 +17,7 @@ const SETTLE_MS = 1500;
  * In the page: your car set down still on the lap at a lap metre (or the joker's middle).
  * @param {[number, boolean]} args lap m, whether to stand on the joker instead
  */
-function placeCar([dist, onJoker]) {
+function placeCar([dist, onJoker, zoom]) {
   const game = window.__game, sub = game.level.subtrack;
   let spot = sub.pts[0];
   for (const point of sub.pts) if (point.dist <= dist) spot = point;
@@ -25,6 +26,7 @@ function placeCar([dist, onJoker]) {
   game.input.update = () => ({ steer: 0, throttle: 0, brake: 1, handbrake: 0, reverse: 0,
     shiftUp: false, shiftDown: false });
   Object.assign(game.car, { x, y, heading, vx: 0, vy: 0, _p: null });
+  if (zoom) game.renderer.debugZoom(zoom);
   game.renderer.snap(game.car);
 }
 
@@ -49,7 +51,7 @@ try {
     const spots = distsArg.split(',').map(Number).map((dist) => [dist, false]);
     if (jokerArg) spots.push([0, true]);
     for (const [dist, onJoker] of spots) {
-      await page.evaluate(placeCar, [dist, onJoker]);
+      await page.evaluate(placeCar, [dist, onJoker, +(process.env.ZOOM || 0)]);
       await page.waitForTimeout(SETTLE_MS);
       const name = onJoker ? 'joker' : `m${dist}`;
       await page.screenshot({ path: `${SHOTS}/${levelId}-${name}-${width}x${height}.png` });

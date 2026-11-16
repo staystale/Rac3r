@@ -68,38 +68,8 @@ records in `TODO-DONE.md` (PASSED 11-12). On the phone now:
   / 0; the stuck put-backs as before (98 / 93).
 - THE GROUND AT THE ZOOM'S DENSITY + THE PC LOADING DRAW-IN, and THE HIGHWAY OFF-ROAD JERK:
   PASSED 11-15, the default (TODO-DONE).
-- THE FRAME-DROP HUNT, PREP (JOB 3b; owner 11-15: "The frame rate drop needs to be chased down").
-  KNOWN: the phone gives 53-92 frames/min over 20 ms on the highway zoomed out while our JS is
-  ~7 ms; halving the ground uploads did not change it; the 11-13 build gives the same.
-  BUILT behind `?gpustat=1` (FIX.gpustat, report only; ui/gpustat.ts, render/layerclock.ts,
-  tools/phonereport.mjs; testlist 'gpustat'; ENGINE.md One frame): the GPU ground's WebGL timer
-  where the browser has one, fences once a second (the GPU ground's finish and the 2D screen
-  canvas's paint, each less the same fence with nothing queued), how late each frame's callback
-  began, our whole work, every draw layer's ms, the props drawn, and the device's hints (timer,
-  GPU name, battery, CPU pressure, visibility / focus, long tasks). NO THERMAL OR LOW-POWER API
-  on iOS: the report's "capped at 30 fps" and the fences rising over a run are the only proxies.
-  MEASURED (tools/scratch/_gpustat.mjs, the laptop: AMD Radeon iGPU via ANGLE D3D11, 440x738 dpr
-  3, CPU x1, the highway on the autopilot zoomed out, traffic 0.6, 40 s each; medians, ms):
-  | | work | draw | gpu (WebGL ground) | GL finish work | 2D paint work | night | blit | cars | rest |
-  |---|---|---|---|---|---|---|---|---|---|
-  | day | 7.6 | 4.2 | 0.9 | 6.6 | 7.3 | 0 | 0.6 | 0.6 | 1.7 |
-  | night 0.9 | 7.4 | 4.6 | 0.8 | 7.5 | 6.9 | 0.7 | 0.6 | 0.7 | 1.5 |
-  | rain 0.8 | 6.9 | 3.8 | 1.0 | 6.1 | 5.8 | 0.3 | 0.6 | 0.4 | 1.5 |
-  | skip=world | 3.9 | 1.5 | 0.9 | 2.1 | 6.0 | 0 | 0.2 | 0.2 | 0.9 |
-  (rest: draw less the named layers - the marks, the camera, the art buffer's clears; ground,
-  deck, still, props, overhead, fx, rain each 0.0-0.2; HUD 0.6.) Skipping props, the cars, the
-  night or the rain did not move the fences (2D paint 8.9-9.3 ms raw each). CANDIDATES: (1) the
-  2D screen canvas's own paint, ~6 ms of GPU work a frame here whatever is drawn (the full-screen
-  clear, blits and HUD at this size); (2) the world's 2D drawing on the GPU: GL finish work 6-7.5
-  ms with the world, 2.1 without, while its CPU time is under 2 ms; (3) slow frames here are our
-  JS (work 18-20 ms) begun late (5-6 ms: something ran before the frame - 4-8 long tasks, 0.5-1.3 s,
-  in 40 s). THE PC (GTX 980 Ti via ANGLE, 4 cores, its browser in the services session - each
-  frame's callback began ~10 ms late there; the same run): 2D paint work day 5.7, NIGHT 8.6, RAIN
-  10.2 ms; GL finish work 1.0-1.3; the night layer's CPU 4.0 ms (5.4 in slow frames); slow frames
-  day 3.3 %, night 47.8 %, rain 27.5 % - (4) the night layer and the rain add 2D paint there, and
-  the night layer's CPU, on a slower CPU, is the biggest named slice. The phone's numbers decide;
-  nothing is changed yet.
-  Switch off: renderhash highway + thruston SAME (PC, against round80).
+- THE FRAME-DROP HUNT, PREP: ?gpustat=1 PASSED 11-16, the default with every ?report=1
+  (TODO-DONE). The phone's numbers decide what next; nothing is changed yet.
 
 ## 3. OPEN, IN THE OWNER'S ORDER
 
@@ -207,6 +177,20 @@ BUGS (each behind its own switch, measured, then a test link):
     mean (different chases each way); framecheck highway, PC x4 (in its catch-up loop, one run
     each): work median 39.4 -> 42.5 ms, frame median 83.3 both. Photos: tools/scratch/_trips/
     (exit, junction, join).
+    RATES RAISED (owner 11-16: yes to "raise to a measured 2 in 12 ... a missed car stays left until the
+    next exit"): the rolls LEAVE_ROLL 0.24, FUEL_ROLL 0.36 (were 2 / 12 and 5 / 40); a car that
+    misses its slip stays in the nearside lane and goes for the next one (goForNextExit). MEASURED
+    (_hwtrips, 480 km: motorway / dual x countryside / Deaf Valley x seeds 4242 / 7 / 11, 40 km
+    each, traffic 0.6, the laptop): of the cars passing a slip 151 of 944 left (16.0 %: traffic
+    118 / 765 = 15.4 %, police 33 / 179 = 18.4 %); rolls won 248 of 915, 17 carried on to the next
+    slip, 17 dropped (a chase, a breakdown, a slip's line it could not meet); fuel 58 of 433 pulled
+    in (13.4 %: traffic 40 / 363 = 11.0 %, police 18 / 70 = 25.7 %), won 164 of 414, 84 missed (not
+    in the nearside lane in reach, or the pumps taken). The first try (0.19 / 0.21, 160 km): 14.2 %
+    and 7.3 %. Joins 8, 6 merged, 2 held, 2 lost before merging. Traffic step 146-307 us (node).
+    The same seed with the old rolls (motorway / countryside 11): touches with a car on a trip 22 ->
+    329 - one cruising police car held ~5 m behind a car waiting in the nearside lane for its next
+    slip for ~12 s (the count is pairs coming within 5 m, not crashes); all contact steps 3065 ->
+    2190.
 
 RACE TRACKS:
 16. PIT STOPS - ALL QUESTIONS ANSWERED 11-15 (build after the 10 cars, one switch):
@@ -420,6 +404,26 @@ THE 10 NEW CARS (owner-approved names 11-16; one switch and one hand-back each; 
   full-size RX is longer than the half-size circuit; one build needs one scale); the unraced circuit
   pieces left out of the RX build (as Croughed RX); a proper Welsh flag drawing (today the flag
   prop in white, green and red in turn); whether the foreign-weather rule covers Wales.
+  OWNER 11-16 ("ok yes" to the recommendations): the classic clockwise RX lap as built; the scales
+  as built (RX full, circuit half); the unraced circuit pieces left out of the RX; the plain Welsh
+  flag (a dragon flag later); the dunes as placed; Wales is in the UK (no foreign weather); the tyre
+  walls decided after the clean frame numbers.
+  MESSY FENCES (owner 11-16: "pembreezy has messy fences but mostly good"): FOUND (tools/venueplan.mjs
+  plans, now with the loose objects by kind; tools/scratch/_tyrechains.mjs; photos at the flat-out
+  zoom 0.32, tools/scratch/_pbzshots.mjs ZOOM=): the map's tyre walls (19 lines round the circuit,
+  15 in the RX build) were laid wherever mapped - on the RX the circuit's Speedway, Brooklands,
+  outer south and paddock-side walls stood in open grass 44-121 m (median) from the raced road, one
+  across the paddock; on the circuit the rallycross section's wall stood alone in the infield 45 m
+  off; where the edge's own two rows run beside a mapped wall its stacks more than 1 m off them
+  stood as a jagged fringe; and lone tyres and 3-13 m stubs were left where a road or the edge's
+  rows cut a wall. FIX (VenueSpec.tidyTyres on both levels, world/venuetyres.ts; every other venue
+  as before): a wall standing mostly more than 40 real m past every raced road's edge left out, its
+  stacks within 3 m of the edge's rows left out, runs under 20 real m left out. MEASURED: tyre stacks
+  circuit 1366 -> 1231 (chains 18 -> 11, lone tyres 3 -> 0), RX 2746 -> 1336 (the mapped walls kept
+  round the raced road whole; the lone stacks left on the RX, 11, are the shared rallycross
+  dressing's apex blocks squeezed by its bales - kit.ts rxDress, not changed). barriercheck OK,
+  venueaudit nothing overlaps, propcheck clean on both; the menu thumbnails unchanged. Photos before /
+  after (844x390, 390x844, zoom 0.32, and the plans) in the hand-back.
 - DEMOLITION DERBY (owner 11-10: "Demolition derby levels classic tarmac circle - and we can reuse
   stock car tracks ect for that too"): a classic tarmac circle arena, and a derby mode on the stock
   car tracks (Stock Car, Grass Track, Old Wobbly). Questions when we come to it (the AI ramming, how

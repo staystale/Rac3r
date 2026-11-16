@@ -19,7 +19,6 @@ import { takeMenuTaps } from '../menu/widgets.ts';
 import { readNextSprite } from '../render/spritepixels.ts';
 import { newBodyFrame } from '../render/rollbody.ts';
 import { addLayerMs, statFrameStart, statNow, takeFrameStats } from '../ui/gpustat.ts';
-import { FIX } from '../core/fixes.ts';
 import {
   updateFpsMeter, readFrameInput, stepCarSignals, openGuideOnLanding, stepCarPhysics,
   stepEndlessHighway, updateAudio, dropBreadcrumb, stepRaceFlow, stepTrafficContacts,
@@ -210,8 +209,8 @@ function reportFrame(frame: Frame, draw: number, tiles: number, slide: number) {
     slide, shared.renderer.PPM, gpu.uploads - (shared.meterUploads || 0),
     gpu.mipmaps - (shared.meterMipmaps || 0), shared.mode === 'menu' ? 1 : 0, taps.ignored,
     Math.round(taps.handlerMs), Math.round(shared.warmMs || 0)];
-  // (?gpustat=1: the GPU side, the layers, the fences - ui/gpustat.ts)
-  if (FIX.gpustat) row.push(...takeFrameStats(shared.renderer.ctx.canvas));
+  // (the GPU side, the layers, the fences - ui/gpustat.ts)
+  row.push(...takeFrameStats(shared.renderer.ctx.canvas));
   shared.reporter!.add(row);
   shared.warmMs = 0;
   shared.meterUploads = gpu.uploads;
@@ -269,7 +268,7 @@ export function renderFrame(frame: Frame) {
 export function loop(now: number) {
   // Rescheduled FIRST, so a throw anywhere below can never stop the game loop again.
   requestAnimationFrame(loop);
-  // (?gpustat=1: the frame's start and how late it began)
+  // (the report's frame start and how late it began - ui/gpustat.ts)
   statFrameStart(now);
   const frameMs = now - shared.last;   // the meter's dt, before the clamp below
   // whole display refreshes, not the browser's rounded timestamps (game/pacing.ts)

@@ -1,5 +1,5 @@
-// render/layerclock.ts - ?gpustat=1: each draw layer's CPU time this frame, for the phone report
-// (ui/gpustat.ts). The renderer's layer painters are wrapped where they are looked up (the
+// render/layerclock.ts - with ?report=1: each draw layer's CPU time this frame, for the phone
+// report (ui/gpustat.ts). The renderer's layer painters are wrapped where they are looked up (the
 // renderer context), so the frame's own code is unchanged: a painter's time goes to its bucket.
 // What no bucket holds - the cars, the marks, blitting the art buffer, the camera - is the draw's
 // time less the buckets' (tools/phonereport.mjs).
@@ -41,8 +41,8 @@ function wrap(owner: Record<string, unknown>, key: string,
 }
 
 /**
- * ?gpustat=1: wraps the renderer's layer painters in their buckets, and the GPU ground's frame in
- * the WebGL timer (nothing when off).
+ * With ?report=1: wraps the renderer's layer painters in their buckets, and the GPU ground's
+ * frame in the WebGL timer (nothing without the report).
  * @param ctx the renderer context (its painters, its GPU ground)
  * @returns ctx
  */

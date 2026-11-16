@@ -3,9 +3,10 @@
 // slow frames (> 25 ms = a missed 60 Hz refresh) and what they coincided with; and, for reports
 // with the zoom, slow frames by zoom band. Frames with the menu up (12-number frames: [9] = 1) are
 // a run of their own per session ("menu"): frame times, plus the menu taps a new screen ignored
-// (its ghost-click window) and the slowest button handlers. Runs with ?gpustat=1 (src/ui/gpustat.ts)
-// also print the GPU side, our whole work and the browser's gap, each draw layer, the fences and
-// the device's hints.
+// (its ghost-click window) and the slowest button handlers. Runs with the GPU numbers
+// (src/ui/gpustat.ts: every report since they became standard, ?gpustat=1 runs before) also print
+// the GPU side, our whole work and the browser's gap, each draw layer, the fences and the
+// device's hints.
 // node tools/phonereport.mjs <report.jsonl> [--since 2026-10-15T17:00]
 // Times in the log are UTC. Each run's first frames are the level start (painting), not driving.
 import { readFileSync } from 'node:fs';
@@ -132,7 +133,7 @@ const atShare = (values, share) => [...values].sort((a, b) => a - b)[
   Math.min(values.length - 1, Math.floor(values.length * share))] ?? 0;
 
 /**
- * ?gpustat=1: the device's hints over the run's posts.
+ * The GPU numbers: the device's hints over the run's posts.
  * @param {object} run the run (its stats: each post's extras)
  */
 function printHints(run) {
@@ -150,7 +151,7 @@ function printHints(run) {
 }
 
 /**
- * ?gpustat=1: the run's extra numbers - all frames and the slow ones (the frames a fence made wait
+ * The GPU numbers: the run's extra numbers - all frames and the slow ones (the frames a fence made wait
  * and the next one left out), the fences on their own.
  * @param {object} run the run
  * @param {number[][]} frames its frames

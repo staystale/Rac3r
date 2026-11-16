@@ -10,8 +10,8 @@
 import { SURFACES } from "./surfaces.ts";
 import { querySubtrack } from "./tyrewall.ts";
 import { parkMiller } from "../core/random.ts";
-import { isAnyPointInBox, isAnyPointWithin, makePointGrid } from "../core/pointgrid.ts";
-import { HALF_ROAD, VENUE_ROAD_M, centreAt, distToLine, evenly, isBeyondLine, isNearLine,
+import { isAnyPointInBox, makePointGrid } from "../core/pointgrid.ts";
+import { HALF_ROAD, VENUE_ROAD_M, centreAt, distToLine, isBeyondLine, isNearLine,
   isWithinLine, kerbOut,
   lineLength, makePlacer, nearestLoop, pointAlong, resample, smoothLine } from "./venuegeo.ts";
 import { WALL_REACH_M, boxedLine, buildEdge, railLines, buildRims, inZones, outlineZone, pastRim,
@@ -31,6 +31,7 @@ import type { VenueBox, VenueBuild } from "./venue.ts";
 import { inRow, pitLane, pitLines, placeGarageRow } from "./venuepit.ts";
 import { tunnelCover } from "./venuecross.ts";
 import { venueParks } from "./venueparks.ts";
+import { mappedTyreWalls } from "./venuetyres.ts";
 import type { Barrier, Cone, Cover, Lane, Paint, Patch, Point, Prop, Subtrack, Zone }
   from "./types.ts";
 
@@ -80,8 +81,6 @@ const TREE_WATER_M = 3, TREE_MOWN_M = 6;
 const TREE_TYRE_M = 2.5;
 // m a marshal post's centre keeps from a tyre stack (its hut's half diagonal and a tyre)
 const POST_TYRE_M = 2;
-// m within which a mapped tyre wall's stack stands on the edge's own rows (a stack's width)
-const MAP_WALL_CLEAR_M = 1;
 // m a marshal post's centre keeps past a kerb's outer edge (its hut's half diagonal, 1.6, and a
 // step: at 1.5 a turned hut's corner still stood on the National's kerb at Sillystone)
 const POST_KERB_M = 2;
@@ -783,13 +782,8 @@ export function buildVenueScenery(build: VenueBuild, sub: Subtrack, closed: Lane
   const railGrid = makePointGrid([...walls, ...edge.barriers].flatMap((rail) => rail.pts));
   props.push(...venueTrees(site, bounds, props, zones, { covers, patches }).filter((tree) =>
     !isAnyPointInBox(railGrid, tree.x, tree.y, (tree.s || 4) / 4 + TREE_RAIL_M)));
-  // the mapped tyre walls, spaced along each line, none on a road - nor where the edge already
-  // stands its two rows along it (laid again, the wall stood three deep at Dongington)
-  const edgeTyres = makePointGrid(edge.cones.map((tyre): Point => [tyre.x, tyre.y]));
-  const karting = spec.data.tyres.flatMap((line) => evenly(placeAll(site, line.pts), 1)
-    .filter(([x, y]) => !onLanes(site.lanes, x, y, 0.6)
-      && !isAnyPointWithin(edgeTyres, x, y, MAP_WALL_CLEAR_M))
-    .map(([x, y]) => ({ x, y, kind: 'tyrestack' })));
+  // the mapped tyre walls (world/venuetyres.ts)
+  const karting = mappedTyreWalls(site, edge.cones);
   return { lanes, zones: [...zones, ...venueParks(site)],
     cones: [...edge.cones, ...karting, ...venueLitter(site, props, edge.barriers)],
     barriers: [...walls, ...edge.barriers],

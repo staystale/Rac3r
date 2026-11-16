@@ -55,8 +55,8 @@ Older design notes and measurements are in the git history of this file.
 4. Draw: `renderer.frame()` (world into the art-pixel buffer, then to the screen), then the HUD.
 5. Audio update and the fps meter.
 
-THE PHONE REPORT'S GPU AND LAYER NUMBERS (`?gpustat=1` with `?report=1`, `FIX.gpustat`, under
-test; report only). `ui/gpustat.ts`: each report frame gets 22 more numbers after its 13
+THE PHONE REPORT'S GPU AND LAYER NUMBERS (always with `?report=1`; nothing runs without it;
+report only). `ui/gpustat.ts`: each report frame gets 22 more numbers after its 13
 (`STAT_FIELDS`, named in each post's `stat.fields`): the GPU ground's WebGL time
 (`EXT_disjoint_timer_query_webgl2` where the browser has it - a frame a few frames back; -1 none,
 -2 disjoint), the FENCES once in `FENCE_EVERY` (60) frames - `gl.finish()` + a pixel read, and the
@@ -384,12 +384,15 @@ THE TRAFFIC'S TRIPS (`?hwtrips=1`, `FIX.hwtrips`, under test; `ai/trafficTrips.t
 too; never a chaser, an angry driver, a speeder, a broken-down or wrecked car) rolls once for each
 way off ahead as it comes within `DECIDE_M` (500 m): a slip road (`waysOf`: the short and long
 slips' lines, a junction's off-slip on round its near roundabout and `RUN_M` along the bridge's
-road) at `LEAVE_SHARE` (2 / 12), a roadside station (`trafficFuel.ts stationsOf`) at `FUEL_SHARE`
-(5 / 40; the old nearside-only roll in `mayStopForFuel` is off with the switch). A car going moves
+road) at `LEAVE_ROLL` (0.24), a roadside station (`trafficFuel.ts stationsOf`) at `FUEL_ROLL`
+(0.36; the old nearside-only roll in `mayStopForFuel` is off with the switch) - each above the
+owner's rate so that the cars PASSING leave 2 in 12 and pull in 5 in 40 as measured (a car put back
+out of sight before it gets there, or that misses a station, never counts). A car going moves
 over to the nearside lane (`trafficLane.ts heldLane`: one lane at a time when clear, no
 overtaking), indicates left from `SIGNAL_M` (250 m) before a slip, and takes it in the nearside lane
 `LEAD_M` (55 m) before the slip's line `INTO_SLIP_M` (30 m) in - a curve from where it is onto the
-line (`junctions.ts curveBetween`), then the line - else it has missed it; for fuel the old pull-in
+line (`junctions.ts curveBetween`), then the line - else it has missed it and, staying in the
+nearside lane, goes for the next slip ahead (`goForNextExit`; none loaded yet: it looks each step); for fuel the old pull-in
 (`trafficFuel.ts pullIn`) once in reach. On its slip a car follows the line (`trafficPath.ts
 drivePath`): carried (its own path speed - the road frame reads only the share along the road) or,
 near a real car, the traffic's pursuit law (`trafficPhys.ts pursuitInput`) at a point ahead on it;
@@ -907,4 +910,11 @@ banks with crowds (RX: inside the gravel loop, south of the gravel's west run, i
 sand dunes (sand pads under humps) and pines south-west of the circuit, brought nearer than the
 real ones (about 600 m out), the firs' share 0.85 (`Level.firShare`: Pembrey Forest's pines). The
 OSM tyre walls are laid as tyre stacks (the circuit's: Spitfires' outside wall broken round the
-venue's marshal post, `trim` + `extra`; the RX skips a 2-point line through one).
+venue's marshal post, `trim` + `extra`; the RX skips a 2-point line through one). Both levels TIDY them
+(`VenueSpec.tidyTyres`, `world/venuetyres.ts`; every other venue lays its mapped walls as before):
+a wall whose stacks stand mostly more than `GUARD_REAL_M` (40 real m) past every raced road's edge is
+left out (it guards a road the level does not race: the rallycross section's wall on the circuit;
+the circuit's Speedway, Brooklands, outer south and paddock-side walls on the RX), a wall's stacks
+within `MAP_WALL_NEAR_M` (3 m) of the edge's own rows are left out (its fringe beside them, not
+only on them), and what is left in runs shorter than `MIN_RUN_REAL_M` (20 real m) is left out
+(lone tyres and stubs cut off by a road or the edge's rows).

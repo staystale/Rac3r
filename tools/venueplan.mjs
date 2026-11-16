@@ -20,7 +20,7 @@ const data = {
   barriers: level.barriers.map((b) => ({ pts: b.pts, kind: b.kind })),
   props: level.props.map((p) => ({ kind: p.kind, x: p.x, y: p.y, w: p.w || p.wid || 0, h: p.h || 0,
     rot: p.rot || 0, front: p.front, back: p.back })),
-  cones: (level.cones || []).map((c) => [c.x, c.y]),
+  cones: (level.cones || []).map((c) => [c.x, c.y, c.kind]),
   extra: process.env.EXTRA ? JSON.parse(fs.readFileSync(process.env.EXTRA, 'utf8')) : [],
 };
 const srv = await startServer();
@@ -54,7 +54,12 @@ try {
     const BCOL = { armco: '#1e5fd0', catchfence: '#c0f', pitwall: '#e22', wall: '#e80' };
     for (const b of data.barriers) line(b.pts, BCOL[b.kind] || '#000', 2);
     ctx.fillStyle = '#000';
-    for (const [x, y] of data.cones) ctx.fillRect(sx(x) - 1.5, sy(y) - 1.5, 3, 3);
+    // (tyre stacks black, bales orange, the rest grey)
+    const CCOL = { tyrestack: '#000', bale: '#e08a00' };
+    for (const [x, y, kind] of data.cones) {
+      ctx.fillStyle = CCOL[kind] || '#888';
+      ctx.fillRect(sx(x) - 1.5, sy(y) - 1.5, 3, 3);
+    }
     const PCOL = { tunnel: '#f00', bridge: '#f80', footbridge: '#fa0', gantry: '#0aa', grandstand: '#a0a',
       garagerow: '#600', parkedcar: '#08f', truck: '#840', board: '#ff0', tree: '#060' };
     for (const p of data.props) {

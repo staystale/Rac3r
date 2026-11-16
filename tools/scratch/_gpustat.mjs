@@ -1,4 +1,4 @@
-// _gpustat.mjs - THE FRAME-DROP HUNT ON A DESKTOP (?report=1&gpustat=1, src/ui/gpustat.ts): the
+// _gpustat.mjs - THE FRAME-DROP HUNT ON A DESKTOP (?report=1, src/ui/gpustat.ts): the
 // game at the owner's phone size (440x738, dpr 3), the highway on the autopilot (zoomed out at
 // speed), traffic 0.6, for SECONDS a condition - day, night, rain - its phone reports written by
 // the test server to OUT, then read by tools/phonereport.mjs (the same reading as the phone's).
@@ -31,7 +31,7 @@ try {
       await cdp.send('Emulation.setCPUThrottlingRate', { rate: CPU });
     }
     await gotoGame(page, `${server.url}/?pc=1&guide=0&menu=0&rules=0&noaudio=1&autopilot=1`
-      + `&report=1&gpustat=1&cond=${condition}${QUERY[condition] ?? ""}`
+      + `&report=1&cond=${condition}${QUERY[condition] ?? ""}`
       + (extra ? '&' + extra : ''));
     await page.mouse.click(220, 369);
     await page.waitForTimeout(800);

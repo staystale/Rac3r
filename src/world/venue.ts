@@ -181,6 +181,9 @@ export interface VenueSpec {
   // a stadium's tidied edge made even (world/stadiumtidy.ts): its Armco and catch fences eased, a
   // free end carried on to the run beside it
   evenEdge?: boolean;
+  // the mapped tyre walls tidied (world/venuetyres.ts; Pembreezy's): those guarding no raced road,
+  // their fringe beside the edge's rows and their stubs left out
+  tidyTyres?: boolean;
   // no bushes (a stadium's pitch: Wobbly Stadium)
   bushless?: boolean;
   // no kerbs (a track laid for a day on a stadium's pitch: Wobbly Stadium)

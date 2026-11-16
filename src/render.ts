@@ -513,7 +513,7 @@ function paintFlat(
 }
 
 /**
- * Builds the debug methods the tools call (zoom pin, colours, tile photos); ?gpustat=1 times the
+ * Builds the debug methods the tools call (zoom pin, colours, tile photos); ?report=1 times the
  * layers (render/layerclock.ts).
  * @param ctx the renderer context
  * @returns the debug methods
