@@ -13,6 +13,18 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'underskin',
+    added: '2026-11-15',
+    name: 'Under the skin: what a lost panel shows',
+    where: 'Test link + &underskin=1: crash hard in any closed car (a hatch, the Huracan, the '
+      + 'tractor) and in the F1 / F2, until a bonnet, a wing, a bumper or a boot comes off',
+    try: 'Look into each hole: the engine and radiator under a bonnet, the suspension (strut, '
+      + 'arms) and on a driven wheel the drive shaft in a wing well, the crash bar behind a '
+      + 'bumper; an F1 sidepod its radiator.',
+    wrong: 'A part drawn outside its hole or over the tyre, a front-drive car with drive shafts at '
+      + 'the back (or the reverse), an engine where that car has none, holes odd at speed.',
+  },
+  {
     id: 'gpustat',
     added: '2026-11-16',
     name: 'Frame-drop hunt: the phone report also records the GPU side and each layer',

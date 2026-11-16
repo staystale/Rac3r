@@ -5,7 +5,10 @@
 // The race is STARTED by a key press (main.ts start, as renderhash does: a tap on the page did
 // not start it, and every number before this measured a frozen grid - no sim, no AI moving); the
 // live line prints the sim steps of the last frame and how many AI cars are moving, and a run
-// whose sim never stepped fails (exit 1). CPU=1 sets the throttle (default x4).
+// whose sim never stepped fails (exit 1). CPU=1 sets the throttle (default x4). CAR=<id> the player's
+// car (default track-rwd; the AI take the same). DAMAGE_AT=<frame> (0-599): at that frame of the
+// measured 600 every car loses its panels (bonnet, both bumpers, four wings, boot, a door: their
+// lost-parts pictures are made then - the spike - and drawn from then on).
 import { startServer, launchBrowser } from './lib/browser.mjs';
 const srv = await startServer();
 let b;
@@ -21,11 +24,12 @@ await p.addInitScript(() => {
   });
 });
 const extra = process.argv[3] || '';
-await p.goto(srv.url + '/?touch=1&guide=0&level=' + (process.argv[2] || 'test-track') + '&car=track-rwd' + extra); await p.tap?.('body').catch?.(() => {}); await p.touchscreen.tap(400, 200); await p.waitForTimeout(4000);
+await p.goto(srv.url + '/?touch=1&guide=0&level=' + (process.argv[2] || 'test-track') + '&car=' + (process.env.CAR || 'track-rwd') + extra); await p.tap?.('body').catch?.(() => {}); await p.touchscreen.tap(400, 200); await p.waitForTimeout(4000);
 await p.evaluate(() => dispatchEvent(new KeyboardEvent('keydown', { key: 'x' })));
 const lv = process.argv[2] || 'test-track';
 // launch a session, then let the demo driver drive it (the same driver as the menu demo lap)
-const r = await p.evaluate((lv) => new Promise(async (res) => {
+const damageAt = process.env.DAMAGE_AT ? Number(process.env.DAMAGE_AT) : -1;
+const r = await p.evaluate(([lv, damageAt]) => new Promise(async (res) => {
   const g = window.__game;
   const A = await import('/src/ai/autodrive.ts');
   const drv = A.createAutoDriver(g.level.subtrack);
@@ -33,9 +37,10 @@ const r = await p.evaluate((lv) => new Promise(async (res) => {
   // (the start lights: the field goes on the green, ~4 s after the start)
   await new Promise((wait) => setTimeout(wait, 6000));
   const w0 = window.__work.length; const times = []; let last = performance.now(), n = 0;
-  function f(now) { times.push(now - last); last = now; if (++n < 600) window.__raf(f); else res({ work: window.__work.slice(w0), times, tiles: g.renderer.groundRenders, tileMs: g.renderer.tileMs, steps: g.stepsLastFrame || 0, moving: (g.ai || []).filter((entry) => Math.hypot(entry.car.vx, entry.car.vy) > 2).length, ai: (g.ai || []).length, speed: Math.hypot(g.car.vx, g.car.vy) }); }
+  const panelsOff = () => { for (const car of [g.car, ...(g.ai || []).map((entry) => entry.car)]) car.partLost = 'bonnet:0,bumper:0,wing:0,wing:1,wing:2,wing:3,boot:2,bumper:2,panel:1'; };
+  function f(now) { if (n === damageAt) panelsOff(); times.push(now - last); last = now; if (++n < 600) window.__raf(f); else res({ work: window.__work.slice(w0), times, tiles: g.renderer.groundRenders, tileMs: g.renderer.tileMs, steps: g.stepsLastFrame || 0, moving: (g.ai || []).filter((entry) => Math.hypot(entry.car.vx, entry.car.vy) > 2).length, ai: (g.ai || []).length, speed: Math.hypot(g.car.vx, g.car.vy) }); }
   window.__raf(f);
-}), lv);
+}), [lv, damageAt]);
 const t = r.times.slice(30).sort((a, b) => a - b);
 const pct = (q) => t[Math.floor(q * (t.length - 1))].toFixed(1);
 console.log(`${lv} (CPU x${rate}, autodrive lap): frame ms median ${pct(0.5)} | p95 ${pct(0.95)} | worst ${t[t.length - 1].toFixed(1)} | frames over 33 ms: ${t.filter((x) => x > 33).length} of ${t.length} | tiles painted ${r.tiles}, ${(r.tileMs / r.tiles).toFixed(1)} ms each`);

@@ -11,6 +11,8 @@ import { settledLampLevel } from "./carlamps.ts";
 import { drawAngryFlash, drawLightBar, isAngryFlashOn } from "./lightbar.ts";
 import { drawTyreByPressure, wheelTurn } from "./tyrelook.ts";
 import { drawRolledBody, prepareBody } from "./rollbody.ts";
+import { drawUnderSkin } from "./underskin.ts";
+import { FIX } from '../core/fixes.ts';
 import type {
   Cam, CarSprite, RenderCar, RenderCarSpec, RenderCone, SilCanvas, View,
 } from "./types.ts";
@@ -93,8 +95,15 @@ const LOST = new WeakMap<RenderCar, { base: CarSprite; lost: string; sprite: Car
 function lostSprite(car: RenderCar, spec: RenderCarSpec, base: CarSprite): CarSprite {
   const kept = LOST.get(car);
   if (kept && kept.base === base && kept.lost === car.partLost) return kept.sprite;
-  const sprite = withoutParts(spec, base, car.partLost || '');
-  LOST.set(car, { base, lost: car.partLost || '', sprite });
+  const lost = car.partLost || '', sprite = withoutParts(spec, base, lost, FIX.underskin);
+  // UNDER THE SKIN (?underskin): what each hole shows, painted once with the sprite
+  if (FIX.underskin) {
+    const { halfWidth } = wheelMetrics(spec, base);
+    drawUnderSkin(sprite, spec, lost, { halfWidth,
+      tyreWidth: (rear) => tyreBox(spec, rear).wid,
+      arms: (ctx, axleX, side) => drawFixedArms(ctx, spec, axleX, side, halfWidth) });
+  }
+  LOST.set(car, { base, lost, sprite });
   return sprite;
 }
 

@@ -495,6 +495,19 @@ objects (`cones.ts`; DEBRIS kinds `bumper`, `wing`, `panel` in the car's paint a
 may break a window (not the track car, banger, grass car): wear cells take the cover 'glass'
 (no grip change; GPU field kind 6, specks whose glints follow the camera); the first tyre pass
 sweeps it and may puncture that tyre (`world/pass.ts PASS`: the wheel making the pass).
+UNDER THE SKIN (under test, `?underskin=1`, `FIX.underskin`; `render/underskin.ts`): a car drawn
+without a lost part (`render/carparts.ts withoutParts`, `render/cars.ts lostSprite`) shows what is
+under it by its own layout (`carbits.ts`: `engine` front / mid, `mount` long / trans, `radiator` front
+/ rear / sides; its driven wheels `spec.drive`), painted once with that sprite: a BONNET's bay the
+engine (the drawing the crash throws, `carparts.ts bitDrawing`, along or across the car) behind the
+radiator - a mid-engined car's front lid two corner radiators; a BOOT the engine where it sits behind;
+a WING's well - with the switch reaching 0.45 m in from the side (`WING_DEPTH_PX`; the old 3 px
+hole was all tyre) - grey, inboard of the tyre, that corner's arms and a driven wheel's drive shaft
+as the open cars wear them (`cars.ts drawFixedArms`) and the strut's top; behind a BUMPER the crash
+bar and, at the end its radiator sits (the Sport quattro S1 and the RX supercar at the back), the
+radiator. An open car: a sidepod its radiator, its nose / tail their crash structures; the buggy its
+frame tubes. A DOOR shows nothing new (asked). `tools/scratch/_partsoff.mjs` photographs every car
+with its front or rear panels off; `tools/framecheck.mjs` CAR= DAMAGE_AT= times it.
 
 Highway hedges: `highway/hedges.ts` lays one continuous line of square
 bushes (the same `bush` patches as the other levels) round each farm field's long-grass border, streamed with

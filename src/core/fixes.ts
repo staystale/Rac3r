@@ -62,4 +62,8 @@ export const FIX = {
   // the phone report (?report=1) also records the GPU side and each draw layer's time, the
   // device's hints (ui/gpustat.ts, render/layerclock.ts): report only, nothing drawn changes
   gpustat: atLoad('gpustat'),
+  // UNDER THE SKIN: what a lost panel shows - the engine and radiator in the bay, a corner's
+  // suspension and drive shaft in a wing's well, the crash bar and radiator behind a bumper - by
+  // each car's own layout (render/underskin.ts, carbits.ts mount / radiator)
+  underskin: atLoad('underskin'),
 };

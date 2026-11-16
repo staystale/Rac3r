@@ -14,13 +14,20 @@ const CHROME = '#c9ccd4', STEEL_GREY = '#3a3d45', HEAD_LAMP = '#fff3c4', TAIL_LA
 const WISHBONE_STEEL = '#4a4f58';
 import type { CarSprite, RenderCarSpec } from "./types.ts";
 import { trackCanvas } from '../core/memorybudget.ts';
+import { FIX } from '../core/fixes.ts';
+
+// m a lost wing's well reaches in from the car's side with ?underskin (render/underskin.ts): past
+// the tyre to the strut and the drive shaft (the old hole, 3 px, was all tyre)
+const WELL_DEPTH_M = 0.45;
+// px a lost wing reaches in from the side (3 without ?underskin)
+const WING_DEPTH_PX = FIX.underskin ? Math.round(WELL_DEPTH_M * SPRITE_PPM) : 3;
 
 // an open car - the single-seaters, the autograss buggy: its wings / nose and its side pods come
 // off, not bumpers and door skins, and nothing is under them
 export const isBare = (spec: RenderCarSpec) => spec.kind === 'track' || spec.kind === 'grass';
 
 /** A part's place on a sprite, sprite rgba (x rear 0 -> front, y the car's side), inclusive. */
-interface Region { x0: number; x1: number; y0: number; y1: number }
+export interface Region { x0: number; x1: number; y0: number; y1: number }
 
 /**
  * Where a part sits on a car's sprite.
@@ -54,7 +61,7 @@ export function partRegion(spec: RenderCarSpec, sprite: CarSprite, kind: string,
   if (kind === 'exhaust') return { x0: -2, x1: -1, y0: -2, y1: wid + 1 };
   if (kind === 'wing') {
     const axle = Math.round(len / 2 + (front ? spec.lf : -spec.lr) * SPRITE_PPM);
-    return { x0: axle - 7, x1: axle + 7, ...side(3) };
+    return { x0: axle - 7, x1: axle + 7, ...side(WING_DEPTH_PX) };
   }
   return { x0: Math.round(len * 0.36), x1: Math.round(len * 0.62), ...side(2) };
 }
@@ -119,7 +126,7 @@ export function cutPart(sprite: CarSprite, region: Region, seed: number): HTMLCa
 }
 
 /** A flat part's drawing: its canvas and a block painter (px). */
-interface FlatCanvas {
+export interface FlatCanvas {
   canvas: HTMLCanvasElement; ctx: CanvasRenderingContext2D;
   block: (x: number, y: number, wide: number, tall: number, col: string) => void;
 }
@@ -350,13 +357,23 @@ function flatEngine(bits: CarBits): FlatCanvas {
  */
 export function drawnBit(spec: RenderCarSpec, kind: string,
   seed: number): HTMLCanvasElement | null {
-  const bits = bitsOf(String(spec.id));
-  const flat = kind === 'exhaust' ? flatExhaust(bits) : kind === 'mirror' ? flatMirror(spec)
-    : kind === 'wishbone' ? flatWishbone() : kind === 'strut' ? flatStrut()
-      : kind === 'shaft' ? flatShaft() : kind === 'engine' ? flatEngine(bits) : null;
+  const flat = bitDrawing(spec, kind);
   if (!flat) return null;
   damage(flat.ctx, flat.canvas.width, flat.canvas.height, seed);
   return flat.canvas;
+}
+
+/**
+ * A drawn bit as it sits on the car, undamaged (the under-skin layer, render/underskin.ts).
+ * @param spec the car as drawn
+ * @param kind the bit (exhaust, mirror, wishbone, strut, shaft, engine)
+ * @returns its drawing, or null
+ */
+export function bitDrawing(spec: RenderCarSpec, kind: string): FlatCanvas | null {
+  const bits = bitsOf(String(spec.id));
+  return kind === 'exhaust' ? flatExhaust(bits) : kind === 'mirror' ? flatMirror(spec)
+    : kind === 'wishbone' ? flatWishbone() : kind === 'strut' ? flatStrut()
+      : kind === 'shaft' ? flatShaft() : kind === 'engine' ? flatEngine(bits) : null;
 }
 
 /**
@@ -396,7 +413,7 @@ function bayPixel(rgba: Uint8ClampedArray, i: number, engine: boolean, x: number
 
 /** One lost part, as the car shows it. */
 interface LostPart { spec: RenderCarSpec; kind: string; corner: number; region: Region;
-  lost: string }
+  lost: string; underSkin: boolean }
 
 /**
  * A sprite px on a lost part: an open car's part, a mirror or the pipes cleared; a bonnet's or
@@ -408,11 +425,12 @@ interface LostPart { spec: RenderCarSpec; kind: string; corner: number; region: 
  * @param y sprite px
  */
 function lostPixel(rgba: Uint8ClampedArray, i: number, part: LostPart, x: number, y: number) {
-  const { spec, kind, corner, region, lost } = part;
+  const { spec, kind, corner, region, lost, underSkin } = part;
   if (isBare(spec) || kind === 'mirror' || kind === 'exhaust') { rgba[i + 3] = 0; return; }
   if (kind === 'bonnet' || kind === 'boot') {
     // (the engine shows under a front-engined car's bonnet, not a mid-engined car's front lid)
-    const engine = kind === 'bonnet' && bitsOf(String(spec.id)).engine === 'front'
+    // (with ?underskin the bay is left empty: render/underskin.ts draws the engine in it)
+    const engine = !underSkin && kind === 'bonnet' && bitsOf(String(spec.id)).engine === 'front'
       && !lost.includes('engine');
     bayPixel(rgba, i, engine, x - region.x0,
       y - region.y0, region);
@@ -430,9 +448,11 @@ function lostPixel(rgba: Uint8ClampedArray, i: number, part: LostPart, x: number
  * @param spec the car as drawn
  * @param sprite its sprite (damaged or not)
  * @param lost the parts gone: "kind:corner" each, joined by ","
+ * @param underSkin the bays left empty for the under-skin layer (render/underskin.ts)
  * @returns a new sprite
  */
-export function withoutParts(spec: RenderCarSpec, sprite: CarSprite, lost: string): CarSprite {
+export function withoutParts(spec: RenderCarSpec, sprite: CarSprite, lost: string,
+  underSkin = false): CarSprite {
   const { canvas, ctx, img } = spriteToWork(sprite.c), rgba = img.data;
   for (const entry of lost.split(',').filter(Boolean)) {
     const [kind, corner] = entry.split(':');
@@ -443,7 +463,7 @@ export function withoutParts(spec: RenderCarSpec, sprite: CarSprite, lost: strin
       x <= region.x1 + 2; x++) {
       if (x < 0 || y < 0 || x >= canvas.width || y >= canvas.height) continue;
       const i = (y * canvas.width + x) * 4;
-      lostPixel(rgba, i, { spec, kind, corner: +corner, region, lost }, x - 2, y - 2);
+      lostPixel(rgba, i, { spec, kind, corner: +corner, region, lost, underSkin }, x - 2, y - 2);
     }
   }
   ctx.putImageData(img, 0, 0);
