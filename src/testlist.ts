@@ -41,7 +41,9 @@ export const TEST_LIST: TestEntry[] = [
     added: '2026-11-16',
     name: 'New car: the Toyoter TS010 (Toyota\'s 1992 Group C car), PROTOTYPE / Group C',
     where: 'Test link + &ts010=1: the garage, PROTOTYPE; Le Manky for the straights',
-    try: 'Its look, top speed (about 344 km/h), braking and grip in fast corners.',
+    try: 'Its look, reshaped from the real car: the four fender pods over the wheels, the '
+      + 'narrow tub and teardrop canopy, the long tail under its wing, shaded so the curves read; '
+      + 'top speed (about 344 km/h), braking and grip in fast corners.',
     wrong: 'Undrivable, slower than the Porch, a shape that does not read as a Group C car.',
   },
   {

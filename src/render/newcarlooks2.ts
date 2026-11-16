@@ -252,74 +252,100 @@ function paintCleoRs(spr: SpriteCtx): void {
   block(-1, mid + 1, 1, 2, CHR);
 }
 
+// SHADING in the flat pixel style (the TS010 first; every new car from now on): a light 1 px line
+// along a crest, a soft dark line down its slope, darker valleys and shadows - flat colours over
+// the paint, no gradients, so the shape reads at a phone's size
+export const SHINE = 'rgba(255,255,255,0.35)', SHADE = 'rgba(0,0,0,0.22)',
+  SHADE_SOFT = 'rgba(0,0,0,0.12)';
+
 /**
  * The TS010's plan, a half width at a share of its length (0 tail, 1 nose), as a share of the
- * sprite's half: the full-width body over its covered wheels, the rear deck squared off under the
- * wing, the low nose rounding to its corners.
+ * sprite's half: the four fender pods bulging over the covered wheels (the front pair to the
+ * nose), the waist between them, the tail rounding under the wing, the low nose's corners.
  * @param share along the car, 0..1
  * @returns the half width, 0..1
  */
 function ts010Plan(share: number): number {
-  const tail = share < 0.02 ? 0.9 + 0.1 * share / 0.02 : 1;
-  const nose = share > 0.86 ? Math.sqrt(1 - 0.7 * ((share - 0.86) / 0.14) ** 2) : 1;
-  return tail * nose;
+  const fender = Math.max(inside(share, 0.07, 0.36, 0.06), inside(share, 0.63, 0.97, 0.06));
+  const tail = share < 0.05 ? 0.78 + 0.22 * Math.sqrt(share / 0.05) : 1;
+  const nose = share > 0.93 ? Math.sqrt(1 - 0.55 * ((share - 0.93) / 0.07) ** 2) : 1;
+  return (0.86 + 0.14 * fender) * tail * nose;
 }
 
 /**
- * The TS010's cockpit bubble: the small canopy forward of the middle, its wrap-round screen, the
- * roof (the second colour) and the intake behind it.
+ * The TS010's shaped body: each fender pod lit along its crest and shaded down its slopes, the
+ * valleys between the pods and the tub in shadow with the sidepods' inlets in them, the low nose
+ * between the front pods darker, the splitter's lip (the third colour), the headlamps.
+ * @param spr the painting context
+ */
+function ts010Body(spr: SpriteCtx): void {
+  const { lengthPx: len, widthPx: wid, mid, third, block, along } = spr;
+  const pod = Math.round(mid * 0.42);
+  for (const [from, until] of [[0.06, 0.38], [0.62, 0.99]]) {
+    const startX = along(from), wide = along(until - from);
+    block(startX + 2, 2, wide - 4, 1, SHINE);
+    block(startX + 1, pod - 1, wide - 2, 1, SHADE_SOFT);
+    block(startX + 2, wid - 3, wide - 4, 1, SHADE);
+    block(startX + 1, wid - pod, wide - 2, 1, SHADE_SOFT);
+  }
+  for (const y of [pod, wid - pod - 2]) {
+    block(along(0.38), y, along(0.24), 2, SHADE);
+    block(along(0.4), y, along(0.08), 2, INK);
+  }
+  block(along(0.9), pod, along(0.1), wid - pod * 2, SHADE_SOFT);
+  block(len, pod - 1, 1, wid - pod * 2 + 2, third);
+  for (const y of [3, wid - 6]) block(len - 6, y, 4, 3, HEAD);
+}
+
+/**
+ * The TS010's tub and canopy: the engine cover's spine from the canopy to the tail (lit along its
+ * top, its slope shaded) with its louvres either side, the narrow teardrop canopy - its roof (the
+ * second colour), the screen ahead of it, their shine and the shadow down its side.
  * @param spr the painting context
  */
 function ts010Cockpit(spr: SpriteCtx): void {
-  const { mid, roof2, light, block, along } = spr;
-  const half = Math.round(mid * 0.36), roofFrom = along(0.46), roofTo = along(0.56);
-  block(along(0.42), mid - half + 1, roofFrom - along(0.42), half * 2 - 1, GLASS);
-  block(roofFrom, mid - half, roofTo - roofFrom, half * 2 + 1, roof2);
-  block(roofFrom, mid - half, roofTo - roofFrom, 1, light);
-  for (let x = roofTo; x < along(0.64); x++) {
-    const rake = Math.round((x - roofTo) * 0.4);
-    block(x, mid - half + rake, 1, Math.max(1, (half - rake) * 2 + 1), GLASS);
+  const { mid, roof2, block, along } = spr;
+  block(along(0.08), mid - 1, along(0.36), 1, SHINE);
+  block(along(0.08), mid + 2, along(0.36), 1, SHADE_SOFT);
+  for (let x = along(0.16); x < along(0.32); x += 2) {
+    block(x, mid - 4, 1, 3, INK);
+    block(x, mid + 2, 1, 3, INK);
   }
-  block(roofTo + 1, mid - half + 2, 1, half * 2 - 3, GLASS_HI);
-  // the roof's intake for the engine, behind the canopy
-  block(along(0.36), mid - 2, along(0.06), 5, INK);
-  block(along(0.37), mid - 1, along(0.04), 3, MESH);
+  const half = Math.round(mid * 0.3), canopyFrom = along(0.44), canopyTo = along(0.66);
+  for (let x = canopyFrom; x < canopyTo; x++) {
+    const share = (x - canopyFrom) / (canopyTo - canopyFrom);
+    const across = Math.max(1, Math.round(half * Math.sin(Math.PI * Math.min(1, share * 1.25))));
+    block(x, mid - across, 1, across * 2 + 1, share > 0.55 ? GLASS : roof2);
+  }
+  block(along(0.47), mid - half + 2, along(0.08), 1, SHINE);
+  block(along(0.6), mid - 2, 1, 4, GLASS_HI);
+  block(canopyFrom, mid + half - 1, along(0.12), 1, SHADE);
 }
 
 /**
- * TOYOTER TS010 (Toyota TS010, the 1992 Group C car): the low full-width body over covered
- * wheels, the fenders' crests, the small canopy forward of the middle, the engine cover's louvres
- * and the sidepods' radiator inlets, the headlamps in the nose, the splitter, the full-width
- * wing on its endplates (the third colour) at the tail.
+ * TOYOTER TS010 (Toyota TS010, the 1992 Group C car), from its real top view: the four fender
+ * pods over the covered wheels, the narrow tub and teardrop canopy between them, the valleys with
+ * the sidepods' inlets, the engine cover's spine to the long tail, the full-width wing on its
+ * endplates (the third colour) overhanging the tail with its shadow on the deck; shaded (SHINE,
+ * SHADE) so the curves read.
  * @param spr the painting context
  */
 function paintTs010(spr: SpriteCtx): void {
-  const { spec, lengthPx: len, widthPx: wid, mid, outline, light, dark, third, block,
-    along } = spr;
+  const { spec, lengthPx: len, widthPx: wid, mid, outline, light, third, block } = spr;
   planBody(spr, (x) => mid * ts010Plan(x / (len - 1)));
-  // the fenders' crests over the four wheels, front and rear
-  for (const [from, until] of [[0.08, 0.34], [0.66, 0.92]]) {
-    block(along(from), 3, along(until - from), 1, light);
-    block(along(from), wid - 4, along(until - from), 1, dark);
-  }
+  ts010Body(spr);
   ts010Cockpit(spr);
-  // the engine cover's louvres, the sidepods' radiator inlets beside the cockpit
-  for (let x = along(0.14); x < along(0.32); x += 2) block(x, mid - 5, 1, 11, INK);
-  for (const y of [4, wid - 7]) block(along(0.44), y, along(0.1), 3, INK);
-  // the headlamps in the nose's corners, the splitter's lip
-  for (const y of [4, wid - 7]) block(len - 7, y, 4, 3, HEAD);
-  block(len, 3, 1, wid - 6, third);
-  // the tail: lamps, the diffuser and pipes
-  for (const y of [2, wid - 4]) block(0, y, 1, 2, TAIL);
+  for (const y of [3, wid - 5]) block(0, y, 1, 2, TAIL);
   block(-1, mid - 3, 1, 2, CHR);
   block(-1, mid + 2, 1, 2, CHR);
   if (spec.noWing) return;
-  // the WING across the full width on its endplates
-  block(2, 1, 6, wid - 2, 'rgba(0,0,0,0.25)');
-  block(0, 0, 6, wid, outline);
-  block(1, 1, 4, wid - 2, third);
-  block(4, 1, 1, wid - 2, light);
-  for (const y of [mid - 6, mid + 5]) block(5, y, 4, 2, STEEL);
+  block(1, 1, 5, wid - 2, SHADE);
+  block(-2, 0, 5, wid, outline);
+  block(-1, 1, 3, wid - 2, third);
+  block(1, 1, 1, wid - 2, light);
+  block(-2, 0, 6, 1, INK);
+  block(-2, wid - 1, 6, 1, INK);
+  for (const y of [mid - 5, mid + 4]) block(3, y, 4, 2, STEEL);
 }
 
 /**
