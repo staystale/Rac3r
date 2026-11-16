@@ -23,6 +23,8 @@ const REAL_SIZE: Record<string, RealSize> = {
   'wrz-awd': { len: 4.465, wid: 1.74, lf: 1.06, lr: 1.465, trackWidth: 1.48 },
   // V70 R: 4.71 x 1.80, wheelbase 2.755, track ~1.56
   'estate-4x4': { len: 4.71, wid: 1.8, lf: 1.38, lr: 1.375, trackWidth: 1.56 },
+  // A4 Avant B8: 4.703 x 1.826, wheelbase 2.808; 60 / 40 and the track EST
+  'ordi-a4': { len: 4.703, wid: 1.826, lf: 1.123, lr: 1.685, trackWidth: 1.56 },
   // Chevelle SS 454 (1970 coupe): 5.01 x 1.93, wheelbase 2.845, ~55 % front, track ~1.52
   'muscle-rwd': { len: 5.01, wid: 1.93, lf: 1.28, lr: 1.565, trackWidth: 1.52 },
   // Sport quattro S1 E2: 4.24 x 1.80 (EST), the SHORT wheelbase 2.224, track ~1.5 (EST)

@@ -311,9 +311,86 @@ function paintIbiza(spr: SpriteCtx): void {
   block(-1, 5, 1, 2, CHR);
 }
 
+
+/**
+ * The A4 Avant's plan, a half width at a share of its length (0 tail, 1 nose), as a share of the
+ * sprite's half: the square estate tail, the gentle hips and front wings, the long nose's
+ * rounded corners.
+ * @param share along the car, 0..1
+ * @returns the half width, 0..1
+ */
+function a4Plan(share: number): number {
+  const arch = Math.max(inside(share, 0.06, 0.28, 0.06), inside(share, 0.66, 0.88, 0.06));
+  const tail = share < 0.025 ? 0.86 + 0.14 * Math.sqrt(share / 0.025) : 1;
+  const nose = share > 0.9 ? Math.sqrt(1 - 0.55 * ((share - 0.9) / 0.1) ** 2) : 1;
+  return (0.95 + 0.05 * arch) * tail * nose;
+}
+
+/**
+ * The A4 Avant's glasshouse: the near upright tailgate glass, the long roof (the second colour)
+ * to the back with its rails (the third colour) lit along its edge, the side glass, the raked
+ * windscreen, the mirrors.
+ * @param spr the painting context
+ */
+function a4Cabin(spr: SpriteCtx): void {
+  const { mid, roof2, third, block, along } = spr;
+  const rearFrom = along(0.03), roofFrom = along(0.08), roofTo = along(0.58),
+    screenTo = along(0.69), cabinHalf = Math.round(mid * 0.76);
+  block(rearFrom, mid - cabinHalf + 1, roofFrom - rearFrom, cabinHalf * 2 - 1, GLASS);
+  block(rearFrom + 1, mid - cabinHalf + 3, 1, cabinHalf * 2 - 5, GLASS_HI);
+  block(roofFrom, mid - cabinHalf, roofTo - roofFrom, cabinHalf * 2 + 1, roof2);
+  block(roofFrom, mid - cabinHalf, roofTo - roofFrom, 1, SHINE);
+  block(roofFrom, mid + cabinHalf, roofTo - roofFrom, 1, SHADE_SOFT);
+  for (const y of [mid - cabinHalf + 2, mid + cabinHalf - 2])
+    block(roofFrom + 1, y, roofTo - roofFrom - 2, 1, third);
+  block(roofFrom + 1, mid - cabinHalf - 1, roofTo - roofFrom - 2, 1, GLASS);
+  block(roofFrom + 1, mid + cabinHalf + 1, roofTo - roofFrom - 2, 1, GLASS);
+  for (let x = roofTo; x < screenTo; x++) {
+    const half = Math.round(cabinHalf + 1 + 2 * (x - roofTo) / (screenTo - roofTo));
+    const rake = Math.round((x - roofTo) * 0.3);
+    block(x, mid - half + rake, 1, (half - rake) * 2 + 1, GLASS);
+  }
+  block(roofTo + 1, mid - cabinHalf + 1, 1, cabinHalf * 2 - 1, GLASS_HI);
+  block(screenTo - 2, mid - cabinHalf - 4, 2, 2, INK);
+  block(screenTo - 2, mid + cabinHalf + 3, 2, 2, INK);
+}
+
+/**
+ * ORDI A4 AVANT (Audi A4 Avant B8, 2008-15, the 2.0 TDI): the estate's square tail and long roof
+ * with its rails, the clamshell bonnet's two creases running to the big single-frame grille with
+ * its four rings, the swept lamps with their LED strips, the shoulder line lit along the flanks,
+ * the doors' shut lines, the wide tail lamps; shaded the TS010's way.
+ * @param spr the painting context
+ */
+function paintA4(spr: SpriteCtx): void {
+  const { lengthPx: len, widthPx: wid, mid, block, along } = spr;
+  planBody(spr, (x) => mid * a4Plan(x / (len - 1)));
+  block(along(0.03), 3, along(0.92), 1, SHINE);
+  block(along(0.03), wid - 4, along(0.92), 1, SHADE);
+  a4Cabin(spr);
+  for (const y of [mid - 7, mid + 6]) {
+    block(along(0.71), y, along(0.22), 1, SHINE);
+    block(along(0.71), y + 1, along(0.22), 1, SHADE_SOFT);
+  }
+  for (const y of [3, wid - 5]) {
+    block(len - 7, y, 5, 2, HEAD);
+    block(len - 6, y + (y < mid ? 2 : -1), 4, 1, '#ffffff');
+  }
+  block(len - 2, mid - 6, 2, 13, INK);
+  block(len - 2, mid - 5, 1, 11, MESH);
+  for (let y = mid - 4; y <= mid + 3; y += 2) block(len - 1, y, 1, 2, CHR);
+  for (const share of [0.44, 0.6]) {
+    block(along(share), 2, 1, 2, INK);
+    block(along(share), wid - 4, 1, 2, INK);
+  }
+  for (const y of [1, wid - 6]) block(0, y, 2, 5, TAIL);
+  block(-1, 5, 1, 2, CHR);
+}
+
 /** The newest cars' bodies by id (render/carlooks.ts LOOKS takes them). */
 export const NEW_LOOKS_3: [string, { paint: (spr: SpriteCtx) => void; bare?: boolean }][] = [
   ['toyoter-corolla', { paint: paintCorolla, bare: true }],
   ['rebelion-r13', { paint: paintR13, bare: true }],
   ['seat-ibiza', { paint: paintIbiza, bare: true }],
+  ['ordi-a4', { paint: paintA4, bare: true }],
 ];

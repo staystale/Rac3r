@@ -16,6 +16,7 @@ const SHAPES: Record<string, RollShape> = {
   'hatch-rwd': { round: 0.6, side: 0.8 },   // M135i: a rounded hatch
   'saloon-rwd': { round: 0.5, side: 0.6 },   // 3 Series: a saloon, clear edges
   'wrz-awd': { round: 0.45, side: 0.6 },   // WRX: a saloon, its big wing digs in
+  'ordi-a4': { round: 0.35, side: 0.8 },   // A4 Avant: a long estate, rounder than the V70
   'estate-4x4': { round: 0.25, side: 0.85 },   // V70: a boxy estate, its edges dig in
   'muscle-rwd': { round: 0.3, side: 0.35 },   // Chevelle: long, wide and flat
   'rally-4x4': { round: 0.3, side: 0.5 },   // quattro S1: boxy, wide arches, big wings

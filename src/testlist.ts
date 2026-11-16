@@ -13,6 +13,17 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'a4avant',
+    added: '2026-11-16',
+    name: 'New car: the Ordi A4 Avant (an Audi A4 Avant B8 2.0 TDI), ROAD / Estate, and in the '
+      + 'traffic',
+    where: 'Test link + &a4avant=1: the garage, ROAD / Estate; a circuit; the highway (about 1 '
+      + 'car in 150, as on the real roads); + &underskin=1&carparts=1 for a crash',
+    try: 'Its look (Ibis White, the roof rails, the big grille, shaded), the diesel\'s low-down '
+      + 'pull and early shifts against the V70, crash it (four doors, the tailgate), roll it.',
+    wrong: 'Not an A4 Avant from above, a diesel that revs like a petrol, too common or rare.',
+  },
+  {
     id: 'ibiza',
     added: '2026-11-16',
     name: 'New car: the Seat Ibeefa (a Seat Ibiza Mk4 1.4 five-door), ROAD / Hatch, and in the '

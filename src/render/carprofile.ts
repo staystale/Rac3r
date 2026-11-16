@@ -33,6 +33,9 @@ export const PROFILES: Record<string, CarProfile> = {
   'wrz-awd': { len: 4.47, waist: 1.0, glass: [0.28, 0.64], roof: [[0, 0.6], [0.02, 1.16],
     [0.09, 1.16], [0.11, 1.0], [0.19, 1.02], [0.3, 1.42], [0.53, 1.47], [0.66, 1.0],
     [0.96, 0.86], [1, 0.55]] },
+  // A4 Avant: the long roof to the near upright tailgate, the raked screen (EST from photos)
+  'ordi-a4': { len: 4.703, waist: 0.98, glass: [0.03, 0.69], roof: [[0, 0.6], [0.01, 1.0],
+    [0.04, 1.36], [0.1, 1.42], [0.56, 1.44], [0.69, 0.97], [0.96, 0.8], [1, 0.52]] },
   'estate-4x4': { len: 4.71, waist: 1.02, glass: [0.04, 0.7], roof: [[0, 0.6], [0.01, 1.0],
     [0.04, 1.5], [0.6, 1.55], [0.72, 1.02], [0.96, 0.88], [1, 0.58]] },
   'muscle-rwd': { len: 5.01, waist: 0.98, glass: [0.32, 0.6], roof: [[0, 0.65], [0.02, 0.95],

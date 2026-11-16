@@ -540,11 +540,34 @@ const IBIZA: RosterRow = {
   paint: '#c41e2a', trim: '#a51a24', glass: '#2a2f38', rim: '#c9ccd4',
 };
 
+// Audi A4 Avant B8 (2008-15) 2.0 TDI 143 PS six-speed manual FWD (automobile-catalog, carfolio,
+// encyCARpedia): the 2.0 TDI four along the front, 105 kW at 4,200, 320 Nm at 1,750-2,500, FWD,
+// 4,703 x 1,826 mm, wheelbase 2,808, ABS and ESP; 208 km/h, 0-100 9.7 s. Conflicting: the kerb
+// weight (1,520-1,595 kg: 1,595 taken, encyCARpedia's FWD figure). EST: the 4,800 limit, the
+// ratios and final drive (its 208 near the power peak in sixth), 225/55 R16, Cd 0.26 x 2.08 m^2
+// (set to reach its 208: Audi quotes ~0.30), 60 / 40, the track, the CG, the tyres, the springs.
+const A4AVANT: RosterRow = {
+  id: 'ordi-a4', name: 'Ordi A4 Avant', kind: 'a4avant', cls: 'road', sub: 'Estate',
+  rimIn: 16,   // its real rim, inches (what tyres fit)
+  cg: 0.55, rideH: 0.14, cyl: 4,
+  aids: { abs: true, tcs: true },
+  mass: 1595, lf: 1.123, lr: 1.685, len: 4.703, wid: 1.826, trackWidth: 1.56,
+  tyreWidth: 0.225, wheelR: tyreR(225, 55, 16),
+  drive: 1.0, brakeBiasF: 0.65, caF: 95000, caR: 90000, mu: 1.12,
+  curve: realCurve({ idle: 800, low: 0.55, nm: 320, nmFrom: 1750, nmTo: 2500,
+    kw: 105, kwAt: 4200, redline: 4800 }),
+  redline: 4800, upshiftRpm: 4400, downshiftRpm: 1600, idleRpm: 800,
+  gears: [3.778, 2.063, 1.257, 0.903, 0.738, 0.618], finalDrive: 3.9, dragC: dragOf(0.26, 2.08),
+  susF: 1.3, susZ: 0.4,
+  // Ibis White, the roof in the paint (its rails the third colour), silver wheels
+  paint: '#eceeea', trim: '#e1e3df', glass: '#2a2f38', rim: '#c9ccd4',
+};
+
 /** The new cars: their roster rows, in the list's order. */
 export const NEW_CARS: RosterRow[] = [PORCH, SEVEN, TRANSFIT, TROPHY, CIVVIC, DEFUNDER, FOCUST,
   CLEO, CLEO_RS, TRANSFIT_LWB, TRANSFIT_SWB, TS010, ROUTEMONSTER, SAXO, STRANGE, SAXO_VTR, TESLA,
   M4GT3, ...(FIX.corolla ? [COROLLA] : []), ...(FIX.r13 ? [R13] : []),
-  ...(FIX.ibiza ? [IBIZA] : [])];
+  ...(FIX.ibiza ? [IBIZA] : []), ...(FIX.a4avant ? [A4AVANT] : [])];
 
 /** The classes only new cars race in. */
 export const NEW_CLASSES = [GT_CLASS, TOURING_CLASS, PROTO_CLASS];

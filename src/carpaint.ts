@@ -12,6 +12,7 @@ export const PAINT_STOCK: Record<string, { trim?: string; third?: string; rim?: 
   'saloon-rwd': { trim: '#a9aeb6', third: '#4a4f58' },
   'wrz-awd': { trim: '#1d3f9a', third: '#1d3f9a' },
   'estate-4x4': { trim: '#4f6b52', third: '#2f4433' },
+  'ordi-a4': { third: '#9aa0a8' },
   'muscle-rwd': { third: '#b3252f' },
   'rally-4x4': { trim: '#f0f0ea', third: '#12325f' },
   'track-rwd': { third: '#e23b2e' },
@@ -64,6 +65,7 @@ export const TYRE_LOOK: Record<string, { wF: number; wR: number; dia: number; ri
   'saloon-rwd': { wF: 0.225, wR: 0.245, dia: 0.634, rim: 0.432 },   // 225/45 + 245/40 R17
   'wrz-awd': { wF: 0.225, wR: 0.225, dia: 0.634, rim: 0.432 },   // 225/45 R17
   'estate-4x4': { wF: 0.235, wR: 0.235, dia: 0.645, rim: 0.457 },   // 235/40 R18
+  'ordi-a4': { wF: 0.225, wR: 0.225, dia: 0.654, rim: 0.406 },   // EST 225/55 R16
   'muscle-rwd': { wF: 0.215, wR: 0.215, dia: 0.657, rim: 0.356 },   // F70-14 ~ 215/70 R14
   'rally-4x4': { wF: 0.225, wR: 0.225, dia: 0.613, rim: 0.406 },   // EST 225/45 R16 (tarmac)
   'track-rwd': { wF: 0.305, wR: 0.405, dia: 0.720, rim: 0.457 },   // F1 2022: 305 / 405, 720 mm
