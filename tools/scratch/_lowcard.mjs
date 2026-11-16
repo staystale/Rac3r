@@ -1,4 +1,4 @@
-// _lowcard.mjs - ?lowrange=1: the LOW RANGE walkthrough card (guide.ts RULES.lowrange) as it opens
+// _lowcard.mjs - the LOW RANGE walkthrough card (guide.ts RULES.lowrange) as it opens
 // the first time the Defunder is driven, at 844x390 and 390x844. node tools/scratch/_lowcard.mjs <dir>
 import { mkdirSync } from 'node:fs';
 import { startServer, launchBrowser, gotoGame } from '../lib/browser.mjs';
@@ -13,7 +13,7 @@ try {
     const page = await ctx.newPage();
     const errors = [];
     page.on('pageerror', (err) => errors.push(err.message));
-    await gotoGame(page, `${server.url}/?touch=1&guide=0&menu=0&noaudio=1&lowrange=1&rules=1`);
+    await gotoGame(page, `${server.url}/?touch=1&guide=0&menu=0&noaudio=1&rules=1`);
     await page.mouse.click(width / 2, height / 2);
     await page.waitForTimeout(1200);
     const seen = await page.evaluate(async () => {

@@ -47,16 +47,4 @@ export const TEST_LIST: TestEntry[] = [
     wrong: 'A closed car losing a wheel on its roof, a wheel lost on the far side as it lands, '
       + 'arms reaching an empty hub, a tyre drawn where the wheel is gone.',
   },
-  {
-    id: 'lowrange',
-    added: '2026-11-16',
-    name: 'Low range on the Defunder 110 and the Strange Rover: a HI / LO lever left of the speedo',
-    where: 'Test link + &lowrange=1: the Defunder or the Strange Rover; mud, sand, a steep climb '
-      + '(Holy Jeez, Slidden Hill, the Lab ramps)',
-    try: 'Stop, tap LO (the lower half of the lever): more pull and a little more grip, a low top '
-      + 'speed. Tap it above 10 km/h: the slot goes amber and says STOP. Climb and wade in HI and '
-      + 'LO and compare. The first time, a LOW RANGE card explains it.',
-    wrong: 'The lever covering anything, a tap on it steering the car, LO slower than HI where it '
-      + 'is steep or boggy, gears hunting in LO, AI 4x4s stuck in LO on tarmac.',
-  },
 ];

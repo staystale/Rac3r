@@ -13,8 +13,7 @@ The 11-11 round (14 entries, 11 switches) passed 11-12, and the performance roun
 carcull, the texture warm-up) and the stadium crossovers passed 11-12 ("mostly pass"), their
 records in `TODO-DONE.md` (PASSED 11-12). ?underskin (the damage look), ?carparts (steps 1-6:
 each car's own crash parts) and ?carshade (every closed car shaded) PASSED 11-17, the default
-(TODO-DONE, PASSED 11-17, THE PASS BATCH 4). On the phone now: ?lowrange (LOW_GRIP 1.3), the
-rolled-car underside (now ?dmgmore).
+(TODO-DONE, PASSED 11-17, THE PASS BATCH 4). On the phone now: the rolled-car underside (?dmgmore).
 
 ## 2. BEING BUILT
 
@@ -193,22 +192,7 @@ RACE TRACKS:
 17. LITTER / JUNK on race tracks: very light (props we have). To discuss.
 18. F1 vs WORLD CIRCUITS in the menu: PASSED 11-16, the default (TODO-DONE, PASSED 11-16, THE PASS
     BATCH 3).
-19. LOW RANGE (the Defunder 110's LT230 x3.320/1.211 = 2.742, the Strange Rover L322's x2.69; not
-    the trophy truck): BUILT behind ?lowrange=1 (physics/lowrange.ts; the lever hud/lowlever.ts
-    left of the speedo, HI top half / LO bottom half, 48 x 96, never hidden, a refused pull - 10
-    km/h or more - an amber slot and STOP for 1 s; the walkthrough card guide.ts RULES.lowrange the
-    first time such a car is driven). In LO the final drive x the ratio (powertrain.ts), the auto
-    box holds an upshift the road speed cannot hold (lowHoldsGear: it hunted 2nd-3rd every second
-    up a 1 in 3 slope), and the driven wheels' traction grip x LOW_GRIP 1.3 (owner: "turn grip up
-    slightly when it's in low range ... to simulate the effect", then "about realistic": 1.3, a
-    slow crawl up loose sand). The AI takes LO bogged on loose ground or slow on a climb of 1 in
-    3+, HI again on firm gentle ground. MEASURED (tools/scratch/_lowrange.mjs, 10 s flat out from
-    rest, HIGH -> LOW, m): Defunder: thick mud 41 -> 71, mud 94 -> 112, sand 77 -> 93, 1 in 3.3
-    dirt 41 -> 74, 1 in 2.2 gravel 15 -> 61, 1 in 2.2 tarmac 47 -> 67, 1 in 2.2 dirt -14 -> 38;
-    Strange Rover: 1 in 3.3 sand 44 -> 26 (16 km/h), mud 0 -> 16, 1 in 2.2 tarmac 48 -> 107,
-    gravel 41 -> 98, dirt 48 -> 83; top speed in LO 74 / 109 km/h (HI 141 / 193). OPEN: the
-    Defunder up 1 in 3.3 SAND, stuck in HI and LO flat out (wheels spinning ~3 m/s past their
-    peak, TCS at 0.39); in LO it climbs at 0.3 throttle (20 m in 10 s). Awaiting the phone test.
+19. LOW RANGE: PASSED 11-17, the default (TODO-DONE, PASSED 11-17, LOW RANGE).
 
 TRACKS (after the RX queue in 3b): DRIFT tracks (none yet; the drift cars exist), PIKES PEAK, other
 hill climbs and time attacks.

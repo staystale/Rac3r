@@ -1,4 +1,4 @@
-// hud/lowlever.ts - ?lowrange=1: THE LOW-RANGE LEVER (physics/lowrange.ts), on a car with a
+// hud/lowlever.ts - THE LOW-RANGE LEVER (physics/lowrange.ts), on a car with a
 // two-speed box only: a small gear stick in its own panel just left of the speedo. HI at the top,
 // LO at the bottom, the knob at the range the car is in (teal in low); each half a 48 x 48 touch
 // target - a tap on a half asks for that range. Asked above 10 km/h it is refused: the slot shows

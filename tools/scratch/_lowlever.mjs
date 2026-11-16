@@ -1,4 +1,4 @@
-// _lowlever.mjs - ?lowrange=1: the low-range lever in the game (the Defunder), at 844x390, 740x360
+// _lowlever.mjs - the low-range lever in the game (the Defunder), at 844x390, 740x360
 // and 390x844 (touch), in HIGH, in LOW and just refused (a pull above 10 km/h); and whether the
 // lever's rect overlaps any other HUD rect (the layout's own). node tools/scratch/_lowlever.mjs <dir>
 import { mkdirSync } from 'node:fs';
@@ -14,7 +14,7 @@ try {
     const page = await ctx.newPage();
     const errors = [];
     page.on('pageerror', (err) => errors.push(err.message));
-    await gotoGame(page, `${server.url}/?touch=1&guide=0&menu=0&rules=0&noaudio=1&lowrange=1`);
+    await gotoGame(page, `${server.url}/?touch=1&guide=0&menu=0&rules=0&noaudio=1`);
     await page.mouse.click(width / 2, height / 2);
     await page.waitForTimeout(1200);
     for (const state of ['hi', 'lo', 'refused']) {

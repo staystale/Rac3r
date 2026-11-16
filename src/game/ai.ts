@@ -201,7 +201,7 @@ export function stepAIPhysics(entry: AiEntry, want: CarInput, dt: number) {
       aiReset(entry, true);
   } else {
     const input = heldInput(entry, want, held);
-    // (?lowrange=1: a two-speed box's AI takes low when bogged - physics/lowrange.ts)
+    // (a two-speed box's AI takes low when bogged or slow on a steep climb - physics/lowrange.ts)
     stepAIRange(car, input.throttle, car.surface.mu, dt);
     step(car, input, dt);
     if (!held) tripCheck(car, dt);

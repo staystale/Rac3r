@@ -27,7 +27,7 @@
 // cleo (as the Clio III Cup), cleoroad, transfitlwb, transfitswb, saxo, strange, saxovtr,
 // fuelcarry and rollguard passed 11-16; then ts010 (with its PROTOTYPE class), tesla,
 // routemonster and m4gt3 passed 11-16; then corolla, reversefix, f1menu, r13, ibiza and a4avant
-// passed 11-16.)
+// passed 11-16; lowrange passed 11-17.)
 import { envValue } from './debug.ts';
 
 /**
@@ -66,9 +66,6 @@ export const FIX = {
   driftbrake: atLoad('driftbrake'),
   // a chasing police car sounds a siren, the light bar's twin (game/sirens.ts, audiosiren.ts)
   siren: atLoad('siren'),
-  // the LOW RANGE of a car with a two-speed transfer box (the Defunder, the Strange Rover): a lever
-  // by the speedo, switched only nearly stopped; the AI takes low when bogged (physics/lowrange.ts)
-  lowrange: atLoad('lowrange'),
   // the Fjord Transfit Custom (a Ford Transit Custom L1 H1, 2012-23), ROAD / Van, in the traffic:
   // the four Transfits split the vans' share
   transitcustom: atLoad('transitcustom'),

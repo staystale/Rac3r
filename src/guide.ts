@@ -167,7 +167,7 @@ const POLICE_CARD: GuideCard[] = [{
   target: (scene: GuideScene) => scene.L.heat,
 }];
 export const RULES: Record<string, GuideCard[]> = {
-  // ?lowrange=1: the first time a car with a low range is driven (physics/lowrange.ts)
+  // the first time a car with a low range is driven (physics/lowrange.ts)
   lowrange: [{
     title: 'LOW RANGE',
     text: () => 'This car has a LOW RANGE. Nearly stopped (under 10 km/h), tap LO on the lever: '

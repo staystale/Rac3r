@@ -475,7 +475,7 @@ squashes progressively with its air, a rim bare), puffs / shreds / rim sparks in
 `render/particles.ts`, the HUD tyre ring by pressure (`hud/gauges.ts`), `?dev=1` line `air`.
 Tyre spikes (a police stinger, `world/stingers.ts`, drawn by `render/stingers.ts`) on the Lab and Test Track burst every wheel that rolls on. The Lab's
 flip ramp (`world/flipramps.ts`, an armco end; `roll.ts tripCheck` asks it) rolls a car run up it.
-LOW RANGE (?lowrange=1, `physics/lowrange.ts`): a car with a two-speed transfer box (`LOW_RANGE`
+LOW RANGE (`physics/lowrange.ts`): a car with a two-speed transfer box (`LOW_RANGE`
 by model: the Defunder 110, the Strange Rover) has `car.lowRange`; in low `powertrain.ts` multiplies
 the final drive by `rangeRatio`, `autoShift` holds an upshift the road speed cannot hold
 (`lowHoldsGear`, a 1.3 margin over the downshift rpm), and `wheelspin.ts axleLaw` raises a driven

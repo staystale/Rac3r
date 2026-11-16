@@ -16,6 +16,29 @@ lighting, bushes and trees - OWNER LIST 10-24; the checking tools - Tools that a
 
 
 
+## PASSED 11-17, LOW RANGE (owner: "Low gear works perfectly as is")
+
+The default 11-17, its switch deleted: every car with a two-speed transfer box (the Defunder 110,
+the Strange Rover) has its low range and its lever; LOW_GRIP stays 1.3 and traction control as it
+is (the Defunder up steep sand feathers the throttle). PROOF: round150 WITH ?lowrange=1 against
+this plain - see the commit. The record as built:
+LOW RANGE (the Defunder 110's LT230 x3.320/1.211 = 2.742, the Strange Rover L322's x2.69; not
+    the trophy truck): BUILT behind ?lowrange=1 (physics/lowrange.ts; the lever hud/lowlever.ts
+    left of the speedo, HI top half / LO bottom half, 48 x 96, never hidden, a refused pull - 10
+    km/h or more - an amber slot and STOP for 1 s; the walkthrough card guide.ts RULES.lowrange the
+    first time such a car is driven). In LO the final drive x the ratio (powertrain.ts), the auto
+    box holds an upshift the road speed cannot hold (lowHoldsGear: it hunted 2nd-3rd every second
+    up a 1 in 3 slope), and the driven wheels' traction grip x LOW_GRIP 1.3 (owner: "turn grip up
+    slightly when it's in low range ... to simulate the effect", then "about realistic": 1.3, a
+    slow crawl up loose sand). The AI takes LO bogged on loose ground or slow on a climb of 1 in
+    3+, HI again on firm gentle ground. MEASURED (tools/scratch/_lowrange.mjs, 10 s flat out from
+    rest, HIGH -> LOW, m): Defunder: thick mud 41 -> 71, mud 94 -> 112, sand 77 -> 93, 1 in 3.3
+    dirt 41 -> 74, 1 in 2.2 gravel 15 -> 61, 1 in 2.2 tarmac 47 -> 67, 1 in 2.2 dirt -14 -> 38;
+    Strange Rover: 1 in 3.3 sand 44 -> 26 (16 km/h), mud 0 -> 16, 1 in 2.2 tarmac 48 -> 107,
+    gravel 41 -> 98, dirt 48 -> 83; top speed in LO 74 / 109 km/h (HI 141 / 193). OPEN: the
+    Defunder up 1 in 3.3 SAND, stuck in HI and LO flat out (wheels spinning ~3 m/s past their
+    peak, TCS at 0.39); in LO it climbs at 0.3 throttle (20 m in 10 s). Awaiting the phone test.
+
 ## PASSED 11-16, THE PASS BATCH 3 (owner: corolla, reversefix, f1menu, r13, ibiza, a4avant passed)
 
 The default 11-16, their switches deleted:

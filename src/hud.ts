@@ -159,7 +159,7 @@ export function createHud() {
     drawHudButtonRow(ctx, state, game, rects);
     drawHudConeTally(ctx, state, game, rects);
     if (!state.hidden.has('speedo')) drawHudSpeedo(ctx, state, rects, car, spec, wallDt);
-    // (?lowrange=1: the lever, a control - never hidden)
+    // (the lever, a control - never hidden)
     if (state.lowLever) drawLowLever(ctx, rects.lowLever, !!(car as RangeCar).lowRange,
       performance.now() - ((car as RangeCar).rangeRefusedAt ?? -Infinity));
     drawHudTyreDiagram(ctx, state, rects, car, spec);

@@ -250,7 +250,7 @@ function launchSession(carId: string, opts: LaunchOpts) {
   const wants = (one: string) => rulesSetting === '1'
     || (rulesSetting !== '0' && !rulesSeen(one) && !navigator.webdriver);
   shared.rulesPending = kind && wants(kind) ? kind : null;
-  // (?lowrange=1: the low range's card the first time a car with one is driven, after the event's)
+  // (the low range's card the first time a car with one is driven, after the event's)
   if (hasLowRange(game.car) && wants('lowrange'))
     shared.rulesPending = shared.rulesPending ? shared.rulesPending + '+lowrange' : 'lowrange';
 }

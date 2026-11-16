@@ -49,7 +49,7 @@ export function hudToggles(action: HudAction) {
   if (action.toggleTcs) game.car.tcsOn = !game.car.tcsOn;
   if (action.toggleLights) game.car.lightsOn = !game.car.lightsOn;
   if (action.indicate) toggleIndicator(action.indicate);
-  // (?lowrange=1: the lever - refused above 10 km/h, which the lever shows)
+  // (the lever - refused above 10 km/h, which the lever shows)
   if (action.lowRange && !requestRange(game.car, action.lowRange === 'lo'))
     (game.car as RangeCar).rangeRefusedAt = performance.now();
 }

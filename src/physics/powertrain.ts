@@ -115,7 +115,7 @@ export function runPowertrain(car: Car, carSpec: Spec, input: CarInput, vLong: n
 
   if (car.shiftTimer > 0) car.shiftTimer = Math.max(0, car.shiftTimer - dt);
   const gearRatio = ratio(carSpec, car.gear);
-  // (?lowrange=1: a two-speed box in low multiplies the final drive - physics/lowrange.ts)
+  // (a two-speed box in low multiplies the final drive - physics/lowrange.ts)
   const totalRatio = Math.abs(gearRatio) * carSpec.finalDrive * rangeRatio(car);
 
   updateEngineRpm(car, carSpec, vLong, dt, inReverse, throttle, totalRatio);
@@ -157,12 +157,12 @@ function updateEngineRpm(car: Car, carSpec: Spec, vLong: number, dt: number, inR
   car.rpm += (rpmTarget - car.rpm) * Math.min(1, revRate * dt);
 }
 
-// ?lowrange=1: in low, the next gear's revs at the road's speed must clear the downshift rpm by
+// in low, the next gear's revs at the road's speed must clear the downshift rpm by
 // this share (MEASURED: at no margin, up a 1 in 3 tarmac slope 2nd and 3rd hunted every second)
 const LOW_SHIFT_MARGIN = 1.3;
 
 /**
- * ?lowrange=1: in LOW, an upshift the road speed cannot hold - the next gear's revs at the road's
+ * in LOW, an upshift the road speed cannot hold - the next gear's revs at the road's
  * speed (not the spinning wheels') under the downshift rpm - is held off. MEASURED (tools/scratch/
  * _lowrange.mjs): up a 1 in 4 dirt slope in low the wheelspin's revs took 1st to 2nd at 0.5 m/s,
  * which bogged and dropped back to 1st, the clutch open half the time - stuck at 1 km/h.

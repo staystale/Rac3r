@@ -160,7 +160,7 @@ export function layoutHud(state: HudState, width: number, height: number) {
     fitCornerPanels({ lap, trackTemp, fps }, height);
     fitAidChips(absChip, tcsChip, width, height);
   } else clearAidChips(absChip, tcsChip, width, Math.max(lap.y + lap.h, fps.y + fps.h), trackTemp);
-  // (?lowrange=1: the low-range lever just left of the speedo, on a car that has one)
+  // (the low-range lever just left of the speedo, on a car that has one)
   const lowLever = state.lowLever ? leverRect(speed) : { x: 0, y: 0, w: 0, h: 0 };
   return { restart, reset, vol, help, absChip, tcsChip, speed, lap, trackTemp, fps, tally, indL,
     lights, indR, heat, fit, lowLever };

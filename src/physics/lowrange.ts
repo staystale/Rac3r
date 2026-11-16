@@ -1,10 +1,9 @@
-// physics/lowrange.ts - ?lowrange=1: THE LOW RANGE of a car with a two-speed transfer box (the
+// physics/lowrange.ts - THE LOW RANGE of a car with a two-speed transfer box (the
 // Defunder 110's LT230, the Strange Rover L322's). In LOW every gear turns the wheels LOW_RANGE
 // times slower for the same engine speed - that much more pull at the wheels, that much less top
 // speed (physics/powertrain.ts runPowertrain multiplies the final drive by rangeRatio). It is
 // selected only when nearly stopped (SWITCH_BELOW_MS), by the player's lever (hud/lowlever.ts) or,
 // for the AI, when it is bogged (stepAIRange). The traffic stays in high.
-import { FIX } from '../core/fixes.ts';
 
 // the low range against the high, by car (the transfer box's own ratios)
 // Defunder 110 (Land Rover Defender Td5): the LT230 box, high 1.211, low 3.320 - 2.742
@@ -41,11 +40,11 @@ export interface RangeCar {
 const modelOf = (car: RangeCar) => String(car.spec.id).split('#')[0];
 
 /**
- * Whether the car has a low range (?lowrange=1 and a two-speed box).
+ * Whether the car has a low range (a two-speed box).
  * @param car the car
  * @returns it has
  */
-export const hasLowRange = (car: RangeCar) => FIX.lowrange && !!LOW_RANGE[modelOf(car)];
+export const hasLowRange = (car: RangeCar) => !!LOW_RANGE[modelOf(car)];
 
 /**
  * The final drive's multiplier: LOW_RANGE in low, else 1.
