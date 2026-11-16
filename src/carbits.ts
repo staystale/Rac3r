@@ -105,6 +105,10 @@ export const CAR_BITS: Record<string, CarBits> = {
   // with the swan-neck wing on it, the flat six behind the rear axle
   'porch-gt3r': { pipes: 2, pipesAt: 'centre', front: 'bonnet', rear: 'boot', engine: 'rear',
     cyl: 6, layout: 'flat', mount: 'long', radiator: 'front', wingOnLid: true },
+  // M4 GT3: a pipe out of each side ahead of the rear wheels (EST), the boot lid with the wing on
+  // it, the straight six along the front
+  'bmv-m4gt3': { pipes: 2, pipesAt: 'sides', front: 'bonnet', rear: 'boot', engine: 'front',
+    cyl: 6, layout: 'inline', mount: 'long', radiator: 'front', wingOnLid: true },
   // Seven 420R: the side exhaust (EST on the right), the louvred bonnet, no boot lid, the Duratec
   // four lengthways behind the radiator in the nose cone
   'seven-420r': { pipes: 1, pipesAt: 'right', front: 'bonnet', rear: 'none', engine: 'front',

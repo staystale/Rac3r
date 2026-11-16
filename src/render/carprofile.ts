@@ -65,6 +65,11 @@ export const PROFILES: Record<string, CarProfile> = {
     [1, 0.5]], open: { tub: 0.5, wings: [] } },
   'drift-s13': { len: 4.52, waist: 0.95, glass: [0.3, 0.64], roof: [[0, 0.6], [0.03, 0.95],
     [0.18, 1.0], [0.3, 1.28], [0.55, 1.29], [0.66, 0.95], [0.97, 0.8], [1, 0.55]] },
+  // M4 GT3: the long bonnet, the coupe's roof, the short boot, the wing on its swan necks over it
+  // (height EST)
+  'bmv-m4gt3': { len: 5.02, waist: 0.82, glass: [0.24, 0.62], roof: [[0, 0.62], [0.01, 1.22],
+    [0.07, 1.24], [0.09, 0.9], [0.18, 0.95], [0.3, 1.25], [0.52, 1.3], [0.64, 0.86],
+    [0.96, 0.7], [1, 0.42]] },
   // 911 GT3 R: the wing on its swan necks over the tail, the fastback, the low nose (height EST)
   'porch-gt3r': { len: 4.62, waist: 0.8, glass: [0.34, 0.6], roof: [[0, 0.7], [0.01, 1.26],
     [0.08, 1.28], [0.1, 0.92], [0.2, 0.98], [0.38, 1.22], [0.54, 1.25], [0.66, 0.86],

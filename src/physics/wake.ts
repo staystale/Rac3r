@@ -38,7 +38,7 @@ const SIDE_AIR: Record<string, number> = {
   'wrz-awd': 0.65, 'rally-4x4': 0.65, 'rx-super': 0.65, 'drift-s13': 0.6, 'hatch-fwd': 0.55,
   'hatch-rwd': 0.55, 'kit-2l': 0.5, 'mini-fwd': 0.5, 'mikra-r1': 0.5, 'lambo-awd': 0.45,
   tractor: 0.3, 'grass-special': 0.2, 'track-rwd': 0.15, 'f2-rwd': 0.15,
-  'porch-gt3r': 0.5, 'seven-420r': 0.3, 'transfit-van': 1,
+  'porch-gt3r': 0.5, 'bmv-m4gt3': 0.55, 'seven-420r': 0.3, 'transfit-van': 1,
   'transfit-lwb': 1, 'transfit-swb': 1,
   'effing-tt': 0.85, 'civvic-btcc': 0.55, 'defunder-110': 0.95,
   'focust-st': 0.55, 'cleo-cup': 0.5, 'cleo-rs200': 0.5, ts010: 0.4, routemonster: 1,

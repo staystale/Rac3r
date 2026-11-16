@@ -31,6 +31,7 @@ const SHAPES: Record<string, RollShape> = {
   'grass-special': { round: 0.15, side: 0.1 },   // autograss buggy: an open frame catches
   'drift-s13': { round: 0.5, side: 0.5 },   // S13: a low wedge coupe
   'f2-rwd': { round: 0.1, side: 0.03 },   // F2: open wheels and wings catch
+  'bmv-m4gt3': { round: 0.5, side: 0.25 },   // M4 GT3: a wide, low coupe, a big wing
   'porch-gt3r': { round: 0.6, side: 0.2 },   // 911 GT3 R: a round coupe, wide and low, a big wing
   'seven-420r': { round: 0.2, side: 0.15 },   // Seven: open, a roll bar, wheels and wings out wide
   'transfit-van': { round: 0.15, side: 0.9 },   // Transit: a tall box, tips and stops on a side
