@@ -89,6 +89,8 @@ export const FIX = {
   r13: atLoad('r13'),
   // the Seat Ibeefa (a Seat Ibiza Mk4 1.4 five-door), ROAD / Hatch, in the traffic at its share
   ibiza: atLoad('ibiza'),
+  // the Ordi A4 Avant (an Audi A4 Avant B8 2.0 TDI), ROAD / Estate, in the traffic at its share
+  a4avant: atLoad('a4avant'),
   // F1 vs WORLD in the menu: the six Grand Prix calendar circuits under their own type card, F1
   // CIRCUITS (world/levels/category.ts F1_LISTED); WORLD CIRCUITS keeps the rest (menu only)
   f1menu: atLoad('f1menu'),

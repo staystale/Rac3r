@@ -111,6 +111,7 @@ export const CAR_DOORS: Record<string, CarDoors> = {
   'saloon-rwd': { doors: FOUR_DOORS, mirrors: edgePaint(0.575) },
   'wrz-awd': { doors: FOUR_DOORS, mirrors: edgePaint(0.575) },
   'estate-4x4': { doors: FOUR_DOORS, mirrors: edgePaint(0.585) },
+  'ordi-a4': { doors: FOUR_DOORS, mirrors: { at: 0.665, rim: true, col: 'black' } },   // A4 Avant
   'muscle-rwd': { doors: [[0.38, 0.66]], mirrors: edgePaint(0.485) },   // Chevelle: coupe door
   'rally-4x4': { doors: [[0.4, 0.66]], mirrors: edgePaint(0.555) },
   naffcar: { doors: [[0.36, 0.64]], sheet: true, mirrors: edgePaint(0.565) },
@@ -234,6 +235,10 @@ export const CAR_BITS: Record<string, CarBits> = {
   'wrz-awd': { pipes: 1, pipesAt: 'right', front: 'bonnet', rear: 'spoiler', engine: 'front',
     cyl: 4, layout: 'flat', mount: 'long', radiator: 'front' },
   // V70 R: one each side, the tailgate, the five
+  // A4 Avant 2.0 TDI: one pipe on the left (EST), the bonnet, the tailgate, the TDI four along the
+  // front, the radiator in the nose
+  'ordi-a4': { pipes: 1, pipesAt: 'left', front: 'bonnet', rear: 'boot', engine: 'front',
+    cyl: 4, layout: 'inline', mount: 'long', radiator: 'front' },
   'estate-4x4': { pipes: 2, pipesAt: 'sides', front: 'bonnet', rear: 'boot', engine: 'front',
     cyl: 5, layout: 'inline', mount: 'trans', radiator: 'front' },
   // Chevelle SS 454: dual exhaust, the boot lid, the big-block V8

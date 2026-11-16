@@ -488,5 +488,18 @@ export const CAR_STATS: Record<string, CarStat> = {
       "abs": true,
       "tcs": false
     }
+  },
+  // (measured alone: tools/carstats.mjs ordi-a4 with A4AVANT=1, behind its switch)
+  "ordi-a4": {
+    "topKph": 206,
+    "zeroTo100": 10,
+    "brake100": 43,
+    "gripG": 1.05,
+    "massKg": 1595,
+    "drive": "FWD",
+    "aids": {
+      "abs": true,
+      "tcs": true
+    }
   }
 };

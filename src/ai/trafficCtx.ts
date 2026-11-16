@@ -30,6 +30,9 @@ const TESLAS = 0.048;
 // The Ibiza the same way (every Ibiza): ~204,700 licensed (2025 Q4, DVLA via
 // stillontheroad.co.uk) - 0.60 %, 0.074 - about 1 car in 170.
 const IBIZAS = 0.074;
+// The A4 the same way (every A4): ~226,700 licensed (2025 Q4, DVLA via stillontheroad.co.uk) -
+// 0.67 %, 0.082 - about 1 car in 150.
+const AUDI_A4S = 0.082;
 const VANS = 2.4;
 /** One Transit's weight: its part (of 100) of the vans' VANS. */
 const vanWeight = (part: number) => VANS * part / 100;
@@ -39,7 +42,7 @@ export const VEH: [string, number][] = [
   ['defunder-110', DEFUNDERS], ['focust-st', 0.37], ['routemonster', 0.07],
   ['transfit-lwb', vanWeight(30)], ['transfit-swb', vanWeight(30)],
   ['strange-l322', STRANGE_ROVERS],
-  ...RARE, ['tesla-m3', TESLAS], ['seat-ibiza', IBIZAS],
+  ...RARE, ['tesla-m3', TESLAS], ['seat-ibiza', IBIZAS], ['ordi-a4', AUDI_A4S],
 ];
 // real-road colours: mostly silver / white / black / grey (each its own sprite, cached by
 // id + paint)
