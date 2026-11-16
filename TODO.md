@@ -266,6 +266,23 @@ panels off at frame 30, CPU x4 on the PC (on, off, on, off): work median 172.3 /
 time a car loses a part or its crush changes a step; nothing on the frames between).
 PROOF: switch off, renderhash SAME (the PC, thruston, brands-snatch, knobhill: ~3-7 min a level
 there without a GPU, so not all; CI runs the rest).
+THE 10 NEW CARS (owner-approved names 11-16; one switch and one hand-back each; src/newcars.ts):
+1. PORCH 911 GT3 ARR (Porsche 911 GT3 R, 992): BUILT 11-16 behind ?porch=1 (FIX.porch; testlist
+   'porch'), with a new class GT (sub GT3; fits Pre-Spun, Semi-Slick, Wet, the Pirrelly slicks).
+   Real: 1,250 kg, ~416 kW flat six behind the rear axle, 9,250 rpm, 6-speed, RWD, 4,619 x 2,050
+   mm, wheelbase 2,507, 30/68-18 / 31/71-18. EST (unpublished): 490 Nm, the ratios and final
+   drive, Cd 0.45 x 2.1, 39 / 61, downforce ClA 2.1 (the GT3 RS's 409 kg at 200 km/h), mu 1.6.
+   tools/newcar.mjs porch-gt3r (second PC; every step ran clean): top 280 km/h (real ~285 EST),
+   0-100 3.0 s (none published), 100-0 30.6 m, grip 1.47 g at 60 km/h, 40-100 2.35 s; tyres all
+   OK but the 80 s drift (too hot at 6 s, pop point at 20 s: section 7 fails on the base too);
+   partcheck all 10 kinds OK; AI x6 Realish seed 7: Thruston 184 s, 0 incidents, laps 56.4-62.3 s
+   (the Lamburghini 193 s, 1 incident); Sweaty Lamb (loose) 408 s, 15 incidents (14 offs, 1
+   spin), laps 116.5-138.1 s (the Lamburghini 381 s, 16). Under ?underskin=1 its front lid shows
+   the central radiator, its engine lid the flat six; the wing goes with the lid (carbits
+   wingOnLid). PROOF, switch off (PC, base round82): worldhash (--highway 20), simhash, renderhash
+   (thruston, brands-snatch, highway) SAME; switch on: simhash SAME (no level uses the car).
+   QUESTIONS for the owner: the GT class (or ROAD / Sports), its tyres, the 992 (or the 991),
+   the wing with the lid, the switch name, the stock livery (white, red roof and wing).
 
 ### 3b. Tracks (the venue helper builds, the foreman reviews, the owner passes; one switch each)
 

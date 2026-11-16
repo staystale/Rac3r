@@ -13,6 +13,18 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'porch',
+    added: '2026-11-16',
+    name: 'New car: the Porch 911 GT3 Arr (Porsche 911 GT3 R), the GT class',
+    where: 'Test link + &porch=1: the garage, class GT; race it on a circuit (Thruston, Brands) '
+      + 'with the AI in its class, and once on a loose stage',
+    try: 'Its look (the 911 nose and hips, the wing), its pace, braking and grip, a power slide '
+      + 'out of a slow corner; crash it till the engine lid and wing come off (with &underskin=1 '
+      + 'the engine shows under it); roll it.',
+    wrong: 'Not a 911 from above, too fast or slow for a GT3 car, snap oversteer you cannot catch, '
+      + 'a wing left floating after the lid has gone, a part drawn outside the car.',
+  },
+  {
     id: 'underskin',
     added: '2026-11-15',
     name: 'Under the skin: what a lost panel shows',
