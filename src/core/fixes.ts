@@ -80,4 +80,7 @@ export const FIX = {
   // the BMV E36 Peak (BimmerWorld's Pikes Peak E36 M3, the "Bergsteiger") and its HILL CLIMB
   // class (Unlimited)
   e36peak: atLoad('e36peak'),
+  // the Skool Bus (an American IC Bus CE school bus), ROAD / Bus, in the traffic - rare, and only
+  // on the school runs by the game's clock
+  schoolbus: atLoad('schoolbus'),
 };

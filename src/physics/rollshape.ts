@@ -51,6 +51,7 @@ const SHAPES: Record<string, RollShape> = {
   'saxo-vtr': { round: 0.6, side: 0.8 },   // Saxo VTR: a small round hatch (as the Golf)
   'strange-l322': { round: 0.3, side: 0.8 },   // Range Rover: a tall, square SUV
   'saxo-kit': { round: 0.6, side: 0.6 },   // Saxo kit car: a round hatch on wide arches
+  'skool-bus': { round: 0.2, side: 0.95 },   // the school bus: a long tall box
   routemonster: { round: 0.2, side: 0.95 },   // the double-decker: a tall box, lands on a side
   'rebelion-r13': { round: 0.5, side: 0.15 },   // R13: low and wide, a fin and a wing
   ts010: { round: 0.5, side: 0.15 },   // TS010: low and wide, a wing - it falls flat

@@ -527,5 +527,18 @@ export const CAR_STATS: Record<string, CarStat> = {
       "abs": false,
       "tcs": true
     }
+  },
+  // (measured alone: tools/carstats.mjs skool-bus with SCHOOLBUS=1, behind its switch)
+  "skool-bus": {
+    "topKph": 102,
+    "zeroTo100": 55.3,
+    "brake100": 54.4,
+    "gripG": 0.65,
+    "massKg": 11000,
+    "drive": "RWD",
+    "aids": {
+      "abs": true,
+      "tcs": false
+    }
   }
 };
