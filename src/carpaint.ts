@@ -45,6 +45,7 @@ export const PAINT_STOCK: Record<string, { trim?: string; third?: string; rim?: 
   routemonster: { third: '#e8dcb0' },
   'skool-bus': { third: '#16181d' },
   'scanyah-r450': { third: '#16181d' },
+  'scanyah-trailer': { third: '#16181d' },
   'saxo-kit': { third: '#1d3f9a' },
   'strange-l322': { third: '#c9ccd4' },
   'saxo-vtr': { third: '#16181d' },
@@ -102,6 +103,7 @@ export const TYRE_LOOK: Record<string, { wF: number; wR: number; dia: number; ri
   routemonster: { wF: 0.27, wR: 0.54, dia: 1.03, rim: 0.508 },   // 10.00-20, twin at the rear
   'skool-bus': { wF: 0.28, wR: 0.56, dia: 1.05, rim: 0.572 },   // 11R22.5, twin at the rear
   'scanyah-r450': { wF: 0.315, wR: 0.63, dia: 1.01, rim: 0.572 },   // 315/70 R22.5, twins
+  'scanyah-trailer': { wF: 0.385, wR: 0.385, dia: 1.07, rim: 0.572 },   // 385/65 R22.5
   'saxo-kit': { wF: 0.205, wR: 0.205, dia: 0.607, rim: 0.381 },   // EST 205/55 R15
   'strange-l322': { wF: 0.255, wR: 0.255, dia: 0.763, rim: 0.483 },   // EST 255/55 R19
   'saxo-vtr': { wF: 0.185, wR: 0.185, dia: 0.559, rim: 0.356 },   // 185/55 R14

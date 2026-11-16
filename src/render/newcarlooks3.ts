@@ -695,6 +695,34 @@ function paintScanyah(spr: SpriteCtx): void {
   block(-1, 2, 1, wid - 4, INK);
 }
 
+
+/**
+ * The trailer from above: its long flat roof (the paint) lit along one edge and soft along the
+ * other, the roof bows across it, the curtains' rails down both sides (the second colour, the
+ * curtain's own), the headboard at its front with the kingpin's plate under it, the twin rear
+ * doors with their bars and the under-run bar, the lamps at the corners; the three axles' wheels
+ * show past its sides (the trailer's own drawing: render/cars.ts the wheels).
+ * @param spr the painting context
+ */
+function paintScanyahTrailer(spr: SpriteCtx): void {
+  const { lengthPx: len, widthPx: wid, mid, trim, block, along } = spr;
+  planBody(spr, (x) => mid * (x < 1 || x > len - 2 ? 0.96 : 1));
+  for (const y of [1, wid - 3]) block(1, y, len - 2, 2, trim);
+  block(1, 3, len - 2, 1, SHINE);
+  block(1, wid - 4, len - 2, 1, SHADE_SOFT);
+  for (let x = along(0.03); x < len - 3; x += Math.max(4, along(0.045)))
+    block(x, 3, 1, wid - 6, SHADE_SOFT);
+  // the headboard at the front, the kingpin's plate under it
+  block(len - 3, 1, 3, wid - 2, '#9aa0a8');
+  block(len - 3, 1, 1, wid - 2, SHINE);
+  block(along(0.88), mid - 2, 3, 5, INK);
+  // the twin rear doors: the split, the locking bars, the under-run bar, the lamps
+  block(0, mid, 2, 1, INK);
+  for (const y of [mid - 6, mid - 3, mid + 3, mid + 6]) block(0, y, 2, 1, STEEL);
+  block(-1, 2, 1, wid - 4, INK);
+  for (const y of [1, wid - 4]) block(0, y, 1, 3, TAIL);
+}
+
 /** The newest cars' bodies by id (render/carlooks.ts LOOKS takes them). */
 export const NEW_LOOKS_3: [string, { paint: (spr: SpriteCtx) => void; bare?: boolean }][] = [
   ['toyoter-corolla', { paint: paintCorolla, bare: true }],
@@ -705,4 +733,5 @@ export const NEW_LOOKS_3: [string, { paint: (spr: SpriteCtx) => void; bare?: boo
   ['bmv-e36peak', { paint: paintE36, bare: true }],
   ['skool-bus', { paint: paintSchoolBus, bare: true }],
   ['scanyah-r450', { paint: paintScanyah, bare: true }],
+  ['scanyah-trailer', { paint: paintScanyahTrailer, bare: true }],
 ];

@@ -664,6 +664,29 @@ const SCANYAH: RosterRow = {
   paint: '#f0f0ea', trim: '#dfe1dc', glass: '#2a2f38', rim: '#c9ccd4',
 };
 
+// The Scanyah's TRAILER: a 13.6 m curtainsider on three axles (the UK's commonest; EST: a Krone /
+// Schmitz Cargobull type), 2.55 m wide, ~7,000 kg empty + ~10,000 kg of load (EST, half loaded),
+// the kingpin 1.2 m behind its nose, the three axles' middle 9.5 m behind the kingpin (EST),
+// 385/65 R22.5 singles, its brakes (EBS) the tractor's pedal. Its row's front "axle" is the
+// kingpin (lf: from its middle - the load's - to the pin), its rear the axle group. No engine.
+// Pulled at its pin by the joint (to come: the owner's choices), never in the garage or the
+// traffic on its own.
+export const SCANYAH_TRAILER: RosterRow = {
+  id: 'scanyah-trailer', name: 'Scanyah trailer', kind: 'trailer', cls: 'road', sub: 'Truck',
+  rimIn: 22,   // its real rim, inches (what tyres fit)
+  cg: 1.5, rideH: 1.0, cyl: 0,
+  aids: { abs: true, tcs: false },
+  mass: 17000, lf: 5.6, lr: 3.9, len: 13.6, wid: 2.55, trackWidth: 2.04,
+  // 385/65 R22.5: 1.07 m across, 0.385 m wide
+  tyreWidth: 0.385, wheelR: tyreR(385, 65, 22.5),
+  drive: 0.0, brakeBiasF: 0.0, caF: 300000, caR: 600000, mu: 0.85,
+  curve: [[0, 0], [1, 0]], redline: 1, upshiftRpm: 1, downshiftRpm: 0, idleRpm: 0,
+  gears: [1], finalDrive: 1, dragC: dragOf(0.6, 3.0),
+  susF: 1.2, susZ: 0.35,
+  // a white roof, grey curtains (the second colour), black details
+  paint: '#eceeea', trim: '#8a9099', glass: '#2a2f38', rim: '#c9ccd4',
+};
+
 /** The new cars: their roster rows, in the list's order. */
 export const NEW_CARS: RosterRow[] = [PORCH, SEVEN, TRANSFIT, TROPHY, CIVVIC, DEFUNDER, FOCUST,
   CLEO, CLEO_RS, TRANSFIT_LWB, TRANSFIT_SWB, TS010, ROUTEMONSTER, SAXO, STRANGE, SAXO_VTR, TESLA,
