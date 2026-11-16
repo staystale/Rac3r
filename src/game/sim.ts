@@ -33,6 +33,7 @@ import type { TrafficVehicle } from '../ai/types.ts';
 import { noteTouches, notePoliceCamera, stepPoliceGame } from './police.ts';
 import { stepFlashes } from './flashes.ts';
 import { FIX } from '../core/fixes.ts';
+import { hitchTrailer, stepTrailer, type Tractor } from '../physics/trailer.ts';
 import { ROLL_CLEAR_S, respawnBehind } from './resetspot.ts';
 import { stepSirens } from './sirens.ts';
 import { halfTrackAt } from '../world/wheels.ts';
@@ -196,6 +197,8 @@ export function stepCarSignals(inp: CarInput, wallDt: number) {
     }
   }
   updateFieldHeadlights();
+  // (?scanyah: the tractor's trailer hitched, and in line after a reset - before the race too)
+  hitchPlayerTrailer();
   if (game.car.roll && game.car.roll.phase !== 'rolling' && game.car.roll.phase !== 'none'
     && game.car.roll.phase !== 'tipping' && shared.mode === 'session')
     game.notice = { text: game.car.roll.phase === 'roof' ? 'ON YOUR ROOF — RESET'
@@ -234,6 +237,28 @@ export function openGuideOnLanding() {
   }
 }
 
+/** ?scanyah: hitches the player's trailer, or lines it up after a reset (physics/trailer.ts). */
+function hitchPlayerTrailer() {
+  if (FIX.scanyah) hitchTrailer(game.car as Tractor);
+}
+
+/**
+ * ?scanyah: the player's trailer for one step (hitched by stepCarSignals): the world's clamps and
+ * their damage on it, its ground, then its body and the pin (physics/trailer.ts).
+ * @param inp this step's player input (its brake works the trailer's brakes)
+ */
+function stepPlayerTrailer(inp: CarInput) {
+  const car = game.car as Tractor, trailer = car.trailer;
+  if (!trailer) return;
+  // (its pose before the step, for the drawing's interpolation: game/loop.ts)
+  trailer._p = { x: trailer.x, y: trailer.y, h: trailer.heading };
+  const vx0 = trailer.vx, vy0 = trailer.vy;
+  clampWorld(trailer, PHYSICS_STEP_SECONDS);
+  hit(trailer, vx0, vy0);
+  applyGround(trailer, PHYSICS_STEP_SECONDS);
+  stepTrailer(car, inp.brake, PHYSICS_STEP_SECONDS);
+}
+
 /**
  * One fixed physics step of the player car: the clamps, damage, ground and rollover, then the
  * car model. A non-finite result puts the car back on the track instead of ending the game.
@@ -259,6 +284,8 @@ export function stepCarPhysics(inp: CarInput) {
       tripCheck(game.car, PHYSICS_STEP_SECONDS);
       stepTipping(game.car, PHYSICS_STEP_SECONDS);
     }
+    // (?scanyah: the tractor's trailer on its pin)
+    if (FIX.scanyah) stepPlayerTrailer(inp);
     // a tyre burst (heat, wear, debris): a puncture, and news on the HUD
     // a tyre burst (heat, wear, debris): no written notice - the wheel and the tyre diagram
     // show it (owner: no banners)
@@ -454,8 +481,10 @@ export function stepTrafficContacts(tcars: TrafficVehicle[]) {
   for (const racer of [game.car, ...game.ai.map((entry) => entry.car)])
     racer.dragMul = racer.wakeDown = 1;
   if (game.ai.length || tcars.length) {
-    const racers = [game.car, ...game.ai.map((entry) => entry.car)], all = tcars.length
-      ? [...racers, ...tcars] : racers, startVel = all.map((racer) => [racer.vx, racer.vy]);
+    const trailer = (game.car as Tractor).trailer;
+    const racers = [game.car, ...(trailer ? [trailer] : []), ...game.ai.map((entry) => entry.car)],
+      all = tcars.length ? [...racers, ...tcars] : racers,
+      startVel = all.map((racer) => [racer.vx, racer.vy]);
     carContacts(all);
     // (the drivers running into a car - their speed changed by it - a police car may
     // see)

@@ -12,6 +12,18 @@ const CAR_E = 0.25;         // bounciness of a car-to-car hit
 // share of the sideways relative speed removed per contact (door-rubbing friction)
 const CAR_SCRAPE = 0.12;
 
+/**
+ * Whether two bodies are a tractor and its trailer still on its pin (physics/trailer.ts).
+ * @param first one body
+ * @param second the other
+ * @returns pinned together
+ */
+const pinned = (first: object, second: object) => {
+  const towing = (first as { trailer?: { pinFree?: boolean } | null }).trailer,
+    towed = (second as { trailer?: { pinFree?: boolean } | null }).trailer;
+  return (towing === second && !towing.pinFree) || (towed === first && !towed.pinFree);
+};
+
 /** What a car-to-car contact reads and moves. */
 export interface ContactCar {
   x: number; y: number; vx: number; vy: number; heading: number; yawRate: number;
@@ -103,6 +115,8 @@ export function carContacts(cars: (ContactCar & WheelCar & HitNoter)[]): number 
   let count = 0;
   for (let i = 0; i < cars.length; i++)
     for (let other = i + 1; other < cars.length; other++)
+      // (a tractor and its trailer on their pin: the joint holds them, not a contact)
+      if (!pinned(cars[i], cars[other]))
       // both always run (a body touch does not skip the wheels); a car on a bridge or in a
       // tunnel touches only the cars on it (world/crossings.ts)
       if (sameLevel(cars[i], cars[other])
