@@ -492,6 +492,10 @@ axle's longitudinal peak by `rangeGrip` (`LOW_GRIP`). `requestRange` changes it 
 (the lever, `hud/lowlever.ts`, through `hitHud` -> `controls.ts hudToggles`; a refusal stamps
 `car.rangeRefusedAt` for the lever's 1 s STOP); the AI's `stepAIRange` (`game/ai.ts`) takes low
 bogged on loose ground or slow on a 1 in 3 climb and high again on firm gentle ground.
+?dmgmore2: `physics/leakplaces.ts` gives each car's radiator and sump places (carbits.ts layout):
+the leaks land there (`engineheat.ts stepLeaks`), the steam and hot smoke rise there
+(`render/enginesmoke.ts emitSteam`, x1.5 exposed: `isRadiatorExposed`); the sump cracks by the hit's
+size and a later crack widens a leak by its own (`crackSump`, `crackOnHit`).
 ENGINE: `physics/engineheat.ts` keeps each car's engine C, radiator
 water, oil and a seize timer, stepped by `damage.ts stepDamage` (every car from the start). Heat
 in by throttle x revs (`car.throttleUsed`, set by `vehicle.ts step`); out through the radiator
