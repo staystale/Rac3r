@@ -264,7 +264,15 @@ THE 10 NEW CARS (owner-approved names 11-16; one switch and one hand-back each; 
    the Porch 911 GT3 Arr, the Caterpillar Seven, the Fjord Transfit, the Fjord Effing-150 Trophy
    Truck, the Honder Civvic Type Arr BTCC, the Lend Rover Defunder 110, the Fjord Focust ST - their
    records in TODO-DONE (PASSED 11-16, THE NEW CARS 1-7 AND THE LAUNCHES). The Mini that never
-   spins at a launch: left for now (owner). OPEN, one switch and one hand-back each:
+   spins at a launch: left for now (owner).
+   THE FOCUST AS A HATCH (owner: "The Ford focus doesn't look quite enough of a hatch back"):
+   BUILT 11-16 behind ?focustlook=1 (FIX.focustlook; testlist 'focustlook'): its rear screen now
+   0.04-0.10 of the length from the tail (a tailgate's near upright glass, ~5 px from above; was
+   0.10-0.26, a long slope that read as a boot deck), the roof from 0.10 to the windscreen as the
+   Golf's. Photos (laptop) before / after: the sprite beside the Golf, racing on Thruston at 844x390
+   and 390x844. PROOF (PC, base round99): switch off renderhash SAME (thruston, brands-snatch,
+   highway, and Thruston with the Focust as the player car).
+   OPEN, one switch and one hand-back each:
 8. RENOLT CLEO CUP (Renault Clio Cup one-make racer).
 9. TOYOTER TS010 (Toyota TS010 Le Mans prototype, for Le Manky).
 10. AEC ROUTEMONSTER (London Routemaster double-decker bus: drivable, also traffic). After all 10:
