@@ -22,10 +22,18 @@ try {
   const page = await ctx.newPage();
   const errors = [];
   page.on('pageerror', (err) => errors.push(String(err)));
-  await page.goto(`${srv.url}/?menu=1&guide=0&rules=0&seed=${seedArg}${extraQuery()}`);
-  // (the game starts by a dynamic import: wait for it - a slow machine took over 3 s)
-  await page.waitForFunction(() => !!window.__game && !!window.__game.menu, null,
-    { timeout: 60000, polling: 250 });
+  // (the game starts by a dynamic import: wait for it - a slow machine took over 3 s, and on the
+  // second PC a load now and then never came up in 60 s: tried again, three times at most)
+  for (let tries = 1; ; tries++) {
+    await page.goto(`${srv.url}/?menu=1&guide=0&rules=0&seed=${seedArg}${extraQuery()}`);
+    try {
+      await page.waitForFunction(() => !!window.__game && !!window.__game.menu, null,
+        { timeout: 60000, polling: 250 });
+      break;
+    } catch (err) {
+      if (tries >= 3) throw err;
+    }
+  }
   await page.waitForTimeout(1000);
   await page.evaluate(startRace, [+aiArg, +lapsArg, carId, LEVEL]);
   const started = Date.now();

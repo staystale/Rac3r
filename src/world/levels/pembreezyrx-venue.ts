@@ -26,9 +26,13 @@ import { DUNE_HILLS, DUNE_PADS, DUNE_PINES, PEMBREEZY, PEMBREEZY_FIR_SHARE, padd
   welshFlags } from "./pembreezy-venue.ts";
 import type { VenueSpec } from "../venue.ts";
 import type { Level } from "../types.ts";
+import { FIX } from "../../core/fixes.ts";
 
 // the course's name (the parody approved by the owner 11-13), in one place
 export const PEMBREEZY_RX = 'Pembreezy RX';
+// m its racing line keeps from the edge on the gravel (?pbzline=1; LINE_MARGIN 1.6 elsewhere):
+// tools/scratch/_pbzoff.mjs measured 2.6 and 3.6 m - the owner picks
+const LOOSE_LINE_M = 2.6;
 
 // the crowd's grass banks (real m, each a line along its top; fenced: a catch fence in front):
 // inside the gravel loop (the spotters' side of Hansen's), south of the gravel's west run, and
@@ -92,7 +96,9 @@ export const PEMBREEZYRX_SPEC: VenueSpec = {
  * @returns the level
  */
 function pembreezyRxLevel(): Level {
-  return rallycrossLevel(PEMBREEZYRX_SPEC, 'rx', 'pembreezyrx', PEMBREEZY_RX);
+  // (its racing line keeps LOOSE_LINE_M from the edge on the gravel: ?pbzline=1, ai/line.ts)
+  return { ...rallycrossLevel(PEMBREEZYRX_SPEC, 'rx', 'pembreezyrx', PEMBREEZY_RX),
+    ...(FIX.pbzline ? { looseLineMargin: LOOSE_LINE_M } : {}) };
 }
 
 // the one layout, a layout of the Pembreezy venue - built on first use (world/load.ts buildLevel)

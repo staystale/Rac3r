@@ -235,6 +235,28 @@ const WALL_NEAR = 3.5, WALL_ROOM = 2.5;
 const WALL_SAMPLE = 2;
 
 /**
+ * A LEVEL'S LOOSE-GROUND MARGIN (Level.looseLineMargin; Pembreezy RX with ?pbzline=1): on its
+ * loose sectors (not tarmac) the line keeps that far from either edge, not LINE_MARGIN - where the
+ * AI slides wider than the line's margin allows for (MEASURED: Pembreezy RX's gravel S-bends,
+ * tools/scratch/_pbzoff.mjs).
+ * @param ctx the line context
+ * @param low the lower limits, per point (changed)
+ * @param high the upper limits, per point (changed)
+ */
+function looseLimits(ctx: LineCtx, low: Float64Array, high: Float64Array) {
+  const { level, sub, centre, count, halfWidth } = ctx, margin = level.looseLineMargin;
+  if (!margin) return;
+  const limit = Math.max(0.5, halfWidth - margin);
+  for (let i = 0; i < count; i++) {
+    const dist = centre[i].dist, sector = sub.sectors.find((each) => dist >= each.startDist
+      && dist < each.endDist);
+    if (!sector || /tarmac/.test(sector.surface?.id || '')) continue;
+    low[i] = Math.max(low[i], -limit);
+    high[i] = Math.min(high[i], limit);
+  }
+}
+
+/**
  * BARRIERS CLOSE BY THE EDGE narrow the limits for the line on their side.
  * @param ctx the line context
  * @param low the lower limits, per point (changed)
@@ -357,6 +379,7 @@ export function racingLine(level: Level): RacingLine {
   const { low, high } = hairpinLimits(ctx);
   coneLimits(ctx, low, high);
   wallLimits(ctx, low, high);
+  looseLimits(ctx, low, high);
   const off = smoothLine(ctx, map, low, high);
   // (cast: finishPath, just below, sets h, R, turn and mu on these points)
   const pts = centre.map((point, i) => ({
