@@ -57,7 +57,8 @@ export const EXHAUST_SPOTS: Record<string, { pipes: Pipe[]; up?: boolean }> = {
   defunder: { pipes: [[-0.4, -0.45]] },
   focust: { pipes: [[-0.5, -0.3], [-0.5, 0.3]] },
   // the Clio Cup's one pipe, left of centre (EST)
-  cleo: { pipes: [[-0.5, -0.17]] },
+  // the Clio III Cup's twin pipes in the middle, as the road car's
+  cleo: { pipes: [[-0.5, -0.06], [-0.5, 0.06]] },
   // the Clio 200's twin pipes in the middle of its diffuser
   cleors: { pipes: [[-0.5, -0.06], [-0.5, 0.06]] },
   // the Routemaster's pipe under the left side, behind the front axle (EST)

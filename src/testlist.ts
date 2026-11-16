@@ -83,11 +83,12 @@ export const TEST_LIST: TestEntry[] = [
   {
     id: 'cleo',
     added: '2026-11-16',
-    name: 'New car: the Renolt Cleo Cup (the Clio Cup one-make racer, Clio V), TOURING / One-make',
+    name: 'New car: the Renolt Cleo Cup (the Clio III Cup one-make racer, 2006-13), TOURING / '
+      + 'One-make',
     where: 'Test link + &cleo=1: the garage, TOURING; a race at Thruston or Brands Snatch; '
-      + '+ &underskin=1 for a crash',
-    try: 'Its look (white, yellow roof, the wing), a launch, the brakes, a race against the '
-      + 'Civvic (it is 150 bhp down and 160 kg lighter), crash it, roll it.',
+      + '+ &underskin=1 for a crash; with &cleoroad=1 beside its road car, the RS 200',
+    try: 'Its look (the road Clio III in white with a yellow roof), the revs to 7,500, no ABS on '
+      + 'the brakes, a race against the Civvic (145 bhp down, 140 kg lighter), crash it, roll it.',
     wrong: 'Not a Clio Cup from above, faster than the Civvic, too much or too little grip for '
       + 'a small car on slicks.',
   },

@@ -63,7 +63,7 @@ export const REAL_FIGURES = {
     topKph: 145, zeroTo100: 15.8, note: "Land Rover's figures" },
   'focust-st': { real: 'Ford Focus ST Mk4 2.3 EcoBoost 280 PS (2019, 6MT, 5-door)', topKph: 250,
     zeroTo100: 5.7, note: 'top speed limited' },
-  'cleo-cup': { real: 'Renault Clio Cup (Clio V, 2021 on, 200 bhp, Sadev 5-speed sequential)',
+  'cleo-cup': { real: 'Renault Clio III Cup (2006-13, F4R RS 205 bhp, Sadev 6-speed sequential)',
     topKph: null, zeroTo100: null, note: 'no published top speed or 0-100 (a one-make racer)' },
   'cleo-rs200': { real: 'Renaultsport Clio 200 Cup (Clio III, 2009-12, 6MT, 3-door)', topKph: 225,
     zeroTo100: 6.9, note: "Renault's figures" },

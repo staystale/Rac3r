@@ -113,8 +113,8 @@ export const CAR_BITS: Record<string, CarBits> = {
     cyl: 4, layout: 'inline', mount: 'trans', radiator: 'front' },
   // Clio Cup V: one pipe (EST: left of centre), the tailgate with the wing on it, the 1.3 four
   // across the front, the radiator in the nose
-  'cleo-cup': { pipes: 1, pipesAt: 'left', front: 'bonnet', rear: 'boot', engine: 'front',
-    cyl: 4, layout: 'inline', mount: 'trans', radiator: 'front', wingOnLid: true },
+  'cleo-cup': { pipes: 2, pipesAt: 'centre', front: 'bonnet', rear: 'boot', engine: 'front',
+    cyl: 4, layout: 'inline', mount: 'trans', radiator: 'front' },
   // Clio 200 Cup: twin pipes in the middle of the diffuser, the tailgate, the F4R across the
   // front, the radiator in the nose
   // Transit L3 RWD: one pipe on the left (as the L2), the bonnet, the rear doors, the 2.0 along
