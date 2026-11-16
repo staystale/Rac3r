@@ -52,4 +52,7 @@ export const REAL_FIGURES = {
     zeroTo100: null, note: 'top speed EST (by its power and drag); no published 0-100' },
   'effing-tt': { real: 'Ford F-150 Trophy Truck (open class, 850 PS)', topKph: 225, zeroTo100: null,
     note: 'top speed EST (~140 mph as trophy trucks are quoted); no published 0-100' },
+  'civvic-btcc': { real: 'Honda Civic Type R FK8 BTCC (NGTC, 2018-21, Xtrac 6-speed sequential)',
+    topKph: 250, zeroTo100: 4.3, note: 'top speed EST (145-160 mph quoted at Thruxton); 0-100 '
+      + 'EST from the ~4.0 s 0-60 mph quoted for a BTCC car' },
 };

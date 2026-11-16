@@ -76,4 +76,6 @@ export const FIX = {
   // Pembreezy, Pembrey Circuit and its rallycross from the map: the circuit at half size and the
   // rallycross at full size, one venue (pembreezy-venue.ts, pembreezyrx-venue.ts)
   pembreezy: atLoad('pembreezy'),
+  // the Honder Civvic Type Arr BTCC and its TOURING class
+  civvic: atLoad('civvic'),
 };

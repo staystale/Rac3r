@@ -13,6 +13,17 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'civvic',
+    added: '2026-11-16',
+    name: 'New car: the Honder Civvic Type Arr BTCC (a Honda Civic Type R BTCC), TOURING',
+    where: 'Test link + &civvic=1: the garage, TOURING (a new class); a race at Thruston or '
+      + 'Brands Snatch; + &underskin=1 for a crash',
+    try: 'Its look (wide arches, red roof, the wing), a launch (front-drive: it spins its '
+      + 'wheels), braking with no ABS, the kerbs, a race with five more, crash it, roll it.',
+    wrong: 'Not a BTCC Civic from above, too slow or too grippy for 350 bhp on slicks, '
+      + 'snap oversteer (it is front-drive), the wing staying on when the tailgate goes.',
+  },
+  {
     id: 'pembreezy',
     added: '2026-11-16',
     name: 'Pembreezy: Pembrey Circuit (half size) and Pembreezy RX (full size, with its joker)',

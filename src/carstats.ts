@@ -267,5 +267,18 @@ export const CAR_STATS: Record<string, CarStat> = {
       "abs": false,
       "tcs": false
     }
+  },
+  // (measured alone, tools/carstats.mjs civvic-btcc with CIVVIC=1: a new car behind its switch)
+  "civvic-btcc": {
+    "topKph": 249,
+    "zeroTo100": 4.7,
+    "brake100": 46.5,
+    "gripG": 1.39,
+    "massKg": 1280,
+    "drive": "FWD",
+    "aids": {
+      "abs": false,
+      "tcs": false
+    }
   }
 };

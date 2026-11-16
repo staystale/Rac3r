@@ -100,6 +100,10 @@ export const CAR_BITS: Record<string, CarBits> = {
   // the V8 set back behind the front axle, the radiators in the bed
   'effing-tt': { pipes: 2, pipesAt: 'sides', front: 'bonnet', rear: 'none', engine: 'front',
     cyl: 8, layout: 'v', mount: 'long', radiator: 'rear' },
+  // Civic Type R BTCC: the side exit on the left (EST), the bonnet, the tailgate with the wing on
+  // it, the 2.0 turbo four across the front, the radiator in the nose
+  'civvic-btcc': { pipes: 1, pipesAt: 'left', front: 'bonnet', rear: 'boot', engine: 'front',
+    cyl: 4, layout: 'inline', mount: 'trans', radiator: 'front', wingOnLid: true },
 };
 
 /**
