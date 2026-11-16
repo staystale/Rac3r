@@ -73,4 +73,11 @@ export const FIX = {
   // reverse), and the 20 km/h cap holds - the drive fades by the driven wheels' speed at the cap,
   // as the rev limiter's (it was cut by road speed only: spinning wheels carried cars to 23-32)
   reversefix: atLoad('reversefix'),
+  // EVERY CAR'S OWN CRASH PARTS (carbits.ts): step 1, its own doors - a 2-door's two, a
+  // 4-door's four, each from its own place and at its own length; none on an open car; a stock
+  // car's welded door skins without glass
+  carparts: atLoad('carparts'),
+  // every closed car SHADED the TS010's way (render/carshade.ts): a shared step over its sprite
+  // and its own crest lines
+  carshade: atLoad('carshade'),
 };

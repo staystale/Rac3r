@@ -7,7 +7,7 @@
 import { SPRITE_PPM } from "./shared.ts";
 import { spriteToWork } from "./spritepixels.ts";
 import { shade } from "../render.ts";   // hoisted, only called at draw time (no cycle)
-import { bitsOf, type CarBits } from "../carbits.ts";
+import { bitsOf, doorAt, CAR_DOORS, type CarBits } from "../carbits.ts";
 
 // a loose part's fixed colours: chrome, a stock car's steel, the lamps
 const CHROME = '#c9ccd4', STEEL_GREY = '#3a3d45', HEAD_LAMP = '#fff3c4', TAIL_LAMP = '#c8342a';
@@ -77,7 +77,20 @@ export function partRegion(spec: RenderCarSpec, sprite: CarSprite, kind: string,
     const axle = Math.round(len / 2 + (front ? spec.lf : -spec.lr) * SPRITE_PPM);
     return { x0: axle - 7, x1: axle + 7, ...side(WING_DEPTH_PX) };
   }
-  return { x0: Math.round(len * 0.36), x1: Math.round(len * 0.62), ...side(2) };
+  return { ...doorSpan(spec, len, corner), ...side(2) };
+}
+
+/**
+ * Where a door sits along the sprite: ?carparts its own place, else the doors' middle.
+ * @param spec the car as drawn
+ * @param len the sprite's length, px
+ * @param corner the damage corner
+ * @returns its x0, x1, px
+ */
+function doorSpan(spec: RenderCarSpec, len: number, corner: number) {
+  const door = FIX.carparts ? doorAt(String(spec.id), corner) : null;
+  return { x0: Math.round(len * (door ? door[0] : 0.36)),
+    x1: Math.round(len * (door ? door[1] : 0.62)) };
 }
 
 /**
@@ -209,11 +222,17 @@ function flatWing(spec: RenderCarSpec, front: boolean): FlatCanvas {
  * @returns the drawing
  */
 function flatDoor(spec: RenderCarSpec, front: boolean): FlatCanvas {
-  const flat = flatCanvas(partPx(1.0), partPx(0.95), spec.paint), { block } = flat;
+  // (?carparts: its own length, a stock car's welded skin with no window)
+  const door = FIX.carparts ? doorAt(String(spec.id), front ? 0 : 2) : null;
+  const sheet = !!door && !!CAR_DOORS[String(spec.id).split('#')[0]]?.sheet;
+  const flat = flatCanvas(partPx(door ? (door[1] - door[0]) * spec.len : 1.0), partPx(0.95),
+    spec.paint), { block } = flat;
   const wide = flat.canvas.width, tall = flat.canvas.height, glassH = Math.round(tall * 0.4);
   const dark = shade(spec.paint, 0.7);
-  block(2, 2, wide - 4, glassH - 2, '#15171d');
-  block(3, 3, wide - 6, 1, '#3d4658');
+  if (!sheet) {
+    block(2, 2, wide - 4, glassH - 2, '#15171d');
+    block(3, 3, wide - 6, 1, '#3d4658');
+  }
   block(1, glassH, wide - 2, 1, dark);
   block(1, Math.round(tall * 0.62), wide - 2, 1, dark);
   block(1, Math.round(tall * 0.75), wide - 2, 1, spec.third || dark);

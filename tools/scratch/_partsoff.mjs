@@ -24,6 +24,11 @@ const SETS = {
   rear: (bits, open) => (open ? ['bumper:2', 'panel:1']
     : [bits.rear === 'boot' ? 'boot:2' : '', 'bumper:2', 'wing:2', 'wing:3', 'panel:1']),
 };
+// LOSTSET=<kind:corner,...>: one set of your own instead (named 'own')
+if (process.env.LOSTSET) {
+  for (const name of Object.keys(SETS)) delete SETS[name];
+  SETS.own = () => process.env.LOSTSET.split(',');
+}
 
 /** Page side: the car in the Lab, still, its set of parts off; the camera pinned if asked. */
 async function standWithPartsOff([id, lost, zoom]) {

@@ -13,6 +13,32 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'carshade',
+    added: '2026-11-16',
+    name: 'Shading, batches 1-2: the cars shaded the TS010 way (lit crests, soft slopes, shadow '
+      + 'at the glass and in the arches)',
+    where: 'Test link + &carshade=1: the garage, ROAD and RALLY; a race, a rally stage, the '
+      + 'highway; compare with the plain link',
+    try: 'The Golf, M135i, 3 Series, V70, Mini, Chevvy, Huracan, Focust, Cleo, Saxo, Strange Rover '
+      + 'and Tesla; the WRZ, S1, Mikra, 306 Maxxi, Fiester RX, S13, Naffcar and F2 Stocker: the '
+      + 'bonnet, roof and shoulders read as shapes (the race cars, vans and the rest: batch 3).',
+    wrong: 'Stripes that look like paint instead of light, lines over the lamps or glass, a car '
+      + 'that looks dirtier rather than shaped.',
+  },
+  {
+    id: 'carparts',
+    added: '2026-11-16',
+    name: 'Crash parts, step 1: each car with its own doors - a 2-door loses two, a 4-door four, '
+      + 'each from its own place and at its own length',
+    where: 'Test link + &carparts=1 (+ &underskin=1): side-swipe a 2-door (the Chevvy, the Mini, '
+      + 'the Porch, the Clio, the Saxo) and a 4-door (the Golf, the 3 Series, the Defunder)',
+    try: 'Hit a coupe hard at a rear corner side-on: it dents and loses glass, but no door comes '
+      + 'off; a 4-door loses its rear door from behind the front one; the Seven never loses a '
+      + 'door; the stock cars throw a windowless steel skin.',
+    wrong: 'A 2-door throwing a second door, a door hole in the wrong place, a door far too short '
+      + 'or long, a Seven door.',
+  },
+  {
     id: 'reversefix',
     added: '2026-11-16',
     name: 'Reverse as in life, every car: traction control works going backwards, and the 20 km/h '

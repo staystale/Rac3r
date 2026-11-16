@@ -11,7 +11,8 @@
 // take the cover 'glass' (like the oil and the tyres' water - one cover system; drawn by the GPU
 // field, render/glfield.ts, glints moving with the view). It changes no grip; the first tyre
 // pass sweeps the cell clean and may puncture that tyre slowly (PASS: world/pass.ts).
-import { bitsOf, hasNo } from '../carbits.ts';
+import { bitsOf, doorAt, hasNo } from '../carbits.ts';
+import { FIX } from '../core/fixes.ts';
 import { getCell, wearDirty, WEAR_CELL } from "./wear.ts";
 import { PASS } from "./pass.ts";
 import { DEBRIS } from "../cones/coneConsts.ts";
@@ -19,7 +20,6 @@ import { takeFenceShreds } from "./armcodent.ts";
 import { deckShiftOf } from "./deckwear.ts";
 import type { WearCell } from "./types.ts";
 import { halfTrackAt } from './wheels.ts';
-import { FIX } from '../core/fixes.ts';
 
 // a corner's hit of PART_HIT+ knocks its part off PART_P_MIN of the time, surely at
 // PART_HIT + PART_SPAN; an end-on hit (endW over END_ON) is a bumper, side-on (under SIDE_ON) a
@@ -108,7 +108,7 @@ function partOff(car: DebrisCar, corner: number, add: number, endW: number,
   if (add < SMALL_FROM) return;
   const kind = endW > END_ON ? 'bumper' : endW < SIDE_ON ? 'panel' : 'wing';
   const bit = kind !== 'bumper' ? 1 << corner : corner < 2 ? FRONT_BUMPER : REAR_BUMPER;
-  if ((car.partsOff || 0) & bit) return;
+  if ((car.partsOff || 0) & bit || hasNoDoor(car, kind, corner)) return;
   const chance = add < PART_HIT ? SMALL_P * (add - SMALL_FROM) / (PART_HIT - SMALL_FROM)
     : Math.min(1, PART_P_MIN + (add - PART_HIT) / PART_SPAN);
   if (rnd() >= chance) return;
@@ -116,6 +116,16 @@ function partOff(car: DebrisCar, corner: number, add: number, endW: number,
   car.partLost = (car.partLost ? car.partLost + ',' : '') + kind + ':' + corner;
   (car.partSpawn || (car.partSpawn = [])).push({ corner, kind });
 }
+
+/**
+ * ?carparts: a door asked of a corner where the car has none (a 2-door's rear, an open car).
+ * @param car the car
+ * @param kind the part
+ * @param corner the damage corner
+ * @returns no door there
+ */
+const hasNoDoor = (car: DebrisCar, kind: string, corner: number) => FIX.carparts
+  && kind === 'panel' && doorAt(car.spec?.id || '', corner) === null;
 
 /**
  * a bad hit may throw the car's own BITS (carbits.ts) - each at most once until a
@@ -162,7 +172,7 @@ function shedOnRoll(car: DebrisCar, kind: string, corner: number, chance: number
   const name = kind === 'mirror' ? 'mirror:' + corner : kind;
   const gone = own ? ((car.partsOff || 0) & bit) !== 0
     : (car.partLost || '').split(',').some((entry) => entry.startsWith(name));
-  if (gone || Math.random() >= chance) return;
+  if (gone || hasNoDoor(car, kind, corner) || Math.random() >= chance) return;
   if (own) car.partsOff = (car.partsOff || 0) | bit;
   car.partLost = (car.partLost ? car.partLost + ',' : '') + kind + ':' + corner;
   (car.partSpawn || (car.partSpawn = [])).push({ corner, kind });
