@@ -9,8 +9,9 @@ import { dragOf, realCurve, tyreR } from './realcars.ts';
 
 // GT: the GT3 racers (TODO CHAMPIONSHIPS: GT), a class of their own on race tyres
 const GT_CLASS = { id: 'gt', name: 'GT', subs: ['GT3'] };
-// TOURING: the touring cars (TODO CHAMPIONSHIPS: BTCC), a class of their own on race tyres
-const TOURING_CLASS = { id: 'touring', name: 'TOURING', subs: ['BTCC', 'Cup'] };
+// TOURING: the touring cars (TODO CHAMPIONSHIPS: BTCC) and the one-make cup racers on the BTCC
+// bill (the Clio Cup), a class of their own on race tyres
+const TOURING_CLASS = { id: 'touring', name: 'TOURING', subs: ['BTCC', 'One-make'] };
 /** Every new class's id (the tyres they fit: cars.ts TYRES). */
 export const NEW_CLS_IDS = [GT_CLASS.id, TOURING_CLASS.id];
 
@@ -199,7 +200,7 @@ const FOCUST: RosterRow = {
 // m^2, 60 / 40, the CG and ride height, the splitter and wing's downforce (ClA 0.55), the slicks'
 // grip and stiffness, the springs; race ABS, no traction control (to ask).
 const CLEO: RosterRow = {
-  id: 'cleo-cup', name: 'Renolt Cleo Cup', kind: 'cleo', cls: 'touring', sub: 'Cup',
+  id: 'cleo-cup', name: 'Renolt Cleo Cup', kind: 'cleo', cls: 'touring', sub: 'One-make',
   rimIn: 17,   // its real rim, inches (what tyres fit)
   cg: 0.43, rideH: 0.08, cyl: 4,
   aids: { abs: true, tcs: false },
