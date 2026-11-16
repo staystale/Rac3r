@@ -370,6 +370,30 @@ THE 10 NEW CARS (owner-approved names 11-16; one switch and one hand-back each; 
    or ROAD; its share (it stands for the Land Rovers, ~1 in 31); the 0-100 (13.2 s against 15.8:
    slower shifts or drivetrain losses would close it); the stock look (green, a white roof, black
    arches and bumper); the exhaust on the left (EST).
+7. FJORD FOCUST ST (Ford Focus ST Mk4 2.3 EcoBoost 280 PS, 2019, six-speed manual, 5-door): BUILT
+   11-16 behind ?focust=1 (FIX.focust; testlist 'focust'), drivable as ROAD / Hatch and in the
+   highway traffic. Real (Ford; auto-data): the 2.3 turbo four across the front, 206 kW at 5,500,
+   420 Nm at 3,000-4,000, FWD, 1,433 kg, 4,388 x 1,825 mm, wheelbase 2,700, track 1,567 / 1,556,
+   235/35 R19, ratios 2-6 1.952 1.321 1.029 0.821 0.686, final drive 4.063, ABS + ESC; 250 km/h
+   (limited), 0-100 5.7 s. EST: first gear 3.231 (the Mk3 ST's, the same box), 6,500 rpm, Cd 0.32 x
+   2.25, 61 / 39, CG 0.53 m, mu 1.33, springs 1.5 Hz; its eLSD not modelled. TRAFFIC (VEH 0.37; left
+   out with the switch off): it stands for the Focus, ~3 % of the cars (1.05 M of ~35 M, SMMT
+   Motorparc 2023); _trafficmix.mjs, 20 000 draws: 2.9 % alone (~1 car in 34), 2.3 % with the
+   Transfit and the Defunder on (the vans 16.0 %, the Defunder 2.7 %). tools/newcar.mjs focust-st
+   (second PC, &underskin=1; every step ran, the racing photos on their retry): top 257 km/h (real
+   250, limited: no limiter in the game), 0-100 5.5 s (5.7), 100-0 36.4 m, grip 1.24 g, 40-100 4.33
+   s; tyres all OK; partcheck all 10 kinds OK; AI x6 Thruston 209 s, 0 incidents, laps 63.7-75.6 s
+   (the Civvic 197 s); Sweaty Lamb (loose, run apart) 424 s, 9 incidents (5 offs, 3
+   spins, 1 put-back), all 3 laps, laps 127.3-144.3 s. Launch (headless, the player's ramp, aids
+   off): first spin 1.10 s (the Golf 0.90). HIGHWAY TRAFFIC, switch off -> on (PC): hwracecheck
+   ALL OK both, racer-traffic 1 -> 0 steps, racer-racer 372 -> 0, mean pace 115 -> 137 km/h;
+   trafficcheck (named copy; not in CI, does not repeat run to run) 10 -> 11 FAILs - no Focust in
+   any contact, off-road or wreck line (switch on, walled: a Golf and a V70 rolled, as on car 6).
+   PROOF (PC, base round92): switch off worldhash (--highway 20), simhash, renderhash (thruston,
+   brands-snatch, highway) SAME; switch on simhash DIFFERENT in highway-traffic only (the mix) -
+   [sim]. QUESTIONS for the owner: the Mk4 (2019 on) or the Mk3 ST (2012-18, 250 PS); the stock
+   look (Ford Performance blue, a darker roof, black grille, spoiler and mirrors); its share (it
+   stands for the whole Focus: ~1 car in 34).
 LAUNCHES (owner 11-16 on the Civvic: "touring car not wheel spinning when pulling away seems
 unlikely", both with and without TCS; option C: "if you are holding throttle off the start, you
 will be revving up effectively off the start, like in real life"): BUILT 11-16 behind
