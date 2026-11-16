@@ -183,7 +183,7 @@ const CURVE_F2: Curve = [[1500, 330], [3000, 429], [4500, 495], [6000, 547], [70
 // carries cls + sub; events will ask for a class (and maybe a subclass).
 export const CLASSES = [
   { id: 'road', name: 'ROAD',
-    subs: ['Hatch', 'Saloon', 'Estate', 'Sports', 'Muscle', 'Van', 'Bus'] },
+    subs: ['Hatch', 'Saloon', 'Estate', 'Sports', 'Muscle', 'Van', 'Bus', 'SUV'] },
   { id: 'rally', name: 'RALLY', subs: ['1L', '2L', '2L+', 'Group B'] },
   { id: 'rx', name: 'RALLYCROSS', subs: ['Supercar', 'Super 1600'] },
   { id: 'stock', name: 'STOCK / GRASS', subs: ['Stock car', 'Grass track'] },

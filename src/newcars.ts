@@ -364,12 +364,36 @@ const SAXO: RosterRow = {
   paint: '#f0f0ea', trim: '#c8342a', glass: '#2a2f38', rim: '#f0f0ea',
 };
 
+// Range Rover L322 4.4 V8 (2002-05; an Australian road test, Parkers, cars-data): the BMW M62 4.4
+// V8 along the front, 210 kW at 5,400, 440 Nm at 3,600, a five-speed ZF automatic, permanent
+// four-wheel drive, 4,950 x 2,009 mm, wheelbase 2,880, ABS and DSC; 208 km/h, 0-100 9.2 s. EST: the
+// kerb weight (2,440 kg: a 2008 V8 is listed at 2,480), the torque's band, the 6,000 limit, the
+// ZF 5HP24's ratios and the final drive (3.73, a 2008 car's), 255/55 R19, Cd 0.42 x 2.9 m^2
+// (set to reach its 208), 50 / 50, the track, the CG, the tyres' grip and stiffness, the air
+// springs' rate. The low range and the air suspension's heights are not modelled.
+const STRANGE: RosterRow = {
+  id: 'strange-l322', name: 'Strange Rover', kind: 'rrover', cls: 'road', sub: 'SUV',
+  rimIn: 19,   // its real rim, inches (what tyres fit)
+  cg: 0.75, rideH: 0.22, cyl: 8,
+  aids: { abs: true, tcs: true },
+  mass: 2440, lf: 1.44, lr: 1.44, len: 4.95, wid: 2.009, trackWidth: 1.63,
+  tyreWidth: 0.255, wheelR: tyreR(255, 55, 19),
+  drive: 0.5, brakeBiasF: 0.65, caF: 115000, caR: 120000, mu: 1.05,
+  curve: realCurve({ idle: 650, low: 0.6, nm: 440, nmFrom: 3600, nmTo: 3800,
+    kw: 210, kwAt: 5400, redline: 6000 }),
+  redline: 6000, upshiftRpm: 5600, downshiftRpm: 2200, idleRpm: 650,
+  gears: [3.57, 2.2, 1.51, 1.0, 0.8], finalDrive: 3.73, dragC: dragOf(0.42, 2.9),
+  susF: 1.1, susZ: 0.45,
+  // Zambezi Silver, a black roof, chrome details
+  paint: '#a9aeb6', trim: '#16181d', glass: '#2a2f38', rim: '#c9ccd4',
+};
+
 /** The new cars: their roster rows, in the list's order. */
 export const NEW_CARS: RosterRow[] = [PORCH, SEVEN, TRANSFIT, TROPHY, CIVVIC, DEFUNDER, FOCUST,
   ...(FIX.cleo ? [CLEO] : []), ...(FIX.cleoroad ? [CLEO_RS] : []),
   ...(FIX.transfitlwb ? [TRANSFIT_LWB] : []), ...(FIX.transfitswb ? [TRANSFIT_SWB] : []),
   ...(FIX.ts010 ? [TS010] : []), ...(FIX.routemonster ? [ROUTEMONSTER] : []),
-  ...(FIX.saxo ? [SAXO] : [])];
+  ...(FIX.saxo ? [SAXO] : []), ...(FIX.strange ? [STRANGE] : [])];
 
 /** The classes only new cars race in. */
 export const NEW_CLASSES = [GT_CLASS, TOURING_CLASS, ...(FIX.ts010 ? [PROTO_CLASS] : [])];

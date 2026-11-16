@@ -17,6 +17,9 @@ import { FIX } from "../core/fixes.ts";
 // SWB 30.
 // The Routemonster stands for the buses: 0.07 is ~0.5 % of the picks, the buses' and coaches'
 // share of Great Britain's road traffic (DfT road traffic estimates).
+// The Land Rovers' 0.4 split between the Defunder and the Strange Rover when it is switched on:
+// 0.15 / 0.25 (owner; EST, Range Rovers outnumber Defenders).
+const LAND_ROVERS = FIX.strange ? [0.15, 0.25] : [0.4, 0];
 const VANS = 2.4;
 const VAN_PARTS: [string, number, boolean][] = [['transfit-van', 40, true],
   ['transfit-lwb', 30, FIX.transfitlwb], ['transfit-swb', 30, FIX.transfitswb]];
@@ -27,8 +30,9 @@ const vanWeight = (part: number) => (vanParts.length === 1 ? VANS : VANS * part 
 export const VEH: [string, number][] = [
   ['hatch-fwd', 3], ['saloon-rwd', 3], ['estate-4x4', 2.5], ['mini-fwd', 1.5],
   ['hatch-rwd', 1], ['muscle-rwd', 0.4], ['lambo-awd', 0.12], ['transfit-van', vanWeight(40)],
-  ['defunder-110', 0.4], ['focust-st', 0.37], ['routemonster', 0.07],
+  ['defunder-110', LAND_ROVERS[0]], ['focust-st', 0.37], ['routemonster', 0.07],
   ...vanParts.slice(1).map(([vanId, part]): [string, number] => [vanId, vanWeight(part)]),
+  ...(FIX.strange ? [['strange-l322', LAND_ROVERS[1]] as [string, number]] : []),
 ];
 // real-road colours: mostly silver / white / black / grey (each its own sprite, cached by
 // id + paint)

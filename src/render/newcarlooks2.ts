@@ -430,6 +430,57 @@ function paintSaxo(spr: SpriteCtx): void {
   block(along(0.3), wid - 1, 3, 1, CHR);
 }
 
+/**
+ * The Range Rover's plan, a half width at a share of its length (0 tail, 1 nose), as a share of
+ * the sprite's half: the long square body, its corners only a little rounded.
+ * @param share along the car, 0..1
+ * @returns the half width, 0..1
+ */
+function strangePlan(share: number): number {
+  if (share < 0.02) return 0.9 + 0.1 * Math.sqrt(share / 0.02);
+  if (share > 0.97) return 0.9 + 0.1 * Math.sqrt((1 - share) / 0.03);
+  return 1;
+}
+
+/**
+ * STRANGE ROVER (Range Rover L322, 2002-05): the long square body, the short tailgate glass, the
+ * floating black roof (the second colour) with its sunroof, the near upright screen, the
+ * clamshell bonnet's raised edges, the gills behind the front wheels, the wide grille's bars (the
+ * third colour), the square lamps at the corners, the mirrors.
+ * @param spr the painting context
+ */
+function paintStrangeRover(spr: SpriteCtx): void {
+  const { lengthPx: len, widthPx: wid, mid, light, dark, third, roof2, block, along } = spr;
+  planBody(spr, (x) => mid * strangePlan(x / (len - 1)));
+  const half = Math.round(mid * 0.8);
+  // the tailgate's glass, the roof and its sunroof, the windscreen, the mirrors
+  block(along(0.04), mid - half + 1, along(0.05), half * 2 - 1, GLASS);
+  block(along(0.09), mid - half, along(0.52), half * 2 + 1, roof2);
+  block(along(0.09), mid - half - 1, along(0.52), 1, GLASS);
+  block(along(0.09), mid + half + 1, along(0.52), 1, GLASS);
+  // the roof rails (the third colour) and the sunroof in its frame
+  block(along(0.12), mid - half + 1, along(0.46), 1, third);
+  block(along(0.12), mid + half - 1, along(0.46), 1, third);
+  block(along(0.41), mid - 5, along(0.14), 11, GLASS_HI);
+  block(along(0.41) + 1, mid - 4, along(0.14) - 2, 9, GLASS);
+  // the screen behind the body-coloured edge of the roof
+  block(along(0.62), mid - half, along(0.045), half * 2 + 1, GLASS);
+  block(along(0.63), mid - half + 1, 1, half * 2 - 1, GLASS_HI);
+  for (const y of [-2, wid]) block(along(0.62), y, 2, 2, third);
+  // the clamshell bonnet's raised edges, the gills behind the front wheels
+  block(along(0.68), 3, along(0.28), 1, light);
+  block(along(0.68), wid - 4, along(0.28), 1, dark);
+  for (const y of [1, wid - 2]) block(along(0.66), y, along(0.04), 1, INK);
+  // the square lamps on the corners, the wide grille and its bars
+  for (const y of [2, wid - 6]) block(len - 4, y, 3, 4, HEAD);
+  block(len - 2, mid - 7, 2, 15, INK);
+  for (let y = mid - 6; y <= mid + 6; y += 3) block(len - 2, y, 1, 2, third);
+  // the tail lamps, the twin pipes
+  for (const y of [1, wid - 5]) block(0, y, 2, 4, TAIL);
+  block(-1, 5, 1, 2, CHR);
+  block(-1, wid - 7, 1, 2, CHR);
+}
+
 /** Cars 6 on: their bodies by id (render/carlooks.ts LOOKS takes them). */
 export const NEW_LOOKS_2: [string, { paint: (spr: SpriteCtx) => void; bare?: boolean }][] = [
   ['defunder-110', { paint: paintDefunder, bare: true }],
@@ -438,5 +489,6 @@ export const NEW_LOOKS_2: [string, { paint: (spr: SpriteCtx) => void; bare?: boo
   ['cleo-rs200', { paint: paintCleoRs, bare: true }],
   ['routemonster', { paint: paintRoutemonster, bare: true }],
   ['saxo-kit', { paint: paintSaxo, bare: true }],
+  ['strange-l322', { paint: paintStrangeRover, bare: true }],
   ['ts010', { paint: paintTs010, bare: true }],
 ];

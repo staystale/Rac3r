@@ -13,6 +13,17 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'strange',
+    added: '2026-11-16',
+    name: 'New car: the Strange Rover (a Range Rover L322 4.4 V8), ROAD / SUV, and in the traffic',
+    where: 'Test link + &strange=1: the garage, ROAD / SUV; a road stage, the highway (it shares '
+      + 'the Land Rovers\' traffic with the Defunder); + &underskin=1 for a crash',
+    try: 'Its look (silver, the black floating roof, the clamshell bonnet, the gills), a fast '
+      + 'road, the gravel, crash it, roll it.',
+    wrong: 'Not a Range Rover from above, a sports car\'s grip, too slow for 290 PS, rolling '
+      + 'at every corner.',
+  },
+  {
     id: 'saxo',
     added: '2026-11-16',
     name: 'New car: the Citrone Saxo Max (the Saxo Kit Car, F2 1997-99), RALLY / 2L',
