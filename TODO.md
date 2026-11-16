@@ -174,7 +174,8 @@ RACE TRACKS:
       time a race WITH pit stops starts: the pit lane and limiter, stopping in your box, the menu, compulsory
       stops where they apply, fuel.
 17. LITTER / JUNK on race tracks: very light (props we have). To discuss.
-18. F1 vs WORLD CIRCUITS in the menu (split where a level opens a sub-menu).
+18. F1 vs WORLD CIRCUITS in the menu: BUILT behind ?f1menu=1 (layout A: an F1 CIRCUITS type card
+    above WORLD CIRCUITS; world/levels/category.ts F1_LISTED). Awaiting the phone test.
 
 TRACKS (after the RX queue in 3b): DRIFT tracks (none yet; the drift cars exist), PIKES PEAK, other
 hill climbs and time attacks.

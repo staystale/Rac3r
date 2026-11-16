@@ -1,5 +1,6 @@
 import { LEVELS } from '../world/levels/index.ts';
 import { catOf, menuCatOf, menuLapOf } from '../world/levels/category.ts';
+import { FIX } from '../core/fixes.ts';
 import { buildLevel } from '../world/load.ts';
 import { THEMES, LENGTHS } from '../stagegen.ts';
 
@@ -47,8 +48,11 @@ export const KIND: Record<string, string> = { lab: 'TEST GROUND', 'test-track': 
 // flat grid one tap away.
 const CATS = [
   { id: 'circuits', name: 'CIRCUITS', sub: 'road racing · laps · grids' },
-  // (shown only with a level listed under it: world/levels/category.ts LISTED_UNDER)
-  { id: 'world', name: 'WORLD CIRCUITS', sub: 'the championships\' tracks · F1 · GT' },
+  // (shown only with a level listed under it: world/levels/category.ts LISTED_UNDER; F1 CIRCUITS
+  // with ?f1menu=1, which leaves WORLD CIRCUITS the rest)
+  { id: 'f1', name: 'F1 CIRCUITS', sub: 'the Grand Prix calendar' },
+  { id: 'world', name: 'WORLD CIRCUITS',
+    sub: FIX.f1menu ? 'endurance · GT · mountain' : 'the championships\' tracks · F1 · GT' },
   { id: 'rally', name: 'RALLY STAGES', sub: 'point to point · against the clock' },
   { id: 'rx', name: 'RALLYCROSS', sub: 'mixed surface' },
   { id: 'ovals', name: 'OVALS', sub: 'stock car · speedway · autograss' },
