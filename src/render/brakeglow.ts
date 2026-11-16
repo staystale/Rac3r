@@ -6,6 +6,7 @@
 // brakes) makes the rears glow (owner). Past GLOW_FROM the discs glow deep orange at their wheels
 // in the night layer (render/light.ts), so only after dark. A look: the wall clock, never the sim.
 import type { RenderCar } from './types.ts';
+import { halfTrackAt } from '../world/wheels.ts';
 
 // heat per (m/s of speed x brake share) per second: the foot brake's front and rear shares, the
 // handbrake's on the rears (MEASURED, tools/scratch/_brakeheat.mjs: full stops from 160 km/h
@@ -76,10 +77,10 @@ export function hotBrakes(car: RenderCar): { along: number; across: number; leve
   // the glow is under the wheels: a car rolling or on its side / roof shows none (owner); back on
   // its wheels, still-hot brakes glow again
   if (car.roll) return out;
-  const half = (car.spec.trackWidth || car.spec.wid * 0.8) / 2;
   for (const [along, axleHeat] of [[car.spec.lf, heat.front], [-car.spec.lr, heat.rear]]) {
     const level = (axleHeat - GLOW_FROM) / (1 - GLOW_FROM);
     if (level <= 0) continue;
+    const half = halfTrackAt(car.spec, along < 0, car.spec.wid * 0.8);
     const out1 = half + GLOW_OUT_M;
     for (const across of [-out1, out1]) out.push({ along, across, level });
   }

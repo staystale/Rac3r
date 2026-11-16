@@ -7,7 +7,20 @@ export const CORNER_OF_WHEEL: readonly number[] = [1, 0, 3, 2];
 
 /** What carWheels reads of a car. */
 export type WheelBase = Pick<CarBody, 'x' | 'y' | 'heading'>
-  & { spec: { lf: number; lr: number; trackWidth?: number } };
+  & { spec: { lf: number; lr: number; trackWidth?: number; trackR?: number } };
+
+/**
+ * Half an axle's track, m: the front's trackWidth; the rear's its own trackR where a car has one
+ * (the bus's twin rear wheels sit narrower than its front), else the same.
+ * @param spec the car (trackWidth, trackR)
+ * @param rear the rear axle
+ * @param fallback m, the track for a car with none
+ * @returns m
+ */
+export function halfTrackAt(spec: { trackWidth?: number; trackR?: number }, rear: boolean,
+  fallback = 1.5): number {
+  return ((rear && spec.trackR) || spec.trackWidth || fallback) / 2;
+}
 
 /**
  * The four wheel contact points of a car, FL FR RL RR (L = +lateral, as vehicle.js indexes tyres).
@@ -17,14 +30,14 @@ export type WheelBase = Pick<CarBody, 'x' | 'y' | 'heading'>
 export function carWheels(car: WheelBase): Wheel[] {
   const spec = car.spec;
   const cosH = Math.cos(car.heading), sinH = Math.sin(car.heading);
-  const halfTrack = (spec.trackWidth || 1.5) / 2;
+  const halfFront = halfTrackAt(spec, false), halfRear = halfTrackAt(spec, true);
   const frontX = car.x + cosH * spec.lf, frontY = car.y + sinH * spec.lf;
   const rearX = car.x - cosH * spec.lr, rearY = car.y - sinH * spec.lr;
   return [
-    { x: frontX - sinH * halfTrack, y: frontY + cosH * halfTrack }, // FL
-    { x: frontX + sinH * halfTrack, y: frontY - cosH * halfTrack }, // FR
-    { x: rearX - sinH * halfTrack, y: rearY + cosH * halfTrack }, // RL
-    { x: rearX + sinH * halfTrack, y: rearY - cosH * halfTrack }, // RR
+    { x: frontX - sinH * halfFront, y: frontY + cosH * halfFront }, // FL
+    { x: frontX + sinH * halfFront, y: frontY - cosH * halfFront }, // FR
+    { x: rearX - sinH * halfRear, y: rearY + cosH * halfRear }, // RL
+    { x: rearX + sinH * halfRear, y: rearY - cosH * halfRear }, // RR
   ];
 }
 

@@ -16,6 +16,7 @@ import { cornerShift, drawExposedCorner, drawExposedStrut, isWingTorn } from "./
 import type { CornerShift } from "./carcorners.ts";
 import { FIX } from '../core/fixes.ts';
 import { bitsOf } from '../carbits.ts';
+import { halfTrackAt } from '../world/wheels.ts';
 import type {
   Cam, CarSprite, RenderCar, RenderCarSpec, RenderCone, SilCanvas, View,
 } from "./types.ts";
@@ -48,13 +49,16 @@ interface CarsContext extends CarsHelpers {
 }
 
 /**
- * The half track a car's wheels sit at (at the body's EDGE so they poke out at
- * the sides like the reference sprites).
+ * The half track an axle's wheels sit at, px: at the body's EDGE so they poke out at the sides
+ * like the reference sprites; a car with a rear track of its own (trackR: the bus) at its REAL
+ * tracks, under its body as in life.
  * @param spec the car spec
  * @param sprite the body sprite
+ * @param rear the rear axle
  * @returns the half width (the tyre sizes: tyreBox)
  */
-function wheelMetrics(spec: RenderCarSpec, sprite: CarSprite) {
+function wheelMetrics(spec: RenderCarSpec, sprite: CarSprite, rear = false) {
+  if (spec.trackR) return { halfWidth: halfTrackAt(spec, rear) * SPRITE_PPM };
   const halfWidth = Math.max((spec.trackWidth || 1.5) / 2 * SPRITE_PPM, sprite.Wp / 2)
     + (spec.kind === 'track' ? 1 : 0);
   return { halfWidth };
@@ -293,9 +297,9 @@ function lostWithTorn(car: RenderCar, spec: RenderCarSpec, base: CarSprite): str
   if (kept && kept.base === base && kept.partLost === partLost) return kept.lost;
   let lost = partLost;
   if (car.dmg && !isBare(spec)) {
-    const { halfWidth } = wheelMetrics(spec, base);
     for (let corner = 0; corner < 4; corner++) {
       const axleX = corner < 2 ? spec.lf : -spec.lr, tyre = tyreBox(spec, axleX < 0);
+      const { halfWidth } = wheelMetrics(spec, base, axleX < 0);
       if (lost.includes('wing:' + corner) || !isWingTorn(car, base, corner, { axleX, halfWidth,
         tyreLen: tyre.len, tyreWid: tyre.wid })) continue;
       lost = (lost ? lost + ',' : '') + 'wing:' + corner;
@@ -368,18 +372,16 @@ function stampFixedArms(ctx: CanvasRenderingContext2D, spec: RenderCarSpec, axle
  * @param car the car
  * @param sprite the body sprite
  * @param lost the parts gone (?underskin: with the torn wings) - an exposed corner's well
- * @returns the half width the wheels sit at
  */
 function drawCarWheels(carsCtx: CarsContext, car: RenderCar, sprite: CarSprite, lost = '') {
   const { view } = carsCtx;
   const spec = drawnSpec(car.spec);
-  const metrics = wheelMetrics(spec, sprite);
-  const { halfWidth } = metrics;
   const turn = car.tyreP ? wheelTurn(car, performance.now()) : 0;
   for (const [axleX, side, steer, corner] of [
     [spec.lf, -1, car.delta, 0], [spec.lf, 1, car.delta, 1],
     [-spec.lr, -1, 0, 2], [-spec.lr, 1, 0, 3],
   ]) {
+    const metrics = wheelMetrics(spec, sprite, axleX < 0), { halfWidth } = metrics;
     if (car.wheelOff && car.wheelOff[corner]) {
       // DAMAGE: wheel gone, a hub stub
       view.ctx.fillStyle = '#2b2d33';
@@ -404,7 +406,6 @@ function drawCarWheels(carsCtx: CarsContext, car: RenderCar, sprite: CarSprite, 
         damage: car.dmg ? car.dmg[corner] : 0 }, shift);
     }
   }
-  return halfWidth;
 }
 
 /**
@@ -605,8 +606,7 @@ function pixelCarWithWheels(carsCtx: CarsContext, spec: RenderCarSpec) {
     + (spec.num || 0);
   if (faceCache.has(key)) return faceCache.get(key);
   const carSpec = drawnSpec(spec), sprite = pixelCar(carSpec);
-  const halfWidth = Math.max((carSpec.trackWidth || 1.5) / 2 * SPRITE_PPM, sprite.Wp / 2)
-    + (carSpec.kind === 'track' ? 1 : 0);
+  const halfWidth = wheelMetrics(carSpec, sprite).halfWidth;
   const padY = Math.max(0, Math.ceil(halfWidth + 4 - sprite.Wp / 2)),
     canvas = trackCanvas(document.createElement('canvas'));
   canvas.width = sprite.c.width + 4;
@@ -615,12 +615,13 @@ function pixelCarWithWheels(carsCtx: CarsContext, spec: RenderCarSpec) {
   for (const [axleX, side] of [
     [carSpec.lf, -1], [carSpec.lf, 1], [-carSpec.lr, -1], [-carSpec.lr, 1],
   ]) {
+    const axleHalf = wheelMetrics(carSpec, sprite, axleX < 0).halfWidth;
     const { len: tyreLen, wid: tyreWid } = tyreBox(carSpec, axleX < 0),
-      x = Math.round(midX + axleX * SPRITE_PPM), y = Math.round(midY + side * halfWidth);
+      x = Math.round(midX + axleX * SPRITE_PPM), y = Math.round(midY + side * axleHalf);
     if (isBare(carSpec)) {
       gctx.save();
       gctx.translate(midX, midY);
-      drawWishbones(gctx, carSpec, axleX, side, 0, halfWidth);
+      drawWishbones(gctx, carSpec, axleX, side, 0, axleHalf);
       gctx.restore();
     }
     gctx.fillStyle = '#16171c';

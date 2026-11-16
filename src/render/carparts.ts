@@ -30,6 +30,21 @@ export const isBare = (spec: RenderCarSpec) => spec.kind === 'track' || spec.kin
 export interface Region { x0: number; x1: number; y0: number; y1: number }
 
 /**
+ * Where a mirror sits: just outside the body's side, along a car's doors - or where its own
+ * mirrors are (carbits.ts mirror: the bus's at the cab's front corners).
+ * @param spec the car as drawn
+ * @param len the sprite's length, px
+ * @param wid its width, px
+ * @param plus the +y side
+ * @returns the region
+ */
+function mirrorRegion(spec: RenderCarSpec, len: number, wid: number, plus: boolean): Region {
+  const place = bitsOf(String(spec.id)).mirror ?? { from: 0.45, until: 0.75 };
+  return { x0: Math.round(len * place.from), x1: Math.round(len * place.until),
+    ...(plus ? { y0: wid, y1: wid + 1 } : { y0: -2, y1: -1 }) };
+}
+
+/**
  * Where a part sits on a car's sprite.
  * @param spec the car as drawn
  * @param sprite its sprite
@@ -56,8 +71,7 @@ export function partRegion(spec: RenderCarSpec, sprite: CarSprite, kind: string,
   if (kind === 'bonnet') return { x0: Math.round(len * 0.71), x1: len - 6, y0: 2, y1: wid - 3 };
   if (kind === 'boot') return { x0: 4, x1: Math.round(len * 0.16), y0: 2, y1: wid - 3 };
   if (kind === 'spoiler') return { x0: -4, x1: 6, y0: -4, y1: wid + 3 };
-  if (kind === 'mirror') return { x0: Math.round(len * 0.45), x1: Math.round(len * 0.75),
-    ...(plus ? { y0: wid, y1: wid + 1 } : { y0: -2, y1: -1 }) };
+  if (kind === 'mirror') return mirrorRegion(spec, len, wid, plus);
   if (kind === 'exhaust') return { x0: -2, x1: -1, y0: -2, y1: wid + 1 };
   if (kind === 'wing') {
     const axle = Math.round(len / 2 + (front ? spec.lf : -spec.lr) * SPRITE_PPM);
@@ -272,6 +286,14 @@ function flatExhaust(bits: CarBits): FlatCanvas {
  * @returns the drawing
  */
 function flatMirror(spec: RenderCarSpec): FlatCanvas {
+  const place = bitsOf(String(spec.id)).mirror;
+  if (place) {
+    // a big mirror on its arm (the bus's): the steel arm, the black head, its glass
+    const [wide, tall] = place.px, flat = bitCanvas(wide, tall), { block } = flat;
+    block(0, Math.floor(tall / 2), wide - 4, 1, '#5a5f69');
+    block(wide - 4, 0, 4, tall, '#16181d'); block(wide - 3, 1, 2, tall - 2, '#9aa3b0');
+    return flat;
+  }
   const flat = bitCanvas(4, 3), { block } = flat;
   block(0, 0, 4, 3, shade(spec.paint, 0.4)); block(1, 0, 3, 2, spec.paint);
   block(1, 2, 2, 1, '#9aa3b0');

@@ -16,7 +16,7 @@ import { LEVEL } from "./world/state.ts";
 import { MARK_WET, SURFACES } from "./world/surfaces.ts";
 import { WEATHER } from "./world/weather.ts";
 // this file's wheel order is the damage corners' (front -y, front +y, rear -y, rear +y)
-import { CORNER_OF_WHEEL, wheelGone, metalCorner } from "./world/wheels.ts";
+import { CORNER_OF_WHEEL, halfTrackAt, wheelGone, metalCorner } from "./world/wheels.ts";
 import { MARK_GOUGE } from "./world/metalscrape.ts";
 import { addTrailPoint, clearWetTrails } from "./wettrail.ts";
 import { acrossOf, alongOf } from "./world/crossinggeo.ts";
@@ -78,7 +78,7 @@ type MarkSurface = WheelGround & { id?: string };
 
 interface MarkCar {
   x: number; y: number; heading: number;
-  spec: { lf: number; lr: number; trackWidth: number; tyreWidth: number };
+  spec: { lf: number; lr: number; trackWidth: number; trackR?: number; tyreWidth: number };
   t: { slipSpeedF: number; slipSpeedR: number };
   surface: MarkSurface; wheelSurf?: (MarkSurface | null)[] | null;   // the ground under each wheel
   tyreT?: number[]; rimSparks?: boolean[]; wheelOff?: boolean[]; onRim?: boolean[];
@@ -594,7 +594,7 @@ function listWheels(car: MarkCar): MarkWheel[] {
   if (car._markId === undefined) car._markId = nextMarkId++;
   const spec = car.spec, telem = car.t;
   const cosH = Math.cos(car.heading), sinH = Math.sin(car.heading);
-  const halfTrack = spec.trackWidth / 2;
+  const halfTrack = halfTrackAt(spec, false), halfRear = halfTrackAt(spec, true);
   const out: MarkWheel[] = [];
   // a wheel on its rim over hard ground scores a pale line (world/metalscrape.ts); every other
   // mark and spray comes off the ground under that wheel (world/wear.ts stepWear), the car's
@@ -603,7 +603,7 @@ function listWheels(car: MarkCar): MarkWheel[] {
   for (const [key, along, side, slip, corner] of [
     ['fl', spec.lf, -halfTrack, telem.slipSpeedF, 0],
     ['fr', spec.lf, halfTrack, telem.slipSpeedF, 1],
-    ['rl', -spec.lr, -halfTrack, telem.slipSpeedR, 2],
+    ['rl', -spec.lr, -halfRear, telem.slipSpeedR, 2],
     ['rr', -spec.lr, halfTrack, telem.slipSpeedR, 3],
   ] as [string, number, number, number, number][]) {
     // a wheel gone leaves no rubber, trail or spray: only its hub's score while it sparks
