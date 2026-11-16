@@ -403,7 +403,7 @@ export interface TrafficCar {
   flashes?: number[];
   // the station (its road s) it has passed or chosen (one roll a station)
   stationAt?: number;
-  // ?hwtrips=1: a trip off or onto the road - leaving by a slip, for fuel, joining from an
+  // a trip off or onto the road - leaving by a slip, for fuel, joining from an
   // on-ramp (ai/trafficTrips.ts) - and the slip road (its road s) it rolled for last
   trip?: TrafficTrip | null;
   slipAt?: number;

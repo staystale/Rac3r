@@ -1,4 +1,4 @@
-// _tripshots.mjs - THE TRAFFIC'S TRIPS IN THE REAL GAME (?hwtrips=1, TODO 3a2 item 15): you stopped
+// _tripshots.mjs - THE TRAFFIC'S TRIPS IN THE REAL GAME (TODO 3a2 item 15): you stopped
 // beside a way off / on, one traffic car sent on that trip (as a won roll would), photographed as
 // it goes. WHAT=exit - a short / long slip (motorway seed 18); WHAT=junction - a junction's
 // off-slip and roundabout (seed 12); WHAT=join - a junction's on-slip, the give-way and the merge
@@ -105,7 +105,7 @@ try {
   const page = await browser.newPage({ viewport: { width, height } });
   page.on('pageerror', (err) => errors.push(err.message));
   await gotoGame(page, `${server.url}/?pc=1&guide=0&menu=0&rules=0&noaudio=1`
-    + `&hwtrips=1&autopilot=${MOVING ? process.env.AUTO || 50 : 1}`);
+    + `&autopilot=${MOVING ? process.env.AUTO || 50 : 1}`);
   await page.mouse.click(width / 2, height / 2);
   await page.waitForTimeout(800);
   await page.evaluate(async (seed) => {

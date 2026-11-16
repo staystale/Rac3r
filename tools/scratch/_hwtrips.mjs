@@ -3,7 +3,7 @@
 // heats stepped as the game does. Counts, per road:
 //   SLIPS  our way's cars passing each slip road (short / long / a junction's off-slip) and those
 //          that took it (leaving), police apart; the rolls won, missed (dropped) and carried on
-//          to the next slip (?hwtrips=1)
+//          to the next slip
 //   FUEL   our way's cars passing each roadside station and those that pulled in, police apart
 //   JOINS  cars put on an on-ramp, merged, held at the give-way (and for how long), lost before
 //          merging; the seconds from the ramp to in the lane
@@ -11,7 +11,7 @@
 //          chase, a different one each way, swings the first), traffic step cost (us a step, node)
 // The screen: VIEW_M m round you (a phone zoomed out on the highway sees ~80-100 m).
 // [KM=8] [SEEDS=4242,7] [ROADS=motorway,dual] [SCENERIES=countryside,canyon] [SPEED=100] [LANE=1]
-// [VIEW_M=90] [HWTRIPS=1]   node tools/scratch/_hwtrips.mjs
+// [VIEW_M=90]   node tools/scratch/_hwtrips.mjs
 process.env.POLICE = '1';
 const { makeCar, reset, PHYSICS_STEP_SECONDS: DT } = await import('../../src/vehicle.ts');
 const L = await import('../../src/lab.ts');
@@ -279,6 +279,6 @@ function run(road, scenery, seed) {
     .join('\n');
 }
 
-console.log(`HWTRIPS=${process.env.HWTRIPS || 0} SPEED=${SPEED} LANE=${LANE} KM=${KM}`);
+console.log(`SPEED=${SPEED} LANE=${LANE} KM=${KM}`);
 for (const scenery of SCENERIES) for (const road of ROADS) for (const seed of SEEDS)
   console.log(run(road, scenery, seed));

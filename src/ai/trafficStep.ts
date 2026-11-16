@@ -20,7 +20,6 @@ import { SIGHT_M } from "./policeHeat.ts";
 import { mayPlaceAtPump } from "./trafficFuel.ts";
 import { findLead } from "./trafficLane.ts";
 import { hasLeft, isOffOnTrip, mayJoin } from "./trafficTrips.ts";
-import { FIX } from "../core/fixes.ts";
 
 /** The inputs of a step: you, the AI cars and the renderer's screen test. */
 export interface StepArgs {
@@ -172,7 +171,7 @@ function dealPutBack(ctx: TrafficCtx, slot: TrafficCar,
 }
 
 /**
- * ?hwtrips=1: now and then a cruising car put back ahead comes down an on-ramp instead
+ * Now and then a cruising car put back ahead comes down an on-ramp instead
  * (ai/trafficTrips.ts mayJoin); its road entry (the last) follows it.
  * @param ctx the traffic
  * @param slot the car
@@ -183,7 +182,7 @@ function dealPutBack(ctx: TrafficCtx, slot: TrafficCar,
  */
 function joinsFromRamp(ctx: TrafficCtx, slot: TrafficCar, back: { from: string; kind: Kind },
   ents: TrafficEnt[], vis: VisFn | null): boolean {
-  if (!FIX.hwtrips || !vis || back.kind !== 'cruise' || back.from !== 'ahead' || dirOf(slot) < 0
+  if (!vis || back.kind !== 'cruise' || back.from !== 'ahead' || dirOf(slot) < 0
     || !mayJoin(ctx, slot, ents, vis)) return false;
   Object.assign(ents[ents.length - 1], { s: slot.s, off: slot.off, v: slot.vAl });
   return true;

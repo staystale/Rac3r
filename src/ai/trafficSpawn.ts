@@ -71,7 +71,7 @@ export function fresh(
     parked: false, kOff: null, kin: false, phys: true, dir, quick: false, racer: null, broke: null,
     police: null,
   });
-  // (?hwtrips=1: a new car has no trip)
+  // (a new car has no trip - ai/trafficTrips.ts)
   if (slot.trip) slot.trip = null;
   return slot;
 }

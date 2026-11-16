@@ -385,7 +385,7 @@ function ramAt(ram: RamCtx, seat: number, stars: number, speed: number): DriveIn
 export function makeChaser(ctx: TrafficCtx, slot: TrafficCar) {
   seatRacer(ctx, slot, CHASE_DIFF, CHASE_AGG);
   slot.broke = null;
-  // (?hwtrips=1: a chaser never leaves the road or stops for fuel)
+  // (a chaser never leaves the road or stops for fuel - ai/trafficTrips.ts)
   if (slot.trip) slot.trip = null;
   slot.police!.mode = 'chase';
 }

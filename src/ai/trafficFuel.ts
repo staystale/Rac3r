@@ -1,7 +1,8 @@
 // ai/trafficFuel.ts - TRAFFIC AT THE PETROL STATIONS (owner 11-11: "Can traffic
-// use petrol stations"): now and then (STOP_SHARE of the passes) a car of our way in the nearside
-// lane coming up to a roadside station (highway/stations.ts: a lay-by's, Deaf Valley's LAST GASP;
-// not a services' - it is off its side road) indicates left, slows and pulls onto the forecourt,
+// use petrol stations"): a car of our way that rolled for a roadside station (ai/trafficTrips.ts:
+// 5 in 40 of the cars passing one, police cruising too) and is in the nearside lane coming up to
+// it (highway/stations.ts: a lay-by's, Deaf Valley's LAST GASP; not a services' - it is off its
+// side road) indicates left, slows and pulls onto the forecourt,
 // stops beside the pumps (PUMP_S), then pulls out - indicating right, once the nearside lane is
 // clear behind it - and drives on; now and then a car put back ahead is one already at the pumps.
 // It is a car with an issue that is not broken (ai/trafficBreak.ts: its TrafficBroke, its
@@ -14,13 +15,10 @@ import type { DriveEnv } from './trafficLane.ts';
 import { carryKinematic, drivePhysics } from './trafficPhys.ts';
 import { cruise, setSpeed } from './trafficSpawn.ts';
 import { PARKED, roadsideFree } from './trafficBreak.ts';
-import { FIX } from '../core/fixes.ts';
 import type { TrafficCar, TrafficEnt } from './types.ts';
 
-// the share of a nearside car's passes of a station it stops at (MEASURED, _police.mjs PART=
-// traffic4: ~5 rolls a km - at 5 % none stopped in 16); of the cars put back ahead by one, the
-// share already at its pumps
-const STOP_SHARE = 0.15, AT_PUMP_SHARE = 0.25;
+// of the cars put back ahead by a station, the share already at its pumps
+const AT_PUMP_SHARE = 0.25;
 // s at the pumps, the least and the most
 const PUMP_S = [10, 20];
 // m ahead of a car a station is chosen, the nearest and the furthest (time to slow)
@@ -66,32 +64,6 @@ export function stationsOf(ctx: TrafficCtx): Station[] {
 }
 
 /**
- * Whether a car may pull in for fuel: our way's, cruising in the nearside lane, not a speeder, a
- * police car, broken down or wrecked.
- * @param slot the car
- * @returns it may
- */
-const mayRefuel = (slot: TrafficCar) => !slot.broke && !slot.racer && !slot.police && !slot.wreck
-  && (slot.dir ?? 1) > 0 && slot.lane === 0 && slot.laneT === 0;
-
-/**
- * Now and then a nearside car coming up to a roadside station pulls in for fuel (one roll a
- * station, its pumps free).
- * @param ctx the traffic
- * @param slot the car
- * @param env the step's road
- */
-export function mayStopForFuel(ctx: TrafficCtx, slot: TrafficCar, env: DriveEnv) {
-  // (?hwtrips=1: the roll comes earlier, in every lane, police too - ai/trafficTrips.ts)
-  if (FIX.hwtrips || !mayRefuel(slot)) return;
-  const station = stationsOf(ctx).find((each) => inPullInReach(slot, each));
-  if (!station || station.s === slot.stationAt) return;
-  slot.stationAt = station.s;
-  if (ctx.rnd() >= STOP_SHARE) return;
-  pullIn(ctx, slot, env, station);
-}
-
-/**
  * Whether a station is near enough ahead of a car to pull in for it (CHOOSE_M: time to slow).
  * @param slot the car
  * @param station the station
@@ -110,15 +82,15 @@ export const pastPullIn = (slot: TrafficCar, station: Station) =>
   station.s - slot.s <= CHOOSE_M[0];
 
 /**
- * ?hwtrips=1: whether another car is already pulling in at (or out of) a station's pumps - two
+ * Whether another car is already pulling in at (or out of) a station's pumps - two
  * pulling in at once met at the pumps (MEASURED, tools/scratch/_hwtrips.mjs DEBUG=1).
  * @param ents everyone on the road
  * @param slot the car asking
  * @param dist the station's road s, m
  * @returns one is
  */
-const isBoundFor = (ents: TrafficEnt[], slot: TrafficCar, dist: number) => FIX.hwtrips
-  && ents.some((ent) => ent.t && ent.t !== slot && ent.t.broke?.at === dist);
+const isBoundFor = (ents: TrafficEnt[], slot: TrafficCar, dist: number) =>
+  ents.some((ent) => ent.t && ent.t !== slot && ent.t.broke?.at === dist);
 
 /**
  * A car pulls in at a station's pumps, if they are free: its stop begun.

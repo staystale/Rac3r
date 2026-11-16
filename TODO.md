@@ -152,45 +152,8 @@ BUGS (each behind its own switch, measured, then a test link):
 14. PARKED POLICE wake when passed with a star; speeding past one gives a star: PASSED 11-15, the default
     (TODO-DONE). OWNER 11-15: the wake counts for ANY driver with heat ("Everyone breaking the law"); 60 m
     witness OK; no cap or spread needed ("police already bother whoever is nearest").
-15. TRAFFIC (and unaggravated police) stop for fuel now and then and take slip roads (the petrol
-    station stops exist, ai/trafficFuel.ts, 11-11: check how often); aggravated police as now.
-    OWNER 11-15: 2 in 12 take the next slip road and leave; 5 in 40 pull into a fuel station;
-    unaggravated police the same, chasing police never; traffic also joins from the on-ramps.
-    FOUND (tools/scratch/_hwtrips.mjs, 20 km at 100 km/h x motorway / dual x countryside / Deaf
-    Valley x seeds 4242 / 7, traffic 0.6, on the PC): today 13 of 136 cars of our way passing a
-    roadside station pulled in (9.6 %: a 15 % roll for nearside-lane cars only), no police car
-    ever; no car left by a slip or joined.
-    BUILT behind `?hwtrips=1` (FIX.hwtrips; ai/trafficTrips.ts, ai/trafficPath.ts; testlist
-    'hwtrips'; ENGINE.md THE TRAFFIC'S TRIPS): one roll per car per slip road (2 / 12) or station
-    (5 / 40) 500 m ahead, in any lane; the car moves over to the nearside lane, indicates, takes a
-    short / long slip to its gate or a junction's off-slip round the roundabout and on; out of sight
-    it is put back as a new car. A car put back ahead now and then (2 / 12, where one is in reach)
-    starts on a junction's on-slip or a side road's / services' end, gives way, merges. One car at
-    a time pulls in at the pumps (two met there). No walkthrough card (nothing the player must do).
-    MEASURED (switch on, the same 160 km): rolls at a slip 308, won 57 (18.5 %); of the cars
-    passing a slip 35 of 284 left (12.3 %: traffic 25 / 224, police 10 / 60); 15 winners missed it
-    (still not in the nearside lane 55 m before), the rest put back before they got there. Fuel: won
-    17 of 147 rolls (11.6 %), pulled in 10 of 131 passing (7.6 %), 6 missed; police 0 of 27. Joins:
-    4 placed, 3 merged in 12-14 s, 1 put back before merging, none held at the give-way. Paths
-    checked headless (a forced junction exit: 27 m/s on the slip, ~4-5 m/s round the ring, out).
-    Switch off: simhash highway-traffic / highway-ai SAME. Traffic step (node, PC) 263 -> 298 us
-    mean (different chases each way); framecheck highway, PC x4 (in its catch-up loop, one run
-    each): work median 39.4 -> 42.5 ms, frame median 83.3 both. Photos: tools/scratch/_trips/
-    (exit, junction, join).
-    RATES RAISED (owner 11-16: yes to "raise to a measured 2 in 12 ... a missed car stays left until the
-    next exit"): the rolls LEAVE_ROLL 0.24, FUEL_ROLL 0.36 (were 2 / 12 and 5 / 40); a car that
-    misses its slip stays in the nearside lane and goes for the next one (goForNextExit). MEASURED
-    (_hwtrips, 480 km: motorway / dual x countryside / Deaf Valley x seeds 4242 / 7 / 11, 40 km
-    each, traffic 0.6, the laptop): of the cars passing a slip 151 of 944 left (16.0 %: traffic
-    118 / 765 = 15.4 %, police 33 / 179 = 18.4 %); rolls won 248 of 915, 17 carried on to the next
-    slip, 17 dropped (a chase, a breakdown, a slip's line it could not meet); fuel 58 of 433 pulled
-    in (13.4 %: traffic 40 / 363 = 11.0 %, police 18 / 70 = 25.7 %), won 164 of 414, 84 missed (not
-    in the nearside lane in reach, or the pumps taken). The first try (0.19 / 0.21, 160 km): 14.2 %
-    and 7.3 %. Joins 8, 6 merged, 2 held, 2 lost before merging. Traffic step 146-307 us (node).
-    The same seed with the old rolls (motorway / countryside 11): touches with a car on a trip 22 ->
-    329 - one cruising police car held ~5 m behind a car waiting in the nearside lane for its next
-    slip for ~12 s (the count is pairs coming within 5 m, not crashes); all contact steps 3065 ->
-    2190.
+15. TRAFFIC LEAVES BY THE SLIPS, STOPS FOR FUEL, JOINS FROM THE ON-RAMPS: PASSED 11-16 with the rates
+    raised to a measured 2 in 12 / 5 in 40, the default (TODO-DONE).
 
 RACE TRACKS:
 16. PIT STOPS - ALL QUESTIONS ANSWERED 11-15 (build after the 10 cars, one switch):

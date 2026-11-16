@@ -1,4 +1,4 @@
-// ai/trafficPath.ts - A TRAFFIC CAR ON A PATH OFF THE LANES (TODO 3a2 item 15, ?hwtrips=1): a car
+// ai/trafficPath.ts - A TRAFFIC CAR ON A PATH OFF THE LANES (TODO 3a2 item 15): a car
 // leaving by a slip road, or coming down an on-ramp, follows that road's centre line (world
 // points) instead of a lane. Carried out of reach of a real car, it is put on the line at its
 // speed (nose along the line a few metres on); near one it is a real car steered by the traffic's

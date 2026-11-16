@@ -22,7 +22,7 @@
 // railbridges, roadtunnels, wobbly, stadeprance, police, trainlights, moveover, roadrage,
 // stationstops, carcache, carcull, coverlight passed 11-12; nighthw, exitpuns, hjfirs, rollhold,
 // stuckreset, croughedrx, tiledensity, aipace (its live pause-menu dials removed), aislide passed
-// 11-15; gpustat (now always with ?report=1) passed 11-16.)
+// 11-15; gpustat (now always with ?report=1), hwtrips passed 11-16.)
 import { envValue } from './debug.ts';
 
 /**
@@ -55,10 +55,6 @@ export function dialAtLoad(name: string): number {
 export const FIX = {
   // a chasing police car sounds a siren, the light bar's twin (game/sirens.ts, audiosiren.ts)
   siren: atLoad('siren'),
-  // the highway traffic's trips (TODO 3a2 item 15): 2 in 12 leave by the next slip road, 5 in 40
-  // pull in for fuel (moving over to the nearside lane first; cruising police too), and cars join
-  // from the on-ramps (ai/trafficTrips.ts)
-  hwtrips: atLoad('hwtrips'),
   // UNDER THE SKIN: what a lost panel shows - the engine and radiator in the bay, a corner's
   // suspension and drive shaft in a wing's well, the crash bar and radiator behind a bumper - by
   // each car's own layout (render/underskin.ts, carbits.ts mount / radiator)

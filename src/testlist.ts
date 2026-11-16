@@ -118,18 +118,4 @@ export const TEST_LIST: TestEntry[] = [
     wrong: 'A part drawn outside its hole or over the tyre, a front-drive car with drive shafts at '
       + 'the back (or the reverse), an engine where that car has none, holes odd at speed.',
   },
-  {
-    id: 'hwtrips',
-    added: '2026-11-15',
-    name: 'Traffic leaves by the slip roads, stops for fuel and joins from the on-ramps',
-    where: 'Test link + &hwtrips=1: the highway (motorway, dual, Deaf Valley); slip roads every '
-      + '2-4 km, junctions (roundabouts by a bridge) now and then, petrol stations in lay-bys',
-    try: 'Watch the cars ahead before an exit: about 1 in 6 moves to the left lane, indicates left '
-      + 'and takes the slip (a junction: round its roundabout). About 1 in 8 pulls in at a petrol '
-      + 'station, a cruising police car too. Past a junction or a services, a car comes down the '
-      + 'on-ramp, waits if the lane is busy and merges.',
-    wrong: 'A car cutting across lanes into the slip, leaving with no indicator, stopping on the '
-      + 'motorway for its exit, vanishing in view, a chasing police car leaving, or a joining car '
-      + 'pulling out into a car in the left lane.',
-  },
 ];

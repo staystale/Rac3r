@@ -1,4 +1,4 @@
-// ai/trafficTrips.ts - THE TRAFFIC'S TRIPS OFF AND ONTO THE ROAD (TODO 3a2 item 15, ?hwtrips=1).
+// ai/trafficTrips.ts - THE TRAFFIC'S TRIPS OFF AND ONTO THE ROAD (TODO 3a2 item 15).
 // The owner's rates, as MEASURED (tools/scratch/_hwtrips.mjs): 2 in 12 of our way's cars passing a
 // slip road leave by it; 5 in 40 passing a fuel station pull in; a cruising police car the same, a
 // chasing one never; and cars join from the on-ramps. Each slip road and roadside station ahead is
@@ -414,7 +414,7 @@ function driveMerge(ctx: TrafficCtx, slot: TrafficCar, env: DriveEnv, speed: num
 }
 
 /**
- * A car's trip this step (?hwtrips=1): rolled for, moving over for it, taken.
+ * A car's trip this step: rolled for, moving over for it, taken.
  * @param ctx the traffic
  * @param slot the car
  * @param env the step's road

@@ -9,10 +9,9 @@ import { carryKinematic, drivePhysics } from "./trafficPhys.ts";
 import { driveBroken, mayBreak } from "./trafficBreak.ts";
 import { driveSpeeder } from "./trafficSpeeder.ts";
 import { edgeOver, isYielding, yieldSlowing } from "./trafficYield.ts";
-import { driveFuelStop, mayStopForFuel } from "./trafficFuel.ts";
+import { driveFuelStop } from "./trafficFuel.ts";
 import { drivePolice } from "./trafficPolice.ts";
 import { driveTrip, signalTrip, tripSlowing } from "./trafficTrips.ts";
-import { FIX } from "../core/fixes.ts";
 import type { TrafficCar, TrafficEnt } from "./types.ts";
 
 // s to meeting a car coming at it in its lane within which the other way's car brakes, the most
@@ -59,12 +58,10 @@ export function driveOne(ctx: TrafficCtx, slot: TrafficCar, env: DriveEnv) {
   const car = slot.car;
   car._p = { x: car.x, y: car.y, h: car.heading };
   const speed = Math.hypot(car.vx, car.vy);
-  // (?hwtrips=1: leaving by a slip road, for fuel, joining from an on-ramp - ai/trafficTrips.ts)
-  if (FIX.hwtrips && driveTrip(ctx, slot, env, speed)) return;
+  // (leaving by a slip road, for fuel, joining from an on-ramp - ai/trafficTrips.ts)
+  if (driveTrip(ctx, slot, env, speed)) return;
   // (a car with an issue pulls over and stops; a speeder near a real car is the racing driver's)
   mayBreak(ctx, slot, env);
-  // (now and then one pulls in for fuel - ai/trafficFuel.ts)
-  mayStopForFuel(ctx, slot, env);
   if (slot.broke) {
     if (slot.broke.at != null) driveFuelStop(ctx, slot, env, speed);
     else driveBroken(ctx, slot, env, speed);
@@ -88,8 +85,7 @@ export function driveOne(ctx: TrafficCtx, slot: TrafficCar, env: DriveEnv) {
   const target = speedTarget(slot, lead, gap), brakeX = target.brakeX;
   // (asked over with the lane on its left taken alongside, it eases off to drop in
   // behind - ai/trafficYield.ts)
-  // (?hwtrips=1: and one that cannot get across to its exit in time eases off for a gap - 1
-  // with no trip)
+  // (and one that cannot get across to its exit in time eases off for a gap - 1 with no trip)
   const vTarget = target.vTarget * yieldSlowing(slot) * tripSlowing(slot);
   // ---- LOD (MEASURED, tools/_tfprof: applyGround alone is ~17 us per car-step,
   // 18 cars = 0.57 ms a step = a phone frame's budget gone): a car OUT OF VIEW and > PHYS_NEAR
@@ -101,5 +97,5 @@ export function driveOne(ctx: TrafficCtx, slot: TrafficCar, env: DriveEnv) {
   // (edging over for someone: its left indicator on)
   if ((slot.edge ?? 0) < -EDGE_SIGNAL_M) car.indicator = -1;
   // (leaving at the slip ahead: its left indicator on)
-  if (FIX.hwtrips) signalTrip(slot);
+  signalTrip(slot);
 }
