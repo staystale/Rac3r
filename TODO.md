@@ -14,21 +14,18 @@ carcull, the texture warm-up) and the stadium crossovers passed 11-12 ("mostly p
 records in `TODO-DONE.md` (PASSED 11-12). ?underskin (the damage look), ?carparts (steps 1-6:
 each car's own crash parts) and ?carshade (every closed car shaded) PASSED 11-17, the default
 (TODO-DONE, PASSED 11-17, THE PASS BATCH 4). ?dmgmore (the rolled cars, dragging) PASSED 11-17, the default (TODO-DONE, PASSED 11-17, MORE DAMAGE).
+ON THE PHONE NOW (round161): ?scanyah (the tractor), ?tipping, ?marktrack, ?dmgmore2 (the hanging
+exhaust - its own drawing, the redraw reverted - and bumper; steam and leaks).
 
 ## 2. BEING BUILT
 
 - THE 11-16 QUEUE (every item owner-approved after a brief plan; details in each worker's TODO
   entry as it lands):
-  - WORKER A, cars in order: Rebelion R13, Seat Ibeefa, Ordi A4 Avant, Fjord Transfit Custom (its
-    sliding door), BMV E36 Peak (new HILL CLIMB class), Skool Bus (rare in traffic, school-run hours);
-    then the TWO-WHEEL TIPPING (?tipping: realistic save, gravel trips through it); then the
-    Scanyah artic (a jointed trailer; drivable, NOT in traffic until the owner tests).
-  - WORKER B, damage (items 5 and 2 passed 11-17; 4 and 3 behind ?dmgmore2): rolled cars' underside matching what is missing, rolling
-    throws wheels and track rods by the face that hits; LOW RANGE finished as a small grip boost in
-    LO (owner: not a crawl); dragging (pull by what drags, sparks off the snapped arm, dirt spray);
-    a hanging exhaust and bumper (chance by damage, random distance); steam and leaks from the real
-    radiator / engine, worse damage leaks faster, puddles under the real parts. Then Blighty Park
-    RX (invented gravel, flagged; no joker) and a Blighty Park circuit.
+  - WORKER A (paused): the Scanyah trailer joint - WIP worker/joint 020b0d07, works; left: the
+    trailer's own parts, test entry, night check. Owner questions: the slow tractor, the start posts.
+  - WORKER B (paused): damage items 4 and 3 built (behind ?dmgmore2, under test). Blighty Park
+    RX and the Outer circuit - WIP worker/b4-blighty 7ac09580, built and checked; left: photos, docs,
+    the RX's 8.9 m corner, the proof.
   - PARKED: PIT STOPS (item 16 below) - owner 11-16: "needs more work and discussion, I have images
     to use" - ask for the images; the limiter per venue (80, 60 at tight ones), the AI's strategy
     simple. ?pbzline / ?driftbrake for the AI tune (3e). ?siren for the sound pass.
