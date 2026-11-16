@@ -14,6 +14,36 @@ LIST 11-01; TypeScript, mud, grass, lamps - Queue; weather, surfaces, car system
 lighting, bushes and trees - OWNER LIST 10-24; the checking tools - Tools that are wrong.
 
 
+
+## PASSED 11-16, THE PASS BATCH 2 (owner: the TS010 "with the reshape", the Tesla "rev bar and stuff pass", the Routemaster with its wheels / glass / mirrors, the M4 GT3)
+
+The default 11-16, their switches deleted: ts010 (and the PROTOTYPE class), tesla, routemonster,
+m4gt3 - always in the roster; the Tesla (0.048) and the bus (0.07) always in the traffic mix
+(tools/scratch/_trafficmix.mjs, 200 000 draws: the bus 0.5 %, the Tesla 0.3 %).
+- TOYOTER TS010 (Toyota TS010, 1992 Group C; PROTOTYPE / Group C): measured top 344 km/h, 0-100
+  3.0 s, 100-0 33.0 m, grip 1.65 g. RESHAPED (f5a22512; owner: "needs to look more like the real
+  car, not a rectangle - maybe use shadow and shading"): the real top view - four fender pods,
+  the narrow tub and teardrop canopy, the valleys, the spine, the wing over the tail - shaded in
+  the flat style (SHINE / SHADE / SHADE_SOFT, render/newcarlooks2.ts), white with the red canopy.
+- AEC ROUTEMONSTER (Routemaster RM; ROAD / Bus): measured top 68 km/h, 100-0 79.3 m, grip 0.74 g.
+  Its wheels at their real tracks under the body (54b11d13: trackR, front 2.05 / rear twins 1.80
+  EST, in the physics too - world/wheels.ts halfTrackAt), 5 x a car's glass (12.9 road-glass cells
+  a break against the Golf's 3.4: tools/scratch/_glassthrow.mjs), its big mirrors on arms at the
+  cab's front corners, knocked off as the mirror part (carbits.ts mirror).
+- TESLUR MODEL WHY (Tesla Model 3 Long Range AWD, 2019-20; ROAD / Saloon; 9534928d): measured top
+  233 km/h (real 233), 0-100 4.8 s (4.6), 100-0 36.6 m, grip 1.18 g. One gear, the motor's curve by
+  hand (493 Nm flat to ~6,300 rpm, then 324 kW); regen regenG 0.2 (physics/loads.ts: a lift from
+  130 slows it 0.21-0.20 g, the 3 Series 0.16-0.06 g: tools/scratch/_coast.mjs); no exhaust, no
+  engine or exhaust thrown, the frunk and front motor under its bonnet (carbits.ts electric); no
+  petrol stations; ~133,000 licensed (2025 Q4): weight 0.048. Its rev bar (02d65dd7) goes with its
+  wheel speed, red only past 98 % of its limit, no shift light (hud/gauges.ts ONE_GEAR_RED).
+- BMV M4 GT3 (BMW M4 GT3, G82; GT / GT3; 2887d540): measured top 286 km/h, 0-100 3.6 s, 100-0 29.6
+  m, grip 1.44 g, 40-100 2.69 s (the 911: 280, 3.0, 30.6, 1.47, 2.35); a cold launch spins its rears
+  1.45 s with the aids (0-100 4.62 s), 4.28 s without (5.83 s). Shaded the TS010's way, the M
+  stripes. Its own real crash parts come with the parts plan.
+PROOF (second PC: switch off worldhash, simhash, renderhash against the pass batch; switch on
+simhash each): follows.
+
 ## PASSED 11-16, THE PASS BATCH (owner: "Focus hatch look pass" ... "Everything else was a pass")
 
 The default 11-16, their switches and old paths deleted: focustlook, cleo (as the Clio III Cup),

@@ -359,7 +359,7 @@ export const CAR_STATS: Record<string, CarStat> = {
       "tcs": false
     }
   },
-  // (measured alone: tools/carstats.mjs ts010 with TS010=1, a new car behind its switch)
+  // (measured alone: tools/carstats.mjs ts010)
   "ts010": {
     "topKph": 344,
     "zeroTo100": 3,
@@ -372,7 +372,7 @@ export const CAR_STATS: Record<string, CarStat> = {
       "tcs": false
     }
   },
-  // (measured alone: tools/carstats.mjs routemonster with ROUTEMONSTER=1, behind its switch)
+  // (measured alone: tools/carstats.mjs routemonster)
   "routemonster": {
     "topKph": 68,
     "zeroTo100": null,
@@ -424,7 +424,7 @@ export const CAR_STATS: Record<string, CarStat> = {
       "tcs": false
     }
   },
-  // (measured alone: tools/carstats.mjs tesla-m3 with TESLA=1, behind its switch)
+  // (measured alone: tools/carstats.mjs tesla-m3)
   "tesla-m3": {
     "topKph": 233,
     "zeroTo100": 4.8,
@@ -437,7 +437,7 @@ export const CAR_STATS: Record<string, CarStat> = {
       "tcs": true
     }
   },
-  // (measured alone: tools/carstats.mjs bmv-m4gt3 with M4GT3=1, behind its switch)
+  // (measured alone: tools/carstats.mjs bmv-m4gt3)
   "bmv-m4gt3": {
     "topKph": 286,
     "zeroTo100": 3.6,

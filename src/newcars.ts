@@ -4,7 +4,6 @@
 // the owner passes it. Each row follows the real car (src/realcars.ts helpers); EST marks a figure
 // no source gave. Drafted with tools/newcarstart.mjs, checked with tools/newcar.mjs <id>.
 import type { RosterRow } from './cars.ts';
-import { FIX } from './core/fixes.ts';
 import { dragOf, realCurve, tyreR } from './realcars.ts';
 
 // GT: the GT3 racers (TODO CHAMPIONSHIPS: GT), a class of their own on race tyres
@@ -467,10 +466,8 @@ const M4GT3: RosterRow = {
 
 /** The new cars: their roster rows, in the list's order. */
 export const NEW_CARS: RosterRow[] = [PORCH, SEVEN, TRANSFIT, TROPHY, CIVVIC, DEFUNDER, FOCUST,
-  CLEO, CLEO_RS, TRANSFIT_LWB, TRANSFIT_SWB,
-  ...(FIX.ts010 ? [TS010] : []), ...(FIX.routemonster ? [ROUTEMONSTER] : []),
-  SAXO, STRANGE, SAXO_VTR, ...(FIX.tesla ? [TESLA] : []),
-  ...(FIX.m4gt3 ? [M4GT3] : [])];
+  CLEO, CLEO_RS, TRANSFIT_LWB, TRANSFIT_SWB, TS010, ROUTEMONSTER, SAXO, STRANGE, SAXO_VTR, TESLA,
+  M4GT3];
 
 /** The classes only new cars race in. */
-export const NEW_CLASSES = [GT_CLASS, TOURING_CLASS, ...(FIX.ts010 ? [PROTO_CLASS] : [])];
+export const NEW_CLASSES = [GT_CLASS, TOURING_CLASS, PROTO_CLASS];

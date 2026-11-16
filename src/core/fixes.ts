@@ -25,7 +25,8 @@
 // 11-15; gpustat (now always with ?report=1), hwtrips, pembreezy, and the new cars porch,
 // seven, transfit, trophy, civvic, defunder, focust and launchramp passed 11-16; then focustlook,
 // cleo (as the Clio III Cup), cleoroad, transfitlwb, transfitswb, saxo, strange, saxovtr,
-// fuelcarry and rollguard passed 11-16.)
+// fuelcarry and rollguard passed 11-16; then ts010 (with its PROTOTYPE class), tesla,
+// routemonster and m4gt3 passed 11-16.)
 import { envValue } from './debug.ts';
 
 /**
@@ -68,17 +69,8 @@ export const FIX = {
   // suspension and drive shaft in a wing's well, the crash bar and radiator behind a bumper - by
   // each car's own layout (render/underskin.ts, carbits.ts mount / radiator)
   underskin: atLoad('underskin'),
-  // the AEC Routemonster (a London Routemaster double-decker), drivable and in the traffic
-  routemonster: atLoad('routemonster'),
-  // the Teslur Model Why (a Tesla Model 3 Long Range AWD), ROAD / Saloon, in the traffic: its
-  // regen (regenG), no exhaust, its frunk, no petrol stations
-  tesla: atLoad('tesla'),
-  // the BMV M4 GT3 (a BMW M4 GT3, G82), GT / GT3
-  m4gt3: atLoad('m4gt3'),
   // REVERSE as in life, every car: traction control works going backwards too (it skipped
   // reverse), and the 20 km/h cap holds - the drive fades by the driven wheels' speed at the cap,
   // as the rev limiter's (it was cut by road speed only: spinning wheels carried cars to 23-32)
   reversefix: atLoad('reversefix'),
-  // the Toyoter TS010 (a Toyota TS010 Group C car) and its PROTOTYPE class
-  ts010: atLoad('ts010'),
 };
