@@ -573,6 +573,7 @@ function paintRaceNumber(spr: SpriteCtx): void {
     saloon: [0.43, 2], wrz: [0.435, 2], porch: [0.46, 2], seven: [0.68, 1],
     van: [0.40, 2], trophy: [0.50, 2], btcc: [0.42, 2],
     defunder: [0.38, 2], focust: [0.40, 2], cleo: [0.38, 2], cleors: [0.38, 2],
+    bus: [0.5, 2],
   }[kind] || [0.365, 2];
   numPanel(spr, along(numSpot[0]), numSpot[1]);
 }

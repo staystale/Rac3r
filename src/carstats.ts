@@ -358,5 +358,18 @@ export const CAR_STATS: Record<string, CarStat> = {
       "abs": true,
       "tcs": false
     }
+  },
+  // (measured alone: tools/carstats.mjs routemonster with ROUTEMONSTER=1, behind its switch)
+  "routemonster": {
+    "topKph": 68,
+    "zeroTo100": null,
+    "brake100": 79.3,
+    "gripG": 0.74,
+    "massKg": 7470,
+    "drive": "RWD",
+    "aids": {
+      "abs": false,
+      "tcs": false
+    }
   }
 };

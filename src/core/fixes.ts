@@ -82,4 +82,6 @@ export const FIX = {
   // the Fjord Transfit SWB (a Transit Mk7 T280 SWB, 2006-13), drivable and in the traffic; with it
   // the L2 is the Fjord Transfit MWB too
   transfitswb: atLoad('transfitswb'),
+  // the AEC Routemonster (a London Routemaster double-decker), drivable and in the traffic
+  routemonster: atLoad('routemonster'),
 };

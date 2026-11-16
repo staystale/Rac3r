@@ -37,6 +37,7 @@ export const PAINT_STOCK: Record<string, { trim?: string; third?: string; rim?: 
   'focust-st': { third: '#16181d' },
   'cleo-cup': { third: '#16181d' },
   'cleo-rs200': { third: '#16181d' },
+  routemonster: { third: '#e8dcb0' },
 };
 /**
  * A rim choice's colour: a palette colour, a RIM_FINISH name, or empty for the stock rims.
@@ -80,4 +81,5 @@ export const TYRE_LOOK: Record<string, { wF: number; wR: number; dia: number; ri
   'focust-st': { wF: 0.235, wR: 0.235, dia: 0.647, rim: 0.483 },   // 235/35 R19
   'cleo-cup': { wF: 0.2, wR: 0.2, dia: 0.61, rim: 0.432 },   // 20/61-17
   'cleo-rs200': { wF: 0.215, wR: 0.215, dia: 0.625, rim: 0.432 },   // 215/45 R17
+  routemonster: { wF: 0.27, wR: 0.54, dia: 1.03, rim: 0.508 },   // 10.00-20, twin at the rear
 };

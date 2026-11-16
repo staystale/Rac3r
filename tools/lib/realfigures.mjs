@@ -67,4 +67,6 @@ export const REAL_FIGURES = {
     topKph: null, zeroTo100: null, note: 'no published top speed or 0-100 (a one-make racer)' },
   'cleo-rs200': { real: 'Renaultsport Clio 200 Cup (Clio III, 2009-12, 6MT, 3-door)', topKph: 225,
     zeroTo100: 6.9, note: "Renault's figures" },
+  routemonster: { real: 'AEC Routemaster RM (1959-68, AV590 9.6 115 bhp, 4-speed semi-automatic)',
+    topKph: null, zeroTo100: null, note: 'no published top speed (~40 mph in London service)' },
 };
