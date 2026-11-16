@@ -320,14 +320,15 @@ const TS010: RosterRow = {
 // epicyclic gearbox with a fluid flywheel, RWD on twin rear wheels, 27 ft 6 in x 8 ft x 14 ft 4.5
 // in (8.38 x 2.44 x 4.38 m), 7.35 tons (7,470 kg) empty, no ABS. EST: the torque (520 Nm at
 // 1,000-1,300), the 2,000 limit, the ratios and final drive (to ~65 km/h: 40 mph), the wheelbase
-// (5.08 m) and the empty bus's 40 / 60, the track (2.0), the 10.00-20 tyres, Cd 0.8 x 9 m^2, the CG
-// (1.4 m), the bus tyres' grip and stiffness, the springs.
+// (5.08 m) and the empty bus's 40 / 60, the tracks (2.05 front, the rear twins' middles 1.80: the
+// tyres' outer edges ~1.16 m out, under the 1.22 m body, as on an 8 ft bus), the 10.00-20 tyres,
+// Cd 0.8 x 9 m^2, the CG (1.4 m), the bus tyres' grip and stiffness, the springs.
 const ROUTEMONSTER: RosterRow = {
   id: 'routemonster', name: 'AEC Routemonster', kind: 'bus', cls: 'road', sub: 'Bus',
   rimIn: 20,   // its real rim, inches (what tyres fit)
   cg: 1.4, rideH: 0.25, cyl: 6,
   aids: { abs: false, tcs: false },
-  mass: 7470, lf: 3.048, lr: 2.032, len: 8.38, wid: 2.44, trackWidth: 2.0,
+  mass: 7470, lf: 3.048, lr: 2.032, len: 8.38, wid: 2.44, trackWidth: 2.05, trackR: 1.8,
   // 10.00-20: 1.03 m across, 0.27 m wide
   tyreWidth: 0.27, wheelR: 0.515,
   drive: 0.0, brakeBiasF: 0.55, caF: 250000, caR: 400000, mu: 0.85,

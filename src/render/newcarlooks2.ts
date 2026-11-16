@@ -384,6 +384,9 @@ function paintRoutemonster(spr: SpriteCtx): void {
   }
   // the two vents on the roof, front and back
   for (const share of [0.2, 0.8]) block(along(share), mid - 2, 3, 5, STEEL);
+  // the big mirrors on their arms at the cab's front corners: the arm out from the body, the head
+  for (const y of [-1, wid]) block(along(0.9), y, along(0.04), 1, STEEL);
+  for (const y of [-2, wid]) block(along(0.94), y, 3, 2, INK);
   // the lamps at the front corners, the tail lamps by the platform
   for (const y of [1, wid - 3]) block(len - 2, y, 2, 2, HEAD);
   for (const y of [1, wid - 3]) block(0, y, 1, 2, TAIL);

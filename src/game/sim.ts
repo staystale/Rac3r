@@ -34,6 +34,7 @@ import { stepFlashes } from './flashes.ts';
 import { FIX } from '../core/fixes.ts';
 import { ROLL_CLEAR_S, respawnBehind } from './resetspot.ts';
 import { stepSirens } from './sirens.ts';
+import { halfTrackAt } from '../world/wheels.ts';
 
 export function recoverCar(why: unknown) {
   if (shared.nanReports++ < 5)
@@ -495,7 +496,7 @@ export function stepLooseCones(tcars: TrafficVehicle[]) {
       const corner = racer.wheelSpawn.shift()!, cosH = Math.cos(racer.heading),
         sinH = Math.sin(racer.heading),
           alongOff = (corner < 2 ? racer.spec.lf : -racer.spec.lr),
-            sideOff = (corner % 2 ? 1 : -1) * (racer.spec.trackWidth || 1.5) / 2;
+            sideOff = (corner % 2 ? 1 : -1) * halfTrackAt(racer.spec, corner >= 2);
       const out = (corner % 2 ? 1 : -1) * 4;
       game.cones.add({ x: racer.x + cosH * alongOff - sinH * sideOff,
         y: racer.y + sinH * alongOff + cosH * sideOff, vx: racer.vx * 0.85 - sinH * out,

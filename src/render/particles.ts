@@ -7,6 +7,7 @@ import { airOf, windNow, type AirCar } from './airflow.ts';
 import type { Cam, Chip, ParticleCar, Puff, PuffHit, RenderMarks, View } from "./types.ts";
 import { dropChip, drawPuffsCheap } from './fxroom.ts';
 import { tyreSmokeStrength } from './tyresmoke.ts';
+import { halfTrackAt } from '../world/wheels.ts';
 
 // what createParticles destructures from the renderer
 interface ParticleHelpers {
@@ -358,7 +359,7 @@ const SHRED_COL = '#0d0e11';
 function wheelPlace(car: ParticleCar, corner: number): [number, number] {
   const spec = car.spec, cosHeading = Math.cos(car.heading), sinHeading = Math.sin(car.heading);
   const along = corner < 2 ? spec.lf ?? spec.len * 0.33 : -(spec.lr ?? spec.len * 0.33);
-  const across = (corner % 2 ? 1 : -1) * (spec.trackWidth ?? spec.wid) / 2;
+  const across = (corner % 2 ? 1 : -1) * halfTrackAt(spec, corner >= 2, spec.wid);
   return [car.x + along * cosHeading - across * sinHeading,
     car.y + along * sinHeading + across * cosHeading];
 }

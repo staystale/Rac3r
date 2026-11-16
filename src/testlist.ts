@@ -42,9 +42,11 @@ export const TEST_LIST: TestEntry[] = [
     name: 'New car: the AEC Routemonster (a London Routemaster bus), ROAD / Bus',
     where: 'Test link + &routemonster=1: the garage, ROAD; the highway for it in the traffic',
     try: 'Drive it (top speed about 68 km/h), throw it into a corner, look for it in the '
-      + 'traffic (about 1 in 250).',
+      + 'traffic (about 1 in 250); its wheels now under the body at their real tracks (hidden from '
+      + 'above, as on the real bus), its big mirrors on arms at the front corners - knock them off '
+      + 'side-on - and a hard corner hit throws about 4 times the glass of a car.',
     wrong: 'Not a Routemaster from above, too quick, rolls over far too easily, too common in '
-      + 'the traffic.',
+      + 'the traffic, wheels sticking out, mirrors that never come off, as little glass as a car.',
   },
   {
     id: 'ts010',

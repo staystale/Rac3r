@@ -21,6 +21,11 @@ export interface CarBits {
   mount: 'long' | 'trans'; radiator: 'front' | 'rear' | 'sides';
   // the wing stands on the boot lid (the 911 GT3 R's swan necks): it goes when the lid goes
   wingOnLid?: boolean;
+  // its glass against a car's (1): how much a broken corner's windows throw (world/debris.ts)
+  glass?: number;
+  // its mirrors where they are not a car's: the shares of its length they sit between, and the
+  // thrown mirror's size on its arm, px (render/carparts.ts)
+  mirror?: { from: number; until: number; px: [number, number] };
   // an ELECTRIC car (the Tesla): no exhaust and no engine to lose, its frunk under the bonnet
   // (render/underskin.ts), no petrol stations (ai/trafficTrips.ts)
   electric?: boolean;
@@ -138,9 +143,11 @@ export const CAR_BITS: Record<string, CarBits> = {
   'transfit-lwb': { pipes: 1, pipesAt: 'left', front: 'bonnet', rear: 'boot', engine: 'front',
     cyl: 4, layout: 'inline', mount: 'long', radiator: 'front' },
   // Routemaster: one pipe (EST: left), the bonnet, no boot (the open rear platform), the AV590
-  // six along the front, the radiator in the nose
+  // six along the front, the radiator in the nose; its glass two decks of windows (~5 x a car's),
+  // its big mirrors on their arms at the cab's front corners
   routemonster: { pipes: 1, pipesAt: 'left', front: 'bonnet', rear: 'none', engine: 'front',
-    cyl: 6, layout: 'inline', mount: 'long', radiator: 'front' },
+    cyl: 6, layout: 'inline', mount: 'long', radiator: 'front', glass: 5,
+    mirror: { from: 0.9, until: 0.97, px: [8, 4] } },
   // Saxo Kit Car: the side pipe on the right (EST, as the 306 Maxi's), the tailgate, the 1.6 four
   // across the front, the radiator in the nose
   'saxo-kit': { pipes: 1, pipesAt: 'right', front: 'bonnet', rear: 'boot', engine: 'front',

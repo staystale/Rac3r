@@ -4,6 +4,7 @@
 // car.bellyDepth each step; physics/tyres.ts drags it).
 import { rutAt } from "./wear.ts";
 import type { CarBody } from "./types.ts";
+import { halfTrackAt } from './wheels.ts';
 
 // (owner 11-03: "can suspension travel / ground clearance affect mud's drag?"): a car SINKS
 // into soft ground by BELLY_SINK (the wheels' contact under its top), and further by the ruts its
@@ -22,9 +23,10 @@ const BELLY_SINK: Record<string, number> = { mud: 0.08, thickMud: 0.16, sand: 0.
  */
 export function bellyDepth(car: CarBody, cosH: number, sinH: number): number {
   const sink = BELLY_SINK[car.surface ? car.surface.id : ''] || 0;
-  const spec = car.spec, hw2 = (spec.trackWidth || 1.5) / 2;
+  const spec = car.spec;
   let ruts = 0;
   for (const [axleX, side] of [[spec.lf, 1], [spec.lf, -1], [-spec.lr, 1], [-spec.lr, -1]]) {
+    const hw2 = halfTrackAt(spec, axleX < 0);
     ruts += rutAt(car.x + cosH * axleX - sinH * hw2 * side,
       car.y + sinH * axleX + cosH * hw2 * side) / 4;
   }

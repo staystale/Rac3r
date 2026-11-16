@@ -11,7 +11,7 @@ import { dragWater } from "./waterdrag.ts";
 import { passGlassCell } from "./debris.ts";
 import { notePass } from "./pass.ts";
 import { WEATHER } from "./weather.ts";
-import { carWheels, CORNER_OF_WHEEL, metalCorner } from "./wheels.ts";
+import { carWheels, CORNER_OF_WHEEL, halfTrackAt, metalCorner } from "./wheels.ts";
 import { staticCoverHere } from "./coverlookup.ts";
 import { fieldLayers } from "./coverfield.ts";
 import { puddleClearBy, setPassTyre } from "./puddles.ts";
@@ -656,13 +656,14 @@ function applySlopeForces(car: CarBody, cosH: number, sinH: number): void {
   // Each axle carries its static share of the weight, and the two axles' sideways pushes act at
   // the axles — so an off-centre whoop or dip under the FRONT wheels tugs the nose toward the dip
   // / away from the hump (requirement: dips and whoops should gently affect steering).
-  const hw2 = (spec.trackWidth || 1.5) / 2, perpSin = -sinH, perpCos = cosH,
+  const perpSin = -sinH, perpCos = cosH,
     wheelbase = spec.lf + spec.lr;
   const weight = spec.mass * car.mods.mass * 9.81;
   let Flong = 0, Flat = 0, yawMoment = 0;
   for (const [axleX, share, arm] of [[spec.lf, spec.lr / wheelbase, spec.lf], [-spec.lr,
     spec.lf / wheelbase, -spec.lr]]) {
     let slopeX = 0, slopeY = 0;
+    const hw2 = halfTrackAt(spec, arm < 0);
     for (const side of [1, -1]) {
       const wheelX = car.x + cosH * axleX + perpSin * hw2 * side,
         wheelY = car.y + sinH * axleX + perpCos * hw2 * side;

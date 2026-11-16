@@ -18,6 +18,7 @@ import { DEBRIS } from "../cones/coneConsts.ts";
 import { takeFenceShreds } from "./armcodent.ts";
 import { deckShiftOf } from "./deckwear.ts";
 import type { WearCell } from "./types.ts";
+import { halfTrackAt } from './wheels.ts';
 
 // a corner's hit of PART_HIT+ knocks its part off PART_P_MIN of the time, surely at
 // PART_HIT + PART_SPAN; an end-on hit (endW over END_ON) is a bumper, side-on (under SIDE_ON) a
@@ -53,7 +54,7 @@ const NO_GLASS = new Set(['track', 'banger', 'grass']);
 export interface DebrisCar {
   x?: number; y?: number; vx: number; vy: number; heading: number; crossing?: number;
   spec?: { id?: string; kind?: string; paint?: string; trim?: string; lf?: number; lr?: number;
-    trackWidth?: number; drive?: number };
+    trackWidth?: number; trackR?: number; drive?: number };
   partSpawn?: { corner: number; kind: string }[];
   partsOff?: number;     // a bit per part gone (until a repair): PART_BIT
   // the parts gone, "kind:corner" each joined by "," (render/carparts.ts draws the car without
@@ -265,7 +266,7 @@ function windowOut(car: DebrisCar, corner: number, add: number, rnd: () => numbe
 function cornerAt(car: DebrisCar, corner: number): { x: number; y: number; side: number } {
   const spec = car.spec || {}, cosH = Math.cos(car.heading), sinH = Math.sin(car.heading);
   const along = corner < 2 ? spec.lf ?? 1.2 : -(spec.lr ?? 1.2);
-  const side = corner % 2 ? 1 : -1, across = side * (spec.trackWidth || 1.5) / 2;
+  const side = corner % 2 ? 1 : -1, across = side * halfTrackAt(spec, corner >= 2);
   return { x: (car.x || 0) + cosH * along - sinH * across,
     y: (car.y || 0) + sinH * along + cosH * across, side };
 }
@@ -281,9 +282,12 @@ function shatterGlass(car: DebrisCar, corner: number, rnd: () => number) {
   const speed = Math.hypot(car.vx, car.vy);
   const aimX = speed > 1 ? car.vx / speed : Math.cos(car.heading);
   const aimY = speed > 1 ? car.vy / speed : Math.sin(car.heading);
-  const count = GLASS_CELLS_MIN + Math.floor(rnd() * (GLASS_CELLS_MORE + 1));
+  // (a car with more glass - the bus's two decks - throws more of it, further: its cells by its
+  // glass, its reach by the root of it, the same glass to the square metre)
+  const glass = bitsOf(car.spec?.id || '').glass ?? 1, reach = GLASS_REACH_M * Math.sqrt(glass);
+  const count = Math.round((GLASS_CELLS_MIN + Math.floor(rnd() * (GLASS_CELLS_MORE + 1))) * glass);
   for (let i = 0; i < count; i++) {
-    const ahead = rnd() * GLASS_REACH_M, spread = (rnd() - 0.5) * GLASS_REACH_M;
+    const ahead = rnd() * reach, spread = (rnd() - 0.5) * reach;
     // (on a bridge or in a tunnel, its own ground: world/deckwear.ts)
     glassCell(spot.x + deckShiftOf(car) + aimX * ahead - aimY * spread,
       spot.y + aimY * ahead + aimX * spread);

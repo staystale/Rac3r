@@ -63,8 +63,8 @@ export interface RosterRow {
   third?: string; spokes?: string; wheelMass?: number;
   izzK?: number; rim?: string; aiK?: number; aeroK?: number; downforceF?: number;
   downforceR?: number;
-  susF?: number; susZ?: number; trackWidth?: number; tyreWidth?: number; idleRpm?: number;
-  wheelR?: number; cyl?: number; steerMax?: number; regenG?: number;   // an EV's regen, g
+  susF?: number; susZ?: number; trackWidth?: number; trackR?: number; tyreWidth?: number;
+  idleRpm?: number; wheelR?: number; cyl?: number; steerMax?: number; regenG?: number;
   tyreOpt?: [number, number]; tyrePeak?: number; tyreColdGrip?: number;
   rimIn?: number; stockTyre?: string;   // its rim, inches; its own factory set
 }
