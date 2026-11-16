@@ -910,4 +910,11 @@ banks with crowds (RX: inside the gravel loop, south of the gravel's west run, i
 sand dunes (sand pads under humps) and pines south-west of the circuit, brought nearer than the
 real ones (about 600 m out), the firs' share 0.85 (`Level.firShare`: Pembrey Forest's pines). The
 OSM tyre walls are laid as tyre stacks (the circuit's: Spitfires' outside wall broken round the
-venue's marshal post, `trim` + `extra`; the RX skips a 2-point line through one).
+venue's marshal post, `trim` + `extra`; the RX skips a 2-point line through one). Both levels TIDY them
+(`VenueSpec.tidyTyres`, `world/venuetyres.ts`; every other venue lays its mapped walls as before):
+a wall whose stacks stand mostly more than `GUARD_REAL_M` (40 real m) past every raced road's edge is
+left out (it guards a road the level does not race: the rallycross section's wall on the circuit;
+the circuit's Speedway, Brooklands, outer south and paddock-side walls on the RX), a wall's stacks
+within `MAP_WALL_NEAR_M` (3 m) of the edge's own rows are left out (its fringe beside them, not
+only on them), and what is left in runs shorter than `MIN_RUN_REAL_M` (20 real m) is left out
+(lone tyres and stubs cut off by a road or the edge's rows).

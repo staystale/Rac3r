@@ -434,6 +434,26 @@ THE 10 NEW CARS (owner-approved names 11-16; one switch and one hand-back each; 
   full-size RX is longer than the half-size circuit; one build needs one scale); the unraced circuit
   pieces left out of the RX build (as Croughed RX); a proper Welsh flag drawing (today the flag
   prop in white, green and red in turn); whether the foreign-weather rule covers Wales.
+  OWNER 11-16 ("ok yes" to the recommendations): the classic clockwise RX lap as built; the scales
+  as built (RX full, circuit half); the unraced circuit pieces left out of the RX; the plain Welsh
+  flag (a dragon flag later); the dunes as placed; Wales is in the UK (no foreign weather); the tyre
+  walls decided after the clean frame numbers.
+  MESSY FENCES (owner 11-16: "pembreezy has messy fences but mostly good"): FOUND (tools/venueplan.mjs
+  plans, now with the loose objects by kind; tools/scratch/_tyrechains.mjs; photos at the flat-out
+  zoom 0.32, tools/scratch/_pbzshots.mjs ZOOM=): the map's tyre walls (19 lines round the circuit,
+  15 in the RX build) were laid wherever mapped - on the RX the circuit's Speedway, Brooklands,
+  outer south and paddock-side walls stood in open grass 44-121 m (median) from the raced road, one
+  across the paddock; on the circuit the rallycross section's wall stood alone in the infield 45 m
+  off; where the edge's own two rows run beside a mapped wall its stacks more than 1 m off them
+  stood as a jagged fringe; and lone tyres and 3-13 m stubs were left where a road or the edge's
+  rows cut a wall. FIX (VenueSpec.tidyTyres on both levels, world/venuetyres.ts; every other venue
+  as before): a wall standing mostly more than 40 real m past every raced road's edge left out, its
+  stacks within 3 m of the edge's rows left out, runs under 20 real m left out. MEASURED: tyre stacks
+  circuit 1366 -> 1231 (chains 18 -> 11, lone tyres 3 -> 0), RX 2746 -> 1336 (the mapped walls kept
+  round the raced road whole; the lone stacks left on the RX, 11, are the shared rallycross
+  dressing's apex blocks squeezed by its bales - kit.ts rxDress, not changed). barriercheck OK,
+  venueaudit nothing overlaps, propcheck clean on both; the menu thumbnails unchanged. Photos before /
+  after (844x390, 390x844, zoom 0.32, and the plans) in the hand-back.
 - DEMOLITION DERBY (owner 11-10: "Demolition derby levels classic tarmac circle - and we can reuse
   stock car tracks ect for that too"): a classic tarmac circle arena, and a derby mode on the stock
   car tracks (Stock Car, Grass Track, Old Wobbly). Questions when we come to it (the AI ramming, how
