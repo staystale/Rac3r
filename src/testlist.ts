@@ -13,6 +13,15 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'rollguard',
+    added: '2026-11-16',
+    name: 'Rolling starts: green waits for the real line when the AI pole is far off the track',
+    where: 'Test link + &rollguard=1: a race with a rolling start where an AI car is on pole',
+    try: 'Start a few rolling-start races; nothing should look different (normal racing never '
+      + 'puts the pole that far off).',
+    wrong: 'A rolling start that never goes green, or goes green before the pole reaches the line.',
+  },
+  {
     id: 'cleoroad',
     added: '2026-11-16',
     name: 'New car: the Renolt Cleo RS 200 (a Renaultsport Clio 200 Cup, Clio III), ROAD / Hatch',

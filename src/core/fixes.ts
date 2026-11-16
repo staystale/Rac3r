@@ -82,4 +82,7 @@ export const FIX = {
   // the Fjord Transfit SWB (a Transit Mk7 T280 SWB, 2006-13), drivable and in the traffic; with it
   // the L2 is the Fjord Transfit MWB too
   transfitswb: atLoad('transfitswb'),
+  // a rolling start's AI pole car out of the track's range holds its place: green waits for the
+  // real line (game/order.ts stepStart; the race order already did)
+  rollguard: atLoad('rollguard'),
 };
