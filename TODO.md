@@ -609,6 +609,10 @@ after measuring today's chances (Q8).
   Championship in story mode until you've upgraded your car ... max out bodywork ... because that
   would cover strength and weight". So BODY must cover weight (a stripped, lighter shell) as well
   as strength - today's plan has Body as damage and puncture chance only: confirm when H is built.
+  ROAD CARS ARE STOCK (owner 11-16): every road car is its real base standard spec. A championship
+  sets its own limits (the series baseline, caps, weight limits); the player upgrades up to them,
+  and if over a limit must downgrade, or buy another car - the player juggles it. Upgrades and
+  downgrades both exist.
 - THE AGREED GARAGE (owner 11-03, mockup "RAC3R Menu Redesign"; the menu look is done): the
   upgradeable parts' level bars head the sections they apply to (Engine, Drivetrain, Suspension,
   Body, Quality); tap a stat -> its upgrade screen (levels, now vs that level, gains, price);
