@@ -177,12 +177,13 @@ export function wheelShares(shares: number[], note: WheelHit): number[] {
  * @param rnd the random source
  */
 export function ripWheel(car: { wheelOff: boolean[]; wheelSpawn?: number[]; dmgBill?: number;
-  spec?: { kind?: string }; partSpawn?: { corner: number; kind: string }[] },
+  spec?: { kind?: string }; partSpawn?: { corner: number; kind: string }[]; suspOff?: number[] },
     note: WheelHit, rnd: () => number): void {
   if (note.into < RIP_FROM || car.wheelOff[note.corner]) return;
   if (rnd() >= Math.min(1, RIP_P0 + (1 - RIP_P0) * (note.into - RIP_FROM) / RIP_SPAN)) return;
   car.wheelOff[note.corner] = true;
-  wheelBits(car, note.corner, rnd);   // (its wishbones)
+  // (its wishbones)
+  wheelBits(car, note.corner, rnd, Math.min(1, (note.into - RIP_FROM) / RIP_SPAN));
   car.dmgBill = (car.dmgBill || 0) + LOST_WHEEL_BILL;
   (car.wheelSpawn || (car.wheelSpawn = [])).push(note.corner);
 }
@@ -210,7 +211,7 @@ export function rollRipWheels(car: Parameters<typeof ripWheel>[0], kind: string,
   for (const corner of corners) {
     if (car.wheelOff[corner] || rnd() >= chance) continue;
     car.wheelOff[corner] = true;
-    wheelBits(car, corner, rnd);
+    wheelBits(car, corner, rnd, scale);
     car.dmgBill = (car.dmgBill || 0) + LOST_WHEEL_BILL;
     (car.wheelSpawn || (car.wheelSpawn = [])).push(corner);
   }

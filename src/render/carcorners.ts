@@ -28,7 +28,7 @@ const STEER_ARM_M = 0.14;
 const STRUT_ALL_DAMAGE = 0.65, STRUT_ALL_PUSH = 0.5;
 // m a wing's opening reaches in from the car's side (render/carparts.ts WELL_DEPTH_M): a strut
 // not severely crushed stands at its inner lip
-const OPENING_DEPTH_M = 0.45;
+const OPENING_DEPTH_M = 0.68;
 
 /** Where a corner's wheel is drawn off its place (px, car frame) and whether it is exposed. */
 export interface CornerShift { x: number; y: number; exposed: boolean }
@@ -111,17 +111,19 @@ function crushAtWheel(car: RenderCar, sprite: CarSprite, corner: number, wheel: 
  * @param shift the wheel's push-in (px)
  * @param arms paints the fixed arms and shaft to the hub (render/cars.ts drawFixedArms)
  * @param rod the track rod's colour and its lighter edge (the arms')
+ * @param rackY px across where the track rod leaves the rack (a closed car: its subframe)
  */
 export function drawExposedCorner(ctx: CanvasRenderingContext2D,
   wheel: { axleX: number; side: number; steer: number; halfWidth: number },
-  shift: CornerShift, arms: () => void, rod: { colour: string; edge: string }): void {
+  shift: CornerShift, arms: () => void, rod: { colour: string; edge: string },
+  rackY = wheel.side * 2): void {
   const { axleX, side, steer, halfWidth } = wheel;
   const hubX = axleX * SPRITE_PPM + shift.x, hubY = side * halfWidth + shift.y;
   arms();
   if (axleX <= 0) return;
   // the track rod from the rack to the steering arm, turned with the wheel (drawWishbones' own)
   const arm = STEER_ARM_M * SPRITE_PPM;
-  const from = [hubX - arm, side * 2], dest = [hubX - Math.cos(steer) * arm,
+  const from = [hubX - arm, rackY], dest = [hubX - Math.cos(steer) * arm,
     hubY - Math.sin(steer) * arm];
   ctx.fillStyle = rod.edge;
   steerRod(ctx, from, dest, 3);

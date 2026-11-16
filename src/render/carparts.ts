@@ -18,7 +18,7 @@ import { FIX } from '../core/fixes.ts';
 
 // m a lost wing's well reaches in from the car's side with ?underskin (render/underskin.ts): past
 // the tyre to the strut and the drive shaft (the old hole, 3 px, was all tyre)
-const WELL_DEPTH_M = 0.45;
+const WELL_DEPTH_M = 0.68;
 // px a lost wing reaches in from the side (3 without ?underskin)
 const WING_DEPTH_PX = FIX.underskin ? Math.round(WELL_DEPTH_M * SPRITE_PPM) : 3;
 

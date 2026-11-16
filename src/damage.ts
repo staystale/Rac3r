@@ -88,7 +88,7 @@ export interface DamageCar extends Partial<DamageState>, PressureCar, Partial<En
   burstTyre?: number; burstSlow?: boolean; _hitKind?: string | null; _post?: PostNote | null;
   _wheelHit?: WheelHit | null;
   // crash debris (world/debris.ts): a bit per corner whose part / window is gone
-  partsOff?: number; glassOut?: number;
+  partsOff?: number; glassOut?: number; suspOff?: number[];
   _dsp?: RenderCar['_dsp'];   // the damaged sprite (render/cardamage.ts)
   _scrapeT?: number; _sideKick?: { dir: number; dv: number; carry?: number };
 }
@@ -109,6 +109,7 @@ export function damageInit(car: DamageCar): asserts car is DamagedCar {
   car.partsOff = 0;
   car.partLost = '';
   car.glassOut = 0;
+  car.suspOff = [0, 0, 0, 0];
   pressureInit(car);
   engineInit(car as DamageCar & EngineCar);
   derive(car as DamagedCar);
@@ -201,7 +202,8 @@ function hardHitCorners(
     if (add >= WHEEL_HIT && car.dmg[corner] >= WHEEL_AT && !car.wheelOff[corner]) {
       car.wheelOff[corner] = true;
       // (its strut / wishbone; the car carries its spec and parts queue)
-      wheelBits(car as Parameters<typeof wheelBits>[0], corner, rnd);
+      wheelBits(car as Parameters<typeof wheelBits>[0], corner, rnd,
+        Math.min(1, (add - WHEEL_HIT) / WHEEL_HIT));
       car.dmgBill = (car.dmgBill || 0) + 400;
       (car.wheelSpawn || (car.wheelSpawn = [])).push(corner);
     }

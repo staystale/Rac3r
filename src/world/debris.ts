@@ -19,6 +19,7 @@ import { takeFenceShreds } from "./armcodent.ts";
 import { deckShiftOf } from "./deckwear.ts";
 import type { WearCell } from "./types.ts";
 import { halfTrackAt } from './wheels.ts';
+import { FIX } from '../core/fixes.ts';
 
 // a corner's hit of PART_HIT+ knocks its part off PART_P_MIN of the time, surely at
 // PART_HIT + PART_SPAN; an end-on hit (endW over END_ON) is a bumper, side-on (under SIDE_ON) a
@@ -61,6 +62,8 @@ export interface DebrisCar {
   // them)
   partLost?: string;
   glassOut?: number;     // a bit per damage corner whose window is gone (until a repair)
+  // ?underskin: per corner, the suspension thrown with its wheel (SUSP_* bits; until a repair)
+  suspOff?: number[];
 }
 /** A loose part on the ground (a cones.ts object). */
 interface PartObject { part?: boolean; fade?: number; fading?: boolean }
@@ -222,24 +225,72 @@ export function rollParts(car: DebrisCar, kind: string, side: number, scale: num
   }
 }
 
+// ?underskin (owner 11-16: "they should all emit true to the amount knocked off the car"): a
+// wheel torn off ALWAYS takes its hub, and its suspension by how hard the hit was - no dice. Each
+// piece thrown is gone from the car (SUSP_* bits in car.suspOff, render/cars.ts draws what stays,
+// snapped); a driven wheel always takes its drive shaft's outer end.
+export const SUSP_STRUT = 1, SUSP_WISHBONE = 2, SUSP_SHAFT = 4;
+// the tearing hit's size, 0..1 (damage.ts: (add - WHEEL_HIT) / WHEEL_HIT), from which it takes the
+// STRUT, and from which the WISHBONE too (a closed car); an open car always its wishbone, from
+// OPEN_SECOND a second
+const STRUT_FROM = 0.3, WISHBONE_FROM = 0.65, OPEN_SECOND = 0.5;
+
 /**
  * a wheel torn off takes its suspension with it - an open car's WISHBONES, a closed car's STRUT
  * and maybe its lower arm, a driven wheel maybe its DRIVE SHAFT (damage.ts, physics/openwheel.ts).
+ * With ?underskin it is decided by the hit's size and recorded (car.suspOff), never rolled.
  * @param car the car
  * @param corner the wheel's corner
  * @param rnd the random source
+ * @param size the tearing hit's size, 0..1 (?underskin)
  */
-export function wheelBits(car: Pick<DebrisCar, 'spec' | 'partSpawn'>, corner: number,
-  rnd: () => number): void {
+export function wheelBits(car: Pick<DebrisCar, 'spec' | 'partSpawn' | 'suspOff'>, corner: number,
+  rnd: () => number, size = 0.5): void {
   const open = car.spec?.kind === 'track' || car.spec?.kind === 'grass';
   const spawn = (kind: string) => (car.partSpawn || (car.partSpawn = [])).push({ corner, kind });
   // a DRIVEN wheel's drive shaft may come with it (owner 11-07: "can drive shafts also be an
   // object that can come out")
-  const drive = car.spec?.drive ?? 0;
-  if ((corner < 2 ? drive > 0 : drive < 1) && rnd() < 0.5) spawn('shaft');
+  const driven = isDrivenCorner(car.spec?.drive, corner);
+  if (FIX.underskin) { suspensionOff(car, corner, { open, driven, size }, spawn); return; }
+  if (driven && rnd() < 0.5) spawn('shaft');
   if (open) { if (rnd() < 0.6) spawn('wishbone'); if (rnd() < 0.25) spawn('wishbone'); return; }
   if (rnd() < 0.4) spawn('strut');
   if (rnd() < 0.25) spawn('wishbone');
+}
+
+/**
+ * Whether a corner's wheel is driven.
+ * @param drive the car's drive split (0 rear .. 1 front; none = rear)
+ * @param corner the damage corner (0, 1 front)
+ * @returns driven
+ */
+function isDrivenCorner(drive = 0, corner: number): boolean {
+  return corner < 2 ? drive > 0 : drive < 1;
+}
+
+/**
+ * ?underskin: what a torn-off wheel takes, by the hit's size (no dice), each piece recorded as gone
+ * from the car (car.suspOff, SUSP_* bits) and thrown.
+ * @param car the car
+ * @param corner the wheel's corner
+ * @param wheel an open car's, a driven wheel, the tearing hit's size 0..1
+ * @param spawn throws a part of that kind
+ */
+function suspensionOff(car: Pick<DebrisCar, 'suspOff'>, corner: number,
+  wheel: { open: boolean; driven: boolean; size: number }, spawn: (kind: string) => void) {
+  const gone = (bit: number, kind: string) => {
+    spawn(kind);
+    const off = car.suspOff || (car.suspOff = [0, 0, 0, 0]);
+    off[corner] |= bit;
+  };
+  if (wheel.driven) gone(SUSP_SHAFT, 'shaft');
+  if (wheel.open) {
+    gone(SUSP_WISHBONE, 'wishbone');
+    if (wheel.size >= OPEN_SECOND) spawn('wishbone');
+    return;
+  }
+  if (wheel.size >= STRUT_FROM) gone(SUSP_STRUT, 'strut');
+  if (wheel.size >= WISHBONE_FROM) gone(SUSP_WISHBONE, 'wishbone');
 }
 
 /**

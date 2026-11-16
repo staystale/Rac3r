@@ -209,6 +209,8 @@ export interface RenderCar extends CamCar, Pick<Car, 'heading' | 'delta' | 'cros
   crushS: number[];
   roofDmg: number;
   wheelOff: boolean[];
+  // ?underskin: the suspension thrown with a lost wheel (world/debris.ts SUSP_*)
+  suspOff?: number[];
   partLost?: string;   // the parts gone (world/debris.ts)
   // metal on hard ground sparking (world/metalscrape.ts rims, roll.ts the body): night glows
   rimSparks?: boolean[];
