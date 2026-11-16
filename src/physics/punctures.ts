@@ -59,7 +59,8 @@ export const PRICKLY = new Set(['splinters', 'pulp', 'bones']);
 const METAL = new Set(['car', 'banger', 'truck', 'caravan', 'armco', 'catchfence', 'fence',
   'barrel', 'gantry',
   'pylon', 'lamp', 'chevron', 'tower', 'windsock', 'exhaust', 'bumper', 'wing', 'panel', 'bonnet',
-  'boot', 'spoiler', 'wishbone', 'strut', 'shaft', 'engine', 'fencepost']);
+  'boot', 'spoiler', 'wishbone', 'strut', 'shaft', 'rod', 'engine',
+  'fencepost']);
 
 /**
  * Whether what the car hit this step is metal (a car's body meeting it is metal on metal).

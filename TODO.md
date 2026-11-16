@@ -329,6 +329,22 @@ so its ring looked cut by the tyre; now a strut is never clipped: not severely c
 the wing opening's inner lip (its inner half under the body still there), severely crushed over the
 tyre (render/carcorners.ts drawExposedStrut). PHOTOS: every car of the roster (33) crashed nose
 first at 28 m/s, upright and then rolled over (roll.ts) and caught.
+ROLLED CARS (owner's damage item 5, plan approved 11-16), with ?underskin: the UNDERSIDE a rolled car
+shows is what is really there (render/carprofile.ts underCorner, painted once per damage step in
+render/rollbody.ts paintsOf): each corner's subframe rail, its wishbone's arms, a driven wheel's
+drive shaft from the middle (only driven axles: the bar across every axle gone), a front's track
+rod; a wheel torn off leaves them snapped as the upright car draws them (the arms 0.6 / 0.3 of the
+way, the shaft's and rod's stubs when they went, a strut's tower hole). A FRONT wheel torn off takes
+its TRACK ROD (world/debris.ts SUSP_ROD, thrown as a 'rod' - render/carparts.ts flatRod - and drawn
+as a stub at the rack on the upright corner, render/carcorners.ts drawSnappedCorner). Rolling tears
+off only the wheels on the face that meets the ground (physics/openwheel.ts rollCorners): a side's
+two; back on its wheels the LANDING side's two (roll.ts now passes the side it came off); on its roof
+none on a closed car (in the air), all four on an open car (they stand proud). MEASURED
+(tools/scratch/_rollthrow.mjs, 300 rolls a car, RANDOM_SEED 1, off -> on): wheels torn off on the
+roof, hatch-fwd 22 -> 0, saloon-rwd 16 -> 0, track-rwd (open) 91 -> 94; back on the wheels 9 -> 4,
+23 -> 9, 18 -> 3, each on the landing side (4/4, 9/9, 3/3; off: 5/9, 10/23, 12/18); on a side 39 ->
+56, 36 -> 44, 220 -> 212 (the draws part ways); track rods thrown 0 -> 40, 29, 151. Photos
+(tools/scratch/_rollunder.mjs, _underpic.mjs): no page errors. AWAITING THE PHONE TEST.
 
 THE 10 NEW CARS (owner-approved names 11-16; one switch and one hand-back each; src/newcars.ts):
 1-7 PASSED 11-16, the default with the launches (owner: "all pass apart from my earlier comments"):

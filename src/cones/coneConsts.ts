@@ -155,6 +155,8 @@ export const DEBRIS: Record<string, DebrisKind> = {
   strut:    { mass: 7,  r: 0.35, breaks: 0 },
   // a drive shaft: a steel bar with a joint each end
   shaft:    { mass: 6,  r: 0.4, breaks: 0 },
+  // a track rod: a thin steel bar with its ball joint
+  rod:      { mass: 2,  r: 0.3, breaks: 0 },
   engine:   { mass: 140, r: 0.55, breaks: 0 },
   // always flat: you drive over it (it drags off with you)
   tarp:     { mass: 3,  r: 0.9, breaks: 0, flat: true },
