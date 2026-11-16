@@ -436,5 +436,18 @@ export const CAR_STATS: Record<string, CarStat> = {
       "abs": true,
       "tcs": true
     }
+  },
+  // (measured alone: tools/carstats.mjs bmv-m4gt3 with M4GT3=1, behind its switch)
+  "bmv-m4gt3": {
+    "topKph": 286,
+    "zeroTo100": 3.6,
+    "brake100": 29.6,
+    "gripG": 1.44,
+    "massKg": 1300,
+    "drive": "RWD",
+    "aids": {
+      "abs": true,
+      "tcs": true
+    }
   }
 };

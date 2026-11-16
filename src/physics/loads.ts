@@ -7,6 +7,7 @@ import { CLUTCH_RELEASE, CLUTCH_TAKEUP } from './powertrain.ts';
 import { LOAD_MAX } from './tyres.ts';
 import { drivenWheelSpeed } from './wheelspin.ts';
 import { noteLanding, LANDING_AIR } from './steepground.ts';
+import { FIX } from '../core/fixes.ts';
 
 /**
  * Section 4 of step: longitudinal weight transfer, the per-axle suspension springs riding the
@@ -121,7 +122,7 @@ function tractionCut(car: Car, vLongAbs: number, inReverse: boolean, dt: number)
   // road, cut the engine — smoothly, a discontinuous force is a judder — and give it back as grip
   // returns. The stability half sets car.escCut (below, from the last step). Both only when the car
   // HAS TCS and it is switched on.
-  if (car.tcsOn && !inReverse) {
+  if (car.tcsOn && (!inReverse || FIX.reversefix)) {
     // allowed slip = 10% of road speed (min TCS_SPIN): real systems let ~10-15% slip through, it is
     // where traction peaks. MEASURED (requirement: TCS too strong): a flat 0.8 m/s cut in on plain
     // tarmac in most corner exits; gentler slope too.
@@ -130,6 +131,23 @@ function tractionCut(car: Car, vLongAbs: number, inReverse: boolean, dt: number)
     car.tcsK += (target - car.tcsK) * Math.min(1, 25 * dt);
   } else car.tcsK = 1;
   return car.tcsOn ? car.tcsK * car.escCut : 1;
+}
+
+// ?reversefix: the share of the reverse cap over which the drive fades out, the cap at its middle
+// (the rev limiter's fade: no force step)
+const REVERSE_FADE = 0.04;
+
+/**
+ * ?reversefix: the REVERSE SPEED CAP's share of the drive, by the driven wheels' own speed, faded
+ * out across the cap - so spinning wheels cannot carry a car past it, as a rev limiter holds them
+ * in a gear (the road speed's cut let them).
+ * @param carSpec the car
+ * @param wheelSpeed the driven wheels' speed, m/s
+ * @returns 0..1
+ */
+function reverseCap(carSpec: Spec, wheelSpeed: number): number {
+  const cap = carSpec.reverseMaxSpeed;
+  return clamp((cap * (1 + REVERSE_FADE / 2) - wheelSpeed) / (cap * REVERSE_FADE), 0, 1);
 }
 
 /**
@@ -190,7 +208,9 @@ export function computeLongitudinalDemand(car: Car, carSpec: Spec, mass: number,
   }
   let driveForce = (torque * totalRatio * carSpec.driveEff) / carSpec.wheelR;
   if (inReverse) driveForce = -driveForce;
-  if (inReverse && -vLong > carSpec.reverseMaxSpeed) driveForce = 0;   // reverse speed cap
+  // reverse speed cap (?reversefix: by the driven wheels, faded)
+  if (FIX.reversefix && inReverse) driveForce *= reverseCap(carSpec, revSpeed);
+  else if (inReverse && -vLong > carSpec.reverseMaxSpeed) driveForce = 0;
 
   // THE mechanism that makes drive layout real (PLAN.md): split by `drive`, then let each axle's
   // ellipse eat its own lateral budget. One force on the body instead => all five cars identical.

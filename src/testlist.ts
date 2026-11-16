@@ -13,6 +13,30 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'm4gt3',
+    added: '2026-11-16',
+    name: 'New car: the BMV M4 GT3 (the BMW M4 GT3, G82), GT / GT3, the 911 GT3 R\'s rival',
+    where: 'Test link + &m4gt3=1: the garage, GT; a race at Thruston, Brands Snatch or Spa with '
+      + 'the Porch 911 GT3 Arr; + &underskin=1 for a crash',
+    try: 'Its look (white, the M stripes, the kidneys, the big wing, shaded so the shape reads), '
+      + 'the straight six\'s pull (700 Nm from low revs) against the 911\'s high revs, the '
+      + 'braking, knock the boot lid off (the wing goes with it).',
+    wrong: 'Not an M4 GT3 from above, much faster or slower than the 911, a front-engined car that '
+      + 'turns like a rear-engined one.',
+  },
+  {
+    id: 'reversefix',
+    added: '2026-11-16',
+    name: 'Reverse as in life, every car: traction control works going backwards, and the 20 km/h '
+      + 'reverse cap holds',
+    where: 'Test link + &reversefix=1: any car, any level (a powerful one shows it best: the Tesla '
+      + 'with &tesla=1, the Huracan, the 3 Series), on tarmac and on gravel',
+    try: 'Hold reverse from a standstill: the car tops out at 20 km/h (it reached 23-32 before), '
+      + 'with only a short chirp of wheelspin; TCS off lets the wheels spin a little more.',
+    wrong: 'Reverse faster than about 20 km/h, a jolt at the cap, reverse that will not move off, '
+      + 'the AI stuck reversing.',
+  },
+  {
     id: 'hudfit',
     added: '2026-11-16',
     name: 'Landscape HUD: compact temperature, FPS drops when short, ABS / TCS at the bottom',

@@ -563,6 +563,115 @@ function paintTesla(spr: SpriteCtx): void {
   block(0, 6, 1, wid - 12, dark);
 }
 
+// the M stripes' other two colours (the second colour is the light blue)
+const M_DARK_BLUE = '#1c3f94', M_RED = '#d0242b';
+
+/**
+ * The M4 GT3's plan, a half width at a share of its length (0 tail, 1 nose), as a share of the
+ * sprite's half: the GT3's flared arches over both axles, the waist at the doors, the rounded tail,
+ * the long nose tapering to its corners.
+ * @param share along the car, 0..1
+ * @returns the half width, 0..1
+ */
+function m4Plan(share: number): number {
+  const arch = Math.max(inside(share, 0.06, 0.3, 0.05), inside(share, 0.66, 0.9, 0.05));
+  const tail = share < 0.04 ? 0.8 + 0.2 * Math.sqrt(share / 0.04) : 1;
+  const nose = share > 0.92 ? Math.sqrt(1 - 0.6 * ((share - 0.92) / 0.08) ** 2) : 1;
+  return (0.9 + 0.1 * arch) * tail * nose;
+}
+
+/**
+ * The M4 GT3's shape in shading (the TS010's way): the arches' crests lit and their inner slopes
+ * shaded, the doors' waist in shadow, the bonnet's two power domes, the vents behind the front
+ * wheels and on the bonnet.
+ * @param spr the painting context
+ */
+function m4Shape(spr: SpriteCtx): void {
+  const { widthPx: wid, mid, block, along } = spr;
+  for (const [from, until] of [[0.06, 0.3], [0.66, 0.9]]) {
+    block(along(from) + 1, 2, along(until - from) - 2, 1, SHINE);
+    block(along(from) + 1, wid - 3, along(until - from) - 2, 1, SHADE);
+    block(along(from) + 2, 4, along(until - from) - 4, 1, SHADE_SOFT);
+    block(along(from) + 2, wid - 5, along(until - from) - 4, 1, SHADE_SOFT);
+  }
+  block(along(0.3), 2, along(0.36), 1, SHADE_SOFT);
+  block(along(0.3), wid - 3, along(0.36), 1, SHADE);
+  for (const y of [mid - 7, mid + 6]) {
+    block(along(0.7), y, along(0.22), 1, SHINE);
+    block(along(0.7), y + 1, along(0.22), 1, SHADE_SOFT);
+  }
+  for (const y of [3, wid - 5]) block(along(0.62), y, along(0.03), 2, INK);
+  block(along(0.8), mid - 4, along(0.04), 9, INK);
+  block(along(0.8) + 1, mid - 3, along(0.04) - 2, 7, MESH);
+}
+
+/**
+ * The M4 GT3's glass and the M stripes: the long sloping rear screen, the roof, the raked
+ * windscreen and mirrors (the third colour); the stripes along the middle from the nose to the
+ * tail - the M light blue (the second colour), the dark blue and the red.
+ * @param spr the painting context
+ */
+function m4Cabin(spr: SpriteCtx): void {
+  const { lengthPx: len, mid, trim, third, block, along } = spr;
+  const half = Math.round(mid * 0.72), rearFrom = along(0.14), roofFrom = along(0.26),
+    roofTo = along(0.54), screenTo = along(0.65);
+  for (let x = rearFrom; x < roofFrom; x++) {
+    const narrow = Math.round(3 * (roofFrom - x) / (roofFrom - rearFrom));
+    block(x, mid - half + narrow, 1, (half - narrow) * 2 + 1, GLASS);
+  }
+  block(rearFrom + 2, mid - half + 4, 1, half * 2 - 7, GLASS_HI);
+  block(roofFrom + 1, mid - half - 1, roofTo - roofFrom - 2, 1, GLASS);
+  block(roofFrom + 1, mid + half + 1, roofTo - roofFrom - 2, 1, GLASS);
+  block(roofFrom, mid - half, roofTo - roofFrom, 1, SHINE);
+  for (let x = roofTo; x < screenTo; x++) {
+    const across = Math.round(half + 1 + 2 * (x - roofTo) / (screenTo - roofTo));
+    const rake = Math.round((x - roofTo) * 0.3);
+    block(x, mid - across + rake, 1, (across - rake) * 2 + 1, GLASS);
+  }
+  block(roofTo + 1, mid - half + 1, 1, half * 2 - 1, GLASS_HI);
+  block(screenTo - 2, mid - half - 4, 2, 2, third);
+  block(screenTo - 2, mid + half + 3, 2, 2, third);
+  // the M stripes, over the body but not the glass
+  const stripes = [[along(0.02), rearFrom], [roofFrom, roofTo], [screenTo, len - 3]];
+  for (const [startX, until] of stripes) {
+    block(startX, mid - 3, until - startX, 2, trim);
+    block(startX, mid - 1, until - startX, 2, M_DARK_BLUE);
+    block(startX, mid + 1, until - startX, 2, M_RED);
+  }
+}
+
+/**
+ * BMV M4 GT3 (BMW M4 GT3, G82, 2022 on): the long coupe on its GT3 arches, the long bonnet with
+ * its power domes and vents, the big upright kidneys in the nose, the swept lamps, the splitter
+ * (the third colour), the M stripes, the swan-neck wing on the boot lid with its shadow; shaded the
+ * TS010's way so the shape reads.
+ * @param spr the painting context
+ */
+function paintM4(spr: SpriteCtx): void {
+  const { spec, lengthPx: len, widthPx: wid, mid, outline, light, third, block } = spr;
+  planBody(spr, (x) => mid * m4Plan(x / (len - 1)));
+  m4Shape(spr);
+  m4Cabin(spr);
+  for (const y of [3, wid - 5]) {
+    block(len - 7, y, 5, 2, HEAD);
+    block(len - 4, y + (y < mid ? 1 : -1), 2, 2, HEAD);
+  }
+  for (const y of [mid - 5, mid + 1]) {
+    block(len - 3, y, 3, 4, INK);
+    block(len - 2, y + 1, 1, 2, MESH);
+  }
+  block(len, 2, 1, wid - 4, third);
+  for (const y of [2, wid - 6]) block(0, y, 2, 4, TAIL);
+  if (spec.noWing) return;
+  block(2, 1, 5, wid - 2, SHADE);
+  block(0, 0, 5, wid, outline);
+  block(1, 1, 3, wid - 2, third);
+  block(3, 1, 1, wid - 2, light);
+  block(0, 0, 6, 1, INK);
+  block(0, wid - 1, 6, 1, INK);
+  for (const y of [mid - 6, mid + 5]) block(4, y, 4, 2, STEEL);
+}
+
 /** Cars 6 on: their bodies by id (render/carlooks.ts LOOKS takes them). */
 export const NEW_LOOKS_2: [string, { paint: (spr: SpriteCtx) => void; bare?: boolean }][] = [
   ['defunder-110', { paint: paintDefunder, bare: true }],
@@ -575,4 +684,5 @@ export const NEW_LOOKS_2: [string, { paint: (spr: SpriteCtx) => void; bare?: boo
   ['tesla-m3', { paint: paintTesla, bare: true }],
   ['strange-l322', { paint: paintStrangeRover, bare: true }],
   ['ts010', { paint: paintTs010, bare: true }],
+  ['bmv-m4gt3', { paint: paintM4, bare: true }],
 ];

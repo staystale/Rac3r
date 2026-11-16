@@ -438,11 +438,39 @@ const TESLA: RosterRow = {
   paint: '#f2f2ee', trim: '#1c2026', glass: '#2a2f38', rim: '#9aa0a8',
 };
 
+// BMW M4 GT3 (G82, 2022 on; BMW M Motorsport's sheet): the P58 3.0 twin-turbo straight six along
+// the front, "up to 590 hp" (434 kW; BoP), ~700 Nm, an Xtrac six-speed sequential, RWD, 5,020 x
+// 2,040 mm (with the splitter, wing and mirrors), 1,308 mm high, wheelbase 2,917, race ABS and
+// traction control, the swan-neck wing on the boot lid. EST: ~1,300 kg (BoP), the body's width
+// (2.0 m), the torque's band (2,750-5,500) and power's rpm (6,250), the 7,250 limit, the ratios
+// and final drive (to ~285 km/h, the 911's), Cd 0.45 x 2.15 m^2, the downforce (as the 911's, a
+// little more on the nose), 52 / 48, the track, the CG, 30/68-18 and 31/71-18 slicks' grip and
+// stiffness, the springs.
+const M4GT3: RosterRow = {
+  id: 'bmv-m4gt3', name: 'BMV M4 GT3', kind: 'm4gt3', cls: 'gt', sub: 'GT3',
+  rimIn: 18,   // its real rim, inches (what tyres fit)
+  cg: 0.43, rideH: 0.08, cyl: 6,
+  aids: { abs: true, tcs: true },
+  mass: 1300, lf: 1.4, lr: 1.517, len: 5.02, wid: 2.0, trackWidth: 1.7,
+  // the rear tyre's 710 mm across (31/71-18), 310 mm wide
+  tyreWidth: 0.31, wheelR: 0.355,
+  drive: 0.0, brakeBiasF: 0.62, caF: 120000, caR: 160000, mu: 1.6,
+  curve: realCurve({ idle: 1300, low: 0.6, nm: 700, nmFrom: 2750, nmTo: 5500,
+    kw: 434, kwAt: 6250, redline: 7250 }),
+  redline: 7250, upshiftRpm: 7050, downshiftRpm: 4000, idleRpm: 1300,
+  gears: [3.1, 2.25, 1.8, 1.5, 1.29, 1.13], finalDrive: 2.95, dragC: dragOf(0.45, 2.15),
+  aeroK: 1.3, downforceF: 0.95, downforceR: 1.2, susF: 2.2, susZ: 0.32,
+  // white, the M stripes (the second colour, the M light blue; with the dark blue and red), black
+  // details and wheels
+  paint: '#f0f0ea', trim: '#3d8fd6', glass: '#2a2f38', rim: '#16181d',
+};
+
 /** The new cars: their roster rows, in the list's order. */
 export const NEW_CARS: RosterRow[] = [PORCH, SEVEN, TRANSFIT, TROPHY, CIVVIC, DEFUNDER, FOCUST,
   CLEO, CLEO_RS, TRANSFIT_LWB, TRANSFIT_SWB,
   ...(FIX.ts010 ? [TS010] : []), ...(FIX.routemonster ? [ROUTEMONSTER] : []),
-  SAXO, STRANGE, SAXO_VTR, ...(FIX.tesla ? [TESLA] : [])];
+  SAXO, STRANGE, SAXO_VTR, ...(FIX.tesla ? [TESLA] : []),
+  ...(FIX.m4gt3 ? [M4GT3] : [])];
 
 /** The classes only new cars race in. */
 export const NEW_CLASSES = [GT_CLASS, TOURING_CLASS, ...(FIX.ts010 ? [PROTO_CLASS] : [])];

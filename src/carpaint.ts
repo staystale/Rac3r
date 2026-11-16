@@ -27,6 +27,7 @@ export const PAINT_STOCK: Record<string, { trim?: string; third?: string; rim?: 
   'grass-special': { trim: '#c9ccd4', third: '#3a3d45' },
   'drift-s13': { trim: '#f0f0ea', third: '#e86fa8' },
   'porch-gt3r': { third: '#16181d' },
+  'bmv-m4gt3': { third: '#16181d' },
   'seven-420r': { third: '#f2a900' },
   'transfit-van': { third: '#1d3f9a' },
   'transfit-lwb': { third: '#1d3f9a' },
@@ -76,6 +77,7 @@ export const TYRE_LOOK: Record<string, { wF: number; wR: number; dia: number; ri
   'drift-s13': { wF: 0.215, wR: 0.235, dia: 0.626, rim: 0.432 },   // EST 215/45 + 235/40 R17
   // 30/68-18 + 31/71-18 (one diameter: the mean of 680 and 710 mm)
   'porch-gt3r': { wF: 0.300, wR: 0.310, dia: 0.695, rim: 0.457 },
+  'bmv-m4gt3': { wF: 0.300, wR: 0.310, dia: 0.71, rim: 0.457 },   // 30/68-18, 31/71-18
   'seven-420r': { wF: 0.195, wR: 0.195, dia: 0.576, rim: 0.381 },   // 195/50 R15
   'transfit-van': { wF: 0.215, wR: 0.215, dia: 0.660, rim: 0.381 },   // 215/65 R15
   'transfit-lwb': { wF: 0.235, wR: 0.235, dia: 0.712, rim: 0.406 },   // EST 235/65 R16
