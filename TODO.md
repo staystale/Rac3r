@@ -307,6 +307,24 @@ THE 10 NEW CARS (owner-approved names 11-16; one switch and one hand-back each; 
    Golf's. Photos (laptop) before / after: the sprite beside the Golf, racing on Thruston at 844x390
    and 390x844. PROOF (PC, base round99): switch off renderhash SAME (thruston, brands-snatch,
    highway, and Thruston with the Focust as the player car).
+   THE SHORT-LAP CREDIT (aifieldcheck's AI runs; found on cars 2, 4, 8, 8b): FIXED 11-16 in the tools
+   (f16067b1). querySubtrack gives { dist: Infinity, trackDist: 0 } for a car past the track grid's
+   reach (~23-35 m off the centreline); aifieldcheck read that 0 as the start line - the progress
+   jumped half a lap to it, a lap was credited, it jumped back when the car came within range (runs
+   of 0.1 s laps). The game is not affected: game/order.ts already holds the progress while
+   !isFinite(near.dist). Now aifieldcheck, aidrivecheck, aijokercheck and scratch/_ailap hold it
+   too (the off-road counting unchanged). MEASURED (laptop, round107, 2 6 7 3), before -> after:
+   Sweaty Lamb with the Seven - #1 credited 5 laps (5.2 and 37.1 s among them) -> 3; with the Cleo
+   Cup - #4 4 laps (42.2 s) -> 3; with the Cleo RS 200 and Thruston with the trophy truck no short
+   lap in either run this time (13 / 8 jumps in the earlier traced runs); every car 3 laps after,
+   the lap times otherwise the same within the tools' run-to-run noise (aifieldcheck and aijokercheck
+   do not repeat exactly: the same code twice, Knobhill seed 1, 206.5 / 205.4 s). aijokercheck
+   (Slidden Hill, Knobhill, the S1, seeds 1-2) and aidrivecheck (Sweaty Lamb, the trophy truck:
+   150.1 / 150.0 s) the same within it. scratch/_ailap.mjs does not run (it imports the old lab.js),
+   before or after. THE GAME'S ONE UNGUARDED READ (order.ts stepStart, not changed): a rolling
+   start's AI pole car's trackDist; it would need that car 23-35 m off the centreline in the last
+   60 m before the line during the formation (driven at roll pace on the line by its autodriver),
+   and would then show green up to ~60 m early. Owner to say whether to guard it.
    OPEN, one switch and one hand-back each:
 8. RENOLT CLEO CUP (Renault Clio Cup, Clio V, 2020 on: the one-make racer): BUILT 11-16 behind
    ?cleo=1 (FIX.cleo; testlist 'cleo'), TOURING / One-make (a new type: the one-make cup racers on
