@@ -1,7 +1,8 @@
 // _hangshots.mjs - ?dmgmore2 item 4 (world/hanging.ts, render/hanging.ts): a car with its exhaust
 // left HANGING (its end on the road behind the tail, sparks on tarmac) and a torn rear bumper's
 // piece dragging (paint chips), driven straight on the Test Track's tarmac at ~10 m/s; photos at
-// 844x390 and 390x844, zoomed in. node tools/scratch/_hangshots.mjs <dir> [cars] [extra query]
+// 844x390 and 390x844, zoomed in (ZOOM=0: at the game's own zoom).
+// node tools/scratch/_hangshots.mjs <dir> [cars] [extra query]
 import { mkdirSync } from 'node:fs';
 import { startServer, launchBrowser, gotoGame } from '../lib/browser.mjs';
 const [OUT = 'tools/scratch/hangshots', carsArg = 'hatch-fwd,saloon-rwd', query = 'dmgmore2=1']
@@ -18,7 +19,7 @@ try {
       await gotoGame(page, `${server.url}/?pc=1&guide=0&menu=0&rules=0&noaudio=1&${query}`);
       await page.mouse.click(width / 2, height / 2);
       await page.waitForTimeout(1200);
-      const state = await page.evaluate(async (id) => {
+      const state = await page.evaluate(async ([id, zoom]) => {
         const game = window.__game, { damageInit } = await import('/src/damage.ts');
         const { partHangs } = await import('/src/world/torn.ts');
         game.launch('test-track', id, { ai: 0, weather: { mode: 'dry', season: 2, seed: 4 } });
@@ -31,9 +32,9 @@ try {
         car.partLost = 'exhaust:2,bumper:' + corner;
         car.partsOff = 2;
         car.dmg[corner] = 0.3;
-        game.renderer.debugZoom(3);
+        if (zoom) game.renderer.debugZoom(zoom);
         return { corner };
-      }, carId);
+      }, [carId, Number(process.env.ZOOM ?? 3)]);
       await page.keyboard.down('KeyW');
       await page.waitForTimeout(1300);
       for (const shot of [0, 1]) {
