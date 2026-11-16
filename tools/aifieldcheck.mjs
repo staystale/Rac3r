@@ -45,9 +45,11 @@ while (t < 200 + LAPS * 120) {
     { const vv = Math.hypot(c.vx, c.vy); if (vv > 5 && t > 2) { let a = Math.atan2(c.vy, c.vx) - c.heading; a = Math.abs(Math.atan2(Math.sin(a), Math.cos(a))); if (a > 1.22 && t - (f.spinT ?? -99) > 3) { f.spinT = t; inc.spin++; f.inc = (f.inc || 0) + 1; } } }
     const q = L.querySubtrack(sub, c.x, c.y);
     if (isFinite(q.trackDist)) {
-      if (f.prog == null) f.prog = q.trackDist > total / 2 ? q.trackDist - total : q.trackDist;
+      // (out of the track's range - querySubtrack: dist Infinity, trackDist 0 - the progress holds,
+      // as game/order.ts: that 0 read as the start line credited short laps)
+      if (!isFinite(q.dist)) { /* hold */ } else if (f.prog == null) f.prog = q.trackDist > total / 2 ? q.trackDist - total : q.trackDist;
       else { let dq = q.trackDist - f.lastQ; if (dq > total / 2) dq -= total; if (dq < -total / 2) dq += total; const b = Math.floor(f.prog / total); f.prog += dq; if (Math.floor(f.prog / total) > b && f.prog > 0) { if (b >= 0) f.laps.push(t - f.tl); f.tl = t; } }
-      f.lastQ = q.trackDist;
+      if (isFinite(q.dist)) f.lastQ = q.trackDist;
       if (q.dist > sub.width / 2 + 0.5) { if (process.env.OFFLOG && !f.wasOff) { const s = f.drv.state; console.log(`OFF #${f.car.spec.id.split("#")[1]} t ${t.toFixed(1)} d ${q.trackDist.toFixed(0)} v ${Math.hypot(c.vx, c.vy).toFixed(1)} vT ${s.vT.toFixed(1)} atk ${!!s.atk} cov ${!!s.cover} mist ${s.mist ? s.mist.kind : "-"} follow ${s.follow} dodge ${s.dodge.toFixed(1)}`); } f.wasOff = true; f.off += PHYSICS_STEP_SECONDS; } else f.wasOff = false;
       if (q.dist > sub.width / 2 + INC_OFF) { if (!f.wellOff) { f.wellOff = true; inc.off++; f.inc = (f.inc || 0) + 1; } } else if (q.dist < sub.width / 2) f.wellOff = false;
     }

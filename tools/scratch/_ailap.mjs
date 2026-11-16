@@ -23,8 +23,9 @@ for (const lv of levels) for (const id of cars) {
       L.barrierClamp(car); L.solidClamp(car); L.applyGround(car, DT);
       step(car, drv.drive(car, DT, { cars: [], lap: 2, laps: 9 }), DT); t += DT;
       const q = L.querySubtrack(st, car.x, car.y);
-      if (last !== null) { let dd = q.trackDist - last; if (dd < -st.totalDist / 2) dd += st.totalDist; prog += dd; }
-      last = q.trackDist;
+      // (out of the track's range - dist Infinity, trackDist 0: the progress holds, as game/order.ts)
+      if (last !== null && isFinite(q.dist)) { let dd = q.trackDist - last; if (dd < -st.totalDist / 2) dd += st.totalDist; prog += dd; }
+      if (isFinite(q.dist)) last = q.trackDist;
       const lapNow = Math.floor(prog / st.totalDist);
       if (lapNow > laps) { laps = lapNow; if (laps === 1) lapT = t; }
       if (laps >= 1) { if (q.dist > st.width / 2) off += DT; if (car.t.lockedF || car.t.lockedR) lock += DT; if (car.t.absWorking) abs += DT; }

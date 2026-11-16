@@ -24,7 +24,8 @@ for (const lv of levels) {
       const lap = prog == null ? 1 : Math.max(1, Math.floor(prog / total) + 1);
       step(car, drv.drive(car, PHYSICS_STEP_SECONDS, { cars: [], lap, laps: J ? J.laps : 5 }), PHYSICS_STEP_SECONDS); t += PHYSICS_STEP_SECONDS;
       const q = L.querySubtrack(st, car.x, car.y);
-      if (isFinite(q.trackDist)) { if (prog == null) { prog = q.trackDist > total / 2 ? q.trackDist - total : q.trackDist; } else { let dq = q.trackDist - lastQ; if (dq > total / 2) dq -= total; if (dq < -total / 2) dq += total; const before = Math.floor(prog / total); prog += dq; if (Math.floor(prog / total) > before && prog > 0) { lapT.push((t - tl).toFixed(1)); tl = t; } } lastQ = q.trackDist; }
+      // (out of the track's range - dist Infinity, trackDist 0: the progress holds, as game/order.ts)
+      if (isFinite(q.trackDist) && isFinite(q.dist)) { if (prog == null) { prog = q.trackDist > total / 2 ? q.trackDist - total : q.trackDist; } else { let dq = q.trackDist - lastQ; if (dq > total / 2) dq -= total; if (dq < -total / 2) dq += total; const before = Math.floor(prog / total); prog += dq; if (Math.floor(prog / total) > before && prog > 0) { lapT.push((t - tl).toFixed(1)); tl = t; } } lastQ = q.trackDist; }
       if (q.dist > st.width / 2 + 1 && !(paths.startLane && t < 8)) off += PHYSICS_STEP_SECONDS;
       if (J) { const g = (car.x - J.gate.x) ** 2 + (car.y - J.gate.y) ** 2 < J.gate.r * J.gate.r; if (g && !inGate) { gates++; gateLap.push(lap); } inGate = g; }
       if (paths.startLane && !reachedEnd) { const E = paths.startLane.pts[paths.startLane.pts.length - 1]; if (Math.hypot(car.x - E[0], car.y - E[1]) < 10) reachedEnd = true; else startDev = Math.max(startDev, segDist(paths.startLane.pts, car.x, car.y)); }

@@ -23,13 +23,14 @@ function lap(lv, carId, mk) {
   while (t < 400) {
     L.applyGround(car, PHYSICS_STEP_SECONDS); step(car, drv.drive(car, PHYSICS_STEP_SECONDS), PHYSICS_STEP_SECONDS); t += PHYSICS_STEP_SECONDS;
     const q = L.querySubtrack(st, car.x, car.y);
-    if (prev !== null && prev > st.totalDist - 60 && q.trackDist < 60) { laps++; if (laps > 1) lt.push((t - tl).toFixed(1)); tl = t; if (laps === 1) t0 = t; else if (laps === 3) return { lap: (t - t0) / 2, off, worst, wAt, lt }; }
+    // (out of the track's range - dist Infinity, trackDist 0: no lap, the last place holds)
+    if (prev !== null && isFinite(q.dist) && prev > st.totalDist - 60 && q.trackDist < 60) { laps++; if (laps > 1) lt.push((t - tl).toFixed(1)); tl = t; if (laps === 1) t0 = t; else if (laps === 3) return { lap: (t - t0) / 2, off, worst, wAt, lt }; }
     // POINT-TO-POINT stage (lab.ts ghostSegment): one run, start line -> FINISH; off counted only on the stage
     const S = L.LEVEL.stage; if (S && st.ghost && laps === 1 && prev !== null && prev < S.finish && q.trackDist >= S.finish && q.trackDist - prev < 30) return { lap: t - t0, off, worst, wAt, lt };
     // JOKERROAD=1: a car on the rallycross joker lane is on the road (it is off the lap's own)
     const spot = joker && laneSpot(joker, car.x, car.y), onJoker = process.env.JOKERROAD && spot && Math.abs(spot.off) <= joker.width / 2;
     if (laps >= 1 && !onJoker) { if (q.dist > hw) off += PHYSICS_STEP_SECONDS; if (q.dist - hw > worst) { worst = q.dist - hw; wAt = q.trackDist; } }
-    prev = q.trackDist;
+    if (isFinite(q.dist)) prev = q.trackDist;
   }
   return { lap: NaN, off, worst, wAt, lt };
 }
