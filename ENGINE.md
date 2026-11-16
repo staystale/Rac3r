@@ -527,6 +527,15 @@ left loose past the edge and no hole behind it (the per-pixel jag left both: spe
 stray bits, the see-through look) - and the dent band behind it FOLDED (`dentPixelFolded`): the fold
 dark, then a darker fold line every `FOLD_PX` (2) with a light crease between, fading over the band;
 no primer chips or pale crease pixels (pale grey, they read as holes on grey tarmac).
+ROUND 2: the folds uneven (`dentPixelFolded`: each `KINK_PX` (2) of the edge shifts its folds
+by up to `KINK_SHIFT_PX` (2.2 px), each band its own spacing, each fold its own depth - seeded);
+an EXPOSED wheel corner (`render/carcorners.ts`: its wing lost, or the crush past its arch or 3 px
+into its side where the wheel is - that wing then TORN, `cars.ts lostWithTorn`, taken off the sprite
+as a lost wing's) drawn each frame UNDER the body by `drawCarWheels`: the dark well, the arms and a
+driven wheel's shaft (`drawFixedArms`, `WELL_ARMS`), a front's track rod at `car.delta`, the strut;
+the crush pushes the drawn wheel in (`cornerShift`: back by the end crush past the arch, inboard by
+the side crush, each at most a tyre) and the arms run to it - drawn only, the physics' wheel is
+where it was; the open cars' arms reach the pushed hub the same way (`drawWishbones`).
 `tools/scratch/_skinshots.mjs` photographs every car crushed and with its parts off (front, side,
 rear; 844x390, 390x844, a close-up and the phone's view cropped).
 
