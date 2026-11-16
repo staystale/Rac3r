@@ -17,6 +17,7 @@ import { shared, game, hwLevel } from './state.ts';
 import { firstFree, lapAhead, lapStepBack } from './resetspot.ts';
 import type { GameCar, CutRun, FormKeeper } from './state.ts';
 import type { CarInput } from '../vehicle.ts';
+import { FIX } from '../core/fixes.ts';
 
 export const resetCar = reset;
 // START LIGHTS (requirement: all races started by lights that clearly go red to green, maybe a
@@ -90,6 +91,24 @@ export function formationWant(car: GameCar, slot: number, keeper: FormKeeper) {
     { columnM: gridColumn(slot), backM: slot * GRID_STEP },
     game.poleCar || game.car, LEVEL.subtrack!, rollPaceNow(), ROLL_HOLD_THROTTLE);
 }
+/**
+ * A rolling start's green: when the FRONT car (the player, pole) crosses the line; reds shown
+ * from 1 s.
+ * @param startState the start's state (game.start)
+ */
+function stepRollingGreen(startState: typeof game.start) {
+  const pole = game.poleCar || game.car, total = LEVEL.subtrack!.totalDist,
+    near = pole === game.car ? null : querySubtrack(LEVEL.subtrack!, pole.x, pole.y),
+    dist = near ? near.trackDist : game.trackD;
+  // FIX.rollguard: an AI pole out of the track's range (dist Infinity, trackDist 0 - the 0 read
+  // as the line) holds its last place, as the race order does; green waits for the real line
+  const isLost = FIX.rollguard && near !== null && !isFinite(near.dist);
+  if (isLost) return;
+  if (startState.prevD != null && dist != null && startState.prevD > total - 60 && dist < 60
+    && startState.t > 2) startState.tGreen = startState.t;
+  startState.prevD = dist;
+}
+
 export function stepStart(dt: number) {
   // the clock keeps running after green so the HUD can take the lights away 1.2 s later
   // (requirement: race start lights don't vanish — it stopped at green)
@@ -97,15 +116,7 @@ export function stepStart(dt: number) {
   if (!startState.on) return;
   startState.t += dt;
   if (startState.green) return;
-  if (startState.rolling && !LEVEL.endless) {
-    // green as the FRONT car (the player, pole) crosses the line; reds shown from 1 s
-    const pole = game.poleCar || game.car, total = LEVEL.subtrack!.totalDist,
-      dist = pole === game.car ? game.trackD
-        : querySubtrack(LEVEL.subtrack!, pole.x, pole.y).trackDist;
-    if (startState.prevD != null && dist != null && startState.prevD > total - 60 && dist < 60
-      && startState.t > 2) startState.tGreen = startState.t;
-    startState.prevD = dist;
-  }
+  if (startState.rolling && !LEVEL.endless) stepRollingGreen(startState);
   if (startState.t >= startState.tGreen) startState.green = true;
 }
 // RACE ORDER (requirement: the lap counter area should keep track of what place you are).

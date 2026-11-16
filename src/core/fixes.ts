@@ -84,4 +84,7 @@ export const FIX = {
   transfitswb: atLoad('transfitswb'),
   // the Toyoter TS010 (a Toyota TS010 Group C car) and its PROTOTYPE class
   ts010: atLoad('ts010'),
+  // a rolling start's AI pole car out of the track's range holds its place: green waits for the
+  // real line (game/order.ts stepStart; the race order already did)
+  rollguard: atLoad('rollguard'),
 };
