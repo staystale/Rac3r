@@ -31,12 +31,40 @@ export interface CarBits {
   electric?: boolean;
 }
 
+/** A side panel's drawing: a car's door, the bus's cab door or lower-deck skirt panel, a van's
+ * sliding door. */
+export type DoorShape = 'door' | 'cab' | 'skirt' | 'sliding';
+/** One side panel at a damage corner: where it spans (shares, 0 tail .. 1 nose), its drawing. */
+export interface SidePanel { at: [number, number]; shape: DoorShape }
 /** A car's DOORS (?carparts): each side's, front first, as the shares of its length it spans. */
 export interface CarDoors {
   // [from, until], 0 tail .. 1 nose; one a side on a 2-door, two on a 4-door, none on an open car
   doors: [number, number][];
   // a stock car's welded door skin: a steel sheet, no window
   sheet?: boolean;
+  // a vehicle whose sides differ (the bus, the vans): each damage corner's own panel, null none
+  corners?: (SidePanel | null)[];
+  // its bumpers drawn as its own parts, front and rear (the bus: its radiator grille, its
+  // platform's staircase panel with the grab pole)
+  bumpers?: ['grille', 'staircase'];
+  // its rear doors a pair, each its own part (the vans' twin rear doors)
+  twinRear?: boolean;
+  // its glass with its own parts (the bus's two decks: 8)
+  glass?: number;
+}
+
+/**
+ * A Transit's side panels: the cab doors behind the front wheels, the sliding door on the
+ * nearside (+y) behind the cab; none at the offside rear. The cab and the slide are the same on
+ * every wheelbase, so their places are counted from the nose (the L2's shares, EST from its side
+ * view: the cab door 0.56-0.74, the slide 0.32-0.555 of its 5.531 m).
+ * @param lengthM the Transit's length, m
+ * @returns the four corners' panels
+ */
+function transitPanels(lengthM: number): (SidePanel | null)[] {
+  const fromNose = (share: number) => 1 - (1 - share) * 5.531 / lengthM;
+  const cab: SidePanel = { at: [fromNose(0.56), fromNose(0.74)], shape: 'door' };
+  return [cab, cab, null, { at: [fromNose(0.32), fromNose(0.555)], shape: 'sliding' }];
 }
 
 // the shares a car's doors span (EST from the cars' side views: the front door from the
@@ -76,7 +104,37 @@ export const CAR_DOORS: Record<string, CarDoors> = {
   'strange-l322': { doors: FOUR_DOORS },
   'saxo-vtr': { doors: TWO_DOORS },
   'tesla-m3': { doors: FOUR_DOORS },
+  // step 2: the Transits - two cab doors, the nearside slide, the twin rear doors
+  'transfit-van': { doors: [], corners: transitPanels(5.531), twinRear: true },
+  'transfit-lwb': { doors: [], corners: transitPanels(5.981), twinRear: true },
+  'transfit-swb': { doors: [], corners: transitPanels(4.863), twinRear: true },
+  // the Routemaster (no passenger doors: the open rear platform): the driver's cab door on the
+  // offside (-y) front, the lower deck's riveted side panels elsewhere (EST places), its radiator
+  // grille and staircase panel for bumpers, the glass of its two decks
+  routemonster: { doors: [], corners: [{ at: [0.72, 0.8], shape: 'cab' },
+    { at: [0.52, 0.72], shape: 'skirt' }, { at: [0.3, 0.5], shape: 'skirt' },
+    { at: [0.3, 0.5], shape: 'skirt' }], bumpers: ['grille', 'staircase'], glass: 8 },
 };
+
+/**
+ * ?carparts: a car's own row (its doors and parts), or none.
+ * @param carId the car
+ * @returns its row
+ */
+export const doorsOf = (carId: string): CarDoors | undefined =>
+  CAR_DOORS[String(carId).split('#')[0]];
+
+/**
+ * ?carparts: the drawing of the side panel at a damage corner.
+ * @param carId the car
+ * @param corner the damage corner
+ * @returns its shape, or 'sheet' (a stock car's skin)
+ */
+export function doorShape(carId: string, corner: number): DoorShape | 'sheet' {
+  const row = doorsOf(carId);
+  if (row?.corners) return row.corners[corner]?.shape ?? 'door';
+  return row?.sheet ? 'sheet' : 'door';
+}
 
 /**
  * ?carparts: the door at a damage corner - the front corners a car's front door, the rear its
@@ -89,6 +147,7 @@ export const CAR_DOORS: Record<string, CarDoors> = {
 export function doorAt(carId: string, corner: number): [number, number] | null | undefined {
   const row = CAR_DOORS[String(carId).split('#')[0]];
   if (!row) return undefined;
+  if (row.corners) return row.corners[corner]?.at ?? null;
   return row.doors[corner < 2 ? 0 : 1] ?? null;
 }
 
