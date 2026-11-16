@@ -15,6 +15,9 @@ import type { HudRects } from './layout.ts';
 import type { Spec } from '../cars.ts';
 import type { HudRect } from './widgets.ts';
 
+// a one-gear car's bar turns red past this share of its limit (the last 2 %: at the limit)
+const ONE_GEAR_RED = 0.98;
+
 /**
  * Bottom-right, above the pedals: DRIVER AIDS. Green = on, dark = off, AMBER FLASH
  * while working - the silent twin of a real ABS buzz (the phone may be muted). Flash on the wall
@@ -166,7 +169,11 @@ export function drawHudSpeedo(ctx: CanvasRenderingContext2D, state: HudState, re
   // a seized engine turns no more: the needle drops (physics/engineheat.ts)
   const frac = car.engSeized ? 0
     : Math.max(0, Math.min(1, (car.rpm - spec.idleRpm) / (spec.redline - spec.idleRpm)));
-  const redFrac = (spec.upshiftRpm - spec.idleRpm) / (spec.redline - spec.idleRpm);
+  // a ONE-GEAR car (the Tesla: owner, "it should go with wheel speed"): the bar is the motor's
+  // revs, its wheel speed, red only at the limit, and no shift light (it never shifts)
+  const oneGear = spec.gears.length === 1;
+  const redFrac = oneGear ? ONE_GEAR_RED : (spec.upshiftRpm - spec.idleRpm)
+    / (spec.redline - spec.idleRpm);
   ctx.fillStyle = 'rgba(255,255,255,0.12)';
   ctx.fillRect(barX, barY, barW, barH);
   ctx.fillStyle = frac > redFrac ? COL.danger : frac > redFrac * 0.82 ? COL.warn : COL.live;
@@ -175,7 +182,7 @@ export function drawHudSpeedo(ctx: CanvasRenderingContext2D, state: HudState, re
   ctx.fillStyle = 'rgba(216,69,60,0.55)';
   ctx.fillRect(barX + barW * redFrac, barY - 2, 1.5, barH + 4);
   // shift light: flashes on the WALL CLOCK (rule 5), not per physics step
-  if (frac > redFrac) state.shiftFlash = Math.min(1, state.shiftFlash + wallDt * 8);
+  if (frac > redFrac && !oneGear) state.shiftFlash = Math.min(1, state.shiftFlash + wallDt * 8);
   else state.shiftFlash = Math.max(0, state.shiftFlash - wallDt * 6);
   if (state.shiftFlash > 0.02) {
     ctx.globalAlpha = state.shiftFlash * (0.55 + 0.45 * Math.sin(performance.now() / 60));
