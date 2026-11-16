@@ -15,6 +15,7 @@
 import { END_CRUSH_SHARE, REAR_CRUSH_SHARE, SIDE_CRUSH_SHARE } from "./cardamage.ts";
 import { SPRITE_PPM } from "./shared.ts";
 import type { CarSprite, RenderCar } from "./types.ts";
+import { SUSP_STRUT, SUSP_WISHBONE } from "../world/debris.ts";
 
 // the strut's spring, its top mount, its nut
 const SPRING = '#d0d4da', MOUNT = '#5a5f69', NUT = '#16181d';
@@ -110,12 +111,12 @@ function crushAtWheel(car: RenderCar, sprite: CarSprite, corner: number, wheel: 
  * @param wheel the corner: its axle (m), side (-1 / 1), steer (rad), half the track (px)
  * @param shift the wheel's push-in (px)
  * @param arms paints the fixed arms and shaft to the hub (render/cars.ts drawFixedArms)
- * @param rod the track rod's colour and its lighter edge (the arms')
+ * @param rod the track rod's colour, and its lighter edge if it has one (the arms')
  * @param rackY px across where the track rod leaves the rack (a closed car: its subframe)
  */
 export function drawExposedCorner(ctx: CanvasRenderingContext2D,
   wheel: { axleX: number; side: number; steer: number; halfWidth: number },
-  shift: CornerShift, arms: () => void, rod: { colour: string; edge: string },
+  shift: CornerShift, arms: () => void, rod: { colour: string; edge?: string },
   rackY = wheel.side * 2): void {
   const { axleX, side, steer, halfWidth } = wheel;
   const hubX = axleX * SPRITE_PPM + shift.x, hubY = side * halfWidth + shift.y;
@@ -125,8 +126,10 @@ export function drawExposedCorner(ctx: CanvasRenderingContext2D,
   const arm = STEER_ARM_M * SPRITE_PPM;
   const from = [hubX - arm, rackY], dest = [hubX - Math.cos(steer) * arm,
     hubY - Math.sin(steer) * arm];
-  ctx.fillStyle = rod.edge;
-  steerRod(ctx, from, dest, 3);
+  if (rod.edge) {
+    ctx.fillStyle = rod.edge;
+    steerRod(ctx, from, dest, 3);
+  }
   ctx.fillStyle = rod.colour;
   steerRod(ctx, from, dest, 1);
 }
@@ -189,4 +192,59 @@ function strutTop(ctx: CanvasRenderingContext2D, centreX: number, centreY: numbe
   ctx.fillRect(x + 1, y + 1, 3, 3);
   ctx.fillStyle = NUT;
   ctx.fillRect(x + 2, y + 2, 1, 1);
+}
+
+// ?underskin: m in from the car's side where a closed car's exposed arms meet the chassis (its
+// SUBFRAME; from the car's middle they ran under the body and only the strut showed). Owner 11-16:
+// "cars should have a sub frame too like real life or the wishbones attach to nothing" - a dark
+// rail along the car there, m either side of the axle, px thick
+export const SUBFRAME_M = 0.6;
+const SUBFRAME = '#202227', SUBFRAME_HALF_M = 0.32, SUBFRAME_PX = 2;
+// a wheel torn off (owner 11-16: "the hub is still attached"): its hub went with it; what stayed is
+// SNAPPED - the arms (and a driven wheel's inner shaft) end this share of the way out from the
+// subframe to where the hub was, shorter when the wishbone went too
+const SNAP_SHARE = 0.6, SNAP_SHARE_NO_WISHBONE = 0.3;
+// the snapped ends' hub and the strut's place, reused (nothing allocated per frame)
+const SNAP_HUB = { x: 0, y: 0 };
+const SNAP_SHIFT: CornerShift = { x: 0, y: 0, exposed: true };
+
+/**
+ * ?underskin: a closed car's SUBFRAME rail at one corner, where its arms bolt on (drawn before the
+ * arms and the body: it shows only through the corner's opening).
+ * @param ctx the canvas (the car's frame, sprite px)
+ * @param axleX the axle, m
+ * @param innerY px across, the arms' inner ends
+ * @param side -1 / 1
+ */
+export function drawSubframe(ctx: CanvasRenderingContext2D, axleX: number, innerY: number,
+  side: number): void {
+  const half = SUBFRAME_HALF_M * SPRITE_PPM;
+  ctx.fillStyle = SUBFRAME;
+  ctx.fillRect(Math.round(axleX * SPRITE_PPM - half), Math.round(innerY - (side > 0 ? 1 : 0)),
+    Math.round(half * 2), SUBFRAME_PX);
+}
+
+/**
+ * ?underskin: a closed car's corner whose wheel was torn off - no hub, the road through the torn
+ * wing, the subframe, the arms and shaft that stayed snapped short, the strut if it stayed
+ * (world/debris.ts wheelBits: what was thrown is gone from the car, car.suspOff).
+ * @param ctx the canvas (the car's frame, sprite px)
+ * @param car the car
+ * @param sprite its sprite
+ * @param wheel the corner: its axle (m), side, half the track and the tyre (px), damage corner
+ * @param arms paints the fixed arms to a hub (offset px) from innerY (render/cars.ts)
+ */
+export function drawSnappedCorner(ctx: CanvasRenderingContext2D, car: RenderCar,
+  sprite: CarSprite, wheel: { axleX: number; side: number; halfWidth: number; corner: number;
+    tyreLen: number; tyreWid: number },
+  arms: (hub: { x: number; y: number }, innerY: number) => void): void {
+  const { axleX, side, halfWidth, corner } = wheel, off = car.suspOff?.[corner] ?? 0;
+  const innerY = side * (sprite.Wp / 2 - SUBFRAME_M * SPRITE_PPM), hubY = side * halfWidth;
+  const share = off & SUSP_WISHBONE ? SNAP_SHARE_NO_WISHBONE : SNAP_SHARE;
+  SNAP_HUB.y = innerY + (hubY - innerY) * share - hubY;
+  drawSubframe(ctx, axleX, innerY, side);
+  arms(SNAP_HUB, innerY);
+  if (off & SUSP_STRUT) return;
+  drawExposedStrut(ctx, { axleX, side, halfWidth, tyreLen: wheel.tyreLen, tyreWid: wheel.tyreWid,
+    bodyHalf: sprite.Wp / 2, damage: car.dmg ? car.dmg[corner] : 0 }, SNAP_SHIFT);
 }

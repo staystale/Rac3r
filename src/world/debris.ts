@@ -258,6 +258,32 @@ export function wheelBits(car: Pick<DebrisCar, 'spec' | 'partSpawn' | 'suspOff'>
   if (rnd() < 0.25) spawn('wishbone');
 }
 
+// ?underskin (owner 11-16: "if the car crumples so much the engine is exposed and the bumpers are
+// pushed past it the engine should eject"): an end crushed this deep (its corners' mean end
+// crush, 0..1) has reached its engine - the bumper pushed back past the engine's front - and
+// throws it, no dice. Measured on the drawing (render/cardamage.ts endCrushPx, 0.26 of the length
+// at 1): a front engine's front sits ~0.12 of the length in from the nose, so ~0.5; a rear
+// engine's back ~0.1 in from the tail (0.22 a length at 1), ~0.45; a mid engine, behind the cabin,
+// ~0.8 at the rear
+const ENGINE_REACHED: Record<string, number> = { front: 0.5, rear: 0.45, mid: 0.8 };
+
+/**
+ * ?underskin: an end crushed past its engine throws the engine (once, until a repair).
+ * @param car the car
+ * @param crushEnds each corner's end crush, 0..1 (damage.ts crushL)
+ */
+export function crushedEngine(car: DebrisCar, crushEnds: number[]): void {
+  if (!FIX.underskin) return;
+  const bits = bitsOf(car.spec?.id || ''), where = bits.engine;
+  if (hasNo(bits, 'engine') || (car.partLost || '').includes('engine')) return;
+  const front = where === 'front', reach = ENGINE_REACHED[where] ?? 1;
+  const crush = front ? (crushEnds[0] + crushEnds[1]) / 2 : (crushEnds[2] + crushEnds[3]) / 2;
+  if (crush < reach) return;
+  const corner = front ? 0 : 2;
+  car.partLost = (car.partLost ? car.partLost + ',' : '') + 'engine:' + corner;
+  (car.partSpawn || (car.partSpawn = [])).push({ corner, kind: 'engine' });
+}
+
 /**
  * Whether a corner's wheel is driven.
  * @param drive the car's drive split (0 rear .. 1 front; none = rear)

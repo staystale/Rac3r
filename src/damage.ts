@@ -13,7 +13,7 @@ import {
 import { levelStingers, tyresOnStinger } from './world/stingers.ts';
 import { LEVEL } from './world/state.ts';
 import { crashOil, rollOil } from './world/oil.ts';
-import { crashDebris, wheelBits, rollParts } from './world/debris.ts';
+import { crashDebris, wheelBits, rollParts, crushedEngine } from './world/debris.ts';
 import {
   takePost, postDeltaV, postShares, radiatorScale, type PostNote,
 } from './physics/posthit.ts';
@@ -208,6 +208,8 @@ function hardHitCorners(
       (car.wheelSpawn || (car.wheelSpawn = [])).push(corner);
     }
   }
+  // (?underskin: an end crushed past its engine throws it)
+  crushedEngine(car as Parameters<typeof crushedEngine>[0], car.crushL);
 }
 
 /**

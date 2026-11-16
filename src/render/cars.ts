@@ -12,12 +12,12 @@ import { drawAngryFlash, drawLightBar, isAngryFlashOn } from "./lightbar.ts";
 import { drawTyreByPressure, wheelTurn } from "./tyrelook.ts";
 import { drawRolledBody, prepareBody } from "./rollbody.ts";
 import { drawUnderSkin } from "./underskin.ts";
-import { cornerShift, drawExposedCorner, drawExposedStrut, isWingTorn } from "./carcorners.ts";
+import { cornerShift, drawExposedCorner, drawExposedStrut, isWingTorn, drawSubframe,
+  drawSnappedCorner, SUBFRAME_M } from "./carcorners.ts";
 import type { CornerShift } from "./carcorners.ts";
 import { FIX } from '../core/fixes.ts';
 import { bitsOf } from '../carbits.ts';
 import { halfTrackAt } from '../world/wheels.ts';
-import { SUSP_STRUT, SUSP_WISHBONE } from '../world/debris.ts';
 import type {
   Cam, CarSprite, RenderCar, RenderCarSpec, RenderCone, SilCanvas, View,
 } from "./types.ts";
@@ -34,10 +34,10 @@ interface ArmsLook { wishbone: string; shaft: string; joint: string; widePx: num
 // an open car's arms, in the air (dark against the ground)
 const OPEN_ARMS: ArmsLook = { wishbone: WISHBONE, shaft: DRIVE_SHAFT, joint: CV_JOINT, widePx: 1 };
 // ?underskin: a closed car's arms seen through a lost wing's opening or past its crushed end -
-// the open cars' own, dark and under the tyre, with a lighter steel EDGE: dark alone was lost on
-// dark or wet tarmac
-const WELL_EDGE = '#8a8f98';
-const WELL_ARMS: ArmsLook = { ...OPEN_ARMS, edge: WELL_EDGE };
+// the open cars' own look, dark and under the tyre (owner 11-16: "they should keep their old look
+// still just be drawn correctly" - the lighter edge is gone), bolted to its SUBFRAME
+const WELL_ARMS: ArmsLook = OPEN_ARMS;
+
 
 // what createCars destructures from the renderer and the sprite layers
 interface CarsHelpers {
@@ -358,54 +358,27 @@ function drawExposed(ctx: CanvasRenderingContext2D, spec: RenderCarSpec, sprite:
   const { axleX, side, halfWidth } = wheel;
   const innerY = side * (sprite.Wp / 2 - SUBFRAME_M * SPRITE_PPM);
   drawExposedCorner(ctx, wheel, shift,
-    () => drawFixedArms(ctx, spec, axleX, side, halfWidth, WELL_ARMS, shift, innerY),
-    { colour: WELL_ARMS.wishbone, edge: WELL_EDGE }, innerY);
+    () => {
+      drawSubframe(ctx, axleX, innerY, side);
+      drawFixedArms(ctx, spec, axleX, side, halfWidth, WELL_ARMS, shift, innerY);
+    }, { colour: WELL_ARMS.wishbone }, innerY);
 }
 
-// ?underskin, a wheel torn off (owner 11-16: "the hub is still attached"): its hub went with it;
-// what stayed is SNAPPED - the arms (and a driven wheel's inner shaft) end this share of the way
-// out from the subframe to where the hub was, shorter when the wishbone went too
-const SNAP_SHARE = 0.6, SNAP_SHARE_NO_WISHBONE = 0.3;
-// the snapped ends' hub, reused (nothing allocated per frame)
-const SNAP_HUB = { x: 0, y: 0 };
-const SNAP_SHIFT: CornerShift = { x: 0, y: 0, exposed: true };
-
-/** A wheel torn off: ?underskin on a closed car its snapped remains (drawSnapped), else a stub. */
+/** A wheel torn off: ?underskin on a closed car its snapped remains, else a hub stub. */
 function drawLostWheel(ctx: CanvasRenderingContext2D, car: RenderCar, spec: RenderCarSpec,
   sprite: CarSprite, wheel: { axleX: number; side: number; halfWidth: number; corner: number }) {
-  if (FIX.underskin && !isBare(spec)) { drawSnapped(ctx, car, spec, sprite, wheel); return; }
+  if (FIX.underskin && !isBare(spec)) {
+    const tyre = tyreBox(spec, wheel.axleX < 0);
+    drawSnappedCorner(ctx, car, sprite, { ...wheel, tyreLen: tyre.len, tyreWid: tyre.wid },
+      (hub, innerY) => drawFixedArms(ctx, spec, wheel.axleX, wheel.side, wheel.halfWidth,
+        WELL_ARMS, hub, innerY));
+    return;
+  }
   // DAMAGE: wheel gone, a hub stub
   ctx.fillStyle = '#2b2d33';
   const { axleX, side, halfWidth } = wheel;
   ctx.fillRect(Math.round(axleX * SPRITE_PPM) - 2, Math.round(side * halfWidth) - 1, 4, 2);
 }
-
-/**
- * ?underskin: a closed car's corner whose wheel was torn off - no hub, the road through the torn
- * wing, the arms and shaft that stayed snapped short, the strut if it stayed (world/debris.ts
- * wheelBits: what was thrown is gone from the car, car.suspOff).
- * @param ctx the canvas (the car's frame, sprite px)
- * @param car the car
- * @param spec the car as drawn
- * @param sprite its sprite
- * @param wheel the corner: its axle (m), side, half the track (px), the damage corner
- */
-function drawSnapped(ctx: CanvasRenderingContext2D, car: RenderCar, spec: RenderCarSpec,
-  sprite: CarSprite, wheel: { axleX: number; side: number; halfWidth: number; corner: number }) {
-  const { axleX, side, halfWidth, corner } = wheel, off = car.suspOff?.[corner] ?? 0;
-  const innerY = side * (sprite.Wp / 2 - SUBFRAME_M * SPRITE_PPM), hubY = side * halfWidth;
-  const share = off & SUSP_WISHBONE ? SNAP_SHARE_NO_WISHBONE : SNAP_SHARE;
-  SNAP_HUB.y = innerY + (hubY - innerY) * share - hubY;
-  drawFixedArms(ctx, spec, axleX, side, halfWidth, WELL_ARMS, SNAP_HUB, innerY);
-  if (off & SUSP_STRUT) return;
-  const tyre = tyreBox(spec, axleX < 0);
-  drawExposedStrut(ctx, { axleX, side, halfWidth, tyreLen: tyre.len, tyreWid: tyre.wid,
-    bodyHalf: sprite.Wp / 2, damage: car.dmg ? car.dmg[corner] : 0 }, SNAP_SHIFT);
-}
-
-// ?underskin: m in from the car's side where a closed car's exposed arms meet the chassis (its
-// subframe): from the car's middle they ran under the body, and only the strut showed
-const SUBFRAME_M = 0.6;
 
 /** A wheel's fixed arms painted once: the picture and where its corner sits, sprite px. */
 interface ArmsPicture { canvas: HTMLCanvasElement; cornerX: number; cornerY: number }
