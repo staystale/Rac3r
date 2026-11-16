@@ -74,6 +74,9 @@ export const FIX = {
   // a front wheel's TRACK ROD thrown with it (world/debris.ts SUSP_ROD), a roll tearing off only
   // the wheels on the face that hits (physics/openwheel.ts rollCorners)
   dmgmore: atLoad('dmgmore'),
+  // the rear-right wheel's skid mark at the REAR track (marks.ts listWheels: it was laid at the
+  // front track - off on a car whose rear track is its own, spec.trackR)
+  marktrack: atLoad('marktrack'),
   // the BMV E36 Peak (BimmerWorld's Pikes Peak E36 M3, the "Bergsteiger") and its HILL CLIMB
   // class (Unlimited)
   e36peak: atLoad('e36peak'),
