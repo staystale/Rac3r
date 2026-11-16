@@ -18,7 +18,7 @@ import { clampWorld } from "../world/crossings.ts";
 import { crossingOf, onGround } from "../world/crossinggeo.ts";
 import { stampCrossingMarks } from "../marks.ts";
 import { takeThrownPlanks } from "../world/marshalbox.ts";
-import { throwParts, stepParts } from "../world/debris.ts";
+import { throwParts, stepParts, SPARE_CORNER } from "../world/debris.ts";
 import { trackSpotOf } from "../world/trackunder.ts";
 import { resetCar, startHeld, stepOrder, formationWant } from './order.ts';
 import { doReset, onScreen } from './session.ts';
@@ -494,10 +494,11 @@ export function stepLooseCones(tcars: TrafficVehicle[]) {
     // speed and outward
     for (const racer of field) while (racer.wheelSpawn && racer.wheelSpawn.length) {
       const corner = racer.wheelSpawn.shift()!, cosH = Math.cos(racer.heading),
-        sinH = Math.sin(racer.heading),
-          alongOff = (corner < 2 ? racer.spec.lf : -racer.spec.lr),
-            sideOff = (corner % 2 ? 1 : -1) * halfTrackAt(racer.spec, corner >= 2);
-      const out = (corner % 2 ? 1 : -1) * 4;
+        sinH = Math.sin(racer.heading), spare = corner === SPARE_CORNER,
+          alongOff = spare ? -racer.spec.len / 2 : (corner < 2 ? racer.spec.lf : -racer.spec.lr),
+            sideOff = spare ? 0 : (corner % 2 ? 1 : -1) * halfTrackAt(racer.spec, corner >= 2);
+      // (?carparts: the Defender's spare off its rear door - world/debris.ts spareOff)
+      const out = spare ? 0 : (corner % 2 ? 1 : -1) * 4;
       game.cones.add({ x: racer.x + cosH * alongOff - sinH * sideOff,
         y: racer.y + sinH * alongOff + cosH * sideOff, vx: racer.vx * 0.85 - sinH * out,
           vy: racer.vy * 0.85 + cosH * out, ang: racer.heading,

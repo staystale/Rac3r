@@ -54,6 +54,12 @@ export interface CarDoors {
   // its mirrors (step 5) where its painter draws them: the share of its length they start at, on
   // the body's edge rows (rim) or just outside them, their colour; none - it has none
   mirrors?: CarMirrors | 'none';
+  // step 6, its extras: a spare wheel on the rear door (the Defender: thrown as a loose wheel); a
+  // split tailgate (the Range Rover: its glass upper and drop-down lower halves, each its own
+  // part); a rear lid where it has none in its bits (the Huracan's engine cover), its span
+  spare?: boolean;
+  splitTailgate?: boolean;
+  rearLid?: [number, number];
   // its rear doors a pair, each its own part (the vans' twin rear doors)
   twinRear?: boolean;
   // its glass with its own parts (the bus's two decks: 8)
@@ -111,7 +117,7 @@ export const CAR_DOORS: Record<string, CarDoors> = {
   // Fastrac: the cab's door (EST, both sides), its front weight
   tractor: { doors: [[0.38, 0.56]], bumper: 'weight' },
   'mini-fwd': { doors: [[0.4, 0.66]], mirrors: edgePaint(0.645) },
-  'lambo-awd': { doors: [[0.44, 0.68]], mirrors: edgePaint(0.48) },
+  'lambo-awd': { doors: [[0.44, 0.68]], mirrors: edgePaint(0.48), rearLid: [0.08, 0.42] },
   'mikra-r1': { doors: TWO_DOORS, mirrors: edgePaint(0.605) },
   'kit-2l': { doors: TWO_DOORS, mirrors: edgePaint(0.555) },
   'rx-super': { doors: TWO_DOORS, mirrors: edgePaint(0.525) },
@@ -124,13 +130,13 @@ export const CAR_DOORS: Record<string, CarDoors> = {
   'effing-tt': { doors: [[0.42, 0.62]], bumper: 'tube', mirrors: 'none' },
   'civvic-btcc': { doors: FOUR_DOORS, mirrors: rimThird(0.625) },
   'defunder-110': { doors: [[0.47, 0.62], [0.32, 0.47]], bumper: 'steel',
-    mirrors: { at: 0.655, col: 'third' } },
+    mirrors: { at: 0.655, col: 'third' }, spare: true },
   'focust-st': { doors: FOUR_DOORS, mirrors: rimThird(0.635) },
   'cleo-cup': { doors: TWO_DOORS, mirrors: rimThird(0.635) },
   'cleo-rs200': { doors: TWO_DOORS, mirrors: rimThird(0.635) },
   ts010: { doors: [[0.46, 0.62]], mirrors: 'none' },   // the canopy's small doors
   'saxo-kit': { doors: TWO_DOORS, mirrors: rimThird(0.635) },
-  'strange-l322': { doors: FOUR_DOORS, mirrors: { at: 0.62, col: 'third' } },
+  'strange-l322': { doors: FOUR_DOORS, mirrors: { at: 0.62, col: 'third' }, splitTailgate: true },
   'saxo-vtr': { doors: TWO_DOORS, mirrors: rimThird(0.635) },
   'tesla-m3': { doors: FOUR_DOORS, mirrors: rimThird(0.655) },
   // step 2: the Transits - two cab doors, the nearside slide, the twin rear doors

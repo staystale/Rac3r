@@ -59,6 +59,8 @@ export interface DebrisCar {
   spec?: { id?: string; kind?: string; paint?: string; trim?: string; lf?: number; lr?: number;
     trackWidth?: number; trackR?: number; drive?: number };
   partSpawn?: { corner: number; kind: string }[];
+  // ?carparts: loose wheels to throw (game/sim.ts; SPARE_CORNER the spare off the rear door)
+  wheelSpawn?: number[];
   partsOff?: number;     // a bit per part gone (until a repair): PART_BIT
   // the parts gone, "kind:corner" each joined by "," (render/carparts.ts draws the car without
   // them)
@@ -144,7 +146,51 @@ function hasNoDoor(car: DebrisCar, kind: string, corner: number): boolean {
  * @returns its boot is a pair
  */
 const isTwin = (car: DebrisCar, kind: string) => FIX.carparts && kind === 'boot'
-  && !!doorsOf(car.spec?.id || '')?.twinRear;
+  && (!!doorsOf(car.spec?.id || '')?.twinRear || !!doorsOf(car.spec?.id || '')?.splitTailgate);
+
+/**
+ * The part at a car's tail: its bits' boot lid or spoiler, or (?carparts) its own rear lid where
+ * its bits have none (the Huracan's engine cover).
+ * @param car the car
+ * @returns the part's kind, or 'none'
+ */
+function rearLidKind(car: DebrisCar): string {
+  const rear = bitsOf(car.spec?.id || '').rear;
+  if (rear !== 'none' || !FIX.carparts) return rear;
+  return doorsOf(car.spec?.id || '')?.rearLid ? 'boot' : 'none';
+}
+
+// the damage "corner" a car's spare wheel is thrown from (game/sim.ts: off the middle of its tail)
+export const SPARE_CORNER = 4;
+// the chance a hard end-on hit at the back throws a spare wheel off its door
+const SPARE_P = 0.25;
+
+/**
+ * ?carparts: a hard hit at the back may throw the spare wheel off its rear door (the Defender) -
+ * once, as a loose wheel; gone from the sprite ('spare').
+ * @param car the car
+ * @param rnd the random source
+ */
+function spareOff(car: DebrisCar, rnd: () => number): void {
+  if (!FIX.carparts || !doorsOf(car.spec?.id || '')?.spare) return;
+  if ((car.partLost || '').includes('spare') || rnd() >= SPARE_P) return;
+  car.partLost = (car.partLost ? car.partLost + ',' : '') + 'spare:2';
+  (car.wheelSpawn || (car.wheelSpawn = [])).push(SPARE_CORNER);
+}
+
+/**
+ * A bad hit at the back: its exhaust, its boot lid or spoiler (or a car's own rear lid), its spare.
+ * @param car the car
+ * @param off throws a part by its chance
+ * @param rnd the random source
+ */
+function rearParts(car: DebrisCar, off: (kind: string, chance: number) => void,
+  rnd: () => number): void {
+  off('exhaust', EXHAUST_P);
+  const lid = rearLidKind(car);
+  if (lid !== 'none') off(lid, REAR_P);
+  spareOff(car, rnd);
+}
 
 /**
  * a bad hit may throw the car's own BITS (carbits.ts) - each at most once until a
@@ -173,8 +219,7 @@ function bigParts(car: DebrisCar, corner: number, add: number, endW: number,
   if (endW < SIDE_ON && front) off('mirror', MIRROR_P);
   if (endW <= END_ON || add < BIG_HIT) return;
   if (front && bits.front === 'bonnet') off('bonnet', BONNET_P);
-  if (!front) off('exhaust', EXHAUST_P);
-  if (!front && bits.rear !== 'none') off(bits.rear, REAR_P);
+  if (!front) rearParts(car, off, rnd);
   // (?underskin: the engine goes only when the crush reaches it - crushedEngine, no dice)
   if (add >= ENGINE_HIT && front === (bits.engine === 'front')) off('engine', ENGINE_DICE_P);
 }
@@ -207,8 +252,9 @@ function shedOnRoll(car: DebrisCar, kind: string, corner: number, chance: number
  */
 function roofParts(car: DebrisCar, shed: (part: string, corner: number, chance: number) => void) {
   const bits = bitsOf(car.spec?.id || '');
-  if (bits.rear !== 'none') shed(bits.rear, 2, 0.5);
-  if (isTwin(car, bits.rear)) shed(bits.rear, 3, 0.5);
+  const lid = rearLidKind(car);
+  if (lid !== 'none') shed(lid, 2, 0.5);
+  if (isTwin(car, lid)) shed(lid, 3, 0.5);
   shed('mirror', 0, 0.5); shed('mirror', 1, 0.5);
   if (bits.front === 'bonnet') shed('bonnet', 0, 0.3);
   shed('exhaust', 2, 0.2);

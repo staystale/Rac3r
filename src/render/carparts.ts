@@ -81,6 +81,9 @@ export function partRegion(spec: RenderCarSpec, sprite: CarSprite, kind: string,
   if (kind === 'spoiler') return { x0: -4, x1: 6, y0: -4, y1: wid + 3 };
   if (kind === 'mirror') return mirrorRegion(spec, len, wid, plus);
   if (kind === 'exhaust') return { x0: -2, x1: -1, y0: -2, y1: wid + 1 };
+  // (?carparts: the Defender's spare on its rear door - render/newcarlooks2.ts paintDefunder)
+  if (kind === 'spare') return { x0: -2, x1: Math.round(len * 0.035), y0: Math.round(mid * 0.58),
+    y1: Math.round(mid * 1.42) };
   if (kind === 'wing') {
     const axle = Math.round(len / 2 + (front ? spec.lf : -spec.lr) * SPRITE_PPM);
     return { x0: axle - 7, x1: axle + 7, ...side(WING_DEPTH_PX) };
@@ -97,8 +100,14 @@ export function partRegion(spec: RenderCarSpec, sprite: CarSprite, kind: string,
  * @returns the region
  */
 function bootRegion(spec: RenderCarSpec, len: number, wid: number, corner: number): Region {
-  const lid = { x0: 4, x1: Math.round(len * 0.16), y0: 2, y1: wid - 3 };
-  if (!FIX.carparts || !doorsOf(String(spec.id))?.twinRear) return lid;
+  const row = FIX.carparts ? doorsOf(String(spec.id)) : undefined;
+  const lid = row?.rearLid ? { x0: Math.round(len * row.rearLid[0]),
+    x1: Math.round(len * row.rearLid[1]), y0: 2, y1: wid - 3 }
+    : { x0: 4, x1: Math.round(len * 0.16), y0: 2, y1: wid - 3 };
+  // (a split tailgate: the glass upper half over the drop-down lower, along the car)
+  if (row?.splitTailgate) return corner % 2 === 1 ? { ...lid, x0: 0, x1: Math.round(len * 0.04) }
+    : { ...lid, x0: Math.round(len * 0.04) + 1, x1: Math.round(len * 0.09) };
+  if (!row?.twinRear) return lid;
   const half = Math.floor((wid - 1) / 2);
   return corner % 2 === 1 ? { ...lid, y0: half + 1 } : { ...lid, y1: half };
 }
@@ -620,7 +629,7 @@ interface LostPart { spec: RenderCarSpec; kind: string; corner: number; region: 
   lost: string; underSkin: boolean }
 
 // the parts that leave nothing behind on the sprite (a mirror, the pipes)
-const CLEARED_PARTS = new Set(['mirror', 'exhaust']);
+const CLEARED_PARTS = new Set(['mirror', 'exhaust', 'spare']);
 
 /**
  * A sprite px on a lost part: an open car's part, a mirror or the pipes cleared; a bonnet's or
