@@ -77,4 +77,7 @@ export const FIX = {
   // 4-door's four, each from its own place and at its own length; none on an open car; a stock
   // car's welded door skins without glass
   carparts: atLoad('carparts'),
+  // every closed car SHADED the TS010's way (render/carshade.ts): a shared step over its sprite
+  // and its own crest lines
+  carshade: atLoad('carshade'),
 };
