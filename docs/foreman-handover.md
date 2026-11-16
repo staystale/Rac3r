@@ -38,7 +38,9 @@ not repeated here), then `TODO.md`, then this page. The 11-07 version of this pa
   car its own real parts; road cars always in traffic at their real share; every link carries all
   under test and the pause TESTING list holds it; no idle workers; keep this page current.
 - **Lessons:** prove looks with REAL crashes at the GAME'S zoom (close-ups hid the arms bug three
-  times); two workers on one base collide in rows - merge by patch; push only the latest round.
+  times); two workers on one base collide in rows - merge by patch; push only the latest round. SERVE
+  WITHOUT PUSHING: the served clone Desktop/G/rac3r IS the main repo (rac3r-wt is its worktree), so
+  `git -C ../rac3r checkout --detach <sha>` is enough; every push queues a 14-job CI run.
 
 ## How the owner works
 
