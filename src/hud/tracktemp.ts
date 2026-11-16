@@ -8,6 +8,7 @@ import { COL } from '../world/colours.ts';
 import { WEATHER, weatherRuns } from '../world/weather.ts';
 import { drawHudLabel, drawHudPanel, type HudRect } from './widgets.ts';
 import { modeSetting, setModeSetting } from './minimap.ts';
+import { COMPACT_TEMP_W } from './hudfit.ts';
 
 const TRACK_TEMP_KEY = 'rac3r.tracktemp.';
 // C: the bands of the gauge's colour - ice forms below FREEZE_C, cool to COOL_C, normal to
@@ -90,8 +91,11 @@ export function drawHudTrackTemp(ctx: CanvasRenderingContext2D, state: { tempF: 
   if (!rect || !rect.h) return;
   const celsius = WEATHER.trackC, colour = trackTempColour(celsius);
   drawHudPanel(ctx, rect, { fill: 'rgba(14,15,18,0.82)' });
-  drawHudLabel(ctx, 'TRACK ' + formatTemp(celsius, state.tempF), rect.x + 8,
+  // (?hudfit=1, landscape: a compact chip - the temperature alone, no TRACK, no bar)
+  const compact = rect.w <= COMPACT_TEMP_W;
+  drawHudLabel(ctx, (compact ? '' : 'TRACK ') + formatTemp(celsius, state.tempF), rect.x + 8,
     rect.y + rect.h / 2, { size: 10, weight: 800, col: colour });
+  if (compact) return;
   const barX = rect.x + 76, barW = rect.w - 84, barY = rect.y + rect.h / 2 - 2;
   const share = Math.max(0, Math.min(1, (celsius - BAR_LOW_C) / (BAR_HIGH_C - BAR_LOW_C)));
   ctx.fillStyle = 'rgba(255,255,255,0.14)';

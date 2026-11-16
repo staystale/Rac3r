@@ -68,6 +68,9 @@ export const FIX = {
   // suspension and drive shaft in a wing's well, the crash bar and radiator behind a bumper - by
   // each car's own layout (render/underskin.ts, carbits.ts mount / radiator)
   underskin: atLoad('underskin'),
+  // the landscape HUD decluttered: the track temperature a compact chip, FPS dropped first when the
+  // column is short, the ABS / TCS chips at the bottom by the HAND pedal (hud/hudfit.ts)
+  hudfit: atLoad('hudfit'),
   // the AEC Routemonster (a London Routemaster double-decker), drivable and in the traffic
   routemonster: atLoad('routemonster'),
   // the Teslur Model Why (a Tesla Model 3 Long Range AWD), ROAD / Saloon, in the traffic: its
