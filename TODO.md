@@ -334,6 +334,27 @@ THE 10 NEW CARS (owner-approved names 11-16; one switch and one hand-back each; 
    PS); 200 bhp or the launch 180; no wheelspin off the line (EST torque and gearing would change
    it); its aids (race ABS on, no TC: EST); the stock look (white, Renault Sport yellow roof,
    black wing and splitter); the pipe left of centre (EST).
+8b. RENOLT CLEO RS 200 (Renaultsport Clio 200 Cup, Clio III phase 2, 2009-12, 3-door: the road car;
+   owner: "a road version would be ace too. Make sure it's classed correctly"): BUILT 11-16 behind
+   ?cleoroad=1 (FIX.cleoroad; testlist 'cleoroad'), ROAD / Hatch on road tyres, not in the highway
+   traffic (a rare car). The Clio III rather than the IV: "200 Cup" is the III's name (the IV was
+   the "200 Turbo", the Cup a chassis option), and its figures are published. Real (Renault): the
+   F4R 2.0 four across the front (no turbo), 147 kW (201 PS) at 7,100, 215 Nm at 5,400, six-speed
+   manual, FWD, 1,204 kg, 4,017 x 1,768 mm, wheelbase 2,585, track 1,520, 215/45 R17, ABS; 225
+   km/h, 0-100 6.9 s. EST: 7,500 rpm, the ratios (the TL4 024's 3.18 1.95 1.48 1.21 0.97 0.81; the
+   200's TL4 031 said to differ slightly), final drive 4.5, Cd 0.35 x 2.1, 61 / 39, CG 0.52 m, mu
+   1.28, springs 1.7 Hz (the Cup chassis), no stability control (the Cup's deleted - to check).
+   tools/newcar.mjs cleo-rs200 (second PC, &underskin=1; every step ran clean): top 226 km/h (real
+   225), 0-100 7.1 s (6.9), 100-0 37.4 m, grip 1.18 g, 40-100 5.43 s, no wheelspin on tarmac or
+   gravel; tyres all OK; partcheck all 10 kinds OK; AI x6 Thruston 215 s, 2 incidents (1 off, 1
+   spin), laps 65.7-75.1 s (the Golf-class pace; the Cleo Cup 200 s); Sweaty Lamb (loose, run
+   apart) 421 s, 6 offs, laps 124.7-142.8 s (AI #3 credited two short laps of ~68 s: the short-lap
+   credit). Launch: no wheelspin even floored (215 Nm, no turbo; the Golf spins at once). Rolled
+   pictures: rests 92 wheels / 138 side / 70 roof of 300. PROOF (PC, base round105): switch off
+   worldhash (--highway 20), simhash, renderhash (thruston, brands-snatch, highway) SAME; switch on
+   simhash SAME (no level uses the car). QUESTIONS for the owner: the Clio III 200 Cup (2009-12)
+   or the Clio IV 200 Turbo (2013-16); the stock look (Liquid Yellow, a darker roof, black blade
+   and diffuser); no stability control (EST); not in the traffic.
 9. TOYOTER TS010 (Toyota TS010 Le Mans prototype, for Le Manky).
 10. AEC ROUTEMONSTER (London Routemaster double-decker bus: drivable, also traffic). After all 10:
    the two-wheel tipping state (its own job; the bus its showcase).

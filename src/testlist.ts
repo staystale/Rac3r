@@ -13,6 +13,16 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'cleoroad',
+    added: '2026-11-16',
+    name: 'New car: the Renolt Cleo RS 200 (a Renaultsport Clio 200 Cup, Clio III), ROAD / Hatch',
+    where: 'Test link + &cleoroad=1: the garage, ROAD / Hatch; a circuit (Thruston, Brands '
+      + 'Snatch); a road stage; + &underskin=1 for a crash',
+    try: 'Its look (Liquid Yellow, the blade, twin pipes in the middle), the revs to 7,500, a lap '
+      + 'against the Golf and the Focust, crash it, roll it.',
+    wrong: 'Not a Clio 200 from above, quicker than the Focust, a racer’s grip on road tyres.',
+  },
+  {
     id: 'cleo',
     added: '2026-11-16',
     name: 'New car: the Renolt Cleo Cup (the Clio Cup one-make racer, Clio V), TOURING / One-make',
