@@ -283,6 +283,25 @@ THE 10 NEW CARS (owner-approved names 11-16; one switch and one hand-back each; 
    (thruston, brands-snatch, highway) SAME; switch on: simhash SAME (no level uses the car).
    QUESTIONS for the owner: the GT class (or ROAD / Sports), its tyres, the 992 (or the 991),
    the wing with the lid, the switch name, the stock livery (white, red roof and wing).
+2. CATERPILLAR SEVEN (Caterham Seven 420R): BUILT 11-16 behind ?seven=1 (FIX.seven; testlist
+   'seven'), ROAD / Sports. Real: 560 kg, Duratec 2.0 157 kW / 203 Nm in front, RWD (de Dion),
+   wheelbase 2,225, 1,575 wide, 195/50 R15, no ABS / TC; 219 km/h, 0-60 mph 3.8 s. EST: the length
+   (3,100), track 1.30, 7,800 rpm, the six-speed's ratios and final drive 4.1, 47 / 53, mu 1.36,
+   Cd 0.7 x 1.25 m^2 (the area set to reach 219 km/h: 231 at 1.1). tools/newcar.mjs seven-420r
+   (second PC, with &underskin=1; every step ran clean): top 224 km/h (real 219), 0-100 4.2 s
+   (real ~3.9 EST from 0-60 3.8), 100-0 51.1 m (no ABS: full pedal locks, as the other no-ABS cars
+   48-59 m), grip 1.23 g, 40-100 3.52 s, wheelspin on tarmac too, gravel power-on body slip 75 deg;
+   tyres all OK but the 80 s drift (as the base); partcheck all 9 kinds OK; AI x6 Realish seed 7:
+   Thruston 206 s, 2 incidents (2 offs), laps 61.8-74.0 s; Sweaty Lamb (loose) 515 s, 35
+   incidents (28 offs, 7 spins), laps 138.5-176.3 s (the Lamburghini 381 s, 16; the Porch 408 s,
+   15). FOUND (not changed): in that loose run AI #4 was given 4 laps, one of 31.8 s (the others
+   ~145-176 s) - a lap counted short; not seen in the other cars' runs. Under ?underskin=1 its
+   bonnet shows the four behind the nose cone's radiator, its wings the arms (rear: drive
+   shafts). PROOF (PC, base round83): switch off worldhash (--highway 20), simhash, renderhash
+   (thruston, brands-snatch, highway) SAME; switch on simhash SAME.
+   QUESTIONS for the owner: the model (420R or another Seven), the exhaust's side (EST right),
+   the stock look (aluminium, green nose and wings, yellow stripe); its front cycle wings are part
+   of the body picture, so they do not turn with the wheels.
 
 ### 3b. Tracks (the venue helper builds, the foreman reviews, the owner passes; one switch each)
 

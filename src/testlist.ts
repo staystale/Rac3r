@@ -13,6 +13,17 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'seven',
+    added: '2026-11-16',
+    name: 'New car: the Caterpillar Seven (Caterham Seven 420R), ROAD / Sports',
+    where: 'Test link + &seven=1: the garage, ROAD; a circuit (Brands, Castle Kum) with AI, a '
+      + 'loose stage, and a crash (+ &underskin=1 to see under the bonnet and wings)',
+    try: 'Its look (the tub, nose cone, cycle wings, open cockpit), how light and quick it turns, '
+      + 'braking with no ABS, lifting off mid-corner; crash it and roll it.',
+    wrong: 'Not a Seven from above, wheels not under their wings, too fast or slow for 210 bhp in '
+      + '560 kg, snaps you cannot catch, parts drawn outside the car.',
+  },
+  {
     id: 'porch',
     added: '2026-11-16',
     name: 'New car: the Porch 911 GT3 Arr (Porsche 911 GT3 R), the GT class',

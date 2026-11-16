@@ -1,9 +1,10 @@
 // _newcargarage.mjs - a new car in the TEST GARAGE at 844x390 and 390x844: main menu > TEST MODE
-// > OVALS > Naffcar > GARAGE, the CLASS row stepped to the class named; photos into the folder.
-// node tools/scratch/_newcargarage.mjs <out dir> <class name, e.g. GT>   (RAC3R_QUERY=<switch>=1)
+// > OVALS > Naffcar > GARAGE, the CLASS row stepped to the class named (and the CAR row to the car
+// named); photos into the folder.
+// node tools/scratch/_newcargarage.mjs <out dir> <class, e.g. GT> [car name]  (RAC3R_QUERY=<switch>=1)
 import { mkdirSync } from 'node:fs';
 import { startServer, launchBrowser, extraQuery, gotoGame } from '../lib/browser.mjs';
-const [OUT = 'tools/scratch/_newcargarage', CLASS_NAME = 'GT'] = process.argv.slice(2);
+const [OUT = 'tools/scratch/_newcargarage', CLASS_NAME = 'GT', CAR_NAME = ''] = process.argv.slice(2);
 mkdirSync(OUT, { recursive: true });
 const server = await startServer();
 const browser = await launchBrowser();
@@ -32,9 +33,17 @@ try {
       if (shown.trim() === CLASS_NAME) break;
       await page.locator('#menu .prow').first().locator('button', { hasText: '▶' }).tap();
     }
+    const cars = [];
+    for (let i = 0; CAR_NAME && i < 30; i++) {
+      await page.waitForTimeout(400);
+      const shown = await page.locator('#menu .prow .val').nth(2).innerText();
+      cars.push(shown.split('\n')[0]);
+      if (shown.toUpperCase().includes(CAR_NAME.toUpperCase())) break;
+      await page.locator('#menu .prow').nth(2).locator('button', { hasText: '▶' }).tap();
+    }
     await page.waitForTimeout(800);
     await page.screenshot({ path: `${OUT}/garage-${width}x${height}.png` });
-    console.log(`${width}x${height}: classes stepped ${classes.join(' > ')};`,
+    console.log(`${width}x${height}: classes stepped ${classes.join(' > ')}; cars ${cars.join(' > ')};`,
       errors.join('; ') || 'no page errors');
     await context.close();
   }
