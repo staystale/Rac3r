@@ -240,7 +240,7 @@ SNAP_SHAREs) - so its sparks, its score on hard ground and its dig on soft groun
 (world/metalscrape.ts touchPoint, marks.ts markAcross, render/particles.ts wheelPlace), not from
 the empty hub's place; on soft ground it throws its ground's spray (dragSpray, particles
 emitDragDirt: 30 puffs a second at 15 m/s+); on hard ground the snapped end glows while it sparks
-(render/carcorners.ts drawSnappedCorner, 2 px). The PULL by what drags (damage.ts sideDrag,
+(render/carcorners.ts drawSnappedCorner, 3 px: owner "only a tiny bit bigger"). The PULL by what drags (damage.ts sideDrag,
 debris.ts dragPull): the snapped arm 0.7 of the old lost-wheel toe, the subframe 1.4 (the owner's
 numbers). MEASURED (_drift.mjs: 60 km/h on tarmac, a wheel torn off, 3 s hands off; off -> arm ->
 subframe): hatch-fwd front 12.8 -> 9.0 -> 17.7 deg (5.4 -> 3.8 -> 7.5 m sideways), rear 33.3 ->

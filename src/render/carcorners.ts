@@ -200,7 +200,7 @@ function strutTop(ctx: CanvasRenderingContext2D, centreX: number, centreY: numbe
 // axle, px thick
 export const SUBFRAME = '#202227', SUBFRAME_HALF_M = 0.32, SUBFRAME_PX = 2;
 // ?dmgmore: a dragging arm's hot end (the sparks' hottest colour, render/particles.ts), px
-const HOT_END = '#ffcf6a', HOT_END_PX = 2;
+const HOT_END = '#ffcf6a', HOT_END_PX = 3;
 // a front's track rod torn away with its wheel (SUSP_ROD): its stub at the rack, this share of the
 // way out to where the steering arm was
 export const ROD_STUB_SHARE = 0.3;
