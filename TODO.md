@@ -11,11 +11,27 @@ build's full record (what was built, every number) is in `TODO-DONE.md` under it
 
 The 11-11 round (14 entries, 11 switches) passed 11-12, and the performance round (carcache,
 carcull, the texture warm-up) and the stadium crossovers passed 11-12 ("mostly pass"), their
-records in `TODO-DONE.md` (PASSED 11-12). On the phone now:
-
-- Nothing.
+records in `TODO-DONE.md` (PASSED 11-12). On the phone now (11-16 night, the owner's link = foreman/round140): ?underskin (the damage look -
+the foreman's arms / hub / thrown-parts / engine / torn-panel fixes), ?carparts (steps 1-6: each
+car's own crash parts), ?carshade (every closed car shaded), ?reversefix, ?f1menu, ?corolla.
 
 ## 2. BEING BUILT
+
+- THE 11-16 QUEUE (every item owner-approved after a brief plan; details in each worker's TODO
+  entry as it lands):
+  - WORKER A, cars in order: Rebelion R13, Seat Ibeefa, Ordi A4 Avant, Fjord Transfit Custom (its
+    sliding door), BMV E36 Peak (new HILL CLIMB class), Skool Bus (rare in traffic, school-run hours);
+    then the TWO-WHEEL TIPPING (?tipping: realistic save, gravel trips through it); then the
+    Scanyah artic (a jointed trailer; drivable, NOT in traffic until the owner tests).
+  - WORKER B, damage (behind ?underskin): rolled cars' underside matching what is missing, rolling
+    throws wheels and track rods by the face that hits; LOW RANGE finished as a small grip boost in
+    LO (owner: not a crawl); dragging (pull by what drags, sparks off the snapped arm, dirt spray);
+    a hanging exhaust and bumper (chance by damage, random distance); steam and leaks from the real
+    radiator / engine, worse damage leaks faster, puddles under the real parts. Then Blighty Park
+    RX (invented gravel, flagged; no joker) and a Blighty Park circuit.
+  - PARKED: PIT STOPS (item 16 below) - owner 11-16: "needs more work and discussion, I have images
+    to use" - ask for the images; the limiter per venue (80, 60 at tight ones), the AI's strategy
+    simple. ?pbzline / ?driftbrake for the AI tune (3e). ?siren for the sound pass.
 
 - SPEED, NEXT (owner 11-14 on PERFPASS: "Still seems to drop slightly at times / starting levels
   seems to drop / be slow"; "Pass, fix drops next"). From the phone reports (11-14, ?report=1):

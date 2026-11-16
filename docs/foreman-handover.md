@@ -1,65 +1,47 @@
 # Foreman handover
 
 Kept current as the work goes (owner 11-12: "update the handover as we go"). Last updated
-2026-11-15 (night). Read `CLAUDE.md`, then `NOTES.md` (the owner's rules and the Routine at its end,
+2026-11-17 (night). Read `CLAUDE.md`, then `NOTES.md` (the owner's rules and the Routine at its end,
 not repeated here), then `TODO.md`, then this page. The 11-07 version of this page is in git.
 
-## Where we are (11-15, night; the owner asleep from ~22:50)
+## Where we are (11-16 into 11-17 night)
 
-- **ITCH** = `2026-11-15-7c4af37a` (push #3 of the day, owner yes). **Main** = 7c4af37a. Staged builds in
-  `GamesStudio/ready-to-play/rac3r-2026-11-15{,b,c}`. ITCH RULE: ask before every push; push only on a
-  clear yes, after CI is green. An ambiguous reply: ASK (owner 11-15: "ask if not sure").
-- **The owner's link** = foreman/round77 (8789924a): everything passed today is the default (bugs 1-10,
-  stopped-car avoidance + its start fix + the single-lane rolling-start fix, AI crash put-backs, the
-  ground density, the joker row, the minimap, chevrons, barrels, parked police). UNDER TEST: none from
-  the owner; ?aipace=1 / ?aislide=1 PASSED and being defaulted by Worker A with new presets.
-- **Worker A** (fresh, briefA5.md, worktree `bugfix`, PC `repo` / 8094): JOB 1 (PACE + aislide default +
-  presets skill +0.10, risk/agg/pace +0.03, proofs and numbers), then CAR TOOLS, the UNDER-THE-SKIN layer,
-  the 10 cars (one link each), then the AI extras 2b-2d (owner: cars first).
-- **Worker B** (fresh, briefB3.md, worktree `barriercull`, PC `repo2` / 8093): item 15 traffic (2 in 12
-  leave at the next slip, 5 in 40 fuel, joins from on-ramps), then JOB 3b the frame-drop prep (GPU / layer
-  timing in the phone report, ?gpustat=1) for the owner's morning drive; then F1 vs world (proposal),
-  the tracks. Police cap: stays 3 (owner).
-- **MEMORY RULE** (the laptop ran out at ~21:45; jobs were reaped): one heavy job at a time, on the PC
-  only; the laptop light. Reaped jobs are re-run only on the owner's say (the owner said yes tonight).
-- **The PC** is not faster than the laptop; its value is spare memory. Foreman's folder `repo3` / 8095.
-- **Lessons today:** test every case a driving change touches before handover (single-lane rolling
-  starts shipped broken once); don't invent numeric targets; numbers inform, the owner decides
-  "better"; AI changes tag [sim] [look]; a test that taps under the loading screen fails (uicheck fixed).
-- PARALLEL WORKERS: each its OWN worktree and its OWN port (two on one port served each other's
-  code once); a laptop browser lock is removed only by whoever wrote it (compare its text first);
-  check whether a tool opens a browser BEFORE running it (guidecheck, racecheck do).
-- Earlier state of this page: git history.
-
-## In progress
-
-- **HUD text cache (`?hudcache=1`), for slower phones.** The speedometer's text was the biggest
-  single HUD cost in a Spa profile at CPU x4 (603 ms of a run). The change stamps each HUD text
-  line from a cached canvas. It is set aside as stash `c5a474fd` ("hudcache wip"), applied with
-  `git stash apply c5a474fd`. MEASURED WORSE (Spa, 20 AI, CPU x4, off/on/off/on):
-  - Frame median: off 33.2 / 17.0, on 33.3 / 33.3 ms.
-  - Worst frame: off 83 / 100, on 1911 / 2348 ms.
-  - Tiles painted: off ~8 ms each, on 58-88 ms each.
-  - Something in it stalls (a guess: canvases made or resized per frame, or memory churn). Find
-    that before any more measuring. Use `tools/framecheck.mjs` and `tools/cpuprof.mjs`, not
-    one-off scripts.
-  - The owner's phone already holds 60 fps on every level it drove. This work is for slower phones
-    only.
-- **X Gayms rallycross, L.A. LIVELY (`?xgayms=1`)**: BUILT by the worker (its commit 20ecddd,
-  cherry-picked onto round9 as branch `foreman/round10`). A 942 m figure of eight on a street grid,
-  one crossover bridge (clearM 3.5), 43% dirt, the joker with the 16 m gap jump (ramp and table
-  pieces, five side by side so the whole road is the jump). AI clears it 19 of 20; no AI change.
-  Night frames: 17.5 ms work vs Knobhill's 16.1. The owner's answers (11-12): joker cost "fine";
-  "street lamps please"; night frame cost "yes" (look into it); the rest OK. The worker is on that
-  as `foreman/xgayms2`, DONE: a5f626b, on main (round11). 22 street lamps (Level.streetLamps: the lamp plan's street-light rule round
-  the whole lap). The lamps cost nothing measurable. X Gayms' extra frame cost (night 23.6 vs
-  Knobhill 19.4 ms, CPU x4, 20 AI) is BARRIER DRAWING: 1723 m of Armco in 7 long runs, and
-  render/props/fence.ts skips a barrier only when its whole box is off screen (`?skip=barriers`
-  brings it to Knobhill's level). Asked: cull barriers stretch by stretch (shared code)? The thumbnail is in index.json with
-  birdsmess (`XGAYMS=1 node tools/thumbs.mjs --webp`: a switched level is seen only with its env).
-- **The Bird's Mess follows the world clock** (owner 11-12: "World clock all levels like I asked"):
-  Level.eventHour removed, so no level fixes its own hour; only TEST MODE's START HOUR does. In
-  round9, after its stadium commit.
+- **ITCH** = `2026-11-15-7c4af37a` (unchanged). The owner HOLDS itch push #4 until ALL the cars and the
+  open bugs are passed (11-16: "All 21"; the list grew since). Ask before any push, every time.
+- **Main** = 2926ed0a (round100). CI jammed on 11-16 night (33 superseded runs cancelled with the
+  owner's yes); CI is re-running on round139 - when green, push it to main.
+- **The owner's link** = foreman/round140 (36af5616). Under test (switches): ?underskin (the damage
+  look), ?carparts (each car's own crash parts, steps 1-6), ?carshade (every closed car shaded),
+  ?reversefix (TCS in reverse, the 20 km/h cap holds), ?f1menu (F1 / WORLD cards), ?corolla.
+  Parked behind switches: ?pbzline / ?driftbrake (for the AI tune), ?siren (sound pass).
+- **The foreman FIXED the under-the-skin bug himself** (owner asked: "Can you take over"): branch
+  foreman/armsfix2 + foreman/torn. A torn-off wheel takes its hub and its suspension BY THE HIT, no
+  dice (world/debris.ts wheelBits + car.suspOff); snapped arms drawn on the subframe
+  (render/carcorners.ts); the arms the F1's dark bars, thicker on cars, thicker again on heavy
+  vehicles; the engine ejects only once exposed and reached (debris.ts crushedEngine); TORN PANELS
+  (render/torncut.ts). Tested with real crashes at the GAME'S zoom (tools/scratch/_armzoom.mjs) -
+  close-ups had hidden the problem for three rounds.
+- **Worker A** (a2fab314deb77a72b, worktree `bugfix`, PC `repo`): building cars, each a plan
+  first, the owner said yes to all: Corolla (done, link), R13, Ibeefa, A4 Avant, Transfit Custom (its
+  sliding door), E36 Peak (new HILL CLIMB class), Skool Bus (rare, school-run hours), then the
+  TWO-WHEEL TIPPING (?tipping, approved, realistic save, gravel trips through it), then the Scanyah
+  artic (jointed trailer, drivable, NOT in traffic until the owner tests). PIT STOPS PARKED: the owner
+  has IMAGES to share and wants to discuss first.
+- **Worker B** (aaf511f3d9d953888, scratch worktrees, PC `repo2`): damage items, each approved:
+  5 rolled cars (underside matches what's missing; rolling throws wheels / track rods by the face
+  that hits), low range finished as a small GRIP boost in LO (owner, not a crawl), 2 dragging (the
+  pull by what drags, sparks off the snapped arm, dirt spray), 4 hanging exhaust / bumper (chance by
+  damage, random distance), 3 steam and leaks (from the real radiator / engine; worse damage leaks
+  faster; puddles under the real parts). Then Blighty Park RX + a Blighty Park circuit.
+- **Owner rules added 11-16** (NOTES.md + memory): discuss and plan first, down to the fundamentals,
+  but ask BRIEFLY and expand only on request; every car has its own real crash parts; road cars
+  always go in traffic at their real share (don't ask); every test link carries everything under
+  test, and the pause-menu TESTING list must hold it all; no idle workers.
+- **Lessons 11-16:** a worker's proof must be AT THE GAME'S VIEW with REAL crashes; close-ups and set
+  damage passed three times while the phone showed nothing. Rebase stacking: two workers on one base
+  collide in the car rows - merge by patch (see round115). Many pushes queue many CI runs: push the
+  latest round only.
+- The morning notes: scratchpad morning.md (the session's), summarised here.
 
 ## How the owner works
 
