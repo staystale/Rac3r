@@ -314,6 +314,20 @@ layer. The hub stays on in such a crash (end-on, ~0.5 a corner): a wheel comes o
 hit adds 0.4 to a corner that ends at 0.85 (damage.ts) - ?cornerbreak (next) lets a broken corner
 lose it sooner. PHOTOS (real crashes at 25-28 m/s, front and rear, left / centre / right; the
 Minnie (FWD), the M135i (RWD), the saloon, the Sport quattro (AWD); before / after).
+OWNER BUG 2, 11-16 (the live link, the BriSKA F2 Stocker in the wet: "still seeing hubs attached with
+no steering arms / wishbones or driveshafts ... across all cars ... Why is this not showing"). FOUND
+(real crashes on every car): the arms WERE drawn - the F1's own dark 1 px lines, under the tyre -
+but dark on dark or wet tarmac they could not be seen, so a smashed end showed its wheel and the
+strut's ring (read as the hub) floating; and a ROLLED car's underside had no arms at all (an axle
+bar only). FIXED (behind ?underskin): a closed car's exposed arms, drive shaft and track rod keep
+their dark line with a lighter steel edge round it (render/cars.ts armLines, WELL_EDGE; the open
+cars unchanged); the underside picture a rolled car shows carries each wheel's wishbone and a
+front's track rod in light steel (render/carprofile.ts underArms). AND "why do the springs go under
+the tyres sometimes": FOUND - the partial strut was CLIPPED to its inner half along the tyre's edge,
+so its ring looked cut by the tyre; now a strut is never clipped: not severely crushed it stands at
+the wing opening's inner lip (its inner half under the body still there), severely crushed over the
+tyre (render/carcorners.ts drawExposedStrut). PHOTOS: every car of the roster (33) crashed nose
+first at 28 m/s, upright and then rolled over (roll.ts) and caught.
 
 THE 10 NEW CARS (owner-approved names 11-16; one switch and one hand-back each; src/newcars.ts):
 1-7 PASSED 11-16, the default with the launches (owner: "all pass apart from my earlier comments"):

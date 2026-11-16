@@ -540,13 +540,16 @@ driven wheel's shaft (`drawFixedArms`, `WELL_ARMS`), a front's track rod at `car
 the crush pushes the drawn wheel in (`cornerShift`: back by the end crush past the arch, inboard by
 the side crush, each at most a tyre) and the arms run to it - drawn only, the physics' wheel is
 where it was; the open cars' arms reach the pushed hub the same way (`drawWishbones`).
-ROUND 4: an exposed corner is open to the ROAD (no well fill; a lost wing's region cleared
+ROUND 4 (and the owner's bug 2): a closed car's exposed arms, shaft and track rod keep a lighter
+steel edge round their dark line (`cars.ts WELL_EDGE`, `armLines`; dark alone was lost on dark
+tarmac), and a rolled car's underside picture carries each wheel's wishbone and a front's track rod
+(`carprofile.ts underArms`). An exposed corner is open to the ROAD (no well fill; a lost wing's region cleared
 right through, `carparts.ts lostPixel` keeps no inner edge strip for a wing with the switch); the
 arms, shaft and track rod are the open cars' own (`WELL_ARMS = OPEN_ARMS`: dark, 1 px), drawn
 before the tyre (`carcorners.ts drawExposedCorner`), the strut's spring and top mount after it,
-over the tyre's inner edge (`drawExposedStrut`) - only its INNER half (the arch's inner lip) unless
-the corner is severely crushed (damage 0.65, `STRUT_ALL_DAMAGE`, or the wheel pushed half a tyre,
-`STRUT_ALL_PUSH`). Thrown suspension (`wishbone`, `strut`,
+over the tyre's inner edge (`drawExposedStrut`) when the corner is severely crushed (damage 0.65,
+`STRUT_ALL_DAMAGE`, or the wheel pushed half a tyre, `STRUT_ALL_PUSH`); else at the opening's inner
+lip, its inner half under the body still there - never clipped against the tyre. Thrown suspension (`wishbone`, `strut`,
 `shaft`) is drawn first of the loose objects, under the loose wheels (`objects.ts drawCones`,
 `SUSPENSION_KINDS`).
 `tools/scratch/_skinshots.mjs` photographs every car crushed and with its parts off (front, side,

@@ -10,6 +10,7 @@ import { SPRITE_PPM } from "./shared.ts";
 import { shade } from "../render.ts";   // hoisted, only called at draw time (no cycle)
 import { tyreBox } from "./cars.ts";
 import type { RenderCarSpec } from "./types.ts";
+import { FIX } from "../core/fixes.ts";
 
 /** A wing of an open car: from / to share of the length (tail 0, nose 1), low / high m, span. */
 type Wing = [number, number, number, number, number];
@@ -290,6 +291,32 @@ function sideWheels(spec: RenderCarSpec, rect: (x: number, y: number, wide: numb
   }
 }
 
+// the arms seen from below: light steel (on the dark floor), each line 1 px
+const UNDER_ARM = '#8a8f98';
+
+/**
+ * ?underskin: the arms on the underside picture - each wheel's two wishbone arms from by the
+ * middle out to its hub, a front's track rod - lines of 1 px squares.
+ * @param rect the picture's block painter
+ * @param where the axles (px along), the middle and the track (px across)
+ */
+function underArms(rect: (x: number, y: number, w: number, h: number, col: string) => void,
+  where: { frontAxle: number; rearAxle: number; mid: number; track: number }): void {
+  const { frontAxle, rearAxle, mid, track } = where, spread = 0.2 * SPRITE_PPM;
+  const line = (fromX: number, fromY: number, toX: number, toY: number) => {
+    const steps = Math.max(1, Math.round(Math.max(Math.abs(toX - fromX), Math.abs(toY - fromY))));
+    for (let step = 0; step <= steps; step++)
+      rect(fromX + (toX - fromX) * step / steps, fromY + (toY - fromY) * step / steps, 1, 1,
+        UNDER_ARM);
+  };
+  for (const axle of [frontAxle, rearAxle]) for (const side of [-1, 1]) {
+    const hubY = mid + side * track / 2, inner = mid + side * 2;
+    line(axle - spread, inner, axle, hubY);
+    line(axle + spread, inner, axle, hubY);
+    if (axle === frontAxle) line(axle - spread * 0.7, inner, axle - spread * 0.7, hubY - side);
+  }
+}
+
 /**
  * The car seen from below (tail left, nose right, as the top sprite): the floor or an open car's
  * plank and pods, the axles, a prop shaft to a driven rear axle, the exhaust, the sump at the
@@ -317,6 +344,9 @@ export function paintUnderProfile(spec: RenderCarSpec, widthPx: number): Profile
   const frontAxle = lengthPx / 2 + spec.lf * SPRITE_PPM,
     rearAxle = lengthPx / 2 - spec.lr * SPRITE_PPM, track = (spec.trackWidth || 1.5) * SPRITE_PPM;
   for (const axle of [frontAxle, rearAxle]) rect(axle - 1, mid - track / 2, 2, track, metal);
+  // (?underskin: each wheel's wishbone, and a front's track rod, seen from below - a rolled car's
+  // underside, as the arms the upright car shows through its damage)
+  if (FIX.underskin && !profile.open) underArms(rect, { frontAxle, rearAxle, mid, track });
   // a prop shaft to a driven rear axle, the exhaust to the tail, the sump at the engine
   if ((spec.drive ?? 0) < 1 && !profile.open) rect(rearAxle, mid - 1, frontAxle - rearAxle, 2,
     metal);

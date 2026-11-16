@@ -23,13 +23,19 @@ import { trackCanvas } from '../core/memorybudget.ts';
 
 // an open-wheeler's suspension arms
 const WISHBONE = '#2a2d34', DRIVE_SHAFT = '#4a4f57', CV_JOINT = '#16181d';
-/** How a wheel's fixed arms are drawn: their colours, and how many px wide each line is. */
-interface ArmsLook { wishbone: string; shaft: string; joint: string; widePx: number }
+/**
+ * How a wheel's fixed arms are drawn: their colours, how many px wide each line is, and a lighter
+ * edge round each line (none on an open car).
+ */
+interface ArmsLook { wishbone: string; shaft: string; joint: string; widePx: number;
+  edge?: string }
 // an open car's arms, in the air (dark against the ground)
 const OPEN_ARMS: ArmsLook = { wishbone: WISHBONE, shaft: DRIVE_SHAFT, joint: CV_JOINT, widePx: 1 };
-// ?underskin: a closed car's arms seen through a lost wing's opening - the open cars' own, dark
-// against the road under it, and under the tyre
-const WELL_ARMS: ArmsLook = OPEN_ARMS;
+// ?underskin: a closed car's arms seen through a lost wing's opening or past its crushed end -
+// the open cars' own, dark and under the tyre, with a lighter steel EDGE: dark alone was lost on
+// dark or wet tarmac
+const WELL_EDGE = '#8a8f98';
+const WELL_ARMS: ArmsLook = { ...OPEN_ARMS, edge: WELL_EDGE };
 
 // what createCars destructures from the renderer and the sprite layers
 interface CarsHelpers {
@@ -185,12 +191,15 @@ function drawCarWheel(
  * @param from [x, y]
  * @param dest [x, y]
  */
-function pixelLine(ctx: CanvasRenderingContext2D, from: number[], dest: number[]): void {
+function pixelLine(ctx: CanvasRenderingContext2D, from: number[], dest: number[],
+  sizePx = 1): void {
   const steps = Math.max(1, Math.round(Math.max(Math.abs(dest[0] - from[0]),
     Math.abs(dest[1] - from[1]))));
+  // (a square sizePx wide at each step, centred on the line: 1 px is the line itself)
+  const back = Math.floor(sizePx / 2);
   for (let i = 0; i <= steps; i++) {
-    ctx.fillRect(Math.round(from[0] + (dest[0] - from[0]) * i / steps),
-      Math.round(from[1] + (dest[1] - from[1]) * i / steps), 1, 1);
+    ctx.fillRect(Math.round(from[0] + (dest[0] - from[0]) * i / steps) - back,
+      Math.round(from[1] + (dest[1] - from[1]) * i / steps) - back, sizePx, sizePx);
   }
 }
 
@@ -234,6 +243,25 @@ function drawWishbones(ctx: CanvasRenderingContext2D, spec: RenderCarSpec, axleX
 function drawFixedArms(ctx: CanvasRenderingContext2D, spec: RenderCarSpec, axleX: number,
   side: number, halfWidth: number, look: ArmsLook = OPEN_ARMS,
   hub: { x: number; y: number } = NO_PUSH): void {
+  // (the lighter edge first, every line's: the dark lines go over it)
+  if (look.edge) armLines(ctx, spec, { axleX, side, halfWidth, hub }, look, 3);
+  armLines(ctx, spec, { axleX, side, halfWidth, hub }, look, 1);
+}
+
+/**
+ * A wheel's fixed arms' lines, each a square sizePx wide at each step: the drive shaft (and its
+ * joints) to a driven wheel, the two arms of its wishbone. sizePx 1 the lines in their colours;
+ * more, the lighter edge round them (look.edge).
+ * @param ctx the canvas (the car's frame, sprite px)
+ * @param spec the car as drawn (its drive)
+ * @param wheel its axle (m), side (-1 / 1), half the track (px) and the hub's push-in (px)
+ * @param look the colours and line width
+ * @param sizePx px of each step's square
+ */
+function armLines(ctx: CanvasRenderingContext2D, spec: RenderCarSpec,
+  wheel: { axleX: number; side: number; halfWidth: number; hub: { x: number; y: number } },
+  look: ArmsLook, sizePx: number): void {
+  const { axleX, side, halfWidth, hub } = wheel, edge = sizePx > 1;
   const innerX = axleX * SPRITE_PPM, hubX = innerX + hub.x, hubY = side * halfWidth + hub.y;
   const front = axleX > 0;
   // the chassis where the arms meet it: the NOSE at the front axle, the GEARBOX at the rear (owner
@@ -243,18 +271,21 @@ function drawFixedArms(ctx: CanvasRenderingContext2D, spec: RenderCarSpec, axleX
   // a DRIVE SHAFT to a driven wheel ("no drive shafts either"): straight across, its two joints
   const drive = spec.drive ?? 0;
   if (front ? drive > 0 : drive < 1) {
-    ctx.fillStyle = look.shaft;
-    pixelLine(ctx, [innerX, body], [hubX, hubY]);
-    pixelLine(ctx, [innerX + 1, body], [hubX + 1, hubY]);
-    ctx.fillStyle = look.joint;
-    ctx.fillRect(Math.round(innerX) - 1, Math.round(body + side * 2) - 1, 3, 2);
-    ctx.fillRect(Math.round(hubX) - 1, Math.round(hubY - side * 3) - 1, 3, 2);
+    ctx.fillStyle = edge ? look.edge! : look.shaft;
+    pixelLine(ctx, [innerX, body], [hubX, hubY], sizePx);
+    pixelLine(ctx, [innerX + 1, body], [hubX + 1, hubY], sizePx);
+    if (!edge) {
+      ctx.fillStyle = look.joint;
+      ctx.fillRect(Math.round(innerX) - 1, Math.round(body + side * 2) - 1, 3, 2);
+      ctx.fillRect(Math.round(hubX) - 1, Math.round(hubY - side * 3) - 1, 3, 2);
+    }
   }
-  ctx.fillStyle = look.wishbone;
+  ctx.fillStyle = edge ? look.edge! : look.wishbone;
   for (const spread of [-0.2, 0.2]) for (let line = 0; line < look.widePx; line++) {
     const shift = line * Math.sign(spread);
-    pixelLine(ctx, [innerX + spread * SPRITE_PPM + shift, body], [hubX + shift, hubY]);
+    pixelLine(ctx, [innerX + spread * SPRITE_PPM + shift, body], [hubX + shift, hubY], sizePx);
   }
+
 }
 
 // no push: a wheel drawn at its place
@@ -319,7 +350,8 @@ function drawExposed(ctx: CanvasRenderingContext2D, spec: RenderCarSpec, sprite:
   shift: CornerShift): void {
   const { axleX, side, halfWidth } = wheel;
   drawExposedCorner(ctx, wheel, shift,
-    () => drawFixedArms(ctx, spec, axleX, side, halfWidth, WELL_ARMS, shift), WELL_ARMS.wishbone);
+    () => drawFixedArms(ctx, spec, axleX, side, halfWidth, WELL_ARMS, shift),
+    { colour: WELL_ARMS.wishbone, edge: WELL_EDGE });
 }
 
 /** A wheel's fixed arms painted once: the picture and where its corner sits, sprite px. */
@@ -401,7 +433,7 @@ function drawCarWheels(carsCtx: CarsContext, car: RenderCar, sprite: CarSprite, 
     if (shift.exposed && !isBare(spec)) {
       const tyre = tyreBox(spec, axleX < 0);
       drawExposedStrut(view.ctx, { axleX, side, halfWidth, tyreLen: tyre.len, tyreWid: tyre.wid,
-        damage: car.dmg ? car.dmg[corner] : 0 }, shift);
+        bodyHalf: sprite.Wp / 2, damage: car.dmg ? car.dmg[corner] : 0 }, shift);
     }
   }
   return halfWidth;
