@@ -15,7 +15,7 @@ export const LOW_RANGE: Record<string, number> = { 'defunder-110': 3.32 / 1.211,
 // slightly when it's in low range ... to simulate the effect" - the low gearing's finer control of
 // wheelspin, which this engine model, never stalling or lugging, does not give by itself). The
 // owner's number to tune.
-export const LOW_GRIP = 1.1;
+export const LOW_GRIP = 1.3;
 // m/s under which the range may be changed (10 km/h: as a real box, nearly stopped)
 export const SWITCH_BELOW_MS = 10 / 3.6;
 // THE AI'S RULE: bogged on loose ground (grip under LOOSE_MU) or slow on a steep climb (a grade
