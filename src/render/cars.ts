@@ -21,6 +21,14 @@ import { trackCanvas } from '../core/memorybudget.ts';
 
 // an open-wheeler's suspension arms
 const WISHBONE = '#2a2d34', DRIVE_SHAFT = '#4a4f57', CV_JOINT = '#16181d';
+/** How a wheel's fixed arms are drawn: their colours, and how many px wide each line is. */
+interface ArmsLook { wishbone: string; shaft: string; joint: string; widePx: number }
+// an open car's arms, in the air (dark against the ground)
+const OPEN_ARMS: ArmsLook = { wishbone: WISHBONE, shaft: DRIVE_SHAFT, joint: CV_JOINT, widePx: 1 };
+// ?underskin: a closed car's arms seen in a lost wing's dark well - bright steel two px wide, so
+// they read at a phone's size
+const WELL_ARMS: ArmsLook = { wishbone: '#9aa0aa', shaft: '#c0c5cc', joint: '#16181d',
+  widePx: 2 };
 
 // what createCars destructures from the renderer and the sprite layers
 interface CarsHelpers {
@@ -102,7 +110,8 @@ function lostSprite(car: RenderCar, spec: RenderCarSpec, base: CarSprite): CarSp
     const { halfWidth } = wheelMetrics(spec, base);
     drawUnderSkin(sprite, spec, lost, { halfWidth,
       tyreWidth: (rear) => tyreBox(spec, rear).wid,
-      arms: (ctx, axleX, side) => drawFixedArms(ctx, spec, axleX, side, halfWidth) });
+      arms: (ctx, axleX, side) => drawFixedArms(ctx, spec, axleX, side, halfWidth, WELL_ARMS) },
+      base.c, car.crushL && { ends: car.crushL, sides: car.crushS });
   }
   LOST.set(car, { base, lost, sprite });
   return sprite;
@@ -214,9 +223,10 @@ function drawWishbones(ctx: CanvasRenderingContext2D, spec: RenderCarSpec, axleX
  * @param axleX the axle, m
  * @param side -1 or 1
  * @param halfWidth px from the middle to the wheel
+ * @param look the colours and line width (an open car's by default)
  */
 function drawFixedArms(ctx: CanvasRenderingContext2D, spec: RenderCarSpec, axleX: number,
-  side: number, halfWidth: number): void {
+  side: number, halfWidth: number, look: ArmsLook = OPEN_ARMS): void {
   const hubX = axleX * SPRITE_PPM, hubY = side * halfWidth, front = axleX > 0;
   // the chassis where the arms meet it: the NOSE at the front axle, the GEARBOX at the rear (owner
   // 11-07: "front wishbones etc don't link up to the body on f1 car" - they started at the
@@ -225,16 +235,18 @@ function drawFixedArms(ctx: CanvasRenderingContext2D, spec: RenderCarSpec, axleX
   // a DRIVE SHAFT to a driven wheel ("no drive shafts either"): straight across, its two joints
   const drive = spec.drive ?? 0;
   if (front ? drive > 0 : drive < 1) {
-    ctx.fillStyle = DRIVE_SHAFT;
+    ctx.fillStyle = look.shaft;
     pixelLine(ctx, [hubX, body], [hubX, hubY]);
     pixelLine(ctx, [hubX + 1, body], [hubX + 1, hubY]);
-    ctx.fillStyle = CV_JOINT;
+    ctx.fillStyle = look.joint;
     ctx.fillRect(Math.round(hubX) - 1, Math.round(body + side * 2) - 1, 3, 2);
     ctx.fillRect(Math.round(hubX) - 1, Math.round(hubY - side * 3) - 1, 3, 2);
   }
-  ctx.fillStyle = WISHBONE;
-  for (const spread of [-0.2, 0.2])
-    pixelLine(ctx, [hubX + spread * SPRITE_PPM, body], [hubX, hubY]);
+  ctx.fillStyle = look.wishbone;
+  for (const spread of [-0.2, 0.2]) for (let line = 0; line < look.widePx; line++) {
+    const shift = line * Math.sign(spread);
+    pixelLine(ctx, [hubX + spread * SPRITE_PPM + shift, body], [hubX + shift, hubY]);
+  }
 }
 
 /** A wheel's fixed arms painted once: the picture and where its corner sits, sprite px. */

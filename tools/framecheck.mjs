@@ -8,7 +8,8 @@
 // whose sim never stepped fails (exit 1). CPU=1 sets the throttle (default x4). CAR=<id> the player's
 // car (default track-rwd; the AI take the same). DAMAGE_AT=<frame> (0-599): at that frame of the
 // measured 600 every car loses its panels (bonnet, both bumpers, four wings, boot, a door: their
-// lost-parts pictures are made then - the spike - and drawn from then on).
+// lost-parts pictures are made then - the spike - and drawn from then on); DAMAGE_CRUSH=1 crushes
+// every corner then too (render/cardamage.ts: the dented pictures made at once).
 import { startServer, launchBrowser } from './lib/browser.mjs';
 const srv = await startServer();
 let b;
@@ -29,7 +30,7 @@ await p.evaluate(() => dispatchEvent(new KeyboardEvent('keydown', { key: 'x' }))
 const lv = process.argv[2] || 'test-track';
 // launch a session, then let the demo driver drive it (the same driver as the menu demo lap)
 const damageAt = process.env.DAMAGE_AT ? Number(process.env.DAMAGE_AT) : -1;
-const r = await p.evaluate(([lv, damageAt]) => new Promise(async (res) => {
+const r = await p.evaluate(([lv, damageAt, crush]) => new Promise(async (res) => {
   const g = window.__game;
   const A = await import('/src/ai/autodrive.ts');
   const drv = A.createAutoDriver(g.level.subtrack);
@@ -37,10 +38,10 @@ const r = await p.evaluate(([lv, damageAt]) => new Promise(async (res) => {
   // (the start lights: the field goes on the green, ~4 s after the start)
   await new Promise((wait) => setTimeout(wait, 6000));
   const w0 = window.__work.length; const times = []; let last = performance.now(), n = 0;
-  const panelsOff = () => { for (const car of [g.car, ...(g.ai || []).map((entry) => entry.car)]) car.partLost = 'bonnet:0,bumper:0,wing:0,wing:1,wing:2,wing:3,boot:2,bumper:2,panel:1'; };
+  const panelsOff = () => { for (const car of [g.car, ...(g.ai || []).map((entry) => entry.car)]) { car.partLost = 'bonnet:0,bumper:0,wing:0,wing:1,wing:2,wing:3,boot:2,bumper:2,panel:1'; if (crush) Object.assign(car, { dmg: [0.5, 0.45, 0.45, 0.5], crushL: [0.5, 0.4, 0.4, 0.3], crushS: [0.1, 0.3, 0.1, 0.3] }); } };
   function f(now) { if (n === damageAt) panelsOff(); times.push(now - last); last = now; if (++n < 600) window.__raf(f); else res({ work: window.__work.slice(w0), times, tiles: g.renderer.groundRenders, tileMs: g.renderer.tileMs, steps: g.stepsLastFrame || 0, moving: (g.ai || []).filter((entry) => Math.hypot(entry.car.vx, entry.car.vy) > 2).length, ai: (g.ai || []).length, speed: Math.hypot(g.car.vx, g.car.vy) }); }
   window.__raf(f);
-}), [lv, damageAt]);
+}), [lv, damageAt, !!process.env.DAMAGE_CRUSH]);
 const t = r.times.slice(30).sort((a, b) => a - b);
 const pct = (q) => t[Math.floor(q * (t.length - 1))].toFixed(1);
 console.log(`${lv} (CPU x${rate}, autodrive lap): frame ms median ${pct(0.5)} | p95 ${pct(0.95)} | worst ${t[t.length - 1].toFixed(1)} | frames over 33 ms: ${t.filter((x) => x > 33).length} of ${t.length} | tiles painted ${r.tiles}, ${(r.tileMs / r.tiles).toFixed(1)} ms each`);

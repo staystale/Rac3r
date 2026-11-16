@@ -94,14 +94,16 @@ export const TEST_LIST: TestEntry[] = [
   },
   {
     id: 'underskin',
-    added: '2026-11-15',
-    name: 'Under the skin: what a lost panel shows',
+    added: '2026-11-16',
+    name: 'Under the skin, fixed: dents fold, no see-through holes, structure pushed back',
     where: 'Test link + &underskin=1: crash hard in any closed car (a hatch, the Huracan, the '
-      + 'tractor) and in the F1 / F2, until a bonnet, a wing, a bumper or a boot comes off',
-    try: 'Look into each hole: the engine and radiator under a bonnet, the suspension (strut, '
-      + 'arms) and on a driven wheel the drive shaft in a wing well, the crash bar behind a '
-      + 'bumper; an F1 sidepod its radiator.',
-    wrong: 'A part drawn outside its hole or over the tyre, a front-drive car with drive shafts at '
-      + 'the back (or the reverse), an engine where that car has none, holes odd at speed.',
+      + 'tractor) and in the F1 / F2, front, side and rear, until a bonnet, a wing, a bumper, a '
+      + 'door or a boot comes off',
+    try: 'Look at the dented corner: creased, darker folds, the edge crumpled but solid. Look '
+      + 'into each hole: the engine and radiator (pushed back as the front crumples), the arms, '
+      + 'strut and drive shaft in a wing well, the beam behind a bumper, a door sill and floor.',
+    wrong: 'Speckled or see-through patches on a damaged car, a radiator, beam or bumper floating '
+      + 'past the crushed edge, parts too small or dark to make out at speed, a front-drive car '
+      + 'with drive shafts at the back.',
   },
 ];

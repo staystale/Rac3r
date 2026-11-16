@@ -7,6 +7,39 @@ import type {
   CarSprite, RenderCar, RenderCarSpec, SilCanvas,
 } from "./types.ts";
 import { trackCanvas } from '../core/memorybudget.ts';
+import { FIX } from '../core/fixes.ts';
+
+// ?underskin: px of a crumpled edge's teeth along it (each tooth one depth: the edge a solid
+// jagged line, no pixels left loose past it and no holes behind it); the crumple folds' spacing
+// behind the edge, px; how much a fold darkens and the crease after it lightens the paint
+const TOOTH_PX = 2, FOLD_PX = 2, FOLD_DARK = 0.32, CREASE_LIGHT = 1.12;
+// an end's deepest crush (crushL 1) as a share of the car's length; the rear's of the front's; a
+// side's deepest (crushS 1) as a share of the car's width
+export const END_CRUSH_SHARE = 0.26, REAR_CRUSH_SHARE = 0.85, SIDE_CRUSH_SHARE = 0.34;
+
+/**
+ * How far a side of the car is pushed in, px: its two corners' side-on crush averaged.
+ * @param widthPx the car's width, px
+ * @param crushSides the side-on crush per corner (odd = +y)
+ * @param plus the +y side
+ * @returns px
+ */
+export function sideCrushPx(widthPx: number, crushSides: number[], plus: boolean): number {
+  const share = plus ? (crushSides[1] + crushSides[3]) / 2 : (crushSides[0] + crushSides[2]) / 2;
+  return widthPx * SIDE_CRUSH_SHARE * share;
+}
+
+/**
+ * How far an end of the car is pushed in, px: its two corners' end-on crush averaged.
+ * @param lengthPx the car's length, px
+ * @param crushEnds the end-on crush per corner (0, 1 front)
+ * @param front the front end
+ * @returns px
+ */
+export function endCrushPx(lengthPx: number, crushEnds: number[], front: boolean): number {
+  const share = front ? (crushEnds[0] + crushEnds[1]) / 2 : (crushEnds[2] + crushEnds[3]) / 2;
+  return lengthPx * END_CRUSH_SHARE * (front ? 1 : REAR_CRUSH_SHARE) * share;
+}
 
 /** Geometry of the top-view crush pass. */
 interface CrushGeo {
@@ -44,16 +77,38 @@ type HashFn = (x: number, y: number) => number;
  * @returns the smallest margin (Infinity when no edge counts) and the depth of that edge
  */
 function nearestCrushEdge(edges: number[][]) {
-  let best = Infinity, depth = 0;
-  for (const [edgeDist, edgeDepth] of edges) {
+  let best = Infinity, depth = 0, edge = -1;
+  for (let i = 0; i < edges.length; i++) {
+    const [edgeDist, edgeDepth] = edges[i];
     if (edgeDepth < 0.6) continue;
     const margin = edgeDist - edgeDepth;
     if (margin < best) {
       best = margin;
       depth = edgeDepth;
+      edge = i;
     }
   }
-  return { best, depth };
+  return { best, depth, edge };
+}
+
+/**
+ * ?underskin: one pixel in the DENT band behind a crumpled edge, as sheet metal folds - the fold
+ * itself dark, then the crumple's folds every FOLD_PX, each a darker line with a light crease
+ * after it, fading over the band; no loose pale pixels (the primer chips and pale creases read
+ * as holes in the car on grey tarmac).
+ * @param pixels the image data
+ * @param i the pixel's index into the data
+ * @param best distance past the fold, px
+ * @param depth crush depth of the edge, px
+ */
+function dentPixelFolded(pixels: Uint8ClampedArray, i: number, best: number, depth: number) {
+  const band = 2 + 1.5 * depth, fade = 1 - best / band;
+  if (fade <= 0) return;
+  const deep = Math.min(1, depth / 4);
+  const fold = Math.floor(Math.max(0, best)) % FOLD_PX === 0;
+  const mul = best < 1 ? 0.5 - 0.1 * deep
+    : fold ? 1 - (FOLD_DARK + 0.25 * deep) * fade : 1 + (CREASE_LIGHT - 1) * fade;
+  for (const chan of [0, 1, 2]) pixels[i + chan] = Math.min(255, pixels[i + chan] * mul);
 }
 
 /**
@@ -119,25 +174,30 @@ function crushPixel(
       Math.max(0, (y - 2) / widthPx));
   // crush depth of each edge HERE, sloped between its two corners (the hit side deepest)
   const depthFront = endMax * (crushEnds[0] * (1 - across) + crushEnds[1] * across),
-      depthRear = endMax * 0.85 * (crushEnds[2] * (1 - across) + crushEnds[3] * across);
+      depthRear = endMax * REAR_CRUSH_SHARE * (crushEnds[2] * (1 - across) + crushEnds[3] * across);
   const depthNeg = sideMax * (crushSides[2] * (1 - along) + crushSides[0] * along),
       depthPos = sideMax * (crushSides[3] * (1 - along) + crushSides[1] * along);
   // how far this pixel is in from each edge
   const edgeFront = width - 3 - x, edgeRear = x - 2, edgeNeg = y - 2,
       edgePos = height - 3 - y;
-  const jag = (hsh(x, y >> 1) - 0.5) * 2.2;
   // the most-crushed edge near this pixel decides; a pixel inside its crush is gone
   // (crumpled)
   // (a crush under ~0.6 art px is not drawn: v2a drew a pale crease round the whole outline
   // from scrapes)
-  const { best, depth } = nearestCrushEdge([[edgeFront, depthFront], [edgeRear, depthRear],
-      [edgeNeg, depthNeg], [edgePos, depthPos]]);
+  const { best, depth, edge } = nearestCrushEdge([[edgeFront, depthFront],
+      [edgeRear, depthRear], [edgeNeg, depthNeg], [edgePos, depthPos]]);
   if (best === Infinity) return;
+  // (?underskin: the edge's teeth by where along it the pixel is - the ends' edges run across
+  // the car, the sides' along it - so each column of the crush is cut to one depth)
+  const jag = FIX.underskin
+    ? (hsh(Math.floor((edge < 2 ? y : x) / TOOTH_PX), edge) - 0.5) * 2.2
+    : (hsh(x, y >> 1) - 0.5) * 2.2;
   if (best < jag * Math.min(1, depth / 2)) {
     pixels[i + 3] = 0;
     return;
   }
-  dentPixel(pixels, i, [x, y], best, depth, hsh);
+  if (FIX.underskin) dentPixelFolded(pixels, i, best, depth);
+  else dentPixel(pixels, i, [x, y], best, depth, hsh);
 }
 
 /**
@@ -191,8 +251,8 @@ export function crushPixels(car: RenderCar, img: ImageData, lengthPx: number, wi
   const pixels = img.data, width = img.width, height = img.height;
   const seed = (car.num || 1) * 2654435761;
   const hsh = hash2d(seed);
-  const crushEnds = car.crushL, crushSides = car.crushS, endMax = lengthPx * 0.26,
-      sideMax = widthPx * 0.34;
+  const crushEnds = car.crushL, crushSides = car.crushS, endMax = lengthPx * END_CRUSH_SHARE,
+      sideMax = widthPx * SIDE_CRUSH_SHARE;
   const geo: CrushGeo = {
     width, height, lengthPx, widthPx, crushEnds, crushSides, endMax, sideMax,
   };

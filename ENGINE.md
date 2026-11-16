@@ -499,19 +499,34 @@ may break a window (not the track car, banger, grass car): wear cells take the c
 sweeps it and may puncture that tyre (`world/pass.ts PASS`: the wheel making the pass).
 UNDER THE SKIN (under test, `?underskin=1`, `FIX.underskin`; `render/underskin.ts`): a car drawn
 without a lost part (`render/carparts.ts withoutParts`, `render/cars.ts lostSprite`) shows what is
-under it by its own layout (`carbits.ts`: `engine` front / mid, `mount` long / trans, `radiator` front
-/ rear / sides; its driven wheels `spec.drive`), painted once with that sprite: a BONNET's bay the
-engine (the drawing the crash throws, `carparts.ts bitDrawing`, along or across the car) behind the
-radiator - a mid-engined car's front lid two corner radiators; a BOOT the engine where it sits behind;
-a WING's well - with the switch reaching 0.45 m in from the side (`WING_DEPTH_PX`; the old 3 px
-hole was all tyre) - grey, inboard of the tyre, that corner's arms and a driven wheel's drive shaft
-as the open cars wear them (`cars.ts drawFixedArms`) and the strut's top; behind a BUMPER the crash
-bar and, at the end its radiator sits (the Sport quattro S1 and the RX supercar at the back), the
-radiator. An open car: a sidepod its radiator, its nose / tail their crash structures; the buggy its
-frame tubes. A DOOR shows nothing new (asked). A REAR-engined car (`engine: 'rear'`, the 911
-GT3 R, `?porch=1`): its front lid the one central radiator, its boot (the engine lid) the engine;
-`wingOnLid` - its wing stands on the lid and goes with it (`render/cars.ts drawPixelCar`). `tools/scratch/_partsoff.mjs` photographs every car
-with its front or rear panels off; `tools/framecheck.mjs` CAR= DAMAGE_AT= times it.
+under it by its own layout (`carbits.ts`: `engine` front / mid, `mount` long / trans, `radiator`
+front / rear / sides; its driven wheels `spec.drive`), painted once with that sprite: a BONNET's bay
+the engine (the drawing the crash throws, `carparts.ts bitDrawing`, along or across the car) behind
+the radiator - a mid-engined car's front lid two corner radiators; a BOOT the engine where it sits
+behind; a WING's well - with the switch reaching 0.45 m in from the side (`WING_DEPTH_PX`; the old 3
+px hole was all tyre) - a dark cavity (`WELL`), inboard of the tyre, that corner's arms and a driven
+wheel's drive shaft as the open cars wear them (`cars.ts drawFixedArms`, here `WELL_ARMS`: bright
+steel, two px wide, to read at a phone's size) and the strut's top; behind a BUMPER the dark
+under-tray, the light beam just inside the car's end on its two crash cans and, at the end its
+radiator sits (the Sport quattro S1 and the RX supercar at the back), the radiator. An open car: a
+sidepod its radiator, its nose / tail their crash structures; the buggy its frame tubes. A DOOR its
+sill (the body's metal in its paint, darkened) and the floor and carpet; a front-engined car's BOOT
+its floor and the spare wheel. A REAR-engined car (`engine: 'rear'`, the 911 GT3 R, `?porch=1`): its
+front lid the one central radiator, its boot (the engine lid) the engine; `wingOnLid` - its wing
+stands on the lid and goes with it (`render/cars.ts drawPixelCar`). `tools/scratch/_partsoff.mjs`
+photographs every car with its front or rear panels off; `tools/framecheck.mjs` CAR= DAMAGE_AT=
+times it. CRUSHED, with the switch: the under-skin layer is painted on a scratch canvas and kept
+only where the crushed body still is (`drawUnderSkin(..., body)`: the damaged sprite's own pixels,
+`destination-in`), so nothing stands past a dented edge; an end's crush pushes its radiator, beam
+and crash cans in with it (`cardamage.ts endCrushPx`, the crush's own depth per end, + 1 px), and
+the engine back once the radiator meets it. The dented corner itself (`cardamage.ts crushPixel`):
+the crumpled edge cut in teeth of `TOOTH_PX` (2) along it - each tooth one depth, so no pixel is
+left loose past the edge and no hole behind it (the per-pixel jag left both: speckled holes and
+stray bits, the see-through look) - and the dent band behind it FOLDED (`dentPixelFolded`): the fold
+dark, then a darker fold line every `FOLD_PX` (2) with a light crease between, fading over the band;
+no primer chips or pale crease pixels (pale grey, they read as holes on grey tarmac).
+`tools/scratch/_skinshots.mjs` photographs every car crushed and with its parts off (front, side,
+rear; 844x390, 390x844, a close-up and the phone's view cropped).
 
 Highway hedges: `highway/hedges.ts` lays one continuous line of square
 bushes (the same `bush` patches as the other levels) round each farm field's long-grass border, streamed with

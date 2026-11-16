@@ -213,6 +213,35 @@ panels off at frame 30, CPU x4 on the PC (on, off, on, off): work median 172.3 /
 time a car loses a part or its crush changes a step; nothing on the frames between).
 PROOF: switch off, renderhash SAME (the PC, thruston, brands-snatch, knobhill: ~3-7 min a level
 there without a GPU, so not all; CI runs the rest).
+FAILED ON THE PHONE 11-16 (owner: "We're getting a lot of see thru cars when damaged and it's not showing
+wishbones drive shafts or suspension beneath clearly / Also bumpers ect not denting and showing invisibly
+connected to car after crash / denting"; "it can be gaps where there is in real life but if it should
+expose something like wishbone or engine ect it should"; a lost DOOR shows the floor + sill; "Can the
+radiator move back when the front of the car deforms from crashes? Like in real life"). FIXED behind
+the same switch (render/cardamage.ts, render/underskin.ts, render/cars.ts; tools/scratch/_skinshots.mjs
+photographs every car crushed as a ~0.5 hit leaves it with its parts off - front, side, rear, and a
+lighter dent with nothing off - on tarmac). FOUND, the see-through: (1) the dent band's PRIMER CHIPS
+and pale creases (grey ~150, random single pixels across the whole band, the windows too) read as
+holes showing the road on grey tarmac; (2) the crumpled edge was cut per pixel at random (each
+pixel's own jag), leaving speckled holes inside the crush and loose pixels past it. The floating
+look: (3) the under-skin layer was painted at each part's place on the clean car, so a crushed end's
+radiator, crash bar and its bay stood out past the dented edge, "invisibly connected". FIX: the
+crumpled edge cut in 2 px teeth along it (one depth a tooth: no holes, nothing loose); the dent band
+FOLDED - the fold dark, a darker fold line every 2 px with a light crease between, fading over the
+band, no chips (the bumpers and panels show their dent at a phone's size); the under-skin painted
+only where the crushed body still is; each end's crush pushes its radiator, beam and crash cans back
+by its own depth (+1 px) and the engine with them once they meet; a side's crush pushes a lost
+door's sill in. Readable at a phone's size: a wing's well a dark cavity with the arms, drive shaft
+and spring bright steel two px wide; behind a lost bumper a dark under-tray, the light beam just
+inside the car's end on its two crash cans; a lost DOOR the sill (the body's paint, darkened), the
+floor and carpet; a front-engined car's lost boot lid its floor and spare wheel. Real gaps stay
+(through a wheel well past the tyre to the ground). PHOTOS (the laptop, every car - the 19 and the six
+behind their switches - 844x390, 390x844, close-up and the phone's view cropped, the base round93
+and the fix, both with ?underskin=1): no page errors; no speckled holes, no structure past a dented
+edge on any. COST (the second PC, framecheck Brands, 19 AI + you in the hatch-rwd, every car crushed
+and its panels off at frame 30, CPU x4, base / fix / base / fix): work median 172.7 / 164.1 / 161.6 /
+175.1 ms, worst 240.7 / 270.6 / 394.0 / 266.2 (the PC's catch-up loop: no difference to read);
+a car's picture made every frame (tools/scratch/_underskincost.mjs, the laptop, x1, the hatch-rwd, ?underskin=1): frame median 1.8 / 2.0 ms on the base, 2.1 / 2.1 with the fix (+0.1-0.3 ms each time a car loses a part or its crush steps; nothing on the frames between). PROOF: switch off, renderhash SAME (the PC: thruston, brands-snatch, knobhill).
 THE 10 NEW CARS (owner-approved names 11-16; one switch and one hand-back each; src/newcars.ts):
 1. PORCH 911 GT3 ARR (Porsche 911 GT3 R, 992): BUILT 11-16 behind ?porch=1 (FIX.porch; testlist
    'porch'), with a new class GT (sub GT3; fits Pre-Spun, Semi-Slick, Wet, the Pirrelly slicks).
