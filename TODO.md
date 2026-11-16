@@ -324,7 +324,11 @@ THE 10 NEW CARS (owner-approved names 11-16; one switch and one hand-back each; 
    before or after. THE GAME'S ONE UNGUARDED READ (order.ts stepStart, not changed): a rolling
    start's AI pole car's trackDist; it would need that car 23-35 m off the centreline in the last
    60 m before the line during the formation (driven at roll pace on the line by its autodriver),
-   and would then show green up to ~60 m early. Owner to say whether to guard it.
+   and would then show green up to ~60 m early. Owner: guard it - BUILT 11-16 behind ?rollguard=1
+   (FIX.rollguard; testlist 'rollguard'): an AI pole out of range holds its last place (order.ts
+   stepRollingGreen). PROVOKED (tools/scratch/_rollguard.mjs, Thruston, the
+   pole put 60 m off the side 30 m before the line): off - green at once, 30 m early; on - no
+   green until the pole is back and over the line (10 m on). PROOF: follows.
    OPEN, one switch and one hand-back each:
 8. RENOLT CLEO CUP (Renault Clio Cup, Clio V, 2020 on: the one-make racer): BUILT 11-16 behind
    ?cleo=1 (FIX.cleo; testlist 'cleo'), TOURING / One-make (a new type: the one-make cup racers on
