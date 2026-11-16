@@ -14,8 +14,8 @@ carcull, the texture warm-up) and the stadium crossovers passed 11-12 ("mostly p
 records in `TODO-DONE.md` (PASSED 11-12). ?underskin (the damage look), ?carparts (steps 1-6:
 each car's own crash parts) and ?carshade (every closed car shaded) PASSED 11-17, the default
 (TODO-DONE, PASSED 11-17, THE PASS BATCH 4). ?dmgmore (the rolled cars, dragging) PASSED 11-17, the default (TODO-DONE, PASSED 11-17, MORE DAMAGE).
-ON THE PHONE NOW (round161): ?scanyah (the tractor), ?tipping, ?marktrack, ?dmgmore2 (the hanging
-exhaust - its own drawing, the redraw reverted - and bumper; steam and leaks).
+PASSED 11-17 (owner), to be made the default on resume: ?dmgmore2 (the hanging exhaust and bumper, steam
+and leaks), ?scanyah (the tractor - its trailer then behind its own ?trailer), ?tipping, ?marktrack.
 
 ## 2. BEING BUILT
 
