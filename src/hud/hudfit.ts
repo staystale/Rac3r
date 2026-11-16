@@ -1,11 +1,10 @@
-// hud/hudfit.ts - ?hudfit=1: THE LANDSCAPE HUD DECLUTTERED (owner: the right-hand column "gets
+// hud/hudfit.ts - THE LANDSCAPE HUD DECLUTTERED (owner: the right-hand column "gets
 // squished" on a landscape phone; "can ABS and TCS come to the bottom in horizontal mode"; the
 // upright layout stays as it is). In landscape only: the track temperature a compact chip ("30°C",
 // no TRACK, no bar: hud/tracktemp.ts draws it so when it is this narrow); FPS dropped first when
 // the column would reach down past the brake pedal's touch circle; the ABS / TCS chips on the
 // bottom line just left of the HAND pedal's touch circle, each with a 44 px tall touch area (the
 // chip itself still 30 px). hud/layout.ts calls these once its own rects are made.
-import { FIX } from '../core/fixes.ts';
 import { PEDAL } from '../input.ts';
 import { MARGIN, type HudRect } from './widgets.ts';
 
@@ -17,14 +16,14 @@ const TOUCH_H = 44;
 const CHIP_GAP = 6;
 
 /**
- * Whether the decluttered landscape layout applies (?hudfit=1, a landscape screen).
+ * Whether the decluttered landscape layout applies (a landscape screen).
  * @param width canvas width in px
  * @param height canvas height in px
  * @param narrow true on a narrow (upright) screen
  * @returns applies
  */
 export const isHudFit = (width: number, height: number, narrow: boolean) =>
-  FIX.hudfit && !narrow && width > height;
+  !narrow && width > height;
 
 /**
  * px: the top of the brake pedal's touch circle (input.ts PEDAL; its hit circle 1.35 r).

@@ -17,14 +17,6 @@ records in `TODO-DONE.md` (PASSED 11-12). On the phone now:
 
 ## 2. BEING BUILT
 
-- HUDFIT, BUILT behind ?hudfit=1 (hud/hudfit.ts; owner 11-16: the landscape column "gets squished";
-  the temperature "30°C"; "auto remove fps"; "can ABS and TCS come to the bottom in horizontal
-  mode"; "it should stay as it was for vertical phone use"). LANDSCAPE ONLY: the track temperature a
-  compact chip (no TRACK, no bar, 46 px), FPS dropped first when the column would reach past the
-  brake pedal's touch circle, the ABS / TCS chips on the bottom line just left of the HAND pedal's
-  touch circle with a 44 px tall touch area (the chip 30 px). Upright unchanged. PHOTOS (844x390,
-  740x360 - FPS drops there -, 390x844 off / on: the same): tools/uicheck.mjs with the switch -
-  "HUD reachable on touch: OK, no control overlaps at 6 sizes".
 - SPEED, NEXT (owner 11-14 on PERFPASS: "Still seems to drop slightly at times / starting levels
   seems to drop / be slow"; "Pass, fix drops next"). From the phone reports (11-14, ?report=1):
   - LEVEL STARTS: the first ~5 s hold several 150-370 ms frames (Spa 25 of them): the ground and

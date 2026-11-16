@@ -14,6 +14,19 @@ LIST 11-01; TypeScript, mud, grass, lamps - Queue; weather, surfaces, car system
 lighting, bushes and trees - OWNER LIST 10-24; the checking tools - Tools that are wrong.
 
 
+
+## HUDFIT PASSED 11-16 (the owner), the default
+
+- HUDFIT (was ?hudfit=1) (hud/hudfit.ts; owner 11-16: the landscape column "gets squished";
+  the temperature "30°C"; "auto remove fps"; "can ABS and TCS come to the bottom in horizontal
+  mode"; "it should stay as it was for vertical phone use"). LANDSCAPE ONLY: the track temperature a
+  compact chip (no TRACK, no bar, 46 px), FPS dropped first when the column would reach past the
+  brake pedal's touch circle, the ABS / TCS chips on the bottom line just left of the HAND pedal's
+  touch circle with a 44 px tall touch area (the chip 30 px). Upright unchanged. PHOTOS (844x390,
+  740x360 - FPS drops there -, 390x844 off / on: the same): tools/uicheck.mjs with the switch -
+  "HUD reachable on touch: OK, no control overlaps at 6 sizes".
+  PASS PROOF: the old code with ?hudfit=1 == the new plain (renderhash, the second PC).
+
 ## PASSED 11-16, THE PASS BATCH (owner: "Focus hatch look pass" ... "Everything else was a pass")
 
 The default 11-16, their switches and old paths deleted: focustlook, cleo (as the Clio III Cup),
