@@ -867,6 +867,12 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   `checks` failed), `git push origin HEAD:refs/heads/main`,
   delete the branch, then move the served clone: `git fetch -q origin && git checkout -q --detach
   origin/main`.
+- DISCUSS AND PLAN FIRST, DOWN TO THE FUNDAMENTALS (owner 11-16: "always discuss things before we do
+  them and plan them in detail and show me down to the fundamentals how it's working. Even if I
+  don't understand code perfectly, show me it in brief"): before ANY build - a car, a fix, a look, a
+  mechanic - the owner gets the plan: what it is, how it works step by step in plain words, the key
+  numbers, a few lines of the core code explained, photos or mockups for a look, and the open
+  choices. Build only on their yes.
 - EVERY NEW MECHANIC IS EXPLAINED IN THE WALKTHROUGH (owner 11-15: "Make sure it's all explained in the
   walk thru the first time an event of that type ect starts"): the first time an event of that type
   starts, its rules cards (guide.ts RULES) say what is new - in the same task as the mechanic.
