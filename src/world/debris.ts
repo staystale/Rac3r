@@ -11,7 +11,7 @@
 // take the cover 'glass' (like the oil and the tyres' water - one cover system; drawn by the GPU
 // field, render/glfield.ts, glints moving with the view). It changes no grip; the first tyre
 // pass sweeps the cell clean and may puncture that tyre slowly (PASS: world/pass.ts).
-import { bitsOf, doorAt, doorsOf, hasNo } from '../carbits.ts';
+import { bitsOf, doorAt, doorsOf, hasNo, isRearWingWelded } from '../carbits.ts';
 import { FIX } from '../core/fixes.ts';
 import { getCell, wearDirty, WEAR_CELL } from "./wear.ts";
 import { PASS } from "./pass.ts";
@@ -120,14 +120,17 @@ function partOff(car: DebrisCar, corner: number, add: number, endW: number,
 }
 
 /**
- * ?carparts: a door asked of a corner where the car has none (a 2-door's rear, an open car).
+ * ?carparts: a part asked of a corner where the car has none to throw - a door where it has none (a
+ * 2-door's rear), a welded rear wing (it crushes; step 3).
  * @param car the car
  * @param kind the part
  * @param corner the damage corner
  * @returns no door there
  */
 const hasNoDoor = (car: DebrisCar, kind: string, corner: number) => FIX.carparts
-  && kind === 'panel' && doorAt(car.spec?.id || '', corner) === null;
+  && ((kind === 'panel' && doorAt(car.spec?.id || '', corner) === null)
+    || (kind === 'wing' && corner >= 2 && isRearWingWelded(car.spec?.id || ''))
+    || (kind === 'bumper' && doorsOf(car.spec?.id || '')?.bumper === 'none'));
 
 /**
  * ?carparts: a van's rear doors - a pair, each lost on its own side.

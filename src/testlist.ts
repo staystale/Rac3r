@@ -29,8 +29,8 @@ export const TEST_LIST: TestEntry[] = [
   {
     id: 'carparts',
     added: '2026-11-16',
-    name: 'Crash parts, steps 1-2: each car with its own doors (a 2-door two, a 4-door four), '
-      + 'the vans and the bus with their own panels',
+    name: 'Crash parts, steps 1-4: each car with its own doors (a 2-door two, a 4-door four), '
+      + 'the vans and the bus with their own panels, the welded rear wings of road cars stay on',
     where: 'Test link + &carparts=1 (+ &underskin=1): side-swipe a 2-door (the Chevvy, the Mini, '
       + 'the Porch, the Clio, the Saxo) and a 4-door (the Golf, the 3 Series, the Defunder)',
     try: 'Hit a coupe hard at a rear corner side-on: it dents and loses glass, but no door comes '
@@ -38,7 +38,10 @@ export const TEST_LIST: TestEntry[] = [
       + 'door; the stock cars throw a windowless steel skin. The Transfits: two cab doors, the '
       + 'sliding door on the nearside only, the twin rear doors one at a time. The bus: the cab '
       + 'door (offside front), riveted side panels, the radiator grille, the staircase panel, '
-      + 'more glass.',
+      + 'more glass. A road car hit at a rear wheel keeps its rear wing (welded: it dents); the '
+      + 'race cars, Defunder, Seven, trophy truck and tractor still lose theirs. Bumpers of their '
+      + 'own: the vans black (Mk8) or grey (Mk7) plastic, the Defunder black steel, the trophy '
+      + 'truck and the stock car steel tubes, the tractor its front weight; the Seven has none.',
     wrong: 'A 2-door throwing a second door, a door hole in the wrong place, a door far too short '
       + 'or long, a Seven door, a car door off the bus or a van.',
   },
