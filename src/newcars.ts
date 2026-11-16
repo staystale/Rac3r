@@ -217,9 +217,33 @@ const CLEO: RosterRow = {
   paint: '#f0f0ea', trim: '#f2a900', glass: '#2a2f38', rim: '#16181d',
 };
 
+// Renaultsport Clio 200 Cup (Clio III phase 2, 2009-12, 3-door; Renault's figures): the F4R 2.0
+// four across the front (no turbo), 147 kW (201 PS) at 7,100, 215 Nm at 5,400, a six-speed manual,
+// FWD, 1,204 kg, 4,017 x 1,768 mm, wheelbase 2,585, track 1,520, 215/45 R17, ABS; 225 km/h, 0-100
+// 6.9 s. EST: the 7,500 limit, the ratios (the TL4 024's 3.18 1.95 1.48 1.21 0.97 0.81: the 200's
+// TL4 031 is said to differ slightly) and the final drive (4.5, to 225 km/h near the limit), Cd
+// 0.35 x 2.1 m^2, 61 / 39, the CG, the tyres' grip and stiffness, the Cup chassis' springs, its
+// stability control (none: the Cup's was deleted - to check).
+const CLEO_RS: RosterRow = {
+  id: 'cleo-rs200', name: 'Renolt Cleo RS 200', kind: 'cleors', cls: 'road', sub: 'Hatch',
+  rimIn: 17,   // its real rim, inches (what tyres fit)
+  cg: 0.52, rideH: 0.12, cyl: 4,
+  aids: { abs: true, tcs: false },
+  mass: 1204, lf: 1.008, lr: 1.577, len: 4.017, wid: 1.768, trackWidth: 1.52,
+  tyreWidth: 0.215, wheelR: tyreR(215, 45, 17),
+  drive: 1.0, brakeBiasF: 0.65, caF: 100000, caR: 105000, mu: 1.28,
+  curve: realCurve({ idle: 850, low: 0.6, nm: 215, nmFrom: 5400, nmTo: 5600,
+    kw: 147, kwAt: 7100, redline: 7500 }),
+  redline: 7500, upshiftRpm: 7300, downshiftRpm: 3800, idleRpm: 850,
+  gears: [3.18, 1.95, 1.48, 1.21, 0.97, 0.81], finalDrive: 4.5, dragC: dragOf(0.35, 2.1),
+  susF: 1.7, susZ: 0.38,
+  // Liquid Yellow, a darker roof, black details (the blade, the diffuser, the mirrors)
+  paint: '#f2a900', trim: '#c98a00', glass: '#2a2f38', rim: '#2a2d34',
+};
+
 /** The new cars: their roster rows, in the list's order. */
 export const NEW_CARS: RosterRow[] = [PORCH, SEVEN, TRANSFIT, TROPHY, CIVVIC, DEFUNDER, FOCUST,
-  ...(FIX.cleo ? [CLEO] : [])];
+  ...(FIX.cleo ? [CLEO] : []), ...(FIX.cleoroad ? [CLEO_RS] : [])];
 
 /** The classes only new cars race in. */
 export const NEW_CLASSES = [GT_CLASS, TOURING_CLASS];

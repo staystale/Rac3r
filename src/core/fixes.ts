@@ -74,4 +74,6 @@ export const FIX = {
   focustlook: atLoad('focustlook'),
   // the Renolt Cleo Cup (TOURING / Cup)
   cleo: atLoad('cleo'),
+  // the Renolt Cleo RS 200 (the road Clio 200 Cup, ROAD / Hatch)
+  cleoroad: atLoad('cleoroad'),
 };

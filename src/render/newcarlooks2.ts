@@ -259,9 +259,39 @@ function paintCleo(spr: SpriteCtx): void {
   for (const y of [mid - 6, mid + 5]) block(4, y, 3, 2, STEEL);
 }
 
+/**
+ * RENOLT CLEO RS 200 (Renaultsport Clio 200 Cup, Clio III, 2009-12): the three-door hatch's round
+ * plan on its wide hips (the Clio's), the short rear screen and the roof (the second colour)
+ * almost to the back, the raked screen and mirrors, the swept lamps, the F1-style blade under the
+ * nose (the third colour), the small roof spoiler, the diffuser with its twin pipes in the middle.
+ * @param spr the painting context
+ */
+function paintCleoRs(spr: SpriteCtx): void {
+  const { lengthPx: len, widthPx: wid, mid, outline, light, dark, third, block, along } = spr;
+  planBody(spr, (x) => mid * cleoPlan(x / (len - 1)));
+  cleoCabin(spr);
+  block(along(0.68), mid - 6, along(0.2), 1, light);
+  block(along(0.68), mid + 6, along(0.2), 1, dark);
+  // the swept lamps back along the wings, the grille, the blade across the nose
+  for (const y of [3, wid - 5]) {
+    block(len - 7, y, 5, 2, HEAD);
+    block(len - 4, y + (y < mid ? 1 : -1), 2, 2, HEAD);
+  }
+  block(len - 2, mid - 5, 2, 11, INK);
+  block(len - 2, mid - 4, 1, 9, MESH);
+  block(len, mid - 6, 1, 13, third);
+  // the roof spoiler over the rear screen, the tail lamps, the diffuser and twin pipes
+  block(along(0.1), mid - Math.round(mid * 0.72), 1, Math.round(mid * 0.72) * 2 + 1, outline);
+  for (const y of [2, wid - 6]) block(0, y, 2, 4, TAIL);
+  block(-1, mid - 4, 1, 9, third);
+  block(-1, mid - 2, 1, 2, CHR);
+  block(-1, mid + 1, 1, 2, CHR);
+}
+
 /** Cars 6 on: their bodies by id (render/carlooks.ts LOOKS takes them). */
 export const NEW_LOOKS_2: [string, { paint: (spr: SpriteCtx) => void; bare?: boolean }][] = [
   ['defunder-110', { paint: paintDefunder, bare: true }],
   ['focust-st', { paint: paintFocust, bare: true }],
   ['cleo-cup', { paint: paintCleo, bare: true }],
+  ['cleo-rs200', { paint: paintCleoRs, bare: true }],
 ];

@@ -58,6 +58,8 @@ export const EXHAUST_SPOTS: Record<string, { pipes: Pipe[]; up?: boolean }> = {
   focust: { pipes: [[-0.5, -0.3], [-0.5, 0.3]] },
   // the Clio Cup's one pipe, left of centre (EST)
   cleo: { pipes: [[-0.5, -0.17]] },
+  // the Clio 200's twin pipes in the middle of its diffuser
+  cleors: { pipes: [[-0.5, -0.06], [-0.5, 0.06]] },
 };
 const DEFAULT_SPOT = EXHAUST_SPOTS.hatch;
 

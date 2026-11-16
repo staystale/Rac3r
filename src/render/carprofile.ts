@@ -99,6 +99,10 @@ export const PROFILES: Record<string, CarProfile> = {
   // screen, the short bonnet to the splitter (EST from photos)
   'cleo-cup': { len: 4.05, waist: 0.9, glass: [0.1, 0.63], roof: [[0, 0.5], [0.02, 1.0],
     [0.08, 1.3], [0.15, 1.38], [0.5, 1.4], [0.64, 0.95], [0.95, 0.75], [1, 0.42]] },
+  // Clio III 3-door: the short hatch, the round roof, the raked screen, the short bonnet (EST
+  // from photos)
+  'cleo-rs200': { len: 4.017, waist: 0.95, glass: [0.1, 0.63], roof: [[0, 0.5], [0.02, 1.0],
+    [0.08, 1.36], [0.15, 1.46], [0.5, 1.47], [0.64, 0.98], [0.95, 0.78], [1, 0.45]] },
 };
 
 /**

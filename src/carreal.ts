@@ -54,6 +54,8 @@ const REAL_SIZE: Record<string, RealSize> = {
   'focust-st': { len: 4.388, wid: 1.825, lf: 1.053, lr: 1.647, trackWidth: 1.562 },
   // Clio Cup V: 4.05 x 1.798, wheelbase 2.579, track 1.55 / 1.49; 60 / 40 EST
   'cleo-cup': { len: 4.05, wid: 1.798, lf: 1.032, lr: 1.547, trackWidth: 1.52 },
+  // Clio 200 Cup (Clio III): 4.017 x 1.768, wheelbase 2.585, track 1.52; 61 / 39 EST
+  'cleo-rs200': { len: 4.017, wid: 1.768, lf: 1.008, lr: 1.577, trackWidth: 1.52 },
 };
 
 /**

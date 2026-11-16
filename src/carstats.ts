@@ -319,5 +319,18 @@ export const CAR_STATS: Record<string, CarStat> = {
       "abs": true,
       "tcs": false
     }
+  },
+  // (measured alone: tools/carstats.mjs cleo-rs200 with CLEOROAD=1, a new car behind its switch)
+  "cleo-rs200": {
+    "topKph": 226,
+    "zeroTo100": 7.1,
+    "brake100": 37.4,
+    "gripG": 1.18,
+    "massKg": 1204,
+    "drive": "FWD",
+    "aids": {
+      "abs": true,
+      "tcs": false
+    }
   }
 };
