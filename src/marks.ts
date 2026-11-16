@@ -18,6 +18,8 @@ import { WEATHER } from "./world/weather.ts";
 // this file's wheel order is the damage corners' (front -y, front +y, rear -y, rear +y)
 import { CORNER_OF_WHEEL, halfTrackAt, wheelGone, metalCorner } from "./world/wheels.ts";
 import { MARK_GOUGE } from "./world/metalscrape.ts";
+import { dragReach } from "./world/debris.ts";
+import { FIX } from "./core/fixes.ts";
 import { addTrailPoint, clearWetTrails } from "./wettrail.ts";
 import { acrossOf, alongOf } from "./world/crossinggeo.ts";
 import type { Crossing, Mark, Spray, Surface, WheelGround } from './world/types.ts';
@@ -78,10 +80,12 @@ type MarkSurface = WheelGround & { id?: string };
 
 interface MarkCar {
   x: number; y: number; heading: number;
-  spec: { lf: number; lr: number; trackWidth: number; trackR?: number; tyreWidth: number };
+  spec: { lf: number; lr: number; trackWidth: number; trackR?: number; tyreWidth: number;
+    wid?: number };
   t: { slipSpeedF: number; slipSpeedR: number };
   surface: MarkSurface; wheelSurf?: (MarkSurface | null)[] | null;   // the ground under each wheel
   tyreT?: number[]; rimSparks?: boolean[]; wheelOff?: boolean[]; onRim?: boolean[];
+  suspOff?: number[];
   _markId?: number;
 }
 
@@ -590,6 +594,19 @@ function marksNothing(car: MarkCar, corner: number, ground: MarkSurface): boolea
   return metalCorner(car, corner) || ground.id === 'bush';
 }
 
+/**
+ * How far across the car a wheel's mark lies: its wheel's place, or (?dmgmore) a torn-off
+ * wheel's score from its snapped arm, in from the hub (world/debris.ts dragReach).
+ * @param car the car
+ * @param corner the damage corner
+ * @param side m across the car of its wheel (signed)
+ * @param gone its wheel is gone
+ * @returns m across (signed)
+ */
+function markAcross(car: MarkCar, corner: number, side: number, gone: boolean): number {
+  return gone && FIX.dmgmore ? Math.sign(side) * dragReach(car, corner) : side;
+}
+
 function listWheels(car: MarkCar): MarkWheel[] {
   if (car._markId === undefined) car._markId = nextMarkId++;
   const spec = car.spec, telem = car.t;
@@ -609,12 +626,13 @@ function listWheels(car: MarkCar): MarkWheel[] {
     // a wheel gone leaves no rubber, trail or spray: only its hub's score while it sparks
     const gone = wheelGone(car, corner), gouge = !!(rims && rims[corner]);
     if (gone && !gouge) continue;
+    const across = markAcross(car, corner, side, gone);
     const ground = surfaceOfWheel(car, under, corner), bare = !gouge && marksNothing(car, corner,
       ground);
     out.push({
       key: car._markId + key,
-      x: car.x + along * cosH - side * sinH,
-      y: car.y + along * sinH + side * cosH,
+      x: car.x + along * cosH - across * sinH,
+      y: car.y + along * sinH + across * cosH,
       slip: bare ? 0 : slip,
       width: spec.tyreWidth,
       // set only by loose surfaces (undefined = ordinary skid marks), or a rim's score

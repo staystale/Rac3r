@@ -13,7 +13,8 @@ import { drawTyreByPressure, wheelTurn } from "./tyrelook.ts";
 import { drawRolledBody, prepareBody } from "./rollbody.ts";
 import { drawUnderSkin } from "./underskin.ts";
 import { cornerShift, drawExposedCorner, drawExposedStrut, isWingTorn, drawSubframe,
-  drawSnappedCorner, SUBFRAME_M } from "./carcorners.ts";
+  drawSnappedCorner } from "./carcorners.ts";
+import { SUBFRAME_M } from "../world/debris.ts";
 import type { CornerShift } from "./carcorners.ts";
 import { bitsOf } from '../carbits.ts';
 import { halfTrackAt } from '../world/wheels.ts';

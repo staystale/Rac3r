@@ -11,9 +11,9 @@ import { shade } from "../render.ts";   // hoisted, only called at draw time (no
 import { tyreBox } from "./cars.ts";
 import type { RenderCarSpec } from "./types.ts";
 import { FIX } from "../core/fixes.ts";
-import { ROD_STUB_SHARE, SNAP_SHARE, SNAP_SHARE_NO_WISHBONE, SUBFRAME, SUBFRAME_HALF_M,
-  SUBFRAME_M, SUBFRAME_PX } from "./carcorners.ts";
-import { SUSP_ROD, SUSP_SHAFT, SUSP_STRUT, SUSP_WISHBONE } from "../world/debris.ts";
+import { ROD_STUB_SHARE, SUBFRAME, SUBFRAME_HALF_M, SUBFRAME_PX } from "./carcorners.ts";
+import { SNAP_SHARE, SNAP_SHARE_NO_WISHBONE, SUBFRAME_M, SUSP_ROD, SUSP_SHAFT, SUSP_STRUT,
+  SUSP_WISHBONE } from "../world/debris.ts";
 
 /** A wing of an open car: from / to share of the length (tail 0, nose 1), low / high m, span. */
 type Wing = [number, number, number, number, number];

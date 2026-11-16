@@ -15,7 +15,9 @@
 import { END_CRUSH_SHARE, REAR_CRUSH_SHARE, SIDE_CRUSH_SHARE } from "./cardamage.ts";
 import { SPRITE_PPM } from "./shared.ts";
 import type { CarSprite, RenderCar } from "./types.ts";
-import { SUSP_ROD, SUSP_STRUT, SUSP_WISHBONE } from "../world/debris.ts";
+import { SNAP_SHARE, SNAP_SHARE_NO_WISHBONE, SUBFRAME_M, SUSP_ROD, SUSP_STRUT, SUSP_WISHBONE }
+  from "../world/debris.ts";
+import { FIX } from "../core/fixes.ts";
 
 // the strut's spring, its top mount, its nut
 const SPRING = '#d0d4da', MOUNT = '#5a5f69', NUT = '#16181d';
@@ -194,16 +196,11 @@ function strutTop(ctx: CanvasRenderingContext2D, centreX: number, centreY: numbe
   ctx.fillRect(x + 2, y + 2, 1, 1);
 }
 
-// m in from the car's side where a closed car's exposed arms meet the chassis (its
-// SUBFRAME; from the car's middle they ran under the body and only the strut showed). Owner 11-16:
-// "cars should have a sub frame too like real life or the wishbones attach to nothing" - a dark
-// rail along the car there, m either side of the axle, px thick
-export const SUBFRAME_M = 0.6;
+// the SUBFRAME rail (world/debris.ts SUBFRAME_M, where it sits): its colour, m either side of the
+// axle, px thick
 export const SUBFRAME = '#202227', SUBFRAME_HALF_M = 0.32, SUBFRAME_PX = 2;
-// a wheel torn off (owner 11-16: "the hub is still attached"): its hub went with it; what stayed is
-// SNAPPED - the arms (and a driven wheel's inner shaft) end this share of the way out from the
-// subframe to where the hub was, shorter when the wishbone went too
-export const SNAP_SHARE = 0.6, SNAP_SHARE_NO_WISHBONE = 0.3;
+// ?dmgmore: a dragging arm's hot end (the sparks' hottest colour, render/particles.ts), px
+const HOT_END = '#ffcf6a', HOT_END_PX = 2;
 // a front's track rod torn away with its wheel (SUSP_ROD): its stub at the rack, this share of the
 // way out to where the steering arm was
 export const ROD_STUB_SHARE = 0.3;
@@ -248,6 +245,12 @@ export function drawSnappedCorner(ctx: CanvasRenderingContext2D, car: RenderCar,
   SNAP_HUB.y = innerY + (hubY - innerY) * share - hubY;
   drawSubframe(ctx, axleX, innerY, side);
   arms(SNAP_HUB, innerY);
+  // (?dmgmore: dragging on hard ground - its sparks fly - the snapped end glows)
+  if (FIX.dmgmore && car.rimSparks?.[corner]) {
+    ctx.fillStyle = HOT_END;
+    ctx.fillRect(Math.round(axleX * SPRITE_PPM) - 1, Math.round(hubY + SNAP_HUB.y) - 1, HOT_END_PX,
+      HOT_END_PX);
+  }
   if (off & SUSP_ROD) {
     // (the track rod's stub at the rack, in line with where the steering arm was, behind the hub)
     const rodX = (axleX - STEER_ARM_M) * SPRITE_PPM;

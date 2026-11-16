@@ -233,6 +233,20 @@ roof, hatch-fwd 22 -> 0, saloon-rwd 16 -> 0, track-rwd (open) 91 -> 94; back on 
 23 -> 9, 18 -> 3, each on the landing side (4/4, 9/9, 3/3; off: 5/9, 10/23, 12/18); on a side 39 ->
 56, 36 -> 44, 220 -> 212 (the draws part ways); track rods thrown 0 -> 40, 29, 151. Photos
 (tools/scratch/_rollunder.mjs, _underpic.mjs): no page errors. AWAITING THE PHONE TEST.
+DRAGGING (owner's damage item 2, plan approved 11-16: "more drag, more pull"; the dirt spray yes):
+a corner whose wheel was torn off touches the road where the car shows it - its snapped arm's
+end, or its subframe's with the wishbone gone (world/debris.ts dragReach, the upright drawing's
+SNAP_SHAREs) - so its sparks, its score on hard ground and its dig on soft ground come from there
+(world/metalscrape.ts touchPoint, marks.ts markAcross, render/particles.ts wheelPlace), not from
+the empty hub's place; on soft ground it throws its ground's spray (dragSpray, particles
+emitDragDirt: 30 puffs a second at 15 m/s+); on hard ground the snapped end glows while it sparks
+(render/carcorners.ts drawSnappedCorner, 2 px). The PULL by what drags (damage.ts sideDrag,
+debris.ts dragPull): the snapped arm 0.7 of the old lost-wheel toe, the subframe 1.4 (the owner's
+numbers). MEASURED (_drift.mjs: 60 km/h on tarmac, a wheel torn off, 3 s hands off; off -> arm ->
+subframe): hatch-fwd front 12.8 -> 9.0 -> 17.7 deg (5.4 -> 3.8 -> 7.5 m sideways), rear 33.3 ->
+23.8 -> 44.0 deg; saloon-rwd front 12.7 -> 9.0 -> 17.7, rear 31.3 -> 22.2 -> 44.5; the switch off
+unchanged. tools/scratch/_dragshots.mjs (Test Track, tarmac and grass, 844x390 and 390x844): the
+sparks off the torn corners, the dig on grass; no page errors. AWAITING THE PHONE TEST.
 
 THE 10 NEW CARS (owner-approved names 11-16; one switch and one hand-back each; src/newcars.ts):
 1-7 PASSED 11-16, the default with the launches (owner: "all pass apart from my earlier comments"):

@@ -14,14 +14,20 @@ import {
 } from './wear.ts';
 import type { Mark, Surface } from './types.ts';
 import { carWheels, CORNER_OF_WHEEL, wheelGone } from './wheels.ts';
+import { dragReach } from './debris.ts';
+import { FIX } from '../core/fixes.ts';
+import type { Spray } from './types.ts';
 
 /** A car as this file reads it. */
 export interface ScrapeCar {
   x: number; y: number; vx: number; vy: number; heading: number;
-  spec: { lf: number; lr: number; trackWidth?: number };
+  spec: { lf: number; lr: number; trackWidth?: number; trackR?: number; wid?: number };
   onRim?: boolean[];
   wheelOff?: boolean[];
+  suspOff?: number[];
   rimSparks?: boolean[];
+  // ?dmgmore: what a corner dragging on soft ground throws up (its ground's spray; the particles)
+  dragSpray?: (Spray | null)[];
   sparks?: boolean;
   _scrapeCell?: number[];
 }
@@ -67,20 +73,48 @@ function scrapeRims(car: ScrapeCar, rnd: () => number) {
   const speed = Math.hypot(car.vx, car.vy), rim = car.onRim;
   const sparks = car.rimSparks || (car.rimSparks = [false, false, false, false]);
   sparks.fill(false);
+  if (FIX.dmgmore) (car.dragSpray || (car.dragSpray = [null, null, null, null])).fill(null);
   // a wheel gone drags its hub: metal on the ground as a rim is (owner 11-01: it may spark)
   const metal = (corner: number) => (!!rim && rim[corner]) || wheelGone(car, corner);
   if (![0, 1, 2, 3].some(metal) || speed < SCRAPE_FROM) return;
   const wheels = carWheels(car);
   for (let corner = 0; corner < 4; corner++) {
     if (!metal(corner)) continue;
-    const { x, y } = wheels[CORNER_OF_WHEEL[corner]];
-    if (!surfaceUnder(x, y).hard) {
+    const { x, y } = touchPoint(car, corner, wheels[CORNER_OF_WHEEL[corner]]);
+    const ground = surfaceUnder(x, y);
+    if (!ground.hard) {
       if (enteredCell(car, corner, x, y)) digCell(x, y);
+      if (car.dragSpray && wheelGone(car, corner)) car.dragSpray[corner] = ground.spray || null;
       continue;
     }
     sparks[corner] = true;
     if (enteredCell(car, corner, x, y) && rnd() < RIM_CHANCE) gougeCell(x, y);
   }
+}
+
+// the point a scraping corner touches, reused (no allocation per step)
+const TOUCH = { x: 0, y: 0 };
+
+/**
+ * Where a corner's metal meets the ground: its wheel's place (a rim), or with ?dmgmore a torn-off
+ * wheel's snapped arm or subframe (world/debris.ts dragReach), in from it toward the middle.
+ * @param car the car
+ * @param corner the damage corner
+ * @param wheel its wheel's place, world m
+ * @param wheel.x world x
+ * @param wheel.y world y
+ * @returns the point, world m (shared: read it before the next call)
+ */
+function touchPoint(car: ScrapeCar, corner: number, wheel: { x: number; y: number }) {
+  if (!FIX.dmgmore || !wheelGone(car, corner)) return wheel;
+  const along = corner < 2 ? car.spec.lf : -car.spec.lr;
+  const axleX = car.x + Math.cos(car.heading) * along;
+  const axleY = car.y + Math.sin(car.heading) * along;
+  const hub = Math.hypot(wheel.x - axleX, wheel.y - axleY) || 1;
+  const share = dragReach(car, corner) / hub;
+  TOUCH.x = axleX + (wheel.x - axleX) * share;
+  TOUCH.y = axleY + (wheel.y - axleY) * share;
+  return TOUCH;
 }
 
 /**
