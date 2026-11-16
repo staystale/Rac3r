@@ -69,6 +69,10 @@ export const PROFILES: Record<string, CarProfile> = {
   'porch-gt3r': { len: 4.62, waist: 0.8, glass: [0.34, 0.6], roof: [[0, 0.7], [0.01, 1.26],
     [0.08, 1.28], [0.1, 0.92], [0.2, 0.98], [0.38, 1.22], [0.54, 1.25], [0.66, 0.86],
     [0.94, 0.68], [1, 0.42]] },
+  // Seven: the low tub, the roll bar behind the seats, the little screen, the long bonnet
+  'seven-420r': { len: 3.1, waist: 0.8, glass: [0.48, 0.52], roof: [[0, 0.62], [0.03, 0.78],
+    [0.22, 0.8], [0.25, 1.08], [0.29, 1.08], [0.31, 0.82], [0.48, 0.84], [0.5, 1.02],
+    [0.53, 0.86], [0.86, 0.74], [1, 0.52]] },
 };
 
 /**

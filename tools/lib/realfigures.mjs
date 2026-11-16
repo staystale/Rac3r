@@ -46,4 +46,6 @@ export const REAL_FIGURES = {
   'f2-rwd': { real: 'Dallara F2 (2018)', topKph: 335, zeroTo100: 2.9, note: '0-100 EST' },
   'porch-gt3r': { real: 'Porsche 911 GT3 R (992, 2023)', topKph: 285, zeroTo100: null,
     note: 'top speed EST (by the BoP and the wing); no published 0-100' },
+  'seven-420r': { real: 'Caterham Seven 420R (2015)', topKph: 219, zeroTo100: 3.9,
+    note: '0-60 mph 3.8 s (Caterham); 0-100 km/h EST' },
 };

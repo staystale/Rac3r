@@ -47,6 +47,8 @@ export const EXHAUST_SPOTS: Record<string, { pipes: Pipe[]; up?: boolean }> = {
   grass: { pipes: [[-0.5, -0.3]] },
   drift: { pipes: [[-0.5, -0.15], [-0.5, 0.15]] },
   porch: { pipes: [[-0.5, -0.08], [-0.5, 0.08]] },
+  // the Seven's side pipe, ending ahead of the right rear wheel
+  seven: { pipes: [[-0.22, 0.42]] },
 };
 const DEFAULT_SPOT = EXHAUST_SPOTS.hatch;
 
