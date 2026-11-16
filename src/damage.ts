@@ -13,7 +13,7 @@ import {
 import { levelStingers, tyresOnStinger } from './world/stingers.ts';
 import { LEVEL } from './world/state.ts';
 import { crashOil, rollOil } from './world/oil.ts';
-import { crashDebris, wheelBits, rollParts, crushedEngine } from './world/debris.ts';
+import { crashDebris, wheelBits, rollParts, crushedEngine, dragPull } from './world/debris.ts';
 import {
   takePost, postDeltaV, postShares, radiatorScale, type PostNote,
 } from './physics/posthit.ts';
@@ -340,6 +340,19 @@ function pushEvent(car: DamageCar, event: DamageEvent) {
 
 const TOE = 0.008, TOE_OFF = 0.02;
 /**
+ * A side's pull from its wheels gone: the most its two corners drag (world/debris.ts dragPull:
+ * 1 without ?dmgmore), 0 with both wheels on.
+ * @param car the car
+ * @param front the side's front corner
+ * @param rear its rear corner
+ * @returns the pull's weight
+ */
+function sideDrag(car: DamagedCar, front: number, rear: number): number {
+  const off = car.wheelOff;
+  return Math.max(off[front] ? dragPull(car, front) : 0, off[rear] ? dragPull(car, rear) : 0);
+}
+
+/**
  * Works out car.wreck (the multipliers vehicle.ts reads) from the damage state.
  * @param car the car
  */
@@ -358,7 +371,7 @@ function derive(car: DamagedCar) {
     // a pull toward the harder-hit front (TOE 0.04 turned the car 40 deg in 3 s hands-off: 0.008
     // = 8 deg, a pull you correct), toward a soft tyre, and a missing wheel drags its corner
     toe: TOE * (dmg[1] - dmg[0]) + air.toe
-      + TOE_OFF * ((off[1] || off[3] ? 1 : 0) - (off[0] || off[2] ? 1 : 0)),
+      + TOE_OFF * (sideDrag(car, 1, 3) - sideDrag(car, 0, 2)),
     roll: 1 + 4 * (offF + offR),
     flatDrag: air.flatDrag, flatYaw: air.flatYaw,
   };

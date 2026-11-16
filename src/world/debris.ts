@@ -318,6 +318,18 @@ export function rollParts(car: DebrisCar, kind: string, side: number, scale: num
 // piece thrown is gone from the car (SUSP_* bits in car.suspOff, render/cars.ts draws what stays,
 // snapped); a driven wheel always takes its drive shaft's outer end.
 export const SUSP_STRUT = 1, SUSP_WISHBONE = 2, SUSP_SHAFT = 4;
+// m in from the car's side where a closed car's arms meet the chassis: its SUBFRAME (owner 11-16:
+// "cars should have a sub frame too like real life or the wishbones attach to nothing")
+export const SUBFRAME_M = 0.6;
+// a wheel torn off (owner 11-16: "the hub is still attached"): its hub went with it; what stayed is
+// SNAPPED - the arms (and a driven wheel's inner shaft) end this share of the way out from the
+// subframe to where the hub was, shorter when the wishbone went too (render/carcorners.ts draws
+// it; with ?dmgmore it is what DRAGS on the road, dragReach)
+export const SNAP_SHARE = 0.6, SNAP_SHARE_NO_WISHBONE = 0.3;
+// ?dmgmore (owner: "more drag, more pull"): the pull of a corner dragging its snapped arm, and of
+// one dragging its subframe (the wishbone gone too), against the toe a lost wheel gave (damage.ts
+// TOE_OFF) - the owner's numbers
+export const DRAG_PULL_ARM = 0.7, DRAG_PULL_SUBFRAME = 1.4;
 // ?dmgmore: a FRONT wheel torn off takes its TRACK ROD - the steering's part at that corner
 // (owner 11-16: rolling throws "steering and suspension parts")
 export const SUSP_ROD = 8;
@@ -325,6 +337,34 @@ export const SUSP_ROD = 8;
 // STRUT, and from which the WISHBONE too (a closed car); an open car always its wishbone, from
 // OPEN_SECOND a second
 const STRUT_FROM = 0.3, WISHBONE_FROM = 0.65, OPEN_SECOND = 0.5;
+
+/**
+ * ?dmgmore: how far out from the car's middle line a torn-off wheel's corner touches the road, m:
+ * the snapped arm's end, or with the wishbone gone the subframe's (as render/carcorners.ts draws
+ * them). Without the switch, the wheel's place (the hub, as before).
+ * @param car the car (its spec and suspOff)
+ * @param corner the damage corner
+ * @returns m from the middle line
+ */
+export function dragReach(car: { spec: { wid?: number; trackWidth?: number; trackR?: number };
+  suspOff?: number[] }, corner: number): number {
+  const hub = halfTrackAt(car.spec, corner >= 2);
+  if (!FIX.dmgmore) return hub;
+  const inner = (car.spec.wid ?? 1.8) / 2 - SUBFRAME_M;
+  const share = (car.suspOff?.[corner] ?? 0) & SUSP_WISHBONE ? SNAP_SHARE_NO_WISHBONE : SNAP_SHARE;
+  return inner + (hub - inner) * share;
+}
+
+/**
+ * ?dmgmore: the pull of a corner whose wheel was torn off, by what drags (1 without the switch).
+ * @param car the car (its suspOff)
+ * @param corner the damage corner
+ * @returns the multiplier on the lost wheel's toe
+ */
+export function dragPull(car: { suspOff?: number[] }, corner: number): number {
+  if (!FIX.dmgmore) return 1;
+  return (car.suspOff?.[corner] ?? 0) & SUSP_WISHBONE ? DRAG_PULL_SUBFRAME : DRAG_PULL_ARM;
+}
 
 /**
  * a wheel torn off takes its suspension with it - an open car's WISHBONES, a closed car's STRUT

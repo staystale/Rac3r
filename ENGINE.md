@@ -467,7 +467,11 @@ heat / wear bursts, debris, nails, bushes) ends in `damage.ts`, which starts a L
 over 10-30 s. Each tyre's pressure sets its axle's grip (1 -> 0.7 flat -> 0.45 on the rim), a pull
 toward it and extra rolling drag, folded into `car.wreck` by `damage.ts derive`; driven flat
 the rubber comes off by a chance rising with the metres run flat (half by ~1 km). `damage.ts stepDamage` runs it each physics step
-(player `game/sim.ts`, AI `game/ai.ts`). METAL ON HARD GROUND (`world/metalscrape.ts`): a rim, or
+(player `game/sim.ts`, AI `game/ai.ts`). ?dmgmore: a torn-off wheel's corner touches the road at its
+snapped arm or subframe (`debris.ts dragReach`; `metalscrape.ts touchPoint`, `marks.ts markAcross`,
+`particles.ts wheelPlace`), throws its ground's spray on soft ground (`car.dragSpray`,
+`emitDragDirt`), and pulls by what drags (`debris.ts dragPull`, `damage.ts sideDrag`).
+METAL ON HARD GROUND (`world/metalscrape.ts`): a rim, or
 a rolled body sliding (`roll.ts car.sparks`), sparks and may break each new wear cell a grade
 (race tarmac -> tarmac -> broken) through `gougeCell`; a rollover impact has its own chance; a
 rim scores a pale mark (`MARK_GOUGE`, `marks.ts`). Drawn by `render/tyrelook.ts` (the tyre
