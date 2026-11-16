@@ -517,10 +517,34 @@ const R13: RosterRow = {
   paint: '#f0f0ea', trim: '#16181d', glass: '#2a2f38', rim: '#16181d',
 };
 
+// Seat Ibiza Mk4 (6J, 2008-17) 1.4 16v 85 PS five-door (Seat; auto-data.net): the 1.4 four across
+// the front, 63 kW at 5,000, 132 Nm at 3,800, a five-speed manual, FWD, 1,111 kg, 4,052 x 1,693
+// mm, wheelbase 2,469, track 1,465 / 1,457, ABS; 177 km/h, 0-100 12.2 s. EST: the torque's band,
+// the 6,200 limit, the ratios and final drive (the 0A4's 3.455 1.944 1.370 1.032 0.850 and 3.882:
+// to its 177 at 5,600), 185/60 R15, Cd 0.30 x 1.98 m^2 (set to reach its 177), 61 / 39, the CG,
+// the tyres' grip and stiffness (everyday tyres), the springs; no stability control.
+const IBIZA: RosterRow = {
+  id: 'seat-ibiza', name: 'Seat Ibeefa', kind: 'ibiza', cls: 'road', sub: 'Hatch',
+  rimIn: 15,   // its real rim, inches (what tyres fit)
+  cg: 0.52, rideH: 0.14, cyl: 4,
+  aids: { abs: true, tcs: false },
+  mass: 1111, lf: 0.963, lr: 1.506, len: 4.052, wid: 1.693, trackWidth: 1.46,
+  tyreWidth: 0.185, wheelR: tyreR(185, 60, 15),
+  drive: 1.0, brakeBiasF: 0.65, caF: 85000, caR: 80000, mu: 1.12,
+  curve: realCurve({ idle: 800, low: 0.65, nm: 132, nmFrom: 3800, nmTo: 4200,
+    kw: 63, kwAt: 5000, redline: 6200 }),
+  redline: 6200, upshiftRpm: 5900, downshiftRpm: 2300, idleRpm: 800,
+  gears: [3.455, 1.944, 1.37, 1.032, 0.85], finalDrive: 3.882, dragC: dragOf(0.30, 1.98),
+  susF: 1.35, susZ: 0.4,
+  // Emocion Red, the roof in the paint's darker red, black details, silver wheels
+  paint: '#c41e2a', trim: '#a51a24', glass: '#2a2f38', rim: '#c9ccd4',
+};
+
 /** The new cars: their roster rows, in the list's order. */
 export const NEW_CARS: RosterRow[] = [PORCH, SEVEN, TRANSFIT, TROPHY, CIVVIC, DEFUNDER, FOCUST,
   CLEO, CLEO_RS, TRANSFIT_LWB, TRANSFIT_SWB, TS010, ROUTEMONSTER, SAXO, STRANGE, SAXO_VTR, TESLA,
-  M4GT3, ...(FIX.corolla ? [COROLLA] : []), ...(FIX.r13 ? [R13] : [])];
+  M4GT3, ...(FIX.corolla ? [COROLLA] : []), ...(FIX.r13 ? [R13] : []),
+  ...(FIX.ibiza ? [IBIZA] : [])];
 
 /** The classes only new cars race in. */
 export const NEW_CLASSES = [GT_CLASS, TOURING_CLASS, PROTO_CLASS];

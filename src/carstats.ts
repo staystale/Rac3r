@@ -475,5 +475,18 @@ export const CAR_STATS: Record<string, CarStat> = {
       "abs": false,
       "tcs": true
     }
+  },
+  // (measured alone: tools/carstats.mjs seat-ibiza with IBIZA=1, behind its switch)
+  "seat-ibiza": {
+    "topKph": 176,
+    "zeroTo100": 12.5,
+    "brake100": 42.3,
+    "gripG": 1.02,
+    "massKg": 1111,
+    "drive": "FWD",
+    "aids": {
+      "abs": true,
+      "tcs": false
+    }
   }
 };

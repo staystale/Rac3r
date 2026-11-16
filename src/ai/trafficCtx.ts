@@ -27,6 +27,9 @@ const RARE: [string, number][] = [['saxo-vtr', 0.00083], ['cleo-rs200', 0.000076
 // The Model 3 at its share the same way: ~133,000 licensed (2025 Q4, DVLA via
 // howmanyleft.co.uk) - 0.39 %, 0.048 - about 1 car in 260.
 const TESLAS = 0.048;
+// The Ibiza the same way (every Ibiza): ~204,700 licensed (2025 Q4, DVLA via
+// stillontheroad.co.uk) - 0.60 %, 0.074 - about 1 car in 170.
+const IBIZAS = 0.074;
 const VANS = 2.4;
 /** One Transit's weight: its part (of 100) of the vans' VANS. */
 const vanWeight = (part: number) => VANS * part / 100;
@@ -36,7 +39,7 @@ export const VEH: [string, number][] = [
   ['defunder-110', DEFUNDERS], ['focust-st', 0.37], ['routemonster', 0.07],
   ['transfit-lwb', vanWeight(30)], ['transfit-swb', vanWeight(30)],
   ['strange-l322', STRANGE_ROVERS],
-  ...RARE, ['tesla-m3', TESLAS],
+  ...RARE, ['tesla-m3', TESLAS], ['seat-ibiza', IBIZAS],
 ];
 // real-road colours: mostly silver / white / black / grey (each its own sprite, cached by
 // id + paint)

@@ -13,6 +13,17 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'ibiza',
+    added: '2026-11-16',
+    name: 'New car: the Seat Ibeefa (a Seat Ibiza Mk4 1.4 five-door), ROAD / Hatch, and in the '
+      + 'traffic',
+    where: 'Test link + &ibiza=1: the garage, ROAD / Hatch; a circuit; the highway (about 1 car in '
+      + '170, as on the real roads); + &underskin=1&carparts=1 for a crash',
+    try: 'Its look (Emocion Red, shaded), its 85 PS against the Golf and the Saxo VTR, crash it '
+      + '(four doors, welded rear wings), roll it.',
+    wrong: 'Not an Ibiza from above, too quick for 85 PS, too common or too rare in the traffic.',
+  },
+  {
     id: 'r13',
     added: '2026-11-16',
     name: 'New car: the Rebelion R13 (the 2018 Rebellion LMP1), PROTOTYPE / LMP1 (a new type)',

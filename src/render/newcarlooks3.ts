@@ -231,8 +231,89 @@ function paintR13(spr: SpriteCtx): void {
   block(2, mid - 1, 4, 2, STEEL);
 }
 
+
+/**
+ * The Ibiza's plan, a half width at a share of its length (0 tail, 1 nose), as a share of the
+ * sprite's half: the rounded tail, the hips over the rear wheels and the wings over the front,
+ * the waist at the doors, the nose tapering to its corners.
+ * @param share along the car, 0..1
+ * @returns the half width, 0..1
+ */
+function ibizaPlan(share: number): number {
+  const arch = Math.max(inside(share, 0.05, 0.28, 0.06), inside(share, 0.64, 0.86, 0.06));
+  const tail = share < 0.04 ? 0.8 + 0.2 * Math.sqrt(share / 0.04) : 1;
+  const nose = share > 0.88 ? Math.sqrt(1 - 0.62 * ((share - 0.88) / 0.12) ** 2) : 1;
+  return (0.94 + 0.06 * arch) * tail * nose;
+}
+
+/**
+ * The Ibiza's glasshouse: the short tailgate glass under its little spoiler, the roof (the second
+ * colour) lit along its edge, the side glass, the raked windscreen, the mirrors (the third
+ * colour).
+ * @param spr the painting context
+ */
+function ibizaCabin(spr: SpriteCtx): void {
+  const { mid, roof2, third, block, along } = spr;
+  const rearFrom = along(0.05), roofFrom = along(0.12), roofTo = along(0.56),
+    screenTo = along(0.67), cabinHalf = Math.round(mid * 0.73);
+  for (let x = rearFrom; x < roofFrom; x++) {
+    const half = Math.round(cabinHalf - 3 * (roofFrom - x) / (roofFrom - rearFrom));
+    block(x, mid - half, 1, half * 2 + 1, GLASS);
+  }
+  block(rearFrom - 1, mid - cabinHalf, 1, cabinHalf * 2 + 1, roof2);
+  block(roofFrom, mid - cabinHalf, roofTo - roofFrom, cabinHalf * 2 + 1, roof2);
+  block(roofFrom, mid - cabinHalf, roofTo - roofFrom, 1, SHINE);
+  block(roofFrom, mid + cabinHalf, roofTo - roofFrom, 1, SHADE_SOFT);
+  block(roofFrom + 1, mid - cabinHalf - 1, roofTo - roofFrom - 2, 1, GLASS);
+  block(roofFrom + 1, mid + cabinHalf + 1, roofTo - roofFrom - 2, 1, GLASS);
+  for (let x = roofTo; x < screenTo; x++) {
+    const half = Math.round(cabinHalf + 1 + 2 * (x - roofTo) / (screenTo - roofTo));
+    const rake = Math.round((x - roofTo) * 0.3);
+    block(x, mid - half + rake, 1, (half - rake) * 2 + 1, GLASS);
+  }
+  block(roofTo + 1, mid - cabinHalf + 1, 1, cabinHalf * 2 - 1, GLASS_HI);
+  block(screenTo - 2, mid - cabinHalf - 4, 2, 2, third);
+  block(screenTo - 2, mid + cabinHalf + 3, 2, 2, third);
+}
+
+/**
+ * SEAT IBEEFA (Seat Ibiza Mk4, 6J, 2008-17, the 1.4 five-door): the hatch's plan, its sharp
+ * shoulder line lit along the flanks, the short tailgate glass, the roof, the raked screen, the
+ * bonnet's two creases running to the narrow grille with its badge, the swept lamps, the doors'
+ * shut lines, the tail lamps at the corners; shaded the TS010's way.
+ * @param spr the painting context
+ */
+function paintIbiza(spr: SpriteCtx): void {
+  const { lengthPx: len, widthPx: wid, mid, third, block, along } = spr;
+  planBody(spr, (x) => mid * ibizaPlan(x / (len - 1)));
+  // the shoulder line and the slope under it, the arches' crests
+  block(along(0.04), 3, along(0.9), 1, SHINE);
+  block(along(0.04), wid - 4, along(0.9), 1, SHADE);
+  for (const [from, until] of [[0.05, 0.28], [0.64, 0.86]])
+    block(along(from) + 1, wid - 3, along(until - from) - 2, 1, SHADE_SOFT);
+  ibizaCabin(spr);
+  for (const y of [mid - 6, mid + 5]) {
+    block(along(0.7), y, along(0.22), 1, SHINE);
+    block(along(0.7), y + 1, along(0.22), 1, SHADE_SOFT);
+  }
+  for (const y of [3, wid - 5]) {
+    block(len - 7, y, 5, 2, HEAD);
+    block(len - 4, y + (y < mid ? 1 : -1), 2, 2, HEAD);
+  }
+  block(len - 2, mid - 4, 2, 9, INK);
+  block(len - 2, mid - 1, 1, 3, third);
+  block(len - 1, 4, 1, wid - 8, INK);
+  for (const share of [0.42, 0.58]) {
+    block(along(share), 2, 1, 2, INK);
+    block(along(share), wid - 4, 1, 2, INK);
+  }
+  for (const y of [2, wid - 6]) block(0, y, 2, 4, TAIL);
+  block(-1, 5, 1, 2, CHR);
+}
+
 /** The newest cars' bodies by id (render/carlooks.ts LOOKS takes them). */
 export const NEW_LOOKS_3: [string, { paint: (spr: SpriteCtx) => void; bare?: boolean }][] = [
   ['toyoter-corolla', { paint: paintCorolla, bare: true }],
   ['rebelion-r13', { paint: paintR13, bare: true }],
+  ['seat-ibiza', { paint: paintIbiza, bare: true }],
 ];

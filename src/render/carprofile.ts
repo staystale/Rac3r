@@ -129,6 +129,9 @@ export const PROFILES: Record<string, CarProfile> = {
   'tesla-m3': { len: 4.694, waist: 0.95, glass: [0.2, 0.66], roof: [[0, 0.62], [0.03, 0.98],
     [0.14, 1.04], [0.28, 1.36], [0.5, 1.44], [0.66, 0.96], [0.96, 0.74], [1, 0.5]] },
   // Saxo VTR: the short round hatch (EST from photos)
+  // Ibiza Mk4: the short steep tailgate, the long roof, the raked screen (EST from photos)
+  'seat-ibiza': { len: 4.052, waist: 0.95, glass: [0.06, 0.66], roof: [[0, 0.58], [0.02, 0.98],
+    [0.06, 1.32], [0.12, 1.42], [0.54, 1.44], [0.66, 0.96], [0.95, 0.76], [1, 0.48]] },
   'saxo-vtr': { len: 3.718, waist: 0.92, glass: [0.1, 0.64], roof: [[0, 0.55], [0.02, 0.95],
     [0.08, 1.3], [0.15, 1.36], [0.5, 1.37], [0.65, 0.92], [0.95, 0.75], [1, 0.45]] },
   // Saxo: the short round hatch on its arches (EST from photos)

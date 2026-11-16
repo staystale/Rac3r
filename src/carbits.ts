@@ -140,6 +140,7 @@ export const CAR_DOORS: Record<string, CarDoors> = {
   'saxo-kit': { doors: TWO_DOORS, mirrors: rimThird(0.635) },
   'strange-l322': { doors: FOUR_DOORS, mirrors: { at: 0.62, col: 'third' }, splitTailgate: true },
   'saxo-vtr': { doors: TWO_DOORS, mirrors: rimThird(0.635) },
+  'seat-ibiza': { doors: FOUR_DOORS, mirrors: rimThird(0.645) },   // Ibiza: the 5-door
   'tesla-m3': { doors: FOUR_DOORS, mirrors: rimThird(0.655) },
   // step 2: the Transits - two cab doors, the nearside slide, the twin rear doors
   'transfit-van': { doors: [], corners: transitPanels(5.531), twinRear: true, bumper: 'black',
@@ -341,6 +342,9 @@ export const CAR_BITS: Record<string, CarBits> = {
   'strange-l322': { pipes: 2, pipesAt: 'sides', front: 'bonnet', rear: 'boot', engine: 'front',
     cyl: 8, layout: 'v', mount: 'long', radiator: 'front' },
   // Saxo VTR: one tailpipe on the left (EST), the tailgate, the 1.6 across the front
+  // Ibiza 1.4: one pipe on the left (EST), the tailgate, the 1.4 across the front
+  'seat-ibiza': { pipes: 1, pipesAt: 'left', front: 'bonnet', rear: 'boot', engine: 'front',
+    cyl: 4, layout: 'inline', mount: 'trans', radiator: 'front' },
   'saxo-vtr': { pipes: 1, pipesAt: 'left', front: 'bonnet', rear: 'boot', engine: 'front',
     cyl: 4, layout: 'inline', mount: 'trans', radiator: 'front' },
   // Model 3: no pipes, the frunk under the bonnet (the front motor under it), the radiator in the

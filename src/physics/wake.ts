@@ -44,6 +44,7 @@ const SIDE_AIR: Record<string, number> = {
   'focust-st': 0.55, 'cleo-cup': 0.5, 'cleo-rs200': 0.5, ts010: 0.4, routemonster: 1,
   'rebelion-r13': 0.4,
   'saxo-kit': 0.5, 'strange-l322': 0.8, 'saxo-vtr': 0.5, 'tesla-m3': 0.6,
+  'seat-ibiza': 0.55,
 };
 
 interface WakeCar {

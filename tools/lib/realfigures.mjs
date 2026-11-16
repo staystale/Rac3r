@@ -77,6 +77,8 @@ export const REAL_FIGURES = {
     zeroTo100: null, note: 'no published top speed or 0-100' },
   'strange-l322': { real: 'Range Rover L322 4.4 V8 (2002-05, 5-speed automatic)', topKph: 208,
     zeroTo100: 9.2, note: 'cars-data.com' },
+  'seat-ibiza': { real: 'Seat Ibiza Mk4 (6J) 1.4 16v 85 PS 5-door (2008-17, 5MT)', topKph: 177,
+    zeroTo100: 12.2, note: 'Seat; auto-data.net' },
   'saxo-vtr': { real: 'Citroen Saxo VTR 1.6 8v (Phase 2, 2001-03, 5MT)', topKph: 193,
     zeroTo100: 10.5, note: 'auto-data.net' },
   'tesla-m3': { real: 'Tesla Model 3 Long Range AWD (2019-20, two motors, 324 kW)', topKph: 233,
