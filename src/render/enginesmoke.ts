@@ -69,6 +69,7 @@ export const EXHAUST_SPOTS: Record<string, { pipes: Pipe[]; up?: boolean }> = {
   // the Routemaster's pipe under the left side, behind the front axle (EST)
   bus: { pipes: [[0.05, -0.5]] },
   schoolbus: { pipes: [[-0.25, 0.5]] },
+  scanyah: { pipes: [[0.08, 0.42]], up: true },
   // the Saxo kit car's side pipe on the right, ahead of the rear wheel (EST)
   saxo: { pipes: [[-0.2, 0.5]] },
   rrover: { pipes: [[-0.5, -0.3], [-0.5, 0.3]] },

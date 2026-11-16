@@ -4,6 +4,7 @@
 // the owner passes it. Each row follows the real car (src/realcars.ts helpers); EST marks a figure
 // no source gave. Drafted with tools/newcarstart.mjs, checked with tools/newcar.mjs <id>.
 import type { RosterRow } from './cars.ts';
+import { FIX } from './core/fixes.ts';
 import { dragOf, realCurve, tyreR } from './realcars.ts';
 
 // GT: the GT3 racers (TODO CHAMPIONSHIPS: GT), a class of their own on race tyres
@@ -636,10 +637,38 @@ const SCHOOLBUS: RosterRow = {
   paint: '#f3a712', trim: '#eceeea', glass: '#2a2f38', rim: '#c9ccd4',
 };
 
+// Scania R 450 4x2 tractor unit (Euro 6; Scania's overviews, dealers' sheets): the DC13 12.7-litre
+// six along the front, 450 hp (331 kW) at 1,900, 2,350 Nm at 1,000-1,300, the Opticruise
+// GRS905R twelve-speed, RWD on twin rear wheels, wheelbase 3,750 (the sheets 3,700-3,760), net
+// 8,089-9,660 kg (the family). EST: 8,100 kg (the 4x2's low end), ~6.0 x 2.55 m, the 2,100
+// limit, the twelve ratios and the final drive set so the limit in top is the UK's 90 km/h
+// lorry limiter (a real R 450 cruises lower: no speed limiter of its own here), 315/70 R22.5
+// (twins at the rear: the tracks 2.05 / 1.83), 35 / 65 with no trailer, Cd 0.6 x 9.5 m^2, the CG
+// (1.1 m), the springs; ABS and traction control (EBS, ASR).
+const SCANYAH: RosterRow = {
+  id: 'scanyah-r450', name: 'Scanyah R-Series', kind: 'scanyah', cls: 'road', sub: 'Truck',
+  rimIn: 22,   // its real rim, inches (what tyres fit)
+  cg: 1.1, rideH: 0.3, cyl: 6,
+  aids: { abs: true, tcs: true },
+  mass: 8100, lf: 1.313, lr: 2.437, len: 6.0, wid: 2.55, trackWidth: 2.05, trackR: 1.83,
+  // 315/70 R22.5: 1.01 m across, 0.315 m wide
+  tyreWidth: 0.315, wheelR: tyreR(315, 70, 22.5),
+  drive: 0.0, brakeBiasF: 0.45, caF: 260000, caR: 420000, mu: 0.85,
+  curve: realCurve({ idle: 600, low: 0.75, nm: 2350, nmFrom: 1000, nmTo: 1300,
+    kw: 331, kwAt: 1900, redline: 2100 }),
+  redline: 2100, upshiftRpm: 1900, downshiftRpm: 1100, idleRpm: 600,
+  gears: [11.32, 9.16, 7.19, 5.82, 4.68, 3.79, 2.99, 2.42, 1.9, 1.53, 1.24, 1.0],
+  finalDrive: 4.45, dragC: dragOf(0.6, 9.5),
+  susF: 1.3, susZ: 0.35,
+  // a white cab, its roof the second colour, black details
+  paint: '#f0f0ea', trim: '#dfe1dc', glass: '#2a2f38', rim: '#c9ccd4',
+};
+
 /** The new cars: their roster rows, in the list's order. */
 export const NEW_CARS: RosterRow[] = [PORCH, SEVEN, TRANSFIT, TROPHY, CIVVIC, DEFUNDER, FOCUST,
   CLEO, CLEO_RS, TRANSFIT_LWB, TRANSFIT_SWB, TS010, ROUTEMONSTER, SAXO, STRANGE, SAXO_VTR, TESLA,
-  M4GT3, COROLLA, R13, IBIZA, A4AVANT, TRANSFIT_CUSTOM, E36PEAK, SCHOOLBUS];
+  M4GT3, COROLLA, R13, IBIZA, A4AVANT, TRANSFIT_CUSTOM, E36PEAK, SCHOOLBUS,
+  ...(FIX.scanyah ? [SCANYAH] : [])];
 
 /** The classes only new cars race in. */
 export const NEW_CLASSES = [GT_CLASS, TOURING_CLASS, PROTO_CLASS,

@@ -540,5 +540,18 @@ export const CAR_STATS: Record<string, CarStat> = {
       "abs": true,
       "tcs": false
     }
+  },
+  // (measured alone: tools/carstats.mjs scanyah-r450 with SCANYAH=1, behind its switch)
+  "scanyah-r450": {
+    "topKph": 90,
+    "zeroTo100": null,
+    "brake100": 54,
+    "gripG": 0.81,
+    "massKg": 8100,
+    "drive": "RWD",
+    "aids": {
+      "abs": true,
+      "tcs": true
+    }
   }
 };

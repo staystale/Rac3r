@@ -170,6 +170,9 @@ export const CAR_DOORS: Record<string, CarDoors> = {
   // the school bus: the folding entrance door on its right (-y) front, side skirt panels, the
   // rear emergency door as its rear lid, black steel bumpers, the big black mirrors, two decks'
   // worth of glass (its long rows of windows: EST, as the Routemaster's)
+  // the Scanyah tractor: a cab door a side, black steel bumper, the big black mirrors at the cab
+  'scanyah-r450': { doors: [[0.68, 0.86]], bumper: 'steel',
+    mirrors: { at: 0.87, col: 'black', big: true } },
   'skool-bus': { doors: [], corners: [{ at: [0.8, 0.875], shape: 'door' },
     { at: [0.55, 0.8], shape: 'skirt' }, { at: [0.25, 0.5], shape: 'skirt' },
     { at: [0.25, 0.5], shape: 'skirt' }], bumper: 'steel', rearLid: [0.002, 0.03],
@@ -366,6 +369,10 @@ export const CAR_BITS: Record<string, CarBits> = {
   // its big mirrors on their arms at the cab's front corners
   // school bus: one pipe on the left ahead of the rear wheels (EST), the bonnet of its dog nose,
   // the rear emergency door, the B6.7 six along the front, the radiator in the nose
+  // Scanyah: a stack behind the cab (EST: the R's vertical pipe option), the cab's front flap,
+  // no rear panel, the DC13 six along the frame under the cab, the radiator at the front
+  'scanyah-r450': { pipes: 1, pipesAt: 'stack', front: 'bonnet', rear: 'none', engine: 'front',
+    cyl: 6, layout: 'inline', mount: 'long', radiator: 'front' },
   'skool-bus': { pipes: 1, pipesAt: 'left', front: 'bonnet', rear: 'boot', engine: 'front',
     cyl: 6, layout: 'inline', mount: 'long', radiator: 'front' },
   routemonster: { pipes: 1, pipesAt: 'left', front: 'bonnet', rear: 'none', engine: 'front',

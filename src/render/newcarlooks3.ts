@@ -618,6 +618,83 @@ function paintSchoolBus(spr: SpriteCtx): void {
   for (const y of [1, wid - 4]) block(0, y, 1, 3, TAIL);
 }
 
+
+/**
+ * The Scanyah tractor's plan, a half width at a share of its length (0 tail, 1 nose), as a share
+ * of the sprite's half: the chassis and its mudguards behind (narrower than the cab: the frame
+ * between the twin rear wheels), the full-width cab ahead.
+ * @param share along the tractor, 0..1
+ * @returns the half width, 0..1
+ */
+function scanyahPlan(share: number): number {
+  if (share >= 0.6) return share > 0.985 ? 0.94 : 1;
+  const guard = inside(share, 0.1, 0.38, 0.02);
+  return 0.62 + 0.36 * guard;
+}
+
+/**
+ * The tractor's chassis behind the cab: the frame's two rails, the fifth wheel's plate and its
+ * jaw, the twin rear wheels' mudguards lit along their crests, the fuel tank and the air tanks on
+ * the flanks, the catwalk behind the cab.
+ * @param spr the painting context
+ */
+function scanyahChassis(spr: SpriteCtx): void {
+  const { widthPx: wid, mid, block, along } = spr;
+  // the frame's shadowed deck between the rails (no body there: the chassis)
+  const frame = Math.round(mid * 0.62) - 1;
+  block(1, mid - frame, along(0.6) - 1, frame * 2 + 1, '#2a2d34');
+  for (const y of [mid - 4, mid + 3]) block(0, y, along(0.6), 2, STEEL);
+  block(along(0.18), mid - 6, along(0.14), 13, INK);
+  block(along(0.19), mid - 5, along(0.12), 11, '#3a3d45');
+  block(along(0.25), mid - 1, along(0.06), 3, INK);
+  for (const y of [1, wid - 4]) {
+    block(along(0.1), y, along(0.28), 3, '#2a2d34');
+    block(along(0.11), y + (y < mid ? 0 : 2), along(0.26), 1, y < mid ? SHINE : SHADE);
+  }
+  block(along(0.4), 2, along(0.14), 4, '#9aa0a8');
+  block(along(0.4), 2, along(0.14), 1, SHINE);
+  block(along(0.42), wid - 6, along(0.1), 4, '#5a5f69');
+  block(along(0.54), mid - 5, along(0.05), 11, '#5a5f69');
+}
+
+/**
+ * The tractor's cab from above: its roof (the second colour) and the roof spoiler lit along its
+ * edge, the sun visor over the windscreen, the windscreen's edge, the big mirrors on their arms,
+ * the corner lamps, the grille's top under the windscreen.
+ * @param spr the painting context
+ */
+function scanyahCab(spr: SpriteCtx): void {
+  const { lengthPx: len, widthPx: wid, mid, roof2, third, block, along } = spr;
+  const half = mid - 2;
+  block(along(0.62), mid - half, len - along(0.62) - 5, half * 2 + 1, roof2);
+  block(along(0.62), mid - half, len - along(0.62) - 5, 1, SHINE);
+  block(along(0.62), mid + half, len - along(0.62) - 5, 1, SHADE_SOFT);
+  // the roof spoiler's slope up to the front
+  block(along(0.66), mid - half + 2, along(0.2), half * 2 - 3, SHADE_SOFT);
+  block(along(0.86), mid - half + 2, 1, half * 2 - 3, SHINE);
+  block(len - 5, mid - half, 2, half * 2 + 1, third);
+  block(len - 3, 2, 2, wid - 4, GLASS);
+  block(len - 3, 4, 1, wid - 8, GLASS_HI);
+  for (const y of [-2, wid]) block(len - 7, y, 4, 2, INK);
+  for (const y of [1, wid - 3]) block(len - 1, y, 1, 2, HEAD);
+  block(len - 1, mid - 6, 1, 13, INK);
+}
+
+/**
+ * SCANYAH R-SERIES (a Scania R 450 4x2 tractor unit): the cab-over cab with its roof spoiler
+ * and sun visor, the chassis behind with the fifth wheel waiting for a trailer, the twin rear
+ * wheels' mudguards, the tanks; shaded the TS010's way.
+ * @param spr the painting context
+ */
+function paintScanyah(spr: SpriteCtx): void {
+  const { lengthPx: len, widthPx: wid, mid, block } = spr;
+  planBody(spr, (x) => mid * scanyahPlan(x / (len - 1)));
+  scanyahChassis(spr);
+  scanyahCab(spr);
+  for (const y of [mid - 5, mid + 3]) block(0, y, 1, 2, TAIL);
+  block(-1, 2, 1, wid - 4, INK);
+}
+
 /** The newest cars' bodies by id (render/carlooks.ts LOOKS takes them). */
 export const NEW_LOOKS_3: [string, { paint: (spr: SpriteCtx) => void; bare?: boolean }][] = [
   ['toyoter-corolla', { paint: paintCorolla, bare: true }],
@@ -627,4 +704,5 @@ export const NEW_LOOKS_3: [string, { paint: (spr: SpriteCtx) => void; bare?: boo
   ['transfit-custom', { paint: paintCustom, bare: true }],
   ['bmv-e36peak', { paint: paintE36, bare: true }],
   ['skool-bus', { paint: paintSchoolBus, bare: true }],
+  ['scanyah-r450', { paint: paintScanyah, bare: true }],
 ];

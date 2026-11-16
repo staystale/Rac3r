@@ -13,6 +13,17 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'scanyah',
+    added: '2026-11-16',
+    name: 'New vehicle: the Scanyah R-Series (a Scania R 450 4x2 tractor unit), ROAD / Truck - the '
+      + 'tractor alone for now (its trailer next)',
+    where: 'Test link + &scanyah=1: the garage, ROAD / Truck; a circuit, the highway (it is not '
+      + 'in the traffic)',
+    try: 'Its look (the white cab, the chassis and fifth wheel, shaded), its pull and its 90 km/h '
+      + 'limit, the brakes, crash it: the cab doors, the steel bumper, the big mirrors.',
+    wrong: 'Not a Scania tractor from above, faster than 90 km/h, a car part off it.',
+  },
+  {
     id: 'tipping',
     added: '2026-11-16',
     name: 'The two-wheel state: a car can lift onto its two outside wheels before it rolls - steer '
