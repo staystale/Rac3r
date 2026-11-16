@@ -529,6 +529,8 @@ after measuring today's chances (Q8).
   downgrades both exist.
   AI CARS VARY TOO (owner 11-16): each AI car's upgrade level is spread between the series'
   bottom and top limits, like driver skill, so the field has variety.
+- THE REPAIR BILL (owner 11-16): after a Story race, back in the garage, the bill pops up, part by
+  part (what is missing or broken, a price each), and the player pays it or goes into DEBT.
 - THE AGREED GARAGE (owner 11-03, mockup "RAC3R Menu Redesign"; the menu look is done): the
   upgradeable parts' level bars head the sections they apply to (Engine, Drivetrain, Suspension,
   Body, Quality); tap a stat -> its upgrade screen (levels, now vs that level, gains, price);
