@@ -178,8 +178,10 @@ function printStats(run, frames) {
     propsN: (frame) => frame[at('propsDrawn')], treesN: (frame) => frame[at('treesDrawn')],
     walkedN: (frame) => frame[at('propsWalked')],
   };
+  // (a column with no reading - no GPU timer: -1 every frame - prints "-")
+  const show = (values, pick) => (values.length ? pick(values).toFixed(1) : '-');
   const row = (label, set, pick) => `${label} ${Object.entries(columns).map(([name, read]) =>
-    `${name} ${pick(set.map(read).filter((value) => value >= 0)).toFixed(1)}`).join(' ')}`;
+    `${name} ${show(set.map(read).filter((value) => value >= 0), pick)}`).join(' ')}`;
   console.log(`  ms (gpu: the ground's WebGL; gap: dt less our work; rest: draw less the layers) `
     + `over ${clean.length} frames, ${slow.length} slow:`);
   console.log('    ' + row('median all ', clean, median));
