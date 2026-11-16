@@ -111,6 +111,9 @@ export const PROFILES: Record<string, CarProfile> = {
   // (EST from photos)
   routemonster: { len: 8.38, waist: 2.3, glass: [0.05, 0.92], roof: [[0, 0.5], [0.01, 4.1],
     [0.04, 4.38], [0.95, 4.38], [0.99, 4.1], [1, 1.2]] },
+  // Saxo: the short round hatch on its arches (EST from photos)
+  'saxo-kit': { len: 3.717, waist: 0.92, glass: [0.1, 0.64], roof: [[0, 0.55], [0.02, 0.95],
+    [0.08, 1.28], [0.15, 1.34], [0.5, 1.35], [0.65, 0.92], [0.95, 0.75], [1, 0.45]] },
   'cleo-rs200': { len: 4.017, waist: 0.95, glass: [0.1, 0.63], roof: [[0, 0.5], [0.02, 1.0],
     [0.08, 1.36], [0.15, 1.46], [0.5, 1.47], [0.64, 0.98], [0.95, 0.78], [1, 0.45]] },
   // TS010: the wing at the tail, the long low engine cover, the canopy bubble, the low nose (EST

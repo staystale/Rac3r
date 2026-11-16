@@ -400,6 +400,36 @@ function paintRoutemonster(spr: SpriteCtx): void {
   block(-1, wid - 6, 1, 3, CHR);
 }
 
+/**
+ * CITRONE SAXO MAX (Citroen Saxo Kit Car, the 1997-99 F2 "maxi" kit car): the little three-door
+ * hatch's round plan on its wide arches (the Clio's plan and glasshouse), the roof (the second
+ * colour) with its rally air scoop, the oval lamps, the grille's chevrons (the third colour), the
+ * mud flaps and the side pipe.
+ * @param spr the painting context
+ */
+function paintSaxo(spr: SpriteCtx): void {
+  const { lengthPx: len, widthPx: wid, mid, light, dark, third, block, along } = spr;
+  planBody(spr, (x) => mid * cleoPlan(x / (len - 1)));
+  cleoCabin(spr);
+  block(along(0.68), mid - 5, along(0.2), 1, light);
+  block(along(0.68), mid + 5, along(0.2), 1, dark);
+  // the roof's air scoop, the oval lamps, the grille with its chevrons, the spoiler's lip
+  block(along(0.48), mid - 2, 3, 5, INK);
+  for (const y of [3, wid - 6]) block(len - 5, y, 3, 3, HEAD);
+  block(len - 2, mid - 5, 2, 11, INK);
+  block(len - 2, mid - 2, 1, 5, third);
+  block(len, 3, 1, wid - 6, INK);
+  // the mud flaps behind each wheel, the tail lamps, the side pipe on the right
+  const rearX = Math.round(len / 2 - spr.spec.lr * SPRITE_PPM) - 4;
+  const frontX = Math.round(len / 2 + spr.spec.lf * SPRITE_PPM) - 4;
+  for (const x of [rearX, frontX]) {
+    block(x, 0, 1, 2, INK);
+    block(x, wid - 2, 1, 2, INK);
+  }
+  for (const y of [2, wid - 6]) block(0, y, 2, 4, TAIL);
+  block(along(0.3), wid - 1, 3, 1, CHR);
+}
+
 /** Cars 6 on: their bodies by id (render/carlooks.ts LOOKS takes them). */
 export const NEW_LOOKS_2: [string, { paint: (spr: SpriteCtx) => void; bare?: boolean }][] = [
   ['defunder-110', { paint: paintDefunder, bare: true }],
@@ -407,5 +437,6 @@ export const NEW_LOOKS_2: [string, { paint: (spr: SpriteCtx) => void; bare?: boo
   ['cleo-cup', { paint: paintCleo, bare: true }],
   ['cleo-rs200', { paint: paintCleoRs, bare: true }],
   ['routemonster', { paint: paintRoutemonster, bare: true }],
+  ['saxo-kit', { paint: paintSaxo, bare: true }],
   ['ts010', { paint: paintTs010, bare: true }],
 ];

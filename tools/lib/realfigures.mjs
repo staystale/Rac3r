@@ -69,6 +69,8 @@ export const REAL_FIGURES = {
     zeroTo100: 6.9, note: "Renault's figures" },
   routemonster: { real: 'AEC Routemaster RM (1959-68, AV590 9.6 115 bhp, 4-speed semi-automatic)',
     topKph: null, zeroTo100: null, note: 'no published top speed (~40 mph in London service)' },
+  'saxo-kit': { real: 'Citroen Saxo Kit Car (F2, 1997-99, TU5J4 1.6 16v ~210 hp)', topKph: null,
+    zeroTo100: null, note: 'no published top speed or 0-100' },
   ts010: { real: 'Toyota TS010 (1992 Group C, RV10 3.5 V10, Le Mans trim c600 bhp)', topKph: 346,
     zeroTo100: null, note: "Toyota's 346 km/h (215 mph) at Le Mans; no published 0-100" },
 };

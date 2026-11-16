@@ -41,6 +41,7 @@ const SHAPES: Record<string, RollShape> = {
   'defunder-110': { round: 0.15, side: 0.85 },   // Defender: a tall flat-sided box
   'focust-st': { round: 0.55, side: 0.8 },   // Focus: a hatch with soft edges (as the Golf)
   'cleo-cup': { round: 0.6, side: 0.7 },   // Clio Cup: a round, low hatch, a cage, a wing
+  'saxo-kit': { round: 0.6, side: 0.6 },   // Saxo kit car: a round hatch on wide arches
   routemonster: { round: 0.2, side: 0.95 },   // the double-decker: a tall box, lands on a side
   ts010: { round: 0.5, side: 0.15 },   // TS010: low and wide, a wing - it falls flat
   'cleo-rs200': { round: 0.6, side: 0.8 },   // Clio III: a round hatch (as the Golf, rounder)

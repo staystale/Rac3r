@@ -384,5 +384,18 @@ export const CAR_STATS: Record<string, CarStat> = {
       "abs": false,
       "tcs": false
     }
+  },
+  // (measured alone: tools/carstats.mjs saxo-kit with SAXO=1, a new car behind its switch)
+  "saxo-kit": {
+    "topKph": 215,
+    "zeroTo100": 5.9,
+    "brake100": 49.3,
+    "gripG": 1.33,
+    "massKg": 950,
+    "drive": "FWD",
+    "aids": {
+      "abs": false,
+      "tcs": false
+    }
   }
 };

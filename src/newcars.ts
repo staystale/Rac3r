@@ -341,11 +341,35 @@ const ROUTEMONSTER: RosterRow = {
   paint: '#c8342a', trim: '#a52a22', glass: '#2a2f38', rim: '#16181d',
 };
 
+// Citroen Saxo Kit Car (1997-99, the F2 "maxi" kit car; period sheets, which disagree): the TU5J4
+// 1.6 16v four across the front, 210-216 hp (157 kW) at 8,500, 190-200 Nm at 6,000-7,000, a six-
+// speed dog box, FWD, 890-1,000 kg, the Saxo's 3,717 mm length and 2,385 wheelbase, 1.72-1.74 m
+// wide on its arches. EST: the middle values (950 kg, 1.74 m, 195 Nm), the 9,000 limit, the ratios
+// and final drive, 205/55 R15 (the 306 Maxi's), Cd 0.38 x 1.9 m^2, 62 / 38, the track, the CG,
+// the tyres' grip and stiffness and the rally springs (the 306 Maxi's); no driver aids.
+const SAXO: RosterRow = {
+  id: 'saxo-kit', name: 'Citrone Saxo Max', kind: 'saxo', cls: 'rally', sub: '2L',
+  rimIn: 15,   // its real rim, inches (what tyres fit)
+  cg: 0.48, rideH: 0.15, cyl: 4,
+  aids: { abs: false, tcs: false },
+  mass: 950, lf: 0.906, lr: 1.479, len: 3.717, wid: 1.74, trackWidth: 1.55,
+  tyreWidth: 0.205, wheelR: tyreR(205, 55, 15),
+  drive: 1.0, brakeBiasF: 0.65, caF: 100000, caR: 90000, mu: 1.43,
+  curve: realCurve({ idle: 1200, low: 0.5, nm: 195, nmFrom: 6000, nmTo: 7000,
+    kw: 157, kwAt: 8500, redline: 9000 }),
+  redline: 9000, upshiftRpm: 8700, downshiftRpm: 5000, idleRpm: 1200,
+  gears: [3.0, 2.2, 1.75, 1.45, 1.22, 1.05], finalDrive: 4.5, dragC: dragOf(0.38, 1.9),
+  susF: 1.15, susZ: 0.44,
+  // white, a red roof (big), the blue chevrons
+  paint: '#f0f0ea', trim: '#c8342a', glass: '#2a2f38', rim: '#f0f0ea',
+};
+
 /** The new cars: their roster rows, in the list's order. */
 export const NEW_CARS: RosterRow[] = [PORCH, SEVEN, TRANSFIT, TROPHY, CIVVIC, DEFUNDER, FOCUST,
   ...(FIX.cleo ? [CLEO] : []), ...(FIX.cleoroad ? [CLEO_RS] : []),
   ...(FIX.transfitlwb ? [TRANSFIT_LWB] : []), ...(FIX.transfitswb ? [TRANSFIT_SWB] : []),
-  ...(FIX.ts010 ? [TS010] : []), ...(FIX.routemonster ? [ROUTEMONSTER] : [])];
+  ...(FIX.ts010 ? [TS010] : []), ...(FIX.routemonster ? [ROUTEMONSTER] : []),
+  ...(FIX.saxo ? [SAXO] : [])];
 
 /** The classes only new cars race in. */
 export const NEW_CLASSES = [GT_CLASS, TOURING_CLASS, ...(FIX.ts010 ? [PROTO_CLASS] : [])];
