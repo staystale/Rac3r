@@ -88,6 +88,8 @@ export const FIX = {
   saxo: atLoad('saxo'),
   // the Strange Rover (a Range Rover L322 4.4 V8), ROAD / SUV, drivable and in the traffic
   strange: atLoad('strange'),
+  // the Citrone Saxo VTR (the road Saxo the Saxmax racers start from), ROAD / Hatch, in the traffic
+  saxovtr: atLoad('saxovtr'),
   // the Toyoter TS010 (a Toyota TS010 Group C car) and its PROTOTYPE class
   ts010: atLoad('ts010'),
   // a rolling start's AI pole car out of the track's range holds its place: green waits for the

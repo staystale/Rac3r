@@ -366,6 +366,37 @@ function paintRoutemonster(spr: SpriteCtx): void {
 }
 
 /**
+ * Every Saxo's body from above: the Clio's round plan and glasshouse, the bonnet's creases, the
+ * oval lamps, the grille with its chevrons (the third colour), the bumper's lip.
+ * @param spr the painting context
+ */
+function saxoBody(spr: SpriteCtx): void {
+  const { lengthPx: len, widthPx: wid, mid, light, dark, third, block, along } = spr;
+  planBody(spr, (x) => mid * cleoPlan(x / (len - 1)));
+  cleoCabin(spr);
+  block(along(0.68), mid - 5, along(0.2), 1, light);
+  block(along(0.68), mid + 5, along(0.2), 1, dark);
+  for (const y of [3, wid - 6]) block(len - 5, y, 3, 3, HEAD);
+  block(len - 2, mid - 5, 2, 11, INK);
+  block(len - 2, mid - 2, 1, 5, third);
+  block(len, 3, 1, wid - 6, INK);
+}
+
+/**
+ * CITRONE SAXO VTR (Citroen Saxo VTR 1.6 8v, 2001-03, the road car the Saxmax and JSCC racers
+ * start from): every Saxo's body, the small roof spoiler over the hatch, the tail lamps, the
+ * single tailpipe on the left.
+ * @param spr the painting context
+ */
+function paintSaxoVtr(spr: SpriteCtx): void {
+  const { widthPx: wid, mid, block, along } = spr;
+  saxoBody(spr);
+  block(along(0.11), mid - Math.round(mid * 0.72), 1, Math.round(mid * 0.72) * 2 + 1, INK);
+  for (const y of [2, wid - 6]) block(0, y, 2, 4, TAIL);
+  block(-1, 5, 1, 2, CHR);
+}
+
+/**
  * CITRONE SAXO MAX (Citroen Saxo Kit Car, the 1997-99 F2 "maxi" kit car): the little three-door
  * hatch's round plan on its wide arches (the Clio's plan and glasshouse), the roof (the second
  * colour) with its rally air scoop, the oval lamps, the grille's chevrons (the third colour), the
@@ -373,17 +404,10 @@ function paintRoutemonster(spr: SpriteCtx): void {
  * @param spr the painting context
  */
 function paintSaxo(spr: SpriteCtx): void {
-  const { lengthPx: len, widthPx: wid, mid, light, dark, third, block, along } = spr;
-  planBody(spr, (x) => mid * cleoPlan(x / (len - 1)));
-  cleoCabin(spr);
-  block(along(0.68), mid - 5, along(0.2), 1, light);
-  block(along(0.68), mid + 5, along(0.2), 1, dark);
-  // the roof's air scoop, the oval lamps, the grille with its chevrons, the spoiler's lip
+  const { lengthPx: len, widthPx: wid, mid, block, along } = spr;
+  saxoBody(spr);
+  // the roof's air scoop
   block(along(0.48), mid - 2, 3, 5, INK);
-  for (const y of [3, wid - 6]) block(len - 5, y, 3, 3, HEAD);
-  block(len - 2, mid - 5, 2, 11, INK);
-  block(len - 2, mid - 2, 1, 5, third);
-  block(len, 3, 1, wid - 6, INK);
   // the mud flaps behind each wheel, the tail lamps, the side pipe on the right
   const rearX = Math.round(len / 2 - spr.spec.lr * SPRITE_PPM) - 4;
   const frontX = Math.round(len / 2 + spr.spec.lf * SPRITE_PPM) - 4;
@@ -454,6 +478,7 @@ export const NEW_LOOKS_2: [string, { paint: (spr: SpriteCtx) => void; bare?: boo
   ['cleo-rs200', { paint: paintCleoRs, bare: true }],
   ['routemonster', { paint: paintRoutemonster, bare: true }],
   ['saxo-kit', { paint: paintSaxo, bare: true }],
+  ['saxo-vtr', { paint: paintSaxoVtr, bare: true }],
   ['strange-l322', { paint: paintStrangeRover, bare: true }],
   ['ts010', { paint: paintTs010, bare: true }],
 ];

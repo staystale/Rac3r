@@ -73,6 +73,8 @@ export const REAL_FIGURES = {
     zeroTo100: null, note: 'no published top speed or 0-100' },
   'strange-l322': { real: 'Range Rover L322 4.4 V8 (2002-05, 5-speed automatic)', topKph: 208,
     zeroTo100: 9.2, note: 'cars-data.com' },
+  'saxo-vtr': { real: 'Citroen Saxo VTR 1.6 8v (Phase 2, 2001-03, 5MT)', topKph: 193,
+    zeroTo100: 10.5, note: 'auto-data.net' },
   ts010: { real: 'Toyota TS010 (1992 Group C, RV10 3.5 V10, Le Mans trim c600 bhp)', topKph: 346,
     zeroTo100: null, note: "Toyota's 346 km/h (215 mph) at Le Mans; no published 0-100" },
 };
