@@ -60,6 +60,20 @@ export const CAR_SHADE: Record<string, Line[] | null> = {
   'banger-f2': crests([0.04, 0.16], [0.3, 0.58], [0.73, 0.95]),
   'drift-s13': crests([0.04, 0.12], [0.28, 0.53], [0.69, 0.95]),
   naffcar: crests([0.04, 0.18], [0.32, 0.54], [0.69, 0.95]),
+  // batch 3: the race cars, the vans, the bus, the trophy truck, the tractor, the Seven, the
+  // Defunder (the single-seaters and the buggy, open, left as they are)
+  'porch-gt3r': crests([0.04, 0.2], [0.38, 0.55], [0.68, 0.95]),
+  'civvic-btcc': crests([0.04, 0.14], [0.31, 0.54], [0.68, 0.95]),
+  'effing-tt': crests([0.05, 0.34], [0.4, 0.55], [0.63, 0.95]),
+  'transfit-van': crests(null, [0.05, 0.7], [0.82, 0.96]),
+  'transfit-lwb': crests(null, [0.05, 0.72], [0.83, 0.96]),
+  'transfit-swb': crests(null, [0.05, 0.68], [0.8, 0.96]),
+  'defunder-110': crests(null, [0.06, 0.64], [0.7, 0.96]),
+  'seven-420r': [[0.55, 0.95, 0.3, 'shine'], [0.55, 0.95, 0.7, 'soft'],
+    [0.04, 0.96, 0.12, 'shine'], [0.04, 0.96, 0.88, 'shade']],
+  routemonster: [[0.05, 0.95, 0.3, 'shine'], [0.05, 0.95, 0.7, 'soft'],
+    [0.03, 0.97, 0.12, 'shine'], [0.03, 0.97, 0.88, 'shade']],
+  tractor: [[0.04, 0.96, 0.12, 'shine'], [0.04, 0.96, 0.88, 'shade']],
   ts010: null,
   'bmv-m4gt3': null,
 };
