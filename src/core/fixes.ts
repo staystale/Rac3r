@@ -80,4 +80,7 @@ export const FIX = {
   // the Skool Bus (an American IC Bus CE school bus), ROAD / Bus, in the traffic - rare, and only
   // on the school runs by the game's clock
   schoolbus: atLoad('schoolbus'),
+  // THE TWO-WHEEL STATE (physics/tip.ts): a car may lift onto its two outside wheels before it
+  // rolls - steering into it or lifting off brings it down; a dice trip starts there too
+  tipping: atLoad('tipping'),
 };

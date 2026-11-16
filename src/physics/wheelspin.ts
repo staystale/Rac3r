@@ -33,6 +33,7 @@ import {
   axleGrip, axleTyreGrip, relaxAxleForces, tyreGripOn, type AxleForce,
 } from './tyres.ts';
 import { axleFrictionWork } from './tyreheat.ts';
+import { tipGrip } from './tip.ts';
 
 
 // longitudinal slip at the peak on hard ground (real tyres 0.10-0.15); x the surface's peakK
@@ -306,7 +307,9 @@ function axleMasses(car: Car, carSpec: Spec, inp: WheelStepIn): [number, number]
  */
 function wheelTick(car: Car, carSpec: Spec, inp: WheelStepIn): WheelTick {
   const tyreK = carSpec.tyre ? tyreGripOn(carSpec.tyre, car.surface) : 1;
-  return { mass: inp.mass, gravity: inp.gravity, muBase: carSpec.mu * car.surface.mu * tyreK,
+  // (?tipping: up on two wheels the axles lose some grip - physics/tip.ts tipGrip, 1 otherwise)
+  return { mass: inp.mass, gravity: inp.gravity,
+    muBase: carSpec.mu * car.surface.mu * tyreK * tipGrip(car),
     longK: car.surface.longK || 1, peakK: car.surface.peakK || 1,
     latFade: clamp(Math.hypot(inp.vLong, inp.vLat) / 1.2, 0, 1), dt: inp.dt };
 }

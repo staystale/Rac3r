@@ -9,6 +9,7 @@ import { blocked } from '../highway/cuts.ts';
 import { carContacts } from '../contact.ts';
 import { hit, hitRoll, repair, applyBurst, stepDamage } from '../damage.ts';
 import { rolling, tripCheck, stepRoll } from '../roll.ts';
+import { stepTipping } from '../physics/tip.ts';
 import { LEVEL } from "../world/state.ts";
 import { headlightsWanted } from "../world/daylight.ts";
 import { WEATHER } from "../world/weather.ts";
@@ -196,7 +197,7 @@ export function stepCarSignals(inp: CarInput, wallDt: number) {
   }
   updateFieldHeadlights();
   if (game.car.roll && game.car.roll.phase !== 'rolling' && game.car.roll.phase !== 'none'
-    && shared.mode === 'session')
+    && game.car.roll.phase !== 'tipping' && shared.mode === 'session')
     game.notice = { text: game.car.roll.phase === 'roof' ? 'ON YOUR ROOF — RESET'
       : 'ON YOUR SIDE — RESET', at: performance.now() };
 }
@@ -256,6 +257,7 @@ export function stepCarPhysics(inp: CarInput) {
     else {
       step(game.car, inp, PHYSICS_STEP_SECONDS);
       tripCheck(game.car, PHYSICS_STEP_SECONDS);
+      if (FIX.tipping) stepTipping(game.car, PHYSICS_STEP_SECONDS);
     }
     // a tyre burst (heat, wear, debris): a puncture, and news on the HUD
     // a tyre burst (heat, wear, debris): no written notice - the wheel and the tyre diagram
