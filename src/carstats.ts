@@ -309,14 +309,14 @@ export const CAR_STATS: Record<string, CarStat> = {
   },
   // (measured alone: tools/carstats.mjs cleo-cup with CLEO=1, a new car behind its switch)
   "cleo-cup": {
-    "topKph": 209,
-    "zeroTo100": 5.6,
-    "brake100": 33.6,
-    "gripG": 1.34,
-    "massKg": 1120,
+    "topKph": 212,
+    "zeroTo100": 6.7,
+    "brake100": 48.6,
+    "gripG": 1.33,
+    "massKg": 1140,
     "drive": "FWD",
     "aids": {
-      "abs": true,
+      "abs": false,
       "tcs": false
     }
   },

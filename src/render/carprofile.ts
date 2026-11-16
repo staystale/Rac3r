@@ -103,8 +103,8 @@ export const PROFILES: Record<string, CarProfile> = {
     [0.09, 1.4], [0.16, 1.46], [0.52, 1.46], [0.66, 0.98], [0.95, 0.82], [1, 0.5]] },
   // Clio Cup V: the wing over the tailgate, the short hatch, the low round roof, the raked
   // screen, the short bonnet to the splitter (EST from photos)
-  'cleo-cup': { len: 4.05, waist: 0.9, glass: [0.1, 0.63], roof: [[0, 0.5], [0.02, 1.0],
-    [0.08, 1.3], [0.15, 1.38], [0.5, 1.4], [0.64, 0.95], [0.95, 0.75], [1, 0.42]] },
+  'cleo-cup': { len: 3.986, waist: 0.9, glass: [0.1, 0.63], roof: [[0, 0.5], [0.02, 0.98],
+    [0.08, 1.32], [0.15, 1.41], [0.5, 1.42], [0.64, 0.96], [0.95, 0.76], [1, 0.43]] },
   // Clio III 3-door: the short hatch, the round roof, the raked screen, the short bonnet (EST
   // from photos)
   // Routemaster: the two decks to 4.38 m, the domed roof, the half-cab and bonnet at the front

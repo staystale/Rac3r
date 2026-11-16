@@ -40,7 +40,7 @@ const SHAPES: Record<string, RollShape> = {
   'civvic-btcc': { round: 0.55, side: 0.7 },   // Civic BTCC: a low hatch, wide arches, a wing
   'defunder-110': { round: 0.15, side: 0.85 },   // Defender: a tall flat-sided box
   'focust-st': { round: 0.55, side: 0.8 },   // Focus: a hatch with soft edges (as the Golf)
-  'cleo-cup': { round: 0.6, side: 0.7 },   // Clio Cup: a round, low hatch, a cage, a wing
+  'cleo-cup': { round: 0.6, side: 0.7 },   // Clio III Cup: a round, low hatch, a cage
   'strange-l322': { round: 0.3, side: 0.8 },   // Range Rover: a tall, square SUV
   'saxo-kit': { round: 0.6, side: 0.6 },   // Saxo kit car: a round hatch on wide arches
   routemonster: { round: 0.2, side: 0.95 },   // the double-decker: a tall box, lands on a side

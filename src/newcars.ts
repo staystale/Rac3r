@@ -239,30 +239,29 @@ const FOCUST: RosterRow = {
   paint: '#2f6fd0', trim: '#1d3f9a', glass: '#2a2f38', rim: '#2a2d34',
 };
 
-// Renault Clio Cup (Clio V, 2020 on: the one-make racer; Alpine Racing's sheets and the Clio Cup
-// GB rules): the 1.33 TCe turbo four (H5H) across the front, "200+ bhp" (149 kW; 180 at its 2020
-// launch), 300 Nm, 6,500 rpm, a Sadev ST82 five-speed sequential with a ZF limited-slip
-// differential (not modelled), FWD, 1,120 kg with the driver (Clio Cup GB), 4,050 x 1,798 mm (the
-// 1,988 quoted is with the mirrors, as the road Clio V's), height 1,400, wheelbase 2,579, track
-// 1,550 / 1,490, Michelin 20/61-17 slicks on 7 x 17. EST (not published): the power's rpm (5,500)
-// and the torque's band (2,500-4,500), the ratios and final drive (to ~210 km/h), Cd 0.36 x 2.0
-// m^2, 60 / 40, the CG and ride height, the splitter and wing's downforce (ClA 0.55), the slicks'
-// grip and stiffness, the springs; race ABS, no traction control (to ask).
+// Renault Clio III Cup (2006-13, the one-make racer on the Clio RS 197 / 200; owner: the race car
+// to pair with the road Clio III 200 Cup; Renault's 2007 Clio Cup sheet): the F4R RS 2.0 16v
+// across the front, 151 kW (205 bhp) at 7,300, 7,500 rpm, 223 Nm at 5,550, a Sadev six-speed
+// sequential with a limited-slip differential (not modelled), FWD, 1,060 kg unladen, 3,986 mm
+// long, wheelbase 2,585, track 1,538 / 1,520, Michelin 20/62-17 slicks on 8 x 17, SCx 0.77 m^2.
+// EST: 1,140 kg with its driver, the width (~1.80 m: the sheet's 2,025 is with the mirrors), the
+// torque's band (5,000-5,600), the ratios and final drive (to ~215 km/h), 60 / 40, the CG and ride
+// height, the slicks' grip and stiffness, the springs; no ABS (owner), no traction control.
 const CLEO: RosterRow = {
   id: 'cleo-cup', name: 'Renolt Cleo Cup', kind: 'cleo', cls: 'touring', sub: 'One-make',
   rimIn: 17,   // its real rim, inches (what tyres fit)
-  cg: 0.43, rideH: 0.08, cyl: 4,
-  aids: { abs: true, tcs: false },
-  mass: 1120, lf: 1.032, lr: 1.547, len: 4.05, wid: 1.798, trackWidth: 1.52,
-  // 20/61-17: 0.61 m across, 0.20 m of tread
-  tyreWidth: 0.2, wheelR: 0.305,
+  cg: 0.45, rideH: 0.08, cyl: 4,
+  aids: { abs: false, tcs: false },
+  mass: 1140, lf: 1.034, lr: 1.551, len: 3.986, wid: 1.8, trackWidth: 1.53,
+  // 20/62-17: 0.62 m across, 0.20 m of tread
+  tyreWidth: 0.2, wheelR: 0.31,
   drive: 1.0, brakeBiasF: 0.65, caF: 95000, caR: 95000, mu: 1.45,
-  curve: realCurve({ idle: 1200, low: 0.6, nm: 300, nmFrom: 2500, nmTo: 4500,
-    kw: 149, kwAt: 5500, redline: 6500 }),
-  redline: 6500, upshiftRpm: 6300, downshiftRpm: 3600, idleRpm: 1200,
-  gears: [2.62, 1.95, 1.55, 1.27, 1.06], finalDrive: 3.36, dragC: dragOf(0.36, 2.0),
-  aeroK: 1.15, downforceF: 0.25, downforceR: 0.3, susF: 2.3, susZ: 0.32,
-  // white, the Renault Sport yellow roof (big), black details (wing, splitter, mirrors)
+  curve: realCurve({ idle: 1100, low: 0.6, nm: 223, nmFrom: 5000, nmTo: 5600,
+    kw: 151, kwAt: 7300, redline: 7500 }),
+  redline: 7500, upshiftRpm: 7300, downshiftRpm: 4200, idleRpm: 1100,
+  gears: [2.83, 2.06, 1.62, 1.33, 1.13, 0.95], finalDrive: 4.3, dragC: dragOf(0.77, 1.0),
+  susF: 2.3, susZ: 0.32,
+  // white, the Renault Sport yellow roof (big), black details (the splitter, the mirrors)
   paint: '#f0f0ea', trim: '#f2a900', glass: '#2a2f38', rim: '#16181d',
 };
 

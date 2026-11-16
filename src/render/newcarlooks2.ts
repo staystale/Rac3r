@@ -224,46 +224,11 @@ function cleoCabin(spr: SpriteCtx): void {
 }
 
 /**
- * RENOLT CLEO CUP (Renault Clio Cup, Clio V): the hatch's round plan on its wider arches, the
- * short rear screen and the roof (the second colour) almost to the back, the raked screen and
- * mirrors, the bonnet's creases, the C-shaped lamps, the grille, the splitter (the third colour),
- * the wing across the tailgate unless knocked off, the exhaust.
- * @param spr the painting context
- */
-function paintCleo(spr: SpriteCtx): void {
-  const { spec, lengthPx: len, widthPx: wid, mid, outline, light, dark, third, block,
-    along } = spr;
-  planBody(spr, (x) => mid * cleoPlan(x / (len - 1)));
-  cleoCabin(spr);
-  block(along(0.68), mid - 6, along(0.2), 1, light);
-  block(along(0.68), mid + 6, along(0.2), 1, dark);
-  // the C-shaped lamps on the nose's corners, the grille, the splitter
-  for (const y of [3, wid - 6]) {
-    block(len - 6, y, 4, 3, HEAD);
-    block(len - 5, y + 1, 2, 1, outline);
-  }
-  block(len - 2, mid - 5, 2, 11, INK);
-  block(len - 2, mid - 4, 1, 9, MESH);
-  block(len, 2, 1, wid - 4, third);
-  // the tail lamps on the corners, the tailpipe (EST: left of centre)
-  for (const y of [2, wid - 6]) block(0, y, 2, 4, TAIL);
-  block(-1, mid - 5, 1, 2, CHR);
-  if (spec.noWing) return;
-  // the WING across the tailgate: its shadow, the plane, the endplates, the stands
-  block(3, 2, 4, wid - 4, 'rgba(0,0,0,0.25)');
-  block(1, 1, 4, wid - 2, outline);
-  block(2, 2, 2, wid - 4, third);
-  block(3, 2, 1, wid - 4, light);
-  block(1, 0, 4, 2, INK);
-  block(1, wid - 2, 4, 2, INK);
-  for (const y of [mid - 6, mid + 5]) block(4, y, 3, 2, STEEL);
-}
-
-/**
- * RENOLT CLEO RS 200 (Renaultsport Clio 200 Cup, Clio III, 2009-12): the three-door hatch's round
- * plan on its wide hips (the Clio's), the short rear screen and the roof (the second colour)
- * almost to the back, the raked screen and mirrors, the swept lamps, the F1-style blade under the
- * nose (the third colour), the small roof spoiler, the diffuser with its twin pipes in the middle.
+ * RENOLT CLEO RS 200 and RENOLT CLEO CUP (the Clio III: the Renaultsport Clio 200 Cup, 2009-12,
+ * and the Clio III Cup racer): the three-door hatch's round plan on its wide hips (the Clio's),
+ * the short rear screen and the roof (the second colour) almost to the back, the raked screen and
+ * mirrors, the swept lamps, the F1-style blade under the nose (the third colour), the small roof
+ * spoiler, the diffuser with its twin pipes in the middle.
  * @param spr the painting context
  */
 function paintCleoRs(spr: SpriteCtx): void {
@@ -485,7 +450,7 @@ function paintStrangeRover(spr: SpriteCtx): void {
 export const NEW_LOOKS_2: [string, { paint: (spr: SpriteCtx) => void; bare?: boolean }][] = [
   ['defunder-110', { paint: paintDefunder, bare: true }],
   ['focust-st', { paint: paintFocust, bare: true }],
-  ['cleo-cup', { paint: paintCleo, bare: true }],
+  ['cleo-cup', { paint: paintCleoRs, bare: true }],
   ['cleo-rs200', { paint: paintCleoRs, bare: true }],
   ['routemonster', { paint: paintRoutemonster, bare: true }],
   ['saxo-kit', { paint: paintSaxo, bare: true }],

@@ -57,7 +57,7 @@ const REAL_SIZE: Record<string, RealSize> = {
   // Focus ST Mk4: 4.388 x 1.825, wheelbase 2.70, track 1.567 / 1.556; 61 / 39 EST
   'focust-st': { len: 4.388, wid: 1.825, lf: 1.053, lr: 1.647, trackWidth: 1.562 },
   // Clio Cup V: 4.05 x 1.798, wheelbase 2.579, track 1.55 / 1.49; 60 / 40 EST
-  'cleo-cup': { len: 4.05, wid: 1.798, lf: 1.032, lr: 1.547, trackWidth: 1.52 },
+  'cleo-cup': { len: 3.986, wid: 1.8, lf: 1.034, lr: 1.551, trackWidth: 1.53 },
   // Clio 200 Cup (Clio III): 4.017 x 1.768, wheelbase 2.585, track 1.52; 61 / 39 EST
   // Routemaster RM: 8.38 x 2.44; the wheelbase 5.08, 40 / 60 and the track 2.0 EST
   routemonster: { len: 8.38, wid: 2.44, lf: 3.048, lr: 2.032, trackWidth: 2.0 },

@@ -82,7 +82,7 @@ export const TYRE_LOOK: Record<string, { wF: number; wR: number; dia: number; ri
   'civvic-btcc': { wF: 0.265, wR: 0.265, dia: 0.66, rim: 0.457 },   // 265/660 R18
   'defunder-110': { wF: 0.235, wR: 0.235, dia: 0.806, rim: 0.406 },   // 235/85 R16
   'focust-st': { wF: 0.235, wR: 0.235, dia: 0.647, rim: 0.483 },   // 235/35 R19
-  'cleo-cup': { wF: 0.2, wR: 0.2, dia: 0.61, rim: 0.432 },   // 20/61-17
+  'cleo-cup': { wF: 0.2, wR: 0.2, dia: 0.62, rim: 0.432 },   // 20/62-17
   routemonster: { wF: 0.27, wR: 0.54, dia: 1.03, rim: 0.508 },   // 10.00-20, twin at the rear
   'saxo-kit': { wF: 0.205, wR: 0.205, dia: 0.607, rim: 0.381 },   // EST 205/55 R15
   'strange-l322': { wF: 0.255, wR: 0.255, dia: 0.763, rim: 0.483 },   // EST 255/55 R19
