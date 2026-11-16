@@ -584,7 +584,9 @@ inputs and get the cars back. A SPIKE (two phones on the tunnel) before committi
   come off the track - maybe this should be saved for the ai rework / tune as they seem to go off
   to regularly / pile up on first corner"; "that the same on dongington ect"): the AI on
   Pembreezy's tarmac, Dongington and other circuits leave the track too often and pile up at the
-  first corner. Not fixed now: measure it with the AI tools (seeded,
+  first corner. PARKED HERE TOO (owner: "Yes they should wait too"): the two built Pembreezy RX
+  fixes, ?pbzline=1 (the line margin on its gravel) and ?driftbrake=1 (no held drift over the
+  speed plan), stay behind their switches, off the test list, numbers in TODO 3b. Not fixed now: measure it with the AI tools (seeded,
   tools/scratch/_seedrandom.mjs) as the first case of the AI tune, beside ?driftbrake / ?pbzline.
 - FARTMOOR (owner 11-08): a highway theme - a super country lane with crossroads and traffic.
 - THE WOODEN-FENCE CENTRAL RESERVATION (11-09 NEXT on the varied reservation): the varied

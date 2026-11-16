@@ -34,17 +34,6 @@ export const TEST_LIST: TestEntry[] = [
       + 'a small car on slicks.',
   },
   {
-    id: 'driftbrake',
-    added: '2026-11-16',
-    name: 'Loose ground: an AI car too fast into a corner brakes instead of drifting in',
-    where: 'Test link + &driftbrake=1: RALLYCROSS (Pembreezy RX first, then Knobhill, X Gayms, '
-      + "The Bird's Mess) and RALLY stages, a race with a full field",
-    try: 'Watch the AI into the corners on the gravel, Pembreezy RX most: fewer cars sliding wide '
-      + 'into the bales and being put back, the field as quick as before.',
-    wrong: 'AI slower, braking and wobbling mid-corner, no longer drifting through the '
-      + 'hairpins, bunching up, or more crashes on any loose level or the highway.',
-  },
-  {
     id: 'focustlook',
     added: '2026-11-16',
     name: 'The Fjord Focust ST drawn as a five-door hatch from above',
@@ -52,17 +41,6 @@ export const TEST_LIST: TestEntry[] = [
     try: 'Look at it beside the Golf: the roof should run almost to the back, a short dark rear '
       + 'screen under the spoiler, no boot deck behind the glass.',
     wrong: 'Still reads as a saloon or a long-tailed hatch, the rear screen too long or gone.',
-  },
-  {
-    id: 'pbzline',
-    added: '2026-11-16',
-    name: 'Pembreezy RX: the AI line kept off the edge on the gravel',
-    where: 'Test link + &pbzline=1: test mode, RALLYCROSS -> Pembreezy RX, a race with a '
-      + 'full field',
-    try: 'Watch the field through the gravel loop and the S-bends after it (towards Woodlands): '
-      + 'fewer cars running wide into the bales and being put back.',
-    wrong: 'Cars slower or bunched up through the gravel, the line looking odd (weaving in the '
-      + 'middle), more crashes, cars still piling into the bales on the S-bends.',
   },
   {
     id: 'fuelcarry',
