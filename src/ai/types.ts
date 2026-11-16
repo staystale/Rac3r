@@ -8,6 +8,7 @@ import type { AxlePeaks } from "../physics/wheelspin.ts";
 import type { DamageCar } from "../damage.ts";
 import type { HwLevel } from '../highway/hwtypes.ts';
 import type { TrafficPolice } from './trafficPolice.ts';
+import type { TrafficTrip } from './trafficTrips.ts';
 import type { StoppedCar } from './stopDodge.ts';
 import type { SpeedRead } from './dodge.ts';
 
@@ -402,6 +403,10 @@ export interface TrafficCar {
   flashes?: number[];
   // the station (its road s) it has passed or chosen (one roll a station)
   stationAt?: number;
+  // ?hwtrips=1: a trip off or onto the road - leaving by a slip, for fuel, joining from an
+  // on-ramp (ai/trafficTrips.ts) - and the slip road (its road s) it rolled for last
+  trip?: TrafficTrip | null;
+  slipAt?: number;
 }
 
 /** The racing driver at a speeder's wheel (ai/circuit.ts createAIDriver). */

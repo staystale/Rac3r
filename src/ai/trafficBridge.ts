@@ -21,9 +21,11 @@ import type { Point, Prop, Subtrack } from '../world/types.ts';
 // cars a bridge carries; m/s they drive at (a country road over a motorway: ~45 km/h); m from you
 // past which one sleeps; m each loop point is from the next
 const BRIDGE_CARS = 2, BRIDGE_SPEED_MS = 12.5, SLEEP_M = 300, PATH_STEP_M = 4;
-// m off the road's middle line each lane runs (a 7 m road: driving on the left), the turning
-// place's radius (wide enough to come round at a crawl) and how far short of the road's end it is
-const LANE_OFF_M = 1.75, TURN_R_M = 7, TURN_SHORT_M = 10;
+// m off the road's middle line each lane runs (a 7 m road: driving on the left)
+export const LANE_OFF_M = 1.75;
+// m: the turning place's radius (wide enough to come round at a crawl) and how far short of the
+// road's end it is
+const TURN_R_M = 7, TURN_SHORT_M = 10;
 // a turning place's points round its half circle; the lane's points over which it eases out to it
 const TURN_POINTS = 8, EASE_POINTS = 4;
 // m/s over BRIDGE_SPEED_MS at which it brakes; its brake then

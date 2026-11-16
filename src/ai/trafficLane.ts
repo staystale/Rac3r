@@ -56,6 +56,29 @@ function laneClear(slot: TrafficCar, env: DriveEnv, laneNo: number) {
   return true;
 }
 
+/**
+ * Whether a car is going for a slip road or a station ahead, still on the road
+ * (ai/trafficTrips.ts).
+ * @param slot the car
+ * @returns it wants the nearside lane
+ */
+const wantsNearside = (slot: TrafficCar) => !!slot.trip && slot.trip.kind !== 'join'
+  && !slot.trip.path;
+
+/**
+ * The lane a car must take whatever else: moving over for a police car or a flash (to its left,
+ * never to its right); leaving by the slip ahead or going for fuel (over to the nearside lane, and
+ * kept there).
+ * @param slot the car
+ * @param env the step's road
+ * @returns the lane to move to, null to stay, undefined when nothing holds it
+ */
+function heldLane(slot: TrafficCar, env: DriveEnv): number | null | undefined {
+  if (isYielding(slot, env)) return yieldLane(slot, (laneNo) => laneClear(slot, env, laneNo));
+  if (!wantsNearside(slot)) return undefined;
+  return slot.lane > 0 && laneClear(slot, env, slot.lane - 1) ? slot.lane - 1 : null;
+}
+
 /** Is a car slower than I want to go ahead of me in that lane? */
 function slowIn(slot: TrafficCar, env: DriveEnv, laneNo: number) {
   for (const ent of env.ents) {
@@ -85,8 +108,8 @@ function chooseLane(
   ctx: TrafficCtx, slot: TrafficCar, env: DriveEnv, lead: TrafficEnt | null, gap: number,
 ) {
   const rnd = ctx.rnd;
-  // (moving over for a police car or a flash - to its left, never to its right)
-  if (isYielding(slot, env)) return yieldLane(slot, (laneNo) => laneClear(slot, env, laneNo));
+  const held = heldLane(slot, env);
+  if (held !== undefined) return held;
   const blocked = lead && lead.v < slot.vWant - 3 && gap < (slot.racer ? SPEEDER_LOOK_M : 45);
   let goLane: number | null = null;
   if (blocked) goLane = overtakeLane(ctx, slot, env);

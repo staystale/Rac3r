@@ -55,4 +55,8 @@ export function dialAtLoad(name: string): number {
 export const FIX = {
   // a chasing police car sounds a siren, the light bar's twin (game/sirens.ts, audiosiren.ts)
   siren: atLoad('siren'),
+  // the highway traffic's trips (TODO 3a2 item 15): 2 in 12 leave by the next slip road, 5 in 40
+  // pull in for fuel (moving over to the nearside lane first; cruising police too), and cars join
+  // from the on-ramps (ai/trafficTrips.ts)
+  hwtrips: atLoad('hwtrips'),
 };

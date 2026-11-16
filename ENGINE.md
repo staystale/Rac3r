@@ -362,6 +362,33 @@ by a waiting one out to `WITNESS_M` (60 m: `policeHeat.ts witnessedWaiting`, a f
 back from the road) - then it wakes. The highway rules' POLICE card (`guide.ts POLICE_CARD`).
 `tools/scratch/_parkedpolice.mjs` measures both; `_policecardshots.mjs` photographs the card.
 
+THE TRAFFIC'S TRIPS (`?hwtrips=1`, `FIX.hwtrips`, under test; `ai/trafficTrips.ts`,
+`ai/trafficPath.ts`, from `ai/trafficDrive.ts driveOne`): each car of our way (a cruising police car
+too; never a chaser, an angry driver, a speeder, a broken-down or wrecked car) rolls once for each
+way off ahead as it comes within `DECIDE_M` (500 m): a slip road (`waysOf`: the short and long
+slips' lines, a junction's off-slip on round its near roundabout and `RUN_M` along the bridge's
+road) at `LEAVE_SHARE` (2 / 12), a roadside station (`trafficFuel.ts stationsOf`) at `FUEL_SHARE`
+(5 / 40; the old nearside-only roll in `mayStopForFuel` is off with the switch). A car going moves
+over to the nearside lane (`trafficLane.ts heldLane`: one lane at a time when clear, no
+overtaking), indicates left from `SIGNAL_M` (250 m) before a slip, and takes it in the nearside lane
+`LEAD_M` (55 m) before the slip's line `INTO_SLIP_M` (30 m) in - a curve from where it is onto the
+line (`junctions.ts curveBetween`), then the line - else it has missed it; for fuel the old pull-in
+(`trafficFuel.ts pullIn`) once in reach. On its slip a car follows the line (`trafficPath.ts
+drivePath`): carried (its own path speed - the road frame reads only the share along the road) or,
+near a real car, the traffic's pursuit law (`trafficPhys.ts pursuitInput`) at a point ahead on it;
+its speed eased for the bends (2.5 m/s^2 sideways), stopped `GATE_SHORT_M` (6 m) short of a slip's
+gate, behind any car on its path ahead. Out of sight a car that left is put back as a new car
+(`trafficStep.ts leaving: hasLeft`); a car on a slip or merging is never "stuck". JOINS: a
+cruising car put back ahead of you now and then (`JOIN_SHARE`, 2 / 12, where an on-ramp is in
+reach: its end 40-480 m ahead, its start ahead of you, out of sight, clear) starts on an on-ramp
+instead (`rampsOf`: a junction's on-slip at 8 m/s, the last `SIDE_JOIN_M` (220 m) of a side road or
+services' road at 15 m/s), comes down it planning to hold `GIVE_WAY_M` (12 m) short of the end,
+looks from `COMMIT_M` (80 m) before the end for the nearside lane clear where it meets it
+(`laneClearAhead`: no car there within 15 m ahead / 15 m behind plus 3 s of the speed between
+them) and, clear, goes on, indicates right and moves across over `MERGE_M` (40 m) of road.
+`tools/scratch/_hwtrips.mjs` counts the passes, takes, joins and holds; `_tripshots.mjs`
+photographs a car leaving, a junction exit and a join; `_tripseeds.mjs` finds where the ways lie.
+
 ## The car (`vehicle.ts` and `physics/`)
 
 A top-down two-axle model with four tyre temperatures. `step(car, input, dt)`, in order:

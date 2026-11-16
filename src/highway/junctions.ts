@@ -17,10 +17,12 @@ import type { HwLevel, HwPose, KeepRect } from './hwtypes.ts';
 export const LEAD_POINTS = 30;
 // the share of road bridges that are junctions ("A few")
 export const JUNCTION_SHARE = 0.25;
-// m: a slip's width (the existing slips' SLIP_W), how far inside the motorway's edge it starts
-// (its round end under the motorway's ribbon, as the slips), its curve's samples, and the share of
-// the chord its ends run straight on along their headings
-const SLIP_WIDTH_M = 6, SLIP_INSIDE_M = 2.6, CURVE_SAMPLES = 24, HANDLE_SHARE = 0.4;
+// m: a slip's width (the existing slips' SLIP_W; ai/trafficTrips.ts knows a junction's slips by it)
+export const SLIP_WIDTH_M = 6;
+// m how far inside the motorway's edge a slip starts (its round end under the motorway's ribbon,
+// as the slips), its curve's samples, and the share of the chord its ends run straight on along
+// their headings
+const SLIP_INSIDE_M = 2.6, CURVE_SAMPLES = 24, HANDLE_SHARE = 0.4;
 // samples of a ring's lane; samples of a slip between keep-out boxes; m a box reaches past a slip
 const RING_SAMPLES = 32, KEEP_EVERY = 4, KEEP_PAD_M = 3;
 
@@ -35,7 +37,7 @@ type PointAt = (i: number, off: number) => HwPose;
  * @param endDir the heading it arrives along, unit
  * @returns the samples, start to end
  */
-function curveBetween(start: Point, startDir: Point, end: Point, endDir: Point): Point[] {
+export function curveBetween(start: Point, startDir: Point, end: Point, endDir: Point): Point[] {
   const reach = Math.hypot(end[0] - start[0], end[1] - start[1]) * HANDLE_SHARE;
   const first: Point = [start[0] + startDir[0] * reach, start[1] + startDir[1] * reach];
   const second: Point = [end[0] - endDir[0] * reach, end[1] - endDir[1] * reach];
