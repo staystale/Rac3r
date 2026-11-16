@@ -341,9 +341,10 @@ THE 10 NEW CARS (owner-approved names 11-16; one switch and one hand-back each; 
 8 / 8b. THE CLEO CUP (now the Clio III Cup) AND THE CLEO RS 200, THE TRANSFITS LWB AND SWB, the
    Saxo Max, the Strange Rover and the Saxo VTR: PASSED 11-16, the default (TODO-DONE, PASSED
    11-16, THE PASS BATCH).
-9. TOYOTER TS010 (Toyota TS010 Le Mans prototype, for Le Manky).
-10. AEC ROUTEMONSTER (London Routemaster double-decker bus: drivable, also traffic). After all 10:
-   the two-wheel tipping state (its own job; the bus its showcase).
+9 / 10. THE TS010 (reshaped) AND THE ROUTEMONSTER (its wheels, glass, mirrors), and cars 13 / 14,
+   THE TESLA and THE M4 GT3: PASSED 11-16, the default (TODO-DONE, PASSED 11-16, THE PASS BATCH 2).
+   OPEN: the two-wheel tipping state (its own job; the bus its showcase); every car's own real crash
+   parts (the parts plan: the owner's choices to come); ?carshade (yes: three batches).
 
 ### 3b. Tracks (the venue helper builds, the foreman reviews, the owner passes; one switch each)
 
