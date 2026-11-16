@@ -15,28 +15,32 @@ export const TEST_LIST: TestEntry[] = [
   {
     id: 'carshade',
     added: '2026-11-16',
-    name: 'Shading, batches 1-2: the cars shaded the TS010 way (lit crests, soft slopes, shadow '
+    name: 'Shading, every closed car (batches 1-3) the TS010 way (lit crests, soft slopes, shadow '
       + 'at the glass and in the arches)',
-    where: 'Test link + &carshade=1: the garage, ROAD and RALLY; a race, a rally stage, the '
+    where: 'Test link + &carshade=1: the garage, every class; a race, a rally stage, the '
       + 'highway; compare with the plain link',
     try: 'The Golf, M135i, 3 Series, V70, Mini, Chevvy, Huracan, Focust, Cleo, Saxo, Strange Rover '
       + 'and Tesla; the WRZ, S1, Mikra, 306 Maxxi, Fiester RX, S13, Naffcar and F2 Stocker: the '
-      + 'bonnet, roof and shoulders read as shapes (the race cars, vans and the rest: batch 3).',
+      + 'bonnet, roof and shoulders read as shapes; and the 911, Civvic, Cleo Cup, trophy truck, '
+      + 'the Transfits, Defunder, Seven, bus and tractor (the F1, F2 and buggy left as they are).',
     wrong: 'Stripes that look like paint instead of light, lines over the lamps or glass, a car '
       + 'that looks dirtier rather than shaped.',
   },
   {
     id: 'carparts',
     added: '2026-11-16',
-    name: 'Crash parts, step 1: each car with its own doors - a 2-door loses two, a 4-door four, '
-      + 'each from its own place and at its own length',
+    name: 'Crash parts, steps 1-2: each car with its own doors (a 2-door two, a 4-door four), '
+      + 'the vans and the bus with their own panels',
     where: 'Test link + &carparts=1 (+ &underskin=1): side-swipe a 2-door (the Chevvy, the Mini, '
       + 'the Porch, the Clio, the Saxo) and a 4-door (the Golf, the 3 Series, the Defunder)',
     try: 'Hit a coupe hard at a rear corner side-on: it dents and loses glass, but no door comes '
       + 'off; a 4-door loses its rear door from behind the front one; the Seven never loses a '
-      + 'door; the stock cars throw a windowless steel skin.',
+      + 'door; the stock cars throw a windowless steel skin. The Transfits: two cab doors, the '
+      + 'sliding door on the nearside only, the twin rear doors one at a time. The bus: the cab '
+      + 'door (offside front), riveted side panels, the radiator grille, the staircase panel, '
+      + 'more glass.',
     wrong: 'A 2-door throwing a second door, a door hole in the wrong place, a door far too short '
-      + 'or long, a Seven door.',
+      + 'or long, a Seven door, a car door off the bus or a van.',
   },
   {
     id: 'reversefix',

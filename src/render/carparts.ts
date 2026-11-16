@@ -7,7 +7,7 @@
 import { SPRITE_PPM } from "./shared.ts";
 import { spriteToWork } from "./spritepixels.ts";
 import { shade } from "../render.ts";   // hoisted, only called at draw time (no cycle)
-import { bitsOf, doorAt, CAR_DOORS, type CarBits } from "../carbits.ts";
+import { bitsOf, doorAt, doorShape, doorsOf, type CarBits } from "../carbits.ts";
 
 // a loose part's fixed colours: chrome, a stock car's steel, the lamps
 const CHROME = '#c9ccd4', STEEL_GREY = '#3a3d45', HEAD_LAMP = '#fff3c4', TAIL_LAMP = '#c8342a';
@@ -69,7 +69,7 @@ export function partRegion(spec: RenderCarSpec, sprite: CarSprite, kind: string,
     : { x0: -2, x1: 4, y0: -2, y1: wid + 1 };
   // (the horizontal panels - lying flat, as seen from above; the outside bits)
   if (kind === 'bonnet') return { x0: Math.round(len * 0.71), x1: len - 6, y0: 2, y1: wid - 3 };
-  if (kind === 'boot') return { x0: 4, x1: Math.round(len * 0.16), y0: 2, y1: wid - 3 };
+  if (kind === 'boot') return bootRegion(spec, len, wid, corner);
   if (kind === 'spoiler') return { x0: -4, x1: 6, y0: -4, y1: wid + 3 };
   if (kind === 'mirror') return mirrorRegion(spec, len, wid, plus);
   if (kind === 'exhaust') return { x0: -2, x1: -1, y0: -2, y1: wid + 1 };
@@ -78,6 +78,21 @@ export function partRegion(spec: RenderCarSpec, sprite: CarSprite, kind: string,
     return { x0: axle - 7, x1: axle + 7, ...side(WING_DEPTH_PX) };
   }
   return { ...doorSpan(spec, len, corner), ...side(2) };
+}
+
+/**
+ * Where a boot lid sits: across the tail; ?carparts a van's twin rear doors each their half.
+ * @param spec the car as drawn
+ * @param len the sprite's length, px
+ * @param wid its width, px
+ * @param corner the damage corner (2 the -y door, 3 the +y)
+ * @returns the region
+ */
+function bootRegion(spec: RenderCarSpec, len: number, wid: number, corner: number): Region {
+  const lid = { x0: 4, x1: Math.round(len * 0.16), y0: 2, y1: wid - 3 };
+  if (!FIX.carparts || !doorsOf(String(spec.id))?.twinRear) return lid;
+  const half = Math.floor((wid - 1) / 2);
+  return corner % 2 === 1 ? { ...lid, y0: half + 1 } : { ...lid, y1: half };
 }
 
 /**
@@ -188,6 +203,8 @@ const partPx = (metres: number) => Math.max(3, Math.round(metres * SPRITE_PPM));
  * @returns the drawing
  */
 function flatBumper(spec: RenderCarSpec, front: boolean): FlatCanvas {
+  const own = FIX.carparts ? doorsOf(String(spec.id))?.bumpers : undefined;
+  if (own) return front ? flatGrille() : flatStaircase(spec);
   const col = spec.kind === 'muscle' ? CHROME : spec.kind === 'banger' ? spec.third || STEEL_GREY
     : spec.paint;
   const flat = flatCanvas(partPx(spec.wid), partPx(0.3), col), { block } = flat;
@@ -196,6 +213,35 @@ function flatBumper(spec: RenderCarSpec, front: boolean): FlatCanvas {
   block(wide - 5, 1, 4, tall - 2, lamp);
   if (front) block(Math.round(wide / 2) - 5, 1, 10, tall - 2, '#16181d');
   block(Math.round(wide / 2) - 3, tall - 3, 6, 2, front ? '#f2f2ee' : '#f2c94c');
+  return flat;
+}
+
+/**
+ * The bus's RADIATOR GRILLE lying flat: ~0.9 x 0.75 m, its frame, the chrome bars, the badge.
+ * @returns the drawing
+ */
+function flatGrille(): FlatCanvas {
+  const flat = flatCanvas(partPx(0.9), partPx(0.75), '#5a5f69'), { block } = flat;
+  const wide = flat.canvas.width, tall = flat.canvas.height;
+  block(1, 1, wide - 2, tall - 2, '#2a2d34');
+  for (let y = 2; y < tall - 1; y += 2) block(2, y, wide - 4, 1, CHROME);
+  block(Math.round(wide / 2) - 1, 1, 3, 2, TAIL_LAMP);
+  return flat;
+}
+
+/**
+ * The bus's STAIRCASE PANEL from the rear platform lying flat: ~1.2 x 0.7 m in its paint, the
+ * route number's box, the cream band, the chrome grab pole along its edge.
+ * @param spec the bus as drawn
+ * @returns the drawing
+ */
+function flatStaircase(spec: RenderCarSpec): FlatCanvas {
+  const flat = flatCanvas(partPx(1.2), partPx(0.7), spec.paint), { block } = flat;
+  const wide = flat.canvas.width, tall = flat.canvas.height;
+  block(2, 2, Math.round(wide * 0.4), Math.round(tall * 0.45), '#16181d');
+  block(3, 3, Math.round(wide * 0.4) - 2, 1, '#f2c94c');
+  block(1, tall - 3, wide - 2, 1, spec.third || '#e8dcb0');
+  block(wide - 4, 0, 1, tall, CHROME);
   return flat;
 }
 
@@ -221,15 +267,17 @@ function flatWing(spec: RenderCarSpec, front: boolean): FlatCanvas {
  * @param front a front one (the handle at its back edge)
  * @returns the drawing
  */
-function flatDoor(spec: RenderCarSpec, front: boolean): FlatCanvas {
-  // (?carparts: its own length, a stock car's welded skin with no window)
-  const door = FIX.carparts ? doorAt(String(spec.id), front ? 0 : 2) : null;
-  const sheet = !!door && !!CAR_DOORS[String(spec.id).split('#')[0]]?.sheet;
-  const flat = flatCanvas(partPx(door ? (door[1] - door[0]) * spec.len : 1.0), partPx(0.95),
-    spec.paint), { block } = flat;
+function flatDoor(spec: RenderCarSpec, corner: number): FlatCanvas {
+  // (?carparts: its own length and drawing - a stock car's welded skin with no window, the bus's
+  // cab door and riveted skirt panels, a van's sliding door)
+  const front = corner < 2, door = FIX.carparts ? doorAt(String(spec.id), corner) : null;
+  const shape = door ? doorShape(String(spec.id), corner) : 'door';
+  if (shape === 'skirt' || shape === 'sliding') return flatSidePanel(spec, door!, shape);
+  const flat = flatCanvas(partPx(door ? (door[1] - door[0]) * spec.len : 1.0),
+    partPx(shape === 'cab' ? 1.5 : 0.95), spec.paint), { block } = flat;
   const wide = flat.canvas.width, tall = flat.canvas.height, glassH = Math.round(tall * 0.4);
   const dark = shade(spec.paint, 0.7);
-  if (!sheet) {
+  if (shape !== 'sheet') {
     block(2, 2, wide - 4, glassH - 2, '#15171d');
     block(3, 3, wide - 6, 1, '#3d4658');
   }
@@ -237,6 +285,30 @@ function flatDoor(spec: RenderCarSpec, front: boolean): FlatCanvas {
   block(1, Math.round(tall * 0.62), wide - 2, 1, dark);
   block(1, Math.round(tall * 0.75), wide - 2, 1, spec.third || dark);
   block(front ? wide - 6 : 3, glassH + 2, 3, 1, CHROME);
+  return flat;
+}
+
+/**
+ * ?carparts: a panel with no window lying flat - the bus's lower-deck skirt panel (~0.55 m tall,
+ * its cream band and rivets), a van's sliding door (~1.3 m tall, its rail and handle).
+ * @param spec the car as drawn
+ * @param door its span, shares of the length
+ * @param shape the drawing
+ * @returns the drawing
+ */
+function flatSidePanel(spec: RenderCarSpec, door: [number, number],
+  shape: 'skirt' | 'sliding'): FlatCanvas {
+  const skirt = shape === 'skirt';
+  const flat = flatCanvas(partPx((door[1] - door[0]) * spec.len), partPx(skirt ? 0.55 : 1.3),
+    spec.paint), { block } = flat;
+  const wide = flat.canvas.width, tall = flat.canvas.height, dark = shade(spec.paint, 0.6);
+  if (skirt) {
+    block(1, 1, wide - 2, 1, spec.third || '#e8dcb0');
+    for (let x = 2; x < wide - 1; x += 4) block(x, tall - 2, 1, 1, dark);
+  } else {
+    block(1, Math.round(tall * 0.3), wide - 2, 1, dark);
+    block(3, Math.round(tall * 0.5), 3, 1, CHROME);
+  }
   return flat;
 }
 
@@ -253,7 +325,7 @@ function flatDoor(spec: RenderCarSpec, front: boolean): FlatCanvas {
 export function flatPart(spec: RenderCarSpec, kind: string, corner: number,
   seed: number): HTMLCanvasElement {
   const front = corner < 2, flat = kind === 'bumper' ? flatBumper(spec, front)
-    : kind === 'wing' ? flatWing(spec, front) : flatDoor(spec, front);
+    : kind === 'wing' ? flatWing(spec, front) : flatDoor(spec, corner);
   damage(flat.ctx, flat.canvas.width, flat.canvas.height, seed);
   return flat.canvas;
 }

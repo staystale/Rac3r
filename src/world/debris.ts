@@ -11,7 +11,7 @@
 // take the cover 'glass' (like the oil and the tyres' water - one cover system; drawn by the GPU
 // field, render/glfield.ts, glints moving with the view). It changes no grip; the first tyre
 // pass sweeps the cell clean and may puncture that tyre slowly (PASS: world/pass.ts).
-import { bitsOf, doorAt, hasNo } from '../carbits.ts';
+import { bitsOf, doorAt, doorsOf, hasNo } from '../carbits.ts';
 import { FIX } from '../core/fixes.ts';
 import { getCell, wearDirty, WEAR_CELL } from "./wear.ts";
 import { PASS } from "./pass.ts";
@@ -130,6 +130,15 @@ const hasNoDoor = (car: DebrisCar, kind: string, corner: number) => FIX.carparts
   && kind === 'panel' && doorAt(car.spec?.id || '', corner) === null;
 
 /**
+ * ?carparts: a van's rear doors - a pair, each lost on its own side.
+ * @param car the car
+ * @param kind the part
+ * @returns its boot is a pair
+ */
+const isTwin = (car: DebrisCar, kind: string) => FIX.carparts && kind === 'boot'
+  && !!doorsOf(car.spec?.id || '')?.twinRear;
+
+/**
  * a bad hit may throw the car's own BITS (carbits.ts) - each at most once until a
  * repair: end-on at the front its bonnet (BONNET_P from BIG_HIT), at the back its exhaust
  * (EXHAUST_P) and its boot lid or spoiler (REAR_P), from the side a mirror (MIRROR_P from
@@ -147,8 +156,8 @@ function bigParts(car: DebrisCar, corner: number, add: number, endW: number,
   const has = (kind: string) => (car.partLost || '').split(',').some((entry) =>
     entry.startsWith(kind));
   const off = (kind: string, chance: number) => {
-    if (hasNo(bits, kind) || has(kind === 'mirror' ? 'mirror:' + corner : kind)
-      || rnd() >= chance) return;
+    if (hasNo(bits, kind) || has(kind === 'mirror' || isTwin(car, kind) ? kind + ':' + corner
+      : kind) || rnd() >= chance) return;
     car.partLost = (car.partLost ? car.partLost + ',' : '') + kind + ':' + corner;
     (car.partSpawn || (car.partSpawn = [])).push({ corner, kind });
   };
@@ -172,13 +181,28 @@ function bigParts(car: DebrisCar, corner: number, add: number, endW: number,
 function shedOnRoll(car: DebrisCar, kind: string, corner: number, chance: number): void {
   const own = ['bumper', 'wing', 'panel'].includes(kind);
   const bit = !own ? 0 : kind !== 'bumper' ? 1 << corner : corner < 2 ? FRONT_BUMPER : REAR_BUMPER;
-  const name = kind === 'mirror' ? 'mirror:' + corner : kind;
+  const name = kind === 'mirror' || isTwin(car, kind) ? kind + ':' + corner : kind;
   const gone = own ? ((car.partsOff || 0) & bit) !== 0
     : (car.partLost || '').split(',').some((entry) => entry.startsWith(name));
-  if (gone || hasNoDoor(car, kind, corner) || Math.random() >= chance) return;
+  if (gone || Math.random() >= chance) return;
   if (own) car.partsOff = (car.partsOff || 0) | bit;
   car.partLost = (car.partLost ? car.partLost + ',' : '') + kind + ':' + corner;
   (car.partSpawn || (car.partSpawn = [])).push({ corner, kind });
+}
+
+/**
+ * a closed car ON ITS ROOF: its boot lid or spoiler (a van's two rear doors), the mirrors, the
+ * bonnet, the exhaust.
+ * @param car the car
+ * @param shed sheds a part by its chance
+ */
+function roofParts(car: DebrisCar, shed: (part: string, corner: number, chance: number) => void) {
+  const bits = bitsOf(car.spec?.id || '');
+  if (bits.rear !== 'none') shed(bits.rear, 2, 0.5);
+  if (isTwin(car, bits.rear)) shed(bits.rear, 3, 0.5);
+  shed('mirror', 0, 0.5); shed('mirror', 1, 0.5);
+  if (bits.front === 'bonnet') shed('bonnet', 0, 0.3);
+  shed('exhaust', 2, 0.2);
 }
 
 /**
@@ -215,7 +239,8 @@ function openRollParts(shed: (part: string, corner: number, chance: number) => v
 export function rollParts(car: DebrisCar, kind: string, side: number, scale: number): void {
   const bits = bitsOf(car.spec?.id || ''), front = side > 0 ? 1 : 0, rear = side > 0 ? 3 : 2;
   const shed = (part: string, corner: number, chance: number) => {
-    if (!hasNo(bits, part)) shedOnRoll(car, part, corner, chance * scale);
+    if (!hasNo(bits, part) && !hasNoDoor(car, part, corner))
+      shedOnRoll(car, part, corner, chance * scale);
   };
   if (car.spec?.kind === 'track' || car.spec?.kind === 'grass') {
     openRollParts(shed, kind, front, rear);
@@ -227,12 +252,8 @@ export function rollParts(car: DebrisCar, kind: string, side: number, scale: num
     shed('mirror', front, 0.6); shed('panel', front, 0.45); shed('panel', rear, 0.4);
     shed('wing', front, 0.4); shed('wing', rear, 0.4);
     if (bits.rear === 'spoiler') shed('spoiler', 2, 0.3);
-  } else if (kind === 'roof') {
-    if (bits.rear !== 'none') shed(bits.rear, 2, 0.5);
-    shed('mirror', 0, 0.5); shed('mirror', 1, 0.5);
-    if (bits.front === 'bonnet') shed('bonnet', 0, 0.3);
-    shed('exhaust', 2, 0.2);
-  } else {
+  } else if (kind === 'roof') roofParts(car, shed);
+  else {
     shed('bumper', 0, 0.3); shed('bumper', 2, 0.3); shed('exhaust', 2, 0.3);
     shed('engine', bits.engine === 'front' ? 0 : 2, 0.05);
   }
@@ -379,7 +400,8 @@ function shatterGlass(car: DebrisCar, corner: number, rnd: () => number) {
   const aimY = speed > 1 ? car.vy / speed : Math.sin(car.heading);
   // (a car with more glass - the bus's two decks - throws more of it, further: its cells by its
   // glass, its reach by the root of it, the same glass to the square metre)
-  const glass = bitsOf(car.spec?.id || '').glass ?? 1, reach = GLASS_REACH_M * Math.sqrt(glass);
+  const glass = (FIX.carparts && doorsOf(car.spec?.id || '')?.glass)
+    || bitsOf(car.spec?.id || '').glass || 1, reach = GLASS_REACH_M * Math.sqrt(glass);
   const count = Math.round((GLASS_CELLS_MIN + Math.floor(rnd() * (GLASS_CELLS_MORE + 1))) * glass);
   for (let i = 0; i < count; i++) {
     const ahead = rnd() * reach, spread = (rnd() - 0.5) * reach;
