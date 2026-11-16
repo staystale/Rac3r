@@ -63,6 +63,8 @@ const REAL_SIZE: Record<string, RealSize> = {
   routemonster: { len: 8.38, wid: 2.44, lf: 3.048, lr: 2.032, trackWidth: 2.0 },
   // Saxo Kit Car: 3.717 x 1.74 (EST of 1.72-1.74), wheelbase 2.385; 62 / 38 and the track EST
   // Range Rover L322: 4.95 x 2.009, wheelbase 2.88; 50 / 50 and the track 1.63 EST
+  // Saxo VTR: 3.718 x 1.62, wheelbase 2.385, track 1.401 / 1.321; 62 / 38 EST
+  'saxo-vtr': { len: 3.718, wid: 1.62, lf: 0.906, lr: 1.479, trackWidth: 1.36 },
   'strange-l322': { len: 4.95, wid: 2.009, lf: 1.44, lr: 1.44, trackWidth: 1.63 },
   'saxo-kit': { len: 3.717, wid: 1.74, lf: 0.906, lr: 1.479, trackWidth: 1.55 },
   'cleo-rs200': { len: 4.017, wid: 1.768, lf: 1.008, lr: 1.577, trackWidth: 1.52 },

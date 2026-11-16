@@ -137,6 +137,9 @@ export const CAR_BITS: Record<string, CarBits> = {
   // the front, the radiator in the nose
   'strange-l322': { pipes: 2, pipesAt: 'sides', front: 'bonnet', rear: 'boot', engine: 'front',
     cyl: 8, layout: 'v', mount: 'long', radiator: 'front' },
+  // Saxo VTR: one tailpipe on the left (EST), the tailgate, the 1.6 across the front
+  'saxo-vtr': { pipes: 1, pipesAt: 'left', front: 'bonnet', rear: 'boot', engine: 'front',
+    cyl: 4, layout: 'inline', mount: 'trans', radiator: 'front' },
   'cleo-rs200': { pipes: 2, pipesAt: 'centre', front: 'bonnet', rear: 'boot', engine: 'front',
     cyl: 4, layout: 'inline', mount: 'trans', radiator: 'front' },
   // TS010: twin pipes in the diffuser (EST), the front clip, the rear clamshell with the wing on

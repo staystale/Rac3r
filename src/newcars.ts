@@ -387,12 +387,37 @@ const STRANGE: RosterRow = {
   paint: '#a9aeb6', trim: '#16181d', glass: '#2a2f38', rim: '#c9ccd4',
 };
 
+// Citroen Saxo VTR 1.6 8v (Phase 2, 2001-03; auto-data.net): the road car the Saxmax (750 Motor
+// Club, 2006-13) and the JSCC race (Autosport: the series "uses the Citroen Saxo VTR"): the TU5JP4
+// 1.6 8v across the front, 72 kW (98 hp) at 5,700, 135 Nm at 3,000, a five-speed manual, FWD, 920
+// kg, 3,718 x 1,620 mm, wheelbase 2,385, track 1,401 / 1,321, 185/55 R14; 193 km/h, 0-100 10.5 s.
+// EST: the ratios (3.42 1.95 1.36 1.05 0.85: one site, not confirmed as the VTR's) and the final
+// drive, the 6,500 limit, the torque's band, Cd 0.30 x 1.9 m^2 (set to its 193), 62 / 38, the
+// CG, the grip and stiffness, the springs; ABS on, no traction control.
+const SAXO_VTR: RosterRow = {
+  id: 'saxo-vtr', name: 'Citrone Saxo VTR', kind: 'saxovtr', cls: 'road', sub: 'Hatch',
+  rimIn: 14,   // its real rim, inches (what tyres fit)
+  cg: 0.5, rideH: 0.13, cyl: 4,
+  aids: { abs: true, tcs: false },
+  mass: 920, lf: 0.906, lr: 1.479, len: 3.718, wid: 1.62, trackWidth: 1.36,
+  tyreWidth: 0.185, wheelR: tyreR(185, 55, 14),
+  drive: 1.0, brakeBiasF: 0.65, caF: 85000, caR: 80000, mu: 1.2,
+  curve: realCurve({ idle: 800, low: 0.65, nm: 135, nmFrom: 3000, nmTo: 3500,
+    kw: 72, kwAt: 5700, redline: 6500 }),
+  redline: 6500, upshiftRpm: 6200, downshiftRpm: 2500, idleRpm: 800,
+  gears: [3.42, 1.95, 1.36, 1.05, 0.85], finalDrive: 3.94, dragC: dragOf(0.30, 1.9),
+  susF: 1.4, susZ: 0.38,
+  // Diablo Red, a darker red roof, black details, silver wheels
+  paint: '#c8342a', trim: '#a52a22', glass: '#2a2f38', rim: '#c9ccd4',
+};
+
 /** The new cars: their roster rows, in the list's order. */
 export const NEW_CARS: RosterRow[] = [PORCH, SEVEN, TRANSFIT, TROPHY, CIVVIC, DEFUNDER, FOCUST,
   ...(FIX.cleo ? [CLEO] : []), ...(FIX.cleoroad ? [CLEO_RS] : []),
   ...(FIX.transfitlwb ? [TRANSFIT_LWB] : []), ...(FIX.transfitswb ? [TRANSFIT_SWB] : []),
   ...(FIX.ts010 ? [TS010] : []), ...(FIX.routemonster ? [ROUTEMONSTER] : []),
-  ...(FIX.saxo ? [SAXO] : []), ...(FIX.strange ? [STRANGE] : [])];
+  ...(FIX.saxo ? [SAXO] : []), ...(FIX.strange ? [STRANGE] : []),
+  ...(FIX.saxovtr ? [SAXO_VTR] : [])];
 
 /** The classes only new cars race in. */
 export const NEW_CLASSES = [GT_CLASS, TOURING_CLASS, ...(FIX.ts010 ? [PROTO_CLASS] : [])];

@@ -410,5 +410,18 @@ export const CAR_STATS: Record<string, CarStat> = {
       "abs": true,
       "tcs": true
     }
+  },
+  // (measured alone: tools/carstats.mjs saxo-vtr with SAXOVTR=1, behind its switch)
+  "saxo-vtr": {
+    "topKph": 192,
+    "zeroTo100": 9.8,
+    "brake100": 39.6,
+    "gripG": 1.12,
+    "massKg": 920,
+    "drive": "FWD",
+    "aids": {
+      "abs": true,
+      "tcs": false
+    }
   }
 };

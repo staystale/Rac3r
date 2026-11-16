@@ -13,6 +13,17 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'saxovtr',
+    added: '2026-11-16',
+    name: 'New car: the Citrone Saxo VTR (the road Saxo the Saxmax racers start from), ROAD / '
+      + 'Hatch, and (rarely) in the traffic',
+    where: 'Test link + &saxovtr=1: the garage, ROAD / Hatch; a circuit, a road stage; the '
+      + 'highway (about 1 car in 15,000, as on the real roads); + &underskin=1 for a crash',
+    try: 'Its look (Diablo Red, the small roof spoiler), 98 hp against the Golf and the Clio, '
+      + 'crash it, roll it.',
+    wrong: 'Not a Saxo from above, too quick or too grippy for 98 hp on budget tyres.',
+  },
+  {
     id: 'strange',
     added: '2026-11-16',
     name: 'New car: the Strange Rover (a Range Rover L322 4.4 V8), ROAD / SUV, and in the traffic',
