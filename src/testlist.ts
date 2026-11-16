@@ -13,6 +13,20 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'pembreezy',
+    added: '2026-11-16',
+    name: 'Pembreezy: Pembrey Circuit (half size) and Pembreezy RX (full size, with its joker)',
+    where: 'Test link + &pembreezy=1: test mode, CIRCUITS -> Pembreezy Circuit; RALLYCROSS -> '
+      + 'Pembreezy RX',
+    try: 'The circuit: a few laps, all tarmac (Hatchets and Brooklands hairpins, the fast Honda '
+      + 'onto the straight). The RX: from Dibeni down the fast tarmac sweeper, the gravel hairpin '
+      + 'off its end, the gravel loop (the joker round its right-hander, once a race) and the '
+      + 'gravel run to Woodlands. Look at the Welsh flags, the paddock, the dunes and pines.',
+    wrong: 'A wall, tyre or bale on the road, a road that ends in nothing, cars stuck or reset '
+      + 'on the gravel, the joker not counted, the lap feeling stiff or boxy, the dunes or the '
+      + 'paddock looking out of place.',
+  },
+  {
     id: 'gpustat',
     added: '2026-11-16',
     name: 'Frame-drop hunt: the phone report also records the GPU side and each layer',

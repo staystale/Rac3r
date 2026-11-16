@@ -88,7 +88,8 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   France = Stade de Prance, the Bird's Nest = The Bird's Mess, Accor Stadium = Accordion Stadium,
   Esprit Arena = Dusseldork Arena; the old Wembley (the Empire Stadium, its stock car oval) = Old
   Wobbly; X Games = X Gayms (the owner's), L.A. Live = L.A. Lively, Holjes = Holy Jeez (owner 11-13),
-  Croft RX = Croughed RX (owner 11-13: its own full-size level of the Croughed venue).
+  Croft RX = Croughed RX (owner 11-13: its own full-size level of the Croughed venue), Pembrey =
+  Pembreezy (owner 11-13: Pembreezy Circuit and Pembreezy RX, one venue).
   TOWNS (the countryside highway's exit signs, owner 11-14 "Pun them"): Goole = GHOULE, Scunthorpe =
   SKUNKTHORPE, Brigg = BRIGGADOON, Howden = HOWDY-DEN.
 - No keys, tokens, tunnel URLs or process IDs in the repo. No itch.io push until the owner says so.

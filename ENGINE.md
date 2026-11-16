@@ -866,3 +866,28 @@ CR_RAILS`) and its slope are shared. Dressing: grass banks (catch-fenced) inside
 between the start lane and the return leg and inside Hawthorn, crowds, Union flags, the paddock's
 hospitality units (`block` landmarks), transporters and spares (`dress`), a TV tower; the big screen
 stands in as a board (LIVE): no screen prop.
+PEMBREEZY (`world/levels/pembreezy-venue.ts`, `pembreezyrx-venue.ts`; under test behind
+`?pembreezy=1`, `FIX.pembreezy`): Pembrey Circuit as ONE venue (`Level.venue` Pembreezy) in two
+builds of ONE map download (`tools/venues/pembreezy.osm.json`): the circuit at half size
+(`pembreezy.json` -> `venues/pembreezy.ts`, share 0.5; the full lap the BTCC raced, 2333 m mapped
+for 2343 real, all tarmac, clockwise from OSM's start-finish node on Cowles Straight; the rallycross
+gravel and its infield links skipped) and the rallycross at full size (`pembreezyrx.json` ->
+`venues/pembreezyrx.ts`, share 1: 2063 m traced, tarmac 0-1055 m - Cowles, Hatchets, Spitfires,
+Dibeni, the sweeper, the old taxiway - gravel 1055-1629 m, tarmac again from Woodlands' exit
+through Honda; 28 % gravel). Two scales cannot share one build (`venueBuild` is per scale), so the
+two levels share the download, the dressing constants (the dunes `DUNE_PADS` / `DUNE_HILLS`, the
+pines, `welshFlags`, `paddockDress(anchor)`) and the venue name. The map leaves the gravel's
+surface off: the RX config trims the taxiway way (`trim` 893412417 nodes 0-3) and carries its
+hairpin end, the Rallycross way and the joker loop again in `extra` with surface=gravel (sources in
+the config). THE JOKER: the mapped loop (way 999853104) round the outside of the gravel loop's
+right-hander, 56 m longer (BRX 2022: clockwise, round the outside of Hansen's corner;
+`VenueSpec.joker` layout rx, loop joker). The unraced circuit pieces (the Esses, Brooklands, the
+Speedway Straight, Woodlands) are skipped in the RX build, as Croughed RX's. The grid is on the lap
+(`startOnLine`, as L.A. Lively's). Dressing: Welsh flags (the flag prop in white, green and red in
+turn), the paddock's units, transporters and spares round an anchor each level sets where its scale
+leaves room (half size: the circuit's car park and service roads fill more of the paddock), grass
+banks with crowds (RX: inside the gravel loop, south of the gravel's west run, inside Hatchets),
+sand dunes (sand pads under humps) and pines south-west of the circuit, brought nearer than the
+real ones (about 600 m out), the firs' share 0.85 (`Level.firShare`: Pembrey Forest's pines). The
+OSM tyre walls are laid as tyre stacks (the circuit's: Spitfires' outside wall broken round the
+venue's marshal post, `trim` + `extra`; the RX skips a 2-point line through one).

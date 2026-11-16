@@ -281,6 +281,18 @@ tyres heat faster than its limits; it is not in CI) - its --car mode shows those
   HOLY JEEZ FIRS PASSED 11-15: TODO-DONE.
   CROUGHED RX PASSED 11-15 WITHOUT A JOKER (owner: "no joker if it's not there in real life"):
   TODO-DONE.
+  PEMBREEZY BUILT 11-16 behind ?pembreezy=1 (owner's answers 11-15: fail point both the gravel
+  hairpin and the fast tarmac sweeper onto gravel; the real joker; coastal dressing; the circuit the
+  National / BTCC lap, all tarmac, half size, one venue with the RX): pembreezy-venue.ts (Pembreezy
+  Circuit, 1159 m in game, 2333 m mapped / 2343 real) and pembreezyrx-venue.ts (Pembreezy RX, full
+  size, 2045 m in game, 2063 traced; gravel 1055-1629 m, 28 %; the joker round the outside of the
+  gravel loop's right-hander, BRX 2022 clockwise "Hansen's"), one map download, one dressing, two
+  builds (two scales). barriercheck OK and venueaudit clean on both. ENGINE: PEMBREEZY.
+  OWNER QUESTIONS (11-16): the RX route (the map's classic lap is 2.06 km; BRX lists Pembrey's
+  rallycross at 1400 m and the layout has changed since 2022 and runs both ways); the scale (the
+  full-size RX is longer than the half-size circuit; one build needs one scale); the unraced circuit
+  pieces left out of the RX build (as Croughed RX); a proper Welsh flag drawing (today the flag
+  prop in white, green and red in turn); whether the foreign-weather rule covers Wales.
 - DEMOLITION DERBY (owner 11-10: "Demolition derby levels classic tarmac circle - and we can reuse
   stock car tracks ect for that too"): a classic tarmac circle arena, and a derby mode on the stock
   car tracks (Stock Car, Grass Track, Old Wobbly). Questions when we come to it (the AI ramming, how
