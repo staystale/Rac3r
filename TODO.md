@@ -476,7 +476,30 @@ so a gentle pull-away from rest is no longer possible on the button (the ramp wa
   CROUGHED RX PASSED 11-15 WITHOUT A JOKER (owner: "no joker if it's not there in real life"):
   TODO-DONE.
   PEMBREEZY (the circuit and Pembreezy RX) PASSED 11-16 with its fences tidied: TODO-DONE. OPEN
-  (owner to decide on the frame numbers there): thin the RX's remaining mapped tyre walls?
+  (owner 11-16: the tyre walls "fine as they are").
+  THE RX's PUT-BACKS (owner 11-16: "investigate", ~32 a 20-AI race, half at lap 1200-1300 m): FOUND
+  (tools/scratch/_pbzoff.mjs - the racing AI alone, rx-super, difficulty 2, seeds 1-5 x 5 laps, every
+  excursion past the edge + 1 m off the joker lane; a per-step trace of the driver's target speed,
+  pedals and held drift): off the road 42.1 s in 25 laps, 25 excursions, all on the outside of three
+  places in the gravel section, 13 of them within 1.5 m of a bale or tyre stack (Croughed RX 0-3.7 s,
+  0-2; Holy Jeez 8.5 s, 2; Knobhill 10.4 s, 10 - the same tool and car):
+  - lap 1200-1230 m, the left-hander after the gravel hairpin, toward the joker's mouth (out 1.3-14 m,
+    the Armco and bales between the lap and the joker lane): the HELD DRIFT on loose ground starts on
+    the approach (1170 m) and holds the throttle (0.3-0.8) with no brake through it (ai/driverPedals.ts
+    pedals: no brake while drifting), so the car reaches the apex at 72-77 km/h against its 50 km/h
+    plan and runs wide; or, drifting at the apex at the plan's speed, the drift's throttle carries it
+    out.
+  - lap 1310-1355 m and 1440-1545 m, the gravel S-bends: the racing line swings to its 1.6 m margin
+    (ai/line.ts LINE_MARGIN) at the outside edge on each exit and the car, at the plan's speed (1330)
+    or at full throttle out of the bend (1450-1480, 64-88 km/h), runs 1-6 m past it onto the grass,
+    where the bale rows stand 0-3 m off.
+  In a race those cars are hit or stop in the bales and are put back. PROPOSED (owner to choose; no
+  change made): (1) LEVEL DATA, behind a switch - Pembreezy RX's line kept further from the edge on its
+  gravel (a level field for loose-sector line margin). MEASURED as a throwaway (the same tool, not
+  kept): 2.6 m -> off 21.0 s, 15 excursions, 1 by a bale, the 25 laps +39 s (~1.6 s a lap); 3.6 m ->
+  15.2 s, 13, 2, +18 s. The 1200 m corner stays (its cause is the drift). (2) THE AI (shared, needs the
+  owner's OK): no held drift while the car is over its speed plan (brake first) - every loose level
+  would change. (3) Bales further out at the three exits - hides it, not proposed.
 - DEMOLITION DERBY (owner 11-10: "Demolition derby levels classic tarmac circle - and we can reuse
   stock car tracks ect for that too"): a classic tarmac circle arena, and a derby mode on the stock
   car tracks (Stock Car, Grass Track, Old Wobbly). Questions when we come to it (the AI ramming, how
