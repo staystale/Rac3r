@@ -13,6 +13,17 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'transfit',
+    added: '2026-11-16',
+    name: 'New car: the Fjord Transfit (Ford Transit van), drivable and in the highway traffic',
+    where: 'Test link + &transfit=1: the highway (motorway, countryside: about 1 car in 6 is a '
+      + 'van), the garage (ROAD / Van) to drive one; + &underskin=1 for a crash',
+    try: 'Spot the vans in the traffic and pass them; drive one: slow to pull, long to stop, '
+      + 'leaning in fast corners; crash it and roll it.',
+    wrong: 'Not a van from above, vans driving oddly in the traffic (stopping, weaving, crashing '
+      + 'more than cars), too quick or too grippy for a 2-tonne van.',
+  },
+  {
     id: 'seven',
     added: '2026-11-16',
     name: 'New car: the Caterpillar Seven (Caterham Seven 420R), ROAD / Sports',

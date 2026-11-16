@@ -302,6 +302,32 @@ THE 10 NEW CARS (owner-approved names 11-16; one switch and one hand-back each; 
    QUESTIONS for the owner: the model (420R or another Seven), the exhaust's side (EST right),
    the stock look (aluminium, green nose and wings, yellow stripe); its front cycle wings are part
    of the body picture, so they do not turn with the wheels.
+3. FJORD TRANSFIT (Ford Transit Mk8 290 L2 H2 FWD 2.0 EcoBlue 130 PS): BUILT 11-16 behind
+   ?transfit=1 (FIX.transfit; testlist 'transfit'), drivable as ROAD / Van (a new type) and in the
+   highway traffic. Real: 1,997 kg, 96 kW / 385 Nm across the front, FWD, 5,531 x 2,059 x 2,490 mm,
+   wheelbase 3,300, track 1,503 / 1,486, 215/65 R15, ABS + ESC, top gear 2.30 overall (its 1,850 rpm
+   at 100 km/h). EST: the torque band, 4,500 rpm, the lower ratios, Cd 0.37 x 4.4, 58 / 42, CG 0.75
+   m, van tyres' grip mu 0.9 (at 1.1 it held 1.0 g, on its roll limit; at 0.9 0.82 g, a real van's
+   ~0.78). TRAFFIC (ai/trafficCtx.ts VEH 2.4; a car not in the roster is left out, so switch off
+   the mix is unchanged): it stands for all vans at 17 % of the picks, the vans' share of Great
+   Britain's traffic (DfT 2023); tools/scratch/_trafficmix.mjs, 20 000 draws: 16.8 %, ~1 car in 6.
+   tools/newcar.mjs transfit-van (second PC, with &underskin=1; every step ran, the crash picture on
+   its retry): top 148 km/h (~155 EST), 0-100 14.1 s, 100-0 51.2 m, grip 0.82 g, 40-100 10.9 s;
+   tyres all OK; partcheck all 10 kinds OK; AI x6 Thruston 273 s, 0 incidents, laps 83.6-99.2 s;
+   Sweaty Lamb 560 s (the cap), 50 incidents of which 48 put-backs: from ~447 s the vans sit in
+   first at full throttle on the gravel / sand, front wheels spinning, and give up again and again
+   (the Chevelle there: 455 put-backs; the Golf and the V70 none) - FOUND, not changed.
+   HIGHWAY TRAFFIC, switch off -> on (PC): trafficcheck (not in CI; 10 FAILs on the base) 10 -> 11:
+   motorway pop-out fail gone; dual contacts 92 -> 66 steps, off the carriageway 6 825 -> 5 706;
+   walled contacts 933 -> 1 127, off 12 666 -> 8 449, and one wreck (185 car-steps: a saloon into a
+   hatch, no van; laptop run with the cars named); one contact with a van in the run (a van onto a
+   slow saloon). hwracecheck (motorway, d2, 0.6, seed 4242): ALL OK both; racer-traffic contact 1
+   -> 2 steps, racer-racer 372 -> 0, mean pace 115 -> 130 km/h (a different mix, different gaps).
+   PROOF (PC, base round84): switch off worldhash, simhash (on its re-run: the first timed out on a
+   cold page load), renderhash (thruston, brands-snatch, highway) SAME; switch on simhash DIFFERENT
+   in highway-traffic only (the mix) - [sim].
+   QUESTIONS for the owner: the model, the van share (17 %), a van paint mix (real ones mostly
+   white; they take the cars' mix now), the long stop that comes with van grip, the exhaust side.
 
 ### 3b. Tracks (the venue helper builds, the foreman reviews, the owner passes; one switch each)
 
