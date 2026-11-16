@@ -328,6 +328,30 @@ THE 10 NEW CARS (owner-approved names 11-16; one switch and one hand-back each; 
    in highway-traffic only (the mix) - [sim].
    QUESTIONS for the owner: the model, the van share (17 %), a van paint mix (real ones mostly
    white; they take the cars' mix now), the long stop that comes with van grip, the exhaust side.
+4. FJORD EFFING-150 TROPHY TRUCK (an open-class Ford F-150 trophy truck): BUILT 11-16 behind
+   ?trophy=1 (FIX.trophy; testlist 'trophy'), OFF-ROAD / Trophy truck (a new type). Real (Auto
+   Bild's track test): 850 PS, a 7.2 V8 set back, RWD, wheelbase 3.15, ~2.5 t, ~60 cm clearance on
+   80-90 cm of travel. EST: 900 Nm, 6,500 rpm, a three-speed automatic (TH400) + 5.0, 5.6 x 2.35 m,
+   track 2.0, 39 x 13.5 R17, Cd 0.6 x 3.2, 50 / 50, CG 0.95 m, springs 0.9 Hz, desert tyres mu 1.0
+   (1.15 held 1.09 g on tarmac). tools/newcar.mjs effing-tt (second PC, &underskin=1): top 236 km/h
+   (~225 EST), 0-100 6.7 s, 100-0 69.2 m (no ABS), grip 0.88 g, 40-100 5.5 s, gravel power-on
+   body slip 63 deg; tyres all OK but the 80 s drift (as the base); partcheck all 9 kinds OK; AI
+   x6 Thruston 246 s, 4 incidents, laps 73.1-90.8 s (#4 again given a 26.3 s lap, as on car 2);
+   its LOOSE step on the Sahara stage FAILED (aifieldcheck, like stagecheck, cannot load a
+   generated stage) - run on Sweaty Lamb instead: 560 s (the cap), 723 put-backs, 0-1 laps each;
+   two trucks with no contact 74 put-backs; one alone laps (aidrivecheck 171.8 s, the Sport quattro
+   121.3 s) - the bogging found on car 3 (the van, the Chevelle), worse: FOUND, not changed.
+   ROUGH GROUND in the real game (tools/scratch/_rolljump.mjs, ?autopilot, 150 s real, PC):
+   Sahara stage - the truck 1.41 km, top 87 km/h, 1 jump (0.22 s), landing x1.94, 0 rolls, 1
+   put-back; the Sport quattro 2.04 km, top 118, 2 jumps (0.63 s), landing x2.60, 0 rolls. Deaf
+   Valley single lane - the truck seed 1: 3.41 km, top 163, 1 jump (1.84 s), landing x2.60, 1 roll
+   (reset); seed 2: 3.32 km, top 173, 2 jumps (1.82 s), x2.60, 2 rolls (one to its roof, both
+   reset); the BMV M135i seed 1: 4.04 km, top 174, 2 jumps (0.37 s), x1.50, 0 rolls, 3 put-backs
+   (seed 2 timed out on its page load, not re-run). PROOF (PC, base round85): switch off
+   worldhash, simhash, renderhash (thruston, brands-snatch, highway) SAME; switch on simhash SAME.
+   QUESTIONS for the owner: the open class (850 PS) or a Spec truck (525 hp); its estimated size
+   and tyres; it rolled in each Deaf Valley run (1-2 in 150 s) - right for a tall truck?; its
+   long name runs past the landscape garage's picker.
 
 ### 3b. Tracks (the venue helper builds, the foreman reviews, the owner passes; one switch each)
 

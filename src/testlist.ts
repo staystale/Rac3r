@@ -13,6 +13,17 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'trophy',
+    added: '2026-11-16',
+    name: 'New car: the Fjord Effing-150 Trophy Truck (a Ford F-150 trophy truck), OFF-ROAD',
+    where: 'Test link + &trophy=1: the garage, OFF-ROAD; the Sahara stage and Deaf Valley (the '
+      + 'highway, single lane); + &underskin=1 for a crash',
+    try: 'Its look (fenders, bed with spares, roof scoop), flat out on sand and gravel, the jumps '
+      + 'and crests, sliding it sideways (it is tall: it rolls sooner), crash it, roll it.',
+    wrong: 'Not a trophy truck from above, rolling at every slide, landings that wreck it, '
+      + 'too slow or too grippy for 850 PS on desert tyres.',
+  },
+  {
     id: 'transfit',
     added: '2026-11-16',
     name: 'New car: the Fjord Transfit (Ford Transit van), drivable and in the highway traffic',

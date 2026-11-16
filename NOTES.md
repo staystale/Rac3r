@@ -73,7 +73,7 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   CARS: VW = Folksvagon, BMW = BMV, Subaru = Subaroo, Volvo = Volvoh, Chevrolet = Chevvy, Audi =
   Ordi, JCB = JCBee, Mini = Minnie, Lamborghini = Lamburghini, Nissan = Nissun, Peugeot =
   Pugeot, Ford = Fjord, NASCAR = Naffcar, Formula One / Two = Formula Won / Too, BriSCA = BriSKA. Porsche = Porch (owner-approved 11-16: the Porch 911
-  GT3 Arr; a model's R = Arr, as the Volvoh V70 Arr), Caterham = Caterpillar (the Caterpillar Seven), Transit = Transfit (the Fjord Transfit).
+  GT3 Arr; a model's R = Arr, as the Volvoh V70 Arr), Caterham = Caterpillar (the Caterpillar Seven), Transit = Transfit (the Fjord Transfit), F-150 = Effing-150 (the Fjord Effing-150 Trophy Truck).
   TRACKS: Thruxton = Thruston, Castle Combe = Castle Kum (renamed from Castle Cum, owner 11-08),
   Brands Hatch = Brands Snatch,
   Knockhill = Knobhill, Lydden Hill = Slidden Hill, Kielder = Killder, Daytona = Dieatona,
