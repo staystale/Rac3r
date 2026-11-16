@@ -1,0 +1,99 @@
+{
+  "osm": "pembreezy.osm.json",
+  "out": "src/world/levels/venues/pembreezy.ts",
+  "exportName": "PEMBREEZY_VENUE",
+  "origin": [
+    51.7056,
+    -4.3206
+  ],
+  "turnDeg": 0,
+  "clip": [
+    -420,
+    -420,
+    420,
+    420
+  ],
+  "reachM": 150,
+  "skip": [
+    893412417,
+    893412418,
+    893412419,
+    893412420,
+    893412422,
+    893412423,
+    999853077,
+    999853078,
+    999853083,
+    999853104,
+    1546857201,
+    1546857202,
+    1546857203
+  ],
+  "names": {
+    "177186595": "Dibeni sweeper",
+    "1546857186": "Spitfires exit",
+    "1546857188": "Hatchets exit",
+    "1546857190": "Hatchets approach",
+    "1546857191": "Woodlands exit",
+    "1546857192": "Cowles Straight",
+    "1546857196": "Brooklands approach",
+    "1546857198": "Esses approach",
+    "1546857200": "Cowles Straight north"
+  },
+  "layouts": {
+    "circuit": {
+      "through": [
+        "Cowles Straight",
+        "Cowles Straight north",
+        "Hatchets approach",
+        "Hatchets Hairpin",
+        "Hatchets exit",
+        "Spitfires",
+        "Spitfires exit",
+        "Dibeni",
+        "Dibeni sweeper",
+        "Esses approach",
+        "Senna Esses",
+        "Brooklands approach",
+        "Brooklands Hairpin",
+        "Speedway Straight",
+        "Woodlands",
+        "Woodlands exit",
+        "Honda"
+      ],
+      "avoid": []
+    }
+  },
+  "trim": {
+    "1546857260": [
+      5,
+      20
+    ]
+  },
+  "extra": [
+    {
+      "source": "OpenStreetMap way 1546857260 (the tyre wall outside Spitfires), its nodes 0-3: the wall stands as mapped, broken round the marshal post the venue lays outside the corner at half size",
+      "tags": {
+        "barrier": "tyres"
+      },
+      "pts": [
+        [
+          51.7087708,
+          -4.3204768
+        ],
+        [
+          51.7087401,
+          -4.3204594
+        ],
+        [
+          51.7075866,
+          -4.3201898
+        ],
+        [
+          51.7074886,
+          -4.3201871
+        ]
+      ]
+    }
+  ]
+}

@@ -73,4 +73,7 @@ export const FIX = {
   transfit: atLoad('transfit'),
   // the Fjord Effing-150 Trophy Truck
   trophy: atLoad('trophy'),
+  // Pembreezy, Pembrey Circuit and its rallycross from the map: the circuit at half size and the
+  // rallycross at full size, one venue (pembreezy-venue.ts, pembreezyrx-venue.ts)
+  pembreezy: atLoad('pembreezy'),
 };
