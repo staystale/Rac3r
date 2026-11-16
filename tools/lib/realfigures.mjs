@@ -71,6 +71,8 @@ export const REAL_FIGURES = {
     topKph: null, zeroTo100: null, note: 'no published top speed (~40 mph in London service)' },
   'saxo-kit': { real: 'Citroen Saxo Kit Car (F2, 1997-99, TU5J4 1.6 16v ~210 hp)', topKph: null,
     zeroTo100: null, note: 'no published top speed or 0-100' },
+  'strange-l322': { real: 'Range Rover L322 4.4 V8 (2002-05, 5-speed automatic)', topKph: 208,
+    zeroTo100: 9.2, note: 'cars-data.com' },
   ts010: { real: 'Toyota TS010 (1992 Group C, RV10 3.5 V10, Le Mans trim c600 bhp)', topKph: 346,
     zeroTo100: null, note: "Toyota's 346 km/h (215 mph) at Le Mans; no published 0-100" },
 };

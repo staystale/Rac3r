@@ -39,6 +39,7 @@ export const PAINT_STOCK: Record<string, { trim?: string; third?: string; rim?: 
   'cleo-rs200': { third: '#16181d' },
   routemonster: { third: '#e8dcb0' },
   'saxo-kit': { third: '#1d3f9a' },
+  'strange-l322': { third: '#c9ccd4' },
   ts010: { third: '#16181d' },
 };
 /**
@@ -84,6 +85,7 @@ export const TYRE_LOOK: Record<string, { wF: number; wR: number; dia: number; ri
   'cleo-cup': { wF: 0.2, wR: 0.2, dia: 0.61, rim: 0.432 },   // 20/61-17
   routemonster: { wF: 0.27, wR: 0.54, dia: 1.03, rim: 0.508 },   // 10.00-20, twin at the rear
   'saxo-kit': { wF: 0.205, wR: 0.205, dia: 0.607, rim: 0.381 },   // EST 205/55 R15
+  'strange-l322': { wF: 0.255, wR: 0.255, dia: 0.763, rim: 0.483 },   // EST 255/55 R19
   'cleo-rs200': { wF: 0.215, wR: 0.215, dia: 0.625, rim: 0.432 },   // 215/45 R17
   ts010: { wF: 0.29, wR: 0.355, dia: 0.71, rim: 0.457 },   // EST 290/640-17, 355/710-18
 };

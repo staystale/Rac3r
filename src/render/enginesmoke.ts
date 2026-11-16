@@ -64,6 +64,7 @@ export const EXHAUST_SPOTS: Record<string, { pipes: Pipe[]; up?: boolean }> = {
   bus: { pipes: [[0.05, -0.5]] },
   // the Saxo kit car's side pipe on the right, ahead of the rear wheel (EST)
   saxo: { pipes: [[-0.2, 0.5]] },
+  rrover: { pipes: [[-0.5, -0.3], [-0.5, 0.3]] },
   // the TS010's twin pipes in its diffuser (EST)
   proto: { pipes: [[-0.5, -0.08], [-0.5, 0.08]] },
 };

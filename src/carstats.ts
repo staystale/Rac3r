@@ -397,5 +397,18 @@ export const CAR_STATS: Record<string, CarStat> = {
       "abs": false,
       "tcs": false
     }
+  },
+  // (measured alone: tools/carstats.mjs strange-l322 with STRANGE=1, behind its switch)
+  "strange-l322": {
+    "topKph": 209,
+    "zeroTo100": 8.4,
+    "brake100": 44.9,
+    "gripG": 0.97,
+    "massKg": 2440,
+    "drive": "4WD",
+    "aids": {
+      "abs": true,
+      "tcs": true
+    }
   }
 };
