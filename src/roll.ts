@@ -23,6 +23,8 @@ import { levelFlipRamps, rampFlip } from './world/flipramps.ts';
 import { LEVEL } from './world/state.ts';
 import { groundAt } from './world/wear.ts';
 import type { CarRoll } from './vehicle.ts';
+import { FIX } from './core/fixes.ts';
+import { TIP_PHASE, startTip } from './physics/tip.ts';
 /** The rollover state (car.roll; vehicle.ts CarRoll). */
 // (sideOk: whether it may come to rest on a side, decided once as it settles)
 export type RollState = CarRoll & { sideOk?: boolean };
@@ -98,7 +100,9 @@ function muBody(surface: { id?: string }) {
   // metal on tarmac / concrete
   return 0.45;
 }
-export const rolling = (car: RollCar) => !!(car.roll && car.roll.phase !== 'none');
+// (?tipping: a car up on two wheels is driven, not rolling - physics/tip.ts)
+export const rolling = (car: RollCar) => !!(car.roll && car.roll.phase !== 'none'
+  && car.roll.phase !== TIP_PHASE);
 
 export function startRoll(car: RollCar, dir: number, vLat: number) {
   car._rolls = (car._rolls || 0) + 1;
@@ -155,7 +159,7 @@ function rideRoll(car: RollCar, rnd: () => number): boolean {
 
 // call each sim step while the car is on its wheels (after vehicle.step)
 export function tripCheck(car: RollCar, dt: number, rnd: () => number = Math.random) {
-  if (rolling(car)) return false;
+  if (rolling(car) || car.roll?.phase === TIP_PHASE) return false;
   // per-car cg (cars.js)
   const spec = car.spec, ssf = (spec.trackWidth || 1.5) / (2 * (spec.cg || spec.cgH || 0.52)),
     stability = ssf / SSF_REF;
@@ -226,7 +230,9 @@ function tripGround(car: RollCar, vLat: number, stability: number, rnd: () => nu
       : Math.min(2.5, 1 + (speed - MPH60) / 9);
   const chance = (pctOf(car.surface || {}) / 100) * ang * spd * Math.min(1.6, 1 / stability);
   if (rnd() < chance) {
-    startRoll(car, Math.sign(vLat), Math.abs(vLat));
+    // (?tipping: it lifts first - some trips are saved: physics/tip.ts)
+    if (FIX.tipping) startTip(car, Math.sign(vLat), rnd);
+    else startRoll(car, Math.sign(vLat), Math.abs(vLat));
     return true;
   }
   return false;

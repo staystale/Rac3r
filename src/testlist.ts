@@ -13,6 +13,19 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'tipping',
+    added: '2026-11-16',
+    name: 'The two-wheel state: a car can lift onto its two outside wheels before it rolls - steer '
+      + 'into it or lift off to bring it down',
+    where: 'Test link + &tipping=1: the Routemonster (and &schoolbus=1 the school bus) in a hard '
+      + 'corner on any circuit; a slide sideways across gravel in any car',
+    try: 'Throw the bus into a tight corner: it leans up on two wheels (the first roll frames), '
+      + 'and comes down if you ease the steering or lift; a car tripping on gravel lifts first and '
+      + 'now and then drops back; ordinary cars on tarmac still slide, never lift.',
+    wrong: 'A car lifting on plain tarmac in an ordinary corner, a lift that will not come down '
+      + 'when you ease off, a juddering lean.',
+  },
+  {
     id: 'marktrack',
     added: '2026-11-17',
     name: 'The rear-right skid mark at the rear wheel\'s own track (the Routemonster, the Skool '

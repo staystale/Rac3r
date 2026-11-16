@@ -41,8 +41,9 @@ const SCHOOL_BUSES = 0.02;
 // hours of the school runs, morning and afternoon (EST, UK school hours); the days of the clock's
 // 7-day week that are the weekend (no school run: its last two)
 const SCHOOL_RUNS: [number, number][] = [[7.5, 9], [14.75, 16.5]], WEEKEND_DAYS = [5, 6];
-// vehicles that keep their own paint in the traffic (a school bus is yellow)
-export const OWN_PAINT = new Set(['skool-bus']);
+// vehicles that keep their own paint in the traffic (a school bus is yellow; the Routemonster
+// always London red - owner)
+export const OWN_PAINT = new Set(['skool-bus', 'routemonster']);
 
 /**
  * Whether a vehicle may be picked for the traffic now: the school bus only on the school runs of

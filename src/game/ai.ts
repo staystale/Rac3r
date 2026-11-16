@@ -6,6 +6,8 @@ import { hwPutBack } from '../highwayrace.ts';
 import { roadFrame } from '../highway.ts';
 import { hit, hitRoll, repair, tooInjured, applyBurst, stepDamage } from '../damage.ts';
 import { rolling, tripCheck, stepRoll } from '../roll.ts';
+import { FIX } from '../core/fixes.ts';
+import { isTipping, stepTipping, tipSave } from '../physics/tip.ts';
 import { LEVEL } from "../world/state.ts";
 import { applyGround } from "../world/wear.ts";
 import { clampWorld } from "../world/crossings.ts";
@@ -200,11 +202,13 @@ export function stepAIPhysics(entry: AiEntry, want: CarInput, dt: number) {
     if (car.roll && car.roll.phase !== 'rolling' && car.roll.still > 1.5 && !entry.held)
       aiReset(entry, true);
   } else {
-    const input = heldInput(entry, want, held);
+    // (?tipping: up on two wheels it eases the steering and lifts, as a driver would)
+    const input = heldInput(entry, FIX.tipping && isTipping(car) ? tipSave(want) : want, held);
     // (a two-speed box's AI takes low when bogged or slow on a steep climb - physics/lowrange.ts)
     stepAIRange(car, input.throttle, car.surface.mu, dt);
     step(car, input, dt);
     if (!held) tripCheck(car, dt);
+    if (FIX.tipping) stepTipping(car, dt);
     applyBurst(car);
   }   // start lights
   // the stingers, the tyres' air and metal on the ground, rolled or not
