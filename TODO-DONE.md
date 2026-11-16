@@ -16,6 +16,26 @@ lighting, bushes and trees - OWNER LIST 10-24; the checking tools - Tools that a
 
 
 
+
+## PASSED 11-17, THE PASS BATCH 4 (owner: the Skool Bus, the E36 Peak and the Transfit Custom passed)
+
+The default 11-17, their switches deleted:
+- THE FJORD TRANSFIT CUSTOM (42ec380a; Ford Transit Custom L1 H1, 2012-23; ROAD / Van): measured top
+  158 km/h, 0-100 13.4 s, 100-0 50.8 m, grip 0.86 g. The vans' 2.4 of the traffic four ways - the
+  Custom 40 (SMMT: the UK's best-selling van), the MWB 25, the SWB 20, the LWB 15 (EST);
+  tools/scratch/_trafficmix.mjs (200 000 draws, plain): the Custom 6.5 %, the MWB 4.0, the SWB 3.2,
+  the LWB 2.4 (16.1 % the vans). Its own parts (two cab doors, the nearside slide, the twin rear
+  doors), shaded.
+- THE BMV E36 PEAK (464fa203; BimmerWorld's Pikes Peak E36, the "Bergsteiger", ~1,000 hp) and its
+  HILL CLIMB class (Unlimited), now always listed: measured top 268 km/h, 0-100 3.5 s, 100-0 38.0 m,
+  grip 1.54 g. Its own parts, shaded.
+- THE SKOOL BUS (a6a86010; an IC Bus CE school bus; ROAD / Bus): measured top 102 km/h, 0-100 55.3 s,
+  100-0 54.4 m, grip 0.65 g. In the traffic rare (0.02: ~1 in 750 in its hours) and only on the school
+  runs by the game's clock (07:30-09:00, 14:45-16:30; not on the clock week's days 5-6; never with
+  the clock off - tools/scratch/_schoolruns.mjs), in its own yellow (OWN_PAINT, with the
+  Routemonster's London red). Its own parts, shaded.
+PROOF (second PC, old with the switches on -> this plain): follows.
+
 ## PASSED 11-17, LOW RANGE (owner: "Low gear works perfectly as is")
 
 The default 11-17, its switch deleted: every car with a two-speed transfer box (the Defunder 110,

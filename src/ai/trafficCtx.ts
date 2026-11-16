@@ -3,7 +3,6 @@
 // trafficDrive.ts, trafficKin.ts).
 import type { HighwayLevel, TrafficCar, TrafficVehicle } from "./types.ts";
 import type { PoliceOrders } from "./trafficPolice.ts";
-import { FIX } from '../core/fixes.ts';
 import { CLOCK, calendarAt } from '../world/clock.ts';
 
 // what is on the road (weights) — road cars only; vans / lorries come with the traffic
@@ -59,11 +58,10 @@ export function inService(vehId: string): boolean {
   return SCHOOL_RUNS.some(([from, until]) => hour >= from && hour < until);
 }
 const VANS = 2.4;
-// The vans' parts of 100: the L2 MWB 40, the L3 LWB 30, the Mk7 SWB 30; with the Transfit Custom
-// (?transitcustom) four ways - the Custom 40 (SMMT: the UK's best-selling van, 2013-23), the MWB
-// 25, the SWB 20, the LWB 15 (EST: no registration split by wheelbase found).
-const VAN_PART = FIX.transitcustom ? { custom: 40, mwb: 25, lwb: 15, swb: 20 }
-  : { custom: 0, mwb: 40, lwb: 30, swb: 30 };
+// The vans' parts of 100, four ways: the Transfit Custom 40 (SMMT: the UK's best-selling van,
+// 2013-23), the L2 MWB 25, the Mk7 SWB 20, the L3 LWB 15 (EST: no registration split by
+// wheelbase found).
+const VAN_PART = { custom: 40, mwb: 25, lwb: 15, swb: 20 };
 /** One Transit's weight: its part (of 100) of the vans' VANS. */
 const vanWeight = (part: number) => VANS * part / 100;
 export const VEH: [string, number][] = [
@@ -72,8 +70,7 @@ export const VEH: [string, number][] = [
   ['transfit-van', vanWeight(VAN_PART.mwb)],
   ['defunder-110', DEFUNDERS], ['focust-st', 0.37], ['routemonster', 0.07],
   ['transfit-lwb', vanWeight(VAN_PART.lwb)], ['transfit-swb', vanWeight(VAN_PART.swb)],
-  ...(VAN_PART.custom ? [['transfit-custom', vanWeight(VAN_PART.custom)] as [string, number]]
-    : []),
+  ['transfit-custom', vanWeight(VAN_PART.custom)],
   ['strange-l322', STRANGE_ROVERS],
   ...RARE, ['tesla-m3', TESLAS], ['seat-ibiza', IBIZAS], ['ordi-a4', AUDI_A4S],
   ['skool-bus', SCHOOL_BUSES],

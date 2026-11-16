@@ -502,7 +502,7 @@ export const CAR_STATS: Record<string, CarStat> = {
       "tcs": true
     }
   },
-  // (measured alone: tools/carstats.mjs transfit-custom with TRANSITCUSTOM=1, behind its switch)
+  // (measured alone: tools/carstats.mjs transfit-custom)
   "transfit-custom": {
     "topKph": 158,
     "zeroTo100": 13.4,
@@ -515,7 +515,7 @@ export const CAR_STATS: Record<string, CarStat> = {
       "tcs": true
     }
   },
-  // (measured alone: tools/carstats.mjs bmv-e36peak with E36PEAK=1, behind its switch)
+  // (measured alone: tools/carstats.mjs bmv-e36peak)
   "bmv-e36peak": {
     "topKph": 268,
     "zeroTo100": 3.5,
@@ -528,7 +528,7 @@ export const CAR_STATS: Record<string, CarStat> = {
       "tcs": true
     }
   },
-  // (measured alone: tools/carstats.mjs skool-bus with SCHOOLBUS=1, behind its switch)
+  // (measured alone: tools/carstats.mjs skool-bus)
   "skool-bus": {
     "topKph": 102,
     "zeroTo100": 55.3,

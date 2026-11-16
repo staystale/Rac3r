@@ -4,7 +4,6 @@
 // the owner passes it. Each row follows the real car (src/realcars.ts helpers); EST marks a figure
 // no source gave. Drafted with tools/newcarstart.mjs, checked with tools/newcar.mjs <id>.
 import type { RosterRow } from './cars.ts';
-import { FIX } from './core/fixes.ts';
 import { dragOf, realCurve, tyreR } from './realcars.ts';
 
 // GT: the GT3 racers (TODO CHAMPIONSHIPS: GT), a class of their own on race tyres
@@ -17,8 +16,7 @@ const TOURING_CLASS = { id: 'touring', name: 'TOURING', subs: ['BTCC', 'One-make
 const PROTO_CLASS = { id: 'proto', name: 'PROTOTYPE', subs: ['Group C', 'LMP1'] };
 // HILL CLIMB: the hill climb specials (Pikes Peak's Unlimited), a class of their own on race tyres
 const HILLCLIMB_CLASS = { id: 'hillclimb', name: 'HILL CLIMB', subs: ['Unlimited'] };
-export const NEW_CLS_IDS = [GT_CLASS.id, TOURING_CLASS.id, PROTO_CLASS.id,
-  ...(FIX.e36peak ? [HILLCLIMB_CLASS.id] : [])];
+export const NEW_CLS_IDS = [GT_CLASS.id, TOURING_CLASS.id, PROTO_CLASS.id, HILLCLIMB_CLASS.id];
 
 // Porsche 911 GT3 R (992, 2023; Porsche Motorsport's data): 4,194 cc flat six behind the rear
 // axle, ~416 kW (565 PS; BoP), 9,250 rpm max, 6-speed sequential, RWD, ~1,250 kg (BoP), 4,619 x
@@ -641,9 +639,8 @@ const SCHOOLBUS: RosterRow = {
 /** The new cars: their roster rows, in the list's order. */
 export const NEW_CARS: RosterRow[] = [PORCH, SEVEN, TRANSFIT, TROPHY, CIVVIC, DEFUNDER, FOCUST,
   CLEO, CLEO_RS, TRANSFIT_LWB, TRANSFIT_SWB, TS010, ROUTEMONSTER, SAXO, STRANGE, SAXO_VTR, TESLA,
-  M4GT3, COROLLA, R13, IBIZA, A4AVANT, ...(FIX.transitcustom ? [TRANSFIT_CUSTOM] : []),
-  ...(FIX.e36peak ? [E36PEAK] : []), ...(FIX.schoolbus ? [SCHOOLBUS] : [])];
+  M4GT3, COROLLA, R13, IBIZA, A4AVANT, TRANSFIT_CUSTOM, E36PEAK, SCHOOLBUS];
 
 /** The classes only new cars race in. */
 export const NEW_CLASSES = [GT_CLASS, TOURING_CLASS, PROTO_CLASS,
-  ...(FIX.e36peak ? [HILLCLIMB_CLASS] : [])];
+  HILLCLIMB_CLASS];

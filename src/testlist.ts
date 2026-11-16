@@ -17,7 +17,7 @@ export const TEST_LIST: TestEntry[] = [
     added: '2026-11-16',
     name: 'The two-wheel state: a car can lift onto its two outside wheels before it rolls - steer '
       + 'into it or lift off to bring it down',
-    where: 'Test link + &tipping=1: the Routemonster (and &schoolbus=1 the school bus) in a hard '
+    where: 'Test link + &tipping=1: the Routemonster (and the school bus) in a hard '
       + 'corner on any circuit; a slide sideways across gravel in any car',
     try: 'Throw the bus into a tight corner: it leans up on two wheels (the first roll frames), '
       + 'and comes down if you ease the steering or lift; a car tripping on gravel lifts first and '
@@ -34,39 +34,6 @@ export const TEST_LIST: TestEntry[] = [
     try: 'Brake hard or slide: the rear-right tyre\'s mark lines up with the rear-left\'s, under '
       + 'the twin rear wheels (it was 0.125 m too far out, at the front track).',
     wrong: 'A rear mark outside its tyre, or any other car\'s marks changed.',
-  },
-  {
-    id: 'schoolbus',
-    added: '2026-11-16',
-    name: 'New vehicle: the Skool Bus (an American IC Bus CE school bus), ROAD / Bus, and in the '
-      + 'traffic on the school runs',
-    where: 'Test link + &schoolbus=1: the garage, ROAD / Bus; the highway in TEST MODE at 08:00 '
-      + 'or 15:30 (the setup\'s TIME) to meet one, and at noon to see none',
-    try: 'Its look (yellow, the white roof, the dog nose, shaded), drive it, crash it: the '
-      + 'entrance door, side panels, the rear emergency door, lots of glass.',
-    wrong: 'One outside the school runs, too common, not yellow in the traffic, a car door off it.',
-  },
-  {
-    id: 'e36peak',
-    added: '2026-11-16',
-    name: 'New car: the BMV E36 Peak (the BimmerWorld Pikes Peak E36), HILL CLIMB / Unlimited (a '
-      + 'new class)',
-    where: 'Test link + &e36peak=1: the garage, HILL CLIMB; a road stage or a hilly circuit '
-      + '(no hill climb stage yet)',
-    try: 'Its look (black, the white roof, the huge blue wing, shaded), about 1,000 hp with '
-      + 'traction control on and off, its grip in fast corners (the downforce).',
-    wrong: 'Not an E36 from above, undrivable even with the aids, slow in a straight line.',
-  },
-  {
-    id: 'transitcustom',
-    added: '2026-11-16',
-    name: 'New car: the Fjord Transfit Custom (a Ford Transit Custom L1 H1), ROAD / Van, and in '
-      + 'the traffic',
-    where: 'Test link + &transitcustom=1: the garage, ROAD / Van; the highway (the four Transfits '
-      + 'share the vans: the Custom the commonest)',
-    try: 'Its look (the white van, the big black mirrors, shaded), its pull against the other '
-      + 'Transfits, crash it: two cab doors, the nearside sliding door, the twin rear doors.',
-    wrong: 'Not a Transit Custom from above, a car door off it, too common or rare in the traffic.',
   },
   {
     id: 'dmgmore',
