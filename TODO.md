@@ -154,23 +154,7 @@ BUGS (each behind its own switch, measured, then a test link):
     witness OK; no cap or spread needed ("police already bother whoever is nearest").
 15. TRAFFIC LEAVES BY THE SLIPS, STOPS FOR FUEL, JOINS FROM THE ON-RAMPS: PASSED 11-16 with the rates
     raised to a measured 2 in 12 / 5 in 40, the default (TODO-DONE).
-15b. FUEL MISSES CARRIED ON (owner 11-16: "Fuel misses stay left for the next station: YES"): BUILT
-    behind ?fuelcarry=1 (FIX.fuelcarry, ai/trafficTrips.ts goForFuel / goForNextStation; testlist
-    'fuelcarry'): a car going for fuel that is in reach with the pumps taken tries again while still
-    in reach; one past its station (not in the nearside lane in time, or the pumps never free) stays
-    in the nearside lane and goes for the next station ahead. The roll unchanged (FUEL_ROLL 0.36).
-    MEASURED (tools/scratch/_hwtrips.mjs, 480 km: motorway / dual x countryside / Deaf Valley x seeds
-    4242 / 7 / 11, 40 km each, traffic 0.6, the laptop; off is JOB 1's run of the same):
-    | | pulled in of the cars passing | traffic | police | won | missed | carried on |
-    |---|---|---|---|---|---|---|
-    | off | 58 / 433 (13.4 %) | 40 / 363 (11.0 %) | 18 / 70 (25.7 %) | 164 / 414 | 84 | - |
-    | on | 63 / 448 (14.1 %) | 42 / 355 (11.8 %) | 21 / 93 (22.6 %) | 183 / 437 | 7 | 17 |
-    | on, roll 0.32 | 62 / 432 (14.4 %) | 42 / 344 (12.2 %) | 20 / 88 (22.7 %) | 161 / 423 | 2 | 22 |
-    (the misses nearly gone, the share pulling in the same within the runs' noise, ~1.7 % either way at
-    this size - so the roll is kept; the owner's 5 in 40 is 12.5 %). Leaving 15.1 % on (16.0 % off: a
-    car waiting for its next station rolls for no slip). Joins 8, 5 merged, 3 held. Traffic step
-    121-256 us (node). PROOF: switch off, _hwtrips 160 km (seeds 4242 / 7) the same line for line as
-    the base (round95) but the step timings.
+15b. FUEL MISSES CARRIED ON: PASSED 11-16, the default (TODO-DONE).
 
 RACE TRACKS:
 16. PIT STOPS - ALL QUESTIONS ANSWERED 11-15 (build after the 10 cars, one switch):
@@ -325,113 +309,12 @@ THE 10 NEW CARS (owner-approved names 11-16; one switch and one hand-back each; 
    Truck, the Honder Civvic Type Arr BTCC, the Lend Rover Defunder 110, the Fjord Focust ST - their
    records in TODO-DONE (PASSED 11-16, THE NEW CARS 1-7 AND THE LAUNCHES). The Mini that never
    spins at a launch: left for now (owner).
-   THE FOCUST AS A HATCH (owner: "The Ford focus doesn't look quite enough of a hatch back"):
-   BUILT 11-16 behind ?focustlook=1 (FIX.focustlook; testlist 'focustlook'): its rear screen now
-   0.04-0.10 of the length from the tail (a tailgate's near upright glass, ~5 px from above; was
-   0.10-0.26, a long slope that read as a boot deck), the roof from 0.10 to the windscreen as the
-   Golf's. Photos (laptop) before / after: the sprite beside the Golf, racing on Thruston at 844x390
-   and 390x844. PROOF (PC, base round99): switch off renderhash SAME (thruston, brands-snatch,
-   highway, and Thruston with the Focust as the player car).
-   THE SHORT-LAP CREDIT (aifieldcheck's AI runs; found on cars 2, 4, 8, 8b): FIXED 11-16 in the tools
-   (f16067b1). querySubtrack gives { dist: Infinity, trackDist: 0 } for a car past the track grid's
-   reach (~23-35 m off the centreline); aifieldcheck read that 0 as the start line - the progress
-   jumped half a lap to it, a lap was credited, it jumped back when the car came within range (runs
-   of 0.1 s laps). The game is not affected: game/order.ts already holds the progress while
-   !isFinite(near.dist). Now aifieldcheck, aidrivecheck, aijokercheck and scratch/_ailap hold it
-   too (the off-road counting unchanged). MEASURED (laptop, round107, 2 6 7 3), before -> after:
-   Sweaty Lamb with the Seven - #1 credited 5 laps (5.2 and 37.1 s among them) -> 3; with the Cleo
-   Cup - #4 4 laps (42.2 s) -> 3; with the Cleo RS 200 and Thruston with the trophy truck no short
-   lap in either run this time (13 / 8 jumps in the earlier traced runs); every car 3 laps after,
-   the lap times otherwise the same within the tools' run-to-run noise (aifieldcheck and aijokercheck
-   do not repeat exactly: the same code twice, Knobhill seed 1, 206.5 / 205.4 s). aijokercheck
-   (Slidden Hill, Knobhill, the S1, seeds 1-2) and aidrivecheck (Sweaty Lamb, the trophy truck:
-   150.1 / 150.0 s) the same within it. scratch/_ailap.mjs does not run (it imports the old lab.js),
-   before or after. THE GAME'S ONE UNGUARDED READ (order.ts stepStart, not changed): a rolling
-   start's AI pole car's trackDist; it would need that car 23-35 m off the centreline in the last
-   60 m before the line during the formation (driven at roll pace on the line by its autodriver),
-   and would then show green up to ~60 m early. Owner: guard it - BUILT 11-16 behind ?rollguard=1
-   (FIX.rollguard; testlist 'rollguard'): an AI pole out of range holds its last place (order.ts
-   stepRollingGreen). PROVOKED (tools/scratch/_rollguard.mjs, Thruston, the
-   pole put 60 m off the side 30 m before the line): off - green at once, 30 m early; on - no
-   green until the pole is back and over the line (10 m on). PROOF: follows.
+   THE FOCUST AS A HATCH and THE SHORT-LAP CREDIT / ROLLGUARD: PASSED 11-16, the default
+   (TODO-DONE, PASSED 11-16, THE PASS BATCH).
    OPEN, one switch and one hand-back each:
-8. RENOLT CLEO CUP (Renault Clio Cup, Clio V, 2020 on: the one-make racer): BUILT 11-16 behind
-   ?cleo=1 (FIX.cleo; testlist 'cleo'), TOURING / One-make (a new type: the one-make cup racers on
-   the BTCC bill - owner: "Clio cup isn't a touring car it's a road car isn't it?"; the road Clio
-   RS 200 Cup follows as 8b). Real (Alpine Racing's sheets, the Clio Cup GB rules): the 1.33 TCe
-   turbo four across the front, "200+ bhp" (149 kW; 180 at the 2020 launch), 300 Nm, 6,500 rpm,
-   a Sadev ST82 five-speed sequential (its ZF limited-slip differential not modelled), FWD, 1,120
-   kg with the driver, 4,050 x 1,798 mm (the 1,988 quoted is with the mirrors), height 1,400,
-   wheelbase 2,579, track 1,550 / 1,490, Michelin 20/61-17 slicks. EST: the power's rpm (5,500),
-   the torque band (2,500-4,500), the ratios (2.62 1.95 1.55 1.27 1.06) and final drive 3.36 (to
-   ~210 km/h), Cd 0.36 x 2.0, 60 / 40, CG 0.43 m, the splitter and wing (ClA 0.55), mu 1.45,
-   springs 2.3 Hz; race ABS, no traction control. No published top speed or 0-100.
-   tools/newcar.mjs cleo-cup (second PC, &underskin=1; the rolled pictures timed out loading twice
-   in the run and were taken on their own after): top 209 km/h, 0-100 5.6 s, 100-0 33.6 m, grip
-   1.34 g (tyrecheck working: tarmac 1.35, gravel 0.90), 40-100 4.31 s; tyres all OK; partcheck
-   all 10 kinds OK; AI x6 Thruston 200 s, 3 incidents (1 off, 1 spin, 1 hit), laps 61.6-69.0 s (the
-   Civvic 197 s); Sweaty Lamb (loose, run apart) 413 s, 12 offs, laps 117.4-141.3 s - AI #3 was
-   credited 12 laps, seven of 0.1 s (the short-lap credit on the owner's list, worse here). LAUNCH:
-   no wheelspin even floored from rest (headless, cold tyres, aids off: as the Mini; the Golf
-   spins from 0.03 s) - 300 Nm on 20 cm slicks under 60 % of 1,120 kg; not changed, a question.
-   Rolled pictures: rests 89 wheels / 115 side / 96 roof of 300. PROOF (PC, base round102): switch
-   off worldhash (--highway 20), simhash, renderhash (thruston, brands-snatch, highway) SAME;
-   switch on simhash SAME (no level uses the car).
-   QUESTIONS for the owner: the Clio V Cup (2020 on) or the Clio IV Cup (2013-19, 1.6 turbo 220
-   PS); 200 bhp or the launch 180; no wheelspin off the line (EST torque and gearing would change
-   it); its aids (race ABS on, no TC: EST); the stock look (white, Renault Sport yellow roof,
-   black wing and splitter); the pipe left of centre (EST).
-8b. RENOLT CLEO RS 200 (Renaultsport Clio 200 Cup, Clio III phase 2, 2009-12, 3-door: the road car;
-   owner: "a road version would be ace too. Make sure it's classed correctly"): BUILT 11-16 behind
-   ?cleoroad=1 (FIX.cleoroad; testlist 'cleoroad'), ROAD / Hatch on road tyres, not in the highway
-   traffic (a rare car). The Clio III rather than the IV: "200 Cup" is the III's name (the IV was
-   the "200 Turbo", the Cup a chassis option), and its figures are published. Real (Renault): the
-   F4R 2.0 four across the front (no turbo), 147 kW (201 PS) at 7,100, 215 Nm at 5,400, six-speed
-   manual, FWD, 1,204 kg, 4,017 x 1,768 mm, wheelbase 2,585, track 1,520, 215/45 R17, ABS; 225
-   km/h, 0-100 6.9 s. EST: 7,500 rpm, the ratios (the TL4 024's 3.18 1.95 1.48 1.21 0.97 0.81; the
-   200's TL4 031 said to differ slightly), final drive 4.5, Cd 0.35 x 2.1, 61 / 39, CG 0.52 m, mu
-   1.28, springs 1.7 Hz (the Cup chassis), no stability control (the Cup's deleted - to check).
-   tools/newcar.mjs cleo-rs200 (second PC, &underskin=1; every step ran clean): top 226 km/h (real
-   225), 0-100 7.1 s (6.9), 100-0 37.4 m, grip 1.18 g, 40-100 5.43 s, no wheelspin on tarmac or
-   gravel; tyres all OK; partcheck all 10 kinds OK; AI x6 Thruston 215 s, 2 incidents (1 off, 1
-   spin), laps 65.7-75.1 s (the Golf-class pace; the Cleo Cup 200 s); Sweaty Lamb (loose, run
-   apart) 421 s, 6 offs, laps 124.7-142.8 s (AI #3 credited two short laps of ~68 s: the short-lap
-   credit). Launch: no wheelspin even floored (215 Nm, no turbo; the Golf spins at once). Rolled
-   pictures: rests 92 wheels / 138 side / 70 roof of 300. PROOF (PC, base round105): switch off
-   worldhash (--highway 20), simhash, renderhash (thruston, brands-snatch, highway) SAME; switch on
-   simhash SAME (no level uses the car). QUESTIONS for the owner: the Clio III 200 Cup (2009-12)
-   or the Clio IV 200 Turbo (2013-16); the stock look (Liquid Yellow, a darker roof, black blade
-   and diffuser); no stability control (EST); not in the traffic.
-THE TRANSITS (owner: "Shouldn't the Ford transit be a short wheel base and a long wheel base
-   variant"; "C for the transit, all 3"; the SWB "older mk7 please"). The L2 is the MWB (Fjord
-   Transfit MWB with either switch on). The vans' 2.4 of the traffic split among those on, SWB 30 /
-   MWB 40 / LWB 30 (EST, the owner's "Sure"); _trafficmix.mjs, 20 000 draws: none on - MWB 16.0 %;
-   the LWB on - 9.1 + 6.7 %; the SWB on - 9.1 + 6.7 %; both - MWB 6.4, LWB 4.8, SWB 4.7 % (15.9 %).
-   The Transit painter (render/newcarlooks.ts) keeps the cab on the nose on every wheelbase
-   (transfitCabShare) and is split into box / cab / tail; the L2's drawing unchanged (renderhash).
-   LWB: PASSED 11-16 ("Transit pass"; to make the default with the SWB's batch). BUILT 11-16 behind
-   ?transfitlwb=1 (0029e818): the Mk8 350 L3 H3 RWD - 3,750 mm wheelbase, 5,981 x 2,059 x 2,650 mm,
-   2,290 kg, RWD with the engine along the car, ABS + ESC; EST the engine as the L2's, the MT82's
-   ratios and the axle 3.73, 235/65 R16, Cd 0.37 x 4.8, 55 / 45, CG 0.85 m. tools/newcar.mjs (second
-   PC, &underskin=1; every step ran, the crash picture on its retry): top 145 km/h, 0-100 16.3 s,
-   100-0 51.4 m, grip 0.80 g, 40-100 12.77 s, gravel power-on body slip 14 deg; tyres all OK;
-   partcheck all 10 kinds OK; AI x6 Thruston 281 s, 0 incidents, laps 85.0-100.4 s; Sweaty Lamb
-   560 s (the cap), 657 put-backs, 0-2 laps each (the heavy 2WD bogging on the owner's list, as the
-   L2 and the trophy truck); rolled pictures 10 wheels / 172 side / 118 roof of 300. HIGHWAY
-   TRAFFIC, off -> on (PC): hwracecheck ALL OK both (racer-traffic 0 -> 0 steps); trafficcheck
-   (named; does not repeat run to run) 14 -> 12 FAILs - FOUND: on the motorway's slow phase an
-   LWB (a physics car, 79 km/h) spun off the carriageway at the phase's start (heading -142 deg;
-   motorway off 0 -> 2,193 car-steps) and one LWB touched a saloon (kin) on the dual; not traced
-   further - to ask. PROOF (PC, base round108): switch off worldhash (--highway 20), simhash,
-   renderhash (thruston, brands-snatch, highway) SAME; switch on simhash DIFFERENT in
-   highway-traffic only (the mix) - [sim].
-   SWB: BUILT 11-16 behind ?transfitswb=1 (d5a0fcea; testlist 'transfitswb'): the Mk7 T280 SWB
-   2.2 TDCi 110 FWD (2006-13) - 2,933 mm wheelbase, 4,863 x 1,974 mm, 81 kW, 285 Nm, five-speed,
-   ABS; EST the kerb weight 1,700 kg (the sheets 1,609-1,699), the torque band, the ratios and final
-   drive, 195/70 R15, Cd 0.39 x 4.0, 58 / 42, CG 0.72 m, no ESP; the Mk7's nose (the wide grille
-   with three chrome bars and the blue oval, the tall lamps back along the wings' corners, grey
-   bumpers). Measured (laptop): top 142 km/h, 0-100 15.1 s, 100-0 51.2 m, grip 0.81 g. Its PC
-   sheet and proofs follow.
+8 / 8b. THE CLEO CUP (now the Clio III Cup) AND THE CLEO RS 200, THE TRANSFITS LWB AND SWB, the
+   Saxo Max, the Strange Rover and the Saxo VTR: PASSED 11-16, the default (TODO-DONE, PASSED
+   11-16, THE PASS BATCH).
 9. TOYOTER TS010 (Toyota TS010 Le Mans prototype, for Le Manky).
 10. AEC ROUTEMONSTER (London Routemaster double-decker bus: drivable, also traffic). After all 10:
    the two-wheel tipping state (its own job; the bus its showcase).

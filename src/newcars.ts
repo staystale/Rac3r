@@ -75,7 +75,7 @@ const SEVEN: RosterRow = {
 // weight split (58 / 42) and its CG height, the tyres' grip and stiffness (van tyres), springs.
 const TRANSFIT: RosterRow = {
   id: 'transfit-van', kind: 'van',
-  name: FIX.transfitlwb || FIX.transfitswb ? 'Fjord Transfit MWB' : 'Fjord Transfit',
+  name: 'Fjord Transfit MWB',
   cls: 'road', sub: 'Van',
   rimIn: 15,   // its real rim, inches (what tyres fit)
   cg: 0.75, rideH: 0.18, cyl: 4,
@@ -439,11 +439,9 @@ const TESLA: RosterRow = {
 
 /** The new cars: their roster rows, in the list's order. */
 export const NEW_CARS: RosterRow[] = [PORCH, SEVEN, TRANSFIT, TROPHY, CIVVIC, DEFUNDER, FOCUST,
-  ...(FIX.cleo ? [CLEO] : []), ...(FIX.cleoroad ? [CLEO_RS] : []),
-  ...(FIX.transfitlwb ? [TRANSFIT_LWB] : []), ...(FIX.transfitswb ? [TRANSFIT_SWB] : []),
+  CLEO, CLEO_RS, TRANSFIT_LWB, TRANSFIT_SWB,
   ...(FIX.ts010 ? [TS010] : []), ...(FIX.routemonster ? [ROUTEMONSTER] : []),
-  ...(FIX.saxo ? [SAXO] : []), ...(FIX.strange ? [STRANGE] : []),
-  ...(FIX.saxovtr ? [SAXO_VTR] : []), ...(FIX.tesla ? [TESLA] : [])];
+  SAXO, STRANGE, SAXO_VTR, ...(FIX.tesla ? [TESLA] : [])];
 
 /** The classes only new cars race in. */
 export const NEW_CLASSES = [GT_CLASS, TOURING_CLASS, ...(FIX.ts010 ? [PROTO_CLASS] : [])];

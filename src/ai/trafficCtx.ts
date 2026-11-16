@@ -3,7 +3,6 @@
 // trafficDrive.ts, trafficKin.ts).
 import type { HighwayLevel, TrafficCar, TrafficVehicle } from "./types.ts";
 import type { PoliceOrders } from "./trafficPolice.ts";
-import { FIX } from "../core/fixes.ts";
 
 // what is on the road (weights) — road cars only; vans / lorries come with the traffic
 // vehicles (TODO 4). A car not in the roster is left out (trafficSpawn.ts): a new car behind its
@@ -12,14 +11,14 @@ import { FIX } from "../core/fixes.ts";
 // The Defunder stands for the Land Rovers: 0.4 is ~3.4 % of the cars (1.1 M of Great Britain's
 // ~34 M licensed cars; DfT / DVLA licensing statistics), ~2.8 % of the picks. The Focust stands
 // for the Focus: 0.37 is ~3 % of the cars (1.05 M of ~35 M; SMMT Motorparc 2023).
-// The vans' 2.4 split between the Transfits switched on, by these parts (EST: no registration
+// The vans' 2.4 split between the three Transfits by these parts of 100 (EST: no registration
 // split found; the MWB the commonest of the big Transits): the L2 MWB 40, the L3 LWB 30, the Mk7
 // SWB 30.
 // The Routemonster stands for the buses: 0.07 is ~0.5 % of the picks, the buses' and coaches'
 // share of Great Britain's road traffic (DfT road traffic estimates).
-// The Land Rovers' 0.4 split between the Defunder and the Strange Rover when it is switched on:
-// 0.15 / 0.25 (owner; EST, Range Rovers outnumber Defenders).
-const LAND_ROVERS = FIX.strange ? [0.15, 0.25] : [0.4, 0];
+// The Land Rovers' 0.4 split between the Defunder and the Strange Rover: 0.15 / 0.25 (owner; EST,
+// Range Rovers outnumber Defenders).
+const DEFUNDERS = 0.15, STRANGE_ROVERS = 0.25;
 // The rare ones at their real share of the cars (DVLA licensing data via howrareismycar.co.uk,
 // against ~34 M cars and the cars' ~12.3 of the weights): every Saxo, 2,306 licensed (2025) -
 // 0.0068 %, 0.00083 - about 1 car in 15,000; the Clio Renaultsport Cup, 210 (2025) - 0.00062 %,
@@ -29,18 +28,14 @@ const RARE: [string, number][] = [['saxo-vtr', 0.00083], ['cleo-rs200', 0.000076
 // howmanyleft.co.uk) - 0.39 %, 0.048 - about 1 car in 260.
 const TESLAS = 0.048;
 const VANS = 2.4;
-const VAN_PARTS: [string, number, boolean][] = [['transfit-van', 40, true],
-  ['transfit-lwb', 30, FIX.transfitlwb], ['transfit-swb', 30, FIX.transfitswb]];
-const vanParts = VAN_PARTS.filter(([, , isOn]) => isOn);
-const vanSum = vanParts.reduce((sum, [, part]) => sum + part, 0);
-/** One Transit's weight: its part of the vans' VANS (the L2 alone: all of it). */
-const vanWeight = (part: number) => (vanParts.length === 1 ? VANS : VANS * part / vanSum);
+/** One Transit's weight: its part (of 100) of the vans' VANS. */
+const vanWeight = (part: number) => VANS * part / 100;
 export const VEH: [string, number][] = [
   ['hatch-fwd', 3], ['saloon-rwd', 3], ['estate-4x4', 2.5], ['mini-fwd', 1.5],
   ['hatch-rwd', 1], ['muscle-rwd', 0.4], ['lambo-awd', 0.12], ['transfit-van', vanWeight(40)],
-  ['defunder-110', LAND_ROVERS[0]], ['focust-st', 0.37], ['routemonster', 0.07],
-  ...vanParts.slice(1).map(([vanId, part]): [string, number] => [vanId, vanWeight(part)]),
-  ...(FIX.strange ? [['strange-l322', LAND_ROVERS[1]] as [string, number]] : []),
+  ['defunder-110', DEFUNDERS], ['focust-st', 0.37], ['routemonster', 0.07],
+  ['transfit-lwb', vanWeight(30)], ['transfit-swb', vanWeight(30)],
+  ['strange-l322', STRANGE_ROVERS],
   ...RARE, ['tesla-m3', TESLAS],
 ];
 // real-road colours: mostly silver / white / black / grey (each its own sprite, cached by

@@ -307,7 +307,7 @@ export const CAR_STATS: Record<string, CarStat> = {
       "tcs": true
     }
   },
-  // (measured alone: tools/carstats.mjs cleo-cup with CLEO=1, a new car behind its switch)
+  // (measured alone: tools/carstats.mjs cleo-cup)
   "cleo-cup": {
     "topKph": 212,
     "zeroTo100": 6.7,
@@ -320,7 +320,7 @@ export const CAR_STATS: Record<string, CarStat> = {
       "tcs": false
     }
   },
-  // (measured alone: tools/carstats.mjs cleo-rs200 with CLEOROAD=1, a new car behind its switch)
+  // (measured alone: tools/carstats.mjs cleo-rs200)
   "cleo-rs200": {
     "topKph": 226,
     "zeroTo100": 7.1,
@@ -333,7 +333,7 @@ export const CAR_STATS: Record<string, CarStat> = {
       "tcs": false
     }
   },
-  // (measured alone: tools/carstats.mjs transfit-lwb with TRANSFITLWB=1, behind its switch)
+  // (measured alone: tools/carstats.mjs transfit-lwb)
   "transfit-lwb": {
     "topKph": 145,
     "zeroTo100": 16.3,
@@ -346,7 +346,7 @@ export const CAR_STATS: Record<string, CarStat> = {
       "tcs": true
     }
   },
-  // (measured alone: tools/carstats.mjs transfit-swb with TRANSFITSWB=1, behind its switch)
+  // (measured alone: tools/carstats.mjs transfit-swb)
   "transfit-swb": {
     "topKph": 142,
     "zeroTo100": 15.1,
@@ -385,7 +385,7 @@ export const CAR_STATS: Record<string, CarStat> = {
       "tcs": false
     }
   },
-  // (measured alone: tools/carstats.mjs saxo-kit with SAXO=1, a new car behind its switch)
+  // (measured alone: tools/carstats.mjs saxo-kit)
   "saxo-kit": {
     "topKph": 215,
     "zeroTo100": 5.9,
@@ -398,7 +398,7 @@ export const CAR_STATS: Record<string, CarStat> = {
       "tcs": false
     }
   },
-  // (measured alone: tools/carstats.mjs strange-l322 with STRANGE=1, behind its switch)
+  // (measured alone: tools/carstats.mjs strange-l322)
   "strange-l322": {
     "topKph": 209,
     "zeroTo100": 8.4,
@@ -411,7 +411,7 @@ export const CAR_STATS: Record<string, CarStat> = {
       "tcs": true
     }
   },
-  // (measured alone: tools/carstats.mjs saxo-vtr with SAXOVTR=1, behind its switch)
+  // (measured alone: tools/carstats.mjs saxo-vtr)
   "saxo-vtr": {
     "topKph": 192,
     "zeroTo100": 9.8,

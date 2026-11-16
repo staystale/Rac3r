@@ -17,7 +17,6 @@ import { shared, game, hwLevel } from './state.ts';
 import { firstFree, lapAhead, lapStepBack } from './resetspot.ts';
 import type { GameCar, CutRun, FormKeeper } from './state.ts';
 import type { CarInput } from '../vehicle.ts';
-import { FIX } from '../core/fixes.ts';
 
 export const resetCar = reset;
 // START LIGHTS (requirement: all races started by lights that clearly go red to green, maybe a
@@ -100,9 +99,9 @@ function stepRollingGreen(startState: typeof game.start) {
   const pole = game.poleCar || game.car, total = LEVEL.subtrack!.totalDist,
     near = pole === game.car ? null : querySubtrack(LEVEL.subtrack!, pole.x, pole.y),
     dist = near ? near.trackDist : game.trackD;
-  // FIX.rollguard: an AI pole out of the track's range (dist Infinity, trackDist 0 - the 0 read
-  // as the line) holds its last place, as the race order does; green waits for the real line
-  const isLost = FIX.rollguard && near !== null && !isFinite(near.dist);
+  // an AI pole out of the track's range (dist Infinity, trackDist 0 - the 0 read as the line)
+  // holds its last place, as the race order does; green waits for the real line
+  const isLost = near !== null && !isFinite(near.dist);
   if (isLost) return;
   if (startState.prevD != null && dist != null && startState.prevD > total - 60 && dist < 60
     && startState.t > 2) startState.tGreen = startState.t;

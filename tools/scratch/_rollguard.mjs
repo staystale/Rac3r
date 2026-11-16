@@ -1,7 +1,7 @@
 // _rollguard.mjs - A ROLLING START'S GREEN WITH THE AI POLE OUT OF THE TRACK'S RANGE: game/order.ts
 // stepStart stepped by hand on Thruston, the pole car (not the player) put on the line's approach,
 // then 60 m off to the side in the last 60 m, then back, then over the line; prints when green
-// came at each step. Nothing in the game is changed: it only reads. ROLLGUARD=1 for the switch.
+// came at each step. Nothing in the game is changed: it only reads (the guard the default 11-16).
 // node tools/scratch/_rollguard.mjs
 import * as L from '../../src/lab.ts';
 import { game } from '../../src/game/state.ts';

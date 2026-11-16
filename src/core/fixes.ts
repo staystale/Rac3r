@@ -23,7 +23,9 @@
 // stationstops, carcache, carcull, coverlight passed 11-12; nighthw, exitpuns, hjfirs, rollhold,
 // stuckreset, croughedrx, tiledensity, aipace (its live pause-menu dials removed), aislide passed
 // 11-15; gpustat (now always with ?report=1), hwtrips, pembreezy, and the new cars porch,
-// seven, transfit, trophy, civvic, defunder, focust and launchramp passed 11-16.)
+// seven, transfit, trophy, civvic, defunder, focust and launchramp passed 11-16; then focustlook,
+// cleo (as the Clio III Cup), cleoroad, transfitlwb, transfitswb, saxo, strange, saxovtr,
+// fuelcarry and rollguard passed 11-16.)
 import { envValue } from './debug.ts';
 
 /**
@@ -60,42 +62,17 @@ export const FIX = {
   // the AI's held drift on loose ground not held while the car is over its speed plan: it brakes
   // first (ai/driverPedals.ts pedals; the drift held its throttle and no brake before)
   driftbrake: atLoad('driftbrake'),
-  // the highway traffic going for fuel that misses its station (not in the nearside lane in
-  // reach, or the pumps taken) stays in the nearside lane for the next one (ai/trafficTrips.ts)
-  fuelcarry: atLoad('fuelcarry'),
   // a chasing police car sounds a siren, the light bar's twin (game/sirens.ts, audiosiren.ts)
   siren: atLoad('siren'),
   // UNDER THE SKIN: what a lost panel shows - the engine and radiator in the bay, a corner's
   // suspension and drive shaft in a wing's well, the crash bar and radiator behind a bumper - by
   // each car's own layout (render/underskin.ts, carbits.ts mount / radiator)
   underskin: atLoad('underskin'),
-  // the Focust read as a five-door HATCH from above: the roof almost to the back, a short steep
-  // rear screen under its spoiler, no boot deck (render/newcarlooks2.ts FOCUST_CABIN)
-  focustlook: atLoad('focustlook'),
-  // the Renolt Cleo Cup (TOURING / Cup)
-  cleo: atLoad('cleo'),
-  // the Renolt Cleo RS 200 (the road Clio 200 Cup, ROAD / Hatch)
-  cleoroad: atLoad('cleoroad'),
-  // the Fjord Transfit LWB (a Transit L3 H3 RWD), drivable and in the traffic; with it the L2 is
-  // named the Fjord Transfit MWB
-  transfitlwb: atLoad('transfitlwb'),
-  // the Fjord Transfit SWB (a Transit Mk7 T280 SWB, 2006-13), drivable and in the traffic; with it
-  // the L2 is the Fjord Transfit MWB too
-  transfitswb: atLoad('transfitswb'),
   // the AEC Routemonster (a London Routemaster double-decker), drivable and in the traffic
   routemonster: atLoad('routemonster'),
-  // the Citrone Saxo Max (the Citroen Saxo Kit Car, RALLY / 2L)
-  saxo: atLoad('saxo'),
-  // the Strange Rover (a Range Rover L322 4.4 V8), ROAD / SUV, drivable and in the traffic
-  strange: atLoad('strange'),
-  // the Citrone Saxo VTR (the road Saxo the Saxmax racers start from), ROAD / Hatch, in the traffic
-  saxovtr: atLoad('saxovtr'),
   // the Teslur Model Why (a Tesla Model 3 Long Range AWD), ROAD / Saloon, in the traffic: its
   // regen (regenG), no exhaust, its frunk, no petrol stations
   tesla: atLoad('tesla'),
   // the Toyoter TS010 (a Toyota TS010 Group C car) and its PROTOTYPE class
   ts010: atLoad('ts010'),
-  // a rolling start's AI pole car out of the track's range holds its place: green waits for the
-  // real line (game/order.ts stepStart; the race order already did)
-  rollguard: atLoad('rollguard'),
 };

@@ -6,7 +6,6 @@
 import { SPRITE_PPM } from "./shared.ts";
 import { CHR, GLASS, HEAD, TAIL, type SpriteCtx } from "./carsprite.ts";
 import { GLASS_HI, INK, MESH, STEEL, inside, planBody } from "./newcarlooks.ts";
-import { FIX } from "../core/fixes.ts";
 
 // the Defender's spare wheel on the rear door, a share of its length (0.17 m of the tyre's depth
 // past the body: 4,785 mm with it, 4,639 without)
@@ -117,10 +116,10 @@ function focustPlan(share: number): number {
 }
 
 // the Focus's glasshouse along it, shares of its length (0 tail): where the rear screen and the
-// roof begin. FIX.focustlook: a hatch's - the tailgate's near upright screen, seen from above as a
-// short strip (0.04-0.10, ~5 px: the Mk4's roof runs to ~0.1 m of its spoiler), the roof almost
-// to the back; else the long sloping screen from 0.10 (it read as a boot deck)
-const FOCUST_CABIN = FIX.focustlook ? { rear: 0.04, roof: 0.1 } : { rear: 0.1, roof: 0.26 };
+// roof begin - a hatch's: the tailgate's near upright screen, seen from above as a short strip
+// (0.04-0.10, ~5 px: the Mk4's roof runs to ~0.1 m of its spoiler), the roof almost to the back
+// (the long sloping screen from 0.10 it had read as a boot deck)
+const FOCUST_CABIN = { rear: 0.04, roof: 0.1 };
 
 /**
  * The Focus's glasshouse: the roof spoiler (the third colour) over the sloping tailgate glass,

@@ -33,7 +33,6 @@ import { setSpeed } from './trafficSpawn.ts';
 import type { TrafficCar, TrafficEnt } from './types.ts';
 import type { HwLevel } from '../highway/hwtypes.ts';
 import type { Point, Prop } from '../world/types.ts';
-import { FIX } from '../core/fixes.ts';
 import { bitsOf } from '../carbits.ts';
 
 /** A way off the road: where its slip starts (road s), its line, m it stops short of the end. */
@@ -61,8 +60,8 @@ export interface TrafficTrip {
 // there, or that misses a station, never counts (tools/scratch/_hwtrips.mjs measures the cars
 // passing: leaving 2 in 12, pulling in 5 in 40); of our way's cars put back ahead of you with an
 // on-ramp in reach, those that join from it (the owner's 2 in 12, so the road keeps its traffic)
-// (?fuelcarry=1 keeps FUEL_ROLL: with the misses carried on to the next station 14.1 % of the cars
-// passing pulled in, 13.4 % without, 0.32 gave 14.4 % - the same within the runs' noise)
+// (the misses carried on to the next station kept FUEL_ROLL: 14.1 % of the cars passing pulled in,
+// 13.4 % without, 0.32 gave 14.4 % - the same within the runs' noise)
 const LEAVE_ROLL = 0.24, FUEL_ROLL = 0.36, JOIN_SHARE = 2 / 12;
 // m ahead a slip / station is rolled for (from the outside lane of three: two lane changes of
 // ~150 m each at 100 km/h); m ahead it must still be to be rolled for
@@ -281,8 +280,8 @@ function planTrip(ctx: TrafficCtx, slot: TrafficCar) {
 
 /**
  * A car going for fuel: in reach of the station in the nearside lane, it pulls in (if the pumps
- * are free); past reach, it has missed it. ?fuelcarry=1: with the pumps taken it tries again
- * while still in reach, and one that missed its station stays in the nearside lane for the next.
+ * are free); with the pumps taken it tries again while still in reach; past reach it has missed
+ * it, and stays in the nearside lane for the next.
  * @param ctx the traffic
  * @param slot the car
  * @param env the step's road
@@ -296,15 +295,14 @@ function goForFuel(ctx: TrafficCtx, slot: TrafficCar, env: DriveEnv, trip: Traff
   }
   if (inPullInReach(slot, station) && slot.lane === 0 && slot.laneT === 0) {
     const pulledIn = pullIn(ctx, slot, env, station);
-    if (pulledIn || !FIX.fuelcarry) slot.trip = null;
+    if (pulledIn) slot.trip = null;
   } else if (pastPullIn(slot, station)) {
-    if (FIX.fuelcarry) goForNextStation(ctx, slot, trip);
-    else slot.trip = null;
+    goForNextStation(ctx, slot, trip);
   }
 }
 
 /**
- * ?fuelcarry=1: a car that missed its station goes for the next one ahead (none loaded yet: it
+ * A car that missed its station goes for the next one ahead (none loaded yet: it
  * looks again each step), staying in the nearside lane till then.
  * @param ctx the traffic
  * @param slot the car
