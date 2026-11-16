@@ -51,6 +51,15 @@ export const CAR_SHADE: Record<string, Line[] | null> = {
   'saxo-kit': crests(null, [0.14, 0.53], [0.7, 0.94]),
   'strange-l322': crests(null, [0.11, 0.59], [0.68, 0.95]),
   'tesla-m3': crests([0.03, 0.12], [0.24, 0.58], [0.71, 0.95]),
+  // batch 2: the rally, RX, drift and stock cars
+  'wrz-awd': crests([0.04, 0.19], [0.32, 0.55], [0.7, 0.95]),
+  'rally-4x4': crests(null, [0.27, 0.53], [0.69, 0.95]),
+  'mikra-r1': crests(null, [0.16, 0.58], [0.76, 0.95]),
+  'kit-2l': crests(null, [0.24, 0.53], [0.71, 0.95]),
+  'rx-super': crests(null, [0.22, 0.5], [0.67, 0.95]),
+  'banger-f2': crests([0.04, 0.16], [0.3, 0.58], [0.73, 0.95]),
+  'drift-s13': crests([0.04, 0.12], [0.28, 0.53], [0.69, 0.95]),
+  naffcar: crests([0.04, 0.18], [0.32, 0.54], [0.69, 0.95]),
   ts010: null,
   'bmv-m4gt3': null,
 };

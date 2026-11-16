@@ -15,13 +15,13 @@ export const TEST_LIST: TestEntry[] = [
   {
     id: 'carshade',
     added: '2026-11-16',
-    name: 'Shading, batch 1: the road cars shaded the TS010 way (lit crests, soft slopes, shadow '
+    name: 'Shading, batches 1-2: the cars shaded the TS010 way (lit crests, soft slopes, shadow '
       + 'at the glass and in the arches)',
-    where: 'Test link + &carshade=1: the garage, ROAD; a race and the highway traffic; compare '
-      + 'with the plain link',
+    where: 'Test link + &carshade=1: the garage, ROAD and RALLY; a race, a rally stage, the '
+      + 'highway; compare with the plain link',
     try: 'The Golf, M135i, 3 Series, V70, Mini, Chevvy, Huracan, Focust, Cleo, Saxo, Strange Rover '
-      + 'and Tesla: the bonnet, roof and shoulders read as shapes; every other car gets the shared '
-      + 'step only (its own lines come in batches 2 and 3).',
+      + 'and Tesla; the WRZ, S1, Mikra, 306 Maxxi, Fiester RX, S13, Naffcar and F2 Stocker: the '
+      + 'bonnet, roof and shoulders read as shapes (the race cars, vans and the rest: batch 3).',
     wrong: 'Stripes that look like paint instead of light, lines over the lamps or glass, a car '
       + 'that looks dirtier rather than shaped.',
   },
