@@ -933,4 +933,7 @@ road the level does not race: the rallycross section's wall on the circuit; the 
 Brooklands, outer south and paddock-side walls on the RX), a wall's stacks within `MAP_WALL_NEAR_M`
 (3 m) of the edge's own rows are left out (its fringe beside them, not only on them), and what is
 left in runs shorter than `MIN_RUN_REAL_M` (20 real m) is left out (lone tyres and stubs cut off by
-a road or the edge's rows).
+a road or the edge's rows). With `?pbzline=1` (`FIX.pbzline`, under test) the RX's racing line keeps
+`LOOSE_LINE_M` (2.6 m) from the edge on its gravel, not `LINE_MARGIN` (1.6 m):
+`Level.looseLineMargin`, `ai/line.ts looseLimits` (the line's own edge limits on a level's loose
+sectors).

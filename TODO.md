@@ -500,6 +500,24 @@ so a gentle pull-away from rest is no longer possible on the button (the ramp wa
   15.2 s, 13, 2, +18 s. The 1200 m corner stays (its cause is the drift). (2) THE AI (shared, needs the
   owner's OK): no held drift while the car is over its speed plan (brake first) - every loose level
   would change. (3) Bales further out at the three exits - hides it, not proposed.
+  OWNER 11-16: fix 1 and fix 2 YES, fix 3 no ("Fix it don't hide it"); "ideally not be a new system
+  just a tune of an old one".
+  FIX 1 BUILT behind ?pbzline=1 (FIX.pbzline; Level.looseLineMargin, set on Pembreezy RX only; ai/line.ts
+  looseLimits - the line's own edge limits, the LINE_MARGIN it keeps, made LOOSE_LINE_M on the level's
+  loose sectors; testlist 'pbzline'): 2.6 m in the commit (the owner picks 2.6 or 3.6).
+  MEASURED (_pbzoff, the AI alone, 25 laps; off / 2.6 / 3.6): off the road 52.8 / 41.0 / 15.3 s,
+  excursions 31 / 24 / 9, within 1.5 m of a bale or tyre 14 / 7 / 1; the 25 laps 2015 / 2030 / 1999 s
+  (no lap-time cost to read: the earlier throwaway gave +39 s at 2.6 and +18 s at 3.6 - noise at 25
+  laps; the same tool's base run gave 42.1 s and 52.8 s off on two runs). THE FULL FIELD
+  (tools/scratch/_pbzrace.mjs on the second PC, 20 AI, 4 laps, rx-super; off / 2.6 m / 3.6 m, seed 1
+  then 2; off seed 1 did not load its page three times and is to run again): put back - / 28, 29 /
+  23, 34 / 22 a race - half to two thirds of them at lap 1100-1300 m (- / 11, 14 / 15, 26 / 17), the
+  corner after the gravel hairpin whose cause is the held drift (fix 2); AI off the road a median -
+  / 26.9, 36.9 / 23.6, 28.4 / 21.4 s a race; 20 of 20 AI finished every race; the tool's own driver
+  (no put-back) stuck on the gravel in every race, as before. So the line margin alone does not cut
+  the field's put-backs; the lone AI's excursions it does (above). PROOF: switch off, simhash SAME
+  (13 runs, and a drive run on Pembreezy RX), worldhash --highway 20 SAME (the PC, the base round98
+  against the fix).
 - DEMOLITION DERBY (owner 11-10: "Demolition derby levels classic tarmac circle - and we can reuse
   stock car tracks ect for that too"): a classic tarmac circle arena, and a derby mode on the stock
   car tracks (Stock Car, Grass Track, Old Wobbly). Questions when we come to it (the AI ramming, how

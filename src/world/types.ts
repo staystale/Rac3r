@@ -564,6 +564,9 @@ export interface Level {
   // the share of its trees that are firs, 0..1, picked by each tree's seed (render/trees.ts; the
   // game's mix when unset)
   firShare?: number;
+  // m the racing line keeps from the road's edge on its loose ground, where the AI slides wider
+  // than LINE_MARGIN allows for (ai/line.ts; ?pbzline=1, Pembreezy RX's gravel)
+  looseLineMargin?: number;
   bounds?: Rect;
   floor?: number;
   subtrack?: Subtrack;

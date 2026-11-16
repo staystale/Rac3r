@@ -13,6 +13,17 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'pbzline',
+    added: '2026-11-16',
+    name: 'Pembreezy RX: the AI line kept off the edge on the gravel',
+    where: 'Test link + &pbzline=1: test mode, RALLYCROSS -> Pembreezy RX, a race with a '
+      + 'full field',
+    try: 'Watch the field through the gravel loop and the S-bends after it (towards Woodlands): '
+      + 'fewer cars running wide into the bales and being put back.',
+    wrong: 'Cars slower or bunched up through the gravel, the line looking odd (weaving in the '
+      + 'middle), more crashes, cars still piling into the bales on the S-bends.',
+  },
+  {
     id: 'garagewide',
     added: '2026-11-16',
     name: 'The garage car picker wider on a landscape screen',

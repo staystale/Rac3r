@@ -53,6 +53,9 @@ export function dialAtLoad(name: string): number {
 
 /** The switches under test, all off on the plain link. */
 export const FIX = {
+  // Pembreezy RX's racing line kept further from the edge on its gravel (Level.looseLineMargin,
+  // ai/line.ts looseLimits): the AI ran wide off its S-bends' exits into the bales
+  pbzline: atLoad('pbzline'),
   // the garage's car picker wider on a landscape screen, so a long car name fits (menu/garage.ts)
   garagewide: atLoad('garagewide'),
   // the highway traffic going for fuel that misses its station (not in the nearside lane in
