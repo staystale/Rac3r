@@ -6,7 +6,7 @@ import { shade } from "../render.ts";   // hoisted, only called at draw time (no
 import { SPRITE_PPM } from "./shared.ts";
 import { CHR, GLASS, HEAD, TAIL, type SpriteCtx } from "./carsprite.ts";
 
-const INK = '#16181d', STEEL = '#2a2d34', MESH = '#3a3d45', GLASS_HI = '#3d4658';
+export const INK = '#16181d', STEEL = '#2a2d34', MESH = '#3a3d45', GLASS_HI = '#3d4658';
 
 /**
  * Paints a body from its PLAN: each column's half width, px, from the tail (x 0) to the nose -
@@ -15,7 +15,7 @@ const INK = '#16181d', STEEL = '#2a2d34', MESH = '#3a3d45', GLASS_HI = '#3d4658'
  * @param spr the painting context
  * @param halfAt the half width at a column, px (up to the sprite's mid)
  */
-function planBody(spr: SpriteCtx, halfAt: (x: number) => number): void {
+export function planBody(spr: SpriteCtx, halfAt: (x: number) => number): void {
   const { lengthPx: len, mid, paint, outline, dark, light, block } = spr;
   for (let x = 0; x < len; x++) {
     const half = Math.min(mid, Math.max(1, Math.round(halfAt(x))));
@@ -339,7 +339,7 @@ function paintTransfit(spr: SpriteCtx): void {
  * @param ramp the share over which it ramps in and out
  * @returns 0..1
  */
-function inside(share: number, from: number, until: number, ramp: number): number {
+export function inside(share: number, from: number, until: number, ramp: number): number {
   return Math.max(0, Math.min(1, (share - from) / ramp, (until - share) / ramp));
 }
 

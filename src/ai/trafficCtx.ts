@@ -8,9 +8,12 @@ import type { PoliceOrders } from "./trafficPolice.ts";
 // vehicles (TODO 4). A car not in the roster is left out (trafficSpawn.ts): the new cars behind
 // their switches (newcars.ts). The Transfit stands for all vans: 2.4 is 17 % of the picks, the
 // vans' share of Great Britain's road traffic (DfT road traffic estimates 2023; cars 76 %).
+// The Defunder stands for the Land Rovers: 0.4 is ~3.4 % of the cars (1.1 M of Great Britain's
+// ~34 M licensed cars; DfT / DVLA licensing statistics), ~2.8 % of the picks.
 export const VEH: [string, number][] = [
   ['hatch-fwd', 3], ['saloon-rwd', 3], ['estate-4x4', 2.5], ['mini-fwd', 1.5],
   ['hatch-rwd', 1], ['muscle-rwd', 0.4], ['lambo-awd', 0.12], ['transfit-van', 2.4],
+  ['defunder-110', 0.4],
 ];
 // real-road colours: mostly silver / white / black / grey (each its own sprite, cached by
 // id + paint)

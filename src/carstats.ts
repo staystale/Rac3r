@@ -280,5 +280,18 @@ export const CAR_STATS: Record<string, CarStat> = {
       "abs": false,
       "tcs": false
     }
+  },
+  // (measured alone, tools/carstats.mjs defunder-110 with DEFUNDER=1: a new car behind its switch)
+  "defunder-110": {
+    "topKph": 148,
+    "zeroTo100": 13.2,
+    "brake100": 53.7,
+    "gripG": 0.81,
+    "massKg": 1987,
+    "drive": "4WD",
+    "aids": {
+      "abs": true,
+      "tcs": true
+    }
   }
 };

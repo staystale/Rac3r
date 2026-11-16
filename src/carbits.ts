@@ -104,6 +104,10 @@ export const CAR_BITS: Record<string, CarBits> = {
   // it, the 2.0 turbo four across the front, the radiator in the nose
   'civvic-btcc': { pipes: 1, pipesAt: 'left', front: 'bonnet', rear: 'boot', engine: 'front',
     cyl: 4, layout: 'inline', mount: 'trans', radiator: 'front', wingOnLid: true },
+  // Defender 110: one pipe out on the left behind the rear wheel (EST), the bonnet, the side-hung
+  // rear door, the Puma four along the front, the radiator in the nose
+  'defunder-110': { pipes: 1, pipesAt: 'left', front: 'bonnet', rear: 'boot', engine: 'front',
+    cyl: 4, layout: 'inline', mount: 'long', radiator: 'front' },
 };
 
 /**

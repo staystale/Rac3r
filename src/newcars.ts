@@ -138,10 +138,36 @@ const CIVVIC: RosterRow = {
   paint: '#f0f0ea', trim: '#c8342a', glass: '#2a2f38', rim: '#16181d',
 };
 
+// Land Rover Defender 110 Station Wagon 2.2 TDCi (2012-16; Land Rover's figures): the Puma 2.2
+// diesel four along the front, 90 kW (122 PS) at 3,500 and 360 Nm at 2,000, the six-speed manual
+// (5.443 2.839 1.721 1.223 1.0 0.794), the transfer box's high range 1.211 on 3.538 axles (4.285),
+// permanent four-wheel drive (a locking centre: 50 / 50), 1,987 kg, 4,785 mm long with the spare
+// on the door, 1,790 wide, wheelbase 2,794, 235/85 R16, ABS and traction control; 145 km/h, 0-100
+// 15.8 s. EST: the torque's band (2,000-2,400), the 4,500 limit, Cd 0.55 x 2.8 m^2, the weight
+// split (52 / 48), the track (1,486), the CG height and ride height, the all-terrain tyres' grip
+// and stiffness, the soft coil springs. The low range is not modelled (no new mechanic).
+const DEFUNDER: RosterRow = {
+  id: 'defunder-110', name: 'Lend Rover Defunder 110', kind: 'defunder', cls: 'offroad',
+  sub: '4x4', rimIn: 16,   // its real rim, inches (what tyres fit)
+  cg: 0.8, rideH: 0.25, cyl: 4,
+  aids: { abs: true, tcs: true },
+  mass: 1987, lf: 1.341, lr: 1.453, len: 4.785, wid: 1.79, trackWidth: 1.486,
+  tyreWidth: 0.235, wheelR: tyreR(235, 85, 16),
+  drive: 0.5, brakeBiasF: 0.65, caF: 90000, caR: 90000, mu: 0.85,
+  curve: realCurve({ idle: 750, low: 0.55, nm: 360, nmFrom: 2000, nmTo: 2400,
+    kw: 90, kwAt: 3500, redline: 4500 }),
+  redline: 4500, upshiftRpm: 4000, downshiftRpm: 1600, idleRpm: 750,
+  gears: [5.443, 2.839, 1.721, 1.223, 1.0, 0.794], finalDrive: 4.285, dragC: dragOf(0.55, 2.8),
+  susF: 1.1, susZ: 0.4,
+  // green, a white roof (big), black arches, bumper and mirrors, silver wheels
+  paint: '#1f4d2e', trim: '#f0f0ea', glass: '#2a2f38', rim: '#a9aeb6',
+};
+
 /** The new cars switched on: their roster rows, in the list's order. */
 export const NEW_CARS: RosterRow[] = [...(FIX.porch ? [PORCH] : []),
   ...(FIX.seven ? [SEVEN] : []), ...(FIX.transfit ? [TRANSFIT] : []),
-  ...(FIX.trophy ? [TROPHY] : []), ...(FIX.civvic ? [CIVVIC] : [])];
+  ...(FIX.trophy ? [TROPHY] : []), ...(FIX.civvic ? [CIVVIC] : []),
+  ...(FIX.defunder ? [DEFUNDER] : [])];
 
 /** The classes only new cars race in, while one of them is switched on. */
 export const NEW_CLASSES = [...(FIX.porch ? [GT_CLASS] : []),

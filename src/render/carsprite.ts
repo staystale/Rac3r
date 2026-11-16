@@ -572,6 +572,7 @@ function paintRaceNumber(spr: SpriteCtx): void {
     tractor: [0.78, 2], estate: [0.34, 2], muscle: [0.37, 2], stock: [0.41, 2],
     saloon: [0.43, 2], wrz: [0.435, 2], porch: [0.46, 2], seven: [0.68, 1],
     van: [0.40, 2], trophy: [0.50, 2], btcc: [0.42, 2],
+    defunder: [0.38, 2],
   }[kind] || [0.365, 2];
   numPanel(spr, along(numSpot[0]), numSpot[1]);
 }

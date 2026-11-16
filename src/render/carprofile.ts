@@ -86,6 +86,11 @@ export const PROFILES: Record<string, CarProfile> = {
   'civvic-btcc': { len: 4.557, waist: 0.9, glass: [0.12, 0.62], roof: [[0, 0.55], [0.02, 1.05],
     [0.08, 1.12], [0.24, 1.3], [0.32, 1.36], [0.52, 1.36], [0.65, 0.95], [0.95, 0.78],
     [1, 0.45]] },
+  // Defender 110: the spare on the rear door, the flat roof, the near upright screen, the flat
+  // bonnet and wings, the bumper (EST from photos)
+  'defunder-110': { len: 4.785, waist: 1.3, glass: [0.1, 0.66], roof: [[0, 0.45], [0.005, 0.85],
+    [0.035, 0.85], [0.04, 1.94], [0.07, 1.98], [0.66, 1.98], [0.69, 1.3], [0.97, 1.25],
+    [1, 0.6]] },
 };
 
 /**

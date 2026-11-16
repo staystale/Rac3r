@@ -78,4 +78,6 @@ export const FIX = {
   pembreezy: atLoad('pembreezy'),
   // the Honder Civvic Type Arr BTCC and its TOURING class
   civvic: atLoad('civvic'),
+  // the Lend Rover Defunder 110 (drivable, and in the highway traffic)
+  defunder: atLoad('defunder'),
 };

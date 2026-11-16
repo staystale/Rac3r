@@ -47,6 +47,9 @@ const REAL_SIZE: Record<string, RealSize> = {
   'effing-tt': { len: 5.6, wid: 2.35, lf: 1.575, lr: 1.575, trackWidth: 2.0 },
   // Civic Type R BTCC (FK8): 4.557 long, 1.875 wide (NGTC), wheelbase 2.70; 58 / 42, track 1.68 EST
   'civvic-btcc': { len: 4.557, wid: 1.875, lf: 1.134, lr: 1.566, trackWidth: 1.68 },
+  // Defender 110 Station Wagon: 4.785 (with the spare) x 1.79, wheelbase 2.794; 52 / 48 and the
+  // track 1.486 EST
+  'defunder-110': { len: 4.785, wid: 1.79, lf: 1.341, lr: 1.453, trackWidth: 1.486 },
 };
 
 /**

@@ -55,4 +55,6 @@ export const REAL_FIGURES = {
   'civvic-btcc': { real: 'Honda Civic Type R FK8 BTCC (NGTC, 2018-21, Xtrac 6-speed sequential)',
     topKph: 250, zeroTo100: 4.3, note: 'top speed EST (145-160 mph quoted at Thruxton); 0-100 '
       + 'EST from the ~4.0 s 0-60 mph quoted for a BTCC car' },
+  'defunder-110': { real: 'Land Rover Defender 110 Station Wagon 2.2 TDCi (2012-16, 6MT)',
+    topKph: 145, zeroTo100: 15.8, note: "Land Rover's figures" },
 };

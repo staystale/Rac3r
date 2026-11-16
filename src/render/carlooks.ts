@@ -10,6 +10,7 @@ import {
   cabin, numDigits, CHR, GLASS, HEAD, TAIL, WHITE, type SpriteCtx,
 } from "./carsprite.ts";
 import { NEW_LOOKS } from "./newcarlooks.ts";
+import { NEW_LOOKS_2 } from "./newcarlooks2.ts";
 
 const INK = '#16181d', STEEL = '#2a2d34', MESH = '#3a3d45';
 
@@ -289,5 +290,5 @@ export const LOOKS = new Map<string, { paint: (spr: SpriteCtx) => void; bare?: b
   ['naffcar', { paint: paintNextGen }],
   ['mikra-r1', { paint: paintMicra }], ['grass-special', { paint: paintBuggy, bare: true }],
   // (the new cars: render/newcarlooks.ts)
-  ...NEW_LOOKS,
+  ...NEW_LOOKS, ...NEW_LOOKS_2,
 ]);

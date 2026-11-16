@@ -189,7 +189,7 @@ export const CLASSES = [
   { id: 'oval', name: 'OVAL', subs: ['Naffcar'] },
   { id: 'single', name: 'SINGLE-SEATER', subs: ['F1', 'F2', 'FE'] },
   { id: 'drift', name: 'DRIFT', subs: ['Pro', 'Street'] },
-  { id: 'offroad', name: 'OFF-ROAD / ODD', subs: ['Odd', 'Trophy truck'] }, ...NEW_CLASSES,
+  { id: 'offroad', name: 'OFF-ROAD / ODD', subs: ['Odd', 'Trophy truck', '4x4'] }, ...NEW_CLASSES,
 ];
 export const classOf = (classId: string) => CLASSES.find((cls) => cls.id === classId);
 
