@@ -42,6 +42,7 @@ import {
   drawWreck, drawGasStation, drawCanopy, drawServices, drawShack,
 } from './props/desertjunk.ts';
 import { propsNear, screenBox } from './propgrid.ts';
+import { notePropDrawn, notePropsWalked } from '../ui/gpustat.ts';
 
 /** the drawer of each prop kind (a kind with no entry is only positioned) */
 const PROP_DRAWERS: Record<string, PropDrawer> = {
@@ -139,6 +140,8 @@ function drawPropList(propCtx: PropCtx, overhead = false) {
   // the endless road changes its props as it goes (highway/*.ts): it walks the whole list
   const near = LEVEL.endless ? null : propsNear(PROPS, screenBox(propCtx.view,
     propCtx.toScreenX, propCtx.toScreenY, SCREEN_PAD_PX));
+  // (?gpustat=1: how many it looks at)
+  notePropsWalked(near ? near.length : PROPS.length);
   if (near) for (const idx of near) drawListedProp(propCtx, PROPS[idx], ppm, overhead);
   else for (const prop of PROPS) drawListedProp(propCtx, prop, ppm, overhead);
 }
@@ -177,6 +180,7 @@ function drawOneProp(propCtx: PropCtx, prop: Prop, ppm: number, overhead: boolea
   const { view, toScreenX, toScreenY } = propCtx;
   const screenX = toScreenX(prop.x), screenY = toScreenY(prop.y);
   if (!propVisible(view, prop, screenX, screenY, ppm)) return;
+  notePropDrawn(prop.kind === 'tree');
   view.ctx.save();
   view.ctx.translate(screenX, screenY);
   if (prop.rot) view.ctx.rotate(prop.rot);

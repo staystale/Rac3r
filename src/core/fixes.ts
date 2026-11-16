@@ -59,4 +59,7 @@ export const FIX = {
   // pull in for fuel (moving over to the nearside lane first; cruising police too), and cars join
   // from the on-ramps (ai/trafficTrips.ts)
   hwtrips: atLoad('hwtrips'),
+  // the phone report (?report=1) also records the GPU side and each draw layer's time, the
+  // device's hints (ui/gpustat.ts, render/layerclock.ts): report only, nothing drawn changes
+  gpustat: atLoad('gpustat'),
 };

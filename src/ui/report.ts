@@ -7,6 +7,7 @@ import { WEATHER } from "../world/weather.ts";
 import { FIELD } from "../world/coverfield.ts";
 import { DAYLIGHT } from "../world/daylight.ts";
 import { CLOCK, calendarAt } from "../world/clock.ts";
+import { takePostStats, watchDeviceHints } from "./gpustat.ts";
 
 const REPORT_FRAMES = 300;   // frames per post (~5 s)
 
@@ -44,6 +45,8 @@ export type ReportFrame = [number, number, number, number, number, number, numbe
 export function createReporter(query: string, level: () => string,
     loadMs: () => number | null = () => null, flySets: () => object | undefined = () => undefined) {
   const frames: ReportFrame[] = [];
+  // (?gpustat=1: the device's hints from now on - ui/gpustat.ts)
+  watchDeviceHints();
   const session = Math.random().toString(36).slice(2, 8);
   let part = 0;
   /** Posts the frames waiting, if any. */
@@ -57,6 +60,8 @@ export function createReporter(query: string, level: () => string,
       homeScreen: matchMedia('(display-mode: fullscreen), (display-mode: standalone)').matches
         || (navigator as Navigator & { standalone?: boolean }).standalone === true,
       weather: weatherNow(), flySets: flySets(),
+      // (?gpustat=1: the frames' extra numbers' names, the device's hints; else left out)
+      stat: takePostStats(),
       frames: frames.splice(0, frames.length),
     });
     fetch('/__report', { method: 'POST', body, keepalive: true }).catch(() => {});

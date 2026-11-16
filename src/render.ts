@@ -15,7 +15,6 @@
 // thing the player must read at a glance — which way the front wheels point — is drawn at full
 // contrast.
 import type { Settings } from "./core/settings.ts";
-
 import { COL } from "./world/colours.ts";
 import { createCarSprite } from "./render/carsprite.ts";
 import { createCarDamage } from "./render/cardamage.ts";
@@ -44,6 +43,7 @@ import { LEVEL } from "./world/state.ts";
 import { trackCanvas } from './core/memorybudget.ts';
 import { createFlyLayers, NO_FLY_LAYERS, FLY_STATS } from './render/flylayers.ts';
 import type { FlyLayers } from './render/flylayers.ts';
+import { timeLayers } from './render/layerclock.ts';
 
 // PPM is derived from the SHORT side of the viewport, so the car is a consistent fraction of the
 // screen everywhere (a flat PPM of 16 put a 4 m car at 64 px on a 1280 px desktop, too small
@@ -513,12 +513,13 @@ function paintFlat(
 }
 
 /**
- * Builds the debug methods the tools call (zoom pin, colours, tile photos).
- *
+ * Builds the debug methods the tools call (zoom pin, colours, tile photos); ?gpustat=1 times the
+ * layers (render/layerclock.ts).
  * @param ctx the renderer context
  * @returns the debug methods
  */
 function makeDebugTools(ctx: RenderCtx) {
+  timeLayers(ctx);
   const { view, camState } = ctx;
   return {
     // (not a debug tool - the menu flow sets it) the menu race on (true) or a session (false): the

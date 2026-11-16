@@ -12,6 +12,7 @@ import { CROSSING_MARK_MARGIN_M, MARK_PPM, forEachCrossingMarks } from "../marks
 import { LEVEL } from "../world/state.ts";
 import type { RenderCar, RenderGame, RenderMarks, View } from "./types.ts";
 import type { Crossing } from "../world/types.ts";
+import { addLayerMs, statNow } from "../ui/gpustat.ts";
 
 /** What the screen passes read from the renderer (render.ts RenderCtx has all of it). */
 export interface ScreenCtx {
@@ -109,6 +110,8 @@ export function drawSharpCarLayers(ctx: ScreenCtx, game: RenderGame, lock: Scree
   // the tunnels' tyre marks over their portals' cuts (none shows under the ground)
   if (LEVEL.crossings) drawCrossingMarks(ctx, sharp, 'tunnel');
   drawSparksOnScreen(ctx, lock);
+  // (?gpustat=1: the cars' time - ui/gpustat.ts)
+  const carsT0 = statNow();
   forEachDrawnCar(ctx, game, (car) => {
     const way = crossingOf(car);
     if (!way) drawSharpCar(ctx, car, sharp);
@@ -120,6 +123,7 @@ export function drawSharpCarLayers(ctx: ScreenCtx, game: RenderGame, lock: Scree
       mainCtx.restore();
     }
   });
+  addLayerMs('cars', carsT0);
   mainCtx.restore();
   clearArt(ctx);
   // steam and engine smoke rise off the bonnets, over the cars (render/enginesmoke.ts) - but under
@@ -289,7 +293,7 @@ export function drawSparksOnScreen(ctx: ScreenCtx, lock: ScreenLock) {
  * @param lock what applyViewLock changed
  */
 export function blitArt(ctx: ScreenCtx, lock: ScreenLock) {
-  const { state, mainCtx, pcanvas } = ctx;
+  const { state, mainCtx, pcanvas } = ctx, blitT0 = statNow();
   mainCtx.save();
   mainCtx.setTransform(1, 0, 0, 1, 0, 0);
   mainCtx.imageSmoothingEnabled = false;
@@ -302,6 +306,7 @@ export function blitArt(ctx: ScreenCtx, lock: ScreenLock) {
   mainCtx.drawImage(pcanvas, lock.subX, lock.subY, pcanvas.width * state.blockPx,
     pcanvas.height * state.blockPx);
   mainCtx.restore();
+  addLayerMs('blit', blitT0);
 }
 
 /**

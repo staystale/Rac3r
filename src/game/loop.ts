@@ -18,6 +18,8 @@ import { holdRace, loadingNow } from './loading.ts';
 import { takeMenuTaps } from '../menu/widgets.ts';
 import { readNextSprite } from '../render/spritepixels.ts';
 import { newBodyFrame } from '../render/rollbody.ts';
+import { addLayerMs, statFrameStart, statNow, takeFrameStats } from '../ui/gpustat.ts';
+import { FIX } from '../core/fixes.ts';
 import {
   updateFpsMeter, readFrameInput, stepCarSignals, openGuideOnLanding, stepCarPhysics,
   stepEndlessHighway, updateAudio, dropBreadcrumb, stepRaceFlow, stepTrafficContacts,
@@ -29,6 +31,7 @@ import type { CarInput } from '../vehicle.ts';
 // highway flow's - one car type is TODO.md work)
 import type { RenderGame } from '../render/types.ts';
 import type { HudGame } from '../hud/hudtypes.ts';
+import type { ReportFrame } from '../ui/report.ts';
 
 // 5 -> 12 (high-speed judder). MEASURED: frames over ~42 ms hit the 5-step cap and
 // THREW AWAY sim time, so the car fell behind real time and hitched (drawn car vs a smooth path:
@@ -203,10 +206,13 @@ export function drawMeter(frame: Frame & { drawT0: number }) {
 function reportFrame(frame: Frame, draw: number, tiles: number, slide: number) {
   const gpu = shared.renderer.gpuCounts || { uploads: 0, mipmaps: 0 };
   const taps = takeMenuTaps();
-  shared.reporter!.add([frame.frameMs, frame.meterSim, draw, game.stepsLastFrame, tiles, slide,
-    shared.renderer.PPM, gpu.uploads - (shared.meterUploads || 0),
+  const row: ReportFrame = [frame.frameMs, frame.meterSim, draw, game.stepsLastFrame, tiles,
+    slide, shared.renderer.PPM, gpu.uploads - (shared.meterUploads || 0),
     gpu.mipmaps - (shared.meterMipmaps || 0), shared.mode === 'menu' ? 1 : 0, taps.ignored,
-    Math.round(taps.handlerMs), Math.round(shared.warmMs || 0)]);
+    Math.round(taps.handlerMs), Math.round(shared.warmMs || 0)];
+  // (?gpustat=1: the GPU side, the layers, the fences - ui/gpustat.ts)
+  if (FIX.gpustat) row.push(...takeFrameStats(shared.renderer.ctx.canvas));
+  shared.reporter!.add(row);
   shared.warmMs = 0;
   shared.meterUploads = gpu.uploads;
   shared.meterMipmaps = gpu.mipmaps;
@@ -233,9 +239,11 @@ export function renderFrame(frame: Frame) {
   try {
     shared.renderer.frame(game as unknown as RenderGame, frame.wallDt, frame.now / 1000);
     if (shared.mode !== 'menu' && !shared.settings.skipLayers.has('hud')) {
+      const hudT0 = statNow();
       shared.hud.draw(shared.renderer.ctx, game as unknown as HudGame, shared.renderer.W,
         shared.renderer.H,
         frame.wallDt);
+      addLayerMs('hud', hudT0);
     }
     if (shared.churn) shared.churn.step(frame.wallDt, shared.renderer.ctx);   // ?churn= only
     if (shared.meter) drawMeter({ ...frame, drawT0 });
@@ -261,6 +269,8 @@ export function renderFrame(frame: Frame) {
 export function loop(now: number) {
   // Rescheduled FIRST, so a throw anywhere below can never stop the game loop again.
   requestAnimationFrame(loop);
+  // (?gpustat=1: the frame's start and how late it began)
+  statFrameStart(now);
   const frameMs = now - shared.last;   // the meter's dt, before the clamp below
   // whole display refreshes, not the browser's rounded timestamps (game/pacing.ts)
   const gameMs = shared.pacer.step(now, shared.last);

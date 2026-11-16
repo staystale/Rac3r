@@ -3,7 +3,9 @@
 // slow frames (> 25 ms = a missed 60 Hz refresh) and what they coincided with; and, for reports
 // with the zoom, slow frames by zoom band. Frames with the menu up (12-number frames: [9] = 1) are
 // a run of their own per session ("menu"): frame times, plus the menu taps a new screen ignored
-// (its ghost-click window) and the slowest button handlers.
+// (its ghost-click window) and the slowest button handlers. Runs with ?gpustat=1 (src/ui/gpustat.ts)
+// also print the GPU side, our whole work and the browser's gap, each draw layer, the fences and
+// the device's hints.
 // node tools/phonereport.mjs <report.jsonl> [--since 2026-10-15T17:00]
 // Times in the log are UTC. Each run's first frames are the level start (painting), not driving.
 import { readFileSync } from 'node:fs';
@@ -44,8 +46,9 @@ function readRuns() {
   const addTo = (report, menu, frames) => {
     if (!frames.length) return;
     const key = report.session + '|' + (menu ? 'menu' : report.level);
-    if (!runs.has(key)) runs.set(key, { ...report, menu, frames: [] });
+    if (!runs.has(key)) runs.set(key, { ...report, menu, frames: [], stats: [] });
     runs.get(key).frames.push(...frames);
+    if (report.stat) runs.get(key).stats.push(report.stat);
   };
   for (const line of readFileSync(file, 'utf8').trim().split('\n')) {
     const report = JSON.parse(line);
@@ -119,6 +122,84 @@ function zoomBands(frames) {
   }
 }
 
+/**
+ * The p-th fraction's value.
+ * @param {number[]} values the values
+ * @param {number} share 0..1
+ * @returns {number} the value there
+ */
+const atShare = (values, share) => [...values].sort((a, b) => a - b)[
+  Math.min(values.length - 1, Math.floor(values.length * share))] ?? 0;
+
+/**
+ * ?gpustat=1: the device's hints over the run's posts.
+ * @param {object} run the run (its stats: each post's extras)
+ */
+function printHints(run) {
+  const last = run.stats[run.stats.length - 1];
+  const events = run.stats.flatMap((stat) => stat.events);
+  const pressures = [...new Set(run.stats.map((stat) => stat.pressure).filter(Boolean))];
+  console.log(`  GPUSTAT timer ${last.timer} | GPU ${last.gpuName ?? 'not given'} | cores `
+    + `${last.cores ?? '?'} memory ${last.memoryGb ?? '?'} GB | battery ${last.batteryApi
+      ? JSON.stringify(last.battery) : 'no API'} | CPU pressure ${last.pressureApi
+      ? (pressures.join(' -> ') || 'none read') : 'no API (no thermal hint)'} | long tasks `
+    + `${last.longTask ? run.stats.reduce((sum, stat) => sum + stat.longTasks, 0) + ' ('
+      + run.stats.reduce((sum, stat) => sum + stat.longMs, 0) + ' ms)' : 'no API'}`);
+  if (events.length) console.log(`  page events: ${events.map(([at, what]) => `${(at / 1000)
+    .toFixed(1)} s ${what}`).join(', ')}`);
+}
+
+/**
+ * ?gpustat=1: the run's extra numbers - all frames and the slow ones (the frames a fence made wait
+ * and the next one left out), the fences on their own.
+ * @param {object} run the run
+ * @param {number[][]} frames its frames
+ */
+function printStats(run, frames) {
+  printHints(run);
+  const fields = run.stats[0].fields, at = (name) => 13 + fields.indexOf(name);
+  const fenced = new Set();
+  frames.forEach((frame, i) => {
+    if (frame[at('canvasFenceMs')] >= 0) {
+      fenced.add(i);
+      fenced.add(i + 1);
+    }
+  });
+  const clean = frames.filter((frame, i) => !fenced.has(i) && frame.length > at('propsWalked'));
+  const slow = clean.filter((frame) => frame[0] > SLOW_MS);
+  const layers = fields.slice(fields.indexOf('ground'), fields.indexOf('hud') + 1);
+  const columns = {
+    dt: (frame) => frame[0], work: (frame) => frame[at('workMs')],
+    gap: (frame) => frame[0] - frame[at('workMs')], late: (frame) => frame[at('rafLateMs')],
+    draw: (frame) => frame[2], gpu: (frame) => frame[at('gpuMs')],
+    ...Object.fromEntries(layers.map((name) => [name, (frame) => frame[at(name)]])),
+    rest: (frame) => frame[2] - layers.filter((name) => name !== 'hud')
+      .reduce((sum, name) => sum + frame[at(name)], 0),
+    propsN: (frame) => frame[at('propsDrawn')], treesN: (frame) => frame[at('treesDrawn')],
+    walkedN: (frame) => frame[at('propsWalked')],
+  };
+  const row = (label, set, pick) => `${label} ${Object.entries(columns).map(([name, read]) =>
+    `${name} ${pick(set.map(read).filter((value) => value >= 0)).toFixed(1)}`).join(' ')}`;
+  console.log(`  ms (gpu: the ground's WebGL; gap: dt less our work; rest: draw less the layers) `
+    + `over ${clean.length} frames, ${slow.length} slow:`);
+  console.log('    ' + row('median all ', clean, median));
+  if (slow.length) console.log('    ' + row('median slow', slow, median));
+  console.log('    ' + row('p95 all    ', clean, (values) => atShare(values, 0.95)));
+  const samples = frames.filter((frame) => frame[at('canvasFenceMs')] >= 0);
+  if (!samples.length) return;
+  const fence = (name) => samples.map((frame) => frame[at(name)]).filter((value) => value >= 0);
+  // (the work queued: the fence less the same fence taken at once after, with nothing queued)
+  const work = (name, idle) => samples.filter((frame) => frame[at(idle)] >= 0)
+    .map((frame) => frame[at(name)] - frame[at(idle)]);
+  const say = (values) => `median ${median(values).toFixed(1)} p90 ${atShare(values, 0.9)
+    .toFixed(1)} max ${Math.max(0, ...values).toFixed(1)}`;
+  console.log(`  fences (${samples.length}, 1 in ${run.stats[0].fenceEvery}): GPU ground finish `
+    + `${say(fence('glFenceMs'))} (idle ${say(fence('glIdleMs'))}; work `
+    + `${say(work('glFenceMs', 'glIdleMs'))})`);
+  console.log(`    2D screen paint ${say(fence('canvasFenceMs'))} (idle `
+    + `${say(fence('canvasIdleMs'))}; work ${say(work('canvasFenceMs', 'canvasIdleMs'))}) ms`);
+}
+
 for (const run of readRuns()) {
   if (run.menu) {
     if (run.frames.length >= 30) printMenu(run);
@@ -144,4 +225,5 @@ for (const run of readRuns()) {
     + `${slow.filter((f) => f[4] > 0).length}, with road build ${slow.filter((f) => f[5] > 0).length}`);
   noteCap(frames);
   zoomBands(frames);
+  if (run.stat) printStats(run, frames);
 }
