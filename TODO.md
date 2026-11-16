@@ -194,6 +194,21 @@ out of date for the Formula Won (saved 347 km/h, 2.8 s, 32.3 m, 1.83 g; measured
 34.0, 1.87 - re-run tools/carstats.mjs); tools/tyrecheck.mjs's full run fails 5 of its claims on
 the base (the burnout and drift times of the hatch-rwd, the muscle car, the F1 and the Naffcar: the
 tyres heat faster than its limits; it is not in CI) - its --car mode shows those times unjudged.
+UNDER THE SKIN: BUILT 11-16 behind ?underskin=1 (FIX.underskin, render/underskin.ts; testlist
+'underskin'; ENGINE.md UNDER THE SKIN): what a lost panel shows, by each car's real layout (carbits.ts
+mount, radiator): bonnet - engine (along / across) behind the radiator, a mid-engined car's front lid
+two corner radiators; boot - the engine where it sits behind (no car in the roster yet); wing - the
+well reaches 0.45 m in (was 3 px, all tyre), grey, the corner's arms and a driven wheel's drive shaft
+(the open cars' drawing) and the strut's top; bumper - the crash bar, and the radiator where it sits
+(the S1 and the RX supercar at the back); open cars - a sidepod its radiator, nose / tail their crash
+structures, the buggy its frame tubes; a DOOR shows nothing new (asked). PHOTOS (the second PC,
+tools/scratch/_partsoff.mjs, every car, front set and rear set, 844x390, 390x844 and a close-up, off
+and on): no page errors. COST: framecheck Brands, 19 AI + you all in the hatch-rwd, every car's
+panels off at frame 30, CPU x4 on the PC (on, off, on, off): work median 172.3 / 167.0 / 172.4 /
+168.1 ms, p95 208.9 / 221.9 / 206.3 / 202.1, worst 255.9 / 348.9 / 244.9 / 270.6 (the PC's x4 with
+20 cars is the catch-up loop, ~170 ms a frame either way); a car's picture made every frame
+(tools/scratch/_underskincost.mjs, laptop, x1): frame median 1.6-1.7 ms off, 1.9 on (+0.2-0.3 ms each
+time a car loses a part or its crush changes a step; nothing on the frames between).
 
 ### 3b. Tracks (the venue helper builds, the foreman reviews, the owner passes; one switch each)
 
