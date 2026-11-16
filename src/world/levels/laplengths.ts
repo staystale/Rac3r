@@ -36,6 +36,8 @@ export const LAP_METRES: Record<string, number> = {
   'oultonpork': 2154.8,
   'oultonpork-fosters': 1336.8,
   'oultonpork-island': 1776.5,
+  'pembreezy': 1159.0,
+  'pembreezyrx': 2044.8,
   'sillystone': 2946.1,
   'sillystone-national': 1320.6,
   'slidden-hill': 1136.3,
