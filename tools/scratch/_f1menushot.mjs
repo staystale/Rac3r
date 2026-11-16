@@ -1,4 +1,4 @@
-// _f1menushot.mjs - TEST MODE with F1 vs WORLD (?f1menu=1): the types screen, the F1 CIRCUITS,
+// _f1menushot.mjs - TEST MODE with F1 vs WORLD (the default 11-16): the types screen, the F1 CIRCUITS,
 // WORLD CIRCUITS and CIRCUITS lists (Spa once; Sillystone GP under F1, National under
 // CIRCUITS), at 390x844 and
 // 844x390; shots <dir>/f1menu-<step>-<w>x<h>.png, the cards and page errors printed.

@@ -450,7 +450,7 @@ export const CAR_STATS: Record<string, CarStat> = {
       "tcs": true
     }
   },
-  // (measured alone: tools/carstats.mjs toyoter-corolla with COROLLA=1, behind its switch)
+  // (measured alone: tools/carstats.mjs toyoter-corolla)
   "toyoter-corolla": {
     "topKph": 249,
     "zeroTo100": 4.5,
@@ -463,7 +463,7 @@ export const CAR_STATS: Record<string, CarStat> = {
       "tcs": false
     }
   },
-  // (measured alone: tools/carstats.mjs rebelion-r13 with R13=1, behind its switch)
+  // (measured alone: tools/carstats.mjs rebelion-r13)
   "rebelion-r13": {
     "topKph": 343,
     "zeroTo100": 2.7,
@@ -476,7 +476,7 @@ export const CAR_STATS: Record<string, CarStat> = {
       "tcs": true
     }
   },
-  // (measured alone: tools/carstats.mjs seat-ibiza with IBIZA=1, behind its switch)
+  // (measured alone: tools/carstats.mjs seat-ibiza)
   "seat-ibiza": {
     "topKph": 176,
     "zeroTo100": 12.5,
@@ -489,7 +489,7 @@ export const CAR_STATS: Record<string, CarStat> = {
       "tcs": false
     }
   },
-  // (measured alone: tools/carstats.mjs ordi-a4 with A4AVANT=1, behind its switch)
+  // (measured alone: tools/carstats.mjs ordi-a4)
   "ordi-a4": {
     "topKph": 206,
     "zeroTo100": 10,

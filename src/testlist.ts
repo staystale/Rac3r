@@ -13,17 +13,6 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
-    id: 'a4avant',
-    added: '2026-11-16',
-    name: 'New car: the Ordi A4 Avant (an Audi A4 Avant B8 2.0 TDI), ROAD / Estate, and in the '
-      + 'traffic',
-    where: 'Test link + &a4avant=1: the garage, ROAD / Estate; a circuit; the highway (about 1 '
-      + 'car in 150, as on the real roads); + &underskin=1&carparts=1 for a crash',
-    try: 'Its look (Ibis White, the roof rails, the big grille, shaded), the diesel\'s low-down '
-      + 'pull and early shifts against the V70, crash it (four doors, the tailgate), roll it.',
-    wrong: 'Not an A4 Avant from above, a diesel that revs like a petrol, too common or rare.',
-  },
-  {
     id: 'lowrange',
     added: '2026-11-16',
     name: 'Low range on the Defunder 110 and the Strange Rover: a HI / LO lever left of the speedo',
@@ -34,50 +23,6 @@ export const TEST_LIST: TestEntry[] = [
       + 'LO and compare. The first time, a LOW RANGE card explains it.',
     wrong: 'The lever covering anything, a tap on it steering the car, LO slower than HI where it '
       + 'is steep or boggy, gears hunting in LO, AI 4x4s stuck in LO on tarmac.',
-  },
-  {
-    id: 'ibiza',
-    added: '2026-11-16',
-    name: 'New car: the Seat Ibeefa (a Seat Ibiza Mk4 1.4 five-door), ROAD / Hatch, and in the '
-      + 'traffic',
-    where: 'Test link + &ibiza=1: the garage, ROAD / Hatch; a circuit; the highway (about 1 car in '
-      + '170, as on the real roads); + &underskin=1&carparts=1 for a crash',
-    try: 'Its look (Emocion Red, shaded), its 85 PS against the Golf and the Saxo VTR, crash it '
-      + '(four doors, welded rear wings), roll it.',
-    wrong: 'Not an Ibiza from above, too quick for 85 PS, too common or too rare in the traffic.',
-  },
-  {
-    id: 'r13',
-    added: '2026-11-16',
-    name: 'New car: the Rebelion R13 (the 2018 Rebellion LMP1), PROTOTYPE / LMP1 (a new type)',
-    where: 'Test link + &r13=1: the garage, PROTOTYPE; Le Manky against the TS010; '
-      + '+ &underskin=1&carparts=1 for a crash',
-    try: 'Its look (white, the black canopy and shark fin, the wing on its pylon, shaded), its top '
-      + 'speed (about 340 km/h) and braking, traction control out of the slow corners.',
-    wrong: 'Not an LMP1 from above, slower than the TS010 in a straight line by far.',
-  },
-  {
-    id: 'corolla',
-    added: '2026-11-16',
-    name: 'New car: the Toyoter Corolla BTCC (Toyota Gazoo Racing UK, NGTC), TOURING / BTCC',
-    where: 'Test link + &corolla=1: the garage, TOURING / BTCC; a race at Thruston or Brands '
-      + 'Snatch against the Civvic; + &underskin=1&carparts=1 for a crash',
-    try: 'Its look (Gazoo white with the red roof and bands, the wing, shaded), its pace against '
-      + 'the Civvic (the same power, a shorter car), no ABS on the brakes, crash it: four doors, '
-      + 'the arches come off.',
-    wrong: 'Not a Corolla BTCC from above, far quicker or slower than the Civvic.',
-  },
-  {
-    id: 'f1menu',
-    added: '2026-11-16',
-    name: 'F1 vs WORLD in the menu: an F1 CIRCUITS type card (the Grand Prix calendar) above '
-      + 'WORLD CIRCUITS (endurance, GT, mountain)',
-    where: 'Test link + &f1menu=1: TEST MODE, the types screen',
-    try: 'F1 CIRCUITS holds Sillystone GP, Moanaco, Spa, Monzarella, Snoozuka and Yass Marina; '
-      + 'WORLD CIRCUITS holds Nordschlep, Le Manky and Bathworst; Sillystone National is still '
-      + 'under CIRCUITS. Pick one from each and race it.',
-    wrong: 'A track missing or listed twice, Spa anywhere but F1, the wrong card opening, or the '
-      + 'menu remembering the wrong type after a race.',
   },
   {
     id: 'carshade',
@@ -116,18 +61,6 @@ export const TEST_LIST: TestEntry[] = [
       + 'split tailgate; the Huracan its engine cover (the V10 under it).',
     wrong: 'A 2-door throwing a second door, a door hole in the wrong place, a door far too short '
       + 'or long, a Seven door, a car door off the bus or a van.',
-  },
-  {
-    id: 'reversefix',
-    added: '2026-11-16',
-    name: 'Reverse as in life, every car: traction control works going backwards, and the 20 km/h '
-      + 'reverse cap holds',
-    where: 'Test link + &reversefix=1: any car, any level (a powerful one shows it best: the '
-      + 'Tesla, the Huracan, the 3 Series), on tarmac and on gravel',
-    try: 'Hold reverse from a standstill: the car tops out at 20 km/h (it reached 23-32 before), '
-      + 'with only a short chirp of wheelspin; TCS off lets the wheels spin a little more.',
-    wrong: 'Reverse faster than about 20 km/h, a jolt at the cap, reverse that will not move off, '
-      + 'the AI stuck reversing.',
   },
   {
     id: 'underskin',

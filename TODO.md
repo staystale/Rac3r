@@ -190,8 +190,8 @@ RACE TRACKS:
       time a race WITH pit stops starts: the pit lane and limiter, stopping in your box, the menu, compulsory
       stops where they apply, fuel.
 17. LITTER / JUNK on race tracks: very light (props we have). To discuss.
-18. F1 vs WORLD CIRCUITS in the menu: BUILT behind ?f1menu=1 (layout A: an F1 CIRCUITS type card
-    above WORLD CIRCUITS; world/levels/category.ts F1_LISTED). Awaiting the phone test.
+18. F1 vs WORLD CIRCUITS in the menu: PASSED 11-16, the default (TODO-DONE, PASSED 11-16, THE PASS
+    BATCH 3).
 19. LOW RANGE (the Defunder 110's LT230 x3.320/1.211 = 2.742, the Strange Rover L322's x2.69; not
     the trophy truck): BUILT behind ?lowrange=1 (physics/lowrange.ts; the lever hud/lowlever.ts
     left of the speedo, HI top half / LO bottom half, 48 x 96, never hidden, a refused pull - 10
