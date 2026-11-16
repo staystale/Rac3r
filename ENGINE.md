@@ -178,7 +178,9 @@ tyre law writes each axle's slip angle at its lateral peak this step to the tele
 `SLIPPERY_MU` (0.7: not tarmac, wet or dry): a rear slide in a corner going the corner's way (the
 car rotating as the line turns) is HELD on the throttle at 1.25 x the rear peak (0.15-0.30 rad;
 `driverSteps.ts driftHold`, the loose hairpins' drift law, now any corner, every rear- or
-four-wheel-driven driver) while the edge is further than 2 m x sqrt(0.6 / mu) away; caught past
+four-wheel-driven driver) while the edge is further than 2 m x sqrt(0.6 / mu) away (with `?driftbrake=1`,
+`FIX.driftbrake`, under test: not while the car is over its speed plan by more than
+`DRIFT_OVER_MS`, 1.5 m/s - it brakes as any car too fast; `driverPedals.ts pedals`); caught past
 1.8 x the hold; a slide not held caught past 1.6 x the rear peak (never under the 0.18 rad of
 before), the understeer lift past 1.3 x the front peak, the slip feel's angles x the rear peak over
 tarmac's. COMMIT OFF TARMAC (`line.ts commitOf`): a 2WD car plans 1.12 x the corner grip where the

@@ -13,6 +13,17 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'driftbrake',
+    added: '2026-11-16',
+    name: 'Loose ground: an AI car too fast into a corner brakes instead of drifting in',
+    where: 'Test link + &driftbrake=1: RALLYCROSS (Pembreezy RX first, then Knobhill, X Gayms, '
+      + "The Bird's Mess) and RALLY stages, a race with a full field",
+    try: 'Watch the AI into the corners on the gravel, Pembreezy RX most: fewer cars sliding wide '
+      + 'into the bales and being put back, the field as quick as before.',
+    wrong: 'AI slower, braking and wobbling mid-corner, no longer drifting through the '
+      + 'hairpins, bunching up, or more crashes on any loose level or the highway.',
+  },
+  {
     id: 'focustlook',
     added: '2026-11-16',
     name: 'The Fjord Focust ST drawn as a five-door hatch from above',

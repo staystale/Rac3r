@@ -379,14 +379,49 @@ THE 10 NEW CARS (owner-approved names 11-16; one switch and one hand-back each; 
   (no lap-time cost to read: the earlier throwaway gave +39 s at 2.6 and +18 s at 3.6 - noise at 25
   laps; the same tool's base run gave 42.1 s and 52.8 s off on two runs). THE FULL FIELD
   (tools/scratch/_pbzrace.mjs on the second PC, 20 AI, 4 laps, rx-super; off / 2.6 m / 3.6 m, seed 1
-  then 2; off seed 1 did not load its page three times and is to run again): put back - / 28, 29 /
-  23, 34 / 22 a race - half to two thirds of them at lap 1100-1300 m (- / 11, 14 / 15, 26 / 17), the
-  corner after the gravel hairpin whose cause is the held drift (fix 2); AI off the road a median -
-  / 26.9, 36.9 / 23.6, 28.4 / 21.4 s a race; 20 of 20 AI finished every race; the tool's own driver
+  then 2): put back 23 / 28, 29 / 23, 34 / 22 a race - half to nine tenths of them at lap
+  1100-1300 m (20 / 11, 14 / 15, 26 / 17), the corner after the gravel hairpin whose cause is the
+  held drift (fix 2); AI off the road a median 32.9 / 26.9, 36.9 / 23.6, 28.4 / 21.4 s a race; 20 of
+  20 AI finished every race; the tool's own driver
   (no put-back) stuck on the gravel in every race, as before. So the line margin alone does not cut
   the field's put-backs; the lone AI's excursions it does (above). PROOF: switch off, simhash SAME
   (13 runs, and a drive run on Pembreezy RX), worldhash --highway 20 SAME (the PC, the base round98
   against the fix).
+  FIX 2 BUILT behind ?driftbrake=1 (FIX.driftbrake; ai/driverPedals.ts pedals - the existing drift
+  rule tuned, no new system: a drift with the car more than DRIFT_OVER_MS, 1.5 m/s, over its speed
+  plan is not held - no drift throttle, and it brakes as any car too fast; testlist 'driftbrake').
+  MEASURED, the lone AI (_pbzoff, Pembreezy RX, rx-super, difficulty 2, seeds 1-5 x 5 laps; off /
+  on): off the road 46.9 / 11.2 s, excursions 26 / 9 (at 1200-1250 m 7 / 0, 1300-1350 m 6 / 1,
+  1450-1500 m 12 / 8), the 25 laps 1979 / 1969 s. THE AI CHECK SET with Math.random seeded (the AI
+  tools are not repeatable run to run - wear and debris draw Math.random; a measuring preload gave
+  the same number twice; every figure is off / on, summed or meant over the runs):
+  - aijokercheck (rx-super, difficulty 4, seeds 1-3 x 3 random seeds, a race's mean s / off s):
+    Pembreezy RX 391.6 / 28.7 -> 380.1 / 19.6; X Gayms 220.7 / 24.0 -> 222.0 / 17.3; The Bird's
+    Mess 246.2 / 3.3 -> 237.4 / 1.7; Stadeprance 227.0 / 1.2 -> 225.9 / 0.1; Holy Jeez 237.0 / 7.6
+    -> 238.9 / 7.6; Knobhill, Slidden Hill, Old Wobbly the same (within 0.4 s). Gates 1 a race as
+    before.
+  - aifieldcheck (6 AI, 3 laps, difficulty 2, seeds 1-2 x 2 random seeds; off s / incidents /
+    resets): Pembreezy RX 918 / 142 / 11 -> 574 / 92 / 3; Knobhill 350 / 55 / 2 -> 325 / 52 / 2;
+    Sweaty Lamb (rally-4x4) 725 / 119 / 0 -> 603 / 96 / 0; Holy Jeez 336 / 67 / 0 -> 349 / 59 / 0;
+    Grass Track (hatch-rwd) 22 / 4 / 1 -> 33 / 7 / 0 (WORSE, small numbers).
+  - aidrivecheck (12 loose levels x rx-super, rally-4x4, hatch-rwd x difficulty 0 / 2 / 4, 2
+    random seeds; lap s / off s, all levels): 4853 / 281 -> 4856 / 279, 4363 / 462 -> 4364 / 443,
+    4190 / 697 -> 4196 / 681. WORSE: Killder difficulty 4 off 185 -> 197 s, Knobhill difficulty 4
+    29 -> 33 s, Grass Track difficulty 4 laps +3.3 s (its off 18 -> 11 s). Thruston (tarmac) the
+    same.
+  - hwracecheck (90 s, difficulty 2, traffic 0.6; twisty 4242, twisty 7, motorway 4242; 2 random
+    seeds): the same, every figure.
+  - THE FULL FIELD (_pbzrace, the second PC, 20 AI, 4 laps, rx-super, seed 1 / 2; fix 1's off run
+    -> on): put back 23, 28 -> 9, 5 a race (at lap 1100-1300 m 20, 11 -> 1, 1), AI off the road a
+    median 32.9, 26.9 -> 11.4, 9.8 s; the tool's own racing driver (no put-back), stuck on the
+    gravel in every race before, FINISHED both (5.6, 8.4 s off) - so the race closed when it did
+    (347, 361 s; before, 534 s at the grace limit) with the AI on 62, 66 of their 80 laps (2, 6
+    finished): put back 0.29, 0.35 -> 0.15, 0.08 an AI lap. No page errors.
+  PROOF: switch off, simhash SAME (13 runs; the second PC, the base round101 against the fix).
+  NOT TESTED: rally stages (generated, aidrivecheck covers Sweaty Lamb and Killder only), the
+  other start types (rolling, the RX start lane but Slidden Hill's, standing on the highway), the
+  wet and snow (ground under the drift law changes), circuits' gravel traps (the law is off on
+  tarmac), difficulty 1 and 3, the player's own car (untouched: the AI only), phones.
 - DEMOLITION DERBY (owner 11-10: "Demolition derby levels classic tarmac circle - and we can reuse
   stock car tracks ect for that too"): a classic tarmac circle arena, and a derby mode on the stock
   car tracks (Stock Car, Grass Track, Old Wobbly). Questions when we come to it (the AI ramming, how

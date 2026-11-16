@@ -7,10 +7,15 @@ import type { RejoinAim } from "./rejoin.ts";
 import { footThrottle } from "./driverFoot.ts";
 import { spinSteer } from "./driverSlide.ts";
 import type { Drv, AiPath } from "./driverCtx.ts";
+import { FIX } from "../core/fixes.ts";
 
 // throttle kept through a front slide on loose ground (off road, dirt, gravel)
 const UNDER_LOOSE = 0.35;
 const DRIFT_BAN = 60;
+// ?driftbrake=1: m/s over its speed plan past which a drifting car brakes, the drift not held
+// (MEASURED, tools/scratch/_pbzoff.mjs: Pembreezy RX's drift held its throttle and no brake from
+// 20-27 km/h over the plan into the corner after the gravel hairpin, and ran 5-20 m wide)
+const DRIFT_OVER_MS = 1.5;
 // m/s under which the rear-slip FEEL is not read (a slip ANGLE at a crawl is noise: it
 // shut the throttle at 0.7 m/s on ice, MEASURED); over / under already wait for 5 m/s
 const FEEL_FROM = 4;
@@ -43,8 +48,8 @@ type Slide = ReturnType<typeof steerSlideStep>;
 
 /** Throttle for the target speed: held drift, loose understeer, over / understeer, grip. */
 export function throttleFor(drv: Drv, speed: number, targetSpeed: number, slide: Slide,
-    looseUnder: boolean) {
-  const { drifting, slipRear, under, over, hold, feelK } = slide;
+    looseUnder: boolean, drifting = slide.drifting) {
+  const { slipRear, under, over, hold, feelK } = slide;
   // (the slip feel's angles x the ground's peak over tarmac's: ai/driverSlide.ts, 1 without it)
   const feel = speed < FEEL_FROM ? 1
     : Math.max(0, 1 - Math.max(0, slipRear - 0.07 * feelK) / (0.12 * feelK));
@@ -63,8 +68,10 @@ const CAR_FULL = 2;
 export function pedals(drv: Drv, speed: number, targetSpeed: number, thrForce: boolean,
     slide: Slide,
     looseUnder: boolean, forCar = false) {
-  const { drifting, under, over, steer } = slide;
-  let throttle = throttleFor(drv, speed, targetSpeed, slide, looseUnder);
+  const { under, over, steer } = slide;
+  // (?driftbrake=1: a drift over the plan is not held - it brakes as any car too fast)
+  const drifting = slide.drifting && !(FIX.driftbrake && speed > targetSpeed + DRIFT_OVER_MS);
+  let throttle = throttleFor(drv, speed, targetSpeed, slide, looseUnder, drifting);
   if (thrForce && speed < targetSpeed * 1.1) throttle = 1;
   // (turning, a share off the brake - not with a car the reason, CAR_FULL m/s too fast:
   // MEASURED, _ploughtrace.mjs, into Spa's La Source cars 20-30 km/h over the speed they wanted

@@ -57,6 +57,9 @@ export const FIX = {
   // Pembreezy RX's racing line kept further from the edge on its gravel (Level.looseLineMargin,
   // ai/line.ts looseLimits): the AI ran wide off its S-bends' exits into the bales
   pbzline: atLoad('pbzline'),
+  // the AI's held drift on loose ground not held while the car is over its speed plan: it brakes
+  // first (ai/driverPedals.ts pedals; the drift held its throttle and no brake before)
+  driftbrake: atLoad('driftbrake'),
   // the highway traffic going for fuel that misses its station (not in the nearside lane in
   // reach, or the pumps taken) stays in the nearside lane for the next one (ai/trafficTrips.ts)
   fuelcarry: atLoad('fuelcarry'),
