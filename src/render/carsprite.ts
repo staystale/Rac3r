@@ -573,7 +573,7 @@ function paintRaceNumber(spr: SpriteCtx): void {
     banger: [0.44, 2], grass: [0.84, 1], drift: [0.405, 2], track: [0.76, 1],
     tractor: [0.78, 2], estate: [0.34, 2], muscle: [0.37, 2], stock: [0.41, 2],
     saloon: [0.43, 2], wrz: [0.435, 2], porch: [0.46, 2], m4gt3: [0.42, 2], seven: [0.68, 1],
-    van: [0.40, 2], trophy: [0.50, 2], btcc: [0.42, 2],
+    van: [0.40, 2], trophy: [0.50, 2], btcc: [0.42, 2], corolla: [0.4, 2],
     defunder: [0.38, 2], focust: [0.40, 2], cleo: [0.38, 2], cleors: [0.38, 2],
     bus: [0.5, 2], saxo: [0.38, 2], rrover: [0.36, 2],
     saxovtr: [0.38, 2], tesla: [0.43, 2],

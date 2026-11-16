@@ -4,6 +4,7 @@
 // the owner passes it. Each row follows the real car (src/realcars.ts helpers); EST marks a figure
 // no source gave. Drafted with tools/newcarstart.mjs, checked with tools/newcar.mjs <id>.
 import type { RosterRow } from './cars.ts';
+import { FIX } from './core/fixes.ts';
 import { dragOf, realCurve, tyreR } from './realcars.ts';
 
 // GT: the GT3 racers (TODO CHAMPIONSHIPS: GT), a class of their own on race tyres
@@ -464,10 +465,35 @@ const M4GT3: RosterRow = {
   paint: '#f0f0ea', trim: '#3d8fd6', glass: '#2a2f38', rim: '#16181d',
 };
 
+// Toyota Corolla GR Sport BTCC (E210 hatch, Toyota Gazoo Racing UK / Speedworks, 2019 on; NGTC
+// and Toyota UK's figures): the TOCA / M-Sport 2.0 turbo four across the front, ~350 bhp (261
+// kW), 1,280 kg with the driver, FWD, NGTC's six-speed sequential, the road hatch's 4,370 mm
+// length and 2,640 mm wheelbase, no ABS (owner) or traction control. EST: the torque (420 Nm) and
+// its band, the power's rpm and the 7,000 limit, the ratios and final drive (as the Civvic's, to
+// ~250 km/h), NGTC's 1,875 mm width and 1.68 m track, Cd 0.40 x 2.1 m^2, the splitter and wing's
+// downforce (the Civvic's), 58 / 42, the CG, Goodyear 265/660 R18 slicks, the springs.
+const COROLLA: RosterRow = {
+  id: 'toyoter-corolla', name: 'Toyoter Corolla BTCC', kind: 'corolla', cls: 'touring',
+  sub: 'BTCC', rimIn: 18,   // its real rim, inches (what tyres fit)
+  cg: 0.45, rideH: 0.07, cyl: 4,
+  aids: { abs: false, tcs: false },
+  mass: 1280, lf: 1.109, lr: 1.531, len: 4.37, wid: 1.875, trackWidth: 1.68,
+  // 265/660 R18: 0.66 m across
+  tyreWidth: 0.265, wheelR: 0.33,
+  drive: 1.0, brakeBiasF: 0.65, caF: 115000, caR: 115000, mu: 1.5,
+  curve: realCurve({ idle: 1500, low: 0.6, nm: 420, nmFrom: 3500, nmTo: 5500,
+    kw: 261, kwAt: 6500, redline: 7000 }),
+  redline: 7000, upshiftRpm: 6800, downshiftRpm: 3800, idleRpm: 1500,
+  gears: [2.92, 2.21, 1.8, 1.52, 1.31, 1.15], finalDrive: 3.0, dragC: dragOf(0.4, 2.1),
+  aeroK: 1.2, downforceF: 0.35, downforceR: 0.45, susF: 2.4, susZ: 0.32,
+  // Gazoo Racing: white, the red roof (the second colour, big), black details and wheels
+  paint: '#f0f0ea', trim: '#d0202a', glass: '#2a2f38', rim: '#16181d',
+};
+
 /** The new cars: their roster rows, in the list's order. */
 export const NEW_CARS: RosterRow[] = [PORCH, SEVEN, TRANSFIT, TROPHY, CIVVIC, DEFUNDER, FOCUST,
   CLEO, CLEO_RS, TRANSFIT_LWB, TRANSFIT_SWB, TS010, ROUTEMONSTER, SAXO, STRANGE, SAXO_VTR, TESLA,
-  M4GT3];
+  M4GT3, ...(FIX.corolla ? [COROLLA] : [])];
 
 /** The classes only new cars race in. */
 export const NEW_CLASSES = [GT_CLASS, TOURING_CLASS, PROTO_CLASS];

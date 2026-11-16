@@ -129,6 +129,7 @@ export const CAR_DOORS: Record<string, CarDoors> = {
   'seven-420r': { doors: [], bumper: 'none', mirrors: 'none' },
   'effing-tt': { doors: [[0.42, 0.62]], bumper: 'tube', mirrors: 'none' },
   'civvic-btcc': { doors: FOUR_DOORS, mirrors: rimThird(0.625) },
+  'toyoter-corolla': { doors: FOUR_DOORS, mirrors: rimThird(0.625) },   // Corolla: the 5-door
   'defunder-110': { doors: [[0.47, 0.62], [0.32, 0.47]], bumper: 'steel',
     mirrors: { at: 0.655, col: 'third' }, spare: true },
   'focust-st': { doors: FOUR_DOORS, mirrors: rimThird(0.635) },
@@ -158,7 +159,8 @@ export const CAR_DOORS: Record<string, CarDoors> = {
 // panels and arches, the Defender's aluminium body, the Seven's cycle wings, the trophy truck's
 // fibreglass, the tractor's mudguards; every other closed car's are welded quarter panels (they
 // crush, not fly off); the single-seaters and the buggy keep their own open parts
-const BOLTED_REAR_WINGS = new Set(['porch-gt3r', 'bmv-m4gt3', 'civvic-btcc', 'cleo-cup', 'saxo-kit',
+const BOLTED_REAR_WINGS = new Set(['porch-gt3r', 'bmv-m4gt3', 'civvic-btcc', 'toyoter-corolla',
+  'cleo-cup', 'saxo-kit',
   'kit-2l', 'rx-super', 'rally-4x4', 'drift-s13', 'naffcar', 'ts010', 'defunder-110', 'seven-420r',
   'effing-tt', 'tractor']);
 
@@ -298,6 +300,10 @@ export const CAR_BITS: Record<string, CarBits> = {
   // Civic Type R BTCC: the side exit on the left (EST), the bonnet, the tailgate with the wing on
   // it, the 2.0 turbo four across the front, the radiator in the nose
   'civvic-btcc': { pipes: 1, pipesAt: 'left', front: 'bonnet', rear: 'boot', engine: 'front',
+    cyl: 4, layout: 'inline', mount: 'trans', radiator: 'front', wingOnLid: true },
+  // Corolla BTCC: the side exit on the left (EST), the bonnet, the hatch with the wing on it, the
+  // 2.0 turbo four across the front, the radiator in the nose
+  'toyoter-corolla': { pipes: 1, pipesAt: 'left', front: 'bonnet', rear: 'boot', engine: 'front',
     cyl: 4, layout: 'inline', mount: 'trans', radiator: 'front', wingOnLid: true },
   // Defender 110: one pipe out on the left behind the rear wheel (EST), the bonnet, the side-hung
   // rear door, the Puma four along the front, the radiator in the nose

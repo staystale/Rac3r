@@ -13,6 +13,17 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'corolla',
+    added: '2026-11-16',
+    name: 'New car: the Toyoter Corolla BTCC (Toyota Gazoo Racing UK, NGTC), TOURING / BTCC',
+    where: 'Test link + &corolla=1: the garage, TOURING / BTCC; a race at Thruston or Brands '
+      + 'Snatch against the Civvic; + &underskin=1&carparts=1 for a crash',
+    try: 'Its look (Gazoo white with the red roof and bands, the wing, shaded), its pace against '
+      + 'the Civvic (the same power, a shorter car), no ABS on the brakes, crash it: four doors, '
+      + 'the arches come off.',
+    wrong: 'Not a Corolla BTCC from above, far quicker or slower than the Civvic.',
+  },
+  {
     id: 'f1menu',
     added: '2026-11-16',
     name: 'F1 vs WORLD in the menu: an F1 CIRCUITS type card (the Grand Prix calendar) above '

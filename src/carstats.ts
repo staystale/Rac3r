@@ -449,5 +449,18 @@ export const CAR_STATS: Record<string, CarStat> = {
       "abs": true,
       "tcs": true
     }
+  },
+  // (measured alone: tools/carstats.mjs toyoter-corolla with COROLLA=1, behind its switch)
+  "toyoter-corolla": {
+    "topKph": 249,
+    "zeroTo100": 4.5,
+    "brake100": 46.6,
+    "gripG": 1.39,
+    "massKg": 1280,
+    "drive": "FWD",
+    "aids": {
+      "abs": false,
+      "tcs": false
+    }
   }
 };

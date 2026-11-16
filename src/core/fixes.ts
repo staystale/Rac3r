@@ -80,6 +80,8 @@ export const FIX = {
   // every closed car SHADED the TS010's way (render/carshade.ts): a shared step over its sprite
   // and its own crest lines
   carshade: atLoad('carshade'),
+  // the Toyoter Corolla BTCC (Toyota Corolla GR Sport, the NGTC touring car), TOURING / BTCC
+  corolla: atLoad('corolla'),
   // F1 vs WORLD in the menu: the six Grand Prix calendar circuits under their own type card, F1
   // CIRCUITS (world/levels/category.ts F1_LISTED); WORLD CIRCUITS keeps the rest (menu only)
   f1menu: atLoad('f1menu'),

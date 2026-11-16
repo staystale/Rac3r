@@ -40,7 +40,7 @@ const SIDE_AIR: Record<string, number> = {
   tractor: 0.3, 'grass-special': 0.2, 'track-rwd': 0.15, 'f2-rwd': 0.15,
   'porch-gt3r': 0.5, 'bmv-m4gt3': 0.55, 'seven-420r': 0.3, 'transfit-van': 1,
   'transfit-lwb': 1, 'transfit-swb': 1,
-  'effing-tt': 0.85, 'civvic-btcc': 0.55, 'defunder-110': 0.95,
+  'effing-tt': 0.85, 'civvic-btcc': 0.55, 'toyoter-corolla': 0.55, 'defunder-110': 0.95,
   'focust-st': 0.55, 'cleo-cup': 0.5, 'cleo-rs200': 0.5, ts010: 0.4, routemonster: 1,
   'saxo-kit': 0.5, 'strange-l322': 0.8, 'saxo-vtr': 0.5, 'tesla-m3': 0.6,
 };

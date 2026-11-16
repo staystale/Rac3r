@@ -38,6 +38,7 @@ const SHAPES: Record<string, RollShape> = {
   'transfit-lwb': { round: 0.15, side: 0.9 },   // the long one: the same tall box
   'transfit-swb': { round: 0.15, side: 0.9 },   // the Mk7 short one: a tall box too
   'effing-tt': { round: 0.25, side: 0.5 },   // trophy truck: tall, a cage, wheels out wide
+  'toyoter-corolla': { round: 0.55, side: 0.7 },   // Corolla BTCC: as the Civic
   'civvic-btcc': { round: 0.55, side: 0.7 },   // Civic BTCC: a low hatch, wide arches, a wing
   'defunder-110': { round: 0.15, side: 0.85 },   // Defender: a tall flat-sided box
   'focust-st': { round: 0.55, side: 0.8 },   // Focus: a hatch with soft edges (as the Golf)
