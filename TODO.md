@@ -352,6 +352,30 @@ THE 10 NEW CARS (owner-approved names 11-16; one switch and one hand-back each; 
    QUESTIONS for the owner: the open class (850 PS) or a Spec truck (525 hp); its estimated size
    and tyres; it rolled in each Deaf Valley run (1-2 in 150 s) - right for a tall truck?; its
    long name runs past the landscape garage's picker.
+5. HONDER CIVVIC TYPE ARR BTCC (Honda Civic Type R FK8 BTCC, NGTC 2018-21, before the hybrid):
+   BUILT 11-16 behind ?civvic=1 (FIX.civvic; testlist 'civvic'), with a new class TOURING (sub
+   BTCC; fits the GT class's tyres: Pre-Spun, Semi-Slick, Wet, the Pirrelly slicks - newcars.ts
+   NEW_CLS_IDS). Real: 2.0 turbo four across the front, 350+ bhp (261 kW), FWD, Xtrac six-speed
+   sequential, 1,280 kg with the driver, 4,557 x 1,875 mm (NGTC's width), wheelbase 2,700, Goodyear
+   265/660 R18 slicks, no ABS / TC; 145-160 mph quoted at Thruxton, 0-60 mph ~4.0 s quoted for a
+   BTCC car. EST: 450 Nm (3,500-5,500), 261 kW at 6,500, 7,000 rpm, the ratios and final drive
+   3.0, Cd 0.40 x 2.1, 58 / 42, track 1.68, CG 0.45 m, downforce ClA 0.35 / 0.45, mu 1.5, springs
+   2.4 Hz. tools/newcar.mjs civvic-btcc (second PC, &underskin=1; every step ran clean): top 249
+   km/h (~250 EST), 0-100 4.7 s (~4.3 EST: front-drive, traction-limited off the line), 100-0
+   46.5 m (no ABS), grip 1.39 g, 40-100 3.61 s, wheelspin on tarmac too, gravel power-on body slip
+   4 deg; tyres all OK but the 80 s drift (as the base); partcheck all 10 kinds OK; AI x6 Realish
+   seed 7: Thruston 197 s, 2 incidents (1 off, 1 spin), laps 59.1-69.9 s (the Porch 184 s, the
+   Lamburghini 193 s); Sweaty Lamb (loose, aifieldcheck run apart) 439 s, 13 incidents (13 offs),
+   laps 124.7-151.3 s (the Lamburghini 381 s, 16; the Porch 408 s, 15). Under ?underskin=1 its
+   bonnet shows the four across behind the radiator; the wing goes with the tailgate (carbits
+   wingOnLid). PROOF (PC, base round86): switch off worldhash (--highway 20), simhash, renderhash
+   (thruston, brands-snatch, highway) SAME; switch on simhash SAME (no level uses the car).
+   QUESTIONS for the owner: the TOURING class (or ROAD / Hatch) and its tyres (the real ones are
+   Goodyear slicks: GOOD YEAH has none for it); the FK8 pre-hybrid (no hybrid boost: that would
+   be a new mechanic); the stock look (white, a red roof, a black wing, splitter and mirrors; no
+   sponsor livery); the side exit on the left (EST); the wing going with the tailgate (as the
+   Porch) or able to break off alone; its long name wraps to three lines in the landscape
+   garage's picker and pushes its "1 / 1" out of sight.
 
 ### 3b. Tracks (the venue helper builds, the foreman reviews, the owner passes; one switch each)
 
