@@ -6,6 +6,7 @@
 import { SPRITE_PPM } from "./shared.ts";
 import { CHR, GLASS, HEAD, TAIL, type SpriteCtx } from "./carsprite.ts";
 import { GLASS_HI, INK, MESH, STEEL, inside, planBody } from "./newcarlooks.ts";
+import { FIX } from "../core/fixes.ts";
 
 // the Defender's spare wheel on the rear door, a share of its length (0.17 m of the tyre's depth
 // past the body: 4,785 mm with it, 4,639 without)
@@ -115,6 +116,12 @@ function focustPlan(share: number): number {
   return (0.95 + 0.05 * arch) * tail * nose;
 }
 
+// the Focus's glasshouse along it, shares of its length (0 tail): where the rear screen and the
+// roof begin. FIX.focustlook: a hatch's - the tailgate's near upright screen, seen from above as a
+// short strip (0.04-0.10, ~5 px: the Mk4's roof runs to ~0.1 m of its spoiler), the roof almost
+// to the back; else the long sloping screen from 0.10 (it read as a boot deck)
+const FOCUST_CABIN = FIX.focustlook ? { rear: 0.04, roof: 0.1 } : { rear: 0.1, roof: 0.26 };
+
 /**
  * The Focus's glasshouse: the roof spoiler (the third colour) over the sloping tailgate glass,
  * the roof (the second colour), the side glass, the raked windscreen, the mirrors (the third).
@@ -122,8 +129,8 @@ function focustPlan(share: number): number {
  */
 function focustCabin(spr: SpriteCtx): void {
   const { mid, roof2, light, third, block, along } = spr;
-  const rearFrom = along(0.1), roofFrom = along(0.26), roofTo = along(0.55),
-    screenTo = along(0.66), cabinHalf = Math.round(mid * 0.74);
+  const rearFrom = along(FOCUST_CABIN.rear), roofFrom = along(FOCUST_CABIN.roof),
+    roofTo = along(0.55), screenTo = along(0.66), cabinHalf = Math.round(mid * 0.74);
   for (let x = rearFrom; x < roofFrom; x++) {
     const half = Math.round(cabinHalf - 3 * (roofFrom - x) / (roofFrom - rearFrom));
     block(x, mid - half, 1, half * 2 + 1, GLASS);

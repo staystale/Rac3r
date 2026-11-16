@@ -13,6 +13,15 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'focustlook',
+    added: '2026-11-16',
+    name: 'The Fjord Focust ST drawn as a five-door hatch from above',
+    where: 'Test link + &focustlook=1: the garage (ROAD / Hatch), a race, the highway traffic',
+    try: 'Look at it beside the Golf: the roof should run almost to the back, a short dark rear '
+      + 'screen under the spoiler, no boot deck behind the glass.',
+    wrong: 'Still reads as a saloon or a long-tailed hatch, the rear screen too long or gone.',
+  },
+  {
     id: 'pbzline',
     added: '2026-11-16',
     name: 'Pembreezy RX: the AI line kept off the edge on the gravel',
