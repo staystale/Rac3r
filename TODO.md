@@ -318,6 +318,18 @@ unless it's quite severely dented"; the plan: "sounds realistic"), BUILT behind 
 its damage is 0.65 or more or its wheel is pushed half a tyre or more; then all of it. PHOTOS (the
 saloon and the Golf: a wing off from a light knock - the half; the owner's case and a deep crush -
 all): no page errors. NEXT: a big hit at an exposed strut may knock it off (?cornerbreak).
+OWNER BUG 11-16 (the live link, a Minnie Cooped S in a garage paint, one end smashed: "no wishbones
+and the hub is on ... some parts under show over the bonnet"). FOUND, with REAL crashes
+(tools/scratch/_realcrash.mjs: the car driven into a parked one, nothing set by hand): a lost
+bumper's (and door's) under-skin layer was clipped to its hole PLUS the depth the crush pushed it
+in, so the pushed-in beam, cans, radiator and dark under-tray were painted ONTO the bonnet / boot
+lid still on - and that dark block lay over the torn wing's opening, hiding the arms. FIXED (behind
+?underskin, render/underskin.ts): each layer clipped to its own hole (a structure pushed in past
+it is under the panels still on), and a lost or torn wing's opening cleared of a bumper's or door's
+layer. The hub stays on in such a crash (end-on, ~0.5 a corner): a wheel comes off only when one
+hit adds 0.4 to a corner that ends at 0.85 (damage.ts) - ?cornerbreak (next) lets a broken corner
+lose it sooner. PHOTOS (real crashes at 25-28 m/s, front and rear, left / centre / right; the
+Minnie (FWD), the M135i (RWD), the saloon, the Sport quattro (AWD); before / after).
 
 THE 10 NEW CARS (owner-approved names 11-16; one switch and one hand-back each; src/newcars.ts):
 1-7 PASSED 11-16, the default with the launches (owner: "all pass apart from my earlier comments"):

@@ -523,7 +523,9 @@ times it. CRUSHED, with the switch: the under-skin layer is painted on a scratch
 only where the crushed body still is (`drawUnderSkin(..., body)`: the damaged sprite's own pixels,
 `destination-in`), so nothing stands past a dented edge; an end's crush pushes its radiator, beam
 and crash cans in with it (`cardamage.ts endCrushPx`, the crush's own depth per end, + 1 px), and
-the engine back once the radiator meets it. The dented corner itself (`cardamage.ts crushPixel`):
+the engine back once the radiator meets it; each layer is clipped to its OWN hole, so a structure
+pushed in past it is under the panels still on, and a lost or torn wing's opening is cleared of a
+bumper's or door's layer (its wheel and arms show). The dented corner itself (`cardamage.ts crushPixel`):
 the crumpled edge cut in teeth of `TOOTH_PX` (2) along it - each tooth one depth, so no pixel is
 left loose past the edge and no hole behind it (the per-pixel jag left both: speckled holes and
 stray bits, the see-through look) - and the dent band behind it FOLDED (`dentPixelFolded`): the fold
