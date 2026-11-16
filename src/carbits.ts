@@ -127,6 +127,10 @@ export const CAR_BITS: Record<string, CarBits> = {
     cyl: 4, layout: 'inline', mount: 'long', radiator: 'front' },
   'cleo-rs200': { pipes: 2, pipesAt: 'centre', front: 'bonnet', rear: 'boot', engine: 'front',
     cyl: 4, layout: 'inline', mount: 'trans', radiator: 'front' },
+  // TS010: twin pipes in the diffuser (EST), the front clip, the rear clamshell with the wing on
+  // it, the V10 behind the driver, the radiators in the sidepods
+  ts010: { pipes: 2, pipesAt: 'centre', front: 'bonnet', rear: 'boot', engine: 'mid',
+    cyl: 10, layout: 'v', mount: 'long', radiator: 'sides', wingOnLid: true },
 };
 
 /**

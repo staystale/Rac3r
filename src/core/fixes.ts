@@ -82,4 +82,6 @@ export const FIX = {
   // the Fjord Transfit SWB (a Transit Mk7 T280 SWB, 2006-13), drivable and in the traffic; with it
   // the L2 is the Fjord Transfit MWB too
   transfitswb: atLoad('transfitswb'),
+  // the Toyoter TS010 (a Toyota TS010 Group C car) and its PROTOTYPE class
+  ts010: atLoad('ts010'),
 };

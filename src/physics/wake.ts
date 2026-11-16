@@ -41,7 +41,7 @@ const SIDE_AIR: Record<string, number> = {
   'porch-gt3r': 0.5, 'seven-420r': 0.3, 'transfit-van': 1,
   'transfit-lwb': 1, 'transfit-swb': 1,
   'effing-tt': 0.85, 'civvic-btcc': 0.55, 'defunder-110': 0.95,
-  'focust-st': 0.55, 'cleo-cup': 0.5, 'cleo-rs200': 0.5,
+  'focust-st': 0.55, 'cleo-cup': 0.5, 'cleo-rs200': 0.5, ts010: 0.4,
 };
 
 interface WakeCar {

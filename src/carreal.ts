@@ -60,6 +60,8 @@ const REAL_SIZE: Record<string, RealSize> = {
   'cleo-cup': { len: 4.05, wid: 1.798, lf: 1.032, lr: 1.547, trackWidth: 1.52 },
   // Clio 200 Cup (Clio III): 4.017 x 1.768, wheelbase 2.585, track 1.52; 61 / 39 EST
   'cleo-rs200': { len: 4.017, wid: 1.768, lf: 1.008, lr: 1.577, trackWidth: 1.52 },
+  // TS010: 4.8 x 2.0, wheelbase 2.75; 42 / 58 and the track 1.6 EST
+  ts010: { len: 4.8, wid: 2.0, lf: 1.595, lr: 1.155, trackWidth: 1.6 },
 };
 
 /**

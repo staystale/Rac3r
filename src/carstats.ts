@@ -358,5 +358,18 @@ export const CAR_STATS: Record<string, CarStat> = {
       "abs": true,
       "tcs": false
     }
+  },
+  // (measured alone: tools/carstats.mjs ts010 with TS010=1, a new car behind its switch)
+  "ts010": {
+    "topKph": 344,
+    "zeroTo100": 3,
+    "brake100": 33,
+    "gripG": 1.65,
+    "massKg": 830,
+    "drive": "RWD",
+    "aids": {
+      "abs": false,
+      "tcs": false
+    }
   }
 };

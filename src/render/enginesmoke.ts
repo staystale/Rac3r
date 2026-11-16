@@ -60,6 +60,8 @@ export const EXHAUST_SPOTS: Record<string, { pipes: Pipe[]; up?: boolean }> = {
   cleo: { pipes: [[-0.5, -0.17]] },
   // the Clio 200's twin pipes in the middle of its diffuser
   cleors: { pipes: [[-0.5, -0.06], [-0.5, 0.06]] },
+  // the TS010's twin pipes in its diffuser (EST)
+  proto: { pipes: [[-0.5, -0.08], [-0.5, 0.08]] },
 };
 const DEFAULT_SPOT = EXHAUST_SPOTS.hatch;
 

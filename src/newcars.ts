@@ -13,7 +13,9 @@ const GT_CLASS = { id: 'gt', name: 'GT', subs: ['GT3'] };
 // bill (the Clio Cup), a class of their own on race tyres
 const TOURING_CLASS = { id: 'touring', name: 'TOURING', subs: ['BTCC', 'One-make'] };
 /** Every new class's id (the tyres they fit: cars.ts TYRES). */
-export const NEW_CLS_IDS = [GT_CLASS.id, TOURING_CLASS.id];
+// PROTOTYPE: the Le Mans prototypes (Le Manky), a class of their own on race tyres
+const PROTO_CLASS = { id: 'proto', name: 'PROTOTYPE', subs: ['Group C'] };
+export const NEW_CLS_IDS = [GT_CLASS.id, TOURING_CLASS.id, PROTO_CLASS.id];
 
 // Porsche 911 GT3 R (992, 2023; Porsche Motorsport's data): 4,194 cc flat six behind the rear
 // axle, ~416 kW (565 PS; BoP), 9,250 rpm max, 6-speed sequential, RWD, ~1,250 kg (BoP), 4,619 x
@@ -288,10 +290,37 @@ const CLEO_RS: RosterRow = {
   paint: '#f2a900', trim: '#c98a00', glass: '#2a2f38', rim: '#2a2d34',
 };
 
+// Toyota TS010 (1992, Group C; Toyota's figures): the RV10 3.5-litre 72-degree V10 behind the
+// driver (no turbo), "c600 bhp" in its Le Mans trim (c700 for the sprints), a six-speed manual,
+// RWD, a carbon monocoque, 750 kg (the race weight), 4,800 x 2,000 x 1,030 mm, wheelbase 2,750,
+// Goodyear 17 / 18-inch slicks, carbon brakes; 346 km/h at Le Mans (second in 1992). EST: the
+// power's rpm (11,000) and the 12,000 limit, the torque (400 Nm, 9,000-10,500), the ratios and
+// final drive (to ~346 km/h), the weight with its driver (830 kg), 42 / 58, the tyres' sizes
+// (290/640-17, 355/710-18), Cd 0.38 x 1.85 m^2 (set to reach the 346), the downforce (Le Mans
+// trim, ClA 3.0, 40 / 60), the CG, grip and stiffness (slicks), the springs (3 Hz); no ABS or TC.
+const TS010: RosterRow = {
+  id: 'ts010', name: 'Toyoter TS010', kind: 'proto', cls: 'proto', sub: 'Group C',
+  rimIn: 18,   // its real rim, inches (what tyres fit)
+  cg: 0.3, rideH: 0.05, cyl: 10,
+  aids: { abs: false, tcs: false },
+  mass: 830, lf: 1.595, lr: 1.155, len: 4.8, wid: 2.0, trackWidth: 1.6,
+  // the rear 355/710-18: 0.71 m across
+  tyreWidth: 0.355, wheelR: 0.355,
+  drive: 0.0, brakeBiasF: 0.58, caF: 140000, caR: 200000, mu: 1.75,
+  curve: realCurve({ idle: 2500, low: 0.5, nm: 400, nmFrom: 9000, nmTo: 10500,
+    kw: 448, kwAt: 11000, redline: 12000 }),
+  redline: 12000, upshiftRpm: 11700, downshiftRpm: 7000, idleRpm: 2500,
+  gears: [2.5, 1.9, 1.55, 1.3, 1.12, 0.98], finalDrive: 4.54, dragC: dragOf(0.38, 1.85),
+  aeroK: 1.8, downforceF: 1.2, downforceR: 1.8, susF: 3.0, susZ: 0.3,
+  // white, a red canopy (big), black wing and splitter
+  paint: '#f0f0ea', trim: '#c8342a', glass: '#2a2f38', rim: '#16181d',
+};
+
 /** The new cars: their roster rows, in the list's order. */
 export const NEW_CARS: RosterRow[] = [PORCH, SEVEN, TRANSFIT, TROPHY, CIVVIC, DEFUNDER, FOCUST,
   ...(FIX.cleo ? [CLEO] : []), ...(FIX.cleoroad ? [CLEO_RS] : []),
-  ...(FIX.transfitlwb ? [TRANSFIT_LWB] : []), ...(FIX.transfitswb ? [TRANSFIT_SWB] : [])];
+  ...(FIX.transfitlwb ? [TRANSFIT_LWB] : []), ...(FIX.transfitswb ? [TRANSFIT_SWB] : []),
+  ...(FIX.ts010 ? [TS010] : [])];
 
 /** The classes only new cars race in. */
-export const NEW_CLASSES = [GT_CLASS, TOURING_CLASS];
+export const NEW_CLASSES = [GT_CLASS, TOURING_CLASS, ...(FIX.ts010 ? [PROTO_CLASS] : [])];

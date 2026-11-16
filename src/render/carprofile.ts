@@ -109,6 +109,11 @@ export const PROFILES: Record<string, CarProfile> = {
   // from photos)
   'cleo-rs200': { len: 4.017, waist: 0.95, glass: [0.1, 0.63], roof: [[0, 0.5], [0.02, 1.0],
     [0.08, 1.36], [0.15, 1.46], [0.5, 1.47], [0.64, 0.98], [0.95, 0.78], [1, 0.45]] },
+  // TS010: the wing at the tail, the long low engine cover, the canopy bubble, the low nose (EST
+  // from photos)
+  ts010: { len: 4.8, waist: 0.72, glass: [0.42, 0.64], roof: [[0, 0.95], [0.06, 0.95],
+    [0.08, 0.72], [0.36, 0.8], [0.44, 1.0], [0.56, 1.03], [0.64, 0.82], [0.9, 0.55],
+    [1, 0.32]] },
 };
 
 /**
