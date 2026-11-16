@@ -454,6 +454,102 @@ function paintCustom(spr: SpriteCtx): void {
   block(-1, 5, 1, 2, CHR);
 }
 
+
+/**
+ * The E36 Peak's plan, a half width at a share of its length (0 tail, 1 nose), as a share of the
+ * sprite's half: the coupe's square tail, the big bolted flares over both axles with the doors
+ * narrower between, the nose square to its splitter.
+ * @param share along the car, 0..1
+ * @returns the half width, 0..1
+ */
+function e36Plan(share: number): number {
+  const flare = Math.max(inside(share, 0.05, 0.3, 0.03), inside(share, 0.66, 0.9, 0.03));
+  const tail = share < 0.03 ? 0.86 + 0.14 * Math.sqrt(share / 0.03) : 1;
+  const nose = share > 0.95 ? Math.sqrt(1 - 0.4 * ((share - 0.95) / 0.05) ** 2) : 1;
+  return (0.86 + 0.14 * flare) * tail * nose;
+}
+
+/**
+ * The E36 Peak's glasshouse: the coupe's rear screen, the roof (the second colour) lit along its
+ * edge, the side glass, the raked windscreen, the mirrors (the third colour).
+ * @param spr the painting context
+ */
+function e36Cabin(spr: SpriteCtx): void {
+  const { mid, roof2, third, block, along } = spr;
+  const rearFrom = along(0.18), roofFrom = along(0.27), roofTo = along(0.52),
+    screenTo = along(0.62), cabinHalf = Math.round(mid * 0.66);
+  for (let x = rearFrom; x < roofFrom; x++) {
+    const half = Math.round(cabinHalf - 3 * (roofFrom - x) / (roofFrom - rearFrom));
+    block(x, mid - half, 1, half * 2 + 1, GLASS);
+  }
+  block(roofFrom, mid - cabinHalf, roofTo - roofFrom, cabinHalf * 2 + 1, roof2);
+  block(roofFrom, mid - cabinHalf, roofTo - roofFrom, 1, SHINE);
+  block(roofFrom, mid + cabinHalf, roofTo - roofFrom, 1, SHADE_SOFT);
+  block(roofFrom + 1, mid - cabinHalf - 1, roofTo - roofFrom - 2, 1, GLASS);
+  block(roofFrom + 1, mid + cabinHalf + 1, roofTo - roofFrom - 2, 1, GLASS);
+  for (let x = roofTo; x < screenTo; x++) {
+    const half = Math.round(cabinHalf + 1 + 2 * (x - roofTo) / (screenTo - roofTo));
+    const rake = Math.round((x - roofTo) * 0.3);
+    block(x, mid - half + rake, 1, (half - rake) * 2 + 1, GLASS);
+  }
+  block(roofTo + 1, mid - cabinHalf + 1, 1, cabinHalf * 2 - 1, GLASS_HI);
+  block(screenTo - 2, mid - cabinHalf - 4, 2, 2, third);
+  block(screenTo - 2, mid + cabinHalf + 3, 2, 2, third);
+}
+
+/**
+ * The E36 Peak's shape and its aero: the flares lit on their crests and soft down their inner
+ * slopes, the long bonnet's big vents over the V8, the louvres in the front flares behind the
+ * wheels, the splitter (the third colour) with its dive planes, the twin lamps.
+ * @param spr the painting context
+ */
+function e36Front(spr: SpriteCtx): void {
+  const { lengthPx: len, widthPx: wid, mid, third, block, along } = spr;
+  for (const [from, until] of [[0.05, 0.3], [0.66, 0.9]]) {
+    block(along(from) + 1, 2, along(until - from) - 2, 1, SHINE);
+    block(along(from) + 1, wid - 3, along(until - from) - 2, 1, SHADE);
+    block(along(from) + 2, 5, along(until - from) - 4, 1, SHADE_SOFT);
+    block(along(from) + 2, wid - 6, along(until - from) - 4, 1, SHADE_SOFT);
+  }
+  block(along(0.68), mid - 7, along(0.22), 15, INK);
+  for (let x = along(0.69); x < along(0.89); x += 2) block(x, mid - 6, 1, 13, MESH);
+  for (const y of [3, wid - 6]) {
+    block(along(0.62), y, along(0.04), 3, INK);
+    for (let x = along(0.62) + 1; x < along(0.66); x += 2) block(x, y, 1, 3, MESH);
+  }
+  for (const y of [3, wid - 7]) {
+    block(len - 4, y, 3, 2, HEAD);
+    block(len - 4, y + 2, 3, 2, HEAD);
+  }
+  block(len - 2, mid - 5, 2, 11, INK);
+  block(len, 0, 2, wid, third);
+  for (const y of [-2, wid]) block(len - 6, y, 5, 2, third);
+}
+
+/**
+ * BMV E36 PEAK (BimmerWorld's "Bergsteiger", the Pikes Peak E36 M3: a twin-turbo V8 on a part
+ * tube frame): the coupe on its big bolted flares, the long vented bonnet, the splitter and dive
+ * planes, the white roof, the doors' shut lines, the huge rear wing on its swan necks (the third
+ * colour) overhanging the tail with its shadow; shaded the TS010's way.
+ * @param spr the painting context
+ */
+function paintE36(spr: SpriteCtx): void {
+  const { spec, lengthPx: len, widthPx: wid, mid, outline, light, third, block, along } = spr;
+  planBody(spr, (x) => mid * e36Plan(x / (len - 1)));
+  e36Front(spr);
+  e36Cabin(spr);
+  for (const y of [2, wid - 4]) block(along(0.38), y, 1, 2, INK);
+  for (const y of [1, wid - 5]) block(0, y, 2, 4, TAIL);
+  if (spec.noWing) return;
+  block(1, 0, 7, wid, SHADE);
+  block(-3, -2, 6, wid + 4, outline);
+  block(-2, -1, 4, wid + 2, third);
+  block(0, -1, 1, wid + 2, light);
+  block(-3, -2, 7, 2, INK);
+  block(-3, wid, 7, 2, INK);
+  for (const y of [mid - 6, mid + 5]) block(3, y, 5, 2, STEEL);
+}
+
 /** The newest cars' bodies by id (render/carlooks.ts LOOKS takes them). */
 export const NEW_LOOKS_3: [string, { paint: (spr: SpriteCtx) => void; bare?: boolean }][] = [
   ['toyoter-corolla', { paint: paintCorolla, bare: true }],
@@ -461,4 +557,5 @@ export const NEW_LOOKS_3: [string, { paint: (spr: SpriteCtx) => void; bare?: boo
   ['seat-ibiza', { paint: paintIbiza, bare: true }],
   ['ordi-a4', { paint: paintA4, bare: true }],
   ['transfit-custom', { paint: paintCustom, bare: true }],
+  ['bmv-e36peak', { paint: paintE36, bare: true }],
 ];

@@ -142,6 +142,7 @@ export const CAR_DOORS: Record<string, CarDoors> = {
   'effing-tt': { doors: [[0.42, 0.62]], bumper: 'tube', mirrors: 'none' },
   'civvic-btcc': { doors: FOUR_DOORS, mirrors: rimThird(0.625) },
   'toyoter-corolla': { doors: FOUR_DOORS, mirrors: rimThird(0.625) },   // Corolla: the 5-door
+  'bmv-e36peak': { doors: [[0.38, 0.64]], mirrors: rimThird(0.6) },   // E36 Peak: the coupe
   'defunder-110': { doors: [[0.47, 0.62], [0.32, 0.47]], bumper: 'steel',
     mirrors: { at: 0.655, col: 'third' }, spare: true },
   'focust-st': { doors: FOUR_DOORS, mirrors: rimThird(0.635) },
@@ -177,7 +178,7 @@ export const CAR_DOORS: Record<string, CarDoors> = {
 // crush, not fly off); the single-seaters and the buggy keep their own open parts
 const BOLTED_REAR_WINGS = new Set(['porch-gt3r', 'bmv-m4gt3', 'civvic-btcc', 'toyoter-corolla',
   'cleo-cup', 'saxo-kit', 'kit-2l', 'rx-super', 'rally-4x4', 'drift-s13', 'naffcar', 'ts010',
-  'rebelion-r13', 'defunder-110', 'seven-420r', 'effing-tt', 'tractor']);
+  'rebelion-r13', 'defunder-110', 'seven-420r', 'effing-tt', 'tractor', 'bmv-e36peak']);
 
 /**
  * whether a car's rear wing is a welded quarter panel (not thrown: it crushes).
@@ -320,6 +321,10 @@ export const CAR_BITS: Record<string, CarBits> = {
   // it, the 2.0 turbo four across the front, the radiator in the nose
   'civvic-btcc': { pipes: 1, pipesAt: 'left', front: 'bonnet', rear: 'boot', engine: 'front',
     cyl: 4, layout: 'inline', mount: 'trans', radiator: 'front', wingOnLid: true },
+  // E36 Peak: twin side exits ahead of the rear wheels (EST), the bonnet, the boot lid with the
+  // wing on it, the twin-turbo V8 along the front, the radiator in the nose
+  'bmv-e36peak': { pipes: 2, pipesAt: 'sides', front: 'bonnet', rear: 'boot', engine: 'front',
+    cyl: 8, layout: 'v', mount: 'long', radiator: 'front', wingOnLid: true },
   // Corolla BTCC: the side exit on the left (EST), the bonnet, the hatch with the wing on it, the
   // 2.0 turbo four across the front, the radiator in the nose
   'toyoter-corolla': { pipes: 1, pipesAt: 'left', front: 'bonnet', rear: 'boot', engine: 'front',

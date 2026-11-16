@@ -57,6 +57,8 @@ const REAL_SIZE: Record<string, RealSize> = {
   'effing-tt': { len: 5.6, wid: 2.35, lf: 1.575, lr: 1.575, trackWidth: 2.0 },
   // Civic Type R BTCC (FK8): 4.557 long, 1.875 wide (NGTC), wheelbase 2.70; 58 / 42, track 1.68 EST
   'civvic-btcc': { len: 4.557, wid: 1.875, lf: 1.134, lr: 1.566, trackWidth: 1.68 },
+  // E36 Peak: the E36 coupe's 4.433 and its 2.7 wheelbase on ~1.95 of flares; 52 / 48 EST
+  'bmv-e36peak': { len: 4.433, wid: 1.95, lf: 1.296, lr: 1.404, trackWidth: 1.66 },
   // Corolla BTCC: the road hatch's 4.37 x its 2.64 wheelbase on NGTC's 1.875; 58 / 42 EST
   'toyoter-corolla': { len: 4.37, wid: 1.875, lf: 1.109, lr: 1.531, trackWidth: 1.68 },
   // Defender 110 Station Wagon: 4.785 (with the spare) x 1.79, wheelbase 2.794; 52 / 48 and the

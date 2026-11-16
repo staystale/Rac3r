@@ -102,6 +102,10 @@ export const PROFILES: Record<string, CarProfile> = {
   'effing-tt': { len: 5.6, waist: 1.55, glass: [0.38, 0.58], roof: [[0, 1.0], [0.02, 1.4],
     [0.3, 1.42], [0.34, 1.55], [0.38, 2.05], [0.58, 2.1], [0.66, 1.6], [0.95, 1.42],
     [1, 1.05]] },
+  // E36 Peak: the big wing on its necks over the boot, the coupe's roof, the long bonnet (EST)
+  'bmv-e36peak': { len: 4.433, waist: 0.82, glass: [0.2, 0.62], roof: [[0, 0.6], [0.01, 1.3],
+    [0.07, 1.32], [0.09, 0.88], [0.18, 0.92], [0.28, 1.28], [0.5, 1.3], [0.62, 0.86],
+    [0.96, 0.66], [1, 0.38]] },
   // Corolla BTCC: the wing over the hatch, the short steep hatch, the low roof (EST from photos)
   'toyoter-corolla': { len: 4.37, waist: 0.88, glass: [0.1, 0.63], roof: [[0, 0.55], [0.02, 1.05],
     [0.08, 1.12], [0.14, 1.28], [0.24, 1.36], [0.53, 1.36], [0.64, 0.92], [0.95, 0.76],

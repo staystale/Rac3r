@@ -514,5 +514,18 @@ export const CAR_STATS: Record<string, CarStat> = {
       "abs": true,
       "tcs": true
     }
+  },
+  // (measured alone: tools/carstats.mjs bmv-e36peak with E36PEAK=1, behind its switch)
+  "bmv-e36peak": {
+    "topKph": 268,
+    "zeroTo100": 3.5,
+    "brake100": 38,
+    "gripG": 1.54,
+    "massKg": 1280,
+    "drive": "RWD",
+    "aids": {
+      "abs": false,
+      "tcs": true
+    }
   }
 };
