@@ -76,4 +76,7 @@ export const FIX = {
   cleo: atLoad('cleo'),
   // the Renolt Cleo RS 200 (the road Clio 200 Cup, ROAD / Hatch)
   cleoroad: atLoad('cleoroad'),
+  // the Fjord Transfit LWB (a Transit L3 H3 RWD), drivable and in the traffic; with it the L2 is
+  // named the Fjord Transfit MWB
+  transfitlwb: atLoad('transfitlwb'),
 };

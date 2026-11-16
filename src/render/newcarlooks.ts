@@ -276,6 +276,21 @@ function transfitPlan(share: number): number {
   return 0.95 * Math.sqrt(1 - 0.35 * round * round);
 }
 
+// m: the L2 Transit's length, the cab's shares below are of it; a longer or shorter Transit keeps
+// the same cab (measured from the nose) and its box changes (transfitCabShare)
+const TRANSFIT_LEN_M = 5.531;
+
+/**
+ * A share of the L2 Transit's length counted from its nose, on this Transit's length: the cab and
+ * bonnet are the same on every wheelbase.
+ * @param spr the painting context
+ * @param share the share on the L2 (0 tail, 1 nose)
+ * @returns the share on this one
+ */
+function transfitCabShare(spr: SpriteCtx, share: number): number {
+  return 1 - (1 - share) * TRANSFIT_LEN_M / spr.spec.len;
+}
+
 /**
  * The Transit's cab from above: the raked windscreen, the side glass, the van mirrors on their
  * arms (the second colour), the short bonnet's creases.
@@ -283,17 +298,18 @@ function transfitPlan(share: number): number {
  */
 function transfitCab(spr: SpriteCtx): void {
   const { widthPx: wid, mid, light, dark, trim, block, along } = spr;
-  const screenFrom = along(0.735), screenTo = along(0.80);
+  const cab = (share: number) => along(transfitCabShare(spr, share));
+  const screenFrom = cab(0.735), screenTo = cab(0.80);
   for (let x = screenFrom; x < screenTo; x++) {
     const inset = 3 + Math.round((screenTo - x) * 0.25);
     block(x, inset, 1, wid - inset * 2, GLASS);
   }
   block(screenFrom + 1, 5, 1, wid - 10, GLASS_HI);
-  block(along(0.64), 1, screenFrom - along(0.64), 1, GLASS);
-  block(along(0.64), wid - 2, screenFrom - along(0.64), 1, GLASS);
+  block(cab(0.64), 1, screenFrom - cab(0.64), 1, GLASS);
+  block(cab(0.64), wid - 2, screenFrom - cab(0.64), 1, GLASS);
   for (const y of [-3, wid]) block(screenFrom + 1, y, 3, 3, trim);
-  block(along(0.82), mid - 9, along(0.13), 1, light);
-  block(along(0.82), mid + 9, along(0.13), 1, dark);
+  block(cab(0.82), mid - 9, along(0.13 * TRANSFIT_LEN_M / spr.spec.len), 1, light);
+  block(cab(0.82), mid + 9, along(0.13 * TRANSFIT_LEN_M / spr.spec.len), 1, dark);
 }
 
 /**
@@ -307,9 +323,11 @@ function paintTransfit(spr: SpriteCtx): void {
   const { lengthPx: len, widthPx: wid, mid, paint, trim, third, block, along } = spr;
   planBody(spr, (x) => mid * transfitPlan(x / (len - 1)));
   // the roof over the load area and cab, its cross ribs, the rear header
-  const roofTo = along(0.735), rib = shade(paint, 0.86);
+  const roofTo = along(transfitCabShare(spr, 0.735)), rib = shade(paint, 0.86);
   block(2, 3, roofTo - 2, wid - 6, paint);
-  for (let x = along(0.05); x < along(0.70); x += 6) block(x, 4, 1, wid - 8, rib);
+  for (let x = along(0.05); x < along(transfitCabShare(spr, 0.70)); x += 6) {
+    block(x, 4, 1, wid - 8, rib);
+  }
   block(2, 3, 1, wid - 6, rib);
   // the sliding door's rail on the left flank
   block(along(0.40), 1, along(0.22), 1, INK);
@@ -540,6 +558,7 @@ export const NEW_LOOKS: [string, { paint: (spr: SpriteCtx) => void; bare?: boole
   ['porch-gt3r', { paint: paintPorch, bare: true }],
   ['seven-420r', { paint: paintSeven, bare: true }],
   ['transfit-van', { paint: paintTransfit, bare: true }],
+  ['transfit-lwb', { paint: paintTransfit, bare: true }],
   ['effing-tt', { paint: paintTrophy, bare: true }],
   ['civvic-btcc', { paint: paintCivvic, bare: true }],
 ];

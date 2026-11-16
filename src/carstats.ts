@@ -332,5 +332,18 @@ export const CAR_STATS: Record<string, CarStat> = {
       "abs": true,
       "tcs": false
     }
+  },
+  // (measured alone: tools/carstats.mjs transfit-lwb with TRANSFITLWB=1, behind its switch)
+  "transfit-lwb": {
+    "topKph": 145,
+    "zeroTo100": 16.3,
+    "brake100": 51.4,
+    "gripG": 0.8,
+    "massKg": 2290,
+    "drive": "RWD",
+    "aids": {
+      "abs": true,
+      "tcs": true
+    }
   }
 };

@@ -3,6 +3,7 @@
 // trafficDrive.ts, trafficKin.ts).
 import type { HighwayLevel, TrafficCar, TrafficVehicle } from "./types.ts";
 import type { PoliceOrders } from "./trafficPolice.ts";
+import { FIX } from "../core/fixes.ts";
 
 // what is on the road (weights) — road cars only; vans / lorries come with the traffic
 // vehicles (TODO 4). A car not in the roster is left out (trafficSpawn.ts): a new car behind its
@@ -11,10 +12,20 @@ import type { PoliceOrders } from "./trafficPolice.ts";
 // The Defunder stands for the Land Rovers: 0.4 is ~3.4 % of the cars (1.1 M of Great Britain's
 // ~34 M licensed cars; DfT / DVLA licensing statistics), ~2.8 % of the picks. The Focust stands
 // for the Focus: 0.37 is ~3 % of the cars (1.05 M of ~35 M; SMMT Motorparc 2023).
+// The vans' 2.4 split between the Transfits switched on, by these parts (EST: no registration
+// split found; the MWB the commonest of the big Transits): the L2 MWB 40, the L3 LWB 30.
+const VANS = 2.4;
+const VAN_PARTS: [string, number, boolean][] = [['transfit-van', 40, true],
+  ['transfit-lwb', 30, FIX.transfitlwb]];
+const vanParts = VAN_PARTS.filter(([, , isOn]) => isOn);
+const vanSum = vanParts.reduce((sum, [, part]) => sum + part, 0);
+/** One Transit's weight: its part of the vans' VANS (the L2 alone: all of it). */
+const vanWeight = (part: number) => (vanParts.length === 1 ? VANS : VANS * part / vanSum);
 export const VEH: [string, number][] = [
   ['hatch-fwd', 3], ['saloon-rwd', 3], ['estate-4x4', 2.5], ['mini-fwd', 1.5],
-  ['hatch-rwd', 1], ['muscle-rwd', 0.4], ['lambo-awd', 0.12], ['transfit-van', 2.4],
+  ['hatch-rwd', 1], ['muscle-rwd', 0.4], ['lambo-awd', 0.12], ['transfit-van', vanWeight(40)],
   ['defunder-110', 0.4], ['focust-st', 0.37],
+  ...vanParts.slice(1).map(([vanId, part]): [string, number] => [vanId, vanWeight(part)]),
 ];
 // real-road colours: mostly silver / white / black / grey (each its own sprite, cached by
 // id + paint)

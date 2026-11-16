@@ -72,7 +72,8 @@ const SEVEN: RosterRow = {
 // the final drive (3.29, top 0.70: the published 1,850 rpm), Cd 0.37 x 4.4 m^2, an empty van's
 // weight split (58 / 42) and its CG height, the tyres' grip and stiffness (van tyres), springs.
 const TRANSFIT: RosterRow = {
-  id: 'transfit-van', name: 'Fjord Transfit', kind: 'van', cls: 'road', sub: 'Van',
+  id: 'transfit-van', name: FIX.transfitlwb ? 'Fjord Transfit MWB' : 'Fjord Transfit', kind: 'van',
+  cls: 'road', sub: 'Van',
   rimIn: 15,   // its real rim, inches (what tyres fit)
   cg: 0.75, rideH: 0.18, cyl: 4,
   aids: { abs: true, tcs: true },
@@ -85,6 +86,28 @@ const TRANSFIT: RosterRow = {
   gears: [4.71, 2.53, 1.6, 1.1, 0.86, 0.7], finalDrive: 3.29, dragC: dragOf(0.37, 4.4),
   susF: 1.3, susZ: 0.4,
   // the white van: black bumpers and trim, a blue badge
+  paint: '#f0f0ea', trim: '#2a2d34', glass: '#2a2f38', rim: '#5a5f69',
+};
+
+// Ford Transit (Mk8) 350 L3 H3 RWD 2.0 EcoBlue 130 PS 6-speed manual (Ford; dealers' sheets): the
+// long wheelbase, 3,750 mm, 5,981 x 2,059 x 2,650 mm, 2,290 kg (2,289-2,357 by trim), RWD with the
+// engine along the car, ABS and ESC. EST: the engine as the L2's (96 kW, 385 Nm, the same band),
+// the RWD six-speed's ratios (5.44 2.84 1.72 1.22 1.0 0.79, the MT82's) and its axle 3.73, 235/65
+// R16 tyres, Cd 0.37 x 4.8 m^2 (the high roof), an empty van's 55 / 45, its CG, tyres and springs.
+const TRANSFIT_LWB: RosterRow = {
+  id: 'transfit-lwb', name: 'Fjord Transfit LWB', kind: 'van', cls: 'road', sub: 'Van',
+  rimIn: 16,   // its real rim, inches (what tyres fit)
+  cg: 0.85, rideH: 0.18, cyl: 4,
+  aids: { abs: true, tcs: true },
+  mass: 2290, lf: 1.688, lr: 2.062, len: 5.981, wid: 2.059, trackWidth: 1.72,
+  tyreWidth: 0.235, wheelR: tyreR(235, 65, 16),
+  drive: 0.0, brakeBiasF: 0.66, caF: 125000, caR: 100000, mu: 0.9,
+  curve: realCurve({ idle: 800, low: 0.55, nm: 385, nmFrom: 1500, nmTo: 2000,
+    kw: 96, kwAt: 3500, redline: 4500 }),
+  redline: 4500, upshiftRpm: 4100, downshiftRpm: 1500, idleRpm: 800,
+  gears: [5.44, 2.84, 1.72, 1.22, 1.0, 0.79], finalDrive: 3.73, dragC: dragOf(0.37, 4.8),
+  susF: 1.3, susZ: 0.4,
+  // the white van as the L2's
   paint: '#f0f0ea', trim: '#2a2d34', glass: '#2a2f38', rim: '#5a5f69',
 };
 
@@ -243,7 +266,8 @@ const CLEO_RS: RosterRow = {
 
 /** The new cars: their roster rows, in the list's order. */
 export const NEW_CARS: RosterRow[] = [PORCH, SEVEN, TRANSFIT, TROPHY, CIVVIC, DEFUNDER, FOCUST,
-  ...(FIX.cleo ? [CLEO] : []), ...(FIX.cleoroad ? [CLEO_RS] : [])];
+  ...(FIX.cleo ? [CLEO] : []), ...(FIX.cleoroad ? [CLEO_RS] : []),
+  ...(FIX.transfitlwb ? [TRANSFIT_LWB] : [])];
 
 /** The classes only new cars race in. */
 export const NEW_CLASSES = [GT_CLASS, TOURING_CLASS];

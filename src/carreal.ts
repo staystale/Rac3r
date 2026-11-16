@@ -43,6 +43,8 @@ const REAL_SIZE: Record<string, RealSize> = {
   'seven-420r': { len: 3.1, wid: 1.575, lf: 1.179, lr: 1.046, trackWidth: 1.3 },
   // Transit L2 H2: 5.531 x 2.059, wheelbase 3.3, ~58 % front empty (EST), track 1.503 / 1.486
   'transfit-van': { len: 5.531, wid: 2.059, lf: 1.386, lr: 1.914, trackWidth: 1.495 },
+  // Transit L3 H3 RWD: 5.981 x 2.059, wheelbase 3.75; 55 / 45 and the track 1.72 EST
+  'transfit-lwb': { len: 5.981, wid: 2.059, lf: 1.688, lr: 2.062, trackWidth: 1.72 },
   // F-150 Trophy Truck: wheelbase 3.15; the size, 50 / 50 and track 2.0 EST
   'effing-tt': { len: 5.6, wid: 2.35, lf: 1.575, lr: 1.575, trackWidth: 2.0 },
   // Civic Type R BTCC (FK8): 4.557 long, 1.875 wide (NGTC), wheelbase 2.70; 58 / 42, track 1.68 EST

@@ -76,6 +76,9 @@ export const PROFILES: Record<string, CarProfile> = {
   // Transit H2: the tall box to the cab, the raked screen, the short bonnet (EST from photos)
   'transfit-van': { len: 5.53, waist: 1.25, glass: [0.71, 0.8], roof: [[0, 0.62], [0.01, 2.38],
     [0.03, 2.47], [0.72, 2.47], [0.75, 2.32], [0.83, 1.4], [0.97, 1.2], [1, 0.72]] },
+  // Transit L3 H3: the long, high box (2.65 m) to the same cab (EST from photos)
+  'transfit-lwb': { len: 5.98, waist: 1.25, glass: [0.73, 0.82], roof: [[0, 0.62], [0.01, 2.55],
+    [0.03, 2.65], [0.74, 2.65], [0.77, 2.32], [0.84, 1.4], [0.97, 1.2], [1, 0.72]] },
   // trophy truck: the bed with its spares, the cab and roof scoop, the long bonnet, all high
   // on its long-travel wheels (EST from photos)
   'effing-tt': { len: 5.6, waist: 1.55, glass: [0.38, 0.58], roof: [[0, 1.0], [0.02, 1.4],
