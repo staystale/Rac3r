@@ -26,7 +26,8 @@
 // seven, transfit, trophy, civvic, defunder, focust and launchramp passed 11-16; then focustlook,
 // cleo (as the Clio III Cup), cleoroad, transfitlwb, transfitswb, saxo, strange, saxovtr,
 // fuelcarry and rollguard passed 11-16; then ts010 (with its PROTOTYPE class), tesla,
-// routemonster and m4gt3 passed 11-16.)
+// routemonster and m4gt3 passed 11-16; then corolla, reversefix, f1menu, r13, ibiza and a4avant
+// passed 11-16.)
 import { envValue } from './debug.ts';
 
 /**
@@ -72,10 +73,6 @@ export const FIX = {
   // the LOW RANGE of a car with a two-speed transfer box (the Defunder, the Strange Rover): a lever
   // by the speedo, switched only nearly stopped; the AI takes low when bogged (physics/lowrange.ts)
   lowrange: atLoad('lowrange'),
-  // REVERSE as in life, every car: traction control works going backwards too (it skipped
-  // reverse), and the 20 km/h cap holds - the drive fades by the driven wheels' speed at the cap,
-  // as the rev limiter's (it was cut by road speed only: spinning wheels carried cars to 23-32)
-  reversefix: atLoad('reversefix'),
   // EVERY CAR'S OWN CRASH PARTS (carbits.ts): step 1, its own doors - a 2-door's two, a
   // 4-door's four, each from its own place and at its own length; none on an open car; a stock
   // car's welded door skins without glass
@@ -83,15 +80,4 @@ export const FIX = {
   // every closed car SHADED the TS010's way (render/carshade.ts): a shared step over its sprite
   // and its own crest lines
   carshade: atLoad('carshade'),
-  // the Toyoter Corolla BTCC (Toyota Corolla GR Sport, the NGTC touring car), TOURING / BTCC
-  corolla: atLoad('corolla'),
-  // the Rebelion R13 (Rebellion R13, the non-hybrid LMP1), PROTOTYPE / LMP1 (a new type)
-  r13: atLoad('r13'),
-  // the Seat Ibeefa (a Seat Ibiza Mk4 1.4 five-door), ROAD / Hatch, in the traffic at its share
-  ibiza: atLoad('ibiza'),
-  // the Ordi A4 Avant (an Audi A4 Avant B8 2.0 TDI), ROAD / Estate, in the traffic at its share
-  a4avant: atLoad('a4avant'),
-  // F1 vs WORLD in the menu: the six Grand Prix calendar circuits under their own type card, F1
-  // CIRCUITS (world/levels/category.ts F1_LISTED); WORLD CIRCUITS keeps the rest (menu only)
-  f1menu: atLoad('f1menu'),
 };

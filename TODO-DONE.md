@@ -15,6 +15,35 @@ lighting, bushes and trees - OWNER LIST 10-24; the checking tools - Tools that a
 
 
 
+
+## PASSED 11-16, THE PASS BATCH 3 (owner: corolla, reversefix, f1menu, r13, ibiza, a4avant passed)
+
+The default 11-16, their switches deleted:
+- THE TOYOTER COROLLA BTCC (36af5616; Toyota Corolla GR Sport, NGTC, Gazoo Racing UK; TOURING /
+  BTCC): always in the roster. Measured (laptop): top 249 km/h, 0-100 4.5 s, 100-0 46.6 m (no
+  ABS), grip 1.39 g (the Civvic 249, 4.7, 46.5, 1.39). Its own parts and shading from the start.
+- REVERSE AS IN LIFE (ed00b24b): traction control works going backwards; the 20 km/h reverse cap
+  holds - the drive fades by the driven wheels' speed across 4 % about the cap (physics/loads.ts
+  reverseCap; it was cut by road speed, so spinning wheels carried cars to 23-32 km/h).
+  tools/scratch/_reverse.mjs, floored reverse from rest: the Tesla 30.3 -> 20.2 km/h, the 3 Series
+  25.0 -> 20.1, the Huracan 23.3 -> 20.2, the Golf 25.4 -> 20.1; the peak slip 8.2 -> 2.7 m/s (the
+  Tesla, aids on). tools/reversecheck.mjs OK.
+- F1 vs WORLD CIRCUITS in the menu (layout A): the six Grand Prix calendar circuits under their
+  own type card, F1 CIRCUITS (world/levels/category.ts F1_LISTED); WORLD CIRCUITS the rest
+  (endurance, GT, mountain).
+- THE REBELION R13 (2208bf79; Rebellion's 2018-20 non-hybrid LMP1; PROTOTYPE / LMP1, the type now
+  always listed): measured top 343 km/h, 0-100 2.7 s, 100-0 35.7 m, grip 1.64 g (the TS010 344, 3.0,
+  33.0, 1.65). Its own parts and shading from the start.
+- THE SEAT IBEEFA (1d08c79a; Seat Ibiza Mk4 1.4 five-door; ROAD / Hatch): measured top 176 km/h (real
+  177), 0-100 12.5 s (12.2), 100-0 42.3 m, grip 1.02 g. In the traffic at its share: every Ibiza,
+  ~204,700 licensed (2025 Q4, DVLA via stillontheroad.co.uk), 0.60 %, weight 0.074.
+- THE ORDI A4 AVANT (e1fabac2; Audi A4 Avant B8 2.0 TDI; ROAD / Estate): measured top 206 km/h (real
+  208; Cd 0.26 x 2.08 set to reach it), 0-100 10.0 s (9.7), 100-0 43.0 m, grip 1.05 g. In the traffic
+  at its share: every A4, ~226,700 licensed, 0.67 %, weight 0.082. tools/scratch/_trafficmix.mjs
+  (200 000 draws, plain): the Ibiza 934 and the A4 1,079 (0.5 % of the vehicles each).
+PROOF (second PC, old with the switches on -> this plain: worldhash, simhash, renderhash):
+follows.
+
 ## PASSED 11-16, THE PASS BATCH 2 (owner: the TS010 "with the reshape", the Tesla "rev bar and stuff pass", the Routemaster with its wheels / glass / mirrors, the M4 GT3)
 
 The default 11-16, their switches deleted: ts010 (and the PROTOTYPE class), tesla, routemonster,

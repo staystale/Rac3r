@@ -4,7 +4,6 @@
 // the owner passes it. Each row follows the real car (src/realcars.ts helpers); EST marks a figure
 // no source gave. Drafted with tools/newcarstart.mjs, checked with tools/newcar.mjs <id>.
 import type { RosterRow } from './cars.ts';
-import { FIX } from './core/fixes.ts';
 import { dragOf, realCurve, tyreR } from './realcars.ts';
 
 // GT: the GT3 racers (TODO CHAMPIONSHIPS: GT), a class of their own on race tyres
@@ -14,8 +13,7 @@ const GT_CLASS = { id: 'gt', name: 'GT', subs: ['GT3'] };
 const TOURING_CLASS = { id: 'touring', name: 'TOURING', subs: ['BTCC', 'One-make'] };
 /** Every new class's id (the tyres they fit: cars.ts TYRES). */
 // PROTOTYPE: the Le Mans prototypes (Le Manky), a class of their own on race tyres
-const PROTO_CLASS = { id: 'proto', name: 'PROTOTYPE',
-  subs: FIX.r13 ? ['Group C', 'LMP1'] : ['Group C'] };
+const PROTO_CLASS = { id: 'proto', name: 'PROTOTYPE', subs: ['Group C', 'LMP1'] };
 export const NEW_CLS_IDS = [GT_CLASS.id, TOURING_CLASS.id, PROTO_CLASS.id];
 
 // Porsche 911 GT3 R (992, 2023; Porsche Motorsport's data): 4,194 cc flat six behind the rear
@@ -566,8 +564,7 @@ const A4AVANT: RosterRow = {
 /** The new cars: their roster rows, in the list's order. */
 export const NEW_CARS: RosterRow[] = [PORCH, SEVEN, TRANSFIT, TROPHY, CIVVIC, DEFUNDER, FOCUST,
   CLEO, CLEO_RS, TRANSFIT_LWB, TRANSFIT_SWB, TS010, ROUTEMONSTER, SAXO, STRANGE, SAXO_VTR, TESLA,
-  M4GT3, ...(FIX.corolla ? [COROLLA] : []), ...(FIX.r13 ? [R13] : []),
-  ...(FIX.ibiza ? [IBIZA] : []), ...(FIX.a4avant ? [A4AVANT] : [])];
+  M4GT3, COROLLA, R13, IBIZA, A4AVANT];
 
 /** The classes only new cars race in. */
 export const NEW_CLASSES = [GT_CLASS, TOURING_CLASS, PROTO_CLASS];

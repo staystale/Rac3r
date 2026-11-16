@@ -4,7 +4,6 @@
 // (world/lampplan.ts).
 import type { Level } from '../types.ts';
 import { LAP_METRES } from './laplengths.ts';
-import { FIX } from '../../core/fixes.ts';
 
 const CAT_OF: Record<string, string> = { 'test-track': 'circuits', thruston: 'circuits',
   'castle-cum': 'circuits', 'brands-snatch': 'circuits', 'brands-snatch-indy': 'circuits',
@@ -43,7 +42,7 @@ const LISTED_UNDER: Record<string, string> = { 'test-track': 'test', spa: 'world
   nordschlep: 'world', lemans: 'world', suzuka: 'world', yasmarina: 'world',
   bathurst: 'world', moanaco: 'world' };
 
-// ?f1menu=1: the circuits on the current Formula One calendar (2026 and 2027) listed under F1
+// the circuits on the current Formula One calendar (2026 and 2027) listed under F1
 // CIRCUITS; the GP layout only (Sillystone National stays a UK circuit); Spa, on the F1 and GT
 // calendars both, listed once, under F1
 const F1_LISTED = new Set(['sillystone', 'moanaco', 'spa', 'monza', 'suzuka', 'yasmarina']);
@@ -54,7 +53,7 @@ const F1_LISTED = new Set(['sillystone', 'moanaco', 'spa', 'monza', 'suzuka', 'y
  * @returns circuits, f1, world, rally, rx, ovals, roads or test
  */
 export const menuCatOf = (level: { id: string; gen?: unknown; endless?: boolean }): string =>
-  (FIX.f1menu && F1_LISTED.has(level.id) ? 'f1' : '') || LISTED_UNDER[level.id] || catOf(level);
+  (F1_LISTED.has(level.id) ? 'f1' : '') || LISTED_UNDER[level.id] || catOf(level);
 
 /**
  * A level's lap (a rally stage's length), m, for the menu (owner 11-09: "Can tracks show their
