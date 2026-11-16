@@ -40,6 +40,8 @@ import { drawHudPedals, drawHudDevReadout, drawHudFps } from './hud/controls.ts'
 import { drawHudMinimap } from './hud/minimap.ts';
 import { drawHudBusted, drawHudHeat } from './hud/heat.ts';
 import type { HudState, HudCar, ScreenPoint, HudGame } from './hud/hudtypes.ts';
+import { drawLowLever } from './hud/lowlever.ts';
+import { hasLowRange, type RangeCar } from './physics/lowrange.ts';
 
 // the pieces hud.ts itself hides on the player's choice (the minimap and the progress bar live in
 // hud/minimap.ts, the tyre diagram is state.tyreHud), and where each choice is remembered
@@ -113,6 +115,7 @@ function newHudState(): HudState {
     // TEMPERATURE UNITS (the HUD list): the tyre numbers and the track gauge in °F
     tempF: false,
     flagSeen: 0, flagAt: 0, flagTxt: '',
+    lowLever: false,
     drawLightsLater: null,
   };
 }
@@ -126,13 +129,16 @@ export function createHud() {
   loadHudChoices(state);
   const setTyreHud = (enabled: boolean) => setHudTyreHud(state, enabled);
   const layout = (width: number, height: number) => layoutHud(state, width, height);
-  const hit = (point: ScreenPoint, width: number, height: number, car: HudCar) => hitHud(state,
-    point, width, height, car);
+  const hit = (point: ScreenPoint, width: number, height: number, car: HudCar) => {
+    state.lowLever = hasLowRange(car);
+    return hitHud(state, point, width, height, car);
+  };
 
   function draw(ctx: CanvasRenderingContext2D, game: HudGame, width: number, height: number,
     wallDt: number) {
     state.carDiagram = state.tyreHud;
     state.lapJokerRow = lapJokerRowShown(game);
+    state.lowLever = hasLowRange(game.car);
     try {
       state.drawLightsLater = () => {
         drawHudLights(ctx, game, width, height);
@@ -153,6 +159,9 @@ export function createHud() {
     drawHudButtonRow(ctx, state, game, rects);
     drawHudConeTally(ctx, state, game, rects);
     if (!state.hidden.has('speedo')) drawHudSpeedo(ctx, state, rects, car, spec, wallDt);
+    // (?lowrange=1: the lever, a control - never hidden)
+    if (state.lowLever) drawLowLever(ctx, rects.lowLever, !!(car as RangeCar).lowRange,
+      performance.now() - ((car as RangeCar).rangeRefusedAt ?? -Infinity));
     drawHudTyreDiagram(ctx, state, rects, car, spec);
     if (!state.hidden.has('lapTimer')) drawHudLapTimer(ctx, game, rects);
     drawHudTrackTemp(ctx, state, rects);

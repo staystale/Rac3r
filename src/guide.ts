@@ -167,6 +167,14 @@ const POLICE_CARD: GuideCard[] = [{
   target: (scene: GuideScene) => scene.L.heat,
 }];
 export const RULES: Record<string, GuideCard[]> = {
+  // ?lowrange=1: the first time a car with a low range is driven (physics/lowrange.ts)
+  lowrange: [{
+    title: 'LOW RANGE',
+    text: () => 'This car has a LOW RANGE. Nearly stopped (under 10 km/h), tap LO on the lever: '
+      + 'about 2.7x the pull and a little more grip for mud and steep climbs, but a much lower '
+      + 'top speed. Tap HI to go fast again.',
+    target: (scene: GuideScene) => scene.L.lowLever,
+  }],
   highway: [
     {
       title: 'HIGHWAY RACE',
@@ -286,7 +294,7 @@ export function rulesSeen(kind: string) {
 function markRules(kind: string) {
   try {
     const seenKinds = JSON.parse(localStorage.getItem(RULES_KEY) || '{}');
-    seenKinds[kind] = 1;
+    for (const one of kind.split('+')) seenKinds[one] = 1;
     localStorage.setItem(RULES_KEY, JSON.stringify(seenKinds));
   } catch { /* fine */ }
 }
@@ -688,8 +696,10 @@ export function createGuide() {
     open() { state.deck = CARDS; state.deckKind = null; state.idx = 0; state.pulse = 0; },
     // an event's rules walkthrough (RULES[kind]); false if there is none
     openRules(kind: string) {
-      if (!RULES[kind]) return false;
-      state.deck = RULES[kind];
+      // (two decks at once - an event's and the low range's - as "race+lowrange")
+      const decks = kind.split('+').map((one) => RULES[one]).filter(Boolean);
+      if (!decks.length) return false;
+      state.deck = decks.flat();
       state.deckKind = kind;
       state.idx = 0;
       state.pulse = 0;

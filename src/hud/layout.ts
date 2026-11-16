@@ -4,6 +4,7 @@
 import { PEDAL } from '../input.ts';
 import { MARGIN, BTN_H, DIAGRAM_H, LAP_ROW_H } from './widgets.ts';
 import { trackTempShown } from './tracktemp.ts';
+import { leverAsk, leverRect } from './lowlever.ts';
 import { chipTouchArea, fitAidChips, fitCornerPanels, isHudFit } from './hudfit.ts';
 import type { HudState, HudCar, ScreenPoint } from './hudtypes.ts';
 import type { HudRect } from './widgets.ts';
@@ -159,8 +160,10 @@ export function layoutHud(state: HudState, width: number, height: number) {
     fitCornerPanels({ lap, trackTemp, fps }, height);
     fitAidChips(absChip, tcsChip, width, height);
   } else clearAidChips(absChip, tcsChip, width, Math.max(lap.y + lap.h, fps.y + fps.h), trackTemp);
+  // (?lowrange=1: the low-range lever just left of the speedo, on a car that has one)
+  const lowLever = state.lowLever ? leverRect(speed) : { x: 0, y: 0, w: 0, h: 0 };
   return { restart, reset, vol, help, absChip, tcsChip, speed, lap, trackTemp, fps, tally, indL,
-    lights, indR, heat, fit };
+    lights, indR, heat, fit, lowLever };
 }
 
 /**
@@ -190,6 +193,8 @@ export function hitHud(state: HudState, point: ScreenPoint, width: number, heigh
   const rects = layoutHud(state, width, height);
   const aidHit = hitAidChips(rects, point, car);
   if (aidHit) return aidHit;
+  if (state.lowLever && inRect(point, rects.lowLever))
+    return { lowRange: leverAsk(rects.lowLever, point.y) };
   return hitControls(state, rects, point);
 }
 

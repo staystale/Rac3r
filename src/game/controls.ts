@@ -12,6 +12,7 @@ import { loadingNow } from './loading.ts';
 import { shared, game } from './state.ts';
 import type { GameCar } from './state.ts';
 import type { HudAction } from '../hud/hudtypes.ts';
+import { requestRange, type RangeCar } from '../physics/lowrange.ts';
 
 /**
  * Steps the master volume round: 100% -> 50% -> 20% -> muted -> 100%.
@@ -48,6 +49,9 @@ export function hudToggles(action: HudAction) {
   if (action.toggleTcs) game.car.tcsOn = !game.car.tcsOn;
   if (action.toggleLights) game.car.lightsOn = !game.car.lightsOn;
   if (action.indicate) toggleIndicator(action.indicate);
+  // (?lowrange=1: the lever - refused above 10 km/h, which the lever shows)
+  if (action.lowRange && !requestRange(game.car, action.lowRange === 'lo'))
+    (game.car as RangeCar).rangeRefusedAt = performance.now();
 }
 
 /**

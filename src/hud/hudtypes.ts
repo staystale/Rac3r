@@ -13,6 +13,7 @@ export interface HudState {
   tyreHud: boolean;   // the player's TYRE / DAMAGE choice
   carDiagram: boolean;   // the diagram is drawn this frame
   lapJokerRow: boolean;   // the lap panel has the joker's own third row this frame
+  lowLever: boolean;   // ?lowrange=1: the car has a low range - its lever shows (hud/lowlever.ts)
   mph: boolean; tempF: boolean;   // the units
   flagSeen: number; flagAt: number; flagTxt: string;   // the race flag banner
   drawLightsLater: (() => void) | null;   // the start lights / notices, drawn last
@@ -24,6 +25,7 @@ export interface HudAction {
   toggleAbs?: boolean; toggleTcs?: boolean; toggleLights?: boolean;
   indicate?: number;   // -1 left, 1 right
   restart?: boolean; reset?: boolean; volumeCycle?: boolean; help?: boolean;
+  lowRange?: 'hi' | 'lo';   // the low-range lever: the range asked for
 }
 
 /** The car as the HUD reads it: the car, its damage / tyre / engine systems, its lamps. */

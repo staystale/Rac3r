@@ -69,6 +69,9 @@ export const FIX = {
   // suspension and drive shaft in a wing's well, the crash bar and radiator behind a bumper - by
   // each car's own layout (render/underskin.ts, carbits.ts mount / radiator)
   underskin: atLoad('underskin'),
+  // the LOW RANGE of a car with a two-speed transfer box (the Defunder, the Strange Rover): a lever
+  // by the speedo, switched only nearly stopped; the AI takes low when bogged (physics/lowrange.ts)
+  lowrange: atLoad('lowrange'),
   // REVERSE as in life, every car: traction control works going backwards too (it skipped
   // reverse), and the 20 km/h cap holds - the drive fades by the driven wheels' speed at the cap,
   // as the rev limiter's (it was cut by road speed only: spinning wheels carried cars to 23-32)
