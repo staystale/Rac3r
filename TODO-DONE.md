@@ -13,6 +13,51 @@ rolls - OWNER 11-07; the AI rework - Where we are 11-04; the driving root fix, t
 LIST 11-01; TypeScript, mud, grass, lamps - Queue; weather, surfaces, car systems, damage,
 lighting, bushes and trees - OWNER LIST 10-24; the checking tools - Tools that are wrong.
 
+## FINDING 11-16 (owner: "Leave cars they are ok it's only a small % size difference") - THE CARS' SCALE AUDIT
+
+Owner: "The Ford focus seems a little big still but better shape. Compare all cars again each other and
+check size and scale." Every car's drawn length and width (the physics length; width, wheelbase and track
+drawn real by carreal.ts realShape) against the real car (round107, the cleo switches on). The new cars (1-8b)
+are all drawn at their real size, as most of the roster; the Golf (-6.3 %), the M135i (-7.6 %), the Chevelle
+(-4.2 %) and the S1 (-3.3 %) keep the shorter lengths of 11-07 ("match the sizes they were ish but in
+proportional shape": every car at real size had doubled the AI fields' crashes), and the F1 (-21.4 %) and F2
+(-17.6 %) are short for the same reason. So the Focust looks 1.097 x the Golf's length (real 1.028 x). Sorted by
+real length the order is not the drawn order (the Golf, the M135i and the S1 drawn below shorter cars). Two
+fixes were proposed behind ?carscale=1 (A draw-only, B the real length in the physics for the four road
+cars); the owner: leave them. Line-up of every car at one scale:
+scratchpad lineup-before.png (the worker's, not kept). EST: the Fiesta RX body (the road Mk7's length), the
+306 Maxi's width; no sure figure for the tractor, the F2 stock car and the autograss special.
+
+  car | real L x W mm | drawn L x W m | L err | W err | rank by real / by drawn length
+  mini-fwd | 3054 x 1410 | 3.050 x 1.410 | -0.1 % | 0.0 % | 1 / 1
+  seven-420r | 3100 x 1575 | 3.100 x 1.575 | 0.0 % | 0.0 % | 2 / 2
+  mikra-r1 | 3720 x 1660 | 3.800 x 1.696 | 2.2 % | 2.2 % | 3 / 3
+  rx-super | 3969 x 1950 | 4.100 x 1.950 | 3.3 % | 0.0 % | 4 / 10
+  kit-2l | 3996 x 1830 | 4.030 x 1.830 | 0.9 % | 0.0 % | 5 / 7
+  cleo-rs200 | 4017 x 1768 | 4.017 x 1.768 | 0.0 % | 0.0 % | 6 / 6
+  cleo-cup | 4050 x 1798 | 4.050 x 1.798 | 0.0 % | 0.0 % | 7 / 8
+  rally-4x4 | 4240 x 1800 | 4.100 x 1.741 | -3.3 % | -3.3 % | 8 / 9
+  hatch-fwd | 4270 x 1800 | 4.000 x 1.686 | -6.3 % | -6.3 % | 9 / 4
+  hatch-rwd | 4330 x 1770 | 4.000 x 1.635 | -7.6 % | -7.6 % | 10 / 5
+  focust-st | 4388 x 1825 | 4.388 x 1.825 | 0.0 % | 0.0 % | 11 / 12
+  lambo-awd | 4459 x 1924 | 4.460 x 1.930 | 0.0 % | 0.3 % | 12 / 14
+  wrz-awd | 4465 x 1740 | 4.470 x 1.742 | 0.1 % | 0.1 % | 13 / 16
+  saloon-rwd | 4470 x 1740 | 4.470 x 1.740 | 0.0 % | 0.0 % | 14 / 15
+  drift-s13 | 4520 x 1690 | 4.520 x 1.690 | 0.0 % | 0.0 % | 15 / 17
+  civvic-btcc | 4557 x 1875 | 4.557 x 1.875 | 0.0 % | 0.0 % | 16 / 18
+  porch-gt3r | 4619 x 2050 | 4.619 x 2.050 | 0.0 % | 0.0 % | 17 / 19
+  estate-4x4 | 4710 x 1800 | 4.700 x 1.796 | -0.2 % | -0.2 % | 18 / 20
+  defunder-110 | 4785 x 1790 | 4.785 x 1.790 | 0.0 % | 0.0 % | 19 / 21
+  muscle-rwd | 5010 x 1930 | 4.800 x 1.849 | -4.2 % | -4.2 % | 20 / 22
+  naffcar | 5100 x 2000 | 5.100 x 2.000 | 0.0 % | 0.0 % | 21 / 23
+  f2-rwd | 5220 x 1350 | 4.300 x 1.112 | -17.6 % | -17.6 % | 22 / 11
+  transfit-van | 5531 x 2059 | 5.531 x 2.059 | 0.0 % | 0.0 % | 23 / 24
+  track-rwd | 5600 x 1400 | 4.400 x 1.100 | -21.4 % | -21.4 % | 24 / 13
+  effing-tt | 5600 x 2350 | 5.600 x 2.350 | 0.0 % | 0.0 % | 25 / 25
+  tractor | no sure figure | 4.200 x 2.100 | - | - | -
+  banger-f2 | no sure figure | 4.300 x 1.850 | - | - | -
+  grass-special | no sure figure | 3.400 x 1.750 | - | - | -
+
 ## PASSED 11-16 (owner: "Name picker pass too") - THE GARAGE PICKER WIDER IN LANDSCAPE, the default (was ?garagewide=1)
 
 - THE GARAGE PICKER WIDER IN LANDSCAPE (owner 11-16 OK; JOB 3a): PASSED and the default; was ?garagewide=1
