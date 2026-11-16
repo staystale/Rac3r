@@ -17,7 +17,12 @@ try {
   const url = await page.evaluate(async ([scale, only]) => {
     const cars = await import('/src/cars.ts'), veh = await import('/src/vehicle.ts');
     const rows = cars.ROSTER.filter((row) => !only.length || only.includes(row.id));
-    const r = window.__game.renderer, cols = Math.min(7, rows.length), cellW = 45 * scale + 30, cellH = 80 * scale + 50;
+    // (each cell as big as the longest and widest car: the van and the bus are over 80 px long)
+    const r = window.__game.renderer, cols = Math.min(7, rows.length);
+    const pics = rows.map((row) => r.pixelCarWithWheels(cars.applyLivery(veh.makeCar(row.id).spec, null)));
+    const sizes = pics.map((pic) => pic.c || pic.canvas || pic);
+    const longest = Math.max(80, ...sizes.map((each) => each.width)), widest = Math.max(45, ...sizes.map((each) => each.height));
+    const cellW = widest * scale + 30, cellH = longest * scale + 50;
     const sheet = document.createElement('canvas');
     sheet.width = cols * cellW; sheet.height = Math.ceil(rows.length / cols) * cellH;
     const sctx = sheet.getContext('2d');

@@ -92,6 +92,10 @@ export const CAR_BITS: Record<string, CarBits> = {
   // four lengthways behind the radiator in the nose cone
   'seven-420r': { pipes: 1, pipesAt: 'right', front: 'bonnet', rear: 'none', engine: 'front',
     cyl: 4, layout: 'inline', mount: 'long', radiator: 'front' },
+  // Transit FWD: one pipe under the back (EST on the left), the bonnet, the rear doors, the
+  // EcoBlue four across the front
+  'transfit-van': { pipes: 1, pipesAt: 'left', front: 'bonnet', rear: 'boot', engine: 'front',
+    cyl: 4, layout: 'inline', mount: 'trans', radiator: 'front' },
 };
 
 /**

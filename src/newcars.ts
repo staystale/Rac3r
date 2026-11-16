@@ -60,9 +60,32 @@ const SEVEN: RosterRow = {
   paint: '#a9aeb6', trim: '#2e7d32', glass: '#9fb0c4', rim: '#c9ccd4',
 };
 
+// Ford Transit (Mk8, 2019) 290 L2 H2 FWD 2.0 EcoBlue 130 PS 6-speed manual (Ford; cars-data):
+// 96 kW, 385 Nm, 1,997 kg, 5,531 x 2,059 x 2,490 mm, wheelbase 3,300, track 1,503 / 1,486,
+// 215/65 R15, 1,850 rpm at 100 km/h in top (the top gear's overall 2.30), ABS and ESC. EST: the
+// torque's band (1,500-2,000) and power's rpm (3,500), the 4,500 rpm limit, the lower ratios and
+// the final drive (3.29, top 0.70: the published 1,850 rpm), Cd 0.37 x 4.4 m^2, an empty van's
+// weight split (58 / 42) and its CG height, the tyres' grip and stiffness (van tyres), springs.
+const TRANSFIT: RosterRow = {
+  id: 'transfit-van', name: 'Fjord Transfit', kind: 'van', cls: 'road', sub: 'Van',
+  rimIn: 15,   // its real rim, inches (what tyres fit)
+  cg: 0.75, rideH: 0.18, cyl: 4,
+  aids: { abs: true, tcs: true },
+  mass: 1997, lf: 1.386, lr: 1.914, len: 5.531, wid: 2.059, trackWidth: 1.495,
+  tyreWidth: 0.215, wheelR: tyreR(215, 65, 15),
+  drive: 1.0, brakeBiasF: 0.68, caF: 125000, caR: 90000, mu: 0.9,
+  curve: realCurve({ idle: 800, low: 0.55, nm: 385, nmFrom: 1500, nmTo: 2000,
+    kw: 96, kwAt: 3500, redline: 4500 }),
+  redline: 4500, upshiftRpm: 4100, downshiftRpm: 1500, idleRpm: 800,
+  gears: [4.71, 2.53, 1.6, 1.1, 0.86, 0.7], finalDrive: 3.29, dragC: dragOf(0.37, 4.4),
+  susF: 1.3, susZ: 0.4,
+  // the white van: black bumpers and trim, a blue badge
+  paint: '#f0f0ea', trim: '#2a2d34', glass: '#2a2f38', rim: '#5a5f69',
+};
+
 /** The new cars switched on: their roster rows, in the list's order. */
 export const NEW_CARS: RosterRow[] = [...(FIX.porch ? [PORCH] : []),
-  ...(FIX.seven ? [SEVEN] : [])];
+  ...(FIX.seven ? [SEVEN] : []), ...(FIX.transfit ? [TRANSFIT] : [])];
 
 /** The classes only new cars race in, while one of them is switched on. */
 export const NEW_CLASSES = [...(FIX.porch ? [GT_CLASS] : [])];

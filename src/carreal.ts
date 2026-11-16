@@ -41,6 +41,8 @@ const REAL_SIZE: Record<string, RealSize> = {
   'porch-gt3r': { len: 4.619, wid: 2.05, lf: 1.529, lr: 0.978, trackWidth: 1.72 },
   // Seven 420R (S3): 3.10 (EST) x 1.575, wheelbase 2.225, ~47 % front (EST), track 1.27 / 1.336
   'seven-420r': { len: 3.1, wid: 1.575, lf: 1.179, lr: 1.046, trackWidth: 1.3 },
+  // Transit L2 H2: 5.531 x 2.059, wheelbase 3.3, ~58 % front empty (EST), track 1.503 / 1.486
+  'transfit-van': { len: 5.531, wid: 2.059, lf: 1.386, lr: 1.914, trackWidth: 1.495 },
 };
 
 /**

@@ -67,7 +67,8 @@ export const FIX = {
   // each car's own layout (render/underskin.ts, carbits.ts mount / radiator)
   underskin: atLoad('underskin'),
   // THE NEW CARS, one switch each (newcars.ts): the Porch 911 GT3 Arr and its GT class, the
-  // Caterpillar Seven
+  // Caterpillar Seven, the Fjord Transfit (drivable, and in the highway traffic)
   porch: atLoad('porch'),
   seven: atLoad('seven'),
+  transfit: atLoad('transfit'),
 };

@@ -73,6 +73,9 @@ export const PROFILES: Record<string, CarProfile> = {
   'seven-420r': { len: 3.1, waist: 0.8, glass: [0.48, 0.52], roof: [[0, 0.62], [0.03, 0.78],
     [0.22, 0.8], [0.25, 1.08], [0.29, 1.08], [0.31, 0.82], [0.48, 0.84], [0.5, 1.02],
     [0.53, 0.86], [0.86, 0.74], [1, 0.52]] },
+  // Transit H2: the tall box to the cab, the raked screen, the short bonnet (EST from photos)
+  'transfit-van': { len: 5.53, waist: 1.25, glass: [0.71, 0.8], roof: [[0, 0.62], [0.01, 2.38],
+    [0.03, 2.47], [0.72, 2.47], [0.75, 2.32], [0.83, 1.4], [0.97, 1.2], [1, 0.72]] },
 };
 
 /**

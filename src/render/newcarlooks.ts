@@ -2,6 +2,7 @@
 // switch), nose +x, in the house style of render/carlooks.ts (which lists them in LOOKS): a 1 px
 // dark outline, flat paint with a light band on the top flank and a dark one on the bottom, black
 // glass, the SECOND colour (trim) big and the THIRD as a detail.
+import { shade } from "../render.ts";   // hoisted, only called at draw time (no cycle)
 import { SPRITE_PPM } from "./shared.ts";
 import { CHR, GLASS, HEAD, TAIL, type SpriteCtx } from "./carsprite.ts";
 
@@ -261,8 +262,78 @@ function paintSeven(spr: SpriteCtx): void {
   block(along(0.10), mid - 5, 2, 2, CHR);
 }
 
+/**
+ * The Transit's plan, a half width at a share of its length (0 tail, 1 nose), as a share of the
+ * sprite's half: the boxy load area to the cab, the short bonnet rounding at its corners.
+ * @param share along the car, 0..1
+ * @returns the half width, 0..1
+ */
+function transfitPlan(share: number): number {
+  if (share < 0.01) return 0.95;
+  if (share < 0.80) return 1;
+  if (share < 0.95) return 1 - 0.05 * (share - 0.80) / 0.15;
+  const round = (share - 0.95) / 0.05;
+  return 0.95 * Math.sqrt(1 - 0.35 * round * round);
+}
+
+/**
+ * The Transit's cab from above: the raked windscreen, the side glass, the van mirrors on their
+ * arms (the second colour), the short bonnet's creases.
+ * @param spr the painting context
+ */
+function transfitCab(spr: SpriteCtx): void {
+  const { widthPx: wid, mid, light, dark, trim, block, along } = spr;
+  const screenFrom = along(0.735), screenTo = along(0.80);
+  for (let x = screenFrom; x < screenTo; x++) {
+    const inset = 3 + Math.round((screenTo - x) * 0.25);
+    block(x, inset, 1, wid - inset * 2, GLASS);
+  }
+  block(screenFrom + 1, 5, 1, wid - 10, GLASS_HI);
+  block(along(0.64), 1, screenFrom - along(0.64), 1, GLASS);
+  block(along(0.64), wid - 2, screenFrom - along(0.64), 1, GLASS);
+  for (const y of [-3, wid]) block(screenFrom + 1, y, 3, 3, trim);
+  block(along(0.82), mid - 9, along(0.13), 1, light);
+  block(along(0.82), mid + 9, along(0.13), 1, dark);
+}
+
+/**
+ * FJORD TRANSFIT (Ford Transit Mk8, L2 H2): the long box - the roof with its cross ribs, a sliding
+ * door's rail on the left - the cab's raked screen and van mirrors, the short bonnet, the grille
+ * with its blue badge (the third colour), swept lamps, black bumpers (the second colour), the
+ * tall rear lamps and the high brake light.
+ * @param spr the painting context
+ */
+function paintTransfit(spr: SpriteCtx): void {
+  const { lengthPx: len, widthPx: wid, mid, paint, trim, third, block, along } = spr;
+  planBody(spr, (x) => mid * transfitPlan(x / (len - 1)));
+  // the roof over the load area and cab, its cross ribs, the rear header
+  const roofTo = along(0.735), rib = shade(paint, 0.86);
+  block(2, 3, roofTo - 2, wid - 6, paint);
+  for (let x = along(0.05); x < along(0.70); x += 6) block(x, 4, 1, wid - 8, rib);
+  block(2, 3, 1, wid - 6, rib);
+  // the sliding door's rail on the left flank
+  block(along(0.40), 1, along(0.22), 1, INK);
+  transfitCab(spr);
+  // the grille, its badge, the swept lamps, the bumpers
+  block(len - 2, mid - 7, 2, 15, INK);
+  for (let y = mid - 6; y <= mid + 6; y += 3) block(len - 2, y, 1, 1, CHR);
+  block(len - 3, mid - 1, 2, 3, third);
+  for (const y of [2, wid - 6]) {
+    block(len - 5, y, 3, 4, HEAD);
+    block(len - 7, y + (y < mid ? 1 : 0), 2, 3, HEAD);
+  }
+  block(len, 3, 1, wid - 6, trim);
+  block(-1, 2, 1, wid - 4, trim);
+  // the tall rear lamps on the back pillars, the high brake light
+  block(0, 1, 1, 4, TAIL);
+  block(0, wid - 5, 1, 4, TAIL);
+  block(1, mid - 2, 1, 5, TAIL);
+  block(-1, 4, 1, 2, CHR);
+}
+
 /** The new cars' bodies by id (render/carlooks.ts LOOKS takes them). */
 export const NEW_LOOKS: [string, { paint: (spr: SpriteCtx) => void; bare?: boolean }][] = [
   ['porch-gt3r', { paint: paintPorch, bare: true }],
   ['seven-420r', { paint: paintSeven, bare: true }],
+  ['transfit-van', { paint: paintTransfit, bare: true }],
 ];

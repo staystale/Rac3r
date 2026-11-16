@@ -5,10 +5,12 @@ import type { HighwayLevel, TrafficCar, TrafficVehicle } from "./types.ts";
 import type { PoliceOrders } from "./trafficPolice.ts";
 
 // what is on the road (weights) — road cars only; vans / lorries come with the traffic
-// vehicles (TODO 4)
+// vehicles (TODO 4). A car not in the roster is left out (trafficSpawn.ts): the new cars behind
+// their switches (newcars.ts). The Transfit stands for all vans: 2.4 is 17 % of the picks, the
+// vans' share of Great Britain's road traffic (DfT road traffic estimates 2023; cars 76 %).
 export const VEH: [string, number][] = [
   ['hatch-fwd', 3], ['saloon-rwd', 3], ['estate-4x4', 2.5], ['mini-fwd', 1.5],
-  ['hatch-rwd', 1], ['muscle-rwd', 0.4], ['lambo-awd', 0.12],
+  ['hatch-rwd', 1], ['muscle-rwd', 0.4], ['lambo-awd', 0.12], ['transfit-van', 2.4],
 ];
 // real-road colours: mostly silver / white / black / grey (each its own sprite, cached by
 // id + paint)

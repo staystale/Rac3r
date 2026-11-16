@@ -48,4 +48,6 @@ export const REAL_FIGURES = {
     note: 'top speed EST (by the BoP and the wing); no published 0-100' },
   'seven-420r': { real: 'Caterham Seven 420R (2015)', topKph: 219, zeroTo100: 3.9,
     note: '0-60 mph 3.8 s (Caterham); 0-100 km/h EST' },
+  'transfit-van': { real: 'Ford Transit Mk8 290 L2 H2 FWD 2.0 EcoBlue 130 PS (2019)', topKph: 155,
+    zeroTo100: null, note: 'top speed EST (by its power and drag); no published 0-100' },
 };
