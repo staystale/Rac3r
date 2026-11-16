@@ -384,12 +384,15 @@ THE TRAFFIC'S TRIPS (`?hwtrips=1`, `FIX.hwtrips`, under test; `ai/trafficTrips.t
 too; never a chaser, an angry driver, a speeder, a broken-down or wrecked car) rolls once for each
 way off ahead as it comes within `DECIDE_M` (500 m): a slip road (`waysOf`: the short and long
 slips' lines, a junction's off-slip on round its near roundabout and `RUN_M` along the bridge's
-road) at `LEAVE_SHARE` (2 / 12), a roadside station (`trafficFuel.ts stationsOf`) at `FUEL_SHARE`
-(5 / 40; the old nearside-only roll in `mayStopForFuel` is off with the switch). A car going moves
+road) at `LEAVE_ROLL` (0.24), a roadside station (`trafficFuel.ts stationsOf`) at `FUEL_ROLL`
+(0.36; the old nearside-only roll in `mayStopForFuel` is off with the switch) - each above the
+owner's rate so that the cars PASSING leave 2 in 12 and pull in 5 in 40 as measured (a car put back
+out of sight before it gets there, or that misses a station, never counts). A car going moves
 over to the nearside lane (`trafficLane.ts heldLane`: one lane at a time when clear, no
 overtaking), indicates left from `SIGNAL_M` (250 m) before a slip, and takes it in the nearside lane
 `LEAD_M` (55 m) before the slip's line `INTO_SLIP_M` (30 m) in - a curve from where it is onto the
-line (`junctions.ts curveBetween`), then the line - else it has missed it; for fuel the old pull-in
+line (`junctions.ts curveBetween`), then the line - else it has missed it and, staying in the
+nearside lane, goes for the next slip ahead (`goForNextExit`; none loaded yet: it looks each step); for fuel the old pull-in
 (`trafficFuel.ts pullIn`) once in reach. On its slip a car follows the line (`trafficPath.ts
 drivePath`): carried (its own path speed - the road frame reads only the share along the road) or,
 near a real car, the traffic's pursuit law (`trafficPhys.ts pursuitInput`) at a point ahead on it;

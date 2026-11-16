@@ -207,6 +207,20 @@ BUGS (each behind its own switch, measured, then a test link):
     mean (different chases each way); framecheck highway, PC x4 (in its catch-up loop, one run
     each): work median 39.4 -> 42.5 ms, frame median 83.3 both. Photos: tools/scratch/_trips/
     (exit, junction, join).
+    RATES RAISED (owner 11-16: yes to "raise to a measured 2 in 12 ... a missed car stays left until the
+    next exit"): the rolls LEAVE_ROLL 0.24, FUEL_ROLL 0.36 (were 2 / 12 and 5 / 40); a car that
+    misses its slip stays in the nearside lane and goes for the next one (goForNextExit). MEASURED
+    (_hwtrips, 480 km: motorway / dual x countryside / Deaf Valley x seeds 4242 / 7 / 11, 40 km
+    each, traffic 0.6, the laptop): of the cars passing a slip 151 of 944 left (16.0 %: traffic
+    118 / 765 = 15.4 %, police 33 / 179 = 18.4 %); rolls won 248 of 915, 17 carried on to the next
+    slip, 17 dropped (a chase, a breakdown, a slip's line it could not meet); fuel 58 of 433 pulled
+    in (13.4 %: traffic 40 / 363 = 11.0 %, police 18 / 70 = 25.7 %), won 164 of 414, 84 missed (not
+    in the nearside lane in reach, or the pumps taken). The first try (0.19 / 0.21, 160 km): 14.2 %
+    and 7.3 %. Joins 8, 6 merged, 2 held, 2 lost before merging. Traffic step 146-307 us (node).
+    The same seed with the old rolls (motorway / countryside 11): touches with a car on a trip 22 ->
+    329 - one cruising police car held ~5 m behind a car waiting in the nearside lane for its next
+    slip for ~12 s (the count is pairs coming within 5 m, not crashes); all contact steps 3065 ->
+    2190.
 
 RACE TRACKS:
 16. PIT STOPS - ALL QUESTIONS ANSWERED 11-15 (build after the 10 cars, one switch):

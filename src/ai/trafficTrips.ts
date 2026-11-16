@@ -1,13 +1,15 @@
 // ai/trafficTrips.ts - THE TRAFFIC'S TRIPS OFF AND ONTO THE ROAD (TODO 3a2 item 15, ?hwtrips=1).
-// The owner's rates: 2 in 12 of our way's cars take the next slip road and leave; 5 in 40 pull
-// into a fuel station; a cruising police car the same, a chasing one never; and cars join from the
-// on-ramps. Each slip road and roadside station ahead is rolled for once a car (DECIDE_M ahead, in
-// whatever lane it is in); a car going moves over to the nearside lane (ai/trafficLane.ts), then:
+// The owner's rates, as MEASURED (tools/scratch/_hwtrips.mjs): 2 in 12 of our way's cars passing a
+// slip road leave by it; 5 in 40 passing a fuel station pull in; a cruising police car the same, a
+// chasing one never; and cars join from the on-ramps. Each slip road and roadside station ahead is
+// rolled for once a car (DECIDE_M ahead, in whatever lane it is in); a car going moves over to the
+// nearside lane (ai/trafficLane.ts), then:
 // - LEAVING: past the exit's signs it indicates left and follows the slip road's line (ai/
 //   trafficPath.ts): a short or long slip to its gate (it stops short of it), a junction's
 //   off-slip, round the roundabout and on along the bridge's road. Out of sight it is gone
-//   (ai/trafficStep.ts puts it back as a new car). The secret side road and a services' road are
-//   not exits (they come back to the motorway): no car leaves by them.
+//   (ai/trafficStep.ts puts it back as a new car). One that missed its slip (not in the nearside
+//   lane in time) stays in that lane and leaves by the next one. The secret side road and a
+//   services' road are not exits (they come back to the motorway): no car leaves by them.
 // - FUEL: in reach of the station in the nearside lane, its pull-in (ai/trafficFuel.ts pullIn).
 // - JOINING: now and then (JOIN_SHARE) a car put back ahead of you starts out of sight on an
 //   on-ramp instead - a junction's on-slip, or the end of a side road / services' road - comes down
@@ -52,10 +54,12 @@ export interface TrafficTrip {
   merge?: { s0: number; fromOff: number } | null;
 }
 
-// the owner's rates: of the cars passing a slip road, those that leave by it; of those passing a
-// roadside station, those that pull in; of our way's cars put back ahead of you with an on-ramp
-// in reach, those that join from it (the same as leave, so the road keeps its traffic)
-const LEAVE_SHARE = 2 / 12, FUEL_SHARE = 5 / 40, JOIN_SHARE = 2 / 12;
+// the rolls for the owner's rates: a car's chance to go for a slip road it nears, and for a
+// roadside station - each above the rate itself, as a car put back out of sight before it gets
+// there, or that misses a station, never counts (tools/scratch/_hwtrips.mjs measures the cars
+// passing: leaving 2 in 12, pulling in 5 in 40); of our way's cars put back ahead of you with an
+// on-ramp in reach, those that join from it (the owner's 2 in 12, so the road keeps its traffic)
+const LEAVE_ROLL = 0.24, FUEL_ROLL = 0.36, JOIN_SHARE = 2 / 12;
 // m ahead a slip / station is rolled for (from the outside lane of three: two lane changes of
 // ~150 m each at 100 km/h); m ahead it must still be to be rolled for
 const DECIDE_M = 500, ROLL_MIN_M = 40;
@@ -262,10 +266,10 @@ function planTrip(ctx: TrafficCtx, slot: TrafficCar) {
   const station = nextAhead(stationsOf(ctx), slot.s, slot.stationAt);
   if (exit && (!station || exit.s <= station.s)) {
     slot.slipAt = exit.s;
-    if (ctx.rnd() < LEAVE_SHARE) slot.trip = { kind: 'exit', at: exit.s, exit };
+    if (ctx.rnd() < LEAVE_ROLL) slot.trip = { kind: 'exit', at: exit.s, exit };
   } else if (station) {
     slot.stationAt = station.s;
-    if (ctx.rnd() < FUEL_SHARE) slot.trip = { kind: 'fuel', at: station.s, station };
+    if (ctx.rnd() < FUEL_ROLL) slot.trip = { kind: 'fuel', at: station.s, station };
   }
 }
 
@@ -285,17 +289,36 @@ function goForFuel(ctx: TrafficCtx, slot: TrafficCar, env: DriveEnv, station: St
 }
 
 /**
- * A car leaving: in the nearside lane LEAD_M before the slip's line INTO_SLIP_M in, it takes the
- * slip - a curve from where it is onto that line, then the line. Too late, it has missed it.
+ * A car that missed its slip goes for the next one ahead (none loaded yet: it looks again each
+ * step), staying in the nearside lane till then.
  * @param ctx the traffic
  * @param slot the car
- * @param exit the exit
+ * @param trip its trip
  */
-function goForExit(ctx: TrafficCtx, slot: TrafficCar, exit: Exit) {
+function goForNextExit(ctx: TrafficCtx, slot: TrafficCar, trip: TrafficTrip) {
+  const next = waysOf(ctx.level!).exits.find((each) => each.s - slot.s > ROLL_MIN_M);
+  trip.exit = next;
+  if (next) trip.at = next.s;
+}
+
+/**
+ * A car leaving: in the nearside lane LEAD_M before the slip's line INTO_SLIP_M in, it takes the
+ * slip - a curve from where it is onto that line, then the line. Too late, it has missed it and
+ * goes for the next.
+ * @param ctx the traffic
+ * @param slot the car
+ * @param trip its trip
+ */
+function goForExit(ctx: TrafficCtx, slot: TrafficCar, trip: TrafficTrip) {
+  const exit = trip.exit;
+  if (!exit) {
+    goForNextExit(ctx, slot, trip);
+    return;
+  }
   const meetS = exit.s + INTO_SLIP_M;
   if (slot.s < meetS - LEAD_M) return;
   if (slot.s > meetS - LEAD_M + LATE_M) {
-    slot.trip = null;
+    goForNextExit(ctx, slot, trip);
     return;
   }
   if (slot.lane !== 0 || slot.laneT !== 0) return;
@@ -415,7 +438,7 @@ export function driveTrip(ctx: TrafficCtx, slot: TrafficCar, env: DriveEnv,
   }
   if (!trip.path) {
     if (trip.kind === 'fuel') goForFuel(ctx, slot, env, trip.station!);
-    else if (trip.kind === 'exit') goForExit(ctx, slot, trip.exit!);
+    else if (trip.kind === 'exit') goForExit(ctx, slot, trip);
     if (!slot.trip || !trip.path) return false;
   }
   driveOnPath(ctx, slot, env, speed, trip);

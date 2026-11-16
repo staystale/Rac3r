@@ -2,7 +2,8 @@
 // the endless road with traffic, you carried along a lane at SPEED km/h, the traffic and the
 // heats stepped as the game does. Counts, per road:
 //   SLIPS  our way's cars passing each slip road (short / long / a junction's off-slip) and those
-//          that took it (leaving), police apart; the rolls won and missed (?hwtrips=1)
+//          that took it (leaving), police apart; the rolls won, missed (dropped) and carried on
+//          to the next slip (?hwtrips=1)
 //   FUEL   our way's cars passing each roadside station and those that pulled in, police apart
 //   JOINS  cars put on an on-ramp, merged, held at the give-way (and for how long), lost before
 //          merging; the seconds from the ramp to in the lane
@@ -168,7 +169,7 @@ function run(road, scenery, seed) {
   const world = newWorld(road, scenery, seed), list = world.traffic.list;
   const slips = tally(), fuel = tally();
   const joins = { put: 0, merged: 0, held: 0, holdS: [], lost: 0, rampS: [] };
-  const rolls = { slip: 0, slipWon: 0, slipMissed: 0, fuel: 0, fuelWon: 0, fuelMissed: 0 };
+  const rolls = { slip: 0, slipWon: 0, slipMissed: 0, slipCarried: 0, fuel: 0, fuelWon: 0, fuelMissed: 0 };
   const memo = new Map();
   while ((level._hw.driven || 0) < KM * 1000 && world.time < KM * 90) {
     stepWorld(world);
@@ -221,8 +222,15 @@ function run(road, scenery, seed) {
           }
         }
         seen.trip = trip;
+        seen.tripAt = trip?.at;
         seen.tripPath = false;
       }
+      // (a car that missed its slip going on for the next one)
+      if (trip && trip === seen.trip && trip.kind === 'exit' && trip.at !== seen.tripAt) {
+        rolls.slipCarried++;
+        note(world, 'exit carried on', { from: seen.tripAt, to: trip.at, lane: slot.lane });
+      }
+      seen.tripAt = trip?.at;
       if (trip?.kind === 'exit' && trip.path && !seen.tripPath) {
         seen.tripPath = true;
         slips[isPolice ? 'polTook' : 'took']++;
@@ -259,7 +267,7 @@ function run(road, scenery, seed) {
   const km = (level._hw.driven || 0) / 1000;
   return [`${road}/${scenery} seed ${seed}: ${km.toFixed(1)} km, ${world.time.toFixed(0)} s`,
     `  SLIPS traffic took ${share(slips.took, slips.pass)}, police ${share(slips.polTook,
-      slips.polPass)}; rolls ${rolls.slip} won ${rolls.slipWon} missed ${rolls.slipMissed}`,
+      slips.polPass)}; rolls ${rolls.slip} won ${rolls.slipWon} missed ${rolls.slipMissed} carried on ${rolls.slipCarried}`,
     `  FUEL  traffic in ${share(fuel.took, fuel.pass)}, police ${share(fuel.polTook,
       fuel.polPass)}; rolls ${rolls.fuel} won ${rolls.fuelWon} missed ${rolls.fuelMissed}`,
     `  JOINS put ${joins.put}, merged ${joins.merged} (ramp to lane median ${median(joins.rampS)}`
