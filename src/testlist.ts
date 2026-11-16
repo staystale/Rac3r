@@ -38,15 +38,13 @@ export const TEST_LIST: TestEntry[] = [
   {
     id: 'underskin',
     added: '2026-11-16',
-    name: 'Under the skin, fixed: dents fold, no see-through holes, structure pushed back',
-    where: 'Test link + &underskin=1: crash hard in any closed car (a hatch, the Huracan, the '
-      + 'tractor) and in the F1 / F2, front, side and rear, until a bonnet, a wing, a bumper, a '
-      + 'door or a boot comes off',
-    try: 'Look at the dented corner: creased, darker folds, the edge crumpled but solid. Look '
-      + 'into each hole: the engine and radiator (pushed back as the front crumples), the arms, '
-      + 'strut and drive shaft in a wing well, the beam behind a bumper, a door sill and floor.',
-    wrong: 'Speckled or see-through patches on a damaged car, a radiator, beam or bumper floating '
-      + 'past the crushed edge, parts too small or dark to make out at speed, a front-drive car '
-      + 'with drive shafts at the back.',
+    name: 'Under the skin, round 2: uneven folds, a crushed wheel corner shows its arms, steering',
+    where: 'Test link + &underskin=1: crash a closed car front-corner first (a hatch, a saloon, '
+      + 'the Huracan) until the corner is pushed in to the wheel, then steer; side and rear too',
+    try: 'The dent: crumpled, uneven folds. The crushed wheel corner: a dark well with the arms, '
+      + 'strut and (driven wheel) drive shaft, joined to the wheel, the wheel pushed in with the '
+      + 'metal; steer - the arms and wheel turn together.',
+    wrong: 'Straight even stripes, see-through patches, arms not reaching the wheel or not turning '
+      + 'with it, a wheel floating off the car, parts too small to make out.',
   },
 ];

@@ -22,32 +22,20 @@ import { endCrushPx, sideCrushPx } from "./cardamage.ts";
 // the bare metal's colours (render/carparts.ts's bits and the open cars' arms share them)
 const FRAME_DARK = '#16181d', STEEL = '#3a3d45', STEEL_LIGHT = '#5a5f69';
 const CORE = '#6f7782', FIN = '#4d545e', CARBON = '#1e2026', CARBON_LIGHT = '#2e3138';
-const TUBE = '#4a4f58', SPRING = '#d0d4da';
-// the inside of a wing's well: the inner arch and the chassis leg in shadow (the arms, drive
-// shaft and spring, bright steel, read against it at a phone's size)
-const WELL = '#2a2d33';
+const TUBE = '#4a4f58';
 // the bumper beam's steel, light; the under-tray behind a bumper, in shadow; a door's floor and
 // carpet; a boot's floor; the spare wheel's tyre and its rim
 const BEAM = '#9aa0aa', UNDERTRAY = '#1e2026', FLOOR = '#2b2e35', CARPET = '#3a3d45';
 const BOOT_FLOOR = '#3a3d45', SPARE_TYRE = '#16181d', SPARE_RIM = '#8a9099';
 // m: a spare wheel's diameter from above
 const SPARE_M = 0.6;
-// px a strut's top sits off the axle line, toward the car's middle
-const STRUT_OFFSET_PX = 3;
 // m: a radiator's depth from above, a crash bar's
 const RADIATOR_DEPTH_M = 0.12, CRASH_BAR_M = 0.1;
-
-/** Where the wheels sit and how a corner's fixed arms are drawn (render/cars.ts). */
-export interface UnderWheels {
-  halfWidth: number;   // px from the middle to the wheel
-  tyreWidth: (rear: boolean) => number;   // px
-  arms: (ctx: CanvasRenderingContext2D, axleX: number, side: number) => void;
-}
 
 /** What each painter needs: the canvas, the car, its sprite, its bits. */
 interface SkinCtx {
   ctx: CanvasRenderingContext2D; spec: RenderCarSpec; sprite: CarSprite; bits: CarBits;
-  wheels: UnderWheels; lost: string;
+  lost: string;
   // px each end's crush has pushed its structure in (the radiator, the beam, the cross-member
   // go back with the crumpled front, as in a real crash)
   push: { front: number; rear: number; minus: number; plus: number };
@@ -201,50 +189,6 @@ function engineHalf(skin: SkinCtx): number {
 }
 
 /**
- * A lost wing's WELL: that corner's arms and (driven) drive shaft, as an open car's, and its
- * strut, inboard of the tyre on the well's dark inside (the tyre, drawn under the body, shows
- * where it is).
- * @param skin the painter's context
- * @param region the well
- * @param corner the corner (0, 1 front; odd = +y)
- */
-function wheelWell(skin: SkinCtx, region: Region, corner: number): void {
-  const { ctx, spec, sprite, wheels } = skin, front = corner < 2, side = corner % 2 ? 1 : -1;
-  const midY = sprite.Wp / 2, tyreIn = wheels.halfWidth - wheels.tyreWidth(!front) / 2;
-  // (clip to inboard of the tyre: its inner edge, sprite px)
-  const edge = Math.round(midY + side * tyreIn);
-  clipTo(ctx, side > 0 ? { ...region, y1: Math.min(region.y1, edge - 1) }
-    : { ...region, y0: Math.max(region.y0, edge) });
-  // the well's inside, dark (the inner arch and the chassis leg)
-  block(ctx, region.x0, region.y0, region.x1 - region.x0 + 1, region.y1 - region.y0 + 1, WELL);
-  const axleX = front ? spec.lf : -spec.lr;
-  ctx.save();
-  ctx.translate(2 + Math.round(sprite.Lp / 2), 2 + Math.round(midY));
-  wheels.arms(ctx, axleX, side);
-  ctx.restore();
-  // the strut stands upright beside the wheel: from above, its top - the spring's coil round
-  // the damper's mount (the thrown strut's own colours, render/carparts.ts flatStrut) - set
-  // toward the car's middle of the axle line, so the drive shaft shows past it
-  const toMiddle = front ? -STRUT_OFFSET_PX : STRUT_OFFSET_PX;
-  strutTop(ctx, sprite.Lp / 2 + axleX * SPRITE_PPM + toMiddle, edge - side * 3);
-}
-
-/**
- * A STRUT seen from above, centred at (centreX, centreY) sprite px: the coil spring's ring, the
- * top mount, its nut.
- * @param ctx the sprite's canvas
- * @param centreX sprite px
- * @param centreY sprite px
- */
-function strutTop(ctx: CanvasRenderingContext2D, centreX: number, centreY: number): void {
-  const x = Math.round(centreX) - 2, y = Math.round(centreY) - 2;
-  block(ctx, x + 1, y, 3, 5, SPRING);
-  block(ctx, x, y + 1, 5, 3, SPRING);
-  block(ctx, x + 1, y + 1, 3, 3, STEEL_LIGHT);
-  block(ctx, x + 2, y + 2, 1, 1, FRAME_DARK);
-}
-
-/**
  * Behind a lost BUMPER: the crash bar, and the radiator where it sits at that end.
  * @param skin the painter's context
  * @param corner 0, 1 the front; 2, 3 the rear
@@ -363,8 +307,6 @@ function closedCarPart(skin: SkinCtx, kind: string, corner: number, region: Regi
     clipTo(ctx, corner % 2 === 1 ? { ...region, y0: region.y0 - push }
       : { ...region, y1: region.y1 + push });
     doorHole(skin, region, corner);
-  } else if (kind === 'wing') {
-    wheelWell(skin, region, corner);
   } else if (kind === 'bumper') {
     const push = pushAt(skin, corner < 2);
     clipTo(ctx, corner < 2 ? { ...region, x0: region.x0 - push }
@@ -379,17 +321,16 @@ function closedCarPart(skin: SkinCtx, kind: string, corner: number, region: Regi
  * @param sprite the sprite without its lost parts (its canvas is painted)
  * @param spec the car as drawn
  * @param lost the parts gone: "kind:corner" each, joined by ","
- * @param wheels where its wheels sit and its arms' painter
  * @param body the crushed sprite's canvas, parts on (its pixels are where the body still is)
  * @param crush the end-on and side-on crush per corner (damage.ts crushL, crushS)
  */
 export function drawUnderSkin(sprite: CarSprite, spec: RenderCarSpec, lost: string,
-  wheels: UnderWheels, body: HTMLCanvasElement,
+  body: HTMLCanvasElement,
   crush: { ends: number[]; sides: number[] } = { ends: [0, 0, 0, 0], sides: [0, 0, 0, 0] }): void {
   const out = sprite.c.getContext('2d') as CanvasRenderingContext2D | null;
   const ctx = scratchFor(sprite.c);
   if (!out || !ctx) return;
-  const skin: SkinCtx = { ctx, spec, sprite, bits: bitsOf(String(spec.id)), wheels, lost,
+  const skin: SkinCtx = { ctx, spec, sprite, bits: bitsOf(String(spec.id)), lost,
     push: { front: endCrushPx(sprite.Lp, crush.ends, true),
       rear: endCrushPx(sprite.Lp, crush.ends, false),
       minus: sideCrushPx(sprite.Wp, crush.sides, false),

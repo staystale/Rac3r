@@ -23,6 +23,9 @@ const SHOTS = [
   { name: '844x390', width: 844, height: 390, dpr: 3, zoom: null },
   { name: '390x844', width: 390, height: 844, dpr: 3, zoom: null },
   { name: 'close', width: 844, height: 390, dpr: 8, zoom: 1.2, clip: 110 },
+  // (CORNER=dx,dy: a closer look at one corner, CSS px off the car's middle)
+  ...(process.env.CORNER ? [{ name: 'corner', width: 844, height: 390, dpr: 12, zoom: 1.2, clip: 36,
+    off: process.env.CORNER.split(',').map(Number) }] : []),
   // (the phone's own view of the car, cropped round it: what the owner sees, enlarged)
   { name: 'phonecrop', width: 844, height: 390, dpr: 3, zoom: null, clip: 150 },
 ];
@@ -36,6 +39,11 @@ const SETS = {
     lost: (bits, open) => (open ? ['panel:1'] : ['panel:1', 'wing:1']) },
   // (a lighter knock, nothing off: the dented front alone)
   dent: { crushL: [0.35, 0.3, 0, 0], crushS: [0.15, 0.1, 0, 0], lost: () => [] },
+  // (the owner's photo: one front corner crushed in to its wheel, nothing off; then steered left,
+  // straight, right - the exposed arms turn with the wheel)
+  corner: { crushL: [0, 0.6, 0, 0], crushS: [0, 0.35, 0, 0], lost: () => [] },
+  cornerleft: { crushL: [0, 0.6, 0, 0], crushS: [0, 0.35, 0, 0], lost: () => [], steer: -1 },
+  cornerright: { crushL: [0, 0.6, 0, 0], crushS: [0, 0.35, 0, 0], lost: () => [], steer: 1 },
   rear: { crushL: [0, 0, 0.5, 0.45], crushS: [0, 0, 0.1, 0.05],
     lost: (bits, open) => (open ? ['bumper:2', 'panel:1']
       : ['bumper:2', 'wing:2', bits.rear === 'boot' ? 'boot:2' : '']) },
@@ -48,6 +56,9 @@ async function standDamaged([id, set, zoom, levelId]) {
   await new Promise((done) => setTimeout(done, 1500));
   const car = game.car;
   car.vx = 0; car.vy = 0; car.heading = 0;
+  // (held steered, the brakes on)
+  game.input.update = () => ({ steer: set.steer || 0, throttle: 0, brake: 1, handbrake: 0, reverse: 0,
+    shiftUp: false, shiftDown: false });
   car.dmg = set.crushL.map((end, i) => Math.max(end, set.crushS[i]));
   car.crushL = set.crushL.slice();
   car.crushS = set.crushS.slice();
@@ -75,6 +86,7 @@ async function shootSets(browser, base, carId, sets, shot) {
   for (const [setName, set] of sets) {
     const at = await page.evaluate(standDamaged, [carId, set, shot.zoom, LEVEL]);
     const file = `${OUT}/${carId}-${setName}-${shot.name}.png`;
+    if (shot.off) { at.x += shot.off[0]; at.y += shot.off[1]; }
     const clipW = shot.clip, clipH = Math.round((clipW || 0) * 2 / 3);
     const clip = clipW ? { x: Math.max(0, Math.min(shot.width - clipW, at.x - clipW / 2)),
       y: Math.max(0, Math.min(shot.height - clipH, at.y - clipH / 2)), width: clipW,
@@ -96,8 +108,8 @@ try {
   const cars = carsArg === 'all' ? ROSTER.map((row) => row.id) : carsArg.split(',');
   for (const carId of cars) {
     const kind = ROSTER.find((row) => row.id === carId)?.kind;
-    const sets = Object.entries(SETS).filter(([name]) => WANTED.includes(name)).map(([setName, set]) => [setName, { crushL: set.crushL,
-      crushS: set.crushS, lostList: set.lost(bitsOf(carId), kind === 'track' || kind === 'grass')
+    const sets = Object.entries(SETS).filter(([name]) => WANTED.includes(name)).map(([setName,
+      set]) => [setName, { crushL: set.crushL, crushS: set.crushS, steer: set.steer || 0, lostList: set.lost(bitsOf(carId), kind === 'track' || kind === 'grass')
         .filter(Boolean).join(',') }]);
     for (const shot of SHOTS)
       if ((await shootSets(browser, server.url, carId, sets, shot)).length) failed = true;

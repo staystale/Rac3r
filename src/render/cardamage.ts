@@ -13,6 +13,9 @@ import { FIX } from '../core/fixes.ts';
 // jagged line, no pixels left loose past it and no holes behind it); the crumple folds' spacing
 // behind the edge, px; how much a fold darkens and the crease after it lightens the paint
 const TOOTH_PX = 2, FOLD_PX = 2, FOLD_DARK = 0.32, CREASE_LIGHT = 1.12;
+// px of an edge a fold line keeps one kink (the crumple's folds broken and kinked along it); px a
+// kink shifts a fold by at most, either way; the extra px a fold's spacing may take (2 + 0..this)
+const KINK_PX = 2, KINK_SHIFT_PX = 2.2, FOLD_SPREAD_PX = 2;
 // an end's deepest crush (crushL 1) as a share of the car's length; the rear's of the front's; a
 // side's deepest (crushS 1) as a share of the car's width
 export const END_CRUSH_SHARE = 0.26, REAR_CRUSH_SHARE = 0.85, SIDE_CRUSH_SHARE = 0.34;
@@ -92,22 +95,33 @@ function nearestCrushEdge(edges: number[][]) {
 }
 
 /**
- * ?underskin: one pixel in the DENT band behind a crumpled edge, as sheet metal folds - the fold
- * itself dark, then the crumple's folds every FOLD_PX, each a darker line with a light crease
- * after it, fading over the band; no loose pale pixels (the primer chips and pale creases read
- * as holes in the car on grey tarmac).
+ * ?underskin: one pixel in the DENT band behind a crumpled edge, as crumpled sheet metal - the
+ * fold itself dark, then the crumple's folds, each a darker line with a light crease after it,
+ * fading over the band. The folds are uneven, as metal crumples: each KINK_PX of the edge shifts
+ * its folds by its own amount (lines broken and kinked along it), each fold's spacing (FOLD_PX +
+ * 0..FOLD_SPREAD_PX) and depth are its own - all from the car's seeded hash, the same every frame.
+ * No loose pale pixels (the primer chips and pale creases read as holes on grey tarmac).
  * @param pixels the image data
  * @param i the pixel's index into the data
  * @param best distance past the fold, px
- * @param depth crush depth of the edge, px
+ * @param fold the crush there: its depth (px), the edge (0 front .. 3 +y side), where along it
+ *   the pixel is (px), and the car's hash
  */
-function dentPixelFolded(pixels: Uint8ClampedArray, i: number, best: number, depth: number) {
-  const band = 2 + 1.5 * depth, fade = 1 - best / band;
+function dentPixelFolded(pixels: Uint8ClampedArray, i: number, best: number,
+  fold: { depth: number; edge: number; along: number; hsh: HashFn }) {
+  const { depth, edge, along, hsh } = fold, band = 2 + 1.5 * depth, fade = 1 - best / band;
   if (fade <= 0) return;
-  const deep = Math.min(1, depth / 4);
-  const fold = Math.floor(Math.max(0, best)) % FOLD_PX === 0;
+  const deep = Math.min(1, depth / 4), kink = Math.floor(along / KINK_PX);
+  // (the fold lines shifted by this stretch's kink, more the deeper the crush)
+  const warped = Math.max(0, best + (hsh(kink, edge + 7) - 0.5) * 2 * KINK_SHIFT_PX
+    * Math.min(1, depth / 3));
+  // (each band of the crumple its own spacing; its own fold's depth)
+  const spacing = FOLD_PX + Math.floor(hsh(Math.floor(warped / 4), edge + 11) * (FOLD_SPREAD_PX
+    + 1));
+  const foldNo = Math.floor(warped / spacing), isFold = Math.floor(warped) % spacing === 0;
+  const foldDark = (FOLD_DARK + 0.25 * deep) * (0.6 + 0.8 * hsh(foldNo, kink + edge * 97));
   const mul = best < 1 ? 0.5 - 0.1 * deep
-    : fold ? 1 - (FOLD_DARK + 0.25 * deep) * fade : 1 + (CREASE_LIGHT - 1) * fade;
+    : isFold ? 1 - Math.min(0.7, foldDark) * fade : 1 + (CREASE_LIGHT - 1) * fade;
   for (const chan of [0, 1, 2]) pixels[i + chan] = Math.min(255, pixels[i + chan] * mul);
 }
 
@@ -196,7 +210,8 @@ function crushPixel(
     pixels[i + 3] = 0;
     return;
   }
-  if (FIX.underskin) dentPixelFolded(pixels, i, best, depth);
+  if (FIX.underskin)
+    dentPixelFolded(pixels, i, best, { depth, edge, along: edge < 2 ? y : x, hsh });
   else dentPixel(pixels, i, [x, y], best, depth, hsh);
 }
 

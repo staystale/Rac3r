@@ -259,6 +259,41 @@ edge on any. COST (the second PC, framecheck Brands, 19 AI + you in the hatch-rw
 and its panels off at frame 30, CPU x4, base / fix / base / fix): work median 172.7 / 164.1 / 161.6 /
 175.1 ms, worst 240.7 / 270.6 / 394.0 / 266.2 (the PC's catch-up loop: no difference to read);
 a car's picture made every frame (tools/scratch/_underskincost.mjs, the laptop, x1, the hatch-rwd, ?underskin=1): frame median 1.8 / 2.0 ms on the base, 2.1 / 2.1 with the fix (+0.1-0.3 ms each time a car loses a part or its crush steps; nothing on the frames between). PROOF: switch off, renderhash SAME (the PC: thruston, brands-snatch, knobhill).
+ROUND 2 (owner 11-16 on the phone: "crash wrinkles need to be more uneven rather than just straight
+lines"; "can't see drive shafts or wishbones when body work should expose it"; the damage "like in
+layers ... a wing ... shows you the suspension arm, drive shafts, and wishbone underneath connecting to
+the wheel. And that should all steer and move with the steering"; the parts underneath "should
+scrunch and move with the damaged car ... the wheel should actually move and stay connected to the
+end of the wishbone"). BUILT behind the same switch (render/cardamage.ts dentPixelFolded, render/
+carcorners.ts new, render/cars.ts drawCarWheels / lostWithTorn, render/underskin.ts):
+- THE FOLDS UNEVEN: each 2 px of a crushed edge shifts its fold lines by its own amount (up to 2.2
+  px, more the deeper the crush), each band of the crumple its own spacing (2-4 px) and each fold
+  its own depth - the car's seeded hash, the same every frame; still no pale pixels.
+- THE CRUSH EXPOSES A WHEEL: FOUND, the cause - the well, arms and shaft were painted only into a
+  LOST wing's hole, never where the crush itself reached the wheel. Now a corner whose end's crush
+  passes its wheel's arch, or whose side is crushed in 3 px or more where the wheel is, has its wing
+  TORN (taken off the sprite as a lost wing's; no part thrown), and an exposed corner (torn or lost)
+  draws each frame UNDER the body - so it shows only through what the body really lacks: the dark
+  well, the arms and a driven wheel's drive shaft from the chassis to the hub (the open cars' own
+  painter, render/cars.ts drawFixedArms, in bright steel two px wide), a front's track rod at the
+  wheel's steer, the strut's top.
+- STEERING: the exposed front's track rod and wheel turn with the steering each frame (the baked
+  well and arms in the lost-parts sprite removed).
+- SCRUNCH: a crushed corner pushes its drawn WHEEL in with the metal - back by the end crush past its
+  arch, inboard by the side crush where it is (each at most a tyre) - and the arms run from the
+  chassis to where the wheel now is; the radiator, beam and sill were already pushed (round 1).
+  Drawn only: the physics' wheel is where it was.
+PHOTOS (the laptop, every car - the 19 and the six behind their switches - with ?underskin=1:
+the owner's case, a saloon's front corner crushed in to its wheel and nothing off, round 1 / round 2,
+and a lighter dent; front / side / rear against round 1's; 844x390, 390x844, a close-up, the phone's
+view cropped; the corner steered left / straight / right): no page errors; on round 1 the crushed
+corner showed no well, now the well, arms and strut on every closed car; the open cars as before.
+COST (framecheck Brands, 19 AI + you in the hatch-rwd, every car crushed on all four corners and its
+panels off at frame 30 - most corners exposed - the laptop x1, round 1 / round 2 / round 1 / round 2):
+work median 10.8 / 10.7 / 12.2 / 11.1 ms, p95 17.7 / 17.1 / 20.0 / 17.9, frame median 17.7 / 17.7 /
+17.7 / 17.6 - no cost to read.
+PROPOSED, NOT BUILT (a handling change, the owner decides): A BROKEN CORNER - see the hand-back.
+
 THE 10 NEW CARS (owner-approved names 11-16; one switch and one hand-back each; src/newcars.ts):
 1-7 PASSED 11-16, the default with the launches (owner: "all pass apart from my earlier comments"):
    the Porch 911 GT3 Arr, the Caterpillar Seven, the Fjord Transfit, the Fjord Effing-150 Trophy
