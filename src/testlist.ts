@@ -13,6 +13,16 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'hudfit',
+    added: '2026-11-16',
+    name: 'Landscape HUD: compact temperature, FPS drops when short, ABS / TCS at the bottom',
+    where: 'Test link + &hudfit=1: a race on a landscape phone, then turn it upright',
+    try: 'Landscape: the temperature reads "30°C" beside the lap timer; on a short screen FPS is '
+      + 'gone; ABS / TCS sit at the bottom just left of HAND - tap them. Upright: as before.',
+    wrong: 'Anything changed upright, ABS / TCS hard to hit or hit by HAND taps, the column still '
+      + 'reaching the pedals, the temperature unreadable.',
+  },
+  {
     id: 'tesla',
     added: '2026-11-16',
     name: 'New car: the Teslur Model Why (the Tesla Model 3 Long Range AWD), ROAD / Saloon, and '

@@ -4,6 +4,7 @@
 import { PEDAL } from '../input.ts';
 import { MARGIN, BTN_H, DIAGRAM_H, LAP_ROW_H } from './widgets.ts';
 import { trackTempShown } from './tracktemp.ts';
+import { chipTouchArea, fitAidChips, fitCornerPanels, isHudFit } from './hudfit.ts';
 import type { HudState, HudCar, ScreenPoint } from './hudtypes.ts';
 import type { HudRect } from './widgets.ts';
 
@@ -151,9 +152,15 @@ export function layoutHud(state: HudState, width: number, height: number) {
 
   const { speed, lap, trackTemp, fps, tally } = layoutCornerPanels(state, width, btnY, narrow);
   const { absChip, tcsChip, indL, lights, indR, heat } = layoutBottomChips(width, height);
-  clearAidChips(absChip, tcsChip, width, Math.max(lap.y + lap.h, fps.y + fps.h), trackTemp);
+  // (?hudfit=1, landscape: the compact temperature, FPS dropped when short, the aid chips at the
+  // bottom - hud/hudfit.ts)
+  const fit = isHudFit(width, height, narrow);
+  if (fit) {
+    fitCornerPanels({ lap, trackTemp, fps }, height);
+    fitAidChips(absChip, tcsChip, width, height);
+  } else clearAidChips(absChip, tcsChip, width, Math.max(lap.y + lap.h, fps.y + fps.h), trackTemp);
   return { restart, reset, vol, help, absChip, tcsChip, speed, lap, trackTemp, fps, tally, indL,
-    lights, indR, heat };
+    lights, indR, heat, fit };
 }
 
 /**
@@ -195,9 +202,9 @@ export function hitHud(state: HudState, point: ScreenPoint, width: number, heigh
  */
 function hitAidChips(rects: HudRects, point: ScreenPoint, car: HudCar) {
   if (car && car.spec.aids && car.spec.aids.abs
-    && inRect(point, rects.absChip)) return { toggleAbs: true };
+    && inRect(point, chipTouchArea(rects.absChip, rects.fit))) return { toggleAbs: true };
   if (car && car.spec.aids && car.spec.aids.tcs
-    && inRect(point, rects.tcsChip)) return { toggleTcs: true };
+    && inRect(point, chipTouchArea(rects.tcsChip, rects.fit))) return { toggleTcs: true };
   if (inRect(point, rects.lights)) return { toggleLights: true };
   if (inRect(point, rects.indL)) return { indicate: -1 };
   if (inRect(point, rects.indR)) return { indicate: 1 };

@@ -957,3 +957,10 @@ a road or the edge's rows). With `?pbzline=1` (`FIX.pbzline`, under test) the RX
 `LOOSE_LINE_M` (2.6 m) from the edge on its gravel, not `LINE_MARGIN` (1.6 m):
 `Level.looseLineMargin`, `ai/line.ts looseLimits` (the line's own edge limits on a level's loose
 sectors).
+
+HUDFIT (under test, `?hudfit=1`, `FIX.hudfit`; `hud/hudfit.ts`, called by `hud/layout.ts layoutHud`):
+on a landscape screen only (not narrow, wider than tall) the track temperature is a compact
+`COMPACT_TEMP_W` (46 px) chip - `hud/tracktemp.ts` draws the temperature alone when its rect is
+that narrow -, FPS is dropped (its rect 0 tall) when it would reach past the brake pedal's touch
+circle (`brakeTouchTop`), and the ABS / TCS chips sit on the bottom line just left of the HAND
+pedal's touch circle, their taps tested on a 44 px tall area (`chipTouchArea`, `rects.fit`).
