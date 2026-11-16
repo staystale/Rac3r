@@ -51,11 +51,33 @@ export interface CarDoors {
   // Transits), grey plastic (the Mk7), black steel (the Defender), steel tube (the trophy truck,
   // the stock car), the tractor's front weight; none - it has none (the Seven)
   bumper?: 'black' | 'grey' | 'steel' | 'tube' | 'weight' | 'none';
+  // its mirrors (step 5) where its painter draws them: the share of its length they start at, on
+  // the body's edge rows (rim) or just outside them, their colour; none - it has none
+  mirrors?: CarMirrors | 'none';
   // its rear doors a pair, each its own part (the vans' twin rear doors)
   twinRear?: boolean;
   // its glass with its own parts (the bus's two decks: 8)
   glass?: number;
 }
+
+/** A car's mirrors on its sprite (?carparts step 5). */
+export interface CarMirrors { at: number; rim?: boolean; col: 'paint' | 'third' | 'black';
+  big?: boolean }
+
+// the mirrors' places (each painter's: render/carsprite.ts cabin - just outside the edge at the
+// roof's end, in the paint; carlooks.ts mirrorCaps - the third colour; the new cars' painters -
+// on the body's edge rows at the windscreen's foot, the third colour)
+const edgePaint = (share: number): CarMirrors => ({ at: share, col: 'paint' });
+const rimThird = (share: number): CarMirrors => ({ at: share, rim: true, col: 'third' });
+
+/**
+ * A Transit's big black mirrors where its painter draws them: at its windscreen's foot, the
+ * same on every wheelbase (counted from the nose: the L2's 0.735).
+ * @param lengthM the Transit's length, m
+ * @returns its mirrors
+ */
+const transitMirrors = (lengthM: number): CarMirrors => ({ at: 1 - 0.265 * 5.531 / lengthM,
+  col: 'black', big: true });
 
 /**
  * A Transit's side panels: the cab doors behind the front wheels, the sliding door on the
@@ -78,41 +100,46 @@ const TWO_DOORS: [number, number][] = [[0.4, 0.68]];
 // each car's doors (the vans and the bus: ?carparts step 2; the single-seaters and the buggy have
 // their own open parts)
 export const CAR_DOORS: Record<string, CarDoors> = {
-  'hatch-fwd': { doors: FOUR_DOORS },   // Golf GTI Mk7: the 5-door (owner)
-  'hatch-rwd': { doors: FOUR_DOORS },   // M135i F20: 5-door
-  'saloon-rwd': { doors: FOUR_DOORS },
-  'wrz-awd': { doors: FOUR_DOORS },
-  'estate-4x4': { doors: FOUR_DOORS },
-  'muscle-rwd': { doors: [[0.38, 0.66]] },   // Chevelle: the long coupe door
-  'rally-4x4': { doors: [[0.4, 0.66]] },
-  naffcar: { doors: [[0.36, 0.64]], sheet: true },
+  'hatch-fwd': { doors: FOUR_DOORS, mirrors: { at: 0.585, col: 'third' } },   // Golf: 5-door
+  'hatch-rwd': { doors: FOUR_DOORS, mirrors: { at: 0.525, col: 'third' } },   // M135i F20: 5-door
+  'saloon-rwd': { doors: FOUR_DOORS, mirrors: edgePaint(0.575) },
+  'wrz-awd': { doors: FOUR_DOORS, mirrors: edgePaint(0.575) },
+  'estate-4x4': { doors: FOUR_DOORS, mirrors: edgePaint(0.585) },
+  'muscle-rwd': { doors: [[0.38, 0.66]], mirrors: edgePaint(0.485) },   // Chevelle: coupe door
+  'rally-4x4': { doors: [[0.4, 0.66]], mirrors: edgePaint(0.555) },
+  naffcar: { doors: [[0.36, 0.64]], sheet: true, mirrors: edgePaint(0.565) },
   // Fastrac: the cab's door (EST, both sides), its front weight
   tractor: { doors: [[0.38, 0.56]], bumper: 'weight' },
-  'mini-fwd': { doors: [[0.4, 0.66]] },
-  'lambo-awd': { doors: [[0.44, 0.68]] },
-  'mikra-r1': { doors: TWO_DOORS },
-  'kit-2l': { doors: TWO_DOORS },
-  'rx-super': { doors: TWO_DOORS },
-  'banger-f2': { doors: [[0.36, 0.62]], sheet: true, bumper: 'tube' },
-  'drift-s13': { doors: TWO_DOORS },
-  'porch-gt3r': { doors: [[0.44, 0.7]] },
-  'bmv-m4gt3': { doors: [[0.38, 0.64]] },
-  'seven-420r': { doors: [], bumper: 'none' },   // the Seven: no doors, no bumpers
-  'effing-tt': { doors: [[0.42, 0.62]], bumper: 'tube' },
-  'civvic-btcc': { doors: FOUR_DOORS },
-  'defunder-110': { doors: [[0.47, 0.62], [0.32, 0.47]], bumper: 'steel' },
-  'focust-st': { doors: FOUR_DOORS },
-  'cleo-cup': { doors: TWO_DOORS },
-  'cleo-rs200': { doors: TWO_DOORS },
-  ts010: { doors: [[0.46, 0.62]] },   // the canopy's small doors
-  'saxo-kit': { doors: TWO_DOORS },
-  'strange-l322': { doors: FOUR_DOORS },
-  'saxo-vtr': { doors: TWO_DOORS },
-  'tesla-m3': { doors: FOUR_DOORS },
+  'mini-fwd': { doors: [[0.4, 0.66]], mirrors: edgePaint(0.645) },
+  'lambo-awd': { doors: [[0.44, 0.68]], mirrors: edgePaint(0.48) },
+  'mikra-r1': { doors: TWO_DOORS, mirrors: edgePaint(0.605) },
+  'kit-2l': { doors: TWO_DOORS, mirrors: edgePaint(0.555) },
+  'rx-super': { doors: TWO_DOORS, mirrors: edgePaint(0.525) },
+  'banger-f2': { doors: [[0.36, 0.62]], sheet: true, bumper: 'tube', mirrors: edgePaint(0.605) },
+  'drift-s13': { doors: TWO_DOORS, mirrors: edgePaint(0.555) },
+  'porch-gt3r': { doors: [[0.44, 0.7]], mirrors: rimThird(0.57) },
+  'bmv-m4gt3': { doors: [[0.38, 0.64]], mirrors: rimThird(0.625) },
+  // the Seven: no doors, no bumpers, its little mirrors on the screen's frame (not thrown)
+  'seven-420r': { doors: [], bumper: 'none', mirrors: 'none' },
+  'effing-tt': { doors: [[0.42, 0.62]], bumper: 'tube', mirrors: 'none' },
+  'civvic-btcc': { doors: FOUR_DOORS, mirrors: rimThird(0.625) },
+  'defunder-110': { doors: [[0.47, 0.62], [0.32, 0.47]], bumper: 'steel',
+    mirrors: { at: 0.655, col: 'third' } },
+  'focust-st': { doors: FOUR_DOORS, mirrors: rimThird(0.635) },
+  'cleo-cup': { doors: TWO_DOORS, mirrors: rimThird(0.635) },
+  'cleo-rs200': { doors: TWO_DOORS, mirrors: rimThird(0.635) },
+  ts010: { doors: [[0.46, 0.62]], mirrors: 'none' },   // the canopy's small doors
+  'saxo-kit': { doors: TWO_DOORS, mirrors: rimThird(0.635) },
+  'strange-l322': { doors: FOUR_DOORS, mirrors: { at: 0.62, col: 'third' } },
+  'saxo-vtr': { doors: TWO_DOORS, mirrors: rimThird(0.635) },
+  'tesla-m3': { doors: FOUR_DOORS, mirrors: rimThird(0.655) },
   // step 2: the Transits - two cab doors, the nearside slide, the twin rear doors
-  'transfit-van': { doors: [], corners: transitPanels(5.531), twinRear: true, bumper: 'black' },
-  'transfit-lwb': { doors: [], corners: transitPanels(5.981), twinRear: true, bumper: 'black' },
-  'transfit-swb': { doors: [], corners: transitPanels(4.863), twinRear: true, bumper: 'grey' },
+  'transfit-van': { doors: [], corners: transitPanels(5.531), twinRear: true, bumper: 'black',
+    mirrors: transitMirrors(5.531) },
+  'transfit-lwb': { doors: [], corners: transitPanels(5.981), twinRear: true, bumper: 'black',
+    mirrors: transitMirrors(5.981) },
+  'transfit-swb': { doors: [], corners: transitPanels(4.863), twinRear: true, bumper: 'grey',
+    mirrors: transitMirrors(4.863) },
   // the Routemaster (no passenger doors: the open rear platform): the driver's cab door on the
   // offside (-y) front, the lower deck's riveted side panels elsewhere (EST places), its radiator
   // grille and staircase panel for bumpers, the glass of its two decks

@@ -120,17 +120,22 @@ function partOff(car: DebrisCar, corner: number, add: number, endW: number,
 }
 
 /**
- * ?carparts: a part asked of a corner where the car has none to throw - a door where it has none (a
- * 2-door's rear), a welded rear wing (it crushes; step 3).
+ * ?carparts: a part asked of a corner where the car has none to throw - a door where it has
+ * none (a 2-door's rear), a welded rear wing (it crushes; step 3), bumpers or mirrors it has none
+ * of (the Seven; the trophy truck, the TS010).
  * @param car the car
  * @param kind the part
  * @param corner the damage corner
  * @returns no door there
  */
-const hasNoDoor = (car: DebrisCar, kind: string, corner: number) => FIX.carparts
-  && ((kind === 'panel' && doorAt(car.spec?.id || '', corner) === null)
-    || (kind === 'wing' && corner >= 2 && isRearWingWelded(car.spec?.id || ''))
-    || (kind === 'bumper' && doorsOf(car.spec?.id || '')?.bumper === 'none'));
+function hasNoDoor(car: DebrisCar, kind: string, corner: number): boolean {
+  if (!FIX.carparts) return false;
+  const carId = car.spec?.id || '', row = doorsOf(carId);
+  if (kind === 'panel') return doorAt(carId, corner) === null;
+  if (kind === 'wing') return corner >= 2 && isRearWingWelded(carId);
+  if (kind === 'bumper') return row?.bumper === 'none';
+  return kind === 'mirror' && row?.mirrors === 'none';
+}
 
 /**
  * ?carparts: a van's rear doors - a pair, each lost on its own side.
@@ -159,7 +164,8 @@ function bigParts(car: DebrisCar, corner: number, add: number, endW: number,
   const has = (kind: string) => (car.partLost || '').split(',').some((entry) =>
     entry.startsWith(kind));
   const off = (kind: string, chance: number) => {
-    if (hasNo(bits, kind) || has(kind === 'mirror' || isTwin(car, kind) ? kind + ':' + corner
+    if (hasNo(bits, kind) || hasNoDoor(car, kind, corner)
+      || has(kind === 'mirror' || isTwin(car, kind) ? kind + ':' + corner
       : kind) || rnd() >= chance) return;
     car.partLost = (car.partLost ? car.partLost + ',' : '') + kind + ':' + corner;
     (car.partSpawn || (car.partSpawn = [])).push({ corner, kind });

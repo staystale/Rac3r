@@ -40,6 +40,13 @@ export interface Region { x0: number; x1: number; y0: number; y1: number }
  * @returns the region
  */
 function mirrorRegion(spec: RenderCarSpec, len: number, wid: number, plus: boolean): Region {
+  const own = FIX.carparts ? doorsOf(String(spec.id))?.mirrors : undefined;
+  if (own && own !== 'none') {
+    // (?carparts: where its painter draws them - on the edge rows, or just outside)
+    const fromX = Math.round(len * own.at), span = { x0: fromX, x1: fromX + (own.big ? 3 : 2) };
+    if (own.rim) return { ...span, ...(plus ? { y0: wid - 2, y1: wid - 1 } : { y0: 0, y1: 1 }) };
+    return { ...span, ...(plus ? { y0: wid, y1: wid + 1 } : { y0: -2, y1: -1 }) };
+  }
   const place = bitsOf(String(spec.id)).mirror ?? { from: 0.45, until: 0.75 };
   return { x0: Math.round(len * place.from), x1: Math.round(len * place.until),
     ...(plus ? { y0: wid, y1: wid + 1 } : { y0: -2, y1: -1 }) };
@@ -422,9 +429,15 @@ function flatMirror(spec: RenderCarSpec): FlatCanvas {
     block(wide - 4, 0, 4, tall, '#16181d'); block(wide - 3, 1, 2, tall - 2, '#9aa3b0');
     return flat;
   }
-  const flat = bitCanvas(4, 3), { block } = flat;
-  block(0, 0, 4, 3, shade(spec.paint, 0.4)); block(1, 0, 3, 2, spec.paint);
-  block(1, 2, 2, 1, '#9aa3b0');
+  // (?carparts: in its own colour, a van's big)
+  const own = FIX.carparts ? doorsOf(String(spec.id))?.mirrors : undefined;
+  const col = own && own !== 'none' && own.col !== 'paint'
+    ? (own.col === 'black' ? '#16181d' : spec.third || '#16181d') : spec.paint;
+  const big = own && own !== 'none' && own.big;
+  const flat = bitCanvas(big ? 6 : 4, big ? 4 : 3), { block } = flat;
+  const wide = flat.canvas.width, tall = flat.canvas.height;
+  block(0, 0, wide, tall, shade(col, 0.4)); block(1, 0, wide - 1, tall - 1, col);
+  block(1, tall - 1, wide - 2, 1, '#9aa3b0');
   return flat;
 }
 
@@ -561,6 +574,47 @@ function bayPixel(rgba: Uint8ClampedArray, i: number, engine: boolean, x: number
   rgba[i] = col[0]; rgba[i + 1] = col[1]; rgba[i + 2] = col[2];
 }
 
+/**
+ * ?carparts: a mirror drawn on the body's edge rows, gone - the edge it stood on, in its outline
+ * and its light (top) or dark (bottom) band.
+ * @param rgba the sprite's pixels
+ * @param i the pixel's index
+ * @param part the lost part
+ * @param y sprite px
+ * @returns painted (a rim mirror's pixel)
+ */
+function rimMirrorPixel(rgba: Uint8ClampedArray, i: number, part: LostPart, y: number): boolean {
+  const { spec, kind, region } = part;
+  if (kind !== 'mirror' || !isRimMirror(spec)) return false;
+  if (!rgba[i + 3]) return true;
+  const top = region.y0 === 0, outer = top ? y === 0 : y === region.y1;
+  const factor = outer ? 0.4 : top ? 1.3 : 0.7, packed = parseInt(spec.paint.slice(1), 16);
+  for (let channel = 0; channel < 3; channel++)
+    rgba[i + channel] = Math.min(255, Math.round(((packed >> (16 - channel * 8)) & 255) * factor));
+  return true;
+}
+
+/**
+ * ?carparts: whether a car's mirrors stand on its body's edge rows (their hole is the edge).
+ * @param spec the car as drawn
+ * @returns on the rim
+ */
+function isRimMirror(spec: RenderCarSpec): boolean {
+  const own = FIX.carparts ? doorsOf(String(spec.id))?.mirrors : undefined;
+  return !!own && own !== 'none' && !!own.rim;
+}
+
+/**
+ * A cleared part's pixel: gone, or (?carparts) a rim mirror's the body's edge again.
+ * @param rgba the sprite's pixels
+ * @param i the pixel's index
+ * @param part the lost part
+ * @param y sprite px
+ */
+function clearedPixel(rgba: Uint8ClampedArray, i: number, part: LostPart, y: number): void {
+  if (!rimMirrorPixel(rgba, i, part, y)) rgba[i + 3] = 0;
+}
+
 /** One lost part, as the car shows it. */
 interface LostPart { spec: RenderCarSpec; kind: string; corner: number; region: Region;
   lost: string; underSkin: boolean }
@@ -579,7 +633,7 @@ const CLEARED_PARTS = new Set(['mirror', 'exhaust']);
  */
 function lostPixel(rgba: Uint8ClampedArray, i: number, part: LostPart, x: number, y: number) {
   const { spec, kind, corner, region, lost, underSkin } = part;
-  if (isBare(spec) || CLEARED_PARTS.has(kind)) { rgba[i + 3] = 0; return; }
+  if (isBare(spec) || CLEARED_PARTS.has(kind)) { clearedPixel(rgba, i, part, y); return; }
   // (?underskin: the hole in the panel's own outline, its edge torn - render/torncut.ts)
   if (underSkin && tornPixel(rgba, i, part, [x, y])) return;
   if (kind === 'bonnet' || kind === 'boot') {
