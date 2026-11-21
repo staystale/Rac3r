@@ -13,6 +13,16 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'hwfan',
+    added: '2026-11-21',
+    name: 'Highway race start: cars hold their lane at the green, then fan out to their own side',
+    where: 'Test link + &hwfan=1: a motorway race (rolling start) with racers and traffic',
+    try: 'Watch the green: the two columns stay in their lanes, then the left column goes round '
+      + 'slower cars to the left and the right column to the right.',
+    wrong: 'The field sliding together into one lane at the green and weaving back, or cars '
+      + 'leaving their lane while the car ahead is just as fast.',
+  },
+  {
     id: 'rollgreen',
     added: '2026-11-21',
     name: 'Rolling starts: each AI goes at its own reaction, a few jump the green, then race',
