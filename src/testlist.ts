@@ -34,7 +34,7 @@ export const TEST_LIST: TestEntry[] = [
     id: 'gridpos',
     added: '2026-11-21',
     name: 'The place shown on the grid before the start is your slot’s (not P1)',
-    where: 'Test link + &gridpos=1: any circuit with AI, before you press anything',
+    where: 'Test link + &gridpos=1: any circuit or highway race with AI, before you press anything',
     try: 'Launch with AI: the lap panel shows your grid place (P4/6 from the fourth slot) at once.',
     wrong: 'P1 shown from a slot behind the pole, or a place that jumps when the race starts.',
   },
