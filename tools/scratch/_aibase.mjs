@@ -241,6 +241,8 @@ async function runOne(browser, base, id, seed) {
     if (racer !== '') window.__AI_COMMIT_RACER = Number(racer);
     if (speeder !== '') window.__AI_COMMIT_SPEEDER = Number(speeder);
   }, [process.env.COMMIT_RACER ?? '', process.env.COMMIT_SPEEDER ?? '']);
+  // (?gapdest on the highway only - a measure-only option: GAPDEST_HW=1)
+  if (process.env.GAPDEST_HW) await page.evaluate(() => { window.__AI_GAPDEST_HW = 1; });
   await page.evaluate(launchLevel, [run.level, { car: 'hatch-rwd', ...run.opts }]);
   await page.waitForTimeout(SETTLE_MS);
   await page.evaluate(setupBase);

@@ -14,6 +14,7 @@
 import { reachOf } from './dodge.ts';
 import type { AiCar } from './types.ts';
 import { FIX } from '../core/fixes.ts';
+import { debugValue } from '../core/debug.ts';
 
 /** A car as the gap picker sees it, in my path's frame. */
 export interface SeenCar { fwd: number; lat: number; v: number; across: number; along: number;
@@ -143,6 +144,14 @@ export function gapLine(seen: SeenCar[], mine: { lat: number; base: number; half
 }
 
 /**
+ * Whether ?gapdest reads the room on the line itself - everywhere, or (a tool's option, measure
+ * only: __AI_GAPDEST_HW) on a line with lanes - the highway's - only.
+ * @param lanes the line's lanes, if it has them
+ * @returns on
+ */
+const destOn = (lanes?: number[]) => FIX.gapdest && (!debugValue('AI_GAPDEST_HW') || !!lanes);
+
+/**
  * ?gapdest: the car on a line out of one swerve's reach, as its room ahead (one beside me there
  * counts as no room: its gap 0, not a side - I am not there yet).
  * @param seen the cars seen
@@ -204,7 +213,7 @@ export function lineScore(seen: SeenCar[], want: number, mine: { lat: number; ba
   if (near && near.side) return null;
   // (?gapdest: the room and the move read on the line itself - the car still steers there one
   // swerve a think; else on the part-way point)
-  const dest = FIX.gapdest ? want : off;
+  const dest = destOn(lanes) ? want : off;
   const block = dest === off ? near : destBlock(seen, dest, half, len);
   const ahead = block ? Math.min(freeTo(block, speed), speed * look) : speed * look + FREE_BONUS;
   const kept = block ? Math.max(0, block.v) * KEPT_V : 0;
