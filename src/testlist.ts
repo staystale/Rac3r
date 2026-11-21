@@ -32,4 +32,15 @@ export const TEST_LIST: TestEntry[] = [
     wrong: 'Marks ending in a straight line across the track, marks gone early, a seam or a grid '
       + 'of squares in the marks, or a stutter when marks are laid.',
   },
+  {
+    id: 'blighty',
+    added: '2026-11-21',
+    name: 'Blighty Park: its rallycross (full size, gravel loop invented) and the Outer circuit',
+    where: 'Test link + &blighty=1: TEST MODE -> RALLYCROSS -> Blighty Park RX; CIRCUITS -> '
+      + 'Blighty Park',
+    try: 'Race both, day and night, dry and wet: the flat fast airfield corners, the north hairpin '
+      + 'at the end of the fastest run, the gravel loop through the infield (no joker).',
+    wrong: 'A gap in the barriers or fences, a prop on the road, the AI leaving the road at the '
+      + 'north hairpin or the gravel joins, a track that reads too stiff or boring.',
+  },
 ];

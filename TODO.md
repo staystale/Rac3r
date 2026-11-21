@@ -98,8 +98,7 @@ MARK TRACK.)
     GARAGE gets a TRAILER row for tractor units: WITHOUT, or the CURTAINSIDER HALF-FULL only (no load
     chooser). Later trailer types: a flatbed with visible cargo first (owner: "I don't mind").
   - WORKER B (paused): damage items 4 and 3 passed 11-17, the default. Blighty Park
-    RX and the Outer circuit - WIP worker/b4-blighty 7ac09580, built and checked; left: photos, docs,
-    the RX's 8.9 m corner, the proof.
+    RX and the Outer circuit: finished by Worker C 11-21 behind ?blighty=1 (3b below).
   - PARKED: PIT STOPS (item 16 below) - owner 11-16: "needs more work and discussion, I have images
     to use" - ask for the images; the limiter per venue (80, 60 at tight ones), the AI's strategy
     simple. ?pbzline / ?driftbrake for the AI tune (3e). ?siren for the sound pass.
@@ -338,6 +337,15 @@ THE 10 NEW CARS (owner-approved names 11-16; one switch and one hand-back each; 
   TODO-DONE.
   PEMBREEZY (the circuit and Pembreezy RX) PASSED 11-16 with its fences tidied: TODO-DONE. OPEN
   (owner 11-16: the tyre walls "fine as they are").
+  BLIGHTY PARK BUILT (Worker B 11-16, finished by Worker C 11-21) behind ?blighty=1: Blighty Park
+  RX at full size (1421 m, 323 m gravel: the gravel loop INVENTED - no map of the real course - and
+  NO JOKER, none shown anywhere) and the Outer circuit at half size (1156 m, all tarmac), one map
+  download (world/levels/blightyrx-venue.ts, blighty-venue.ts). The RX's north hairpin opened (minR
+  10 -> 11): its least radius over 8 m 9.5 -> 10.6 m (8.9 -> 9.9 through points 3 apart), the lap
+  1429 -> 1421 m. MEASURED: barriercheck all OK and venueaudit "nothing overlaps" on both,
+  propcheck OK; aidrivecheck (blightyrx) real rx-super 52.1 s, hatch-fwd 58.8 s, 0 m off (at minR
+  10: 52.7 / 59.4, 0 m), realish 0.6 / 1.0 m off at the hairpin (at 10: 0.4 / 0.2 m). Photos
+  (tools/scratch/_pbzshots.mjs, both sizes + overview) and menu thumbnails. AWAITING THE PHONE TEST.
   THE RX's PUT-BACKS (owner 11-16: "investigate", ~32 a 20-AI race, half at lap 1200-1300 m): FOUND
   (tools/scratch/_pbzoff.mjs - the racing AI alone, rx-super, difficulty 2, seeds 1-5 x 5 laps, every
   excursion past the edge + 1 m off the joker lane; a per-step trace of the driver's target speed,

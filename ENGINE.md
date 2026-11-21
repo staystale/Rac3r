@@ -959,6 +959,17 @@ CR_RAILS`) and its slope are shared. Dressing: grass banks (catch-fenced) inside
 between the start lane and the return leg and inside Hawthorn, crowds, Union flags, the paddock's
 hospitality units (`block` landmarks), transporters and spares (`dress`), a TV tower; the big screen
 stands in as a board (LIVE): no screen prop.
+BLIGHTY PARK (`world/levels/blighty-venue.ts`, `blightyrx-venue.ts`; under test, `?blighty=1`):
+Blyton Park as ONE venue (`Level.venue` Blighty Park) in two builds of one map download
+(`tools/venues/blighty.osm.json`): the Outer circuit at half size (`blighty.json` ->
+`venues/blighty.ts`, share 0.5, all tarmac, clockwise from the west straight) and the rallycross
+at full size (`blightyrx.json` -> `venues/blightyrx.ts`, share 1: the Outer's north loop, the Spur
+and the Link from the map, and an INVENTED gravel loop through the infield - no map of the real
+course; 1421 m, 323 m gravel; no joker). The RX's `minR` is 11 (its north hairpin opened to keep
+10 m over 8 m). The map has no barriers: the venues' run-off rule. Dressing: hedgerow trees, a
+windsock, Union flags (`unionFlags`), the paddock (`blightyPaddock(anchor)`), grass banks with
+crowds inside the RX's north hairpin and gravel loop.
+
 PEMBREEZY (`world/levels/pembreezy-venue.ts`, `pembreezyrx-venue.ts`; the default since 11-16):
 Pembrey Circuit as ONE venue (`Level.venue` Pembreezy) in two builds of ONE map download
 (`tools/venues/pembreezy.osm.json`): the circuit at half size (`pembreezy.json` ->
