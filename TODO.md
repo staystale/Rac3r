@@ -109,6 +109,17 @@ MARK TRACK.)
      35 slats in a tunnel. Photos of each stretch at 390x844 and 844x390, no page errors. Frame
      time at real counts: on the PC. AWAITING THE PHONE TEST.
 
+- POLICE BY SCENERY (owner 11-21: "too many police on the other levels" - countryside nearly none,
+  Deaf Valley some, Stockholm the most, at today's level): BUILT (Worker C 11-21) behind
+  ?copmix=1 (ENGINE: THE POLICE BY SCENERY). PROPOSED shares of today's (owner to set): the
+  countryside 0.1, Deaf Valley 0.4, Stockholm 1. MEASURED (tools/scratch/_police.mjs survey,
+  8 km x 3 seeds x the motorway and the dual carriageway, police met within 150 m per 10 km, off ->
+  on): at 95 km/h (legal) the countryside 9.0 -> 1.25, Deaf Valley 20.6 -> 5.6, Stockholm 13.5 ->
+  14.8 (the same: noise); at 150 km/h (police due, heat and chases) the countryside 40.8 -> 7.5,
+  Deaf Valley 38.5 -> 31.0, Stockholm 56.8 -> 45.6 (noise) - most met at speed are oncoming
+  police and the chasers a driver's heat sends, which ?copmix does not scale (two Deaf Valley
+  dual runs stalled early: its number is rough). AWAITING THE PHONE TEST.
+
 - THE 11-16 QUEUE (every item owner-approved after a brief plan; details in each worker's TODO
   entry as it lands):
   - THE SCANYAH TRAILER (Worker A's joint, finished by Worker C), ?boxhold and ?gridlen PASSED

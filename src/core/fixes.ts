@@ -95,4 +95,7 @@ export const FIX = {
   // the GETAWAY STOCKHOLM scenery for the endless roads, step 1: its card, the city's stretches,
   // its lots of buildings behind noise walls, blue signs (highway/city.ts)
   stockholm: atLoad('stockholm'),
+  // the police by scenery: the countryside nearly none, Deaf Valley some, Stockholm today's
+  // (ai/trafficPolice.ts COP_MIX)
+  copmix: atLoad('copmix'),
 };

@@ -386,6 +386,12 @@ each FLASH_S as a hand flash does, each driver's flashes counted on their own (`
 your lights cannot flash with no working headlight. Racers are never flashed. The walkthrough's
 FLASH THEM card. `tools/scratch/_lampflash.mjs`.
 
+THE POLICE BY SCENERY (?copmix=1; `ai/trafficPolice.ts COP_MIX`): every police chance - the
+share of the cars put back that are police (1/60, 1/15 while police are due: over 70 mph or a
+camera) and a police car placed ahead every 400 m (0.35, 0.7 due) - times the road's scenery's
+share: the countryside 0.1, Deaf Valley 0.4, Stockholm 1 (today's). The chases a driver's heat
+sends are not scaled. `tools/scratch/_police.mjs` PART=survey (KMH, SCENERIES).
+
 THE WAITING POLICE WAKE (passed 11-15; `ai/policeWake.ts
 wakeWaiting`, from `ai/trafficPolice.ts runChase` while any driver has stars): a police car of our
 way waiting at the roadside (`putWaiting`: a forecourt, a lay-by, the hard shoulder) that a driver

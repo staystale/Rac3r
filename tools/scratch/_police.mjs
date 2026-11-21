@@ -188,11 +188,15 @@ const run = (world, seconds, each) => {
 
 /** The survey: police met on each road. */
 function survey() {
-  console.log(`SURVEY: ${KM} km at 95 km/h (legal), traffic 0.6`);
-  for (const scenery of ['countryside', 'canyon'])
-    for (const road of ['motorway', 'interstate', 'dual', 'walled', 'twisty'])
+  // [KMH=95] [SCENERIES=countryside,canyon] [ROADS=motorway,...]: over 70 mph the police are due
+  const kmh = +(process.env.KMH || 95);
+  console.log(`SURVEY: ${KM} km at ${kmh} km/h${kmh > 112 ? ' (speeding: police due)' : ' (legal)'}`
+    + `, traffic 0.6`);
+  for (const scenery of (process.env.SCENERIES || 'countryside,canyon').split(','))
+    for (const road of (process.env.ROADS || 'motorway,interstate,dual,walled,twisty').split(','))
       for (const seed of SEEDS) {
         const world = newWorld(road, scenery, seed);
+        world.want = kmh / 3.6;
         const met = new Map(), starsAt = [];
         let lastStars = 0;
         while ((level._hw.driven || 0) < KM * 1000 && world.time < KM * 120) {

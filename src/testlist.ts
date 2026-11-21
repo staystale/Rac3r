@@ -67,4 +67,12 @@ export const TEST_LIST: TestEntry[] = [
     try: 'Drive: city blocks, slatted tunnels, long bridges over water, embankments, cuttings.',
     wrong: 'Buildings on the road or a slip, a wall across a way in, an empty city, a bad sign.',
   },
+  {
+    id: 'copmix',
+    added: '2026-11-21',
+    name: 'Police by scenery: few in the countryside, some in Deaf Valley, most in Stockholm',
+    where: 'Test link + &copmix=1 (&stockholm=1 for Stockholm): an endless road in each scenery',
+    try: 'Drive a few km in each, legal then fast, and count the police cars you meet.',
+    wrong: 'As many police in the countryside as before, or fewer in Stockholm than before.',
+  },
 ];

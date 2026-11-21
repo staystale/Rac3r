@@ -36,11 +36,24 @@ import type { AiCar, DriveInput, TrafficCar, TrafficEnt, TrafficVehicle } from '
 import { boxGap } from './policeHeat.ts';
 import type { Heat, Suspect } from './policeHeat.ts';
 import { wakeWaiting } from './policeWake.ts';
+import { FIX } from '../core/fixes.ts';
 
 // the share of the cars put back that are police, and the share while police are due (MEASURED,
 // tools/scratch/_police.mjs survey: at 1 / 30 an oncoming police car every 0.3-0.8 km - you sped
 // past one every minute)
 const POLICE_SHARE = 1 / 60, DUE_SHARE = 1 / 15;
+// ?copmix (owner 11-21: "too many police on the other levels - countryside nearly none, Deaf
+// Valley some, Stockholm the most, at today's level"): every police chance above and below times
+// its scenery's share (the road's theme; none: the countryside)
+const COP_MIX: Record<string, number> = { countryside: 0.1, canyon: 0.4, city: 1 };
+
+/**
+ * The police's share on this road (?copmix: by its scenery; else all of today's).
+ * @param ctx the traffic
+ * @returns 0..1
+ */
+const copMix = (ctx: TrafficCtx): number => (FIX.copmix
+  ? COP_MIX[ctx.level?._cfg?.theme ?? 'countryside'] ?? 1 : 1);
 // m of road you drive between two chances of a police car of our way placed ahead, the chance
 // each time and while police are due, and m ahead it is placed (out of sight)
 const PLACE_EVERY_M = 400, PLACE_CHANCE = 0.35, DUE_PLACE_CHANCE = 0.7;
@@ -146,7 +159,7 @@ export function ordersOf(ctx: TrafficCtx): PoliceOrders {
  */
 export function policeShare(ctx: TrafficCtx): number {
   const youS = ctx.level?._hw?.q?.s ?? -Infinity;
-  return ctx.police && youS < ctx.police.dueUntil ? DUE_SHARE : POLICE_SHARE;
+  return (ctx.police && youS < ctx.police.dueUntil ? DUE_SHARE : POLICE_SHARE) * copMix(ctx);
 }
 
 /**
@@ -557,7 +570,8 @@ function placeAhead(ctx: TrafficCtx, ents: TrafficEnt[], vis: VisFn): boolean {
   if (orders.nextPlaceS == null) orders.nextPlaceS = playerS + PLACE_EVERY_M;
   if (playerS < orders.nextPlaceS) return false;
   orders.nextPlaceS = playerS + PLACE_EVERY_M;
-  if (ctx.rnd() >= (playerS < orders.dueUntil ? DUE_PLACE_CHANCE : PLACE_CHANCE)) return false;
+  if (ctx.rnd() >= (playerS < orders.dueUntil ? DUE_PLACE_CHANCE : PLACE_CHANCE) * copMix(ctx))
+    return false;
   const dist = playerS + PLACE_AHEAD_M[0] + ctx.rnd() * (PLACE_AHEAD_M[1] - PLACE_AHEAD_M[0]);
   const lanes = geo(ctx).own, lane = (ctx.rnd() * lanes.length) | 0, slot = spareSlot(ctx,
     playerS, vis);
