@@ -2,7 +2,6 @@
 // Pure moves out of hud.ts.
 
 import { drawHudPanel, drawHudLabel } from './widgets.ts';
-import { FIX } from '../core/fixes.ts';
 import type { HudState, HudFlow, HudStart, HudGame } from './hudtypes.ts';
 
 /**
@@ -196,7 +195,7 @@ function highwayFlag(flow: HudFlow, place?: number): string {
 }
 
 /**
- * How many of this flow's flags have been shown. ?flagfix: a new race (a restart, another track)
+ * How many of this flow's flags have been shown. A new race (a restart, another track)
  * makes a new flow in one step, never a step without one, so the count is kept per flow - else the
  * next race's first flag is never new and never drawn.
  * @param state the shared HUD state (flagSeen, flagFlow)
@@ -204,7 +203,7 @@ function highwayFlag(flow: HudFlow, place?: number): string {
  * @returns the flags shown
  */
 function flagsShown(state: HudState, flow: HudFlow): number {
-  if (FIX.flagfix && state.flagFlow !== flow) {
+  if (state.flagFlow !== flow) {
     state.flagFlow = flow;
     state.flagSeen = 0;
   }

@@ -18,8 +18,8 @@ each car's own crash parts) and ?carshade (every closed car shaded) PASSED 11-17
 now: nothing until the Scanyah trailer (?trailer) lands.
 ?resetclean (bugs 1 + 2, the reset) and ?lamps (bug 5, the headlights) PASSED 11-21, the
 default (TODO-DONE, PASSED 11-21, RESET CLEAN AND LAMPS).
-?fpshud, ?marksage (tyre marks on big levels) and ?blighty PASSED 11-21, the default (TODO-DONE,
-PASSED 11-21, FPS ROW, MARKS, BLIGHTY).
+?fpshud, ?marksage (tyre marks on big levels), ?blighty and ?flagfix PASSED 11-21, the default (TODO-DONE,
+PASSED 11-21, FPS ROW, MARKS, BLIGHTY, THE FLAG).
 (Their records: TODO-DONE, PASSED 11-17, THE TRACTOR AND THE TWO-WHEEL STATE; and MORE DAMAGE 2 AND
 MARK TRACK.)
 
@@ -33,22 +33,10 @@ MARK TRACK.)
   2. RESET ROLLED: a reset sometimes leaves the car upside down, or keeps its momentum, after a crash.
      PASSED 11-21 (?resetclean), the default (TODO-DONE, PASSED 11-21, RESET CLEAN AND LAMPS).
   3. NO CHEQUERED FLAG at the finish (seen at Angle Sleezy); every AI race must have a finish.
-     FOUND + BUILT (Worker C 11-21) behind ?flagfix=1: hud/overlays.ts drawHudFlag counted the flags
-     it had shown for the whole page and reset only when there was no race flow - but a new race
-     makes its flow in the same step (game/session.ts startFlow), so after the first finish the
-     next race's flag was never new: NO FLAG ON ANY RACE AFTER THE FIRST in a session (a restart,
-     another track, a win, the highway). Now the count is kept per flow (flagsShown). MEASURED
-     (tools/scratch/_flagrun.mjs, one page, the real menus, 3 laps, 5 AI, a photo every 0.2 s
-     from the line; the flag's white cloth share of the screen's middle band):
-     off - race 1 (Thruston, P3) peak 15.7 %, race 2 (RESTART, P4) 0.4 %, race 3 (TRACK SELECT, Castle
-     Kum, a WIN) 1.4 %: no flag; on - 15.5 % (P4), 15.4 % (RESTART, P3), 16.0 % (Castle Kum, P3).
-     The highway (tools/scratch/_flaghw.mjs, two solo 5 KM runs in one page): off run 2 0.2 %, on
-     15.9 %.
-     The results come up 1.4-1.6 s after the line, after the 1.5 s sweep (not covering it). AWAITING
-     THE PHONE TEST.
+     PASSED 11-21 (?flagfix), the default (TODO-DONE, PASSED 11-21, ... THE FLAG).
   4. TYRE MARKS CUT OFF in straight lines on one surface (Snoozuka, a couple of turns before the
      tunnel; other tracks too) - a ground-tile edge?
-     PASSED 11-21 (?marksage), the default (TODO-DONE, PASSED 11-21, FPS ROW, MARKS, BLIGHTY).
+     PASSED 11-21 (?marksage), the default (TODO-DONE, PASSED 11-21, ... THE FLAG).
   5. HEADLIGHT GLOW drawn behind the lamp, on the car's own body: each car's lamps light only what
      a real one would, with their own shape and reach.
      PASSED 11-21 (?lamps), the default (TODO-DONE, PASSED 11-21, RESET CLEAN AND LAMPS).
@@ -83,7 +71,7 @@ MARK TRACK.)
      lights switch (on / off rapidly) - no new button; damaged FLICKERING lamps act as a flash all the
      time (they annoy the traffic ahead).
   13. FPS counter as a HUD-list toggle.
-     PASSED 11-21 (?fpshud), the default (TODO-DONE, PASSED 11-21, FPS ROW, MARKS, BLIGHTY).
+     PASSED 11-21 (?fpshud), the default (TODO-DONE, PASSED 11-21, ... THE FLAG).
   14. CAMERA SHAKE in crashes: it already exists (owner 11-21: "there is but it's ok let's leave it
      for now"; it may have changed since the camera keeps the player's car clear of the HUD). Parked.
   15. HIGHWAY: a city theme, Stockholm ("getaway"), beside Country and Deaf Valley (owner: yes -

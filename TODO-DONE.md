@@ -17,7 +17,8 @@ lighting, bushes and trees - OWNER LIST 10-24; the checking tools - Tools that a
 
 
 
-## PASSED 11-21, FPS ROW, MARKS, BLIGHTY (owner: ?fpshud, ?marksage and ?blighty passed)
+## PASSED 11-21, FPS ROW, MARKS, BLIGHTY, THE FLAG (owner: ?fpshud, ?marksage, ?blighty,
+?flagfix passed)
 
 The default 11-21, their switches deleted:
 - THE FPS ROW (the owner's list of 11-21, item 13):
@@ -53,6 +54,19 @@ The default 11-21, their switches deleted:
   both, propcheck OK; aidrivecheck (blightyrx) real rx-super 52.7 s, hatch-fwd 59.4 s, 0 m off,
   realish 0.4 / 0.2 m off. Photos
   (tools/scratch/_pbzshots.mjs, both sizes + overview) and menu thumbnails.
+- THE CHEQUERED FLAG AT EVERY FINISH (bug 3; passed with them):
+  FOUND + BUILT (Worker C 11-21) behind ?flagfix=1: hud/overlays.ts drawHudFlag counted the flags
+  it had shown for the whole page and reset only when there was no race flow - but a new race
+  makes its flow in the same step (game/session.ts startFlow), so after the first finish the
+  next race's flag was never new: NO FLAG ON ANY RACE AFTER THE FIRST in a session (a restart,
+  another track, a win, the highway). Now the count is kept per flow (flagsShown). MEASURED
+  (tools/scratch/_flagrun.mjs, one page, the real menus, 3 laps, 5 AI, a photo every 0.2 s
+  from the line; the flag's white cloth share of the screen's middle band):
+  off - race 1 (Thruston, P3) peak 15.7 %, race 2 (RESTART, P4) 0.4 %, race 3 (TRACK SELECT, Castle
+  Kum, a WIN) 1.4 %: no flag; on - 15.5 % (P4), 15.4 % (RESTART, P3), 16.0 % (Castle Kum, P3).
+  The highway (tools/scratch/_flaghw.mjs, two solo 5 KM runs in one page): off run 2 0.2 %, on
+  15.9 %.
+  The results come up 1.4-1.6 s after the line, after the 1.5 s sweep (not covering it).
 
 ## PASSED 11-21, RESET CLEAN AND LAMPS (owner: ?resetclean and ?lamps passed)
 

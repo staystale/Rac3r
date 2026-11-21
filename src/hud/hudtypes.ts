@@ -16,7 +16,7 @@ export interface HudState {
   lowLever: boolean;   // the car has a low range - its lever shows (hud/lowlever.ts)
   mph: boolean; tempF: boolean;   // the units
   flagSeen: number; flagAt: number; flagTxt: string;   // the race flag banner
-  flagFlow?: HudFlow | null;   // ?flagfix: the race flow flagSeen counts the flags of
+  flagFlow?: HudFlow | null;   // the race flow flagSeen counts the flags of
   drawLightsLater: (() => void) | null;   // the start lights / notices, drawn last
 }
 
