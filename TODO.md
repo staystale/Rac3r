@@ -45,6 +45,11 @@ MARK TRACK.)
      chaos; fast cars in big packs on tight first corners crash too much now. OWNER 11-21: first-
      corner contact is OK but like real racing, not a pile-up every time; cars behind a crash weave
      and avoid it well and only sometimes add to it.
+     THE OWNER'S TESTS FOR THE TUNE (11-21: "it should be possible to test and prove"), measured
+     before / after on many levels, seeded, on the PC: (a) FASTER lap times; (b) crashes - mostly
+     small, now and then a big one, not a pile-up every race; (c) NO random braking halfway down a
+     straight (a per-car brake / lift trace on straights: zero without a real reason); (d) cars do
+     not want to touch but are happy to run close (contacts down, close-running time up).
   10. ROLLING STARTS: after the GREEN the cars still move a bit uniform, as a block - each should
      race its own line from the green (owner 11-21: b).
   11. AI HANDBRAKE use; drifting later (drift modes / tracks / events).
