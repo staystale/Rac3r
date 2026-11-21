@@ -1,4 +1,4 @@
-// marktiles.ts - ?marksage: THE TYRE MARKS OF A BIG LEVEL KEPT WHOLE, the oldest fading first,
+// marktiles.ts - THE TYRE MARKS OF A BIG LEVEL KEPT WHOLE, the oldest fading first,
 // never cut off in a straight line. A level bigger than the marks layer (marks.ts MARK_EXTENT)
 // moved that layer's window with the player and wiped each strip of ground that left it, so marks
 // more than ~300 m behind were cut along a straight line. Here the same marks (4.2 px/m, the same

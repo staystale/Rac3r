@@ -1,7 +1,6 @@
-// hud/fpstoggle.ts - ?fpshud: THE FPS COUNTER AS A HUD-LIST ROW (the owner 11-21): the pause menu's
+// hud/fpstoggle.ts - THE FPS COUNTER AS A HUD-LIST ROW: the pause menu's
 // HUD list (game/menuflow.ts hudActions) turns it on or off in any mode, remembered on the device;
 // until it is set it shows as before - in test mode only (hud/controls.ts drawHudFps).
-import { FIX } from '../core/fixes.ts';
 
 // the device's choice (localStorage), null until the player sets it
 const FPS_KEY = 'carsim.hud.fps';
@@ -12,12 +11,12 @@ try {
 } catch { /* no storage: the default */ }
 
 /**
- * Whether the FPS counter shows: the player's choice (?fpshud), else test mode only.
+ * Whether the FPS counter shows: the player's choice, else test mode only.
  * @param testMode the game is in test mode
  * @returns it shows
  */
 export const isFpsShown = (testMode: boolean | undefined): boolean =>
-  FIX.fpshud && chosen !== null ? chosen : !!testMode;
+  chosen !== null ? chosen : !!testMode;
 
 /**
  * The HUD list's FPS row set: shown or not, remembered on the device.

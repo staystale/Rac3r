@@ -122,7 +122,7 @@ export interface RenderMarks {
   shiftY: number;
   size: number;   // the layer canvas side, px
   canvas: HTMLCanvasElement;
-  // ?marksage: a big level's marks in tiles (marktiles.ts): null when the layer holds them
+  // a big level's marks in tiles (marktiles.ts): null when the layer holds them
   tiles?: object | null;
   tilePx?: number;
   forEachTile?: (box: number[], draw: (tile: { canvas: HTMLCanvasElement; tileX: number;

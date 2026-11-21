@@ -673,7 +673,7 @@ function drawMarks(ctx: RoadCtx, marks: RenderMarks) {
 }
 
 /**
- * ?marksage: blits the tiles of a big level's marks that the screen shows (marktiles.ts).
+ * Blits the tiles of a big level's marks that the screen shows (marktiles.ts).
  * @param ctx the road context
  * @param marks the marks (tiles, tilePx, forEachTile)
  */

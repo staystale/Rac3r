@@ -23,7 +23,6 @@ import { addTrailPoint, clearWetTrails } from "./wettrail.ts";
 import { acrossOf, alongOf } from "./world/crossinggeo.ts";
 import type { Crossing, Mark, Spray, Surface, WheelGround } from './world/types.ts';
 import { trackCanvas } from './core/memorybudget.ts';
-import { FIX } from './core/fixes.ts';
 import {
   type MarkTiles, type MarkTile, createMarkTiles, clearMarkTiles, strokeTiles, dotTiles, noteTiles,
   fadeTiles, forTilesIn, TILE_PX,
@@ -59,9 +58,9 @@ interface MarkState {
   cellT?: Float64Array;   // each fade cell's newest mark, marks s (the aged fade)
   cellStep?: Uint8Array;   // each fade cell's fade steps done (the aged fade)
   live?: Set<number>;   // the fade cells holding marks (the aged fade)
-  // ?marksage: a big level's marks in tiles (marktiles.ts), not the layer
+  // a big level's marks in tiles (marktiles.ts), not the layer
   tiles?: MarkTiles | null;
-  tilesOn?: boolean;   // ?marksage: this level is drawn in tiles (decided on its first step)
+  tilesOn?: boolean;   // this level is drawn in tiles (decided on its first step)
 }
 
 /**
@@ -221,7 +220,7 @@ function clearMarks(markCtx: MarkCtx) {
 }
 
 /**
- * ?marksage: is this level's ground marked in tiles (a big level, not the endless road)? Decided
+ * Is this level's ground marked in tiles (a big level, not the endless road)? Decided
  * on the level's first step; the big layer is shrunk while the tiles hold the marks, and made
  * again for a level that fits.
  * @param markCtx the marks context
@@ -230,7 +229,7 @@ function clearMarks(markCtx: MarkCtx) {
 function useTiles(markCtx: MarkCtx): boolean {
   const { layer, state } = markCtx;
   if (state.tilesOn) return true;
-  if (!FIX.marksage || markCtx.map) return false;
+  if (markCtx.map) return false;
   if (!LEVEL.endless && !levelFitsLayer()) {
     state.tilesOn = true;
     if (!state.tiles) state.tiles = createMarkTiles();
@@ -260,7 +259,7 @@ function useTiles(markCtx: MarkCtx): boolean {
 // until it is left alone.
 const FADE_CELL = 8, CELLS = Math.ceil(SIZE / FADE_CELL);
 const AGED_FROM_S = 90, AGED_STEP_S = 4, AGED_STEPS = 16, AGED_ALPHA = 0.15, AGED_TICK_S = 0.25;
-// the same fade for ?marksage's tiles (marktiles.ts)
+// the same fade for the tiles (marktiles.ts)
 const TILE_FADE = { fromS: AGED_FROM_S, stepS: AGED_STEP_S, steps: AGED_STEPS, alpha: AGED_ALPHA };
 
 /**
@@ -741,7 +740,7 @@ export function createMarks() {
     get shiftY() { return state.shiftY; },
     follow: (x: number, y: number) => followMarks(markCtx, x, y),
     get stamps() { return state.stamps; },
-    // ?marksage: the tiles holding a big level's marks, or null (the layer holds them)
+    // the tiles holding a big level's marks, or null (the layer holds them)
     get tiles() { return state.tilesOn ? state.tiles || null : null; },
     forEachTile: (box: number[], draw: (tile: MarkTile) => void) => {
       if (state.tilesOn && state.tiles) forTilesIn(state.tiles, box, false, draw);

@@ -129,7 +129,7 @@ export function drawHudDevReadout(ctx: CanvasRenderingContext2D, state: HudState
 }
 
 /**
- * FPS, test mode (?fpshud: the HUD list's choice): now + the worst of the last ~10 s; amber under
+ * FPS, test mode (or the HUD list's choice): now + the worst of the last ~10 s; amber under
  * 50, red under 30.
  * @param ctx
  * @param game the game
