@@ -43,8 +43,9 @@ import { FIX } from '../core/fixes.ts';
 // past one every minute)
 const POLICE_SHARE = 1 / 60, DUE_SHARE = 1 / 15;
 // ?copmix (owner 11-21: "too many police on the other levels - countryside nearly none, Deaf
-// Valley some, Stockholm the most, at today's level"): every police chance above and below times
-// its scenery's share (the road's theme; none: the countryside)
+// Valley some, Stockholm the most, at today's level"; the shares passed, and the chases a heat
+// sends scaled too): every police chance above and below times its scenery's share (the road's
+// theme; none: the countryside)
 const COP_MIX: Record<string, number> = { countryside: 0.1, canyon: 0.4, city: 1 };
 
 /**
@@ -54,6 +55,14 @@ const COP_MIX: Record<string, number> = { countryside: 0.1, canyon: 0.4, city: 1
  */
 const copMix = (ctx: TrafficCtx): number => (FIX.copmix
   ? COP_MIX[ctx.level?._cfg?.theme ?? 'countryside'] ?? 1 : 1);
+
+/**
+ * Whether a chaser due to be sent from behind is sent (?copmix: only by its scenery's share -
+ * owner 11-21: "scale the heat-sent chases by the same shares"; off, always and no dice drawn).
+ * @param ctx the traffic
+ * @returns it is
+ */
+const copSends = (ctx: TrafficCtx): boolean => !FIX.copmix || ctx.rnd() < copMix(ctx);
 // m of road you drive between two chances of a police car of our way placed ahead, the chance
 // each time and while police are due, and m ahead it is placed (out of sight)
 const PLACE_EVERY_M = 400, PLACE_CHANCE = 0.35, DUE_PLACE_CHANCE = 0.7;
@@ -635,7 +644,7 @@ function runChase(ctx: TrafficCtx, dt: number, player: AiCar & { crossing?: numb
     || Math.abs(each.s - playerS) < Math.abs(best.s - playerS) ? each : best), null);
   if (orders.owed > 0 && orders.sendT <= 0 && nearest) {
     orders.sendT = SEND_GAP_S;
-    const sent = sendChaser(ctx, road.ents, road.vis, nearest);
+    const sent = copSends(ctx) ? sendChaser(ctx, road.ents, road.vis, nearest) : null;
     if (sent) {
       chasers.push(sent);
       orders.owed--;

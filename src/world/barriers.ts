@@ -249,10 +249,9 @@ function addSmallSolids(out: Solid[], prop: Prop): boolean {
   switch (prop.kind) {
     case 'gate': box(0, 0, 6.8, 0.6); return true;
     case 'block': box(0, 0, prop.w!, prop.h!); return true;   // always have w and h
-    // a slat of a tunnel's cover (world/venuecross.ts tunnelCover; one over the endless road's
-    // tunnel is above the cars: none)
-    case 'slat':
-      if (!prop.overRoad) box(0, 0, prop.w!, prop.h!);
+    // a tunnel cover's slat (world/venuecross.ts; over the endless road: none), a moored yacht
+    case 'slat': case 'yacht':
+      if (prop.kind === 'slat' ? !prop.overRoad : !!prop.moored) box(0, 0, prop.w!, prop.h!);
       return true;
     // a parked car (a venue's car park)
     case 'parkedcar': box(0, 0, 4.2, 1.8); return true;

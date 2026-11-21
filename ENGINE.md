@@ -389,8 +389,8 @@ FLASH THEM card. `tools/scratch/_lampflash.mjs`.
 THE POLICE BY SCENERY (?copmix=1; `ai/trafficPolice.ts COP_MIX`): every police chance - the
 share of the cars put back that are police (1/60, 1/15 while police are due: over 70 mph or a
 camera) and a police car placed ahead every 400 m (0.35, 0.7 due) - times the road's scenery's
-share: the countryside 0.1, Deaf Valley 0.4, Stockholm 1 (today's). The chases a driver's heat
-sends are not scaled. `tools/scratch/_police.mjs` PART=survey (KMH, SCENERIES).
+share: the countryside 0.1, Deaf Valley 0.4, Stockholm 1 (today's; passed by the owner), and a
+chaser due to be sent from behind a driver with heat is sent only at that share (`copSends`). `tools/scratch/_police.mjs` PART=survey (KMH, SCENERIES).
 
 THE WAITING POLICE WAKE (passed 11-15; `ai/policeWake.ts
 wakeWaiting`, from `ai/trafficPolice.ts runChase` while any driver has stars): a police car of our
@@ -849,9 +849,11 @@ a church), towers behind a modern row, shops with a car park - wheelie bins by t
 stretch's lot has a noise wall. A lot is a keep rect with a field id (a later slip, approach or
 river drops it whole), laid once the dressing reaches its last point (the side road along it
 known); the right side tests the ground with `clearRight`. WATER (`citywater.ts`): the river's
-scenery water ('wet') both sides from a concrete quay, in 60 m pieces, yachts moored off it; no
-slips, bridges or services off the water or out of a tunnel. A TUNNEL's cover is Moanaco's slats
-over the road, each `overRoad` (drawn over the cars, never solid), where its ground has risen.
+scenery water ('wet') both sides from a concrete quay, in 60 m pieces, SAND under it, yachts moored
+off it (`moored`: solid); no slips, bridges or services off the water or out of a tunnel. A
+TUNNEL's cover is Moanaco's slats over the road, each `overRoad` (drawn over the cars, never solid,
+its whole pitch in the tunnel's shade: dark), where its ground has risen; under them ROOF zones
+(`Zone.roof`, `Level._roofs`: `world/wear.ts roofed` - no rain, the road dry).
 Its litter is its own (`litter.ts cityLitter`: cones and sandbags, bins, boxes, crates, pallets;
 1.5x the countryside's chances; none on the water or in a tunnel). Its signs are blue
 (`CITY_SIGNS`, the distance that goes up: CENTRUM n KM). `tools/scratch/_citylots.mjs` (node:

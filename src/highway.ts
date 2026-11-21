@@ -88,6 +88,8 @@ function rebuild(level: HwLevel) {
   // ground tiles are out of date
   sub.layoutId = level._layout || 0;
   level.subtrack = sub;
+  // (GETAWAY STOCKHOLM's tunnels' roofs: world/wear.ts roofed)
+  if (level._cfg.theme === 'city') level._roofs = level.zones.filter((zone) => zone.roof);
   prepBumps(level.bumps.filter((bump) => bump.reach2 == null));
   level._bumpGridOf = null;
   prepBarriersOf(level);

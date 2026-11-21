@@ -112,13 +112,16 @@ MARK TRACK.)
      time at real counts: on the PC. OWNER 11-21: the traffic stays as it is; "busier" means more
      bridges, tunnels and scenery - the city's bridges over the road at half the spacing (extras.ts
      CITY_BRIDGES): MEASURED (tools/scratch/_citybridges.mjs, 45 km) 0.42 -> 0.62 bridges or
-     underpasses a km, with 0.29 tunnels and 0.27 long bridges over water a km. AWAITING THE PHONE
-     TEST.
+     underpasses a km, with 0.29 tunnels and 0.27 long bridges over water a km. OWNER 11-21: the
+     tunnels "dark AND DRY inside", the yachts SOLID, SAND under the water: DONE (citywater.ts: the
+     slats' shade over their whole pitch, roof zones - no rain, the yachts moored, a sand zone under
+     each water piece), measured on the PC (tools/scratch/_cityroof.mjs). AWAITING THE PHONE TEST.
 
 - POLICE BY SCENERY (owner 11-21: "too many police on the other levels" - countryside nearly none,
   Deaf Valley some, Stockholm the most, at today's level): BUILT (Worker C 11-21) behind
-  ?copmix=1 (ENGINE: THE POLICE BY SCENERY). PROPOSED shares of today's (owner to set): the
-  countryside 0.1, Deaf Valley 0.4, Stockholm 1. MEASURED (tools/scratch/_police.mjs survey,
+  ?copmix=1 (ENGINE: THE POLICE BY SCENERY). The shares of today's, the countryside 0.1, Deaf
+  Valley 0.4, Stockholm 1 - OWNER 11-21: YES, and scale the heat-sent chases the same: DONE (a
+  chaser due from behind is sent at the share), measured on the PC (tools/scratch/_police.mjs). MEASURED (tools/scratch/_police.mjs survey,
   8 km x 3 seeds x the motorway and the dual carriageway, police met within 150 m per 10 km, off ->
   on): at 95 km/h (legal) the countryside 9.0 -> 1.25, Deaf Valley 20.6 -> 5.6, Stockholm 13.5 ->
   14.8 (the same: noise); at 150 km/h (police due, heat and chases) the countryside 40.8 -> 7.5,

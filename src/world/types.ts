@@ -101,6 +101,7 @@ export interface Zone {
   art?: string | null;   // null: the surface's own look (highway/fields.ts)
   hedge?: boolean;
   field?: number;
+  roof?: boolean;   // under a roof, no rain (GETAWAY STOCKHOLM's tunnels: highway/citywater.ts)
   _s?: number;
   sv?: number;   // highway.ts river banks: which side of the river (-1 / 1)
   _r?: number;   // zoneAt caches for rotated zones
@@ -178,9 +179,8 @@ export interface Prop {
   field?: number;
   _s?: number;
   house?: boolean;
-  // a slat over a road (GETAWAY STOCKHOLM's tunnels: highway/city.ts): drawn over the cars, never
-  // solid (render/props.ts, world/barriers.ts)
-  overRoad?: boolean;
+  overRoad?: boolean;   // a slat over the endless road: drawn over the cars, never solid
+  moored?: boolean;   // a yacht moored off a city quay (highway/citywater.ts): solid
   church?: boolean;
   blue?: boolean;
   bars?: number;
@@ -579,6 +579,7 @@ export interface Level {
   // the ground's height off the road (world/terrain.ts bumpAt; Deaf Valley's gorges: highway/
   // gorge.ts): m added at a road distance and an offset (+ the +normal side), the road's half
   // width, the ground point
+  _roofs?: Zone[];   // the zones under a roof (Zone.roof: world/wear.ts roofed), the endless road's
   roadside?: (dist: number, offset: number, halfWidth: number,
     at: { x: number; y: number }) => number;
   camber?: Camber;

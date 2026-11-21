@@ -414,7 +414,7 @@ export function getWornSurface(x: number, y: number): Surface | null {
   if (!cell) return null;
   // cracked ice grips more (icecrack.ts); no rain reaches a tunnel's floor
   const surface = surfaceOf(cell.base, cell.cover, cell.standing,
-    roofed(x) ? 0 : cellDamp(cell, wearClock));
+    roofed(x, y) ? 0 : cellDamp(cell, wearClock));
   return crackedIce(surface, cell);
 }
 
@@ -438,15 +438,34 @@ function floorSurfaceAt(x: number, y: number): Surface {
   const worn = getWornSurface(x, y);
   if (worn) return worn;
   const layers = layersAt(x, y);
-  return surfaceOf(layers.base, layers.cover, layers.standing, roofed(x) ? 0 : WEATHER.wetness);
+  return surfaceOf(layers.base, layers.cover, layers.standing, roofed(x, y) ? 0
+    : WEATHER.wetness);
 }
 
 /**
- * Whether a (filed) x is a tunnel's floor, under a roof (no rain: world/deckwear.ts).
+ * Whether a point is under a roof, where no rain reaches: a tunnel's floor (a filed x:
+ * world/deckwear.ts), or a zone the level roofs (LEVEL._roofs: GETAWAY STOCKHOLM's tunnels).
  * @param x world x as filed, m
- * @returns true in a tunnel
+ * @param y world y, m
+ * @returns true under a roof
  */
-const roofed = (x: number): boolean => isDeckX(x) && deckOfX(x)?.kind === 'tunnel';
+const roofed = (x: number, y: number): boolean => (isDeckX(x) && deckOfX(x)?.kind === 'tunnel')
+  || (!!LEVEL._roofs && LEVEL._roofs.some((zone) => underRoof(zone, x, y)));
+
+/**
+ * Whether a point is inside a roof's (rotated) rect.
+ * @param zone the roof zone (x, y its middle, w along its rot, h across)
+ * @param x world x, m
+ * @param y world y, m
+ * @returns it is
+ */
+function underRoof(zone: { x: number; y: number; w: number; h: number; rot?: number }, x: number,
+  y: number): boolean {
+  const cosR = Math.cos(zone.rot || 0), sinR = Math.sin(zone.rot || 0);
+  const dx = x - zone.x, dy = y - zone.y;
+  return Math.abs(dx * cosR + dy * sinR) <= zone.w / 2
+    && Math.abs(-dx * sinR + dy * cosR) <= zone.h / 2;
+}
 
 /**
  * The surface a wheel touches at a point - groundAt's surface without the heights (the marks and

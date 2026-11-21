@@ -7,7 +7,8 @@
 // (world/venuecross.ts: slats SLAT_M long with SLAT_GAP_M between, a car hidden under each and
 // glimpsed between) - here over the endless road at ground level, so each slat is drawn over the
 // cars and is never solid (Prop.overRoad), laid by the road's distance where the ground over it has
-// risen.
+// risen; the road under the slats in their shade, and under a roof (no rain). Sand under the water;
+// the yachts solid.
 import { SURFACES } from '../world/surfaces.ts';
 import { keepOut } from './cuts.ts';
 import { STEP } from './presets.ts';
@@ -26,6 +27,9 @@ const YACHT_OUT_M = [5, 24];
 // stand only where the tunnel's ground has risen, this far in from each end of the stretch; m the
 // cover reaches past each road edge (over the retaining walls)
 const SLAT_M = 3.2, SLAT_GAP_M = 1.4, SLAT_IN_M = 60, SLAT_OVER_M = 3;
+// slats under one ROOF zone (owner 11-21: tunnels "dark AND DRY inside"): no rain reaches the road
+// under it (world/wear.ts roofed); a few long zones, not one a slat, to keep the test cheap
+const SLATS_A_ROOF = 10;
 
 /**
  * A water piece's side: the water out from the quay (a keep rect: nothing stands on it), the
@@ -40,6 +44,9 @@ function layWaterSide(ctx: DressCtx, mid: number, side: number, dist: number) {
   const centre = pointAt(mid, side * (halfWidth + QUAY_M + WATER_W_M / 2));
   state.covers.push({ cover: 'wet', water: true, shape: 'rect', x: centre.x, y: centre.y,
     w: PIECE_M + 8, h: WATER_W_M, rot: centre.rot, _s: dist } as Cover);
+  // (SAND under it - owner 11-21: "so it's hard to drive on if you go in")
+  level.zones.push({ x: centre.x, y: centre.y, w: PIECE_M + 8, h: WATER_W_M, rot: centre.rot,
+    surface: SURFACES.sand, _s: dist });
   keepOut(level, { x: centre.x, y: centre.y, ax: Math.cos(centre.rot), ay: Math.sin(centre.rot),
     hu: PIECE_M / 2 + 4, hv: WATER_W_M / 2 }, dist);
   const quay = pointAt(mid, side * (halfWidth + QUAY_M - QUAY_EDGE_M / 2));
@@ -53,7 +60,8 @@ function layWaterSide(ctx: DressCtx, mid: number, side: number, dist: number) {
       + rand() * (YACHT_OUT_M[1] - YACHT_OUT_M[0])));
     level.props.push({ kind: 'yacht', x: pos.x, y: pos.y, rot: pos.rot + (rand() < 0.5 ? 0
       : Math.PI), w: YACHT_LEN_M[0] + rand() * (YACHT_LEN_M[1] - YACHT_LEN_M[0]),
-    h: YACHT_BEAM_M[0] + rand() * (YACHT_BEAM_M[1] - YACHT_BEAM_M[0]), _s: dist } as Prop);
+    h: YACHT_BEAM_M[0] + rand() * (YACHT_BEAM_M[1] - YACHT_BEAM_M[0]), moored: true,
+    _s: dist } as Prop);
   }
 }
 
@@ -93,9 +101,16 @@ export function layTunnelSlats(ctx: DressCtx, i: number) {
     if (stretch.kind !== 'tunnel' || stretch.along < SLAT_IN_M
       || stretch.len - stretch.along < SLAT_IN_M) continue;
     const share = (slatAt + SLAT_M / 2 - from) / Math.max(1e-6, upto - from);
-    const here = pointAt(i, 0), next = pointAt(i + 1, 0);
-    level.props.push({ kind: 'slat', x: here.x + (next.x - here.x) * share,
-      y: here.y + (next.y - here.y) * share, rot: here.rot, w: SLAT_M,
-      h: 2 * (halfWidth + SLAT_OVER_M), overRoad: true, _s: road[i].s });
+    const here = pointAt(i, 0), next = pointAt(i + 1, 0), wide = 2 * (halfWidth + SLAT_OVER_M);
+    const x = here.x + (next.x - here.x) * share, y = here.y + (next.y - here.y) * share;
+    // (wid its whole pitch: the gap after it is in the tunnel's shade too - props/scenery.ts)
+    level.props.push({ kind: 'slat', x, y, rot: here.rot, w: SLAT_M, wid: pitch, h: wide,
+      overRoad: true, _s: road[i].s });
+    if (Math.round(slatAt / pitch) % SLATS_A_ROOF === 0) {
+      const roofLen = SLATS_A_ROOF * pitch, ahead = roofLen / 2 - SLAT_M / 2;
+      level.zones.push({ x: x + Math.cos(here.rot) * ahead, y: y + Math.sin(here.rot) * ahead,
+        w: roofLen + 1, h: wide, rot: here.rot, surface: SURFACES.tarmac, roof: true,
+        _s: road[i].s });
+    }
   }
 }
