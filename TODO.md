@@ -42,17 +42,23 @@ MARK TRACK.)
   8. TRAFFIC DODGES RACERS too, gently, by its drivers' skill.
   9. TUNE THE AI with the skill sliders across a range of levels: few crashes (not none), faster
      laps, real racing (rubbing, overtakes, the field moving - not a parade), first corners not
-     chaos; fast cars in big packs on tight first corners crash too much now.
-  10. ROLLING STARTS: the cars move as one formation rather than by their own decisions.
+     chaos; fast cars in big packs on tight first corners crash too much now. OWNER 11-21: first-
+     corner contact is OK but like real racing, not a pile-up every time; cars behind a crash weave
+     and avoid it well and only sometimes add to it.
+  10. ROLLING STARTS: after the GREEN the cars still move a bit uniform, as a block - each should
+     race its own line from the green (owner 11-21: b).
   11. AI HANDBRAKE use; drifting later (drift modes / tracks / events).
   FEATURES
   12. FLASHING: racers may flash a car blocking them (traffic or a racer). Traffic flashed moves
      over; flashed too much (a chance) it gets mad and chases whoever flashed it (an AI or the
      player). Racers never get mad or move for a flash, but may flash in races. Flashing works only
-     with working headlights; flickering (damaged) lamps flash; dead lamps cannot.
+     with working headlights; dead lamps cannot. OWNER 11-21: the PLAYER flashes with the existing
+     lights switch (on / off rapidly) - no new button; damaged FLICKERING lamps act as a flash all the
+     time (they annoy the traffic ahead).
   13. FPS counter as a HUD-list toggle.
   14. CAMERA SHAKE / a jerk in crashes (maybe).
-  15. HIGHWAY: a city theme, Stockholm ("getaway"), beside Country and Deaf Valley.
+  15. HIGHWAY: a city theme, Stockholm ("getaway"), beside Country and Deaf Valley (owner: yes -
+     motorways, tunnels, bridges over water).
 
 - THE 11-16 QUEUE (every item owner-approved after a brief plan; details in each worker's TODO
   entry as it lands):
