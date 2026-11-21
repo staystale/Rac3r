@@ -85,4 +85,9 @@ export const FIX = {
   // scale per driver type (ai/tune.ts COMMIT_BOXED: the racers, the traffic's speeders); the
   // defaults keep today's behaviour until the owner picks the lean
   gapcommit: atLoad('gapcommit'),
+  // THE ROLLING START'S GREEN (owner 11-21, item 10): each AI released at its own reaction after
+  // the green (by skill and personality), a few jumping it (game/greenrelease.ts); the race
+  // driver's start phase counted from its release, not the formation's first move
+  // (ai/driverLane.ts)
+  rollgreen: atLoad('rollgreen'),
 };

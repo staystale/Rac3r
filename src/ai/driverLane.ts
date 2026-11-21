@@ -1,6 +1,7 @@
 // ai/driverLane.ts: the circuit driver's place on the path, its mistakes, its lateral lane
 // (line share, grid lane), the push of a battle and its racecraft. Functions take the
 // driver context.
+import { FIX } from "../core/fixes.ts";
 import { lateralOf } from './rejoin.ts';
 import { querySubtrack } from "../world/tyrewall.ts";
 import { K_BRAKE, nearestIdx, profileOf } from "./line.ts";
@@ -20,6 +21,28 @@ const ATK_ROOM = 0.3;        // m more than that an attack aims beside the car
 // s to ease from the grid lane onto the line (START_GAP, m more room alongside then, is in
 // driverTraffic.ts)
 const START_BLEND = 9;
+
+/**
+ * ?rollgreen: whether the start holds me this think (driverDrive.ts noteHeld stamps it).
+ * @param state my state
+ * @param state.t s
+ * @param state.heldT s, the last think the start held me
+ * @returns held now
+ */
+const heldNow = (state: { t: number; heldT?: number }) => FIX.rollgreen && state.heldT === state.t;
+
+/**
+ * Whether my start phase begins now: my first move over 2 m/s on the main line, not while held.
+ * @param state my state (goT: when it began; t, heldT)
+ * @param state.goT s, undefined before
+ * @param state.t s
+ * @param state.heldT s
+ * @param speed my m/s
+ * @param onMain on the main line
+ * @returns it begins
+ */
+const startsNow = (state: { goT?: number; t: number; heldT?: number }, speed: number,
+  onMain: boolean) => state.goT == null && speed > 2 && onMain && !heldNow(state);
 // NEVER WAIT (requirement: patience they should never really wait imo, just try harder and go
 // faster): seconds of being held up before a pass is tried were 0.3-1.5 s (by aggression), now
 // 0.15-0.6; the chance to commit to one per
@@ -164,7 +187,9 @@ export function laneStep(drv: Drv, car: AiCar, path: AiPath, nearIdx: number, sp
   // from the line when it set off) and eases onto the line over START_BLEND s; in that
   // phase cars alongside get more room (START_GAP) and a car ahead is gone round rather than
   // followed.
-  if (state.goT == null && speed > 2 && path === main) {
+  // (?rollgreen: not while the start holds me - a rolling start's formation moves, and the start
+  // phase was spent before the green: tools/scratch/_rollgreen.mjs)
+  if (startsNow(state, speed, path === main)) {
     state.goT = state.t;
     const here = pts[nearIdx];
     state.gridLat = (car.x - here.x) * -Math.sin(here.h) + (car.y - here.y) * Math.cos(here.h);
