@@ -1,4 +1,4 @@
-// physics/trailer.ts - ?trailer: THE SCANYAH's TRAILER ON ITS PIN (owner: yes to the four choices:
+// physics/trailer.ts - THE SCANYAH's TRAILER ON ITS PIN (owner: yes to the four choices:
 // a half load of ~10 t, the hitch stop at +-85 deg, a broken pin in a big crash, reversing as in
 // life). The trailer is a second body (x, y, heading, vx, vy, yawRate) with no engine and no
 // steering: one axle group (its three axles' grip and load), rolling resistance, drag, and brakes
@@ -141,7 +141,7 @@ export function lineUpTrailer(car: Car, trailer: Trailer): void {
  * not dropped by the garage's row) to its trailer's tail - lined up as lineUpTrailer puts it;
  * any other car half its length each way.
  * @param car the car
- * @param towing it will tow (?trailer on)
+ * @param towing it will tow
  * @returns { front, rear } m
  */
 export function rigExtents(car: Tractor, towing: boolean): { front: number; rear: number } {
@@ -165,7 +165,7 @@ export function trailerBehind(car: Car): { back: number; len: number; wid: numbe
 }
 
 /**
- * ?trailer: hitches a trailer to a tractor that tows one (a new player car).
+ * Hitches a trailer to a tractor that tows one (a new player car).
  * @param car the car
  * @returns its trailer, or null
  */
@@ -179,7 +179,7 @@ export function attachTrailer(car: Tractor): Trailer | null {
 }
 
 /**
- * ?trailer, once a frame and before each step: hitches a trailer to a tractor that has none yet (a
+ * Once a frame and before each step: hitches a trailer to a tractor that has none yet (a
  * new player car, before its race starts), and lines it up again behind one that was put
  * somewhere (a reset).
  * @param car the player's car
@@ -289,7 +289,7 @@ function wasReset(car: Car, trailer: Trailer, dt: number): boolean {
 }
 
 /**
- * ?trailer, one step of a tractor's trailer, after the tractor's own step: its body moved by its
+ * One step of a tractor's trailer, after the tractor's own step: its body moved by its
  * forces, then the joint and the hitch stop (unless the pin has broken), and its weight on the
  * fifth wheel for the tractor's next step.
  * @param car the tractor

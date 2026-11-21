@@ -17,6 +17,54 @@ lighting, bushes and trees - OWNER LIST 10-24; the checking tools - Tools that a
 
 
 
+## PASSED 11-21, THE TRAILER, BOXHOLD, GRIDLEN (owner: round168 passed)
+
+The default 11-21, their switches deleted (the Scanyah tows the half-loaded curtainsider unless the
+garage's TRAILER row says WITHOUT):
+  - WORKER A (paused): the Scanyah trailer joint - WIP worker/joint 020b0d07, works; left: the
+  trailer's own parts, test entry, night check. OWNER 11-17: no drips; the truck stays slow but its
+  box must stop hunting 1-2; the GRID gives each vehicle a slot as long as it is (a rig ~20 m, at
+  the back of a mixed grid), a solo start slides back to a spot with the rig's length clear; the
+  GARAGE gets a TRAILER row for tractor units: WITHOUT, or the CURTAINSIDER HALF-FULL only (no load
+  chooser). Later trailer types: a flatbed with visible cargo first (owner: "I don't mind").
+  THE TRAILER'S OWN PARTS + ITS LAMPS (Worker C 11-21, rebased on round166 as worker/c-trailer):
+  a curtain section each side front and back, the twin rear doors, the under-run bar (no bumper
+  at its nose), its mudguards - no glass, engine, exhaust, mirrors or front wheels; thrown from where
+  they sit, drawn lying flat, its load's pallets / its floor under a lost panel (carbits.ts towed,
+  render/carparts.ts, render/underskin.ts). tools/partcheck.mjs walks it: panel 4, bumper 1, boot
+  2, strut 2, wishbone 2. NIGHT CHECK: it was dark at night while the tractor's tail lamps glowed
+  under its nose - now it carries the rig's rear lamps (render/riglamps.ts), dark once the pin
+  breaks. Photos: tools/scratch/_trailershot.mjs parts, partsnight, nightlit.
+  THE GARAGE'S TRAILER ROW (Worker C 11-21): for the tractor unit only, TRAILER · CURTAINSIDER ·
+  HALF-FULL (the first, the default) or WITHOUT, kept per tractor in the profile and read at the
+  launch (physics/trailer.ts chooseTrailer; menu/garage.ts addTrailerRow). tools/scratch/
+  _garagetrailer.mjs (the real menus, both sizes): WITHOUT -> no trailer, CURTAINSIDER -> hitched.
+  GRID SLOTS BY LENGTH BUILT (Worker C 11-21) behind ?gridlen=1 (game/gridlen.ts): each slot keeps
+  9 m clear behind the tail of the car two slots ahead (its column) - two 5 m cars: the old 14 m,
+  so a grid of cars is unchanged - a towing rig (~17.3 m tractor nose to trailer tail) takes the
+  last slot, a solo rig slides back along the road to a spot clear for its trailer (barriers,
+  solids). MEASURED (tools/scratch/_gridlen.mjs, Thruston 5 AI): the rig - bodies closer than 1 m
+  off 1 (the trailer over an AI), on 0, you 37.5 m back (last); the school bus with 5 buses - the
+  column gaps 15 -> 21 m, 0 close either way; the hatch - the same slots off and on (0, 7.5, 15,
+  21, 28.5, 36 m back); the Lab alone - the trailer clear off and on (the tractor's box met the
+  start posts: slid 1 m). The highway's 2-wide grid unchanged.
+  THE BOX HUNTING BUILT (Worker C 11-21) behind ?boxhold=1 (owner: one rule for every auto box):
+  in 1st the launch slip and the twin rear wheels' spin took the Scanyah to its 1,900 rpm upshift
+  at 0.5-0.9 km/h, 2nd fell to its road revs (690-820) under the 1,100 downshift and it dropped
+  back, every ~0.7 s. Now an upshift waits until the next gear's road revs reach its downshift rpm
+  (physics/powertrain.ts lowHoldsGear, low range's 1.3 margin kept). MEASURED (tools/scratch/
+  _boxhunt.mjs, from rest, 30 s): 2 -> 1 drops alone flat 3 -> 0, up 4 % 10 -> 0; towing flat 4 ->
+  0, up 4 % 32 -> 0 (6.9 -> 56.4 km/h at 30 s); towing flat full throttle 72.3 -> 77.7 km/h at 30
+  s. Every car (45, full throttle from rest): only the Scanyah's shifts change; tools/carstats.mjs
+  every car's numbers the same. (A 1.3 margin everywhere held the gear for good on 14 cars - the
+  track car topped out at 116 km/h - so the normal range takes 1.0.)
+- THE RIG'S RESET: a RESET of the towing rig put the tractor on a
+  spot free of cars, but its trailer, lined up 14 m behind, could land on an AI (Thruston, 3 AI,
+  ?gridlen on: 2 of 2 resets) - FIXED behind ?trailer (game/resetspot.ts firstFree tests the
+  trailer's box too): 0 of 6 (mid-race, after a jack-knife, by the barrier at the tightest bend,
+  with the pin broken - re-hitched), the trailer in line (hitch 1-2.4 deg, gap under 0.1 cm), on
+  no car, clear of barriers; at a tight bend it lies straight behind, over the run-off.
+
 ## PASSED 11-21, FPS ROW, MARKS, BLIGHTY, THE FLAG (owner: ?fpshud, ?marksage, ?blighty,
 ?flagfix passed)
 

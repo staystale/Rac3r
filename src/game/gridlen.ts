@@ -1,4 +1,4 @@
-// game/gridlen.ts - ?gridlen: GRID SLOTS BY LENGTH (owner: "the GRID gives each vehicle a slot as
+// game/gridlen.ts - GRID SLOTS BY LENGTH (owner: "the GRID gives each vehicle a slot as
 // long as it is (a rig ~20 m, at the back of a mixed grid), a solo start slides back to a spot with
 // the rig's length clear"). A grid's slots alternate columns, GRID_STEP m apart (game/grid.ts);
 // here each slot also keeps GRID_CLEAR_M behind the tail of the car two slots ahead (its column):
@@ -6,7 +6,6 @@
 // a van or a towing rig (tractor and trailer, ~17 m) gets its own length. A towing rig takes the
 // last slot of a grid. A solo start with a rig whose trailer would stand on a barrier or a solid
 // (the Lab's start posts) slides back along the road, a metre at a time, to a clear spot.
-import { FIX } from '../core/fixes.ts';
 import { makeCar, type Car } from '../vehicle.ts';
 import { ROSTER } from '../cars.ts';
 import { TRACTOR_ID, trailerBehind, type Tractor } from '../physics/trailer.ts';
@@ -29,17 +28,17 @@ export interface Extent { front: number; rear: number }
 let slotBacks: number[] | null = null;
 
 /**
- * Whether the player's car will tow a trailer (?trailer: the tractor, its trailer not dropped).
+ * Whether the player's car will tow a trailer (the tractor, its trailer not dropped).
  * @param car the player's car
  * @returns towing
  */
 export function isTowing(car: Car): boolean {
-  return FIX.trailer && String(car.spec.id).split('#')[0] === TRACTOR_ID
+  return String(car.spec.id).split('#')[0] === TRACTOR_ID
     && (car as Tractor).trailer !== null;
 }
 
 /**
- * A grid slot's distance back from the pole, m: laid by length (?gridlen), else slot x step.
+ * A grid slot's distance back from the pole, m: laid by length, else slot x step.
  * @param slot the slot, 0 = pole
  * @param step the grid's step, m (game/grid.ts GRID_STEP)
  * @returns m back
@@ -49,19 +48,18 @@ export function slotBackM(slot: number, step: number): number {
 }
 
 /**
- * The player's slot: a towing rig at the back of a grid (?gridlen), else the one drawn.
+ * The player's slot: a towing rig at the back of a grid, else the one drawn.
  * @param count the AI
  * @param drawn the slot drawn (game/grid.ts drawGridSlot)
  * @param towing the player tows
  * @returns the slot
  */
 export function playerSlot(count: number, drawn: number, towing: boolean): number {
-  return FIX.gridlen && towing && count ? count : drawn;
+  return towing && count ? count : drawn;
 }
 
 /**
- * ?gridlen: each slot's distance back, by the lengths of the cars in it (none laid without the
- * switch or with no field).
+ * Each slot's distance back, by the lengths of the cars in it (none laid with no field).
  * @param player the player's extent
  * @param aiIds the AI's car ids, in order
  * @param mySlot the player's slot
@@ -70,7 +68,7 @@ export function playerSlot(count: number, drawn: number, towing: boolean): numbe
 export function layGridByLength(player: Extent, aiIds: string[], mySlot: number,
   step: number): void {
   slotBacks = null;
-  if (!FIX.gridlen || !aiIds.length) return;
+  if (!aiIds.length) return;
   const extents: Extent[] = [];
   for (let slot = 0; slot <= aiIds.length; slot++) {
     if (slot === mySlot) extents.push(player);
@@ -125,14 +123,14 @@ function slideSpot(back: number): { x: number; y: number; h: number } {
 }
 
 /**
- * ?gridlen, a solo start with a towing rig: the first spot back from the spawn where neither the
+ * A solo start with a towing rig: the first spot back from the spawn where neither the
  * tractor nor its trailer touches a barrier or a solid (null: the spawn is clear, or none is
  * within SLIDE_MAX_M).
  * @param car the player's tractor
  * @returns the spot, or null
  */
 export function clearRigSpot(car: Car): { x: number; y: number; h: number } | null {
-  if (!FIX.gridlen || !isTowing(car)) return null;
+  if (!isTowing(car)) return null;
   const behind = trailerBehind(car);
   for (let back = 0; back <= SLIDE_MAX_M; back += SLIDE_STEP_M) {
     const spot = slideSpot(back);

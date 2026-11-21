@@ -197,7 +197,7 @@ export function stepCarSignals(inp: CarInput, wallDt: number) {
     }
   }
   updateFieldHeadlights();
-  // (?trailer: the tractor's trailer hitched, and in line after a reset - before the race too)
+  // (the tractor's trailer hitched, and in line after a reset - before the race too)
   hitchPlayerTrailer();
   if (game.car.roll && game.car.roll.phase !== 'rolling' && game.car.roll.phase !== 'none'
     && game.car.roll.phase !== 'tipping' && shared.mode === 'session')
@@ -237,13 +237,13 @@ export function openGuideOnLanding() {
   }
 }
 
-/** ?trailer: hitches the player's trailer, or lines it up after a reset (physics/trailer.ts). */
+/** Hitches the player's trailer, or lines it up after a reset (physics/trailer.ts). */
 function hitchPlayerTrailer() {
-  if (FIX.trailer) hitchTrailer(game.car as Tractor);
+  hitchTrailer(game.car as Tractor);
 }
 
 /**
- * ?trailer: the player's trailer for one step (hitched by stepCarSignals): the world's clamps and
+ * The player's trailer for one step (hitched by stepCarSignals): the world's clamps and
  * their damage on it, its ground, then its body and the pin (physics/trailer.ts).
  * @param inp this step's player input (its brake works the trailer's brakes)
  */
@@ -285,8 +285,8 @@ export function stepCarPhysics(inp: CarInput) {
       tripCheck(game.car, PHYSICS_STEP_SECONDS);
       stepTipping(game.car, PHYSICS_STEP_SECONDS);
     }
-    // (?trailer: the tractor's trailer on its pin)
-    if (FIX.trailer) stepPlayerTrailer(inp);
+    // (the tractor's trailer on its pin)
+    stepPlayerTrailer(inp);
     // a tyre burst (heat, wear, debris): a puncture, and news on the HUD
     // a tyre burst (heat, wear, debris): no written notice - the wheel and the tyre diagram
     // show it (owner: no banners)
@@ -502,7 +502,7 @@ export function stepTrafficContacts(tcars: TrafficVehicle[]) {
 }
 
 /**
- * The cars the loose objects meet this step: you, (?trailer) your trailer, and with a field the AI
+ * The cars the loose objects meet this step: you, your trailer, and with a field the AI
  * and the traffic within 60 m of you - those on the ground (a car on a bridge or in a tunnel
  * touches nothing on the ground: world/crossings.ts).
  * @param tcars the traffic cars

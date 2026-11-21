@@ -1,4 +1,4 @@
-// render/riglamps.ts - ?trailer: A RIG'S LAMPS AT NIGHT. A trailer on its pin carries the rig's
+// render/riglamps.ts - A RIG'S LAMPS AT NIGHT. A trailer on its pin carries the rig's
 // rear lamps - tail, brake, indicators, reversing - lit as its tractor's are (physics/trailer.ts
 // mirrorLamps); the tractor's own rear lamps are under the trailer's nose and show nothing; the
 // trailer has no lamps at its nose (no headlights, no front indicators). A trailer off its pin
