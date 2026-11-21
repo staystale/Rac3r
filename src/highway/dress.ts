@@ -38,10 +38,10 @@ function makeDressContext(level: HwLevel, firstIdx: number, endIdx: number, loos
   const pointAt = (i: number, off: number): HwPose => {
     const before = road[Math.max(0, i - 1)],
       after = road[Math.min(road.length - 1, i + 1)],
-      heading = Math.atan2(after.y - before.y, after.x - before.x);
+      heading = Math.atan2(after.y - before.y, after.x - before.x), side = (state.hand ?? 1) * off;
     return {
-      x: road[i].x - Math.sin(heading) * off,
-      y: road[i].y + Math.cos(heading) * off,
+      x: road[i].x - Math.sin(heading) * side,
+      y: road[i].y + Math.cos(heading) * side,
       rot: heading,
     };
   };

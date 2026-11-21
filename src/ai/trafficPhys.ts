@@ -1,6 +1,6 @@
 // ai/trafficPhys.ts: how a highway traffic car is moved once it has decided: carried along its
 // lane line (kinematic, out of view) or driven by the same physics as every car.
-import { latOf } from "./trafficCtx.ts";
+import { handOf, latOf } from "./trafficCtx.ts";
 import type { TrafficCtx } from "./trafficCtx.ts";
 import type { DriveEnv } from "./trafficLane.ts";
 import { cruise, gearFor } from "./trafficSpawn.ts";
@@ -89,7 +89,7 @@ export function carryKinematic(
   car.vy = Math.sin(faced) * slot.vAl + Math.cos(faced) * dir * latV;
   car.yawRate = slot.vAl * kRoad;
   car.delta = Math.atan(kRoad * car.spec.L);
-  car.indicator = slot.laneT !== slot.lane ? slot.ind : 0;
+  car.indicator = slot.laneT !== slot.lane ? slot.ind * handOf(ctx) : 0;
   car.brakeLight = brakeX;
   slot.deadT = 0;
   slot.kin = true;
@@ -160,7 +160,7 @@ export function drivePhysics(
     car.groundInit = false;
   }
   const input = given ?? physicsInput(ctx, slot, env, speed, vTarget, brakeX);
-  car.indicator = slot.laneT !== slot.lane ? slot.ind : 0;
+  car.indicator = slot.laneT !== slot.lane ? slot.ind * handOf(ctx) : 0;
   car.hazard = slot.wreck;
   car.brakeLight = input.brake;
   slot.deadT = speed < 1 ? slot.deadT + dt : 0;

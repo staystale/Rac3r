@@ -137,3 +137,11 @@ export type VisFn = (x: number, y: number, dist: number) => boolean;
 
 /** The road geometry (! : only called once resetTraffic has set the level). */
 export const geo = (ctx: TrafficCtx) => ctx.level!._hw.geo;
+
+/**
+ * The road's hand: +1, -1 on a right-hand road (highway/road.ts HwState.hand) - a car's indicator
+ * is its own lamp side; the traffic's, set in the road's terms, is turned by it.
+ * @param ctx the traffic
+ * @returns +1 or -1
+ */
+export const handOf = (ctx: TrafficCtx): number => ctx.level?._hw?.hand ?? 1;

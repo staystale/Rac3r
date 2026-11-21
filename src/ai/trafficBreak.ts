@@ -8,7 +8,7 @@
 import { roadPose } from '../highway.ts';
 import { vergeRoom } from '../highway/vergeback.ts';
 import { reset } from '../vehicle.ts';
-import { geo } from './trafficCtx.ts';
+import { geo, handOf } from './trafficCtx.ts';
 import type { TrafficCtx } from './trafficCtx.ts';
 import type { DriveEnv } from './trafficLane.ts';
 import { carryKinematic, drivePhysics } from './trafficPhys.ts';
@@ -128,7 +128,7 @@ export function driveBroken(ctx: TrafficCtx, slot: TrafficCar, env: DriveEnv, sp
   else drivePhysics(ctx, slot, roadside, speed, broke.v, 0, broke.stopped ? PARKED : undefined);
   broke.stopped = broke.stopped || (there && slot.vAl < 0.5);
   const car = slot.car;
-  car.indicator = broke.stopped ? 0 : -1;
+  car.indicator = broke.stopped ? 0 : -handOf(ctx);
   car.hazard = broke.stopped || slot.wreck;
   if (broke.stopped) car.brakeLight = 0;
 }

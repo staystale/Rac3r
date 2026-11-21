@@ -87,4 +87,7 @@ export const FIX = {
   // the police by scenery: the countryside nearly none, Deaf Valley some, Stockholm today's
   // (ai/trafficPolice.ts COP_MIX)
   copmix: atLoad('copmix'),
+  // GETAWAY STOCKHOLM drives on the RIGHT (owner 11-21: keep right, overtake on the left): its
+  // road's world the mirror image of its left-hand twin (highway/road.ts HwState.hand)
+  keepright: atLoad('keepright'),
 };

@@ -81,6 +81,11 @@ function rebuild(level: HwLevel) {
   );
   // the closing segment, end -> start: never road
   ghostSegment(sub, road.length - 1);
+  // (a right-hand road's offsets turned: its lane lines drawn on the mirrored side)
+  if ((state.hand ?? 1) < 0) for (const point of sub.pts) {
+    point.nx = -point.nx;
+    point.ny = -point.ny;
+  }
   sub.laneDash = state.geo.dashes;
   sub.laneSolid = state.geo.solid;
   sub.sBase = road[0].s;
@@ -115,6 +120,7 @@ export function resetHighway(level: HwLevel) {
   level.crossings = [];
   level._hw = {
     seed: level.seed,
+    hand: level._cfg.rightHand ? -1 : 1,
     rnd: rand,
     grnd: rng((level.seed ^ 0x7f4a7c15) >>> 0),
     geo: laneGeo(level._cfg),

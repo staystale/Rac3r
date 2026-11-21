@@ -137,7 +137,9 @@ export function growTo(level: HwLevel, sTarget: number) {
     state.hdg += headingStep / 2;
     state.s += STEP;
     elem.done = along + STEP;
-    state.pts.push({ x: state.x, y: state.y, s: state.s, curv: curvAt(elem, elem.done) });
+    // (a right-hand road's points mirrored: its world the left-hand twin's mirror image)
+    state.pts.push({ x: (state.hand ?? 1) * state.x, y: state.y, s: state.s,
+      curv: curvAt(elem, elem.done) });
     if (elem.done >= elem.len - 1e-6) state.plan.shift();
   }
 }
@@ -182,7 +184,7 @@ export function locate(state: HwState, x: number, y: number) {
   return {
     i: bestIdx,
     s: road[bestIdx].s + offX * dx + offY * dy,
-    off: -offX * dy + offY * dx,
+    off: (state.hand ?? 1) * (-offX * dy + offY * dx),
     dx,
     dy,
   };
@@ -218,7 +220,8 @@ export function roadFrame(level: HwLevel, x: number, y: number, hintS?: number |
     dx = (next.x - prev.x) / span,
     dy = (next.y - prev.y) / span;
   const offX = x - road[bestIdx].x, offY = y - road[bestIdx].y;
-  return { s: road[bestIdx].s + offX * dx + offY * dy, off: -offX * dy + offY * dx, dx, dy };
+  return { s: road[bestIdx].s + offX * dx + offY * dy,
+    off: (level._hw.hand ?? 1) * (-offX * dy + offY * dx), dx, dy };
 }
 // a POSE on the road at absolute distance s (clamped into the window) and lateral offset off -> {
 // x, y, h }
@@ -229,9 +232,10 @@ export function roadPose(level: HwLevel, dist: number, off: number) {
     i = Math.max(0, Math.min(count - 2, Math.floor(fracIdx))),
     blend = Math.max(0, Math.min(1, fracIdx - i));
   const prev = road[i], next = road[i + 1], heading = Math.atan2(next.y - prev.y, next.x - prev.x);
+  const side = (level._hw.hand ?? 1) * off;
   return {
-    x: prev.x + (next.x - prev.x) * blend - Math.sin(heading) * off,
-    y: prev.y + (next.y - prev.y) * blend + Math.cos(heading) * off,
+    x: prev.x + (next.x - prev.x) * blend - Math.sin(heading) * side,
+    y: prev.y + (next.y - prev.y) * blend + Math.cos(heading) * side,
     h: heading,
   };
 }

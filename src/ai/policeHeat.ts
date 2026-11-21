@@ -200,7 +200,8 @@ export function flashed(heat: FlashWatch, lightsOn: boolean): boolean {
  */
 function changedLaneUnsignalled(heat: Heat, input: HeatInput): boolean {
   const geom = input.level._hw.geo, here = input.driver.frame, car = input.driver.car;
-  if (car.indicator) heat.indAt[car.indicator] = heat.clock;
+  // (a car's indicator is its own lamp side; the lanes here in the road's terms)
+  if (car.indicator) heat.indAt[car.indicator * (input.level._hw.hand ?? 1)] = heat.clock;
   if (!here) return false;
   const lanes = geom.median == null ? [...geom.centres, ...geom.oncoming] : geom.centres;
   let lane = -1;

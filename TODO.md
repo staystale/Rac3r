@@ -125,6 +125,21 @@ MARK TRACK.)
      bridges or tunnels": the tunnels the likeliest stretch after the city, the city's blocks
      shorter (cityplan.ts KINDS), tunnels a km measured on the PC (_citybridges.mjs). AWAITING THE
      PHONE TEST.
+     RIGHT-HAND DRIVING (owner 11-21: GO - keep right, overtake on the left; 3-4 rounds, the mirror
+     test first). ROUND 1 BUILT (Worker C) behind ?keepright=1 (with ?stockholm=1): the road's world
+     the MIRROR IMAGE of its left-hand twin (highway/road.ts HwState.hand: its points' x mirrored,
+     every offset from the road turned - roadPose, roadFrame, locate, dress.ts pointAt, the racing
+     line, the lane lines), so every rule in the road's terms holds as it is (keep to the nearside,
+     the outside of a bend, slips off the nearside); fields.ts roomFor's normal and a bridge's skew
+     and quarter turn turned too (found by the test); a car's indicator its own lamp side (the
+     traffic's turned as it is set; the police heat's lane check turned back). MEASURED
+     (tools/scratch/_mirror.mjs, node, the same seed built both ways): every road point, prop,
+     barrier, zone, lane, water cover and street light the exact mirror (worst 2e-13 m, every turn
+     mirrored) on all 5 road types for seed 4242 and on the motorway and single lane for seed 7;
+     the dual, walled and interstate on seed 7 the same but near a sign board or a drivable
+     bridge - their posts and footway are turned with the picture, not mirrored - where a lamp or
+     an approach's end may stand a little differently (both worlds whole). NEXT: round 2, the
+     traffic, police and racers checked driving it.
 
 - POLICE BY SCENERY (owner 11-21: "too many police on the other levels" - countryside nearly none,
   Deaf Valley some, Stockholm the most, at today's level): BUILT (Worker C 11-21) behind

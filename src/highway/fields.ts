@@ -102,7 +102,9 @@ const pickW = (rand: () => number, table: [string, number][]) => {
 export function roomFor(state: HwState, rect: KeepRect, clear: (x: number, y: number,
   radius: number) => boolean, margin: number) {
   if (state.keep.some((other) => overlap(other, rect))) return false;
-  const nx = -rect.ay, ny = rect.ax;
+  // (its normal turned on a right-hand road, as every offset there: highway/road.ts HwState.hand -
+  // its samples are not the same both sides)
+  const nx = -rect.ay * (state.hand ?? 1), ny = rect.ax * (state.hand ?? 1);
   for (const [fracU, fracV] of [
     [0, 0],
     [-1, -1],

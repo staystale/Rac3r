@@ -327,14 +327,14 @@ function buildBridge(level: HwLevel, i: number, dist: number, pointAt: (i: numbe
   // walled: the wall stands wallGap off the edge - the span and the parapets clear it
   const wallOff = walled ? level._cfg.wallGap! : 0,
     centre = pointAt(i, 0),
-    skew = (rand() - 0.5) * 0.5 * (isJunction ? 0 : 1),
+    skew = bridgeSkew(state, rand(), isJunction),
     span = 2 * halfWidth + 2 * PIER + 6 + 2 * wallOff;
   const bridge = mark({
     kind: kind === "river" ? "river" : "bridge",
     carries: kind,
     x: centre.x,
     y: centre.y,
-    rot: centre.rot + Math.PI / 2 + skew,
+    rot: centre.rot + acrossTurn(state) + skew,
     wid: span,
     seed: dist | 0,
     skew,
@@ -404,6 +404,25 @@ function addBridgeExtras(bridge: Bridge, kind: string, extra: boolean, rand: () 
     bridge.ww = 10 + rand() * 8;
   }
 }
+
+/**
+ * A bridge's skew off square, rad: none for a junction's; turned on a right-hand road, as every
+ * offset there (highway/road.ts HwState.hand).
+ * @param state the highway state
+ * @param roll a random 0..1
+ * @param isJunction a junction's bridge
+ * @returns rad
+ */
+const bridgeSkew = (state: HwState, roll: number, isJunction: boolean): number =>
+  (roll - 0.5) * 0.5 * (isJunction ? 0 : 1) * (state.hand ?? 1);
+
+/**
+ * The quarter turn across the road: on a right-hand road the other one - a bridge's axis the
+ * left-hand twin's mirror image, not half a turn from it.
+ * @param state the highway state
+ * @returns rad
+ */
+const acrossTurn = (state: HwState): number => (state.hand ?? 1) * Math.PI / 2;
 
 /**
  * A road under the motorway in place of a bridge: a portal each side just past

@@ -1,6 +1,6 @@
 // ai/trafficDrive.ts: one highway traffic car's step: the lane decisions, the lean away from
 // you and the speed to hold; then it is carried (kinematic) or driven by the real physics.
-import { GAP0, HEADWAY, SPEEDER_HEADWAY } from "./trafficCtx.ts";
+import { GAP0, HEADWAY, SPEEDER_HEADWAY, handOf } from "./trafficCtx.ts";
 import type { TrafficCtx } from "./trafficCtx.ts";
 import { crossLanes, leanAway } from "./trafficAcross.ts";
 import { findLead, laneDecisions } from "./trafficLane.ts";
@@ -95,7 +95,7 @@ export function driveOne(ctx: TrafficCtx, slot: TrafficCar, env: DriveEnv) {
   if (!slot.phys) carryKinematic(ctx, slot, env, vTarget, brakeX);
   else drivePhysics(ctx, slot, env, speed, vTarget, brakeX);
   // (edging over for someone: its left indicator on)
-  if ((slot.edge ?? 0) < -EDGE_SIGNAL_M) car.indicator = -1;
+  if ((slot.edge ?? 0) < -EDGE_SIGNAL_M) car.indicator = -handOf(ctx);
   // (leaving at the slip ahead: its left indicator on)
   signalTrip(slot);
 }

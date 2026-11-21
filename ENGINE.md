@@ -861,6 +861,18 @@ Its litter is its own (`litter.ts cityLitter`: cones and sandbags, bins, boxes, 
 (`CITY_SIGNS`, the distance that goes up: CENTRUM n KM). `tools/scratch/_citylots.mjs` (node:
 lots by stretch, clashes with the roads), `_cityshot.mjs` (a photo of each stretch).
 
+A RIGHT-HAND ROAD (?keepright=1, GETAWAY STOCKHOLM's: `HwCfg.rightHand`, `HwState.hand` -1): the
+road's world is the mirror image of its left-hand twin - `road.ts growTo` stores its points with x
+mirrored, and every offset from the road is turned where the road's normal is made
+(`roadPose`, `roadFrame`, `locate`, `dress.ts pointAt`, `ai/roadLine.ts`, the subtrack's
+normals, `fields.ts roomFor`, a bridge's skew and quarter turn), so every rule in the road's own
+terms - lanes nearside first, the hard shoulder, slips, lay-bys, moving over, the outside of a
+bend - holds unchanged and lands on the mirrored side. A car's `indicator` is its own lamp side:
+the traffic's (set in the road's terms) turned by `trafficCtx.ts handOf`, the police heat's lane
+check turned back. Props are turned, not mirrored (a sign's words still read; its posts and a
+drivable bridge's footway on the turned side). `tools/scratch/_mirror.mjs` builds a seed both
+ways and compares.
+
 THE HIGHWAY'S CHEVRON BOARDS (`highway/litter.ts layLooseRoadside`, knockable loose objects,
 cones TOPPLES, 45 kg; since 11-15, passed - the old rally boards on every bend tighter than R 650
 are gone; `highway/chevrons.ts layRoadChevron`): the UK rule - black

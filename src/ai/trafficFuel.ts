@@ -10,7 +10,7 @@
 import { roadFrame, roadPose, roadSpan } from '../highway.ts';
 import { reset } from '../vehicle.ts';
 import { bitsOf } from '../carbits.ts';
-import { geo } from './trafficCtx.ts';
+import { geo, handOf } from './trafficCtx.ts';
 import type { TrafficCtx } from './trafficCtx.ts';
 import type { DriveEnv } from './trafficLane.ts';
 import { carryKinematic, drivePhysics } from './trafficPhys.ts';
@@ -210,7 +210,7 @@ export function driveFuelStop(ctx: TrafficCtx, slot: TrafficCar, env: DriveEnv, 
     carryKinematic(ctx, slot, forecourt, stop.v, 0);
   } else drivePhysics(ctx, slot, forecourt, speed, stop.v, 0, stop.stopped ? PARKED : undefined);
   const car = slot.car;
-  car.indicator = stop.stopped ? 0 : stop.out ? 1 : -1;
+  car.indicator = stop.stopped ? 0 : (stop.out ? 1 : -1) * handOf(ctx);
   car.hazard = slot.wreck;
   if (stop.stopped) car.brakeLight = 0;
   if (!done) return;

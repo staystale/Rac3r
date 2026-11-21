@@ -16,6 +16,9 @@ export interface HwCfg {
   walls?: string; wallGap?: number;   // walled in: the barrier kind, m off the road edge
   // its own roadside (highway/canyon.ts, highway/city.ts); none: the countryside
   theme?: 'canyon' | 'city';
+  // drives on the RIGHT (?keepright: GETAWAY STOCKHOLM): the road's world the mirror image of its
+  // left-hand twin - every rule in road terms as it is (highway/road.ts HwState.hand)
+  rightHand?: boolean;
   kRate?: number;   // the fastest curvature change, 1/m per m (road.ts; else presets.ts K_RATE)
   // its changes by road distance (Deaf Valley's HIGH road: highway/desertplan.ts)
   stretch?: (dist: number, seed: number) => Partial<HwCfg> | null;
@@ -85,6 +88,9 @@ export interface HwState {
   seed: number;
   /** Deaf Valley's extras: only on open ground, no rivers or side roads */
   desert?: boolean;
+  /** +1, or -1 on a right-hand road: its points x mirrored, every offset from the road's side
+   * turned (road.ts growTo, roadPose, roadFrame; dress.ts pointAt) */
+  hand?: number;
   /** GETAWAY STOCKHOLM's extras: none off its closed stretches (highway/cityplan.ts) */
   city?: boolean;
   /** the drivable bridge in each LEVEL.crossings slot (highway/bridgeways.ts) */

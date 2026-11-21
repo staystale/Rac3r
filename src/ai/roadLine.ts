@@ -62,7 +62,8 @@ export function roadLine(level: HighwayLevel): RacingLine {
     const fracIdx = (dist - sFirst) / step, i = Math.min(road.length - 2, Math.floor(fracIdx));
     const blend = fracIdx - i, prev = road[i], next = road[i + 1];
     const head = Math.atan2(next.y - prev.y, next.x - prev.x);
-    const nx = -Math.sin(head), ny = Math.cos(head);
+    // (a right-hand road's offsets turned: highway/road.ts HwState.hand)
+    const hand = level._hw.hand ?? 1, nx = -Math.sin(head) * hand, ny = Math.cos(head) * hand;
     pts.push({ x: prev.x + (next.x - prev.x) * blend + nx * mid,
       y: prev.y + (next.y - prev.y) * blend + ny * mid,
       // (off 0: the line IS the middle the driver keeps its room either side of)

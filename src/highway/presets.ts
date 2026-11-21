@@ -137,7 +137,8 @@ export function sceneryCfg(road: string, scenery: string): HwCfg {
   if (!cfg) {
     cfg = scenery === 'canyon' ? { ...HW_PRESETS[road], theme: 'canyon',
       stretch: road === 'twisty' ? desertRoadAt : desertWideAt }
-      : scenery === 'stockholm' ? { ...HW_PRESETS[road], theme: 'city' } : HW_PRESETS[road];
+      : scenery === 'stockholm' ? { ...HW_PRESETS[road], theme: 'city',
+        ...(FIX.keepright ? { rightHand: true } : {}) } : HW_PRESETS[road];
     SCENERY_CFGS.set(key, cfg);
   }
   return cfg;
