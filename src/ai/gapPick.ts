@@ -14,7 +14,6 @@
 import { reachOf } from './dodge.ts';
 import type { AiCar } from './types.ts';
 import { FIX } from '../core/fixes.ts';
-import { debugValue } from '../core/debug.ts';
 
 /** A car as the gap picker sees it, in my path's frame. */
 export interface SeenCar { fwd: number; lat: number; v: number; across: number; along: number;
@@ -144,24 +143,16 @@ export function gapLine(seen: SeenCar[], mine: { lat: number; base: number; half
 }
 
 /**
- * Whether ?gapdest reads the room on the line itself - everywhere, or (a tool's option, measure
- * only: __AI_GAPDEST_HW) on a line with lanes - the highway's - only.
+ * Whether ?gapdest reads the room on the line itself: on a line with lanes - the highway's - only.
+ * MEASURED (tools/scratch/_aibase.mjs, 4 seeds): on the motorway the racers' speed 110.9 -> 122.1
+ * km/h and their braking for traffic 838 -> 505 car-s, the crashes the same; on the circuits more
+ * incidents (Brands 129 -> 151, Moanaco 112 -> 128, Croughed RX 91 -> 118) and no faster - a
+ * roomier line there is often across the racing line - and weighing the racing line 4x for such a
+ * line still left them above off (136 / 118 / 119): owner 11-21, "only if we have to".
  * @param lanes the line's lanes, if it has them
  * @returns on
  */
-const destOn = (lanes?: number[]) => FIX.gapdest && (!debugValue('AI_GAPDEST_HW') || !!lanes);
-
-/**
- * ?gapdest, a line out of reach (dest beyond off): its place cost x a tool's dial
- * (__AI_DEST_LINEK, measure only); 1 otherwise and in the game.
- * @param dest the line scored, m off my path
- * @param off the part-way point this think, m off my path
- * @returns the multiplier
- */
-const destLineK = (dest: number, off: number) => {
-  const dial = debugValue('AI_DEST_LINEK');
-  return dest !== off && typeof dial === 'number' ? dial : 1;
-};
+const destOn = (lanes?: number[]) => FIX.gapdest && !!lanes;
 
 /**
  * ?gapdest: the car on a line out of one swerve's reach, as its room ahead (one beside me there
@@ -230,8 +221,7 @@ export function lineScore(seen: SeenCar[], want: number, mine: { lat: number; ba
   const ahead = block ? Math.min(freeTo(block, speed), speed * look) : speed * look + FREE_BONUS;
   const kept = block ? Math.max(0, block.v) * KEPT_V : 0;
   const move = moveCost(dest, { base, lat, speed, commitK: mine.commitK ?? 1 });
-  // (?gapdest, a line out of reach: its place cost x a tool's dial - measure only, 1 in the game)
-  const place = placeCost(dest, centre, edge, lanes) * destLineK(dest, off);
+  const place = placeCost(dest, centre, edge, lanes);
   let outMid = 0, outMirror = 0;
   if (Math.abs(off - lat) > 1.2) {
     const mid = blockOn(seen, (off + lat) / 2, half, len);
