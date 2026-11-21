@@ -152,6 +152,18 @@ export function gapLine(seen: SeenCar[], mine: { lat: number; base: number; half
 const destOn = (lanes?: number[]) => FIX.gapdest && (!debugValue('AI_GAPDEST_HW') || !!lanes);
 
 /**
+ * ?gapdest, a line out of reach (dest beyond off): its place cost x a tool's dial
+ * (__AI_DEST_LINEK, measure only); 1 otherwise and in the game.
+ * @param dest the line scored, m off my path
+ * @param off the part-way point this think, m off my path
+ * @returns the multiplier
+ */
+const destLineK = (dest: number, off: number) => {
+  const dial = debugValue('AI_DEST_LINEK');
+  return dest !== off && typeof dial === 'number' ? dial : 1;
+};
+
+/**
  * ?gapdest: the car on a line out of one swerve's reach, as its room ahead (one beside me there
  * counts as no room: its gap 0, not a side - I am not there yet).
  * @param seen the cars seen
@@ -218,7 +230,8 @@ export function lineScore(seen: SeenCar[], want: number, mine: { lat: number; ba
   const ahead = block ? Math.min(freeTo(block, speed), speed * look) : speed * look + FREE_BONUS;
   const kept = block ? Math.max(0, block.v) * KEPT_V : 0;
   const move = moveCost(dest, { base, lat, speed, commitK: mine.commitK ?? 1 });
-  const place = placeCost(dest, centre, edge, lanes);
+  // (?gapdest, a line out of reach: its place cost x a tool's dial - measure only, 1 in the game)
+  const place = placeCost(dest, centre, edge, lanes) * destLineK(dest, off);
   let outMid = 0, outMirror = 0;
   if (Math.abs(off - lat) > 1.2) {
     const mid = blockOn(seen, (off + lat) / 2, half, len);
