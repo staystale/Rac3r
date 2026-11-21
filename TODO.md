@@ -547,6 +547,16 @@ inputs and get the cars back. A SPIKE (two phones on the tunnel) before committi
 
 ### 3e. Small open items
 
+- FOUND (Worker C 11-21, no fix yet): BEFORE THE GREEN the car at the BACK of a circuit's grid reads
+  P1 on the lap panel (Thruston, 5 AI, the last slot 36-37.5 m back: "P1/6"), with or without
+  ?gridlen - the running order before the start (game/order.ts) reads the back of the grid as the
+  front. Photo: tools/scratch/_gridlen.mjs hatch-off / rig-on.
+- FOUND (Worker C 11-21, the rig's reset check, no fix yet): (a) a RESET of the towing rig puts the
+  tractor on a spot free of cars, but its trailer, lined up 14 m behind, can land on an AI
+  (Thruston, 3 AI, ?gridlen on: 2 of 2 resets; game/resetspot.ts spotFree tests the tractor's box
+  only); (b) the Lab's spawn has a street light 2.3 m ahead and 1.3 m right of it: the 2.55 m
+  tractor stands against it and cannot drive straight out (any car narrower than ~2.5 m clears it).
+  tools/scratch/_rigreset.mjs.
 - FOR THE AI REWORK / TUNE (owner 11-16: "still looks like on tarmac Pembreezy too many drivers
   come off the track - maybe this should be saved for the ai rework / tune as they seem to go off
   to regularly / pile up on first corner"; "that the same on dongington ect"): the AI on
