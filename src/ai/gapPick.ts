@@ -13,6 +13,7 @@
 // only when it is clearly quicker.
 import { reachOf } from './dodge.ts';
 import type { AiCar } from './types.ts';
+import { FIX } from '../core/fixes.ts';
 
 /** A car as the gap picker sees it, in my path's frame. */
 export interface SeenCar { fwd: number; lat: number; v: number; across: number; along: number;
@@ -141,6 +142,20 @@ export function gapLine(seen: SeenCar[], mine: { lat: number; base: number; half
   return best;
 }
 
+/**
+ * ?gapdest: the car on a line out of one swerve's reach, as its room ahead (one beside me there
+ * counts as no room: its gap 0, not a side - I am not there yet).
+ * @param seen the cars seen
+ * @param dest the line, m off my path
+ * @param half my half width, m
+ * @param len my length, m
+ * @returns its gap and speed, or null
+ */
+function destBlock(seen: SeenCar[], dest: number, half: number, len: number) {
+  const block = blockOn(seen, dest, half, len);
+  return block && block.side ? { gap: 0, v: block.v } : block;
+}
+
 /** A line's score as the gap picker reckons it, by its parts (lineScore). */
 export interface LineParts {
   off: number;     // the line scored, m off my path (no further across than a swerve makes)
@@ -167,13 +182,17 @@ export function lineScore(seen: SeenCar[], want: number, mine: { lat: number; ba
   const { lat, base, half, len, speed, look, edge, centre, lanes } = mine;
   // no further across in one think than a swerve makes
   const off = Math.abs(want - lat) > REACH_M ? lat + Math.sign(want - lat) * REACH_M : want;
-  const block = blockOn(seen, off, half, len);
-  if (block && block.side) return null;
+  const near = blockOn(seen, off, half, len);
+  if (near && near.side) return null;
+  // (?gapdest: the room and the move read on the line itself - the car still steers there one
+  // swerve a think; else on the part-way point)
+  const dest = FIX.gapdest ? want : off;
+  const block = dest === off ? near : destBlock(seen, dest, half, len);
   const ahead = block ? Math.min(freeTo(block, speed), speed * look) : speed * look + FREE_BONUS;
   const kept = block ? Math.max(0, block.v) * KEPT_V : 0;
-  const move = (Math.abs(off - base) + 0.3 * Math.abs(off - lat)) * (MOVE_K
-    + speed * MOVE_SPEED_K) - (Math.abs(off - base) < 0.6 ? COMMIT : 0);
-  const place = placeCost(off, centre, edge, lanes);
+  const move = (Math.abs(dest - base) + 0.3 * Math.abs(dest - lat)) * (MOVE_K
+    + speed * MOVE_SPEED_K) - (Math.abs(dest - base) < 0.6 ? COMMIT : 0);
+  const place = placeCost(dest, centre, edge, lanes);
   let outMid = 0, outMirror = 0;
   if (Math.abs(off - lat) > 1.2) {
     const mid = blockOn(seen, (off + lat) / 2, half, len);

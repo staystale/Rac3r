@@ -146,7 +146,11 @@ function tickBase() {
   for (const entry of racers) {
     const car = entry.car, speed = Math.hypot(car.vx, car.vy);
     base.m += speed / 60;
-    const lap = entry.drv.state.lap ?? 0, was = base.laps.get(entry);
+    // (the lap by the game's own race order - car._prog, game/order.ts progressOf - not the
+    // driver's own count, which jumped at Moanaco's line: laps of 1.3 s)
+    const total = sub && !L.LEVEL.endless ? sub.totalDist : 0;
+    const lap = total && car._prog !== undefined ? Math.floor(car._prog / total) : 0;
+    const was = base.laps.get(entry);
     if (was && lap > was.lap) {
       if (was.lap >= 1) base.lapTimes.push(base.t - was.t);
       base.laps.set(entry, { lap, t: base.t });
