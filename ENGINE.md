@@ -965,8 +965,7 @@ Blyton Park as ONE venue (`Level.venue` Blighty Park) in two builds of one map d
 `venues/blighty.ts`, share 0.5, all tarmac, clockwise from the west straight) and the rallycross
 at full size (`blightyrx.json` -> `venues/blightyrx.ts`, share 1: the Outer's north loop, the Spur
 and the Link from the map, and an INVENTED gravel loop through the infield - no map of the real
-course; 1421 m, 323 m gravel; no joker). The RX's `minR` is 11 (its north hairpin opened to keep
-10 m over 8 m). The map has no barriers: the venues' run-off rule. Dressing: hedgerow trees, a
+course; 1429 m, 323 m gravel; no joker), at the venues' `minR` 10. The map has no barriers: the venues' run-off rule. Dressing: hedgerow trees, a
 windsock, Union flags (`unionFlags`), the paddock (`blightyPaddock(anchor)`), grass banks with
 crowds inside the RX's north hairpin and gravel loop.
 
