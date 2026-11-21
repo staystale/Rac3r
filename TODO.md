@@ -515,10 +515,13 @@ inputs and get the cars back. A SPIKE (two phones on the tunnel) before committi
 
 ### 3e. Small open items
 
-- FOUND (Worker C 11-21, no fix yet): BEFORE THE GREEN the car at the BACK of a circuit's grid reads
-  P1 on the lap panel (Thruston, 5 AI, the last slot 36-37.5 m back: "P1/6"), with or without
-  ?gridlen - the running order before the start (game/order.ts) reads the back of the grid as the
-  front. Photo: tools/scratch/_gridlen.mjs hatch-off / rig-on.
+- FOUND + BUILT (Worker C 11-21) behind ?gridpos=1: BEFORE THE RACE'S FIRST STEP every car on a
+  circuit's grid read P1 on the lap panel - the restart sets game.position = 1 and the running order
+  (game/order.ts stepOrder) first runs when the race steps (the first key / tap). Now the place shown
+  until then is your grid slot's (game/session.ts showGridPlace). MEASURED (tools/scratch/
+  _gridplace.mjs, Thruston, 5 AI, each of the 6 slots): off P1 at every slot, on P1-P6 = the slot's
+  real place; once the race steps both read the real place (the order was never wrong after that).
+  Not checked: a rolling start, an RX grid, a stage. AWAITING THE PHONE TEST.
 - FOUND (Worker C 11-21, the rig's reset check): (a) the trailer of a reset rig on an AI - FIXED,
   passed with the trailer (TODO-DONE); (b) the Lab's spawn has a street light 2.3 m ahead and 1.3 m right of it: the 2.55 m
   tractor stands against it and cannot drive straight out (any car narrower than ~2.5 m clears it).
