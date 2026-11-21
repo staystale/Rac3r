@@ -32,6 +32,11 @@ MARK TRACK.)
      tunnel; other tracks too) - a ground-tile edge?
   5. HEADLIGHT GLOW drawn behind the lamp, on the car's own body: each car's lamps light only what
      a real one would, with their own shape and reach.
+     FOUND + BUILT (Worker B 11-21) behind ?lamps=1: render/light.ts drawBeams started every beam
+     1.8 m ahead of the car's centre at +-0.7 m (the bonnet lit on a 4 m car, the cab on the van, 2.4 m
+     inside the bus); now from the nose at the car's own lamps, a reach and spread by kind
+     (render/lamptypes.ts). Photos (tools/scratch/_lampshots.mjs, night, before / after, both sizes):
+     the hatch's bonnet, the van's cab and the bus dark behind their lamps. AWAITING THE PHONE TEST.
   6. PEMBREEZY AI: odd behaviour - put back whatever the earlier "fix" changed so it drives like
      every other level; check the line for kinks, queuing, braking on straights (suspect: the
      brake-and-steer-to-avoid rule, to tune with the rest of the AI).
