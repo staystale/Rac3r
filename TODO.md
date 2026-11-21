@@ -107,7 +107,11 @@ MARK TRACK.)
      (of 5,300-5,960 per road type); the desert's stretches the same after the plan was shared
      (8,110 points, 0 different). A window (1.55 km) holds 140-420 parked cars, 70-170 buildings,
      35 slats in a tunnel. Photos of each stretch at 390x844 and 844x390, no page errors. Frame
-     time at real counts: on the PC. AWAITING THE PHONE TEST.
+     time at real counts: on the PC. OWNER 11-21: the traffic stays as it is; "busier" means more
+     bridges, tunnels and scenery - the city's bridges over the road at half the spacing (extras.ts
+     CITY_BRIDGES): MEASURED (tools/scratch/_citybridges.mjs, 45 km) 0.42 -> 0.62 bridges or
+     underpasses a km, with 0.29 tunnels and 0.27 long bridges over water a km. AWAITING THE PHONE
+     TEST.
 
 - POLICE BY SCENERY (owner 11-21: "too many police on the other levels" - countryside nearly none,
   Deaf Valley some, Stockholm the most, at today's level): BUILT (Worker C 11-21) behind
