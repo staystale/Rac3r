@@ -90,6 +90,14 @@ MARK TRACK.)
     the back of a mixed grid), a solo start slides back to a spot with the rig's length clear; the
     GARAGE gets a TRAILER row for tractor units: WITHOUT, or the CURTAINSIDER HALF-FULL only (no load
     chooser). Later trailer types: a flatbed with visible cargo first (owner: "I don't mind").
+    THE TRAILER'S OWN PARTS + ITS LAMPS (Worker C 11-21, rebased on round166 as worker/c-trailer):
+    a curtain section each side front and back, the twin rear doors, the under-run bar (no bumper
+    at its nose), its mudguards - no glass, engine, exhaust, mirrors or front wheels; thrown from where
+    they sit, drawn lying flat, its load's pallets / its floor under a lost panel (carbits.ts towed,
+    render/carparts.ts, render/underskin.ts). tools/partcheck.mjs walks it: panel 4, bumper 1, boot
+    2, strut 2, wishbone 2. NIGHT CHECK: it was dark at night while the tractor's tail lamps glowed
+    under its nose - now it carries the rig's rear lamps (render/riglamps.ts), dark once the pin
+    breaks. Photos: tools/scratch/_trailershot.mjs parts, partsnight, nightlit.
     THE BOX HUNTING BUILT (Worker C 11-21) behind ?boxhold=1 (owner: one rule for every auto box):
     in 1st the launch slip and the twin rear wheels' spin took the Scanyah to its 1,900 rpm upshift
     at 0.5-0.9 km/h, 2nd fell to its road revs (690-820) under the 1,100 downshift and it dropped

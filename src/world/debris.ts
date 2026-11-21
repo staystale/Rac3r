@@ -49,13 +49,13 @@ const GLASS_PUNCTURE = 0.12;
 // a glass puncture is a sudden POP (a burst) GLASS_POP of the time, else the slow leak (owner)
 const GLASS_POP = 0.15;
 // car kinds with no glass to break: the open-wheel track car, the stripped banger and grass car
-const NO_GLASS = new Set(['track', 'banger', 'grass']);
+const NO_GLASS = new Set(['track', 'banger', 'grass', 'trailer']);
 
 /** A car as the debris reads it. */
 export interface DebrisCar extends Pick<HangCar, 'exhaustHang' | 'bumperHang' | '_exhaustNew'> {
   x?: number; y?: number; vx: number; vy: number; heading: number; crossing?: number;
   spec?: { id?: string; kind?: string; paint?: string; trim?: string; lf?: number; lr?: number;
-    trackWidth?: number; trackR?: number; drive?: number };
+    trackWidth?: number; trackR?: number; drive?: number; len?: number };
   partSpawn?: { corner: number; kind: string }[];
   // loose wheels to throw (game/sim.ts; SPARE_CORNER the spare off the rear door)
   wheelSpawn?: number[];
@@ -131,8 +131,11 @@ function partOff(car: DebrisCar, corner: number, add: number, endW: number,
 function hasNoDoor(car: DebrisCar, kind: string, corner: number): boolean {
   const carId = car.spec?.id || '', row = doorsOf(carId);
   if (kind === 'panel') return doorAt(carId, corner) === null;
-  if (kind === 'wing') return corner >= 2 && isRearWingWelded(carId);
-  if (kind === 'bumper') return row?.bumper === 'none';
+  // (a towed body's nose has no wings: its wheels are at the back - its mudguards)
+  if (kind === 'wing') return corner >= 2 ? isRearWingWelded(carId)
+    : !!bitsOf(carId).towed;
+  if (kind === 'bumper') return row?.bumper === 'none'
+    || (corner < 2 && row?.frontBumper === 'none');
   return kind === 'mirror' && row?.mirrors === 'none';
 }
 
@@ -393,9 +396,13 @@ export function wheelBits(car: Pick<DebrisCar, 'spec' | 'partSpawn' | 'suspOff'>
   size = 0.5): void {
   const open = car.spec?.kind === 'track' || car.spec?.kind === 'grass';
   const spawn = (kind: string) => (car.partSpawn || (car.partSpawn = [])).push({ corner, kind });
+  // (a towed body: no wheels at its nose, and its axles neither driven nor steered - a torn wheel
+  // takes its trailing arm and its shock absorber, the wishbone's and strut's pictures)
+  const towed = !!bitsOf(car.spec?.id || '').towed;
+  if (towed && corner < 2) return;
   // a DRIVEN wheel's drive shaft may come with it (owner 11-07: "can drive shafts also be an
   // object that can come out")
-  const driven = isDrivenCorner(car.spec?.drive, corner);
+  const driven = !towed && isDrivenCorner(car.spec?.drive, corner);
   suspensionOff(car, corner, { open, driven, size }, spawn);
 }
 
@@ -486,12 +493,32 @@ function windowOut(car: DebrisCar, corner: number, add: number, rnd: () => numbe
  * @param corner the damage corner (0 front -y, 1 front +y, 2 rear -y, 3 rear +y)
  * @returns world x, y and the side (+1 / -1)
  */
-function cornerAt(car: DebrisCar, corner: number): { x: number; y: number; side: number } {
+function cornerAt(car: DebrisCar, corner: number,
+  kind = ''): { x: number; y: number; side: number } {
   const spec = car.spec || {}, cosH = Math.cos(car.heading), sinH = Math.sin(car.heading);
-  const along = corner < 2 ? spec.lf ?? 1.2 : -(spec.lr ?? 1.2);
+  const along = towedPartAlong(car, corner, kind)
+    ?? (corner < 2 ? spec.lf ?? 1.2 : -(spec.lr ?? 1.2));
   const side = corner % 2 ? 1 : -1, across = side * halfTrackAt(spec, corner >= 2);
   return { x: (car.x || 0) + cosH * along - sinH * across,
     y: (car.y || 0) + sinH * along + cosH * across, side };
+}
+
+/**
+ * Where along a TOWED body (the trailer) a part comes off, m from its middle: its rear doors and
+ * under-run bar at its tail, a curtain section at its own span's middle; else none (a car's
+ * corner, or the trailer's axle group for a mudguard). Its corners' lf / lr are its kingpin and
+ * its axle group, metres from its ends.
+ * @param car the car
+ * @param corner the damage corner
+ * @param kind the part
+ * @returns m along (+ ahead), or null
+ */
+function towedPartAlong(car: DebrisCar, corner: number, kind: string): number | null {
+  const carId = car.spec?.id || '', len = car.spec?.len || 0;
+  if (!bitsOf(carId).towed || !len) return null;
+  if (kind === 'bumper' || kind === 'boot') return corner < 2 ? len / 2 : -len / 2;
+  const door = kind === 'panel' ? doorAt(carId, corner) : null;
+  return door ? ((door[0] + door[1]) / 2 - 0.5) * len : null;
 }
 
 /**
@@ -593,7 +620,7 @@ export function throwParts(cars: DebrisCar[], loose: LooseObjects): void {
   for (const car of cars) {
     while (car.partSpawn && car.partSpawn.length) {
       const { corner, kind } = car.partSpawn.shift()!;
-      const spot = cornerAt(car, corner), table = DEBRIS[kind as keyof typeof DEBRIS];
+      const spot = cornerAt(car, corner, kind), table = DEBRIS[kind as keyof typeof DEBRIS];
       const outX = -Math.sin(car.heading) * spot.side * THROW_OUT;
       const outY = Math.cos(car.heading) * spot.side * THROW_OUT;
       loose.add({ kind, mode: kind, part: true, mass: table.mass, r: table.r, x: spot.x,

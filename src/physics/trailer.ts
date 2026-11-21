@@ -59,6 +59,28 @@ function trailerSpec(): Spec {
   return out;
 }
 
+/** The lamps' state a trailer shows of its tractor's (render/riglamps.ts). */
+interface Lamps { lightsOn?: boolean; brakeLight?: number; indicator?: number; hazard?: boolean;
+  hazardUntil?: number; rainLight?: boolean; gear?: number }
+
+/**
+ * The trailer's rear lamps lit as its tractor's - tail, brake, indicators, hazards, rain and
+ * reversing light - while its pin holds (their cable); dark once the pin has broken.
+ * @param car the tractor
+ */
+export function mirrorLamps(car: Tractor): void {
+  const trailer = car.trailer as (Trailer & Lamps) | null | undefined;
+  if (!trailer) return;
+  const from = car as Tractor & Lamps, lit = !trailer.pinFree;
+  trailer.lightsOn = lit && !!from.lightsOn;
+  trailer.brakeLight = lit ? from.brakeLight || 0 : 0;
+  trailer.indicator = lit ? from.indicator || 0 : 0;
+  trailer.hazard = lit && !!from.hazard;
+  trailer.hazardUntil = lit ? from.hazardUntil || 0 : 0;
+  trailer.rainLight = lit && !!from.rainLight;
+  trailer.gear = lit && (from.gear || 0) < 0 ? -1 : 1;
+}
+
 /**
  * The tractor's pin, world m: 0.5 m ahead of its rear axle.
  * @param car the tractor

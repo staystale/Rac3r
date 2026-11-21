@@ -488,6 +488,19 @@ squashes progressively with its air, a rim bare), puffs / shreds / rim sparks in
 `render/particles.ts`, the HUD tyre ring by pressure (`hud/gauges.ts`), `?dev=1` line `air`.
 Tyre spikes (a police stinger, `world/stingers.ts`, drawn by `render/stingers.ts`) on the Lab and Test Track burst every wheel that rolls on. The Lab's
 flip ramp (`world/flipramps.ts`, an armco end; `roll.ts tripCheck` asks it) rolls a car run up it.
+THE SCANYAH'S TRAILER (under test, `?trailer=1`; `physics/trailer.ts`): the player's tractor tows a
+13.6 m curtainsider (`newcars.ts SCANYAH_TRAILER`, half loaded) as a second body on a pin joint at
+the fifth wheel, the hitch stop at +-85 deg, the pin breaking in a big crash; stepped, hitched, hit
+and drawn with the tractor (`game/sim.ts`, `render/screen.ts`). Its OWN CRASH PARTS
+(`carbits.ts`: `towed` bits, its `CAR_DOORS` row): a curtain section each side ahead of and behind
+its middle (shape `curtain`), its twin rear doors, the under-run bar (`underrun`, no bumper at its
+nose), its mudguards; no glass, engine, exhaust, mirrors or front wheels; each thrown from where it
+sits (`world/debris.ts towedPartAlong`) and drawn lying flat (`render/carparts.ts`); under a lost
+panel its plank floor, and its load's wrapped pallets in its front half (`render/underskin.ts
+towedInside`). It joins the loose objects' cars (`game/sim.ts looseField`). ITS LAMPS
+(`render/riglamps.ts`): it carries the rig's rear lamps, lit as the tractor's (`mirrorLamps`: tail,
+brake, indicators, hazards, rain, reversing), dark once the pin has broken; the tractor's own rear
+lamps, under its nose, and the trailer's nose show none (`lampLevel`).
 LOW RANGE (`physics/lowrange.ts`): a car with a two-speed transfer box (`LOW_RANGE`
 by model: the Defunder 110, the Strange Rover) has `car.lowRange`; in low `powertrain.ts` multiplies
 the final drive by `rangeRatio`, `autoShift` holds an upshift the road speed cannot hold

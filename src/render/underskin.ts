@@ -27,6 +27,11 @@ const TUBE = '#4a4f58';
 // carpet; a boot's floor; the spare wheel's tyre and its rim
 const BEAM = '#9aa0aa', UNDERTRAY = '#1e2026', FLOOR = '#2b2e35', CARPET = '#3a3d45';
 const BOOT_FLOOR = '#3a3d45', SPARE_TYRE = '#16181d', SPARE_RIM = '#8a9099';
+// a towed body's inside: its plank floor, the shrink-wrapped pallets of its half load (the front
+// half, from the headboard back: the trailer's own load, physics/trailer.ts)
+const PLANK = '#6b5a44', PLANK_GAP = '#4e4232', WRAP = '#c9b48a', WRAP_DARK = '#9c8a64';
+// the share of a towed body's length its load fills, from its nose
+const LOAD_SHARE = 0.5;
 // m: a spare wheel's diameter from above
 const SPARE_M = 0.6;
 // m: a radiator's depth from above, a crash bar's
@@ -259,6 +264,24 @@ function doorHole(skin: SkinCtx, region: Region, corner: number): void {
 }
 
 /**
+ * Inside a towed body under a lost curtain or rear door: its plank floor, and in its front half
+ * its load's shrink-wrapped pallets (a pallet's 1.2 m along, a gap between).
+ * @param skin the painter's context
+ * @param region the lost part's place
+ */
+function towedInside(skin: SkinCtx, region: Region): void {
+  const { ctx, sprite } = skin, wide = region.x1 - region.x0 + 1, tall = region.y1 - region.y0 + 1;
+  block(ctx, region.x0, region.y0, wide, tall, PLANK);
+  for (let x = region.x0 + 1; x <= region.x1; x += 3) block(ctx, x, region.y0, 1, tall, PLANK_GAP);
+  const loadFrom = Math.round(sprite.Lp * (1 - LOAD_SHARE)), pallet = pxOf(1.2);
+  for (let x = Math.max(region.x0, loadFrom); x <= region.x1; x += pallet) {
+    const along = Math.min(pallet - 1, region.x1 - x + 1);
+    block(ctx, x, region.y0, along, tall, WRAP);
+    block(ctx, x, region.y0, 1, tall, WRAP_DARK);
+  }
+}
+
+/**
  * A front-engined car's lost BOOT lid: the boot floor and the spare wheel in its well.
  * @param skin the painter's context
  * @param region the boot's place
@@ -321,6 +344,9 @@ function closedCarPart(skin: SkinCtx, kind: string, corner: number, region: Regi
   if (kind === 'bonnet') {
     clipTo(ctx, region);
     bonnetBay(skin, region);
+  } else if (skin.bits.towed && (kind === 'boot' || kind === 'panel')) {
+    clipTo(ctx, region);
+    towedInside(skin, region);
   } else if (kind === 'boot') {
     clipTo(ctx, region);
     if (skin.bits.engine !== 'front')

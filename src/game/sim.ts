@@ -33,7 +33,7 @@ import type { TrafficVehicle } from '../ai/types.ts';
 import { noteTouches, notePoliceCamera, stepPoliceGame } from './police.ts';
 import { stepFlashes } from './flashes.ts';
 import { FIX } from '../core/fixes.ts';
-import { hitchTrailer, stepTrailer, type Tractor } from '../physics/trailer.ts';
+import { hitchTrailer, mirrorLamps, stepTrailer, type Tractor } from '../physics/trailer.ts';
 import { ROLL_CLEAR_S, respawnBehind } from './resetspot.ts';
 import { stepSirens } from './sirens.ts';
 import { halfTrackAt } from '../world/wheels.ts';
@@ -257,6 +257,7 @@ function stepPlayerTrailer(inp: CarInput) {
   hit(trailer, vx0, vy0);
   applyGround(trailer, PHYSICS_STEP_SECONDS);
   stepTrailer(car, inp.brake, PHYSICS_STEP_SECONDS);
+  mirrorLamps(car);
 }
 
 /**
@@ -501,6 +502,28 @@ export function stepTrafficContacts(tcars: TrafficVehicle[]) {
 }
 
 /**
+ * The cars the loose objects meet this step: you, (?trailer) your trailer, and with a field the AI
+ * and the traffic within 60 m of you - those on the ground (a car on a bridge or in a tunnel
+ * touches nothing on the ground: world/crossings.ts).
+ * @param tcars the traffic cars
+ * @returns the cars
+ */
+function looseField(tcars: TrafficVehicle[]) {
+  const near = tcars.length
+    ? tcars.filter((racer) => Math.abs(racer.x - game.car.x) < 60
+      && Math.abs(racer.y - game.car.y) < 60) : [];
+  // (your trailer pushes them too, and its knocked-off parts are thrown)
+  const trailer = (game.car as Tractor).trailer as unknown as typeof game.car | null | undefined;
+  const towed = trailer ? [trailer] : [];
+  // (a trailer has no wheels at its nose - its "front" corners are the kingpin's)
+  if (trailer && trailer.wheelSpawn) trailer.wheelSpawn = trailer.wheelSpawn
+    .filter((corner) => corner >= 2);
+  return (game.ai.length || near.length || towed.length
+    ? [game.car, ...towed, ...game.ai.map((entry) => entry.car), ...near] : [game.car])
+    .filter(onGround);
+}
+
+/**
  * The loose cones and tyres for one sim step, and the loose tyres a torn-off wheel throws.
  * @param tcars the traffic cars
  */
@@ -509,13 +532,7 @@ export function stepLooseCones(tcars: TrafficVehicle[]) {
   // within 60 m of you knocks the litter too — a knocked tyre on the road is something they
   // then have to hit)
   {
-    const near = tcars.length
-      ? tcars.filter((racer) => Math.abs(racer.x - game.car.x) < 60
-        && Math.abs(racer.y - game.car.y) < 60) : [];
-    // (a car on a bridge or in a tunnel touches nothing on the ground: world/crossings.ts)
-    const field = (game.ai.length || near.length
-      ? [game.car, ...game.ai.map((entry) => entry.car), ...near] : [game.car]).filter(onGround),
-        startVel = field.map((racer) => [racer.vx, racer.vy]);
+    const field = looseField(tcars), startVel = field.map((racer) => [racer.vx, racer.vy]);
     // planks a smashed marshal hut threw out join the loose objects (world/marshalbox.ts)
     const planks = takeThrownPlanks();
     if (planks.length) game.cones.spawn(planks);

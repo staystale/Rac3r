@@ -12,6 +12,13 @@ import { ROSTER } from '../src/cars.ts';
 import { DEBRIS } from '../src/cones/coneConsts.ts';
 import { crashDebris, rollParts, throwParts, wheelBits } from '../src/world/debris.ts';
 import { SHRED_KINDS } from '../src/world/armcodent.ts';
+import { SCANYAH_TRAILER } from '../src/newcars.ts';
+import { attachTrailer, TRACTOR_ID } from '../src/physics/trailer.ts';
+
+// the roster and the Scanyah's trailer (a towed body: built on its tractor, physics/trailer.ts)
+const BODIES = [...ROSTER, SCANYAH_TRAILER];
+const bodyOf = (row) => (row.id === SCANYAH_TRAILER.id ? attachTrailer(makeCar(TRACTOR_ID))
+  : makeCar(row.id));
 
 // on a level (a window's glass lands on its ground)
 L.setLevel('lab');
@@ -20,12 +27,12 @@ let errors = 0;
 const realRandom = Math.random;
 Math.random = always;
 const onlyCar = process.argv[2] || '';
-if (onlyCar && !ROSTER.some((row) => row.id === onlyCar)) {
+if (onlyCar && !BODIES.some((row) => row.id === onlyCar)) {
   console.log(`partcheck: no car ${onlyCar}`);
   process.exit(1);
 }
-for (const row of ROSTER.filter((car) => !onlyCar || car.id === onlyCar)) {
-  const car = makeCar(row.id);
+for (const row of BODIES.filter((car) => !onlyCar || car.id === onlyCar)) {
+  const car = bodyOf(row);
   for (let corner = 0; corner < 4; corner++) {
     for (const endW of [0, 1]) crashDebris(car, corner, 1000, endW, always);
     // (the biggest tearing hit: everything a wheel can take)
