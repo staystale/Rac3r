@@ -11,6 +11,7 @@ import {
   advance, placeAtStart, mistakeStep, laneStep, battleStep, racecraftStep,
 } from "./driverLane.ts";
 import type { AiCar, CarsAcc, DriveCtx } from "./types.ts";
+import { clearHeldPlan } from "./startFan.ts";
 import { rejoinCross, rejoinAim, lateralOf } from "./rejoin.ts";
 import { rejoinClear } from "./gapPick.ts";
 import { SWERVE_RATE } from "./dodge.ts";
@@ -185,6 +186,8 @@ function lookFirst(car: AiCar, path: AiPath, nearIdx: number, lineOff: number, l
  */
 function noteHeld(state: Drv["state"], ctx: DriveCtx) {
   if (ctx.hold) state.heldT = state.t;
+  // (?hwfan: no dodge plan kept while held on the endless road - ai/startFan.ts)
+  clearHeldPlan(state, !!ctx.hold);
 }
 
 /** One drive tick: the controls for this car from the driver context, or a drive-out move. */

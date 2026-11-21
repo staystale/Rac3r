@@ -11,6 +11,7 @@ import {
 } from "./dodge.ts";
 import { blockOn, gapLine, seeCar } from "./gapPick.ts";
 import { traceBoxed } from "./boxedTrace.ts";
+import { startFan } from "./startFan.ts";
 import type { SeenCar } from "./gapPick.ts";
 
 // MEASURED (aidrivecheck, HB on/off, Realish + Real, hatch + 4x4): Slidden / Knobhill / Castle Kum
@@ -476,6 +477,35 @@ function commitShare(drv: Drv): number {
   return drv.traits.commitBoxed ?? 1;
 }
 
+/**
+ * The room past the usual edge for going round: none with no car in my way, WIDE_SLOW round one
+ * crawling, else WIDE.
+ * @param inWay the cars in my way that may be gone round off the road
+ * @returns m
+ */
+const wideFor = (inWay: SeenCar[]) => (!inWay.length ? 0
+  : inWay.some((other) => other.v < CREEP_UNDER_V) ? WIDE_SLOW : WIDE);
+
+/**
+ * ?hwfan (ai/startFan.ts): in a highway start phase, false - no pick, the formation lane held -
+ * or the pick's room cut to my column's side; true to pick.
+ * @param drv the driver
+ * @param seen the cars seen
+ * @param pick the gap picker's input (its room cut in place)
+ * @param startK the start phase left
+ * @returns true to pick
+ */
+function fanned(drv: Drv, seen: SeenCar[], pick: { lat: number; speed: number; look: number;
+  half: number; len: number; lo: number; hi: number }, startK: number): boolean {
+  const fan = startFan(drv, seen, { ...pick, myLat: pick.lat, startK });
+  if (fan === 'hold') {
+    drv.state.gapBase = null;
+    return false;
+  }
+  if (fan) Object.assign(pick, fan);
+  return true;
+}
+
 /** The s of travel the gap spotter reads the cars ahead in, by skill. */
 function gapLook(skill: number) {
   return GAP_LOOK_WEAK + (GAP_LOOK_TOP - GAP_LOOK_WEAK) * Math.max(0, Math.min(1, skill));
@@ -526,7 +556,7 @@ export function carsStep(drv: Drv, car: AiCar, others: AiCar[], path: AiPath, ne
     reactTo(drv, acc, [env, envO], { fwd, otherLat, vAlong, closeIdx, attacked: !!attacked,
       halted });
   }
-  gapStep(drv, car, acc, seen, { myLat, latT, lineOff, latLim, speed, look });
+  gapStep(drv, car, acc, seen, { myLat, latT, lineOff, latLim, speed, look, startK });
   acc.seen = seen;
   return acc;
 }
@@ -591,7 +621,7 @@ function reactTo(drv: Drv, acc: CarsAcc, envs: [CarsEnv, CarsEnv], seenAs: { fwd
  * @param mine my place, target, the line's offset, the room, m/s and the s I read ahead
  */
 function gapStep(drv: Drv, car: AiCar, acc: CarsAcc, seen: SeenCar[], mine: { myLat: number;
-  latT: number; lineOff: number; latLim: number; speed: number; look: number }) {
+  latT: number; lineOff: number; latLim: number; speed: number; look: number; startK: number }) {
   const { state } = drv, { myLat, latT, lineOff, latLim, speed, look } = mine;
   const half = car.spec.wid / 2, len = car.spec.len;
   // picking while any car is ahead within reading distance - not only while one is on my line
@@ -607,8 +637,7 @@ function gapStep(drv: Drv, car: AiCar, acc: CarsAcc, seen: SeenCar[], mine: { my
     && offTrackOk(other.v, speed));
   // (round a car crawling in a queue, as far off the road as round a stopped one - owner 11-10:
   // "They can go off track too if needed")
-  const room = latLim + (!inWay.length ? 0 : inWay.some((other) => other.v < CREEP_UNDER_V)
-    ? WIDE_SLOW : WIDE);
+  const room = latLim + wideFor(inWay);
   // (never into the other way's lane while an oncoming car keeps me to my side -
   // ai/driverOncoming.ts; the line picked there was clamped back and the dodge went short)
   const top = Math.min(room, state.keepMax ?? Infinity) - lineOff;
@@ -616,6 +645,8 @@ function gapStep(drv: Drv, car: AiCar, acc: CarsAcc, seen: SeenCar[], mine: { my
     lo: -room - lineOff, hi: Math.max(top, -room - lineOff), edge: latLim, centre: lineOff,
     lanes: drv.state.path === drv.main ? drv.line.lanes : undefined,
     commitK: commitShare(drv) };
+  // (?hwfan: a highway start phase holds its formation lane, or fans to its column's side)
+  if (!fanned(drv, seen, pick, mine.startK)) return;
   const line = gapLine(seen, pick);
   state.gapBase = line;
   acc.dodgeT = line - latT;

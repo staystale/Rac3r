@@ -92,4 +92,9 @@ export const FIX = {
   // driver's start phase counted from its release, not the formation's first move
   // (ai/driverLane.ts)
   rollgreen: atLoad('rollgreen'),
+  // THE HIGHWAY START, FANNED (owner 11-21: "they all drift to one side and weave back"): no dodge
+  // plan kept while the start holds a car; in its start phase it holds its formation lane, going
+  // round only a truly slower car, to its own column's side (ai/startFan.ts) - the endless road
+  // only
+  hwfan: atLoad('hwfan'),
 };
