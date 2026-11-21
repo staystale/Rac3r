@@ -539,6 +539,20 @@ inputs and get the cars back. A SPIKE (two phones on the tunnel) before committi
   at 844x390 night in 6 tries), photos and close-ups tools/scratch/cabglass/, the Scanyah, the
   buses and the trophy truck off too; no page errors. partcheck (CABGLASS=1): all 18 kinds OK.
   The Defender keeps the car band (a 4x4's, as the cars). AWAITING THE PHONE TEST.
+- OWNER BUG 11-21 "Road markings skipping about on the highway level Devils" (Deaf Valley: no level
+  is named Devil; its sign DEVIL'S GOLF CORSE) - FOUND + BUILT (Worker C) behind ?dashphase=1. THE
+  CAUSE: the lane dashes are painted into ground tiles that are kept (render/tiles.ts) with the
+  canvas dash pattern, which runs along the stroked line's own length from the road window's first
+  point (phased by sub.sBase). A lane line off the centre is longer or shorter than the road on a
+  bend, so each time the window drops road behind, a spot's dashes move along the line; tiles
+  painted before and after a move do not line up. Every endless road with lanes off the centre
+  (the countryside the same), not the single lane (its one dashed line is the centre line).
+  MEASURED (tools/scratch/_dashphase.mjs, in node, 6 km): a spot's dash phase moved per window move
+  (every ~300 m) motorway 2.37 m median, p95 4.28 m (of the 9 m pattern); interstate 1.93 / 4.09
+  m; single lane 0. THE FIX (render/lanedash.ts): each dash laid where the road's absolute distance
+  is in the first 3 m of each 9 m - a dash start's world spot moved 0.000 m between windows
+  (motorway 476, interstate 738 checks). Looks the same (photos _canyondashoff / on). AWAITING THE
+  PHONE TEST.
 - FOR THE AI REWORK / TUNE (owner 11-16: "still looks like on tarmac Pembreezy too many drivers
   come off the track - maybe this should be saved for the ai rework / tune as they seem to go off
   to regularly / pile up on first corner"; "that the same on dongington ect"): the AI on

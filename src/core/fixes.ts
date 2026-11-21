@@ -77,4 +77,7 @@ export const FIX = {
   // a lorry's, van's and bus's own side windows on its rolled side (render/carprofile.ts windows:
   // the Scanyah's cab showed none - its glass band was the screen's last 5 %)
   cabglass: atLoad('cabglass'),
+  // the highway's lane dashes laid by the road's distance, not the canvas pattern's length: tiles
+  // painted before and after the road window moved line up (render/lanedash.ts)
+  dashphase: atLoad('dashphase'),
 };

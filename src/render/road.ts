@@ -9,6 +9,8 @@ import { paintAs } from "../world/coverfield.ts";
 import { drawPaintLine } from "./paintline.ts";
 import { drawCurvedKerbs } from "./kerbs.ts";
 import { underRoadOver } from "../world/trackunder.ts";
+import { strokeRoadDashes } from "./lanedash.ts";
+import { FIX } from "../core/fixes.ts";
 import type { Prop } from "../world/types.ts";
 import type { Cam, ForSide, RenderMarks, RoadGame, View } from "./types.ts";
 
@@ -362,10 +364,15 @@ function drawLaneDashes(ctx: RoadCtx) {
   view.ctx.save();
   view.ctx.strokeStyle = 'rgba(245,245,240,0.8)';
   view.ctx.lineWidth = Math.max(1, 0.15 * pxPerM);
-  view.ctx.setLineDash([3 * pxPerM, 6 * pxPerM]);
-  view.ctx.lineDashOffset = ((sub.sBase || 0) * pxPerM) % (9 * pxPerM);
-  for (const off of sub.laneDash) strokeOffsetLine(ctx, sub, off);
-  view.ctx.setLineDash([]);
+  // (?dashphase: each dash laid by the road's distance - render/lanedash.ts)
+  if (FIX.dashphase) for (const off of sub.laneDash) strokeRoadDashes({ ctx: view.ctx,
+    toScreenX: ctx.toScreenX, toScreenY: ctx.toScreenY }, sub, off);
+  else {
+    view.ctx.setLineDash([3 * pxPerM, 6 * pxPerM]);
+    view.ctx.lineDashOffset = ((sub.sBase || 0) * pxPerM) % (9 * pxPerM);
+    for (const off of sub.laneDash) strokeOffsetLine(ctx, sub, off);
+    view.ctx.setLineDash([]);
+  }
   for (const off of sub.laneSolid || []) strokeOffsetLine(ctx, sub, off);
   view.ctx.restore();
 }

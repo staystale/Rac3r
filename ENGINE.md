@@ -648,6 +648,9 @@ off / on): racing laps fronts smoke 5-8 % -> 1 % of the time; a held 1.1 g corne
   that push with its speed changing at most 3 px / frame / frame (`render/hudclear.ts
   followPush`), taken whole only after a teleport, so the view never jumps. Not avoided: the
   steering stick under the thumb, the passing notices, the speed camera's flash, the finish flag.
+- THE HIGHWAY'S LANE DASHES (`render/road.ts drawLaneDashes`, painted into the tiles): the canvas
+  dash pattern phased by `sub.sBase`; ?dashphase=1 lays each dash by the road's absolute distance
+  (`render/lanedash.ts`), so tiles painted before and after the road window moved line up.
 - `render/tiles.ts`: what lies over the floor and zones (track ribbon, lanes, patches, covers,
   wear, kerbs) is painted into cached tiles within a time budget per frame (`tilesBudget.ts`);
   the GPU ground scales them to the exact zoom and draws each at its exact place. Tiles under new

@@ -38,4 +38,12 @@ export const TEST_LIST: TestEntry[] = [
     try: 'Roll one onto its side (a fast slide into a kerb or a barrier) and look at its side.',
     wrong: 'A cab side with no window, glass up to the roof, or a bus side with no pillars.',
   },
+  {
+    id: 'dashphase',
+    added: '2026-11-21',
+    name: 'The highway’s lane dashes stay put (no skipping)',
+    where: 'Test link + &dashphase=1: Deaf Valley (or any scenery), a motorway or interstate',
+    try: 'Drive a few km through the bends and watch the dashed lane lines.',
+    wrong: 'Dashes jumping, doubled or broken where the ground joins, or a different length.',
+  },
 ];
