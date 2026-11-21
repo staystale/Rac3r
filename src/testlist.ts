@@ -38,4 +38,12 @@ export const TEST_LIST: TestEntry[] = [
     try: 'Launch with AI: the lap panel shows your grid place (P4/6 from the fourth slot) at once.',
     wrong: 'P1 shown from a slot behind the pole, or a place that jumps when the race starts.',
   },
+  {
+    id: 'trailheal',
+    added: '2026-11-21',
+    name: 'RESET mends the truck’s trailer too',
+    where: 'Test link + &trailheal=1: the Scanyah with its trailer, any level',
+    try: 'Crash the trailer (dents, a door or mudguard off, a flat), then press RESET.',
+    wrong: 'The trailer still dented, missing parts or on a flat after RESET.',
+  },
 ];

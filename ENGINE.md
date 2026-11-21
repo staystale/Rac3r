@@ -129,6 +129,8 @@ Every reset lands the car still and on its wheels with nothing a crash left pend
 reset -> `roll.ts clearPendingRoll`: a side impact's queued roll kick, a barrier ride, the air
 time, the trip cell, the tip's pull), and the camera snaps to it on every path
 (`game/session.ts doReset`); `tools/scratch/_resetcheck.mjs` resets after crashes, rolls and slides.
+A reset mends the car (`damage.ts repair`: the bill kept); ?trailheal=1 its trailer too, the same
+way (`tools/scratch/_trailheal.mjs`).
 
 STUCK AI AND TRAFFIC. A racing AI first drives itself out (`ai/driveOut.ts`: nearly still 1.2 s ->
 reverse 1-1.5 s with the wheel turned toward the road; three tries inside 15 s = `giveUp`, read by

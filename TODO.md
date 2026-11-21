@@ -535,6 +535,14 @@ inputs and get the cars back. A SPIKE (two phones on the tunnel) before committi
   off / on): the hatch 54.6 / 54.2 m, the bus 24.4 / 24.4 m, the towing Scanyah 4.3 m and stuck
   against the light / 7.5 m and moving (11 km/h: the 1-2 hunting without ?boxhold); no hits. The Lab
   tools run (_partsoff, _armzoom, partcheck, balecheck, blendcheck). AWAITING THE PHONE TEST.
+- OWNER BUG 11-21 "Resetting doesn't heal the trailer for the truck" - FOUND + BUILT (Worker C)
+  behind ?trailheal=1: RESET (game/session.ts doReset) mended only the tractor (damage.ts repair:
+  dents, crush, lost parts, glass, suspension, wheels, tyres, hanging parts; the bill kept); the
+  trailer is a car of its own and was never mended. Now it is mended the same way. MEASURED
+  (tools/scratch/_trailheal.mjs, the same damage on both, R): off the trailer kept all of it
+  (dents 2.20, 3 parts off, a wheel off, 1.8 tyres flat), on all zeros as the tractor, on Thruston
+  and the Lab; photos before / after. RESTART has the same gap (the trailer keeps its damage, the
+  tractor is mended) - not changed: an owner question. AWAITING THE PHONE TEST.
 - FOR THE AI REWORK / TUNE (owner 11-16: "still looks like on tarmac Pembreezy too many drivers
   come off the track - maybe this should be saved for the ai rework / tune as they seem to go off
   to regularly / pile up on first corner"; "that the same on dongington ect"): the AI on

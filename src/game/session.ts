@@ -30,6 +30,7 @@ import { gridPos, spawnAI } from './grid.ts';
 import { clearRigSpot } from './gridlen.ts';
 import { shared, game } from './state.ts';
 import { FIX } from '../core/fixes.ts';
+import type { Tractor } from '../physics/trailer.ts';
 import { saveProfile } from '../menu/profile.ts';
 import { restartPoliceGame } from './police.ts';
 import {
@@ -269,6 +270,10 @@ export function doReset() {
   game.car.prevWheels = null;
   hazardsAfterReset(game.car);
   repair(game.car);   // DAMAGE: RESET mends the car (user); the repair bill keeps counting
+  // (?trailheal: its trailer too, the same way - it is lined up behind the car again by
+  // physics/trailer.ts hitchTrailer)
+  const trailer = (game.car as Tractor).trailer;
+  if (FIX.trailheal && trailer) repair(trailer);
   // RESET KEEPS TYRE HEAT (step 2): vehicle.js reset starts the tyres cold, which is
   // right for RESTART and a new car, but RESET is a recovery — you have not stopped driving. Put
   // the temperatures back afterwards.

@@ -77,4 +77,6 @@ export const FIX = {
   // the place shown before the running order's first step is your grid slot's, not P1
   // (game/session.ts startField)
   gridpos: atLoad('gridpos'),
+  // RESET mends the tractor's trailer as it mends the tractor (game/session.ts doReset)
+  trailheal: atLoad('trailheal'),
 };
