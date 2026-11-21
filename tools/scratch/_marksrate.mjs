@@ -1,8 +1,9 @@
 // _marksrate.mjs - ?marksage sizing (the owner's 11-21 bug 4): in a real race, how fast the marks
 // layer fills (strokes a sim second: marks.stamps, every car inside the layer's window), how far
 // its window moves (px a second: the strips it clears) and what a stroke list kept for the aged
-// fade's whole life (AGED_FROM_S + AGED_STEPS x AGED_STEP_S = 154 s) would hold. The player on the
-// autodriver, N AI, CPU x1.
+// fade's whole life (AGED_FROM_S + AGED_STEPS x AGED_STEP_S = 154 s) would hold, and how many
+// 256 px tiles (61 m) a sparse whole-level layer would keep live over that life. The player on
+// the autodriver, N AI, CPU x1.
 // node tools/scratch/_marksrate.mjs <level,level> [ai] [seconds]
 import { startServer, launchBrowser } from '../lib/browser.mjs';
 
@@ -36,12 +37,26 @@ async function measureLevel(level) {
     const driver = auto.createAutoDriver(game.level.subtrack);
     game.input.update = () => ({ ...driver.drive(game.car), reverse: 0, shiftUp: false,
       shiftDown: false });
+    // each stroke's 256 px tile (61 m) and sim time: the tiles a sparse whole-level layer would
+    // hold live (a stroke in the last LIFE_S)
+    const marks = game.marks, stamp = marks.stamp, tileM = 256 / 4.2;
+    window.__tileT = new Map();
+    marks.stamp = (wheels) => {
+      for (const wheel of wheels) {
+        const before = marks.stamps;
+        stamp([wheel]);
+        if (marks.stamps > before) window.__tileT.set(Math.floor(wheel.x / tileM) + ','
+          + Math.floor(wheel.y / tileM), game.flow ? game.flow.t : 0);
+      }
+    };
   });
   const samples = [];
   for (let t = 0; t <= seconds; t += 10) {
     samples.push(await page.evaluate(() => {
       const game = window.__game, marks = game.marks;
-      return { sim: game.flow ? game.flow.t : 0, stamps: marks.stamps,
+      const sim = game.flow ? game.flow.t : 0;
+      const live = [...window.__tileT.values()].filter((at) => sim - at < 154).length;
+      return { sim, stamps: marks.stamps, live, tiles: window.__tileT.size,
         shiftX: marks.shiftX, shiftY: marks.shiftY, now: performance.now() / 1000 };
     }));
     if (t < seconds) await page.waitForTimeout(10000);
@@ -58,7 +73,9 @@ async function measureLevel(level) {
   console.log(`${level} ${aiCount} AI, ${Math.round(wall)} sim s (${real} real s):`,
     `strokes ${strokes} (${Math.round(perSecond)}/s; each 10 s: ${rates.join(' ')});`,
     `a ${LIFE_S} s list ~${list} strokes;`,
-    `window moved ${moved} px (${Math.round(moved / wall)} px/s)`,
+    `window moved ${moved} px (${Math.round(moved / wall)} px/s);`,
+    `256 px tiles marked: live (last ${LIFE_S} s) each 10 s ${samples.map((row) => row.live)
+      .join(' ')}, ever ${last.tiles}`,
     errors.length ? 'ERRORS ' + errors.slice(0, 3).join(' | ') : 'errors none');
   await context.close();
 }
