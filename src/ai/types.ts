@@ -275,6 +275,8 @@ export interface CarsAcc {
   seen?: { fwd: number; lat: number; v: number; across: number; along: number }[];
   // the cars not racing ahead, stopped or crawling (ai/stopDodge.ts)
   stopped?: StoppedCar[];
+  // ?aitune: how fast the car I follow is slowing, as I read it, m/s2 (the lowest cap's car)
+  followDec?: number;
 }
 export interface CarsEnv {
   car: AiCar; path: Path<DrivePoint>; nearIdx: number; idx: (pos: number) => number;
@@ -295,6 +297,8 @@ export interface CircuitState extends DriveOutState {
   vTPrev?: number;   // the last step's target speed (?aitune: a falling plan - ai/driverPedals.ts)
   // ?aitune: the plan's fall, m/s2 (smoothed), and the brake pedal that holds it (feed-forward)
   zoneDecel?: number; zoneFF?: number;
+  // ?aitune: the followed car's braking (m/s2) and my full-pedal deceleration (m/s2)
+  followDec?: number; fullDecel?: number;
   lap: number;
   jokers: number;
   jPlan: number;

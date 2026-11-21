@@ -1,6 +1,7 @@
 // ai/driverTraffic.ts: the circuit driver's reading of traffic and obstacles: cars ahead,
 // alongside and behind, and loose objects on the road. Functions take the driver context.
 import { debugValue } from "../core/debug.ts";
+import { FIX } from "../core/fixes.ts";
 import { GRAVITY } from "../cars.ts";
 import { OBST_CLEAR, carGrip, profileOf } from "./line.ts";
 import type { AiCar, CarsAcc, CarsEnv, DriveCtx } from "./types.ts";
@@ -135,8 +136,21 @@ export function followAhead(drv: Drv, acc: CarsAcc, env: CarsEnv, fwd: number, o
     }
   }
   if (!cands.length || (fwd < gapF && Math.abs(otherLat - myLat) < 1.6)) {
-    acc.followCap = Math.min(acc.followCap, followCapOf(drv, env, fwd, vAlong, closeIdx));
+    noteFollowCap(acc, followCapOf(drv, env, fwd, vAlong, closeIdx), env.dec ?? 0);
   }
+}
+
+/**
+ * A follow cap kept if it is the lowest yet, with the braking of the car that sets it (?aitune:
+ * its follower copies that braking - ai/driverPedals.ts brakeFor).
+ * @param acc the cars' read so far
+ * @param cap m/s
+ * @param dec how fast that car is slowing as I read it, m/s2
+ */
+function noteFollowCap(acc: CarsAcc, cap: number, dec: number) {
+  if (cap >= acc.followCap) return;
+  acc.followCap = cap;
+  acc.followDec = dec;
 }
 
 /**
@@ -331,7 +345,9 @@ function sizedEnv(env: CarsEnv, car: AiCar, other: AiCar, pathH: number): CarsEn
 
 // s of travel a driver reads the cars ahead in, skill 0 / skill 1 (the highway driver's;
 // at 240 km/h against 90 km/h traffic 0.8 .. 2.1 s hit it in 17-19 of 45 weavecheck scenarios)
-const GAP_LOOK_WEAK = 2.6, GAP_LOOK_TOP = 3.8;
+// (?aitune, owner 11-21 "better dodging ... prediction": a weak driver reads 3.2 s ahead - it
+// sees a crash forming 0.6 s sooner)
+const GAP_LOOK_WEAK = FIX.aitune ? 3.2 : 2.6, GAP_LOOK_TOP = 3.8;
 // boxed in: the share of full braking planned (late: going round is tried first, braking only
 // once it must - owner 11-04: "avoid it not just brake... it should brake too if it needs to"),
 // and the m kept behind the car

@@ -10,7 +10,7 @@ import { coolStep, COOL_LOOK } from './driverCool.ts';
 import {
   advance, placeAtStart, mistakeStep, laneStep, battleStep, racecraftStep,
 } from "./driverLane.ts";
-import type { AiCar, DriveCtx } from "./types.ts";
+import type { AiCar, CarsAcc, DriveCtx } from "./types.ts";
 import { rejoinCross, rejoinAim, lateralOf } from "./rejoin.ts";
 import { rejoinClear } from "./gapPick.ts";
 import { SWERVE_RATE } from "./dodge.ts";
@@ -61,6 +61,17 @@ function targetEdge(state: Drv["state"], latLim: number, onMain: boolean, lineOf
  */
 function plannedLat(planned: number, keepMax: number, lineOff: number): number {
   return Math.min(planned, keepMax - lineOff);
+}
+
+/**
+ * The braking of the car I follow (?aitune), when that car's cap is the one I keep - not a stopped
+ * car's or a swerve's.
+ * @param followCap the cap kept, m/s
+ * @param cars the cars' read (its cap and that car's braking)
+ * @returns m/s2
+ */
+function followDecOf(followCap: number, cars: CarsAcc): number {
+  return followCap === cars.followCap ? cars.followDec ?? 0 : 0;
 }
 
 /** Other cars and obstacles, then racecraft: the lateral target, speed scale and gap cap. */
@@ -114,6 +125,8 @@ function trafficStep(drv: Drv, car: AiCar, ctx: DriveCtx, path: AiPath, nearIdx:
   state.dodge += Math.max(-rate * dt, Math.min(rate * dt, dodgeT - state.dodge)) * (
       conflict ? 1 : 0.5);
   state.follow = followCap < Infinity;
+  // (?aitune: the braking of the car I follow, when it sets my cap - ai/driverPedals.ts)
+  state.followDec = followDecOf(followCap, cars);
   latT += state.dodge;
   // past the usual edge only while going round a car (above)
   const edge = targetEdge(state, latLim, path === main, lineOff);

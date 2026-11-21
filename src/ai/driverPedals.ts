@@ -86,20 +86,29 @@ function zoneStep(drv: Drv, car: AiCar, dt: number) {
   const torque = (car as { mods?: { brakeTorque?: number } }).mods?.brakeTorque ?? 1;
   const fullDecel = (spec.brakeMaxDecel ?? 1.8) * 9.81 * torque;
   state.zoneFF = state.zoneDecel > ZONE_DECEL ? Math.min(1, state.zoneDecel / fullDecel) : 0;
+  state.fullDecel = fullDecel;
 }
 
 /**
- * The brake for the target speed: in a braking zone (?aitune: zoneFF) the pedal that holds the
- * plan's fall plus a trim on the speed over it - no dead band, no on / off; else a share of the
- * speed over the plan past a dead band.
- * @param drv the driver (state.zoneFF)
+ * The brake for the target speed. ?aitune: in a braking zone (zoneFF) the pedal that holds the
+ * plan's fall, and following a car (forCar) the pedal that copies its braking as I read it
+ * (owner 11-21: "copying the leader is the idea") - each plus a trim on the speed over the target,
+ * no dead band, no on / off; CAR_FULL m/s over a car's cap still brakes as before (closing too
+ * fast). Else a share of the speed over the plan past a dead band.
+ * @param drv the driver (state.zoneFF, followDec, fullDecel)
  * @param speed m/s
  * @param targetSpeed m/s
+ * @param forCar a car ahead sets the target
  * @returns the pedal, 0..1 (before the turn's share)
  */
-function brakeFor(drv: Drv, speed: number, targetSpeed: number): number {
-  const feed = FIX.aitune ? drv.state.zoneFF ?? 0 : 0;
-  if (feed > 0) return Math.max(0, Math.min(1, feed + (speed - targetSpeed) * ZONE_TRIM));
+function brakeFor(drv: Drv, speed: number, targetSpeed: number, forCar: boolean): number {
+  const { state } = drv;
+  const tuned = FIX.aitune && !(forCar && speed > targetSpeed + CAR_FULL);
+  const copy = forCar ? (state.followDec ?? 0) / (state.fullDecel || 17.7) : 0;
+  const feed = tuned ? Math.max(state.zoneFF ?? 0, copy) : 0;
+  if (feed > 0 || (tuned && forCar)) {
+    return Math.max(0, Math.min(1, feed + (speed - targetSpeed) * ZONE_TRIM));
+  }
   return speed > targetSpeed + BRAKE_BAND ? Math.min(1, (speed - targetSpeed) * 1.5) : 0;
 }
 
@@ -122,7 +131,7 @@ export function pedals(drv: Drv, speed: number, targetSpeed: number, thrForce: b
     : Math.max(0.6, 1 - Math.abs(steer) / 0.5);
   // (?aitune: in a braking zone the pedal holds the plan's fall - the dead band's on / off read
   // as dabbing, owner 11-21)
-  let brake = brakeFor(drv, speed, targetSpeed) * turnShare;
+  let brake = brakeFor(drv, speed, targetSpeed, forCar) * turnShare;
   if (under && !looseUnder && speed > 0.85 * targetSpeed) brake = Math.max(brake, 0.35);
   if (over || drifting) brake = 0;
   return { throttle, brake };
