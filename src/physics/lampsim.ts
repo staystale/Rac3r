@@ -1,4 +1,4 @@
-// physics/lampsim.ts - A CAR'S LAMPS SETTLING, ON THE SIM CLOCK (?lampflash): the same rule as the
+// physics/lampsim.ts - A CAR'S LAMPS SETTLING, ON THE SIM CLOCK: the same rule as the
 // look's (render/carlamps.ts) - a hit that takes a lamp's corner past LAMP_OK sets it flickering
 // for SETTLE_MIN_S .. SETTLE_MAX_S, then it settles steady or dead (dying by DIE_BASE plus
 // DIE_PER_SHARE of the corner's damage share), past LAMP_GONE it is smashed, a repair brings it

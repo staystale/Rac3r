@@ -483,8 +483,8 @@ export function lampLevel(car: RenderCar, corner: number) {
   // (a rig - the trailer carries its rear lamps - render/riglamps.ts)
   if (hidesLamp(car, corner)) return 0;
   const damage = car.dmg ? car.dmg[corner] : 0;
-  // a hit's flicker settles - working again, or dead (render/carlamps.ts; ?lampflash: the sim's,
-  // physics/lampsim.ts)
+  // a hit's flicker settles - working again, or dead (the sim's: physics/lampsim.ts; a car the
+  // sim does not step: render/carlamps.ts)
   return car.lampSim ? simLampLevel(car, corner) : settledLampLevel(car, corner, damage);
 }
 

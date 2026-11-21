@@ -11,7 +11,8 @@ import { LAMP_OK, LAMP_GONE, SETTLE_MIN_S, SETTLE_MAX_S, DIE_BASE, DIE_PER_SHARE
   FLICKER_SLOT_S, FLICKER_OFF } from '../physics/lampsim.ts';
 import type { RenderCar } from './types.ts';
 
-// (the rule's numbers are the sim's: physics/lampsim.ts, ?lampflash's sim-clock lamps)
+// (the rule's numbers are the sim's: physics/lampsim.ts, the sim-clock lamps; a car the sim does
+// not step - none in a race - settles here, on the wall clock)
 export { LAMP_OK, LAMP_GONE };
 // a hit's flicker, ms; the flicker's slot, ms
 const SETTLE_MIN_MS = SETTLE_MIN_S * 1000, SETTLE_MAX_MS = SETTLE_MAX_S * 1000;

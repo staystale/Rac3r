@@ -736,7 +736,7 @@ export function makeAngry(ctx: TrafficCtx, slot: TrafficCar,
 
 /**
  * The angry drivers' step: each one's speed after the driver that angered it (you, or with
- * ?lampflash a racer whose lamps flickered at it), as a chaser's; calmed down - driving on as
+ * a racer whose lamps flickered at it), as a chaser's; calmed down - driving on as
  * traffic - once its time is up, it is wrecked, or its target is out of its sight.
  * @param ctx the traffic
  * @param dt the step, s

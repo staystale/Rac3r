@@ -29,7 +29,6 @@ import { resetCar, armStart, startHeld, startAtOf } from './order.ts';
 import { gridPos, spawnAI } from './grid.ts';
 import { clearRigSpot } from './gridlen.ts';
 import { shared, game } from './state.ts';
-import { FIX } from '../core/fixes.ts';
 import type { Tractor } from '../physics/trailer.ts';
 import { saveProfile } from '../menu/profile.ts';
 import { restartPoliceGame } from './police.ts';
@@ -270,10 +269,10 @@ export function doReset() {
   game.car.prevWheels = null;
   hazardsAfterReset(game.car);
   repair(game.car);   // DAMAGE: RESET mends the car (user); the repair bill keeps counting
-  // (?trailheal: its trailer too, the same way - it is lined up behind the car again by
+  // (its trailer too, the same way - it is lined up behind the car again by
   // physics/trailer.ts hitchTrailer)
   const trailer = (game.car as Tractor).trailer;
-  if (FIX.trailheal && trailer) repair(trailer);
+  if (trailer) repair(trailer);
   // RESET KEEPS TYRE HEAT (step 2): vehicle.js reset starts the tyres cold, which is
   // right for RESTART and a new car, but RESET is a recovery — you have not stopped driving. Put
   // the temperatures back afterwards.
@@ -487,6 +486,12 @@ function restartNow() {
   game.position = 1;
   repair(game.car);
   resetBill(game.car);   // DAMAGE: a fresh car and a clean bill
+  // (its trailer too, as every vehicle - owner 11-21)
+  const restartTrailer = (game.car as Tractor).trailer;
+  if (restartTrailer) {
+    repair(restartTrailer);
+    resetBill(restartTrailer);
+  }
   // the old field goes NOW: until the deferred spawnAI below builds the new grid, the last level's
   // AI (the menu demo's) stepped on this one - on a level with no racing line (the Lab family)
   // recoverAI threw on every step

@@ -11,7 +11,6 @@
 // ANGRY: it drives at you as a chasing police car does, without the lights (ai/trafficPolice.ts
 // makeAngry), its headlights flashing back.
 import { makeAngry } from './trafficPolice.ts';
-import { FIX } from '../core/fixes.ts';
 import type { TrafficCtx } from './trafficCtx.ts';
 import type { DriveEnv } from './trafficLane.ts';
 import type { AiCar, TrafficCar } from './types.ts';
@@ -123,7 +122,7 @@ function flashTarget(ctx: TrafficCtx, you: { s: number; off: number }): TrafficC
 }
 
 /**
- * A driver flashed (you your lights; with ?lampflash also a flickering headlight - yours or a
+ * A driver flashed (you your lights; a flickering headlight too - yours or a
  * racer's: game/flashes.ts): the car ahead of it in its lane (if any) is asked to move over
  * (FLASH_CHANCE) - or, flashed RAGE_FLASHES times inside RAGE_WINDOW_S by that driver, gets
  * angry at it.
@@ -139,10 +138,10 @@ export function noteFlash(ctx: TrafficCtx, player: AiCar, you: { s: number; off:
   clock: number): string | null {
   const slot = flashTarget(ctx, you);
   if (!slot) return null;
-  // (?lampflash: each driver's own count - a racer's flicker and yours do not add up)
-  const byDriver = FIX.lampflash ? (slot.flashBy ||= new Map()) : null;
-  if (byDriver && !byDriver.has(player)) byDriver.set(player, []);
-  const times = byDriver ? byDriver.get(player)! : (slot.flashes ||= []);
+  // (each driver's own count - a racer's flicker and yours do not add up)
+  const byDriver = (slot.flashBy ||= new Map());
+  if (!byDriver.has(player)) byDriver.set(player, []);
+  const times = byDriver.get(player)!;
   times.push(clock);
   while (times.length && times[0] < clock - RAGE_WINDOW_S) times.shift();
   if (times.length >= RAGE_FLASHES) {

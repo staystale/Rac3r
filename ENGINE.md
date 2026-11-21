@@ -129,8 +129,8 @@ Every reset lands the car still and on its wheels with nothing a crash left pend
 reset -> `roll.ts clearPendingRoll`: a side impact's queued roll kick, a barrier ride, the air
 time, the trip cell, the tip's pull), and the camera snaps to it on every path
 (`game/session.ts doReset`); `tools/scratch/_resetcheck.mjs` resets after crashes, rolls and slides.
-A reset mends the car (`damage.ts repair`: the bill kept); ?trailheal=1 its trailer too, the same
-way (`tools/scratch/_trailheal.mjs`).
+A reset mends the car (`damage.ts repair`: the bill kept) and its trailer the same way; a restart
+mends both and clears their bills (`tools/scratch/_trailheal.mjs`).
 
 STUCK AI AND TRAFFIC. A racing AI first drives itself out (`ai/driveOut.ts`: nearly still 1.2 s ->
 reverse 1-1.5 s with the wheel turned toward the road; three tries inside 15 s = `giveUp`, read by
@@ -379,7 +379,7 @@ FLASHING THE TRAFFIC (`game/flashes.ts stepFlashes`, each step on the endless ro
 LIGHTS off and on inside FLASH_S (1.2 s) flash the nearest car of our way ahead in your lane
 (`ai/trafficYield.ts noteFlash`): half move over (8 s); three flashes inside 20 s make it ANGRY
 (`ai/trafficPolice.ts makeAngry`): a chase driver without lights after whoever angered it
-(`stepAngry`: its target's speed and sight). ?lampflash=1: every car's lamps settle on the sim
+(`stepAngry`: its target's speed and sight). Every car's lamps settle on the sim
 clock (`physics/lampsim.ts`, `stepAllLamps` - the flicker 3-8 s after a hit, then steady or dead;
 the drawing reads it), a FLICKERING headlight - yours or a racer's (its `_hwf`) - flashes once in
 each FLASH_S as a hand flash does, each driver's flashes counted on their own (`flashBy`), and
@@ -659,9 +659,9 @@ off / on): racing laps fronts smoke 5-8 % -> 1 % of the time; a held 1.1 g corne
   that push with its speed changing at most 3 px / frame / frame (`render/hudclear.ts
   followPush`), taken whole only after a teleport, so the view never jumps. Not avoided: the
   steering stick under the thumb, the passing notices, the speed camera's flash, the finish flag.
-- THE HIGHWAY'S LANE DASHES (`render/road.ts drawLaneDashes`, painted into the tiles): the canvas
-  dash pattern phased by `sub.sBase`; ?dashphase=1 lays each dash by the road's absolute distance
-  (`render/lanedash.ts`), so tiles painted before and after the road window moved line up.
+- THE HIGHWAY'S LANE DASHES (`render/road.ts drawLaneDashes`, painted into the tiles):
+  each dash laid by the road's absolute distance (`render/lanedash.ts`), so tiles painted before
+  and after the road window moved line up.
 - `render/tiles.ts`: what lies over the floor and zones (track ribbon, lanes, patches, covers,
   wear, kerbs) is painted into cached tiles within a time budget per frame (`tilesBudget.ts`);
   the GPU ground scales them to the exact zoom and draws each at its exact place. Tiles under new
@@ -693,7 +693,7 @@ off / on): racing laps fronts smoke 5-8 % -> 1 % of the time; a held 1.1 g corne
   a half width per column) and `cardamage.ts`,
   `particles.ts`.
 - A rolled car's side picture (`render/carprofile.ts paintSideProfile`): its roof line, paint, wheels and
-  its side glass - a car's one band from its waist to the roof line (`glass`); ?cabglass=1 a lorry's,
+  its side glass - a car's one band from its waist to the roof line (`glass`); a lorry's,
   van's or bus's own windows instead (`windows`: each from its sill to its head, under the roof line;
   a bus's bays by `windowBays`) - the Scanyah's door window high on its cab, the vans' door
   windows, the buses' rows of bays (`tools/scratch/_cabglass.mjs`).

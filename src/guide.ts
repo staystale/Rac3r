@@ -18,7 +18,6 @@
 
 import { COL } from "./world/colours.ts";
 import { LEVEL } from "./world/state.ts";
-import { FIX } from "./core/fixes.ts";
 import type { HudRects } from './hud/layout.ts';
 
 /** A screen rectangle, css px. */
@@ -167,16 +166,16 @@ const POLICE_CARD: GuideCard[] = [{
     + 'chase. Stay out of their sight to lose them.',
   target: (scene: GuideScene) => scene.L.heat,
 }];
-// ?lampflash: flashing the traffic (game/flashes.ts) - by hand with the LIGHTS button, and a
+// flashing the traffic (game/flashes.ts) - by hand with the LIGHTS button, and a
 // damaged headlight's flicker, yours or a racer's
-const FLASH_CARD: GuideCard[] = FIX.lampflash ? [{
+const FLASH_CARD: GuideCard[] = [{
   title: 'FLASH THEM',
   text: () => 'Flick your LIGHTS off and on quickly to flash the car ahead in your lane: it may '
     + 'move over. Flash the same car three times and it gets ANGRY and comes after you. A '
     + 'damaged headlight that flickers flashes on its own (a rival with one too), and a dead one '
     + 'cannot flash.',
   target: (scene: GuideScene) => scene.L.lights,
-}] : [];
+}];
 export const RULES: Record<string, GuideCard[]> = {
   // the first time a car with a low range is driven (physics/lowrange.ts)
   lowrange: [{

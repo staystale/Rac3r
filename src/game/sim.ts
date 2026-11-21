@@ -494,8 +494,8 @@ export function stepTrafficContacts(tcars: TrafficVehicle[]) {
     if (game.ai.length) wakeStep(racers.filter(onGround));
   }
   stepPoliceGame();
-  // (?lampflash: every car's lamps on the sim clock - game/flashes.ts)
-  if (FIX.lampflash) stepAllLamps();
+  // (every car's lamps on the sim clock - game/flashes.ts)
+  stepAllLamps();
   // (your flashes at the car ahead of you)
   stepFlashes();
   // a stock car's roof flaps (physics/roofflaps.ts)
