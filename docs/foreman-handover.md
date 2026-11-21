@@ -4,29 +4,22 @@ Kept current as the work goes (owner 11-12: "update the handover as we go"). Las
 2026-11-17 (morning, paused). Read `CLAUDE.md`, then `NOTES.md` (the owner's rules and the Routine at its end,
 not repeated here), then `TODO.md`, then this page. The 11-07 version of this page is in git.
 
-## Where we are (11-17 morning - PAUSED by the owner to round up)
+## Where we are (11-21)
 
 - **ITCH** = `2026-11-21-6f5012ea` (push #4, owner yes 11-21, staged rac3r-2026-11-21): every pass to
   11-17 incl. tipping, the Scanyah tractor, hanging exhaust / steam / leaks, marktrack. NEXT push: the
   reset fix + headlights (passed 11-21, Worker C defaulting) - ask first.
 - **Main** = 6f5012ea (round162, CI green). Serve rounds by local checkout; push only for CI.
-- **The owner's link** = foreman/round161 (local; served by checkout, not pushed). UNDER TEST:
-  ?scanyah (the tractor alone), ?tipping (two wheels, tall vehicles only), ?marktrack (rear-right
-  skid mark at the rear track), ?dmgmore2 (hanging exhaust - REVERTED to the car's own drawing,
-  owner: "I liked the previous one and I didn't ask to change it" - and bumper; steam from the real
-  radiator, leaks by hit size, puddles under the real parts). OPEN QUESTION: leave the drips out
-  (they'd be hidden under the body)?
-- **Worker A** (a2fab314deb77a72b), PAUSED: WIP worker/joint 020b0d07 - the Scanyah trailer joint
-  works (pin gap < 0.4 cm, jack-knife only ABS-off, the pin breaks from 40 km/h, reversing folds
-  unless steered). Still to do: the trailer's own parts, the test entry, the night check, a
-  link-ready commit; then its PC proofs (tipping, pass batches). OWNER QUESTIONS: (a) the tractor is
-  slow towing (0-60 in 22.8 s) and its box hunts 1-2 loaded - tune? (b) at the Lab start the 13.6 m
-  trailer lines up through the start posts - spawn the rig with room behind it?
-- **Worker B** (aaf511f3d9d953888), PAUSED: WIP worker/b4-blighty 7ac09580 - Blighty Park RX (full size,
-  invented gravel flagged) and the Outer circuit (half size), both built and checked; still to do:
-  the photos, docs, the RX's tight corner (8.9 m, under its 10 m minimum), the proof, the hand-back.
-- **The PC**: Worker A's long proof job has held it since 22:43; Worker B's five proof jobs wait
-  behind it (pass proofs for work already stacked). Start no new PC jobs during the pause.
+- **The owner's link** = foreman/round163 (local). ?resetclean and ?lamps PASSED 11-21, being made default
+  by Worker C. Nothing else under test.
+- **Worker A** (a2fab314deb77a72b): the AI PHASE (TODO 2, the 11-21 list items 7-12): a measured baseline of
+  the owner's 4 tests on 6 levels, then the two leads for racers waiting behind traffic (other-
+  carriageway cars counted; the aggression-scaled gaps), then a brief plan. TUNE, don't change.
+  The Scanyah trailer is parked on worker/joint a150f2ae (behind ?trailer).
+- **Worker C** (a60bdb17a2f902ec3, fresh 11-21, brief scratchpad/briefC1.md, PC repo2): the resetclean +
+  lamps pass; then fpshud, marksage (oldest marks fade first, no straight cuts), the CHEQUERED FLAG
+  (missing at the end of many races - diagnosis first), the Pembreezy trace (b4y) results, then
+  Blighty Park. Worker B retired 11-21 (context full).
 - **PARKED, the owner's next list:** PIT STOPS (the owner has IMAGES - ask for them, then discuss);
   the AI rework (circuits' off-track and first-corner pile-ups, Pembreezy); a hill climb stage for
   the E36; Glen Hellish, Swapsies; Story mode / upgrades (race conversions, the repair bill: pay or
