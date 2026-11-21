@@ -68,7 +68,9 @@ MARK TRACK.)
      (faster reactions / prediction), NOT lower aggression; close-running clearance; the "why held"
      trace on the highway AND circuits. ONE BASE AI, highway-only tweaks only where essential.
   10. ROLLING STARTS: after the GREEN the cars still move a bit uniform, as a block - each should
-     race its own line from the green (owner 11-21: b).
+     race its own line from the green (owner 11-21: b). PASSED 11-21, the default (TODO-DONE,
+     PASSED 11-21, THE ROLLING GREEN AND THE HIGHWAY FAN): each AI's own reaction at the green, a
+     few jumping it, the start phase from the release; the highway start's slide to one lane fixed.
   11. AI HANDBRAKE use; drifting later (drift modes / tracks / events).
   FEATURES
   12. FLASHING: racers may flash a car blocking them (traffic or a racer). Traffic flashed moves

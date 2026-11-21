@@ -1,4 +1,4 @@
-// ai/startFan.ts - ?hwfan: THE HIGHWAY START, FANNED (owner 11-21: "on highway starts they all seem
+// ai/startFan.ts - THE HIGHWAY START, FANNED (owner 11-21: "on highway starts they all seem
 // to drift to one side and then kinda all weave back over together"). MEASURED
 // (tools/scratch/_hwside.mjs, the motorway, every switch off): through the rolling formation the
 // race driver under the formation kept planning - every car behind another racer in its column
@@ -9,7 +9,6 @@
 // driverLane.ts startK) it holds its formation lane, going round only a car TRULY SLOWER than it,
 // and then only to its own column's side - the left column fans out left, the right column right.
 // The endless road only (state.roadRead): a circuit's rolling start is as before.
-import { FIX } from '../core/fixes.ts';
 import { blockOn } from './gapPick.ts';
 import type { SeenCar } from './gapPick.ts';
 import type { Drv } from './driverCtx.ts';
@@ -18,12 +17,12 @@ import type { Drv } from './driverCtx.ts';
 export const FAN_SLOW = 0.8;
 
 /**
- * ?hwfan, while the start holds the car on the endless road: no dodge plan or picked line kept.
+ * While the start holds the car on the endless road: no dodge plan or picked line kept.
  * @param state the driver's state
  * @param held the start holds it this think
  */
 export function clearHeldPlan(state: Drv['state'], held: boolean): void {
-  if (!FIX.hwfan || !held || !state.roadRead) return;
+  if (!held || !state.roadRead) return;
   state.dodge = 0;
   state.gapBase = null;
 }
@@ -42,7 +41,7 @@ function columnSide(drv: Drv): number {
 }
 
 /**
- * ?hwfan, the gap picker in a highway start phase: 'hold' - no pick, my formation lane kept (no
+ * The gap picker in a highway start phase: 'hold' - no pick, my formation lane kept (no
  * truly slower car on my line within reading); else the room cut to my column's side.
  * @param drv the driver
  * @param seen the cars seen
@@ -53,7 +52,7 @@ function columnSide(drv: Drv): number {
 export function startFan(drv: Drv, seen: SeenCar[], mine: { myLat: number; speed: number;
   look: number; half: number; len: number; startK: number; lo: number; hi: number }):
   'hold' | { lo: number; hi: number } | null {
-  if (!FIX.hwfan || !drv.state.roadRead || !(mine.startK > 0)) return null;
+  if (!drv.state.roadRead || !(mine.startK > 0)) return null;
   const { myLat, speed, look, half, len } = mine;
   const slower = seen.filter((other) => other.fwd > 0 && other.fwd < speed * look + 8
     && other.v < FAN_SLOW * speed);

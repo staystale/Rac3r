@@ -186,7 +186,7 @@ function lookFirst(car: AiCar, path: AiPath, nearIdx: number, lineOff: number, l
  */
 function noteHeld(state: Drv["state"], ctx: DriveCtx) {
   if (ctx.hold) state.heldT = state.t;
-  // (?hwfan: no dodge plan kept while held on the endless road - ai/startFan.ts)
+  // (no dodge plan kept while held on the endless road - ai/startFan.ts)
   clearHeldPlan(state, !!ctx.hold);
 }
 
