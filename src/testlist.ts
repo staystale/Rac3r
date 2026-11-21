@@ -91,4 +91,12 @@ export const TEST_LIST: TestEntry[] = [
     try: 'Clip a front corner: while the lamp flickers the car ahead moves over or gets angry.',
     wrong: 'No reaction to a flicker, a racer angry, or a dead headlight still flashing by hand.',
   },
+  {
+    id: 'stockholm',
+    added: '2026-11-21',
+    name: 'GETAWAY STOCKHOLM, step 1: the city scenery',
+    where: 'Test link + &stockholm=1: TEST MODE > ENDLESS ROADS > GETAWAY STOCKHOLM, any road',
+    try: 'Drive: city stretches (blocks, streets, noise walls, old town roofs) and green ones.',
+    wrong: 'Buildings on the road or a slip, a wall across a way in, an empty city, a bad sign.',
+  },
 ];

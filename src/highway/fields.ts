@@ -99,7 +99,7 @@ const pickW = (rand: () => number, table: [string, number][]) => {
   return table[0][0];
 };
 // is rect k clear of the road (r m past its edge, the side road too) and of every keep rect?
-function roomFor(state: HwState, rect: KeepRect, clear: (x: number, y: number,
+export function roomFor(state: HwState, rect: KeepRect, clear: (x: number, y: number,
   radius: number) => boolean, margin: number) {
   if (state.keep.some((other) => overlap(other, rect))) return false;
   const nx = -rect.ay, ny = rect.ax;

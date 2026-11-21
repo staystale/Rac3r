@@ -14,7 +14,8 @@ export interface HwCfg {
   sweep: number[]; bend: number[];   // radius ranges, m
   pStraight: number; pBend: number;   // the chance of a straight / a tight bend
   walls?: string; wallGap?: number;   // walled in: the barrier kind, m off the road edge
-  theme?: 'canyon';   // its own roadside (highway/canyon.ts); none: the countryside
+  // its own roadside (highway/canyon.ts, highway/city.ts); none: the countryside
+  theme?: 'canyon' | 'city';
   kRate?: number;   // the fastest curvature change, 1/m per m (road.ts; else presets.ts K_RATE)
   // its changes by road distance (Deaf Valley's HIGH road: highway/desertplan.ts)
   stretch?: (dist: number, seed: number) => Partial<HwCfg> | null;
@@ -113,6 +114,9 @@ export interface HwState {
   nextSlip?: number; nextBridge?: number;   // the road distance of the next slip / bridge
   nextServices?: number; servicesN?: number;   // the next services, how many so far
   gantryDue?: boolean; villageNext?: number;
+  lotNext?: Record<number, number>;   // the city's next lot's road distance, by side (city.ts)
+  // the city's lot due on each side: where it starts (road distance) and its length, m
+  lotDue?: Record<number, { s: number; len: number } | null>;
   looseCut?: number | null; looseNew?: LevelObj[];   // the loose objects dropped / added
   tookExit?: boolean;   // the player left by a slip
   // the crash-cushion barrels' bookkeeping (highway/cushions.ts): where this stretch's barriers
@@ -154,4 +158,7 @@ export interface DressCtx {
   clear: (x: number, y: number, radius: number) => boolean;
   // clear of the road alone (not of the keep-out areas: a wall stands round a lay-by)
   roadClear: (x: number, y: number, radius: number) => boolean;
+  // clear on the road's RIGHT side (of the road and the keep-out areas: the left's side road not
+  // counted - highway/city.ts)
+  clearRight: (x: number, y: number, radius: number) => boolean;
 }

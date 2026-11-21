@@ -2,7 +2,7 @@
 // NOX / NOF node-tool switches. Split out of highway.ts.
 import { layLaybys, bayOut } from "./laybys.ts";
 import { envValue } from "../core/debug.ts";
-import { STEP, SIGNS } from "./presets.ts";
+import { STEP, SIGNS, CITY_SIGNS } from "./presets.ts";
 import { stateOf } from "./road.ts";
 import { blocked, cutBy, isSignClear, sideStep, sideFlush, syncCovers, SLIP_W, cutSkips }
   from "./cuts.ts";
@@ -11,6 +11,7 @@ import { extras } from "./extras.ts";
 import { layLooseRoadside } from "./litter.ts";
 import { layRoadLamps } from "./roadlamps.ts";
 import { dressCanyon } from "./canyon.ts";
+import { CITY_BIOMES, layCityLots } from "./city.ts";
 import { medianAt } from "./medians.ts";
 import { layCushions, markBarriers, noteMedianPiece } from "./cushions.ts";
 import type { LevelObj } from '../cones/coneTypes.ts';
@@ -57,8 +58,15 @@ function makeDressContext(level: HwLevel, firstIdx: number, endIdx: number, loos
   };
   const clear = (x: number, y: number, radius: number) => roadClear(x, y, radius)
     && !blocked(state.keep, x, y, radius);
+  // (the right side: the secret side road runs on the LEFT - roadClear's ring round each road
+  // point it runs by reaches the right side as far out too)
+  const clearRight = (x: number, y: number, radius: number) => {
+    for (let j = Math.max(0, firstIdx - 60); j < Math.min(road.length, endIdx + 60); j += 2)
+      if ((road[j].x - x) ** 2 + (road[j].y - y) ** 2 < (halfWidth + radius) ** 2) return false;
+    return !blocked(state.keep, x, y, radius);
+  };
   return { level, state, rand, halfWidth, road, firstIdx, endIdx, loose, pointAt, clear,
-    roadClear };
+    roadClear, clearRight };
 }
 
 /**
@@ -69,25 +77,30 @@ function makeDressContext(level: HwLevel, firstIdx: number, endIdx: number, loos
 // (owner 11-09: "endless roads should cycle randomly between their potential next track sections
 // so it always varies"): the road's own random order and lengths (was farm, forest, farm, rocky,
 // farm, forest, 2.2 km each, round and round)
-const biomeAtDist = (dist: number, seed: number) => biomePlanAt(dist, seed);
+// (GETAWAY STOCKHOLM: the city's and the green stretches - highway/city.ts)
+const biomeAtDist = (dist: number, seed: number, theme?: string) => (theme === 'city'
+  ? biomePlanAt(dist, seed, CITY_PLANS, CITY_BIOMES) : biomePlanAt(dist, seed));
 
 // the countryside's stretches in a random order: each 1.4-3 km, farmland the likeliest, never the
 // same twice running; by road and road distance, laid as far as asked (biomePlanAt)
 const BIOMES: [string, number][] = [["farm", 0.5], ["forest", 0.3], ["rocky", 0.2]];
-const BIOME_PLANS = new Map<number, { ends: number[]; names: string[]; state: number }>();
+type BiomePlans = Map<number, { ends: number[]; names: string[]; state: number }>;
+const BIOME_PLANS: BiomePlans = new Map(), CITY_PLANS: BiomePlans = new Map();
 
 /**
- * The countryside's stretch at a road distance on a road.
+ * The countryside's (or a themed scenery's) stretch at a road distance on a road.
  * @param dist road distance, m
  * @param seed the road's seed
+ * @param plans the plans laid so far, by seed
+ * @param table the stretches and their weights (the first is where the road starts)
  * @returns the biome name there
  */
-function biomePlanAt(dist: number, seed: number): string {
-  let plan = BIOME_PLANS.get(seed);
-  if (!plan) BIOME_PLANS.set(seed, plan = { ends: [2200], names: ["farm"], state: seed || 1 });
+function biomePlanAt(dist: number, seed: number, plans = BIOME_PLANS, table = BIOMES): string {
+  let plan = plans.get(seed);
+  if (!plan) plans.set(seed, plan = { ends: [2200], names: [table[0][0]], state: seed || 1 });
   const rand = () => (plan!.state = (plan!.state * 16807) % 2147483647) / 2147483647;
   while (plan.ends[plan.ends.length - 1] <= dist) {
-    const last = plan.names[plan.names.length - 1], next = BIOMES.filter(([name]) => name !== last),
+    const last = plan.names[plan.names.length - 1], next = table.filter(([name]) => name !== last),
       total = next.reduce((sum, [, weight]) => sum + weight, 0);
     let pick = rand() * total, name = next[next.length - 1][0];
     for (const [each, weight] of next) if ((pick -= weight) < 0) { name = each; break; }
@@ -197,14 +210,28 @@ function layGantryAndSign(ctx: DressCtx, i: number, dist: number, mark: Stamp) {
   if (Math.floor(dist / 700) !== Math.floor((dist - STEP) / 700)) {
     const count = Math.floor(dist / 700),
       sideSign = count % 2 ? 1 : -1,
-      label =
-        count % 3 === 0
-          ? `HULL ${412 + count * 3} MI`
-          : SIGNS[(count * 7 + state.seed) % SIGNS.length];
+      isCity = level._cfg.theme === 'city',
+      label = signLabel(count, state.seed, isCity);
     const pos =
       freeAt(i, sideSign * (halfWidth + 6), 10) || freeAt(i, -sideSign * (halfWidth + 6), 10);
-    if (pos) level.props.push(mark({ kind: 'board', x: pos.x, y: pos.y, rot: pos.rot, label }));
+    // (the city's signs blue, as its exit signs)
+    if (pos) level.props.push(mark({ kind: 'board', x: pos.x, y: pos.y, rot: pos.rot, label,
+      ...(isCity ? { blue: true } : {}) }));
   }
+}
+
+/**
+ * A roadside sign's words: every third the distance that goes up (HULL in miles; the city's
+ * CENTRUM in km), else a silly sign.
+ * @param count the sign's number along the road
+ * @param seed the road's seed
+ * @param isCity GETAWAY STOCKHOLM's
+ * @returns the words
+ */
+function signLabel(count: number, seed: number, isCity: boolean): string {
+  if (isCity) return count % 3 === 0 ? `CENTRUM ${2 + count} KM`
+    : CITY_SIGNS[(count * 7 + seed) % CITY_SIGNS.length];
+  return count % 3 === 0 ? `HULL ${412 + count * 3} MI` : SIGNS[(count * 7 + seed) % SIGNS.length];
 }
 
 /**
@@ -366,6 +393,16 @@ function clearSignsOffLanes(level: HwLevel, fromS: number) {
 }
 
 /**
+ * The trees a stretch has: the countryside's own; the city's green stretches a forest's, its city
+ * ones a farm's few (between the noise walls and the lots).
+ * @param biomeName the stretch
+ * @param isCity GETAWAY STOCKHOLM's
+ * @returns the biome the trees are laid for
+ */
+const treeBiomeOf = (biomeName: string, isCity: boolean) => (!isCity ? biomeName
+  : biomeName === 'green' ? 'forest' : 'farm');
+
+/**
  * Dresses road points [firstIdx, endIdx) (dress's body).
  * @param level the highway level
  * @param firstIdx first road point
@@ -401,17 +438,20 @@ function dressStretch(level: HwLevel, firstIdx: number, endIdx: number, loose: L
   for (let j = firstIdx; j < endIdx; j += 2)
     for (const cut of state.cuts)
       if (!cutSkips(cut, road[j].s)) cutBy(level, cut, road[j].x, road[j].y);
+  const isCity = level._cfg.theme === 'city';
   for (let i = firstIdx; i < endIdx; i++) {
     const dist = road[i].s,
-      biomeName = biomeAtDist(dist, state.seed),
+      biomeName = biomeAtDist(dist, state.seed, level._cfg.theme),
       mark = ((obj: { _s?: number }) => {
         obj._s = dist;
         return obj;
       }) as unknown as Stamp;   // it stamps whatever it is given and hands it back
     // the side road's offset here first, so the trees below keep off it
     sideStep(level, i, pointAt);
-    if (!NOF) fields(level, i, pointAt, clear, biomeName, loose);
-    layRoadsideTrees(ctx, i, dist, biomeName, mark);
+    // (the city's lots in place of the fields: highway/city.ts)
+    if (isCity) layCityLots(ctx, i, biomeName);
+    else if (!NOF) fields(level, i, pointAt, clear, biomeName, loose);
+    layRoadsideTrees(ctx, i, dist, treeBiomeOf(biomeName, isCity), mark);
     layFarmBlock(ctx, i, biomeName, mark);
     // SLIP ROADS + BRIDGES (requirement: an off-slip every 2-4 km - tapering lane, sign, ends in
     // fields, drivable; bridges over a road, a river and a railway, plus a footbridge; rare cheeky
@@ -420,7 +460,7 @@ function dressStretch(level: HwLevel, firstIdx: number, endIdx: number, loose: L
     // since, requirement: all the types of highway should have bridges and slip roads you can take)
     if (!NOX) extras(level, i, dist, pointAt, mark);
     layGantryAndSign(ctx, i, dist, mark);
-    layHump(ctx, i, biomeName, mark);
+    if (biomeName !== 'city') layHump(ctx, i, biomeName, mark);
   }
   sideFlush(level, false);
   if (state.coversDirty) syncCovers(level);

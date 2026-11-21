@@ -104,4 +104,7 @@ export const FIX = {
   // yours or a racer's - flashes the traffic ahead, three flickers anger it as three flashes do,
   // and it chases whoever angered it; a dead headlight cannot flash (game/flashes.ts)
   lampflash: atLoad('lampflash'),
+  // the GETAWAY STOCKHOLM scenery for the endless roads, step 1: its card, the city's stretches,
+  // its lots of buildings behind noise walls, blue signs (highway/city.ts)
+  stockholm: atLoad('stockholm'),
 };
