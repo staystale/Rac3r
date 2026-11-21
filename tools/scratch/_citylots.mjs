@@ -4,6 +4,9 @@
 // is the spot a lot's middle would stand on inside a lot; if not, what has that ground - a keep
 // rect that is not a lot (a slip, an approach, a river, a lay-by, a services), the secret side
 // road (left), or nothing (the lot found no room: a bend, the next lot).
+// And at every window move: each city building's footprint (1 m grid) and each noise wall's
+// points against the road (its half width) and every lane that is not the lot's own (slips, side
+// roads, approaches, junctions): any inside counts as a clash.
 // STOCKHOLM=1 node tools/scratch/_citylots.mjs [roads motorway,dual,...] [seeds 4242,7,99]
 import * as L from '../../src/lab.ts';
 import { createHighway, resetHighway, stepHighway, roadPose, setHighwayPreset }
@@ -14,6 +17,32 @@ const seeds = (process.argv[3] || '4242,7,99').split(',').map(Number);
 // m: the lot's middle past the road edge (city.ts LOT_OUT_M + LOT_DEPTH_M / 2)
 const MID_OUT_M = 6 + 22;
 
+/**
+ * Whether a point is on the road or on a lane that is not lot `field`'s.
+ * @param level the highway level
+ * @param x world x
+ * @param y world y
+ * @param field the lot's id
+ * @returns what it is on, or null
+ */
+function onAWay(level, x, y, field) {
+  const hw = level._hw.geo.hw;
+  for (const point of level._hw.pts)
+    if ((point.x - x) ** 2 + (point.y - y) ** 2 < (hw - 0.5) ** 2) return 'road';
+  for (const lane of level.lanes) {
+    if (lane.field === field) continue;
+    const half = (lane.width || 6) / 2 - 0.3;
+    for (let i = 1; i < lane.pts.length; i++) {
+      const [ax, ay] = lane.pts[i - 1], [bx, by] = lane.pts[i];
+      const len2 = (bx - ax) ** 2 + (by - ay) ** 2 || 1;
+      const share = Math.max(0, Math.min(1, ((x - ax) * (bx - ax) + (y - ay) * (by - ay)) / len2));
+      if ((ax + (bx - ax) * share - x) ** 2 + (ay + (by - ay) * share - y) ** 2 < half * half)
+        return 'lane';
+    }
+  }
+  return null;
+}
+
 const inRect = (rect, x, y) => {
   const dx = x - rect.x, dy = y - rect.y;
   return Math.abs(dx * rect.ax + dy * rect.ay) <= rect.hu
@@ -23,6 +52,7 @@ const inRect = (rect, x, y) => {
 for (const road of roads) {
   const tally = { lot: 0, keep: 0, side: 0, none: 0 };
   let made = 0, dropped = 0;
+  const clashes = { road: 0, lane: 0 }, checked = new Set();
   for (const seed of seeds) {
     const level = createHighway(seed, road);
     setHighwayPreset(level, road, 'stockholm');
@@ -36,7 +66,27 @@ for (const road of roads) {
       const pose = roadPose(level, dist, lane);
       car.x = pose.x;
       car.y = pose.y;
-      stepHighway(level, car);
+      const moved = stepHighway(level, car);
+      if (moved) for (const prop of level.props) {
+        if (prop.kind !== 'block' || prop.field == null || checked.has(prop)) continue;
+        checked.add(prop);
+        const ax = Math.cos(prop.rot || 0), ay = Math.sin(prop.rot || 0);
+        for (let along = -prop.w / 2; along <= prop.w / 2; along += 1)
+          for (let across = -prop.h / 2; across <= prop.h / 2; across += 1) {
+            const on = onAWay(level, prop.x + ax * along - ay * across,
+              prop.y + ay * along + ax * across, prop.field);
+            if (on) {
+              clashes[on]++;
+              along = across = Infinity;
+            }
+          }
+      }
+      if (moved) for (const wall of level.barriers) {
+        if (wall.kind !== 'wall' || wall.field == null || checked.has(wall)) continue;
+        checked.add(wall);
+        const on = wall.pts.map(([x, y]) => onAWay(level, x, y, wall.field)).find(Boolean);
+        if (on) clashes[on]++;
+      }
       // (a lot gone while still ahead of the car: dropped by a later feature, not behind)
       const now = new Map(level.zones.filter((zone) => zone.surface?.id === 'concrete'
         && zone.field != null).map((zone) => [zone.field, zone._s]));
@@ -79,5 +129,6 @@ for (const road of roads) {
   const pct = (count) => `${Math.round((100 * count) / Math.max(1, total))}%`;
   console.log(`${road.padEnd(10)} spots ${total}: lot ${pct(tally.lot)} | slip/approach/river/`
     + `lay-by ${pct(tally.keep)} | side road ${pct(tally.side)} | no room ${pct(tally.none)}`
-    + ` | lots made ${made}, dropped ahead of the car ${dropped}`);
+    + ` | lots made ${made}, dropped ahead of the car ${dropped}`
+    + ` | clashes: on the road ${clashes.road}, on a lane ${clashes.lane} (of ${checked.size})`);
 }

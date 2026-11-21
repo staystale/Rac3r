@@ -136,8 +136,29 @@ function layLot(ctx: DressCtx, side: number, i: number, len: number): boolean {
 }
 
 /**
+ * The lot due on one side (state.lotDue), laid once road point i is its last: by then the side
+ * road along it is known (highway/cuts.ts sideStep marks each point as it is dressed - MEASURED,
+ * _citylots.mjs: decided at its first point, a lot ran into a side road starting along it, 11 of
+ * 4,500 buildings and walls on a lane).
+ * @param ctx the dress context
+ * @param i the road point
+ * @param side -1 / +1
+ * @returns the length laid, m (0: no room); null when it is not due yet
+ */
+function layDueLot(ctx: DressCtx, i: number, side: number): number | null {
+  const { state, road } = ctx, due = state.lotDue![side]!;
+  const firstIdx = i - Math.round((road[i].s - due.s) / STEP);
+  if (firstIdx < 0) return 0;
+  if (firstIdx + Math.ceil(due.len / STEP) > i) return null;
+  if (layLot(ctx, side, firstIdx, due.len)) return due.len;
+  // (a lot is straight: on a bend a long one finds no room where the shortest does)
+  return due.len > LOT_LEN_M[0] && layLot(ctx, side, firstIdx, LOT_LEN_M[0]) ? LOT_LEN_M[0] : 0;
+}
+
+/**
  * The city's lots at road point i: on each side, once the last lot there has ended, the next one
- * (a CITY stretch only; a GREEN one keeps the schedule moving).
+ * is due (a CITY stretch only; a GREEN one keeps the schedule moving), and laid when the dressing
+ * reaches its last point; with no room there it tries again a point on.
  * @param ctx the dress context
  * @param i the road point
  * @param biome the stretch here (CITY_BIOMES)
@@ -145,20 +166,25 @@ function layLot(ctx: DressCtx, side: number, i: number, len: number): boolean {
 export function layCityLots(ctx: DressCtx, i: number, biome: string) {
   const { state, road } = ctx, rand = state.frnd, dist = road[i].s;
   const next = (state.lotNext ||= { '-1': 0, 1: 0 });
+  const dueBy = (state.lotDue ||= { '-1': null, 1: null });
   for (const side of [-1, 1]) {
-    if (dist < next[side]) continue;
-    if (biome !== 'city') {
-      next[side] = dist;
+    if (!dueBy[side]) {
+      if (dist < next[side]) continue;
+      if (biome !== 'city') {
+        next[side] = dist;
+        continue;
+      }
+      dueBy[side] = { s: dist, len: LOT_LEN_M[0] + rand() * (LOT_LEN_M[1] - LOT_LEN_M[0]) };
+    }
+    const due = dueBy[side]!, laidLen = layDueLot(ctx, i, side);
+    if (laidLen === null) continue;
+    // (no room: it is due again a point on - tried once the dressing reaches its new last point)
+    if (!laidLen && biome === 'city') {
+      dueBy[side] = { s: due.s + STEP, len: due.len };
       continue;
     }
-    let len = LOT_LEN_M[0] + rand() * (LOT_LEN_M[1] - LOT_LEN_M[0]);
-    // (the whole lot on road points laid so far: else it waits)
-    if (i + Math.ceil(len / STEP) + 2 >= road.length) continue;
-    // (a lot is straight: on a bend a long one finds no room where the shortest does)
-    let isLaid = layLot(ctx, side, i, len);
-    if (!isLaid && len > LOT_LEN_M[0]) isLaid = layLot(ctx, side, i, len = LOT_LEN_M[0]);
-    // (no room: the next point tries again)
-    next[side] = isLaid ? dist + len + LOT_GAP_M[0] + rand() * (LOT_GAP_M[1] - LOT_GAP_M[0])
-      : dist + STEP;
+    dueBy[side] = null;
+    next[side] = laidLen ? due.s + laidLen + LOT_GAP_M[0] + rand() * (LOT_GAP_M[1] - LOT_GAP_M[0])
+      : dist;
   }
 }

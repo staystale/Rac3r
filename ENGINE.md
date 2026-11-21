@@ -815,6 +815,19 @@ and tyre stacks (`rallycross-venue.ts rallycrossLevel` -> `rxDress(..., floorM)`
 the LEVEL'S OWN floor (`level.floor`, as the tape's `onFloor` reads it), not the standard 260 m:
 Croughed RX (546 m) keeps all 396 loose objects.
 
+GETAWAY STOCKHOLM (?stockholm=1, step 1; `highway/city.ts`): a third scenery (`presets.ts
+HW_SCENERY.stockholm`, theme 'city', every road type) dressed as the countryside is (`dress.ts
+dressStretch`: slips, bridges, services, gantries, lamps, litter, walls, median, cushions) with
+its own stretches (`CITY_BIOMES`: city / green in a random order, never the same twice; green the
+forest's trees) and, in place of the fields, LOTS on each side of a city stretch: concrete 6 m
+past the road edge (a 2 m verge), a noise wall ('wall') on its road side, a street down its middle,
+a row of buildings either side ('block': modern slabs and offices, or the old town's houses under
+ochre / red / copper roofs, now and then a church). A lot is a keep rect with a field id: a later
+slip, approach or river drops it whole. The right side's lots test the ground with the dress
+context's `clearRight` (the left's side road not counted). Its signs are blue (`CITY_SIGNS`, the
+distance that goes up: CENTRUM n KM). `tools/scratch/_citylots.mjs` (node: how much of each side is
+lots), `_cityshot.mjs` (photos).
+
 THE HIGHWAY'S CHEVRON BOARDS (`highway/litter.ts layLooseRoadside`, knockable loose objects,
 cones TOPPLES, 45 kg; since 11-15, passed - the old rally boards on every bend tighter than R 650
 are gone; `highway/chevrons.ts layRoadChevron`): the UK rule - black

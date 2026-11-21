@@ -46,4 +46,12 @@ export const TEST_LIST: TestEntry[] = [
     try: 'Drive a few km through the bends and watch the dashed lane lines.',
     wrong: 'Dashes jumping, doubled or broken where the ground joins, or a different length.',
   },
+  {
+    id: 'stockholm',
+    added: '2026-11-21',
+    name: 'GETAWAY STOCKHOLM, step 1: the city scenery',
+    where: 'Test link + &stockholm=1: TEST MODE > ENDLESS ROADS > GETAWAY STOCKHOLM, any road',
+    try: 'Drive: city stretches (blocks, streets, noise walls, old town roofs) and green ones.',
+    wrong: 'Buildings on the road or a slip, a wall across a way in, an empty city, a bad sign.',
+  },
 ];

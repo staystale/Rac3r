@@ -82,7 +82,22 @@ MARK TRACK.)
   14. CAMERA SHAKE in crashes: it already exists (owner 11-21: "there is but it's ok let's leave it
      for now"; it may have changed since the camera keeps the player's car clear of the HUD). Parked.
   15. HIGHWAY: a city theme, Stockholm ("getaway"), beside Country and Deaf Valley (owner: yes -
-     motorways, tunnels, bridges over water).
+     motorways, tunnels, bridges over water). OWNER 11-21 on the plan: the name GETAWAY STOCKHOLM;
+     all 5 road types; tunnels SLATTED as Moanaco's; water NOT walled all the way (gaps, weak
+     fences - you can go in); its own colder season numbers in the one weather system (snow banks
+     only if the game has them); the existing cars reweighted, no new ones; the same police for now;
+     blue signs; Worker C writes the silly signs, the owner approves; police and other speeders
+     slightly up (numbers proposed, not set). Build order: (1) card, city stretches, buildings,
+     noise walls, signs; (2) water and long bridges; (3) tunnels; (4) climate, traffic, police -
+     each to the phone before the next. Drive on the left kept (foreman confirming).
+     STEP 1 BUILT (Worker C 11-21) behind ?stockholm=1 (highway/city.ts, ENGINE: GETAWAY
+     STOCKHOLM). MEASURED (tools/scratch/_citylots.mjs, node, the first city stretch 400-2100 m,
+     3 seeds): share of each side that is a lot - motorway 64%, interstate 59%, dual 61%, walled
+     48%, single lane 64% (the rest: slips / approaches / lay-bys 2-8%, the side road 0-17%, gaps
+     and bends 16-37%); no building or noise wall on the road or any lane (0 of 576-776 checked
+     per road type: a lot is laid once the side road along it is known); photos
+     tools/scratch/_city-*-390x844 / 844x390, no page errors. The silly
+     signs (presets.ts CITY_SIGNS) FOR THE OWNER TO APPROVE. AWAITING THE PHONE TEST.
 
 - THE 11-16 QUEUE (every item owner-approved after a brief plan; details in each worker's TODO
   entry as it lands):
