@@ -10,18 +10,19 @@ not repeated here), then `TODO.md`, then this page. The 11-07 version of this pa
   tyre marks kept whole, Blighty Park RX + circuit, the chequered flag every race. Ask before #6.
 - **Main** = 186bfb32 (round171: trailer/boxhold/gridlen passed, CI green). Serve locally; push only for CI.
   LESSON: a level made plain needs tools/laplengths.mjs re-run (CI failed on it twice).
-- **The owner's link** = foreman/round172 (local): ?aitune (owner: "does seem better"), ?labstart, ?gridpos.
+- **The owner's link** = foreman/round176 (local, CI pushed 11-21 21:40): all switches below. PASSED, being made
+  default: rollgreen, hwfan (Worker A, worker/pass-start); trailheal (+RESTART), cabglass, lampflash, dashphase
+  (Worker C, worker/c-pass177). Under test: aitune, gapdest, gapcommit, stockholm (being reworked).
 - **Worker A** (a2fab314deb77a72b, worker/aiphase on round165): owner said GO 11-21 on F1 ?gapdest (score the
-  destination line), the ?aitune 1+2 vs 1-5 re-measure, F2 ?gapcommit (lane commit as a SLIDER per driver type,
-  COMMIT_BOXED in ai/tune.ts, defaults = today until the owner picks the lean: asked racers loose/speeders
-  strict?). Then rolling starts (rare green jumps, reaction by skill+personality, 2x2 to the line; the G1 fix
-  explained, awaiting yes), then handbrake when advantageous (fwd/rally mostly) + tarmac drift (drift cars,
-  aggressive drivers). Drift cost/events later. Results: scratchpad w68-w72.
+  11-21 night: owner "keep AI testing light, only what we need, then I test and approve". One PC job (w74):
+  the start pass proof + circuit-tuned F1 (racing-line cost x4), 4 seeds. F1 measured: motorway big win
+  (held 64->39 %, +10 % speed), circuits more incidents; owner wants ONE AI, highway-only only if forced.
+  Owner felt crashes up "in both" - find which switch, tune to at/below today.
 - **Worker C** (a60bdb17a2f902ec3, PC repo2, port 8092): ?gridpos (+ highway rolling start, stage), then
-  GETAWAY STOCKHOLM step 1 behind ?stockholm (owner answers 11-21: all 5 roads, slatted tunnels like Moanaco,
-  water with gaps / weak fences, own season values in the ONE weather system, existing cars reweighted, a little
-  more police and speeders, blue signs, silly signs written by us + owner approves; drive-left assumed, asked).
-  FLASHING plan (most exists: ?moveover/?roadrage) - 5 owner questions open.
+  Queue: the 4-switch pass proof (c12), STOCKHOLM REWORK (owner: boring, countryside-like; wants a busy city:
+  more tunnels, bridges, water, raised/cut roads, city litter; REUSE systems; traffic quantity unchanged),
+  ?copmix (police: countryside nearly none, Deaf Valley some, Stockholm today's = most), then the plan for
+  RIGHT-HAND driving in Stockholm (owner: yes, real world, overtake on the left).
 - **PARKED, the owner's next list:** PIT STOPS (the owner has IMAGES - ask for them, then discuss);
   the AI rework (circuits' off-track and first-corner pile-ups, Pembreezy); a hill climb stage for
   the E36; Glen Hellish, Swapsies; Story mode / upgrades (race conversions, the repair bill: pay or
