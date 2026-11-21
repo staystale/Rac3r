@@ -34,6 +34,8 @@ export const BUST_GAP_M = 1, BUST_STILL_MS = 2, BUST_S = 3;
 // s: the lights on and off inside FLASH_S is a flash; an indicator on in the last INDICATE_S
 // counts for a lane change; one offence counts once a COOL_S
 const FLASH_S = 1.2, INDICATE_S = 4, COOL_S = 3;
+// (a flickering headlight flashes once in each FLASH_S: game/flashes.ts)
+export { FLASH_S };
 // m from a lane's middle inside which you are in it (a lane is ~3.65 m: well across)
 const LANE_IN_M = 1.2;
 // a pile-up: PILE_CARS cars within PILE_NEAR_M of you hurt (their mean damage up PILE_HURT)

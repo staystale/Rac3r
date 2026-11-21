@@ -9,6 +9,7 @@ import { hidesLamp } from './riglamps.ts';
 import { DAYLIGHT } from "../world/daylight.ts";
 import { REVERSE_LAMP, isReversing } from "./reverselights.ts";
 import { settledLampLevel } from "./carlamps.ts";
+import { simLampLevel } from "../physics/lampsim.ts";
 import { drawAngryFlash, drawLightBar, isAngryFlashOn } from "./lightbar.ts";
 import { drawTyreByPressure, wheelTurn } from "./tyrelook.ts";
 import { drawRolledBody, prepareBody } from "./rollbody.ts";
@@ -482,8 +483,9 @@ export function lampLevel(car: RenderCar, corner: number) {
   // (a rig - the trailer carries its rear lamps - render/riglamps.ts)
   if (hidesLamp(car, corner)) return 0;
   const damage = car.dmg ? car.dmg[corner] : 0;
-  // a hit's flicker settles - working again, or dead (render/carlamps.ts)
-  return settledLampLevel(car, corner, damage);
+  // a hit's flicker settles - working again, or dead (render/carlamps.ts; ?lampflash: the sim's,
+  // physics/lampsim.ts)
+  return car.lampSim ? simLampLevel(car, corner) : settledLampLevel(car, corner, damage);
 }
 
 /**

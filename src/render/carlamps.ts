@@ -7,14 +7,15 @@
 // is the same for every reader in one FLICKER_SLOT_MS (the picture, the glow and the beam agree
 // within a frame). Wall clock: it is only a look.
 import { makeLookRandom } from "./shared.ts";
+import { LAMP_OK, LAMP_GONE, SETTLE_MIN_S, SETTLE_MAX_S, DIE_BASE, DIE_PER_SHARE, HIT_DAMAGE,
+  FLICKER_SLOT_S, FLICKER_OFF } from '../physics/lampsim.ts';
 import type { RenderCar } from './types.ts';
 
-// damage share at which a lamp starts to suffer, and at which it is smashed
-export const LAMP_OK = 0.15, LAMP_GONE = 0.35;
-// a hit's flicker, ms; the death chance (as the street lights: world/lamps.ts)
-const SETTLE_MIN_MS = 3000, SETTLE_MAX_MS = 8000, DIE_BASE = 0.15, DIE_PER_SHARE = 0.7;
-// damage a hit must add to count, and the flicker's slot and how often it is off in it
-const HIT_DAMAGE = 0.01, FLICKER_SLOT_MS = 70, FLICKER_OFF = 0.45;
+// (the rule's numbers are the sim's: physics/lampsim.ts, ?lampflash's sim-clock lamps)
+export { LAMP_OK, LAMP_GONE };
+// a hit's flicker, ms; the flicker's slot, ms
+const SETTLE_MIN_MS = SETTLE_MIN_S * 1000, SETTLE_MAX_MS = SETTLE_MAX_S * 1000;
+const FLICKER_SLOT_MS = FLICKER_SLOT_S * 1000;
 
 /** One lamp's state: the damage it last saw, when its flicker settles (0: none), dead, and
  * its own flicker seed (cars do not flicker in step). */

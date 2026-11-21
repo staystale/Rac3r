@@ -72,11 +72,6 @@ export const FIX = {
   // K_BRAKE, tarmac and loose alike - the drivers correct), and the brake pedal holds through a
   // braking zone instead of dabbing on and off (ai/driverPedals.ts pedals)
   aitune: atLoad('aitune'),
-  // the Lab's start spot in the open, one for every vehicle (world/labstart.ts)
-  labstart: atLoad('labstart'),
-  // the place shown before the running order's first step is your grid slot's, not P1
-  // (game/session.ts startField)
-  gridpos: atLoad('gridpos'),
   // F1 "SCORE THE DESTINATION" (owner 11-21, item 7): the gap picker scores a line more than one
   // swerve across by its own room ahead, not the part-way point it steers to this think
   // (ai/gapPick.ts lineScore) - MEASURED, the BOXED trace: a roomier line out of one think's
@@ -97,4 +92,16 @@ export const FIX = {
   // round only a truly slower car, to its own column's side (ai/startFan.ts) - the endless road
   // only
   hwfan: atLoad('hwfan'),
+  // RESET mends the tractor's trailer as it mends the tractor (game/session.ts doReset)
+  trailheal: atLoad('trailheal'),
+  // a lorry's, van's and bus's own side windows on its rolled side (render/carprofile.ts windows:
+  // the Scanyah's cab showed none - its glass band was the screen's last 5 %)
+  cabglass: atLoad('cabglass'),
+  // the highway's lane dashes laid by the road's distance, not the canvas pattern's length: tiles
+  // painted before and after the road window moved line up (render/lanedash.ts)
+  dashphase: atLoad('dashphase'),
+  // FLASHING 2: the lamps' flicker on the sim clock (physics/lampsim.ts); a flickering headlight -
+  // yours or a racer's - flashes the traffic ahead, three flickers anger it as three flashes do,
+  // and it chases whoever angered it; a dead headlight cannot flash (game/flashes.ts)
+  lampflash: atLoad('lampflash'),
 };

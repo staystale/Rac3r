@@ -129,6 +129,8 @@ Every reset lands the car still and on its wheels with nothing a crash left pend
 reset -> `roll.ts clearPendingRoll`: a side impact's queued roll kick, a barrier ride, the air
 time, the trip cell, the tip's pull), and the camera snaps to it on every path
 (`game/session.ts doReset`); `tools/scratch/_resetcheck.mjs` resets after crashes, rolls and slides.
+A reset mends the car (`damage.ts repair`: the bill kept); ?trailheal=1 its trailer too, the same
+way (`tools/scratch/_trailheal.mjs`).
 
 STUCK AI AND TRAFFIC. A racing AI first drives itself out (`ai/driveOut.ts`: nearly still 1.2 s ->
 reverse 1-1.5 s with the wheel turned toward the road; three tries inside 15 s = `giveUp`, read by
@@ -325,9 +327,8 @@ the escape notice and measures its box; `_weathernotice.mjs` steps SEASON weathe
 THE LAP PANEL (`hud/laps.ts drawHudLapTimer`, top right under the speedo, 120 px wide, its rect in
 `hud/layout.ts`): two rows - the lap (or stage / distance) and its clock; under them the best,
 the gap or the joker line on the left and the position (P2/4) on the right (`game/order.ts
-stepOrder` / the highway's order, each sim step; until the race's first step, ?gridpos=1: your
-grid slot's place,
-`game/session.ts showGridPlace` - off, the restart's P1 at every slot). Since 11-15
+stepOrder` / the highway's order, each sim step; until the race's first step your grid slot's
+place, `game/session.ts showGridPlace`). Since 11-15
 (passed): in an RX race with AI cars (`lapJokerRowShown`, written to the
 HUD state's `lapJokerRow` each frame before the layout) the panel is one row taller (`LAP_ROW_H`
 13 px: 36 -> 49) and every joker line (TO DO, the approach, IN JOKER, TAKEN, DONE, the extra
@@ -373,6 +374,17 @@ chase heard (switch off: none). `audio.sirensOn` counts the voices sounding (too
 twins: the flashing light bar (`render/lightbar.ts`) and the HUD's flashing blue behind the stars
 (`hud/heat.ts`). Rendered to .wav by `tools/scratch/_sirenwav.mjs`; checked live by
 `tools/scratch/_siren.mjs`.
+
+FLASHING THE TRAFFIC (`game/flashes.ts stepFlashes`, each step on the endless roads): your
+LIGHTS off and on inside FLASH_S (1.2 s) flash the nearest car of our way ahead in your lane
+(`ai/trafficYield.ts noteFlash`): half move over (8 s); three flashes inside 20 s make it ANGRY
+(`ai/trafficPolice.ts makeAngry`): a chase driver without lights after whoever angered it
+(`stepAngry`: its target's speed and sight). ?lampflash=1: every car's lamps settle on the sim
+clock (`physics/lampsim.ts`, `stepAllLamps` - the flicker 3-8 s after a hit, then steady or dead;
+the drawing reads it), a FLICKERING headlight - yours or a racer's (its `_hwf`) - flashes once in
+each FLASH_S as a hand flash does, each driver's flashes counted on their own (`flashBy`), and
+your lights cannot flash with no working headlight. Racers are never flashed. The walkthrough's
+FLASH THEM card. `tools/scratch/_lampflash.mjs`.
 
 THE WAITING POLICE WAKE (passed 11-15; `ai/policeWake.ts
 wakeWaiting`, from `ai/trafficPolice.ts runChase` while any driver has stars): a police car of our
@@ -510,8 +522,8 @@ LENGTH (`game/gridlen.ts`): a circuit's or a start lane's grid keeps each
 slot GRID_CLEAR_M (9 m) behind the tail of the car two slots ahead (`layGridByLength`,
 `slotBackM`: gridPos and the rolling start's formation), a towing rig (`rigExtents`) in the last
 slot (`playerSlot`); a solo rig slides back along the road to a spot clear for its trailer
-(`clearRigSpot`). The highway's grid is its own. The Lab's start spot (its spawn and painted box) is `world/labstart.ts`; under test,
-`?labstart=1`: in the open lane between its rows of street lights. A reset of a towing rig keeps its trailer's box,
+(`clearRigSpot`). The highway's grid is its own. The Lab's start spot (its spawn and painted box) is `world/labstart.ts`:
+in the open lane between its rows of street lights. A reset of a towing rig keeps its trailer's box,
 lined up behind, clear of cars too (`game/resetspot.ts firstFree`).
 LOW RANGE (`physics/lowrange.ts`): a car with a two-speed transfer box (`LOW_RANGE`
 by model: the Defunder 110, the Strange Rover) has `car.lowRange`; in low `powertrain.ts` multiplies
@@ -647,6 +659,9 @@ off / on): racing laps fronts smoke 5-8 % -> 1 % of the time; a held 1.1 g corne
   that push with its speed changing at most 3 px / frame / frame (`render/hudclear.ts
   followPush`), taken whole only after a teleport, so the view never jumps. Not avoided: the
   steering stick under the thumb, the passing notices, the speed camera's flash, the finish flag.
+- THE HIGHWAY'S LANE DASHES (`render/road.ts drawLaneDashes`, painted into the tiles): the canvas
+  dash pattern phased by `sub.sBase`; ?dashphase=1 lays each dash by the road's absolute distance
+  (`render/lanedash.ts`), so tiles painted before and after the road window moved line up.
 - `render/tiles.ts`: what lies over the floor and zones (track ribbon, lanes, patches, covers,
   wear, kerbs) is painted into cached tiles within a time budget per frame (`tilesBudget.ts`);
   the GPU ground scales them to the exact zoom and draws each at its exact place. Tiles under new
@@ -677,6 +692,11 @@ off / on): racing laps fronts smoke 5-8 % -> 1 % of the time; a held 1.1 g corne
   `carlooks.ts` LOOKS, the new cars' in `newcarlooks.ts` and `newcarlooks2.ts` - each painted from its plan,
   a half width per column) and `cardamage.ts`,
   `particles.ts`.
+- A rolled car's side picture (`render/carprofile.ts paintSideProfile`): its roof line, paint, wheels and
+  its side glass - a car's one band from its waist to the roof line (`glass`); ?cabglass=1 a lorry's,
+  van's or bus's own windows instead (`windows`: each from its sill to its head, under the roof line;
+  a bus's bays by `windowBays`) - the Scanyah's door window high on its cab, the vans' door
+  windows, the buses' rows of bays (`tools/scratch/_cabglass.mjs`).
 - A rolled car (`render/rollbody.ts`) is drawn as a body: each column of the car a rounded
   cross-section (a superellipse as round as `physics/rollshape.ts` says), turned to one of 12
   angles, each picture row the nearest point of the turned outline. The outline (`closeRing`, the

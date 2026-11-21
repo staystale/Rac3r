@@ -735,21 +735,24 @@ export function makeAngry(ctx: TrafficCtx, slot: TrafficCar,
 }
 
 /**
- * The angry drivers' step: each one's speed after you, as a chaser's; calmed down -
- * driving on as traffic - once its time is up, it is wrecked, or you are out of its sight.
+ * The angry drivers' step: each one's speed after the driver that angered it (you, or with
+ * ?lampflash a racer whose lamps flickered at it), as a chaser's; calmed down - driving on as
+ * traffic - once its time is up, it is wrecked, or its target is out of its sight.
  * @param ctx the traffic
  * @param dt the step, s
  * @param player you
  */
 export function stepAngry(ctx: TrafficCtx, dt: number, player: AiCar) {
-  const playerS = ctx.level!._hw.q!.s, youV = Math.hypot(player.vx, player.vy);
+  const playerS = ctx.level!._hw.q!.s;
   for (const slot of ctx.list) {
     const police = slot.police;
     if (slot.parked || !police?.angry) continue;
     police.angryT = (police.angryT ?? 0) - dt;
-    const gap = Math.hypot(slot.car.x - player.x, slot.car.y - player.y);
+    const target = police.target ?? player;
+    const targetS = target === player ? playerS : target._hwf?.s ?? playerS;
+    const gap = Math.hypot(slot.car.x - target.x, slot.car.y - target.y);
     if (police.angryT > 0 && gap < ANGRY_SIGHT_M && !slot.wreck) {
-      slot.vWant = chaseSpeed(ANGRY_STARS, youV, slot.s - playerS);
+      slot.vWant = chaseSpeed(ANGRY_STARS, Math.hypot(target.vx, target.vy), slot.s - targetS);
       continue;
     }
     giveUp(ctx, slot);
