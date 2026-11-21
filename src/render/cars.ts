@@ -5,6 +5,7 @@ import {
   partRegion, cutPart, flatPart, withoutParts, isBare, drawnBit,
 } from "./carparts.ts";
 import { SPRITE_PPM } from "./shared.ts";
+import { hidesLamp } from './riglamps.ts';
 import { DAYLIGHT } from "../world/daylight.ts";
 import { REVERSE_LAMP, isReversing } from "./reverselights.ts";
 import { settledLampLevel } from "./carlamps.ts";
@@ -19,6 +20,7 @@ import { drawHangingExhaust } from "./hanging.ts";
 import type { CornerShift } from "./carcorners.ts";
 import { bitsOf } from '../carbits.ts';
 import { halfTrackAt } from '../world/wheels.ts';
+import { wheelRows } from './axlerows.ts';
 import type {
   Cam, CarSprite, RenderCar, RenderCarSpec, RenderCone, SilCanvas, View,
 } from "./types.ts";
@@ -443,10 +445,8 @@ function drawCarWheels(carsCtx: CarsContext, car: RenderCar, sprite: CarSprite, 
   const { view } = carsCtx;
   const spec = drawnSpec(car.spec);
   const turn = car.tyreP ? wheelTurn(car, performance.now()) : 0;
-  for (const [axleX, side, steer, corner] of [
-    [spec.lf, -1, car.delta, 0], [spec.lf, 1, car.delta, 1],
-    [-spec.lr, -1, 0, 2], [-spec.lr, 1, 0, 3],
-  ]) {
+  // (a trailer: its axle group only - render/axlerows.ts)
+  for (const [axleX, side, steer, corner] of wheelRows(spec, car.delta)) {
     const metrics = wheelMetrics(spec, sprite, axleX < 0), { halfWidth } = metrics;
     if (car.wheelOff && car.wheelOff[corner]) {
       drawLostWheel(view.ctx, car, spec, sprite, { axleX, side, halfWidth, corner });
@@ -479,6 +479,8 @@ function drawCarWheels(carsCtx: CarsContext, car: RenderCar, sprite: CarSprite, 
  * @returns the lamp's level 0..1
  */
 export function lampLevel(car: RenderCar, corner: number) {
+  // (?trailer: a rig - the trailer carries its rear lamps - render/riglamps.ts)
+  if (hidesLamp(car, corner)) return 0;
   const damage = car.dmg ? car.dmg[corner] : 0;
   // a hit's flicker settles - working again, or dead (render/carlamps.ts)
   return settledLampLevel(car, corner, damage);

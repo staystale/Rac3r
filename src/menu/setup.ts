@@ -361,7 +361,8 @@ function addLaunchButtons(menu: Menu, panel: HTMLElement, level: Level, state: S
           finish: state.finish ?? null } : {}),
         laps: state.opponents || state.rxRace ? state.laps : 0,
         livery: (profile.livery || {})[profile.active],
-        tyre: (profile.tyres || {})[profile.active] });
+        tyre: (profile.tyres || {})[profile.active],
+        trailer: (profile.trailers || {})[profile.active] });
   }, 'go');
   addButton(menu, panel, '◀ BACK', () => backToTracks(menu, level));
 }

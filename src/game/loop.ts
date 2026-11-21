@@ -29,6 +29,7 @@ import type { CarInput } from '../vehicle.ts';
 // (cast: the renderer's and the HUD's car shapes are narrower than the traffic's and the
 // highway flow's - one car type is TODO.md work)
 import type { RenderGame } from '../render/types.ts';
+import type { Tractor } from '../physics/trailer.ts';
 import type { HudGame } from '../hud/hudtypes.ts';
 import type { ReportFrame } from '../ui/report.ts';
 
@@ -62,6 +63,16 @@ export function interpolateCar() {
 }
 
 /**
+ * The player's trailer, if it tows one (?trailer: physics/trailer.ts), drawn between its poses as
+ * the AI are.
+ * @returns it, or nothing
+ */
+function towed() {
+  const trailer = (game.car as Tractor).trailer;
+  return trailer ? [trailer] : [];
+}
+
+/**
  * Moves the AI and traffic cars to their interpolated draw poses (same alpha as the player).
  * @returns [car, x, y, heading] entries to put back after drawing
  */
@@ -69,7 +80,7 @@ export function interpolateAiCars() {
   const aiKeep: [{ x: number; y: number; heading: number }, number, number, number][] = [];
   if (shared.started
     && !shared.guide.active) for (const aiCar of [...game.ai.map((entry) => entry.car),
-      ...game.traffic.cars]) {
+      ...game.traffic.cars, ...towed()]) {
     const prev = aiCar._p;
     if (!prev || Math.hypot(aiCar.x - prev.x, aiCar.y - prev.y) > 5) continue;
     const alpha = Math.max(0, Math.min(1, shared.acc / PHYSICS_STEP_SECONDS));

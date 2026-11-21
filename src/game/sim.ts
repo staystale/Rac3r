@@ -33,6 +33,7 @@ import type { TrafficVehicle } from '../ai/types.ts';
 import { noteTouches, notePoliceCamera, stepPoliceGame } from './police.ts';
 import { stepFlashes } from './flashes.ts';
 import { FIX } from '../core/fixes.ts';
+import { hitchTrailer, mirrorLamps, stepTrailer, type Tractor } from '../physics/trailer.ts';
 import { ROLL_CLEAR_S, respawnBehind } from './resetspot.ts';
 import { stepSirens } from './sirens.ts';
 import { halfTrackAt } from '../world/wheels.ts';
@@ -196,6 +197,8 @@ export function stepCarSignals(inp: CarInput, wallDt: number) {
     }
   }
   updateFieldHeadlights();
+  // (?trailer: the tractor's trailer hitched, and in line after a reset - before the race too)
+  hitchPlayerTrailer();
   if (game.car.roll && game.car.roll.phase !== 'rolling' && game.car.roll.phase !== 'none'
     && game.car.roll.phase !== 'tipping' && shared.mode === 'session')
     game.notice = { text: game.car.roll.phase === 'roof' ? 'ON YOUR ROOF — RESET'
@@ -234,6 +237,29 @@ export function openGuideOnLanding() {
   }
 }
 
+/** ?trailer: hitches the player's trailer, or lines it up after a reset (physics/trailer.ts). */
+function hitchPlayerTrailer() {
+  if (FIX.trailer) hitchTrailer(game.car as Tractor);
+}
+
+/**
+ * ?trailer: the player's trailer for one step (hitched by stepCarSignals): the world's clamps and
+ * their damage on it, its ground, then its body and the pin (physics/trailer.ts).
+ * @param inp this step's player input (its brake works the trailer's brakes)
+ */
+function stepPlayerTrailer(inp: CarInput) {
+  const car = game.car as Tractor, trailer = car.trailer;
+  if (!trailer) return;
+  // (its pose before the step, for the drawing's interpolation: game/loop.ts)
+  trailer._p = { x: trailer.x, y: trailer.y, h: trailer.heading };
+  const vx0 = trailer.vx, vy0 = trailer.vy;
+  clampWorld(trailer, PHYSICS_STEP_SECONDS);
+  hit(trailer, vx0, vy0);
+  applyGround(trailer, PHYSICS_STEP_SECONDS);
+  stepTrailer(car, inp.brake, PHYSICS_STEP_SECONDS);
+  mirrorLamps(car);
+}
+
 /**
  * One fixed physics step of the player car: the clamps, damage, ground and rollover, then the
  * car model. A non-finite result puts the car back on the track instead of ending the game.
@@ -259,6 +285,8 @@ export function stepCarPhysics(inp: CarInput) {
       tripCheck(game.car, PHYSICS_STEP_SECONDS);
       stepTipping(game.car, PHYSICS_STEP_SECONDS);
     }
+    // (?trailer: the tractor's trailer on its pin)
+    if (FIX.trailer) stepPlayerTrailer(inp);
     // a tyre burst (heat, wear, debris): a puncture, and news on the HUD
     // a tyre burst (heat, wear, debris): no written notice - the wheel and the tyre diagram
     // show it (owner: no banners)
@@ -454,8 +482,10 @@ export function stepTrafficContacts(tcars: TrafficVehicle[]) {
   for (const racer of [game.car, ...game.ai.map((entry) => entry.car)])
     racer.dragMul = racer.wakeDown = 1;
   if (game.ai.length || tcars.length) {
-    const racers = [game.car, ...game.ai.map((entry) => entry.car)], all = tcars.length
-      ? [...racers, ...tcars] : racers, startVel = all.map((racer) => [racer.vx, racer.vy]);
+    const trailer = (game.car as Tractor).trailer;
+    const racers = [game.car, ...(trailer ? [trailer] : []), ...game.ai.map((entry) => entry.car)],
+      all = tcars.length ? [...racers, ...tcars] : racers,
+      startVel = all.map((racer) => [racer.vx, racer.vy]);
     carContacts(all);
     // (the drivers running into a car - their speed changed by it - a police car may
     // see)
@@ -472,6 +502,28 @@ export function stepTrafficContacts(tcars: TrafficVehicle[]) {
 }
 
 /**
+ * The cars the loose objects meet this step: you, (?trailer) your trailer, and with a field the AI
+ * and the traffic within 60 m of you - those on the ground (a car on a bridge or in a tunnel
+ * touches nothing on the ground: world/crossings.ts).
+ * @param tcars the traffic cars
+ * @returns the cars
+ */
+function looseField(tcars: TrafficVehicle[]) {
+  const near = tcars.length
+    ? tcars.filter((racer) => Math.abs(racer.x - game.car.x) < 60
+      && Math.abs(racer.y - game.car.y) < 60) : [];
+  // (your trailer pushes them too, and its knocked-off parts are thrown)
+  const trailer = (game.car as Tractor).trailer as unknown as typeof game.car | null | undefined;
+  const towed = trailer ? [trailer] : [];
+  // (a trailer has no wheels at its nose - its "front" corners are the kingpin's)
+  if (trailer && trailer.wheelSpawn) trailer.wheelSpawn = trailer.wheelSpawn
+    .filter((corner) => corner >= 2);
+  return (game.ai.length || near.length || towed.length
+    ? [game.car, ...towed, ...game.ai.map((entry) => entry.car), ...near] : [game.car])
+    .filter(onGround);
+}
+
+/**
  * The loose cones and tyres for one sim step, and the loose tyres a torn-off wheel throws.
  * @param tcars the traffic cars
  */
@@ -480,13 +532,7 @@ export function stepLooseCones(tcars: TrafficVehicle[]) {
   // within 60 m of you knocks the litter too — a knocked tyre on the road is something they
   // then have to hit)
   {
-    const near = tcars.length
-      ? tcars.filter((racer) => Math.abs(racer.x - game.car.x) < 60
-        && Math.abs(racer.y - game.car.y) < 60) : [];
-    // (a car on a bridge or in a tunnel touches nothing on the ground: world/crossings.ts)
-    const field = (game.ai.length || near.length
-      ? [game.car, ...game.ai.map((entry) => entry.car), ...near] : [game.car]).filter(onGround),
-        startVel = field.map((racer) => [racer.vx, racer.vy]);
+    const field = looseField(tcars), startVel = field.map((racer) => [racer.vx, racer.vy]);
     // planks a smashed marshal hut threw out join the loose objects (world/marshalbox.ts)
     const planks = takeThrownPlanks();
     if (planks.length) game.cones.spawn(planks);

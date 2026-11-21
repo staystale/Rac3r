@@ -254,6 +254,16 @@ function flatOwnBumper(spec: RenderCarSpec, front: boolean, material: string): F
     for (const x of [2, Math.round(wide / 2) - 1, wide - 4]) block(x, 0, 2, tall, STEEL_GREY);
     return flat;
   }
+  if (material === 'underrun') {
+    // the under-run bar: a steel beam the trailer's width on its two hangers, its reflectors
+    const flat = bitCanvas(partPx(spec.wid * 0.92), partPx(0.45)), { block } = flat;
+    const wide = flat.canvas.width, tall = flat.canvas.height;
+    block(0, tall - 3, wide, 3, BUMPER_COL.steel);
+    for (const x of [Math.round(wide * 0.22), Math.round(wide * 0.78) - 2]) block(x, 0, 2, tall,
+      BUMPER_COL.steel);
+    for (const x of [2, wide - 5]) block(x, tall - 2, 3, 1, TAIL_LAMP);
+    return flat;
+  }
   if (material === 'weight') {
     const flat = flatCanvas(partPx(0.9), partPx(0.5), '#2a2d34'), { block } = flat;
     const wide = flat.canvas.width, tall = flat.canvas.height;
@@ -325,6 +335,7 @@ function flatDoor(spec: RenderCarSpec, corner: number): FlatCanvas {
   const front = corner < 2, door = doorAt(String(spec.id), corner);
   const shape = door ? doorShape(String(spec.id), corner) : 'door';
   if (shape === 'skirt' || shape === 'sliding') return flatSidePanel(spec, door!, shape);
+  if (shape === 'curtain') return flatCurtain(spec, door!);
   const flat = flatCanvas(partPx(door ? (door[1] - door[0]) * spec.len : 1.0),
     partPx(shape === 'cab' ? 1.5 : 0.95), spec.paint), { block } = flat;
   const wide = flat.canvas.width, tall = flat.canvas.height, glassH = Math.round(tall * 0.4);
@@ -364,6 +375,59 @@ function flatSidePanel(spec: RenderCarSpec, door: [number, number],
   return flat;
 }
 
+// m: a curtainsider's curtain, its height; between its straps
+const CURTAIN_TALL_M = 2.6, STRAP_M = 0.55;
+
+/**
+ * a curtainsider's CURTAIN section lying flat (render the trailer's: its second colour, grey
+ * PVC): its rail along the top, the straps and their buckles down it, torn at its ends.
+ * @param spec the trailer as drawn
+ * @param door its span, shares of the length
+ * @returns the drawing
+ */
+function flatCurtain(spec: RenderCarSpec, door: [number, number]): FlatCanvas {
+  const col = spec.trim || '#8a9099';
+  const flat = flatCanvas(partPx((door[1] - door[0]) * spec.len), partPx(CURTAIN_TALL_M), col),
+    { block } = flat;
+  const wide = flat.canvas.width, tall = flat.canvas.height, dark = shade(col, 0.62);
+  block(0, 0, wide, 2, shade(col, 0.8));
+  for (let x = 2; x < wide - 1; x += Math.max(3, partPx(STRAP_M))) {
+    block(x, 2, 1, tall - 3, dark);
+    block(x - 1, tall - 4, 3, 2, STEEL_GREY);
+  }
+  return flat;
+}
+
+/**
+ * a trailer's REAR DOOR lying flat (one of its pair: ~1.27 x 2.6 m) in its paint: its two
+ * locking bars and their handles, the hinges on its outer edge, its tail lamp's bracket.
+ * @param spec the trailer as drawn
+ * @returns the drawing
+ */
+function flatRearDoor(spec: RenderCarSpec): FlatCanvas {
+  const flat = flatCanvas(partPx(spec.wid / 2), partPx(CURTAIN_TALL_M), spec.paint),
+    { block } = flat;
+  const wide = flat.canvas.width, tall = flat.canvas.height;
+  for (const x of [Math.round(wide * 0.3), Math.round(wide * 0.68)]) {
+    block(x, 1, 1, tall - 2, CHROME);
+    block(x - 1, Math.round(tall * 0.55), 3, 1, STEEL_GREY);
+  }
+  for (const y of [2, Math.round(tall / 2), tall - 4]) block(wide - 2, y, 2, 2, STEEL_GREY);
+  block(0, 0, wide, 1, shade(spec.paint, 0.75));
+  return flat;
+}
+
+/**
+ * a trailer's MUDGUARD lying flat: black plastic over its axle group's wheel, ~1.0 x 0.5 m.
+ * @returns the drawing
+ */
+function flatMudguard(): FlatCanvas {
+  const flat = flatCanvas(partPx(1.0), partPx(0.5), '#1c1e22'), { block } = flat;
+  const wide = flat.canvas.width, tall = flat.canvas.height;
+  for (let x = 2; x < wide - 1; x += 3) block(x, tall - 2, 1, 1, '#2e3138');
+  return flat;
+}
+
 /**
  * A closed car's part LYING FLAT on its face (owner 11-07: "doors should be drawn laying flat when
  * emitted ... like all parts, other than wheels"): what you see of it on the ground, at its real
@@ -376,8 +440,9 @@ function flatSidePanel(spec: RenderCarSpec, door: [number, number],
  */
 export function flatPart(spec: RenderCarSpec, kind: string, corner: number,
   seed: number): HTMLCanvasElement {
+  const towed = bitsOf(String(spec.id)).towed;
   const front = corner < 2, flat = kind === 'bumper' ? flatBumper(spec, front)
-    : kind === 'wing' ? flatWing(spec, front) : flatDoor(spec, corner);
+    : kind === 'wing' ? (towed ? flatMudguard() : flatWing(spec, front)) : flatDoor(spec, corner);
   damage(flat.ctx, flat.canvas.width, flat.canvas.height, seed);
   return flat.canvas;
 }
@@ -553,6 +618,8 @@ export function drawnBit(spec: RenderCarSpec, kind: string,
  */
 export function bitDrawing(spec: RenderCarSpec, kind: string): FlatCanvas | null {
   const bits = bitsOf(String(spec.id));
+  // (a towed body's rear doors stand upright: drawn flat, not cut from the roof above them)
+  if (kind === 'boot' && bits.towed) return flatRearDoor(spec);
   return kind === 'exhaust' ? flatExhaust(bits) : kind === 'mirror' ? flatMirror(spec)
     : kind === 'wishbone' ? flatWishbone() : kind === 'strut' ? flatStrut()
       : kind === 'shaft' ? flatShaft() : kind === 'rod' ? flatRod()

@@ -104,11 +104,15 @@ function axleVerticalForces(car: Car, carSpec: Spec, mass: number, gravity: numb
   const FdownF = aero * (carSpec.downforceF || 0);
   const FdownR = aero * (carSpec.downforceR || 0);
 
+  // (?trailer: a trailer's front weight on the fifth wheel, 0.5 m ahead of the rear axle -
+  // physics/trailer.ts hitchLoad, N; 0 on every other car)
+  const hitch = (car as { hitchLoad?: number }).hitchLoad || 0;
+  const hitchF = hitch * 0.5 / carSpec.L, hitchR = hitch - hitchF;
   const FzF = Math.max(0,
-      (((mass * gravity * carSpec.lr) / carSpec.L - car.transfer + FdownF) * loadKF)
+      (((mass * gravity * carSpec.lr) / carSpec.L - car.transfer + FdownF + hitchF) * loadKF)
           * (car.bankLoadFactor || 1));
   const FzR = Math.max(0,
-      (((mass * gravity * carSpec.lf) / carSpec.L + car.transfer + FdownR) * loadKR)
+      (((mass * gravity * carSpec.lf) / carSpec.L + car.transfer + FdownR + hitchR) * loadKR)
           * (car.bankLoadFactor || 1));
   return { loadKF, loadKR, FzF, FzR };
 }

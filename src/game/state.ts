@@ -68,6 +68,7 @@ export interface LaunchOpts {
   finish?: string | null;   // its finish's code (highway/finish.ts; null: endless)
   weather?: { mode: WeatherMode; season: number }; time?: number | null;   // the conditions
   livery?: { paint?: string; trim?: string; num?: number } | null; tyre?: string;   // garage
+  trailer?: string;   // ?trailer: a tractor's trailer (the garage's TRAILER row)
   aiTune?: AiTune | null;   // the AI DRIVERS dials (ai/tune.ts)
 }
 

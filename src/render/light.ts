@@ -12,6 +12,7 @@ import { activeLamps, lampsLit } from '../world/lamps.ts';
 import { drawPools, paintPool, paintPoolTint } from './lamppools.ts';
 import type { PoolPainter } from './lamppools.ts';
 import { hazardsOn, indicatorBlinkOn, lampLevel } from './cars.ts';
+import { rigOf } from './riglamps.ts';
 import { traceDecks } from './lightdecks.ts';
 import { drawEventGlows } from './eventglows.ts';
 import type { EventPainter } from './eventglows.ts';
@@ -227,7 +228,7 @@ function paintCarGlows(painter: GlowPainter, game: RenderGame, level: CarLevel =
   };
   if (game.traffic) for (const car of game.traffic.cars) each(car);
   for (const rival of game.ai || []) each(rival.car);
-  each(game.car);
+  for (const car of rigOf(game.car)) each(car);
 }
 
 /** Which cars a pass lights: every car, those on the ground (or in a tunnel), those on a deck. */
@@ -497,7 +498,7 @@ function drawFieldBeams(painter: PoolPainter, beam: HTMLCanvasElement, game: Ren
   };
   if (game.traffic) for (const car of game.traffic.cars) each(car);
   for (const rival of game.ai || []) each(rival.car);
-  each(game.car);
+  for (const car of rigOf(game.car)) each(car);
 }
 
 /**

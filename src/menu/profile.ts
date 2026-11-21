@@ -17,6 +17,8 @@ export interface Profile {
   lastLevel: string;   // the track last chosen
   lastCat?: string;   // the track category last opened (menu/tracks)
   tyres?: Record<string, string>;   // the tyre fitted per car id (cars.ts TYRES)
+  // ?trailer: the trailer per tractor unit (physics/trailer.ts TRAILER_CHOICES)
+  trailers?: Record<string, string>;
   tyreWear?: Record<string, number[]>;   // that set's wear per car, FL FR RL RR, 0..1
   livery?: Record<string, Livery>;   // paint shop choices per car
   aiCars?: string;   // setup: AI cars of the same model or the class

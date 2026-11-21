@@ -29,11 +29,14 @@ export interface CarBits {
   // an ELECTRIC car (the Tesla): no exhaust and no engine to lose, its frunk under the bonnet
   // (render/underskin.ts), no petrol stations (ai/trafficTrips.ts)
   electric?: boolean;
+  // a TOWED body (the Scanyah's trailer): no engine, exhaust or radiator to lose; under a lost
+  // panel its load or its floor (render/underskin.ts)
+  towed?: boolean;
 }
 
 /** A side panel's drawing: a car's door, the bus's cab door or lower-deck skirt panel, a van's
  * sliding door. */
-export type DoorShape = 'door' | 'cab' | 'skirt' | 'sliding';
+export type DoorShape = 'door' | 'cab' | 'skirt' | 'sliding' | 'curtain';
 /** One side panel at a damage corner: where it spans (shares, 0 tail .. 1 nose), its drawing. */
 export interface SidePanel { at: [number, number]; shape: DoorShape }
 /** A car's DOORS: each side's, front first, as the shares of its length it spans. */
@@ -50,7 +53,9 @@ export interface CarDoors {
   // its bumpers' own material where not the body's paint (step 4): black plastic (the Mk8
   // Transits), grey plastic (the Mk7), black steel (the Defender), steel tube (the trophy truck,
   // the stock car), the tractor's front weight; none - it has none (the Seven)
-  bumper?: 'black' | 'grey' | 'steel' | 'tube' | 'weight' | 'none';
+  bumper?: 'black' | 'grey' | 'steel' | 'tube' | 'weight' | 'underrun' | 'none';
+  // none at the front (the trailer's nose: its headboard, no bumper), its rear bumper as above
+  frontBumper?: 'none';
   // its mirrors (step 5) where its painter draws them: the share of its length they start at, on
   // the body's edge rows (rim) or just outside them, their colour; none - it has none
   mirrors?: CarMirrors | 'none';
@@ -173,6 +178,13 @@ export const CAR_DOORS: Record<string, CarDoors> = {
   // the Scanyah tractor: a cab door a side, black steel bumper, the big black mirrors at the cab
   'scanyah-r450': { doors: [[0.68, 0.86]], bumper: 'steel',
     mirrors: { at: 0.87, col: 'black', big: true } },
+  // its trailer (a curtainsider): a section of curtain each side ahead of and behind the middle
+  // (~3.1 m each, between the posts: EST), the twin rear doors, the under-run bar at the back and
+  // no bumper at the nose, no mirrors, no glass
+  'scanyah-trailer': { doors: [], corners: [{ at: [0.53, 0.76], shape: 'curtain' },
+    { at: [0.53, 0.76], shape: 'curtain' }, { at: [0.2, 0.43], shape: 'curtain' },
+    { at: [0.2, 0.43], shape: 'curtain' }], rearLid: [0, 0.025], twinRear: true,
+  bumper: 'underrun', frontBumper: 'none', mirrors: 'none' },
   'skool-bus': { doors: [], corners: [{ at: [0.8, 0.875], shape: 'door' },
     { at: [0.55, 0.8], shape: 'skirt' }, { at: [0.25, 0.5], shape: 'skirt' },
     { at: [0.25, 0.5], shape: 'skirt' }], bumper: 'steel', rearLid: [0.002, 0.03],
@@ -186,7 +198,8 @@ export const CAR_DOORS: Record<string, CarDoors> = {
 // panels and arches, the Defender's aluminium body, the Seven's cycle wings, the trophy truck's
 // fibreglass, the tractor's mudguards; every other closed car's are welded quarter panels (they
 // crush, not fly off); the single-seaters and the buggy keep their own open parts
-const BOLTED_REAR_WINGS = new Set(['porch-gt3r', 'bmv-m4gt3', 'civvic-btcc', 'toyoter-corolla',
+const BOLTED_REAR_WINGS = new Set(['scanyah-trailer', 'porch-gt3r', 'bmv-m4gt3', 'civvic-btcc',
+  'toyoter-corolla',
   'cleo-cup', 'saxo-kit', 'kit-2l', 'rx-super', 'rally-4x4', 'drift-s13', 'naffcar', 'ts010',
   'rebelion-r13', 'defunder-110', 'seven-420r', 'effing-tt', 'tractor', 'bmv-e36peak']);
 
@@ -239,7 +252,7 @@ export function doorAt(carId: string, corner: number): [number, number] | null |
  * @param kind the part
  * @returns it has none
  */
-export const hasNo = (bits: CarBits, kind: string) => !!bits.electric
+export const hasNo = (bits: CarBits, kind: string) => (!!bits.electric || !!bits.towed)
   && (kind === 'exhaust' || kind === 'engine');
 
 // (the radiators: the Sport quattro S1 E2 carried its radiator at the back, as World RX supercars
@@ -373,6 +386,9 @@ export const CAR_BITS: Record<string, CarBits> = {
   // no rear panel, the DC13 six along the frame under the cab, the radiator at the front
   'scanyah-r450': { pipes: 1, pipesAt: 'stack', front: 'bonnet', rear: 'none', engine: 'front',
     cyl: 6, layout: 'inline', mount: 'long', radiator: 'front' },
+  // its trailer: no engine, no pipes, no front panel; its twin rear doors (carbits CAR_DOORS)
+  'scanyah-trailer': { pipes: 0, pipesAt: 'centre', front: 'none', rear: 'boot', engine: 'front',
+    cyl: 0, layout: 'inline', mount: 'long', radiator: 'front', towed: true },
   'skool-bus': { pipes: 1, pipesAt: 'left', front: 'bonnet', rear: 'boot', engine: 'front',
     cyl: 6, layout: 'inline', mount: 'long', radiator: 'front' },
   routemonster: { pipes: 1, pipesAt: 'left', front: 'bonnet', rear: 'none', engine: 'front',

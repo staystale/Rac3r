@@ -1,6 +1,8 @@
 // menuflow.ts — Menu, launch, pause and the results screen flow.
 import { isFpsShown, setFpsShown } from '../hud/fpstoggle.ts';
 import { applyLivery, applyTyre } from '../cars.ts';
+import { FIX } from '../core/fixes.ts';
+import { chooseTrailer, type Tractor } from '../physics/trailer.ts';
 import { createCones } from '../cones.ts';
 import { rulesSeen } from '../guide.ts';
 import { setHighwayPreset, HW_ROADS, HW_SCENERY } from '../highway.ts';
@@ -242,6 +244,8 @@ function launchSession(carId: string, opts: LaunchOpts) {
   // TYRES from the garage (none = Pre-Spun, the stock car)
   // PAINT + NUMBER from the garage (none = the car's own colours, no number)
   applyTyre(game.car.spec, opts.tyre ?? '');   // (none: the stock set)
+  // (?trailer: a tractor's trailer, the garage's TRAILER row)
+  if (FIX.trailer) chooseTrailer(game.car as Tractor, opts.trailer);
   loadTyreWear(game.car);   // this car's set, as worn as it was
   doRestart();
   const guideSetting = shared.settings.guide;

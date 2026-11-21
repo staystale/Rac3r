@@ -27,6 +27,7 @@ import {
 } from './resetspot.ts';
 import { resetCar, armStart, startHeld, startAtOf } from './order.ts';
 import { gridPos, spawnAI } from './grid.ts';
+import { clearRigSpot } from './gridlen.ts';
 import { shared, game } from './state.ts';
 import { saveProfile } from '../menu/profile.ts';
 import { restartPoliceGame } from './police.ts';
@@ -407,6 +408,10 @@ function startField() {
     const slotPos = gridPos(game.ai.length ? shared.gridSlot : 0);
     reset(game.car, slotPos.x, slotPos.y, slotPos.h);
     if (shared.renderer && shared.renderer.snap) shared.renderer.snap(game.car);
+  } else {
+    // (?gridlen: a solo rig slid back to a spot clear for its trailer - game/gridlen.ts)
+    const spot = clearRigSpot(game.car);
+    if (spot) reset(game.car, spot.x, spot.y, spot.h);
   }
   // (the menu race too - owner 11-07: "no traffic on menu highway races?")
   game.traffic.reset(LEVEL.endless ? hwLevel() : null, shared.trafficDensity);
