@@ -93,7 +93,21 @@ MARK TRACK.)
      and bends 16-37%); no building or noise wall on the road or any lane (0 of 576-776 checked
      per road type: a lot is laid once the side road along it is known); photos
      tools/scratch/_city-*-390x844 / 844x390, no page errors. The silly
-     signs (presets.ts CITY_SIGNS) FOR THE OWNER TO APPROVE. AWAITING THE PHONE TEST.
+     signs (presets.ts CITY_SIGNS) FOR THE OWNER TO APPROVE.
+     OWNER 11-21 on step 1: "very boring and not varied enough. It needs more unique litter and
+     scenery, varying road terrain, more tunnels and bridges etc. Like a city, much busier ...
+     Currently it just seems like countryside"; reuse the systems. REWORKED (Worker C 11-21, ENGINE:
+     GETAWAY STOCKHOLM): its own stretches on Deaf Valley's plan (city, tunnel, water, raised,
+     cutting, a rare park); the ground raised / sunk by stretch (Deaf Valley's roadside hook);
+     Moanaco's slats over its tunnels; the river's water both sides of its long bridges, fences
+     with gaps, yachts; lots in four styles with parked cars and bins on every built-up stretch;
+     its own litter. MEASURED (tools/scratch/_citylots.mjs, node, 400-6000 m, 3 seeds, every road
+     type): lots on 61-77% of the city stretches' sides, 57-86% of a cutting's, raised's or
+     tunnel's, none on the water; 0 buildings, noise walls or parked cars on the road or a lane
+     (of 5,300-5,960 per road type); the desert's stretches the same after the plan was shared
+     (8,110 points, 0 different). A window (1.55 km) holds 140-420 parked cars, 70-170 buildings,
+     35 slats in a tunnel. Photos of each stretch at 390x844 and 844x390, no page errors. Frame
+     time at real counts: on the PC. AWAITING THE PHONE TEST.
 
 - THE 11-16 QUEUE (every item owner-approved after a brief plan; details in each worker's TODO
   entry as it lands):

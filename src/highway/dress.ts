@@ -11,7 +11,9 @@ import { extras } from "./extras.ts";
 import { layLooseRoadside } from "./litter.ts";
 import { layRoadLamps } from "./roadlamps.ts";
 import { dressCanyon } from "./canyon.ts";
-import { CITY_BIOMES, layCityLots } from "./city.ts";
+import { layCityLots } from "./city.ts";
+import { layCityWater, layTunnelSlats } from "./citywater.ts";
+import { cityStretchAt, cityWallAt } from "./cityplan.ts";
 import { medianAt } from "./medians.ts";
 import { layCushions, markBarriers, noteMedianPiece } from "./cushions.ts";
 import type { LevelObj } from '../cones/coneTypes.ts';
@@ -77,30 +79,27 @@ function makeDressContext(level: HwLevel, firstIdx: number, endIdx: number, loos
 // (owner 11-09: "endless roads should cycle randomly between their potential next track sections
 // so it always varies"): the road's own random order and lengths (was farm, forest, farm, rocky,
 // farm, forest, 2.2 km each, round and round)
-// (GETAWAY STOCKHOLM: the city's and the green stretches - highway/city.ts)
-const biomeAtDist = (dist: number, seed: number, theme?: string) => (theme === 'city'
-  ? biomePlanAt(dist, seed, CITY_PLANS, CITY_BIOMES) : biomePlanAt(dist, seed));
+// (GETAWAY STOCKHOLM: its own stretches - highway/cityplan.ts)
+const biomeAtDist = (dist: number, seed: number, theme?: string): string => (theme === 'city'
+  ? cityStretchAt(dist, seed).kind : biomePlanAt(dist, seed));
 
 // the countryside's stretches in a random order: each 1.4-3 km, farmland the likeliest, never the
 // same twice running; by road and road distance, laid as far as asked (biomePlanAt)
 const BIOMES: [string, number][] = [["farm", 0.5], ["forest", 0.3], ["rocky", 0.2]];
-type BiomePlans = Map<number, { ends: number[]; names: string[]; state: number }>;
-const BIOME_PLANS: BiomePlans = new Map(), CITY_PLANS: BiomePlans = new Map();
+const BIOME_PLANS = new Map<number, { ends: number[]; names: string[]; state: number }>();
 
 /**
- * The countryside's (or a themed scenery's) stretch at a road distance on a road.
+ * The countryside's stretch at a road distance on a road.
  * @param dist road distance, m
  * @param seed the road's seed
- * @param plans the plans laid so far, by seed
- * @param table the stretches and their weights (the first is where the road starts)
  * @returns the biome name there
  */
-function biomePlanAt(dist: number, seed: number, plans = BIOME_PLANS, table = BIOMES): string {
-  let plan = plans.get(seed);
-  if (!plan) plans.set(seed, plan = { ends: [2200], names: [table[0][0]], state: seed || 1 });
+function biomePlanAt(dist: number, seed: number): string {
+  let plan = BIOME_PLANS.get(seed);
+  if (!plan) BIOME_PLANS.set(seed, plan = { ends: [2200], names: ["farm"], state: seed || 1 });
   const rand = () => (plan!.state = (plan!.state * 16807) % 2147483647) / 2147483647;
   while (plan.ends[plan.ends.length - 1] <= dist) {
-    const last = plan.names[plan.names.length - 1], next = table.filter(([name]) => name !== last),
+    const last = plan.names[plan.names.length - 1], next = BIOMES.filter(([name]) => name !== last),
       total = next.reduce((sum, [, weight]) => sum + weight, 0);
     let pick = rand() * total, name = next[next.length - 1][0];
     for (const [each, weight] of next) if ((pick -= weight) < 0) { name = each; break; }
@@ -244,6 +243,8 @@ function signLabel(count: number, seed: number, isCity: boolean): string {
  */
 function layHump(ctx: DressCtx, i: number, biomeName: string, mark: Stamp) {
   const { level, rand, pointAt } = ctx;
+  // (the city's only in its parks)
+  if (level._cfg.theme === 'city' && biomeName !== 'green') return;
   if (i % 60 === 0 && rand() < 0.6) {
     const pos = pointAt(i, (rand() < 0.5 ? -1 : 1) * (30 + rand() * 90));
     level.bumps.push(
@@ -304,14 +305,31 @@ function layArmco(ctx: DressCtx) {
  * @returns {void}
  */
 function layWalls(ctx: DressCtx) {
-  const { level, halfWidth, road, firstIdx, endIdx, pointAt } = ctx, cfg = level._cfg;
-  const walls = cfg.walls as BarrierKind | undefined, wallGap = cfg.wallGap || 0;
-  if (walls)
+  const { level, firstIdx, endIdx } = ctx, cfg = level._cfg;
+  // (the walled road's wall all along; GETAWAY STOCKHOLM's by stretch - highway/cityplan.ts)
+  const wallAt: WallRule | null = cfg.walls ? () => ({ kind: cfg.walls as BarrierKind,
+    gap: cfg.wallGap || 0 }) : cfg.theme === 'city' ? (dist) => cityWallAt(dist, level._hw.seed)
+    : null;
+  if (wallAt)
     for (let startIdx = Math.max(0, firstIdx - 1); startIdx < endIdx; startIdx += 30)
-      for (const side of [-1, 1]) {
-        let pts: Point[] = [];
+      for (const side of [-1, 1]) layWallPiece(ctx, wallAt, startIdx, side);
+}
+
+/** The wall along the road's edges at a road distance: its kind and m off the edge, or none. */
+type WallRule = (dist: number) => { kind: BarrierKind; gap: number } | null;
+
+/**
+ * One ~120 m piece of the walls on one side (layWalls), a new one where the kind changes.
+ * @param ctx the dress context
+ * @param wallAt the wall by road distance
+ * @param startIdx the piece's first road point
+ * @param side -1 / +1
+ */
+function layWallPiece(ctx: DressCtx, wallAt: WallRule, startIdx: number, side: number) {
+  const { level, halfWidth, road, endIdx, pointAt } = ctx;
+  let pts: Point[] = [], kind: BarrierKind | null = null;
         const flush = () => {
-          if (pts.length > 1) level.barriers.push({ kind: walls, pts, _s: road[startIdx].s });
+          if (kind && pts.length > 1) level.barriers.push({ kind, pts, _s: road[startIdx].s });
           pts = [];
         };
         // (beside the SECRET SIDE ROAD the left wall swings out with it, to its far edge - it
@@ -321,7 +339,13 @@ function layWalls(ctx: DressCtx) {
         // wall across every services' way in)
         const lastIdx = Math.min(road.length - 1, endIdx - 1, startIdx + 30);
         for (let j = startIdx; j <= lastIdx; j++) {
-          const sideOffset = side < 0 && road[j].sideOff;
+          const wall = wallAt(road[j].s);
+          if (!wall || wall.kind !== kind) {
+            flush();
+            kind = wall ? wall.kind : null;
+          }
+          if (!wall) continue;
+          const wallGap = wall.gap, sideOffset = side < 0 && road[j].sideOff;
           if (!sideOffset && side < 0 && road[j].gapL) {
             flush();
             continue;
@@ -337,7 +361,6 @@ function layWalls(ctx: DressCtx) {
           pts.push([pos.x, pos.y]);
         }
         flush();
-      }
 }
 
 /**
@@ -393,14 +416,31 @@ function clearSignsOffLanes(level: HwLevel, fromS: number) {
 }
 
 /**
- * The trees a stretch has: the countryside's own; the city's green stretches a forest's, its city
- * ones a farm's few (between the noise walls and the lots).
- * @param biomeName the stretch
+ * Whether a road point gets the slips, bridges and services (highway/extras.ts): not with HWNOX,
+ * nor off the city's water or out of its tunnels (no slip into the water or the walls).
  * @param isCity GETAWAY STOCKHOLM's
- * @returns the biome the trees are laid for
+ * @param kind the stretch there
+ * @returns it does
  */
-const treeBiomeOf = (biomeName: string, isCity: boolean) => (!isCity ? biomeName
-  : biomeName === 'green' ? 'forest' : 'farm');
+const hasExtras = (isCity: boolean, kind: string) => !NOX && !(isCity && (kind === 'water'
+  || kind === 'tunnel'));
+
+/**
+ * GETAWAY STOCKHOLM's dressing at road point i, in place of the countryside's fields, trees and
+ * farm blocks: its lots (highway/city.ts), its water and its tunnels' slats (citywater.ts), and
+ * trees - a park's a forest's, the city's a farm's few between the lots.
+ * @param ctx the dress context
+ * @param i road point index
+ * @param kind the stretch (highway/cityplan.ts)
+ * @param mark tags an object with its road distance
+ */
+function dressCityPoint(ctx: DressCtx, i: number, kind: string, mark: Stamp) {
+  layCityLots(ctx, i, kind);
+  layCityWater(ctx, i, kind);
+  layTunnelSlats(ctx, i);
+  if (kind === 'green' || kind === 'city')
+    layRoadsideTrees(ctx, i, ctx.road[i].s, kind === 'green' ? 'forest' : 'farm', mark);
+}
 
 /**
  * Dresses road points [firstIdx, endIdx) (dress's body).
@@ -448,19 +488,21 @@ function dressStretch(level: HwLevel, firstIdx: number, endIdx: number, loose: L
       }) as unknown as Stamp;   // it stamps whatever it is given and hands it back
     // the side road's offset here first, so the trees below keep off it
     sideStep(level, i, pointAt);
-    // (the city's lots in place of the fields: highway/city.ts)
-    if (isCity) layCityLots(ctx, i, biomeName);
-    else if (!NOF) fields(level, i, pointAt, clear, biomeName, loose);
-    layRoadsideTrees(ctx, i, dist, treeBiomeOf(biomeName, isCity), mark);
-    layFarmBlock(ctx, i, biomeName, mark);
+    // (the city's own in place of the fields, trees and farm blocks: highway/city.ts)
+    if (isCity) dressCityPoint(ctx, i, biomeName, mark);
+    else {
+      if (!NOF) fields(level, i, pointAt, clear, biomeName, loose);
+      layRoadsideTrees(ctx, i, dist, biomeName, mark);
+      layFarmBlock(ctx, i, biomeName, mark);
+    }
     // SLIP ROADS + BRIDGES (requirement: an off-slip every 2-4 km - tapering lane, sign, ends in
     // fields, drivable; bridges over a road, a river and a railway, plus a footbridge; rare cheeky
     // extras): planned on the road's own distance, placed only on near-straight road (|curv| <
     // 1/900 over the stretch), never on top of each other. extras(lv, i, s) below. (every preset
     // since, requirement: all the types of highway should have bridges and slip roads you can take)
-    if (!NOX) extras(level, i, dist, pointAt, mark);
+    if (hasExtras(isCity, biomeName)) extras(level, i, dist, pointAt, mark);
     layGantryAndSign(ctx, i, dist, mark);
-    if (biomeName !== 'city') layHump(ctx, i, biomeName, mark);
+    layHump(ctx, i, biomeName, mark);
   }
   sideFlush(level, false);
   if (state.coversDirty) syncCovers(level);

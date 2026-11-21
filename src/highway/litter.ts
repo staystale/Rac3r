@@ -4,6 +4,7 @@ import { STEP } from "./presets.ts";
 import type { DressCtx } from './hwtypes.ts';
 import type { LevelObj } from '../cones/coneTypes.ts';
 import { insidePolygon } from '../world/zones.ts';
+import { cityStretchAt } from './cityplan.ts';
 import { layRoadChevron } from './chevrons.ts';
 // the roadside debris mix (weights by repetition: pallets / boxes / tarps are what really ends up
 // on a hard shoulder) + paint for bins, barrels, bumpers, tarps
@@ -38,6 +39,14 @@ const DESERT_DEBRIS = ['barrel', 'tyre', 'tyre', 'skull'];
 // a rock wall this far along the road from a litter object can stand over it, m (a wall's piece)
 const ROCK_NEAR_M = 120;
 const DESERT_DRUM = ['#7a4a2a', '#3e5f7a', '#5c6339', '#8a3b22'];
+// GETAWAY STOCKHOLM's LITTER (owner 11-21: "more unique litter"): the same layers and slider, the
+// city's kinds - road works' cones and sandbags; wheelie bins, boxes, crates and pallets for the
+// roadside debris and in place of the country's tyres; no tarps or farm stuff - and CITY_MORE
+// times the countryside's chances (owner: "much busier"); none on the water or in a tunnel
+const CITY_CONE = ['cone', 'cone', 'cone', 'sandbag'];
+const CITY_DEBRIS = ['bin', 'bin', 'box', 'box', 'crate', 'pallet', 'sandbag'];
+const CITY_TYRE = ['bin', 'box', 'tyre'];
+const CITY_MORE = 1.5;
 
 /**
  * A litter object in the desert's kinds, or null for none there.
@@ -55,6 +64,22 @@ function desertLitter(obj: LevelObj, rand: () => number): LevelObj | null {
   return { ...obj, col: undefined, kind, ...(kind === 'barrel' ? { paint: pick(DESERT_DRUM) } : {}),
     ...(kind === 'tyre' || kind === 'tyrestack' ? { bare: true } : {}) } as LevelObj;
 }
+/**
+ * A litter object in the city's kinds, or null for none there (the water, a tunnel).
+ * @param obj the countryside's object
+ * @param rand the litter's random stream
+ * @param kind the city's stretch there (highway/cityplan.ts)
+ * @returns the city's, or null
+ */
+function cityLitter(obj: LevelObj, rand: () => number, kind: string): LevelObj | null {
+  if (kind === 'water' || kind === 'tunnel') return null;
+  if (obj.kind === 'chevron') return obj;
+  const pick = (from: string[]) => from[(rand() * from.length) | 0];
+  const next = obj.kind === 'cone' ? pick(CITY_CONE) : obj.kind === 'tyre'
+    || obj.kind === 'tyrestack' ? pick(CITY_TYRE) : pick(CITY_DEBRIS);
+  return { ...obj, kind: next } as LevelObj;
+}
+
 /**
  * Whether a spot is behind a rock wall's face (on the band the wall's look covers).
  * @param barriers the level's barriers
@@ -218,11 +243,13 @@ export function layLooseRoadside(ctx: DressCtx) {
   const { level, state, road, firstIdx, endIdx, loose } = ctx;
   if (!level._cfg.walls && loose) {
     const looseRand = state.lrnd, desert = level._cfg.theme === 'canyon',
+      city = level._cfg.theme === 'city',
       addLoose = (obj: LevelObj, dist: number) => {
-        // (the desert's kinds, where the ground is clear)
-        const placed = desert ? desertLitter(obj, looseRand) : obj;
-        if (!placed || (desert && (!ctx.clear(placed.x, placed.y, 0.8)
-          || isOnRock(level.barriers, placed.x, placed.y, dist)))) return obj;
+        // (the desert's kinds, where the ground is clear; the city's, off its water and tunnels)
+        const placed = desert ? desertLitter(obj, looseRand) : city
+          ? cityLitter(obj, looseRand, cityStretchAt(dist, state.seed).kind) : obj;
+        if (!placed || ((desert || city) && !ctx.clear(placed.x, placed.y, 0.8))
+          || (desert && isOnRock(level.barriers, placed.x, placed.y, dist))) return obj;
         placed._s = dist;
         loose.push(placed);
         return placed;
@@ -230,7 +257,8 @@ export function layLooseRoadside(ctx: DressCtx) {
     // LITTER DENSITY (requirement: they should be RANDOM and also have a SLIDER for frequency /
     // density; default 1 = as tested and seen): lv.litter x every litter chance (setup's LITTER
     // slider, 0 = none.. 3 = a scrapyard); chevrons are signs, not litter
-    const density = level.litter ?? 1, chance = (prob: number) => Math.min(0.95, prob * density);
+    const density = (level.litter ?? 1) * (city ? CITY_MORE : 1),
+      chance = (prob: number) => Math.min(0.95, prob * density);
     const loot = { looseRand, addLoose, chance, density };
     for (let i = firstIdx; i < endIdx; i++) {
       const dist = road[i].s;

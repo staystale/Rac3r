@@ -1,6 +1,6 @@
 // _citylots.mjs - GETAWAY STOCKHOLM's lots (highway/city.ts) in node, no browser: the road built
 // as the game builds it (stepHighway, a stand-in car in the left lane, as tools/worldhash.mjs)
-// over the first city stretch (400-2100 m) on several seeds and road types. Every 20 m, each side:
+// over 400-6000 m (every stretch kind: highway/cityplan.ts) on several seeds and road types. Every 20 m, each side:
 // is the spot a lot's middle would stand on inside a lot; if not, what has that ground - a keep
 // rect that is not a lot (a slip, an approach, a river, a lay-by, a services), the secret side
 // road (left), or nothing (the lot found no room: a bend, the next lot).
@@ -11,6 +11,7 @@
 import * as L from '../../src/lab.ts';
 import { createHighway, resetHighway, stepHighway, roadPose, setHighwayPreset }
   from '../../src/highway.ts';
+import { cityStretchAt } from '../../src/highway/cityplan.ts';
 
 const roads = (process.argv[2] || 'motorway,interstate,dual,walled,twisty').split(',');
 const seeds = (process.argv[3] || '4242,7,99').split(',').map(Number);
@@ -52,6 +53,7 @@ const inRect = (rect, x, y) => {
 for (const road of roads) {
   const tally = { lot: 0, keep: 0, side: 0, none: 0 };
   let made = 0, dropped = 0;
+  const byKind = {};
   const clashes = { road: 0, lane: 0 }, checked = new Set();
   for (const seed of seeds) {
     const level = createHighway(seed, road);
@@ -62,17 +64,19 @@ for (const road of roads) {
     if (level._cfg.theme !== 'city') throw new Error('not the city: STOCKHOLM=1 missing?');
     const lane = level._hw.geo.centres[0], car = { x: 0, y: 0 };
     const seen = new Set(), alive = new Map();
-    for (let dist = 300; dist <= 1500; dist += 4) {
+    for (let dist = 300; dist <= 5400; dist += 4) {
       const pose = roadPose(level, dist, lane);
       car.x = pose.x;
       car.y = pose.y;
       const moved = stepHighway(level, car);
       if (moved) for (const prop of level.props) {
-        if (prop.kind !== 'block' || prop.field == null || checked.has(prop)) continue;
+        if ((prop.kind !== 'block' && prop.kind !== 'parkedcar') || prop.field == null
+          || checked.has(prop)) continue;
         checked.add(prop);
         const ax = Math.cos(prop.rot || 0), ay = Math.sin(prop.rot || 0);
-        for (let along = -prop.w / 2; along <= prop.w / 2; along += 1)
-          for (let across = -prop.h / 2; across <= prop.h / 2; across += 1) {
+        const len = prop.w ?? 4.2, wide = prop.h ?? 1.8;
+        for (let along = -len / 2; along <= len / 2; along += 1)
+          for (let across = -wide / 2; across <= wide / 2; across += 1) {
             const on = onAWay(level, prop.x + ax * along - ay * across,
               prop.y + ay * along + ax * across, prop.field);
             if (on) {
@@ -96,7 +100,7 @@ for (const road of roads) {
       for (const [id, at] of now) alive.set(id, at);
       // (sampled 600 m ahead: laid, not yet dropped behind)
       const at = Math.round((dist + 600) / 20) * 20;
-      if (at < 400 || at > 2100 || seen.has(at)) continue;
+      if (at < 400 || at > 6000 || seen.has(at)) continue;
       seen.add(at);
       const state = level._hw, idx = state.pts.findIndex((pt) => pt.s >= at);
       if (idx < 0) continue;
@@ -105,6 +109,10 @@ for (const road of roads) {
         const rects = state.keep.filter((rect) => inRect(rect, spot.x, spot.y));
         const isLot = rects.some((rect) => rect.field != null && level.zones.some((zone) =>
           zone.field === rect.field && zone.surface?.id === 'concrete'));
+        const kind = cityStretchAt(at, seed).kind;
+        byKind[kind] ||= { lot: 0, all: 0 };
+        byKind[kind].all++;
+        if (isLot) byKind[kind].lot++;
         if (isLot) tally.lot++;
         else if (rects.some((rect) => rect.field == null)) tally.keep++;
         else if (side < 0 && state.pts[idx].sideOff) tally.side++;
@@ -131,4 +139,6 @@ for (const road of roads) {
     + `lay-by ${pct(tally.keep)} | side road ${pct(tally.side)} | no room ${pct(tally.none)}`
     + ` | lots made ${made}, dropped ahead of the car ${dropped}`
     + ` | clashes: on the road ${clashes.road}, on a lane ${clashes.lane} (of ${checked.size})`);
+  console.log('  lots by stretch: ' + Object.entries(byKind).map(([kind, n]) => `${kind} `
+    + `${Math.round((100 * n.lot) / n.all)}% of ${n.all}`).join(', '));
 }

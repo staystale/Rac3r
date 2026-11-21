@@ -826,18 +826,30 @@ and tyre stacks (`rallycross-venue.ts rallycrossLevel` -> `rxDress(..., floorM)`
 the LEVEL'S OWN floor (`level.floor`, as the tape's `onFloor` reads it), not the standard 260 m:
 Croughed RX (546 m) keeps all 396 loose objects.
 
-GETAWAY STOCKHOLM (?stockholm=1, step 1; `highway/city.ts`): a third scenery (`presets.ts
-HW_SCENERY.stockholm`, theme 'city', every road type) dressed as the countryside is (`dress.ts
-dressStretch`: slips, bridges, services, gantries, lamps, litter, walls, median, cushions) with
-its own stretches (`CITY_BIOMES`: city / green in a random order, never the same twice; green the
-forest's trees) and, in place of the fields, LOTS on each side of a city stretch: concrete 6 m
-past the road edge (a 2 m verge), a noise wall ('wall') on its road side, a street down its middle,
-a row of buildings either side ('block': modern slabs and offices, or the old town's houses under
-ochre / red / copper roofs, now and then a church). A lot is a keep rect with a field id: a later
-slip, approach or river drops it whole. The right side's lots test the ground with the dress
-context's `clearRight` (the left's side road not counted). Its signs are blue (`CITY_SIGNS`, the
-distance that goes up: CENTRUM n KM). `tools/scratch/_citylots.mjs` (node: how much of each side is
-lots), `_cityshot.mjs` (photos).
+GETAWAY STOCKHOLM (?stockholm=1; `highway/cityplan.ts`, `city.ts`, `citywater.ts`): a third
+scenery (`presets.ts HW_SCENERY.stockholm`, theme 'city', every road type) dressed as the
+countryside is (`dress.ts dressStretch`: slips, bridges, services, gantries, lamps, litter, walls,
+median, cushions) with its own STRETCHES (`cityStretchAt`: Deaf Valley's mechanism,
+`highway/stretchplan.ts makeStretchPlan`) - CITY, TUNNEL, WATER, RAISED, CUTTING and a rare short
+GREEN park, in a random order, never the same twice. The ground beside the road by stretch
+(`Level.roadside` = `cityGround`, the road's lookup reaching REACH as Deaf Valley's): 6 m below a
+raised stretch, 5 m above a cutting and a tunnel, eased in at the ends and back out before REACH.
+The barriers along the edges by stretch (`dress.ts layWalls` with `cityWallAt`): a cutting's and
+a tunnel's retaining walls, a raised stretch's Armco, over the water a post-and-rail fence with a
+22 m gap in every 110 (you can go in). LOTS (`city.ts`) on every built-up stretch, set back by
+stretch (`LOT_OUT_M`): concrete past a verge, a street with cars parked along it ('parkedcar'),
+two rows of buildings ('block') in four styles - modern slabs, the old town's houses (now and then
+a church), towers behind a modern row, shops with a car park - wheelie bins by the doors; a city
+stretch's lot has a noise wall. A lot is a keep rect with a field id (a later slip, approach or
+river drops it whole), laid once the dressing reaches its last point (the side road along it
+known); the right side tests the ground with `clearRight`. WATER (`citywater.ts`): the river's
+scenery water ('wet') both sides from a concrete quay, in 60 m pieces, yachts moored off it; no
+slips, bridges or services off the water or out of a tunnel. A TUNNEL's cover is Moanaco's slats
+over the road, each `overRoad` (drawn over the cars, never solid), where its ground has risen.
+Its litter is its own (`litter.ts cityLitter`: cones and sandbags, bins, boxes, crates, pallets;
+1.5x the countryside's chances; none on the water or in a tunnel). Its signs are blue
+(`CITY_SIGNS`, the distance that goes up: CENTRUM n KM). `tools/scratch/_citylots.mjs` (node:
+lots by stretch, clashes with the roads), `_cityshot.mjs` (a photo of each stretch).
 
 THE HIGHWAY'S CHEVRON BOARDS (`highway/litter.ts layLooseRoadside`, knockable loose objects,
 cones TOPPLES, 45 kg; since 11-15, passed - the old rally boards on every bend tighter than R 650
