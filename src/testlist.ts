@@ -11,15 +11,4 @@ export interface TestEntry {
   id: string; added: string; name: string; where: string; try: string; wrong: string;
 }
 
-export const TEST_LIST: TestEntry[] = [
-  {
-    id: 'flagfix',
-    added: '2026-11-21',
-    name: 'The chequered flag at the finish of EVERY race, not only the first one',
-    where: 'Test link + &flagfix=1: any race with AI (or a highway run with a FINISH)',
-    try: 'Finish a race, then RESTART and finish again, then TRACK SELECT another track and '
-      + 'finish: the flag sweeps across with your place every time, win or not.',
-    wrong: 'A finish with no flag, a flag twice for one finish, or a flag before you cross the '
-      + 'line.',
-  },
-];
+export const TEST_LIST: TestEntry[] = [];
