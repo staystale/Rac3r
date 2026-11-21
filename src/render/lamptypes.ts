@@ -1,4 +1,4 @@
-// render/lamptypes.ts - ?lamps: EACH VEHICLE'S OWN HEADLIGHTS (the owner 11-21: "each car's lamps
+// render/lamptypes.ts - EACH VEHICLE'S OWN HEADLIGHTS (the owner 11-21: "each car's lamps
 // light only what a real one would, with their own shape and reach"). Where its lamps sit across
 // its nose (a share of half its width, by its drawings), how far the beam reaches and how wide it
 // spreads, by its kind: a bus's, a lorry's and a van's lamps high and far; a tractor's and the

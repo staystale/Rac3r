@@ -16,6 +16,8 @@ each car's own crash parts) and ?carshade (every closed car shaded) PASSED 11-17
 (TODO-DONE, PASSED 11-17, THE PASS BATCH 4). ?dmgmore (the rolled cars, dragging) PASSED 11-17, the default (TODO-DONE, PASSED 11-17, MORE DAMAGE).
 ?dmgmore2, ?marktrack, ?scanyah (the tractor) and ?tipping PASSED 11-17, the default (TODO-DONE). On the phone
 now: nothing until the Scanyah trailer (?trailer) lands.
+?resetclean (bugs 1 + 2, the reset) and ?lamps (bug 5, the headlights) PASSED 11-21, the
+default (TODO-DONE, PASSED 11-21, RESET CLEAN AND LAMPS).
 (Their records: TODO-DONE, PASSED 11-17, THE TRACTOR AND THE TWO-WHEEL STATE; and MORE DAMAGE 2 AND
 MARK TRACK.)
 
@@ -27,26 +29,24 @@ MARK TRACK.)
   1. RESET STUCK: after a reset the car sometimes cannot pull away - not the slippery-ground case
      (that is fine) - find it.
   2. RESET ROLLED: a reset sometimes leaves the car upside down, or keeps its momentum, after a crash.
-     1 + 2 FOUND (Worker B 11-21): a hard side impact queues a roll trigger (car._sideKick, damage.ts)
-     that roll.ts tripCheck reads only while the car is on its wheels; one queued DURING a roll stayed
-     pending, and reset() left it - the first step after the reset rolled the car again with the
-     kick's sideways speed (ending on its side: stuck). BUILT behind ?resetclean=1 (vehicle.ts reset ->
-     roll.ts clearPendingRoll: the kick, a barrier ride, the air time, the trip cell, the tip's pull;
-     game/session.ts doReset snaps the camera on the joker / shoulder / circuit paths too). MEASURED
-     (tools/scratch/_resetcheck.mjs, the real game, REPEAT=6: 57 resets after a crash, a roll or a
-     slide at Thruston, Knobhill and Croughed RX): off, 3 rolled again or overturned after the reset
-     (all at Thruston), on 0; the slow pull-aways left were on mud / sand / gravel (the loose-ground
-     case the owner calls fine). AWAITING THE PHONE TEST.
+     PASSED 11-21 (?resetclean), the default (TODO-DONE, PASSED 11-21, RESET CLEAN AND LAMPS).
   3. NO CHEQUERED FLAG at the finish (seen at Angle Sleezy); every AI race must have a finish.
   4. TYRE MARKS CUT OFF in straight lines on one surface (Snoozuka, a couple of turns before the
      tunnel; other tracks too) - a ground-tile edge?
+     FOUND + BUILT (Worker C 11-21) behind ?marksage=1: on the 41 levels bigger than the marks layer
+     (marks.ts MARK_EXTENT 302 m) its window followed the player and wiped each strip of ground that
+     left it - marks ~300 m behind were cut along a straight line. Now a big level's marks go in
+     256 px tiles (61 m, the same 4.2 px/m strokes) made where a mark is laid (marktiles.ts),
+     never wiped by a move; a tile goes when the aged fade has cleared it, at most 104 held (the old
+     layer's 26 MB, which is freed), the oldest tile fading out first over the cap. MEASURED
+     (tools/scratch/_marksage.mjs, a 20 m skid, the window moved 500 m away and back): Spa off 3644
+     -> 110 px of skid left, on 3382 -> 3224; the Nordschlep (390x844) off 4997 -> 295, on 5674 ->
+     5788; the fade still clears it (on: 120 s faint, 160 s gone); canvases 100 -> 79 MB (Spa).
+     Tiles by the lap (_marksize.mjs): Spa 122, Le Manky 256, the Nordschlep 383. AWAITING the PC
+     numbers (live tiles in a 20-car race, frame cost) and THE PHONE TEST.
   5. HEADLIGHT GLOW drawn behind the lamp, on the car's own body: each car's lamps light only what
      a real one would, with their own shape and reach.
-     FOUND + BUILT (Worker B 11-21) behind ?lamps=1: render/light.ts drawBeams started every beam
-     1.8 m ahead of the car's centre at +-0.7 m (the bonnet lit on a 4 m car, the cab on the van, 2.4 m
-     inside the bus); now from the nose at the car's own lamps, a reach and spread by kind
-     (render/lamptypes.ts). Photos (tools/scratch/_lampshots.mjs, night, before / after, both sizes):
-     the hatch's bonnet, the van's cab and the bus dark behind their lamps. AWAITING THE PHONE TEST.
+     PASSED 11-21 (?lamps), the default (TODO-DONE, PASSED 11-21, RESET CLEAN AND LAMPS).
   6. PEMBREEZY AI: odd behaviour - put back whatever the earlier "fix" changed so it drives like
      every other level; check the line for kinks, queuing, braking on straights (suspect: the
      brake-and-steer-to-avoid rule, to tune with the rest of the AI).
@@ -78,6 +78,12 @@ MARK TRACK.)
      lights switch (on / off rapidly) - no new button; damaged FLICKERING lamps act as a flash all the
      time (they annoy the traffic ahead).
   13. FPS counter as a HUD-list toggle.
+     BUILT (Worker C 11-21) behind ?fpshud=1 (hud/fpstoggle.ts; game/menuflow.ts hudActions): an
+     FPS row in the pause menu's HUD list, on / off, kept on the device (localStorage
+     carsim.hud.fps); until it is set the counter shows as before (TEST MODE). MEASURED
+     (tools/scratch/_fpshud.mjs, the real menu and pause menu, 844x390 and 390x844): the row reads
+     FPS · ON -> OFF -> ON, the panel gone and back, stored 0 / 1, no page errors. Not covered: a
+     non-TEST-MODE race (STORY is locked). AWAITING THE PHONE TEST.
   14. CAMERA SHAKE in crashes: it already exists (owner 11-21: "there is but it's ok let's leave it
      for now"; it may have changed since the camera keeps the player's car clear of the HUD). Parked.
   15. HIGHWAY: a city theme, Stockholm ("getaway"), beside Country and Deaf Valley (owner: yes -
@@ -92,8 +98,7 @@ MARK TRACK.)
     GARAGE gets a TRAILER row for tractor units: WITHOUT, or the CURTAINSIDER HALF-FULL only (no load
     chooser). Later trailer types: a flatbed with visible cargo first (owner: "I don't mind").
   - WORKER B (paused): damage items 4 and 3 passed 11-17, the default. Blighty Park
-    RX and the Outer circuit - WIP worker/b4-blighty 7ac09580, built and checked; left: photos, docs,
-    the RX's 8.9 m corner, the proof.
+    RX and the Outer circuit: finished by Worker C 11-21 behind ?blighty=1 (3b below).
   - PARKED: PIT STOPS (item 16 below) - owner 11-16: "needs more work and discussion, I have images
     to use" - ask for the images; the limiter per venue (80, 60 at tight ones), the AI's strategy
     simple. ?pbzline / ?driftbrake for the AI tune (3e). ?siren for the sound pass.
@@ -332,6 +337,15 @@ THE 10 NEW CARS (owner-approved names 11-16; one switch and one hand-back each; 
   TODO-DONE.
   PEMBREEZY (the circuit and Pembreezy RX) PASSED 11-16 with its fences tidied: TODO-DONE. OPEN
   (owner 11-16: the tyre walls "fine as they are").
+  BLIGHTY PARK BUILT (Worker B 11-16, finished by Worker C 11-21) behind ?blighty=1: Blighty Park
+  RX at full size (1421 m, 323 m gravel: the gravel loop INVENTED - no map of the real course - and
+  NO JOKER, none shown anywhere) and the Outer circuit at half size (1156 m, all tarmac), one map
+  download (world/levels/blightyrx-venue.ts, blighty-venue.ts). The RX's north hairpin opened (minR
+  10 -> 11): its least radius over 8 m 9.5 -> 10.6 m (8.9 -> 9.9 through points 3 apart), the lap
+  1429 -> 1421 m. MEASURED: barriercheck all OK and venueaudit "nothing overlaps" on both,
+  propcheck OK; aidrivecheck (blightyrx) real rx-super 52.1 s, hatch-fwd 58.8 s, 0 m off (at minR
+  10: 52.7 / 59.4, 0 m), realish 0.6 / 1.0 m off at the hairpin (at 10: 0.4 / 0.2 m). Photos
+  (tools/scratch/_pbzshots.mjs, both sizes + overview) and menu thumbnails. AWAITING THE PHONE TEST.
   THE RX's PUT-BACKS (owner 11-16: "investigate", ~32 a 20-AI race, half at lap 1200-1300 m): FOUND
   (tools/scratch/_pbzoff.mjs - the racing AI alone, rx-super, difficulty 2, seeds 1-5 x 5 laps, every
   excursion past the edge + 1 m off the joker lane; a per-step trace of the driver's target speed,

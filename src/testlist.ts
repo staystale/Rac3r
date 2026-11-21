@@ -13,23 +13,34 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
-    id: 'resetclean',
+    id: 'fpshud',
     added: '2026-11-21',
-    name: 'Reset after a crash: never rolled again, never left moving, overturned or stuck',
-    where: 'Test link + &resetclean=1: any circuit or RX course (Thruston, Knobhill, Croughed RX)',
-    try: 'Crash hard into a barrier or roll the car, and press RESET while it is still rolling or '
-      + 'sliding: it lands on its wheels, still, and pulls away at once.',
-    wrong: 'A car rolling, sliding or upside down after a reset, or one that cannot pull away on '
-      + 'tarmac; the camera sliding over from where you crashed.',
+    name: 'FPS counter: a row in the pause menu HUD list, on or off',
+    where: 'Test link + &fpshud=1: any race, pause -> HUD -> FPS (at the end of the list)',
+    try: 'Tap FPS to OFF and resume: the FPS panel under the lap timer is gone; tap it ON: back. '
+      + 'Your choice is kept on the phone for the next race and the next visit.',
+    wrong: 'The FPS panel still showing when OFF, missing when ON, the row missing, or the choice '
+      + 'forgotten after a restart or a reload.',
   },
   {
-    id: 'lamps',
+    id: 'marksage',
     added: '2026-11-21',
-    name: 'Each vehicle\'s own headlights: the beam from its nose, nothing lit on its own bonnet',
-    where: 'Test link + &lamps=1 at night: a hatch, the Transfit, the Routemonster, the Seven',
-    try: 'The beam starts at the lamps: the bonnet, the van\'s cab and the bus stay dark behind '
-      + 'them; the bus and van reach a little further, the Seven and the tractor shorter.',
-    wrong: 'Light on the car\'s own body behind its lamps, a beam starting ahead of the nose, a '
-      + 'beam off to one side.',
+    name: 'Tyre marks on big tracks kept whole, never cut off in a straight line',
+    where: 'Test link + &marksage=1: Spa, Snoozuka, the Nordschlep, Le Manky (a big track)',
+    try: 'Lay skids or slide through a corner, drive on a lap (or a few hundred metres) and come '
+      + 'back: the marks are all still there, fading with age, then gone ~2.5 min after.',
+    wrong: 'Marks ending in a straight line across the track, marks gone early, a seam or a grid '
+      + 'of squares in the marks, or a stutter when marks are laid.',
+  },
+  {
+    id: 'blighty',
+    added: '2026-11-21',
+    name: 'Blighty Park: its rallycross (full size, gravel loop invented) and the Outer circuit',
+    where: 'Test link + &blighty=1: TEST MODE -> RALLYCROSS -> Blighty Park RX; CIRCUITS -> '
+      + 'Blighty Park',
+    try: 'Race both, day and night, dry and wet: the flat fast airfield corners, the north hairpin '
+      + 'at the end of the fastest run, the gravel loop through the infield (no joker).',
+    wrong: 'A gap in the barriers or fences, a prop on the road, the AI leaving the road at the '
+      + 'north hairpin or the gravel joins, a track that reads too stiff or boring.',
   },
 ];

@@ -67,12 +67,13 @@ export const FIX = {
   driftbrake: atLoad('driftbrake'),
   // a chasing police car sounds a siren, the light bar's twin (game/sirens.ts, audiosiren.ts)
   siren: atLoad('siren'),
-  // a RESET clears what a crash left pending on the car - a side impact's or a barrier ride's roll
-  // trigger, the air time, the trip cell, the tip's pull (vehicle.ts reset: a kick queued during a
-  // roll rolled the car again just after the reset) - and the camera snaps to it on every reset
-  // path (game/session.ts doReset)
-  resetclean: atLoad('resetclean'),
-  // EACH VEHICLE'S OWN HEADLIGHTS: the beam from its nose and its lamps, nothing lit behind them,
-  // a reach and spread by its kind (render/lamptypes.ts, render/light.ts drawBeams)
-  lamps: atLoad('lamps'),
+  // the FPS counter as a row of the pause menu's HUD list, on or off in any mode (hud/fpstoggle.ts)
+  fpshud: atLoad('fpshud'),
+  // a big level's tyre marks kept whole in tiles, never wiped by the window's move: the oldest
+  // fade first (marktiles.ts; marks.ts useTiles)
+  marksage: atLoad('marksage'),
+  // BLIGHTY PARK, Blyton Park from the map: its rallycross at full size (the gravel loop invented:
+  // no map of the real course) and the Outer circuit at half size (blightyrx-venue.ts,
+  // blighty-venue.ts)
+  blighty: atLoad('blighty'),
 };

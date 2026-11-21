@@ -31,7 +31,7 @@ export const KIND: Record<string, string> = { lab: 'TEST GROUND', 'test-track': 
   anglesleazy: 'UK CIRCUIT · INTERNATIONAL', 'anglesleazy-coastal': 'UK CIRCUIT · COASTAL',
   'anglesleazy-national': 'UK CIRCUIT · NATIONAL', 'anglesleazy-club': 'UK CIRCUIT · CLUB',
   goodwoody: 'UK CIRCUIT', croughed: 'UK CIRCUIT', 'croughed-club': 'UK CIRCUIT · CLUB',
-  pembreezy: 'UK CIRCUIT',
+  pembreezy: 'UK CIRCUIT', blighty: 'UK CIRCUIT · OUTER', blightyrx: 'RALLYCROSS',
   spa: 'WORLD CIRCUIT · GP', monza: 'WORLD CIRCUIT · GP',
   nordschlep: 'WORLD CIRCUIT · NORDSCHLEP', lemans: 'WORLD CIRCUIT · 24 MINUTES',
   suzuka: 'WORLD CIRCUIT · GP', yasmarina: 'WORLD CIRCUIT · GP',

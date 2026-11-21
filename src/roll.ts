@@ -108,7 +108,7 @@ export interface PendingRoll { _sideKick?: unknown; _rideUp?: unknown; _airT?: n
   _tripCell?: number; _tipPull?: number }
 
 /**
- * ?resetclean: clears the roll triggers a crash left pending (a side impact's kick, a barrier
+ * A reset clears the roll triggers a crash left pending (a side impact's kick, a barrier
  * ride, the air time, the trip cell, the tip's pull).
  * @param car the car
  */

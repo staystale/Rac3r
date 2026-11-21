@@ -1,0 +1,50 @@
+{
+  "osm": "blighty.osm.json",
+  "origin": [
+    53.46,
+    -0.69
+  ],
+  "turnDeg": 0,
+  "clip": [
+    -420,
+    -320,
+    280,
+    820
+  ],
+  "reachM": 150,
+  "skip": [
+    1240237936,
+    1240237937
+  ],
+  "race": [
+    367128319,
+    367128321,
+    451566692
+  ],
+  "names": {
+    "129241665": "Outer",
+    "367128319": "Link",
+    "367128321": "Spur",
+    "451566692": "Connector"
+  },
+  "out": "src/world/levels/venues/blighty.ts",
+  "exportName": "BLIGHTY_VENUE",
+  "layouts": {
+    "circuit": {
+      "through": [
+        "Outer",
+        "Outer 2",
+        "Outer 3",
+        "Outer 4",
+        "Outer 5",
+        "Outer 6",
+        "Outer 7"
+      ],
+      "avoid": [
+        "Link",
+        "Spur",
+        "Connector"
+      ]
+    }
+  }
+}

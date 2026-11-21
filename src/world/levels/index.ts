@@ -50,6 +50,9 @@ import { HOLJES_LEVELS } from "./holjes-venue.ts";
 import { CROUGHEDRX_LEVELS } from "./croughedrx-venue.ts";
 import { PEMBREEZY_LEVELS } from "./pembreezy-venue.ts";
 import { PEMBREEZYRX_LEVELS } from "./pembreezyrx-venue.ts";
+import { FIX } from "../../core/fixes.ts";
+import { BLIGHTY_LEVELS } from "./blighty-venue.ts";
+import { BLIGHTYRX_LEVELS } from "./blightyrx-venue.ts";
 import { OP_LEVELS } from "./oultonpork-venue.ts";
 import { DT_LEVELS } from "./dieatona-venue.ts";
 import { TH_VENUE_LEVEL } from "./thruston-venue.ts";
@@ -240,6 +243,9 @@ export const LEVELS: Level[] = [
   // (pembreezyrx-venue.ts) (passed 11-16)
   ...PEMBREEZY_LEVELS,
   ...PEMBREEZYRX_LEVELS,
+  // Blighty Park, a venue (blighty-venue.ts): the Outer circuit, and its rallycross at full size
+  // (blightyrx-venue.ts), under test
+  ...(FIX.blighty ? [...BLIGHTY_LEVELS, ...BLIGHTYRX_LEVELS] : []),
   // Spa-Frankenchumps, a venue (spa-venue.ts), the first world championship circuit (passed 11-09)
   ...SPA_LEVELS,
   // Monzarella, a venue (monza-venue.ts), a world championship circuit (passed 11-10)

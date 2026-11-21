@@ -661,7 +661,8 @@ function drawMarks(ctx: RoadCtx, marks: RenderMarks) {
   // smoothing OFF, so marks land on the art grid as hard blocks (photographed soft and blurry
   // with it on — the only smeared thing left in the world layer)
   view.ctx.imageSmoothingEnabled = false;
-  if (marks.shiftX || marks.shiftY) drawWrappedMarks(ctx, marks);
+  if (marks.tiles) drawTiledMarks(ctx, marks);
+  else if (marks.shiftX || marks.shiftY) drawWrappedMarks(ctx, marks);
   else {
     // one blit of the whole layer, centred on the world origin
     const size = MARK_EXTENT * 2 * PPMz();
@@ -669,6 +670,25 @@ function drawMarks(ctx: RoadCtx, marks: RenderMarks) {
       size);
   }
   view.ctx.imageSmoothingEnabled = true;
+}
+
+/**
+ * ?marksage: blits the tiles of a big level's marks that the screen shows (marktiles.ts).
+ * @param ctx the road context
+ * @param marks the marks (tiles, tilePx, forEachTile)
+ */
+function drawTiledMarks(ctx: RoadCtx, marks: RenderMarks) {
+  const { view, PPMz, toScreenX, toScreenY } = ctx;
+  const pxPerM = PPMz(), tileSide = marks.tilePx! / MARK_PPM;
+  // the screen's box in layer px (world m + MARK_EXTENT, x MARK_PPM)
+  const worldX0 = (0 - toScreenX(0)) / pxPerM, worldY0 = (0 - toScreenY(0)) / pxPerM;
+  const box = [(worldX0 + MARK_EXTENT) * MARK_PPM, (worldY0 + MARK_EXTENT) * MARK_PPM,
+    (worldX0 + view.W / pxPerM + MARK_EXTENT) * MARK_PPM,
+    (worldY0 + view.H / pxPerM + MARK_EXTENT) * MARK_PPM];
+  marks.forEachTile!(box, (tile) => {
+    view.ctx.drawImage(tile.canvas, toScreenX(tile.tileX * tileSide - MARK_EXTENT),
+      toScreenY(tile.tileY * tileSide - MARK_EXTENT), tileSide * pxPerM, tileSide * pxPerM);
+  });
 }
 
 /**

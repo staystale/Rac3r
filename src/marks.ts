@@ -23,6 +23,11 @@ import { addTrailPoint, clearWetTrails } from "./wettrail.ts";
 import { acrossOf, alongOf } from "./world/crossinggeo.ts";
 import type { Crossing, Mark, Spray, Surface, WheelGround } from './world/types.ts';
 import { trackCanvas } from './core/memorybudget.ts';
+import { FIX } from './core/fixes.ts';
+import {
+  type MarkTiles, type MarkTile, createMarkTiles, clearMarkTiles, strokeTiles, dotTiles, noteTiles,
+  fadeTiles, forTilesIn, TILE_PX,
+} from './marktiles.ts';
 
 // EXTENT is the FENCE, not the floor, so what happens in the run-off (gravel tracks) is
 // recorded too. The resolution is kept at 4.2 px/m so memory stays flat: a finer layer over this
@@ -54,6 +59,9 @@ interface MarkState {
   cellT?: Float64Array;   // each fade cell's newest mark, marks s (the aged fade)
   cellStep?: Uint8Array;   // each fade cell's fade steps done (the aged fade)
   live?: Set<number>;   // the fade cells holding marks (the aged fade)
+  // ?marksage: a big level's marks in tiles (marktiles.ts), not the layer
+  tiles?: MarkTiles | null;
+  tilesOn?: boolean;   // ?marksage: this level is drawn in tiles (decided on its first step)
 }
 
 /**
@@ -176,6 +184,12 @@ function clearEnteringStrip(ctx: CanvasRenderingContext2D, fromShift: number, to
  */
 function followMarks(markCtx: MarkCtx, x: number, y: number) {
   const { ctx, state } = markCtx;
+  if (useTiles(markCtx)) {
+    // (the tiles never move: the shift only says where the player is, for stampWheel's reach)
+    state.shiftX = Math.round(x * MARK_PPM);
+    state.shiftY = Math.round(y * MARK_PPM);
+    return;
+  }
   if (!LEVEL.endless && !state.wraps && levelFitsLayer()) return;
   state.wraps = true;
   const shiftX = Math.round(x * MARK_PPM), shiftY = Math.round(y * MARK_PPM);
@@ -201,7 +215,39 @@ function clearMarks(markCtx: MarkCtx) {
   state.prev.clear();
   state.stamps = 0;
   if (state.live) state.live.clear();
+  if (state.tiles) clearMarkTiles(state.tiles);
+  state.tilesOn = false;
   clearWetTrails();
+}
+
+/**
+ * ?marksage: is this level's ground marked in tiles (a big level, not the endless road)? Decided
+ * on the level's first step; the big layer is shrunk while the tiles hold the marks, and made
+ * again for a level that fits.
+ * @param markCtx the marks context
+ * @returns true when the marks go in tiles
+ */
+function useTiles(markCtx: MarkCtx): boolean {
+  const { layer, state } = markCtx;
+  if (state.tilesOn) return true;
+  if (!FIX.marksage || markCtx.map) return false;
+  if (!LEVEL.endless && !levelFitsLayer()) {
+    state.tilesOn = true;
+    if (!state.tiles) state.tiles = createMarkTiles();
+    state.clock = state.clock || 0;
+    if (layer.width !== 1) {
+      layer.width = 1;
+      layer.height = 1;
+    }
+    return true;
+  }
+  state.tiles = null;
+  if (layer.width !== SIZE) {
+    layer.width = SIZE;
+    layer.height = SIZE;
+    markCtx.ctx.lineCap = 'round';
+  }
+  return false;
 }
 
 // MARKS FADE OLDEST FIRST (owner 11-01: "oldest first and small bits at once" - the old fade
@@ -214,6 +260,8 @@ function clearMarks(markCtx: MarkCtx) {
 // until it is left alone.
 const FADE_CELL = 8, CELLS = Math.ceil(SIZE / FADE_CELL);
 const AGED_FROM_S = 90, AGED_STEP_S = 4, AGED_STEPS = 16, AGED_ALPHA = 0.15, AGED_TICK_S = 0.25;
+// the same fade for ?marksage's tiles (marktiles.ts)
+const TILE_FADE = { fromS: AGED_FROM_S, stepS: AGED_STEP_S, steps: AGED_STEPS, alpha: AGED_ALPHA };
 
 /**
  * Notes a stroke's cells as just marked (the aged fade).
@@ -224,6 +272,11 @@ const AGED_FROM_S = 90, AGED_STEP_S = 4, AGED_STEPS = 16, AGED_ALPHA = 0.15, AGE
  */
 function noteMarked(markCtx: MarkCtx, from: number[], dest: number[], reach: number) {
   const { state } = markCtx;
+  if (state.tiles) {
+    noteTiles(state.tiles, [Math.min(from[0], dest[0]) - reach, Math.min(from[1], dest[1]) - reach,
+      Math.max(from[0], dest[0]) + reach, Math.max(from[1], dest[1]) + reach], state.clock || 0);
+    return;
+  }
   if (!state.cellT) {
     state.cellT = new Float64Array(CELLS * CELLS);
     state.cellStep = new Uint8Array(CELLS * CELLS);
@@ -255,6 +308,11 @@ function fadeAged(markCtx: MarkCtx, dt: number) {
   const { ctx, state } = markCtx;
   state.clock = (state.clock || 0) + dt;
   state.fadeT = (state.fadeT || 0) + dt;
+  if (state.tiles && state.fadeT >= AGED_TICK_S) {
+    state.fadeT -= AGED_TICK_S;
+    fadeTiles(state.tiles, state.clock, TILE_FADE);
+    return;
+  }
   if (state.fadeT < AGED_TICK_S || !state.live) return;
   state.fadeT -= AGED_TICK_S;
   ctx.save();
@@ -350,6 +408,10 @@ function touchesLayer(low: number, high: number, offset: number, reach: number) 
  */
 function strokeSegment(markCtx: MarkCtx, from: number[], dest: number[]) {
   const { ctx, state } = markCtx;
+  if (state.tiles && !markCtx.map) {
+    strokeTiles(state.tiles, ctx, from, dest);
+    return;
+  }
   if (!state.wraps) {
     ctx.beginPath();
     ctx.moveTo(from[0], from[1]);
@@ -393,10 +455,15 @@ function dropRubberBall(markCtx: MarkCtx, wheel: MarkWheel, from: number[], dest
     const side = (fxRandom() < 0.5 ? -1 : 1)
       * (wheel.width * 1.2 + fxRandom() * 0.6) * MARK_PPM;
     const dx = toY - fromY, dy = fromX - toX, len = Math.hypot(dx, dy) || 1;
+    const ballX = toX + (dx / len) * side, ballY = toY + (dy / len) * side;
+    const radius = Math.max(0.8, 0.04 * MARK_PPM);
+    if (markCtx.state.tiles && !markCtx.map) {
+      dotTiles(markCtx.state.tiles, 'rgba(28,26,30,0.30)', [ballX, ballY], radius);
+      return;
+    }
     ctx.fillStyle = 'rgba(28,26,30,0.30)';
     ctx.beginPath();
-    ctx.arc(toX + (dx / len) * side, toY + (dy / len) * side, Math.max(0.8, 0.04 * MARK_PPM),
-      0, Math.PI * 2);
+    ctx.arc(ballX, ballY, radius, 0, Math.PI * 2);
     ctx.fill();
   }
 }
@@ -535,6 +602,7 @@ export function forEachCrossingMarks(draw: (way: Crossing, layer: HTMLCanvasElem
  * @param wheels the wheels [{ key, x, y, slip, width }]
  */
 function stampMarks(markCtx: MarkCtx, wheels: MarkWheel[]) {
+  useTiles(markCtx);
   for (const wheel of wheels) stampWheel(markCtx, wheel);
 }
 
@@ -673,6 +741,12 @@ export function createMarks() {
     get shiftY() { return state.shiftY; },
     follow: (x: number, y: number) => followMarks(markCtx, x, y),
     get stamps() { return state.stamps; },
+    // ?marksage: the tiles holding a big level's marks, or null (the layer holds them)
+    get tiles() { return state.tilesOn ? state.tiles || null : null; },
+    forEachTile: (box: number[], draw: (tile: MarkTile) => void) => {
+      if (state.tilesOn && state.tiles) forTilesIn(state.tiles, box, false, draw);
+    },
+    tilePx: TILE_PX,
     clear: () => clearMarks(markCtx),
     fade: (dt: number) => fadeMarks(markCtx, dt),
     stamp: (wheels: MarkWheel[]) => stampMarks(markCtx, wheels),

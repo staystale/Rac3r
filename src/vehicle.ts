@@ -12,7 +12,6 @@
 // more stable near the limit than integrating in world frame and rotating back.
 
 import { clearPendingRoll, type PendingRoll } from './roll.ts';
-import { FIX } from './core/fixes.ts';
 import { defaultMods, spec, SURFACE_LAB, GRAVITY, type Spec, type Mods, type Surface }
   from './cars.ts';
 import type { WheelGround } from './world/types.ts';
@@ -358,9 +357,10 @@ export function reset(car: Car, x = 0, y = 0, heading = -Math.PI / 2) {
   car.prevWheels = null; car.wheelSurf = null;
   // ... and on the ground, off any bridge or tunnel (world/crossings.ts)
   car.crossing = -1; car.crossX = undefined; car.crossY = undefined;
-  // ROLLOVER (roll.ts): a reset puts the car back on its wheels, nothing pending (?resetclean)
+  // ROLLOVER (roll.ts): a reset puts the car back on its wheels, nothing pending (a crash's
+  // queued roll trigger)
   car.roll = null; car.sparks = false;
-  if (FIX.resetclean) clearPendingRoll(car as Car & PendingRoll);
+  clearPendingRoll(car as Car & PendingRoll);
   // tape stuck to the car goes with it (requirement: resetting should remove any tape)
   car.streamers = null;
   car.x = x; car.y = y;
