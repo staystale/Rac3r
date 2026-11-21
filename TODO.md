@@ -72,6 +72,11 @@ MARK TRACK.)
      not want to touch but are happy to run close (contacts down, close-running time up).
      OWNER 11-21: "we ideally want to TUNE our racer AI not change it - but do what's needed, discuss
      first as always": the sliders / numbers first; a code change only where a bug needs it, planned first.
+     THE TUNE PLAN, owner yes 11-21 (?aitune, Worker A): K_BRAKE up on tarmac AND loose ("let the ai
+     drivers correct" - no slow loose driving, no odd surface changes); the pedal feed-forward if
+     dabbing stays; followers copy the leader's braking but still race; pile-ups by better dodging
+     (faster reactions / prediction), NOT lower aggression; close-running clearance; the "why held"
+     trace on the highway AND circuits. ONE BASE AI, highway-only tweaks only where essential.
   10. ROLLING STARTS: after the GREEN the cars still move a bit uniform, as a block - each should
      race its own line from the green (owner 11-21: b).
   11. AI HANDBRAKE use; drifting later (drift modes / tracks / events).
