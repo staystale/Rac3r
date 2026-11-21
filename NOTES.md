@@ -867,6 +867,10 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   `checks` failed), `git push origin HEAD:refs/heads/main`,
   delete the branch, then move the served clone: `git fetch -q origin && git checkout -q --detach
   origin/main`.
+- TUNE THE AI TO THE TRACK, NEVER THE TRACK TO THE AI (owner 11-21: "we shouldn't be changing tracks to
+  suit the ai really - the ai should be tuned to drive the track - coming off the track / running wide
+  ect isn't good if it's always but sometimes is ok"; "we ideally want to tune our racer ai not change
+  it"). Followers adjust and pressure the car ahead, never panic-brake.
 - EVERY CAR HAS ITS OWN REAL PARTS (owner 11-16: "all cars get unique parts like that... don't
   reuse stuff unless it's suitable"): the crash parts a car loses are that car's real ones - door
   count, bonnet and boot shapes, a van's sliding and rear doors, a bus's own panels. A shared
