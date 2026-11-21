@@ -27,7 +27,8 @@
 // cleo (as the Clio III Cup), cleoroad, transfitlwb, transfitswb, saxo, strange, saxovtr,
 // fuelcarry and rollguard passed 11-16; then ts010 (with its PROTOTYPE class), tesla,
 // routemonster and m4gt3 passed 11-16; then corolla, reversefix, f1menu, r13, ibiza and a4avant
-// passed 11-16; lowrange, dmgmore, transitcustom, e36peak and schoolbus passed 11-17.)
+// passed 11-16; lowrange, dmgmore, transitcustom, e36peak and schoolbus passed 11-17; dmgmore2,
+// marktrack, scanyah (the tractor) and tipping passed 11-17.)
 import { envValue } from './debug.ts';
 
 /**
@@ -66,10 +67,4 @@ export const FIX = {
   driftbrake: atLoad('driftbrake'),
   // a chasing police car sounds a siren, the light bar's twin (game/sirens.ts, audiosiren.ts)
   siren: atLoad('siren'),
-  // the rear-right wheel's skid mark at the REAR track (marks.ts listWheels: it was laid at the
-  // front track - off on a car whose rear track is its own, spec.trackR)
-  marktrack: atLoad('marktrack'),
-  // MORE DAMAGE 2 (the owner's damage items 4 and 3): an exhaust or a torn bumper's piece left
-  // HANGING, dragging until it drops (world/hanging.ts, render/hanging.ts)
-  dmgmore2: atLoad('dmgmore2'),
 };

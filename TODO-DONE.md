@@ -36,6 +36,55 @@ The default 11-17, their switches deleted:
   own parts (a cab door a side, the black steel bumper, the big mirrors, the stack), shaded. Its
   trailer (the pin joint) follows behind its own ?trailer.
 PROOF (second PC, old with the switches on -> this plain): follows.
+## PASSED 11-17, MORE DAMAGE 2 AND MARK TRACK (owner: ?dmgmore2 and ?marktrack passed, for itch)
+
+The default 11-17, the switches deleted with their old paths: the exhaust and a torn bumper's piece
+left HANGING and dragging until they drop (the hanging exhaust the car's own exhaust drawing, the
+owner's; world/hanging.ts), the steam and the leaks from the real radiator and sump, the sump's crack
+by the hit's size, a later crack widening a leak (physics/leakplaces.ts, engineheat.ts; the old
+random 60-120 s sump and the 0.3x reopen gone), and the rear-right skid mark at the rear track
+(marks.ts). PROOF: round161 WITH ?dmgmore2=1&marktrack=1 against this plain - see the commit. The
+records as built:
+MORE DAMAGE 2 (?dmgmore2=1, FIX.dmgmore2; testlist 'dmgmore2'), the owner's damage items 4 and 3.
+HANGING PARTS (item 4; owner's answers 11-17: the exhaust hangs by a chance by the damage, about half
+overall, and drags a random 100-400 m; a hanging bumper falls off by itself by distance and damage;
+the Tesla and open cars as they are): world/hanging.ts. A hit that would throw the exhaust leaves it
+hanging HANG_FROM 1.55 less the hit's size of the time (0.2-0.8; a roll's impact as 0.75) - gone from
+the sprite, drawn under the body with its tailpipes 0.35 m behind the tail (render/hanging.ts), its
+end SPARKING on hard ground over 2 m/s (render/particles.ts emitHangingDrag) - and it drops after a
+random 100-400 m of the car's travel (thrown as before), or at the next hit on the tail. A torn bumper
+that leaves a piece hanging (world/torn.ts partHangs, shared now with render/torncut.ts) drags 100-400
+m x (1 - 0.5 x its end's damage), shedding PAINT CHIPS from its end (no sparks), then the piece drops
+('drop:bumper:<c>' in partLost: render/carparts.ts no longer draws it). MEASURED
+(tools/scratch/_hangcount.mjs, 200 crashes a car - a rear and a front hit of 10-28 m/s - then driven
+at 15 m/s, RANDOM_SEED 1): exhausts left hanging / thrown, hatch-fwd 25 / 18, saloon-rwd 21 / 35,
+estate-4x4 28 / 21 (74 / 74 pooled: a half); no exhaust hangs on an open car (track-rwd: 0) or the Tesla (none to throw); each dragged 104-400 m (means 231-249) before it
+dropped; bumper pieces 196-206 a car, dragged 51-324 m (means 143-153). The switch off: no hanging.
+FIXED while building it: a rear hit's second corner knocked off the exhaust the same hit had just
+left hanging (0 m drags); a part left hanging that step is not knocked. Photos
+(tools/scratch/_hangshots.mjs: the hatch and the saloon on the Test Track): the sparks behind the
+tail, the bumper's piece and its chips; no page errors. PASSED 11-17.
+STEAM AND LEAKS (item 3; owner's answers 11-17: oil by the hit's size, later hits widen by their
+size, the radiator too; puddles under the real radiator and sump; denser steam when exposed):
+physics/leakplaces.ts gives each car's radiator (carbits.ts: nose, tail - the Sport quattro S1 -
+or sides, mid-engined) and sump (under its engine); the water lands under the radiator and the
+oil under the sump (physics/engineheat.ts stepLeaks: they were 0.3 and 0.15 of the length ahead
+for every car); the steam rises from the radiator (render/enginesmoke.ts emitSteam: it came off a
+fixed point at the nose), x1.5 when the panel over it is lost (isRadiatorExposed), and the hot
+engine's smoke off the engine. The SUMP cracks by the hit's size (120 s to drain from a 0.35 hit
+down to 60 s from 0.8; a roll as 0.5; it was a random 60-120 s), and a later crack, radiator or
+sump, WIDENS a leaking one by its own rate (each at most 1/30 a second). MEASURED
+(tools/scratch/_leaks.mjs: a front hit, then a second of 0.4; off -> on): water after a 0.35 hit 74
+-> 74 s, + the 0.4 hit 49 -> 34 s; after 0.6: 40 -> 40, then 34 -> 30; oil after 0.35: 60 -> 120 s,
+then 60 -> 57; after 0.8: 60 -> 60, then 60 -> 39. Where they land, parked (m ahead of the middle,
+1.5 m cells): the hatch water +2.25, oil +0.75; the S1 water -2.25 (its tail), oil +0.75; the
+Huracan water +2.25, oil -0.75 (its mid engine); off: every car's in the same cell, +0.75. Visible
+drips in the plan: left out - under the body they cannot be seen; the trail is the wet and oil
+cells. Photos (tools/scratch/_steamshots.mjs: the hatch, the S1, the Huracan, panel on and off):
+the steam off the nose, the S1's tail, denser with the panel gone; no page errors. PASSED 11-17.
+MARK TRACK (?marktrack=1, owner 11-17: fix it, its own switch): marks.ts listWheels laid the rear-right
+wheel's mark at the FRONT track; it now uses the rear one (spec.trackR) - only the Routemonster and
+the Skool Bus have their own (2.05 front / 1.80 and 1.85 rear: 0.125 and 0.10 m in). PASSED 11-17.
 
 ## PASSED 11-17, THE PASS BATCH 4 (owner: the Skool Bus, the E36 Peak and the Transfit Custom passed)
 

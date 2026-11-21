@@ -1,11 +1,11 @@
-// _steamshots.mjs - ?dmgmore2 item 3 (physics/leakplaces.ts, render/enginesmoke.ts): a cracked
+// _steamshots.mjs - (physics/leakplaces.ts, render/enginesmoke.ts): a cracked
 // radiator's STEAM where the radiator is - the hatch's nose, the Sport quattro S1's tail, the
 // Huracan's - its panel on, then off (exposed: denser), parked on the Lab; photos at 844x390 and
 // 390x844, zoomed in. node tools/scratch/_steamshots.mjs <dir> [cars] [extra query]
 import { mkdirSync } from 'node:fs';
 import { startServer, launchBrowser, gotoGame } from '../lib/browser.mjs';
 const [OUT = 'tools/scratch/steamshots', carsArg = 'hatch-fwd,rally-4x4,lambo-awd',
-  query = 'dmgmore2=1'] = process.argv.slice(2);
+  query = 'x=1'] = process.argv.slice(2);
 // the panel over each radiator (physics/leakplaces.ts isRadiatorExposed)
 const OPEN = { 'hatch-fwd': 'bonnet:0', 'rally-4x4': 'boot:2', 'lambo-awd': 'bonnet:0' };
 mkdirSync(OUT, { recursive: true });

@@ -204,7 +204,7 @@ function bigParts(car: DebrisCar, corner: number, add: number, endW: number,
     rnd: () => number) {
   if (add < PART_HIT) return;
   const bits = bitsOf(car.spec?.id || ''), front = corner < 2;
-  // (?dmgmore2: what hangs at this end is knocked off - world/hanging.ts)
+  // (what hangs at this end is knocked off - world/hanging.ts)
   knockHanging(car, front);
   const has = (kind: string) => (car.partLost || '').split(',').some((entry) =>
     entry.startsWith(kind));
@@ -212,7 +212,7 @@ function bigParts(car: DebrisCar, corner: number, add: number, endW: number,
     if (hasNo(bits, kind) || hasNoDoor(car, kind, corner)
       || has(kind === 'mirror' || isTwin(car, kind) ? kind + ':' + corner
       : kind) || rnd() >= chance) return;
-    // (?dmgmore2: the exhaust may be left hanging instead - world/hanging.ts)
+    // (the exhaust may be left hanging instead - world/hanging.ts)
     if (kind === 'exhaust' && exhaustHangs(car, add, rnd)) return;
     car.partLost = (car.partLost ? car.partLost + ',' : '') + kind + ':' + corner;
     (car.partSpawn || (car.partSpawn = [])).push({ corner, kind });

@@ -1,4 +1,4 @@
-// _leaks.mjs - ?dmgmore2 item 3 measured (physics/engineheat.ts, physics/leakplaces.ts): per car,
+// _leaks.mjs - measured (physics/engineheat.ts, physics/leakplaces.ts): per car,
 // the radiator's and the sump's drain time after one front hit of each size, and after a second
 // hit widens the crack; then where the leaks land - the car parked on the Lab, heading +x, its
 // leaks stepped: the wet and oil cells' places along the car (m ahead of its middle, cells 1.5 m).

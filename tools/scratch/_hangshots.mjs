@@ -1,10 +1,10 @@
-// _hangshots.mjs - ?dmgmore2 item 4 (world/hanging.ts, render/hanging.ts): a car with its exhaust
+// _hangshots.mjs - (world/hanging.ts, render/hanging.ts): a car with its exhaust
 // left HANGING (its end on the road behind the tail, sparks on tarmac) and a torn rear bumper's
 // piece dragging (paint chips), driven straight on the Test Track's tarmac at ~10 m/s; photos at
 // 844x390 and 390x844, zoomed in. node tools/scratch/_hangshots.mjs <dir> [cars] [extra query]
 import { mkdirSync } from 'node:fs';
 import { startServer, launchBrowser, gotoGame } from '../lib/browser.mjs';
-const [OUT = 'tools/scratch/hangshots', carsArg = 'hatch-fwd,saloon-rwd', query = 'dmgmore2=1']
+const [OUT = 'tools/scratch/hangshots', carsArg = 'hatch-fwd,saloon-rwd', query = 'x=1']
   = process.argv.slice(2);
 mkdirSync(OUT, { recursive: true });
 const server = await startServer();

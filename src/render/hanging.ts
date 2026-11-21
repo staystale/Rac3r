@@ -1,4 +1,4 @@
-// render/hanging.ts - ?dmgmore2: an EXHAUST LEFT HANGING (world/hanging.ts), drawn under the body
+// render/hanging.ts - an EXHAUST LEFT HANGING (world/hanging.ts), drawn under the body
 // each frame: the car's own exhaust (render/carparts.ts bitDrawing - its silencer, pipe and
 // tailpipes) from its mount under the tail, swung down and back so its end trails past the
 // bumper on the road (where its sparks fly from, render/particles.ts). Its picture is made once
