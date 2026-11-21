@@ -8,6 +8,8 @@ export const LAP_METRES: Record<string, number> = {
   'anglesleazy-national': 976.4,
   'bathurst': 3107.0,
   'birdsmess': 1015.0,
+  'blighty': 1155.9,
+  'blightyrx': 1428.8,
   'brands-snatch': 1959.3,
   'brands-snatch-indy': 974.2,
   'cadwallop': 1702.4,
