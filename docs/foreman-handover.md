@@ -6,10 +6,10 @@ not repeated here), then `TODO.md`, then this page. The 11-07 version of this pa
 
 ## Where we are (11-21)
 
-- **ITCH** = `2026-11-21-6f5012ea` (push #4, owner yes 11-21, staged rac3r-2026-11-21): every pass to
-  11-17 incl. tipping, the Scanyah tractor, hanging exhaust / steam / leaks, marktrack. NEXT push: the
-  reset fix + headlights (passed 11-21, Worker C defaulting) - ask first.
-- **Main** = 6f5012ea (round162, CI green). Serve rounds by local checkout; push only for CI.
+- **ITCH** = `2026-11-21-67c5592c` (push #5, owner yes): + the reset fix, headlights, FPS toggle,
+  tyre marks kept whole, Blighty Park RX + circuit, the chequered flag every race. Ask before #6.
+- **Main** = 67c5592c (round166 + laplengths, CI green). Serve by local checkout; push only for CI.
+  LESSON: a level made plain needs tools/laplengths.mjs re-run (CI failed on it twice).
 - **The owner's link** = foreman/round163 (local). ?resetclean and ?lamps PASSED 11-21, being made default
   by Worker C. Nothing else under test.
 - **Worker A** (a2fab314deb77a72b): the AI PHASE (TODO 2, the 11-21 list items 7-12): a measured baseline of
