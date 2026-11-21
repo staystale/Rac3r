@@ -10,12 +10,13 @@ not repeated here), then `TODO.md`, then this page. The 11-07 version of this pa
   tyre marks kept whole, Blighty Park RX + circuit, the chequered flag every race. Ask before #6.
 - **Main** = 67c5592c (round166 + laplengths, CI green). Serve by local checkout; push only for CI.
   LESSON: a level made plain needs tools/laplengths.mjs re-run (CI failed on it twice).
-- **The owner's link** = foreman/round163 (local). ?resetclean and ?lamps PASSED 11-21, being made default
-  by Worker C. Nothing else under test.
-- **Worker A** (a2fab314deb77a72b): the AI PHASE (TODO 2, the 11-21 list items 7-12): a measured baseline of
-  the owner's 4 tests on 6 levels, then the two leads for racers waiting behind traffic (other-
-  carriageway cars counted; the aggression-scaled gaps), then a brief plan. TUNE, don't change.
-  The Scanyah trailer is parked on worker/joint a150f2ae (behind ?trailer).
+- **The owner's link** = foreman/round168 (local): ?trailer ?boxhold ?gridlen (+ the rig reset fix). Lab rig
+  start: (a) move the light or (b) start to the side - asked.
+- **Worker A** (a2fab314deb77a72b): the ?aitune round reported 11-21 (worker/aiphase 51c5c546, results in
+  scratchpad/w69). Steps 1+2 (K_BRAKE 0.85, the steady pedal): braking on straights much better, more crashes
+  on Moanaco/Croughed/Spa. Steps 3-5 not better. Racers held = the gap picker BOXED cap (both modes).
+  Owner asked: (a) keep the pedal, K_BRAKE ~0.78, 4 seeds; (b) drop 3-5. Running meanwhile: the BOXED trace
+  (read-only), then a gapStep fix PLAN.
 - **Worker C** (a60bdb17a2f902ec3, fresh 11-21, brief scratchpad/briefC1.md, PC repo2): the resetclean +
   lamps pass; then fpshud, marksage (oldest marks fade first, no straight cuts), the CHEQUERED FLAG
   (missing at the end of many races - diagnosis first), the Pembreezy trace (b4y) results, then
