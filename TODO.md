@@ -21,6 +21,39 @@ MARK TRACK.)
 
 ## 2. BEING BUILT
 
+- THE OWNER'S LIST OF 11-21 ("digest and fit into the todo ... discuss anything needed before
+  actioning"; each item gets a brief plan / the cause before any build, behind its own switch):
+  BUGS
+  1. RESET STUCK: after a reset the car sometimes cannot pull away - not the slippery-ground case
+     (that is fine) - find it.
+  2. RESET ROLLED: a reset sometimes leaves the car upside down, or keeps its momentum, after a crash.
+  3. NO CHEQUERED FLAG at the finish (seen at Angle Sleezy); every AI race must have a finish.
+  4. TYRE MARKS CUT OFF in straight lines on one surface (Snoozuka, a couple of turns before the
+     tunnel; other tracks too) - a ground-tile edge?
+  5. HEADLIGHT GLOW drawn behind the lamp, on the car's own body: each car's lamps light only what
+     a real one would, with their own shape and reach.
+  6. PEMBREEZY AI: odd behaviour - put back whatever the earlier "fix" changed so it drives like
+     every other level; check the line for kinks, queuing, braking on straights (suspect: the
+     brake-and-steer-to-avoid rule, to tune with the rest of the AI).
+  AI (one phase, the AI rework / tune - the parked ?pbzline / ?driftbrake and 3e's case with it)
+  7. THE AI WAITS behind traffic and the police dodge traffic better than racers - find the bug
+     (fixes went in before); explain to the owner how the AI looks ahead; make it aware of other
+     racers, traffic, police and angry (aggro) cars.
+  8. TRAFFIC DODGES RACERS too, gently, by its drivers' skill.
+  9. TUNE THE AI with the skill sliders across a range of levels: few crashes (not none), faster
+     laps, real racing (rubbing, overtakes, the field moving - not a parade), first corners not
+     chaos; fast cars in big packs on tight first corners crash too much now.
+  10. ROLLING STARTS: the cars move as one formation rather than by their own decisions.
+  11. AI HANDBRAKE use; drifting later (drift modes / tracks / events).
+  FEATURES
+  12. FLASHING: racers may flash a car blocking them (traffic or a racer). Traffic flashed moves
+     over; flashed too much (a chance) it gets mad and chases whoever flashed it (an AI or the
+     player). Racers never get mad or move for a flash, but may flash in races. Flashing works only
+     with working headlights; flickering (damaged) lamps flash; dead lamps cannot.
+  13. FPS counter as a HUD-list toggle.
+  14. CAMERA SHAKE / a jerk in crashes (maybe).
+  15. HIGHWAY: a city theme, Stockholm ("getaway"), beside Country and Deaf Valley.
+
 - THE 11-16 QUEUE (every item owner-approved after a brief plan; details in each worker's TODO
   entry as it lands):
   - WORKER A (paused): the Scanyah trailer joint - WIP worker/joint 020b0d07, works; left: the
