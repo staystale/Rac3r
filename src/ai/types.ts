@@ -277,6 +277,9 @@ export interface CarsAcc {
   stopped?: StoppedCar[];
   // ?aitune: how fast the car I follow is slowing, as I read it, m/s2 (the lowest cap's car)
   followDec?: number;
+  // why the lowest follow cap was set (the owner's 11-21 "why held" trace, tools/scratch/
+  // _whyheld.mjs: read only)
+  why?: string;
 }
 export interface CarsEnv {
   car: AiCar; path: Path<DrivePoint>; nearIdx: number; idx: (pos: number) => number;
@@ -299,6 +302,7 @@ export interface CircuitState extends DriveOutState {
   zoneDecel?: number; zoneFF?: number;
   // ?aitune: the followed car's braking (m/s2) and my full-pedal deceleration (m/s2)
   followDec?: number; fullDecel?: number;
+  followWhy?: string;   // why it is held (CarsAcc.why, or 'stopped'), '' when not
   lap: number;
   jokers: number;
   jPlan: number;

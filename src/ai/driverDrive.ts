@@ -74,6 +74,17 @@ function followDecOf(followCap: number, cars: CarsAcc): number {
   return followCap === cars.followCap ? cars.followDec ?? 0 : 0;
 }
 
+/**
+ * Why I am held (read only: tools/scratch/_whyheld.mjs): the cars' reason for the cap kept, or a
+ * stopped car's cap (ai/stopDodge.ts).
+ * @param followCap the cap kept, m/s
+ * @param cars the cars' read
+ * @returns the reason
+ */
+function whyHeld(followCap: number, cars: CarsAcc): string {
+  return followCap === cars.followCap ? cars.why ?? '' : 'stopped';
+}
+
 /** Other cars and obstacles, then racecraft: the lateral target, speed scale and gap cap. */
 function trafficStep(drv: Drv, car: AiCar, ctx: DriveCtx, path: AiPath, nearIdx: number,
     idx: (pos: number) => number, speed: number, dt: number, lineOff: number, startK: number,
@@ -127,6 +138,7 @@ function trafficStep(drv: Drv, car: AiCar, ctx: DriveCtx, path: AiPath, nearIdx:
   state.follow = followCap < Infinity;
   // (?aitune: the braking of the car I follow, when it sets my cap - ai/driverPedals.ts)
   state.followDec = followDecOf(followCap, cars);
+  state.followWhy = whyHeld(followCap, cars);
   latT += state.dodge;
   // past the usual edge only while going round a car (above)
   const edge = targetEdge(state, latLim, path === main, lineOff);
