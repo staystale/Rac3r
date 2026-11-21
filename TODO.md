@@ -50,6 +50,8 @@ MARK TRACK.)
      small, now and then a big one, not a pile-up every race; (c) NO random braking halfway down a
      straight (a per-car brake / lift trace on straights: zero without a real reason); (d) cars do
      not want to touch but are happy to run close (contacts down, close-running time up).
+     OWNER 11-21: "we ideally want to TUNE our racer AI not change it - but do what's needed, discuss
+     first as always": the sliders / numbers first; a code change only where a bug needs it, planned first.
   10. ROLLING STARTS: after the GREEN the cars still move a bit uniform, as a block - each should
      race its own line from the green (owner 11-21: b).
   11. AI HANDBRAKE use; drifting later (drift modes / tracks / events).
