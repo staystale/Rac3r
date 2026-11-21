@@ -85,6 +85,8 @@ export interface HwState {
   seed: number;
   /** Deaf Valley's extras: only on open ground, no rivers or side roads */
   desert?: boolean;
+  /** GETAWAY STOCKHOLM's extras: none off its closed stretches (highway/cityplan.ts) */
+  city?: boolean;
   /** the drivable bridge in each LEVEL.crossings slot (highway/bridgeways.ts) */
   wayOwners?: (Prop | null)[];
   /** a junction rolled and not yet built (none fitted): the next bridge that fits */

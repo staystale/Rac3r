@@ -479,6 +479,7 @@ function dressStretch(level: HwLevel, firstIdx: number, endIdx: number, loose: L
     for (const cut of state.cuts)
       if (!cutSkips(cut, road[j].s)) cutBy(level, cut, road[j].x, road[j].y);
   const isCity = level._cfg.theme === 'city';
+  if (isCity) state.city = true;
   for (let i = firstIdx; i < endIdx; i++) {
     const dist = road[i].s,
       biomeName = biomeAtDist(dist, state.seed, level._cfg.theme),

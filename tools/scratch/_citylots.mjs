@@ -6,11 +6,15 @@
 // road (left), or nothing (the lot found no room: a bend, the next lot).
 // And at every window move: each city building's footprint (1 m grid) and each noise wall's
 // points against the road (its half width) and every lane that is not the lot's own (slips, side
-// roads, approaches, junctions): any inside counts as a clash.
+// roads, approaches, junctions): any inside counts as a clash. And the BUILT-OFF CLASHES (owner
+// 11-21: "petrol stations that had water in them"): every slip, side road, approach or junction
+// lane (a point every ~12 m), every lay-by and every station or services standing beside a closed
+// stretch (the water, a tunnel, a cutting, an embankment: highway/cityplan.ts).
 // STOCKHOLM=1 node tools/scratch/_citylots.mjs [roads motorway,dual,...] [seeds 4242,7,99]
 import * as L from '../../src/lab.ts';
-import { createHighway, resetHighway, stepHighway, roadPose, setHighwayPreset }
+import { createHighway, resetHighway, stepHighway, roadPose, setHighwayPreset, roadFrame }
   from '../../src/highway.ts';
+import { bayHere } from '../../src/highway/laybys.ts';
 import { cityStretchAt } from '../../src/highway/cityplan.ts';
 
 const roads = (process.argv[2] || 'motorway,interstate,dual,walled,twisty').split(',');
@@ -44,6 +48,23 @@ function onAWay(level, x, y, field) {
   return null;
 }
 
+const CLOSED = new Set(['water', 'tunnel', 'cutting', 'raised']);
+const STATIONS = new Set(['gasstation', 'canopy', 'services', 'servicehall', 'station']);
+
+/**
+ * Whether a world point stands beside a closed stretch (within 80 m of the road's edge).
+ * @param level the highway level
+ * @param x world x
+ * @param y world y
+ * @param seed the road's seed
+ * @returns it does
+ */
+function byClosed(level, x, y, seed) {
+  const frame = roadFrame(level, x, y, null);
+  return !!frame && Math.abs(frame.off) < level._hw.geo.hw + 80
+    && CLOSED.has(cityStretchAt(frame.s, seed).kind);
+}
+
 const inRect = (rect, x, y) => {
   const dx = x - rect.x, dy = y - rect.y;
   return Math.abs(dx * rect.ax + dy * rect.ay) <= rect.hu
@@ -55,6 +76,7 @@ for (const road of roads) {
   let made = 0, dropped = 0;
   const byKind = {};
   const clashes = { road: 0, lane: 0 }, checked = new Set();
+  const built = { lane: 0, station: 0, layby: 0, of: 0 }, bays = new Set();
   for (const seed of seeds) {
     const level = createHighway(seed, road);
     setHighwayPreset(level, road, 'stockholm');
@@ -84,6 +106,28 @@ for (const road of roads) {
               along = across = Infinity;
             }
           }
+      }
+      if (moved) {
+        for (const lane of level.lanes) {
+          if (lane.field != null || checked.has(lane)) continue;
+          checked.add(lane);
+          built.of++;
+          if (lane.pts.some(([x, y], idx) => idx % 3 === 0 && byClosed(level, x, y, seed)))
+            built.lane++;
+        }
+        for (const prop of level.props) {
+          if (!STATIONS.has(prop.kind) || checked.has(prop)) continue;
+          checked.add(prop);
+          built.of++;
+          if (byClosed(level, prop.x, prop.y, seed)) built.station++;
+        }
+        for (const point of level._hw.pts) for (const side of [-1, 1]) {
+          const bay = bayHere(level, point.s, side), key = bay && `${side}:${Math.round(bay.mid)}`;
+          if (!bay || bays.has(key)) continue;
+          bays.add(key);
+          built.of++;
+          if (CLOSED.has(cityStretchAt(point.s, seed).kind)) built.layby++;
+        }
       }
       if (moved) for (const wall of level.barriers) {
         if (wall.kind !== 'wall' || wall.field == null || checked.has(wall)) continue;
@@ -139,6 +183,8 @@ for (const road of roads) {
     + `lay-by ${pct(tally.keep)} | side road ${pct(tally.side)} | no room ${pct(tally.none)}`
     + ` | lots made ${made}, dropped ahead of the car ${dropped}`
     + ` | clashes: on the road ${clashes.road}, on a lane ${clashes.lane} (of ${checked.size})`);
+  console.log(`  built off a closed stretch: lanes ${built.lane}, stations ${built.station}, lay-bys `
+    + `${built.layby} (of ${built.of})`);
   console.log('  lots by stretch: ' + Object.entries(byKind).map(([kind, n]) => `${kind} `
     + `${Math.round((100 * n.lot) / n.all)}% of ${n.all}`).join(', '));
 }

@@ -16,6 +16,7 @@ import { keepOut } from './cuts.ts';
 import { hash01, layStation } from './stations.ts';
 import { STEP } from './presets.ts';
 import type { Point } from '../world/types.ts';
+import { cityOpenSpan } from './cityplan.ts';
 import type { DressCtx, HwLevel } from './hwtypes.ts';
 
 // m of hard shoulder that is room enough for a reset: none on a road with one this wide
@@ -85,7 +86,8 @@ const reachOf = (level: HwLevel, side: number) => (stationsOn(level, side)
  */
 function planTo(level: HwLevel, dist: number, side: number): Plan {
   const seed = level._hw.seed, canyon = level._cfg.theme === 'canyon',
-    stations = stationsOn(level, side), key = `${seed}:${canyon}:${side}:${stations}`;
+    city = level._cfg.theme === 'city', stations = stationsOn(level, side),
+    key = `${seed}:${level._cfg.theme ?? ''}:${side}:${stations}`;
   let plan = PLANS.get(key);
   if (!plan) PLANS.set(key, plan = { mids: [], open: [], station: [],
     lastStation: STATION_FIRST_M + (side < 0 ? 0 : FAR_STATION_M) - STATION_EVERY[0],
@@ -96,8 +98,10 @@ function planTo(level: HwLevel, dist: number, side: number): Plan {
     const mid = plan.next;
     // (none over a gorge falling away on that side: Deaf Valley's high road; none by a petrol
     // station - MEASURED, _desertroom.mjs: their keep-out stopped 2 stations in 3)
-    const open = !canyon || [-HALF_M, 0, HALF_M].every((along) => !gorgeAt(mid + along, side,
-      seed) && !byStation(mid + along, side, seed));
+    // (the city's: none off its water, tunnels, cuttings or embankments - a station's reach)
+    const open = city ? cityOpenSpan(mid - STATION_HALF_M, mid + STATION_HALF_M, seed)
+      : !canyon || [-HALF_M, 0, HALF_M].every((along) => !gorgeAt(mid + along, side,
+        seed) && !byStation(mid + along, side, seed));
     plan.mids.push(mid);
     plan.open.push(open);
     // (a station when the last is far enough behind - its gap by the road's seed)

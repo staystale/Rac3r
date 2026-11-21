@@ -19,13 +19,15 @@ export type CityStretch = PlanStretch<CityKind>;
 
 // each kind's length range, m, and how often it is picked next: the city between every other
 // stretch most of the time, a park rare and short (owner: "little open green")
+// (owner 11-21: "I didn't see any slatted bridges or tunnels" - MEASURED, _citybridges.mjs: 0.29
+// tunnels a km; the tunnels now the likeliest after the city, its blocks shorter)
 const KINDS: Record<CityKind, KindRule> = {
-  city: { min: 450, max: 900, weight: 2.2 },
-  tunnel: { min: 280, max: 520, weight: 0.9 },
-  water: { min: 350, max: 750, weight: 0.9 },
-  raised: { min: 300, max: 600, weight: 0.9 },
-  cutting: { min: 280, max: 500, weight: 0.9 },
-  green: { min: 150, max: 280, weight: 0.35 },
+  city: { min: 350, max: 700, weight: 2 },
+  tunnel: { min: 250, max: 450, weight: 2 },
+  water: { min: 350, max: 650, weight: 0.9 },
+  raised: { min: 250, max: 500, weight: 0.6 },
+  cutting: { min: 250, max: 450, weight: 0.6 },
+  green: { min: 150, max: 250, weight: 0.25 },
 };
 
 /**
@@ -99,4 +101,24 @@ export function cityWallAt(dist: number, seed: number): { kind: BarrierKind; gap
   if (kind === 'water') return ((dist + seed) % WATER_GAP_EVERY_M) < WATER_GAP_M ? null
     : { kind: 'woodfence', gap: FENCE_GAP_M };
   return null;
+}
+
+// the stretches nothing is built off - no slip, services, junction, bridge or lay-by, its station
+// none: the water, a tunnel, a cutting, an embankment (owner 11-21: "petrol stations that had
+// water in them")
+const CLOSED = new Set<CityKind>(['water', 'tunnel', 'cutting', 'raised']);
+// m between two looks along a span
+const LOOK_STEP_M = 20;
+
+/**
+ * Whether a span of road is open for building off in the city: no closed stretch along it.
+ * @param from road distance, m
+ * @param upto road distance, m
+ * @param seed the road's seed
+ * @returns it is
+ */
+export function cityOpenSpan(from: number, upto: number, seed: number): boolean {
+  for (let along = Math.max(0, from); along <= upto; along += LOOK_STEP_M)
+    if (CLOSED.has(cityStretchAt(along, seed).kind)) return false;
+  return !CLOSED.has(cityStretchAt(Math.max(0, upto), seed).kind);
 }

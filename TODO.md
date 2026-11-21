@@ -115,7 +115,16 @@ MARK TRACK.)
      underpasses a km, with 0.29 tunnels and 0.27 long bridges over water a km. OWNER 11-21: the
      tunnels "dark AND DRY inside", the yachts SOLID, SAND under the water: DONE (citywater.ts: the
      slats' shade over their whole pitch, roof zones - no rain, the yachts moored, a sand zone under
-     each water piece), measured on the PC (tools/scratch/_cityroof.mjs). AWAITING THE PHONE TEST.
+     each water piece), measured on the PC (tools/scratch/_cityroof.mjs). OWNER on round177: "Okay,
+     better Stockholm"; BUG "petrol stations that had water in them on the single track" - FIXED:
+     the lay-bys (and their stations) were planned before the water existed and the slips and
+     services tested the ground only where they started; now no lay-by, station, slip, services,
+     junction or bridge is built off a closed stretch (cityplan.ts cityOpenSpan: the water, a
+     tunnel, a cutting, an embankment - laybys.ts's plan, extras.ts isOpenGround over its window);
+     tools/scratch/_citylots.mjs counts them (before / after on the PC). "I didn't see any slatted
+     bridges or tunnels": the tunnels the likeliest stretch after the city, the city's blocks
+     shorter (cityplan.ts KINDS), tunnels a km measured on the PC (_citybridges.mjs). AWAITING THE
+     PHONE TEST.
 
 - POLICE BY SCENERY (owner 11-21: "too many police on the other levels" - countryside nearly none,
   Deaf Valley some, Stockholm the most, at today's level): BUILT (Worker C 11-21) behind

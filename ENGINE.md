@@ -842,7 +842,9 @@ GREEN park, in a random order, never the same twice. The ground beside the road 
 raised stretch, 5 m above a cutting and a tunnel, eased in at the ends and back out before REACH.
 The barriers along the edges by stretch (`dress.ts layWalls` with `cityWallAt`): a cutting's and
 a tunnel's retaining walls, a raised stretch's Armco, over the water a post-and-rail fence with a
-22 m gap in every 110 (you can go in). LOTS (`city.ts`) on every built-up stretch, set back by
+22 m gap in every 110 (you can go in). Nothing is built off a closed stretch (`cityOpenSpan`: the
+water, a tunnel, a cutting, an embankment): no lay-by or station (`laybys.ts`'s plan), no slip,
+services, junction or bridge (`extras.ts isOpenGround` over its window). LOTS (`city.ts`) on every built-up stretch, set back by
 stretch (`LOT_OUT_M`): concrete past a verge, a street with cars parked along it ('parkedcar'),
 two rows of buildings ('block') in four styles - modern slabs, the old town's houses (now and then
 a church), towers behind a modern row, shops with a car park - wheelie bins by the doors; a city

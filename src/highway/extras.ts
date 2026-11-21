@@ -12,6 +12,7 @@ import { laybysOn } from './laybys.ts';
 import { layServices, newServices, servicesDue as yardDue, servicesOut } from './stations.ts';
 import { SIDE_OUT } from './cuts.ts';
 import { gorgeAt } from './gorge.ts';
+import { cityOpenSpan } from './cityplan.ts';
 import { JUNCTION_SHARE, LEAD_POINTS, layJunction } from './junctions.ts';
 
 // a SERVICES (highway/stations.ts): m between them, the least and the most; the
@@ -582,6 +583,8 @@ function buildServices(level: HwLevel, i: number, dist: number, pointAt: (i: num
  */
 function isOpenGround(state: HwState, dist: number, back = OPEN_BACK_M, ahead = OPEN_AHEAD_M,
   sides: number[] = [-1]) {
+  // (the city: none off its water, tunnels, cuttings or embankments - highway/cityplan.ts)
+  if (state.city) return cityOpenSpan(dist - back, dist + ahead, state.seed);
   if (!state.desert) return true;
   const last = dist + ahead;
   for (let along = Math.max(0, dist - back); along <= last; along += OPEN_STEP_M) {
