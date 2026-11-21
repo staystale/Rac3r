@@ -72,10 +72,9 @@ export const FIX = {
   // K_BRAKE, tarmac and loose alike - the drivers correct), and the brake pedal holds through a
   // braking zone instead of dabbing on and off (ai/driverPedals.ts pedals)
   aitune: atLoad('aitune'),
-  // F1 "SCORE THE DESTINATION" (owner 11-21, item 7): the gap picker scores a line more than one
-  // swerve across by its own room ahead, not the part-way point it steers to this think
-  // (ai/gapPick.ts lineScore) - MEASURED, the BOXED trace: a roomier line out of one think's
-  // reach was 61 % of Thruston's boxed time, 16 % of the motorway's
+  // F1 "SCORE THE DESTINATION" (owner 11-21, item 7): on the highway, the gap picker scores a line
+  // more than one swerve across by its own room ahead, not the part-way point it steers to this
+  // think (ai/gapPick.ts lineScore, destOn) - on the circuits it raised the crashes (MEASURED)
   gapdest: atLoad('gapdest'),
   // F2 "COMMIT ONLY WHILE IT PAYS" (owner 11-21, item 7): while the line a driver chose is the one
   // holding it boxed, only a share of the gap picker's bonus for keeping that line - a sliding

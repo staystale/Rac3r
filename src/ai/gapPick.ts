@@ -143,6 +143,18 @@ export function gapLine(seen: SeenCar[], mine: { lat: number; base: number; half
 }
 
 /**
+ * Whether ?gapdest reads the room on the line itself: on a line with lanes - the highway's - only.
+ * MEASURED (tools/scratch/_aibase.mjs, 4 seeds): on the motorway the racers' speed 110.9 -> 122.1
+ * km/h and their braking for traffic 838 -> 505 car-s, the crashes the same; on the circuits more
+ * incidents (Brands 129 -> 151, Moanaco 112 -> 128, Croughed RX 91 -> 118) and no faster - a
+ * roomier line there is often across the racing line - and weighing the racing line 4x for such a
+ * line still left them above off (136 / 118 / 119): owner 11-21, "only if we have to".
+ * @param lanes the line's lanes, if it has them
+ * @returns on
+ */
+const destOn = (lanes?: number[]) => FIX.gapdest && !!lanes;
+
+/**
  * ?gapdest: the car on a line out of one swerve's reach, as its room ahead (one beside me there
  * counts as no room: its gap 0, not a side - I am not there yet).
  * @param seen the cars seen
@@ -204,7 +216,7 @@ export function lineScore(seen: SeenCar[], want: number, mine: { lat: number; ba
   if (near && near.side) return null;
   // (?gapdest: the room and the move read on the line itself - the car still steers there one
   // swerve a think; else on the part-way point)
-  const dest = FIX.gapdest ? want : off;
+  const dest = destOn(lanes) ? want : off;
   const block = dest === off ? near : destBlock(seen, dest, half, len);
   const ahead = block ? Math.min(freeTo(block, speed), speed * look) : speed * look + FREE_BONUS;
   const kept = block ? Math.max(0, block.v) * KEPT_V : 0;
