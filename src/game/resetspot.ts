@@ -9,6 +9,8 @@ import { clearOfUnder, trackSpotOf } from '../world/trackunder.ts';
 import { highwayRespawn, roadSpan } from '../highway.ts';
 import type { HwLevel } from '../highway/hwtypes.ts';
 import type { Subtrack } from '../world/types.ts';
+import { isTowing } from './gridlen.ts';
+import { trailerBehind } from '../physics/trailer.ts';
 
 // m kept clear in front of and behind the reset car's body, and beside it: room to drive off
 const CLEAR_ALONG_M = 1.5, CLEAR_ACROSS_M = 0.4;
@@ -83,14 +85,29 @@ export function firstFree<T>(first: T, poseOf: (spot: T) => { x: number; y: numb
   heading: number }, next: (spot: T) => T | null, aheadM = 0,
 mover?: { spec: { len: number; wid: number }; others: readonly SpotBody[] }): T {
   const others = mover ? mover.others : resetOthers(), spec = mover ? mover.spec : game.car.spec;
+  // (?trailer: your rig's trailer, lined up behind, must stand clear too)
+  const trailer = !mover && isTowing(game.car) ? trailerBehind(game.car) : null;
   let spot = first;
   for (let tries = 0; tries < FREE_TRIES; tries++) {
-    if (spotFree(poseOf(spot), spec, others, aheadM)) return spot;
+    const pose = poseOf(spot);
+    if (spotFree(pose, spec, others, aheadM)
+      && (!trailer || spotFree(behindPose(pose, trailer.back), trailer, others))) return spot;
     const behind = next(spot);
     if (behind === null) return spot;
     spot = behind;
   }
   return spot;
+}
+
+/**
+ * A pose a distance straight back from another (a trailer lined up behind its tractor).
+ * @param pose the tractor's pose
+ * @param back m back
+ * @returns the pose behind
+ */
+function behindPose(pose: { x: number; y: number; heading: number }, back: number) {
+  return { x: pose.x - Math.cos(pose.heading) * back, y: pose.y - Math.sin(pose.heading) * back,
+    heading: pose.heading };
 }
 
 /**

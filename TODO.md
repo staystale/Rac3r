@@ -551,10 +551,12 @@ inputs and get the cars back. A SPIKE (two phones on the tunnel) before committi
   P1 on the lap panel (Thruston, 5 AI, the last slot 36-37.5 m back: "P1/6"), with or without
   ?gridlen - the running order before the start (game/order.ts) reads the back of the grid as the
   front. Photo: tools/scratch/_gridlen.mjs hatch-off / rig-on.
-- FOUND (Worker C 11-21, the rig's reset check, no fix yet): (a) a RESET of the towing rig puts the
-  tractor on a spot free of cars, but its trailer, lined up 14 m behind, can land on an AI
-  (Thruston, 3 AI, ?gridlen on: 2 of 2 resets; game/resetspot.ts spotFree tests the tractor's box
-  only); (b) the Lab's spawn has a street light 2.3 m ahead and 1.3 m right of it: the 2.55 m
+- FOUND (Worker C 11-21, the rig's reset check): (a) a RESET of the towing rig put the tractor on a
+  spot free of cars, but its trailer, lined up 14 m behind, could land on an AI (Thruston, 3 AI,
+  ?gridlen on: 2 of 2 resets) - FIXED behind ?trailer (game/resetspot.ts firstFree tests the
+  trailer's box too): 0 of 6 (mid-race, after a jack-knife, by the barrier at the tightest bend,
+  with the pin broken - re-hitched), the trailer in line (hitch 1-2.4 deg, gap under 0.1 cm), on
+  no car, clear of barriers; at a tight bend it lies straight behind, over the run-off. (b) the Lab's spawn has a street light 2.3 m ahead and 1.3 m right of it: the 2.55 m
   tractor stands against it and cannot drive straight out (any car narrower than ~2.5 m clears it).
   tools/scratch/_rigreset.mjs.
 - FOR THE AI REWORK / TUNE (owner 11-16: "still looks like on tarmac Pembreezy too many drivers

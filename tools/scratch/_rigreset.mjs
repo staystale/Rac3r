@@ -1,6 +1,8 @@
 // _rigreset.mjs - ?trailer: THE RIG'S RESET (the R key) in the real game - on a circuit mid-race
 // (Thruston, 3 AI, the rig driven a while) and on the Lab, each straight after driving and after a
-// jack-knife (the trailer folded 70 deg about its pin). 0.6 s after the reset: the hitch angle, the
+// jack-knife (the trailer folded 70 deg about its pin); 'bend': the rig put down still at
+// the lap's tightest bend, 5 m off the line on its outside (by the barrier); 'pinfree': its pin
+// broken first. 0.6 s after the reset: the hitch angle, the
 // pin's gap, whether the trailer touches a barrier or a solid (a still copy put through the
 // world's clamps) or another car's body, the tractor's move; a photo each.
 // node tools/scratch/_rigreset.mjs <dir> [extra query]
@@ -9,8 +11,9 @@ import { startServer, launchBrowser, gotoGame } from '../lib/browser.mjs';
 
 const [OUT = 'tools/scratch/rigreset', extra = ''] = process.argv.slice(2);
 mkdirSync(OUT, { recursive: true });
-const CASES = [['thruston', 3, 'drive'], ['thruston', 3, 'fold'], ['lab', 0, 'drive'],
-  ['lab', 0, 'fold']];
+const CASES = (process.env.CASES || 'thruston:3:drive,thruston:3:fold,lab:0:drive,lab:0:fold,'
+  + 'thruston:3:bend,thruston:3:pinfree').split(',').map((one) => one.split(':'))
+  .map(([level, ai, how]) => [level, +ai, how]);
 const server = await startServer();
 const browser = await launchBrowser();
 
@@ -42,8 +45,32 @@ async function runCase(level, ai, how) {
   }, [level, ai]);
   await page.keyboard.press('ArrowUp');
   await page.waitForTimeout(14000);
-  const before = await page.evaluate(async (fold) => {
+  const before = await page.evaluate(async (which) => {
     const game = window.__game, car = game.car, trailer = car.trailer;
+    const fold = which === 'fold';
+    if (which === 'pinfree' && trailer) trailer.pinFree = true;
+    if (which === 'bend' && game.level.subtrack) {
+      const sub = game.level.subtrack, pts = sub.pts, count = pts.length;
+      let tight = 0, least = Infinity;
+      for (let i = 0; i < count; i++) {
+        const a = pts[(i - 4 + count) % count], b = pts[i], c = pts[(i + 4) % count];
+        const turn = Math.abs(Math.atan2(Math.sin(Math.atan2(c.y - b.y, c.x - b.x)
+          - Math.atan2(b.y - a.y, b.x - a.x)), Math.cos(Math.atan2(c.y - b.y, c.x - b.x)
+          - Math.atan2(b.y - a.y, b.x - a.x))));
+        const radius = Math.hypot(c.x - a.x, c.y - a.y)
+          / Math.max(1e-6, 2 * Math.sin(turn / 2 || 1e-6));
+        if (radius < least) { least = radius; tight = i; }
+      }
+      const { onTrack } = await import('/src/world/tyrewall.ts');
+      const { reset } = await import('/src/vehicle.ts');
+      const at = pts[tight], next = pts[(tight + 4) % count];
+      const prev = pts[(tight - 4 + count) % count];
+      // (the outside of the bend: away from the turn's centre)
+      const cross = (at.x - prev.x) * (next.y - at.y) - (at.y - prev.y) * (next.x - at.x);
+      const spot = onTrack(sub, at.dist, cross > 0 ? -5 : 5, {});
+      reset(car, spot.x, spot.y, spot.rot);
+      await new Promise((done) => setTimeout(done, 1200));
+    }
     if (fold && trailer) {
       const pinX = trailer.x + Math.cos(trailer.heading) * trailer.spec.lf,
         pinY = trailer.y + Math.sin(trailer.heading) * trailer.spec.lf;
@@ -53,7 +80,7 @@ async function runCase(level, ai, how) {
       await new Promise((done) => setTimeout(done, 300));
     }
     return { x: car.x, y: car.y, kph: Math.hypot(car.vx, car.vy) * 3.6 };
-  }, how === 'fold');
+  }, how);
   await page.keyboard.press('r');
   await page.waitForTimeout(600);
   const after = await page.evaluate(async () => {
