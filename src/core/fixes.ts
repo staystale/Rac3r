@@ -76,4 +76,7 @@ export const FIX = {
   // no map of the real course) and the Outer circuit at half size (blightyrx-venue.ts,
   // blighty-venue.ts)
   blighty: atLoad('blighty'),
+  // the chequered flag for every race's finish, not only the first of a session: the HUD's count
+  // of flags shown is kept per race flow (hud/overlays.ts drawHudFlag)
+  flagfix: atLoad('flagfix'),
 };

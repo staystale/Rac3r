@@ -43,4 +43,14 @@ export const TEST_LIST: TestEntry[] = [
     wrong: 'A gap in the barriers or fences, a prop on the road, the AI leaving the road at the '
       + 'north hairpin or the gravel joins, a track that reads too stiff or boring.',
   },
+  {
+    id: 'flagfix',
+    added: '2026-11-21',
+    name: 'The chequered flag at the finish of EVERY race, not only the first one',
+    where: 'Test link + &flagfix=1: any race with AI (or a highway run with a FINISH)',
+    try: 'Finish a race, then RESTART and finish again, then TRACK SELECT another track and '
+      + 'finish: the flag sweeps across with your place every time, win or not.',
+    wrong: 'A finish with no flag, a flag twice for one finish, or a flag before you cross the '
+      + 'line.',
+  },
 ];
