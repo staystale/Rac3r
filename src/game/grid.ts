@@ -17,6 +17,8 @@ import { START_STEP, ROLL_BACK } from './order.ts';
 import { shared, game } from './state.ts';
 import type { GameCar } from './state.ts';
 import type { Point } from '../world/types.ts';
+import { isTowing, layGridByLength, playerSlot, slotBackM } from './gridlen.ts';
+import { rigExtents, type Tractor } from '../physics/trailer.ts';
 
 // AI CARS — stage 1 (user: up to 5 opponents, FULL CONTACT, the SAME car as the player
 // in different colours + numbers). Each is { car, drv }: a real car stepped by the same physics on
@@ -89,7 +91,7 @@ export function gridPos(slot: number) {
   // every slot, pole included, counts back from the SPAWN's own road distance, GRID_STEP m per
   // slot, alternating columns GRID_LAT m either side of the centre (narrower on a narrow road).
   const back = LEVEL.rollingStart ? ROLL_BACK : 0;
-  const side = gridColumn(slot), backDist = back + slot * GRID_STEP;
+  const side = gridColumn(slot), backDist = back + slotBackM(slot, GRID_STEP);
   if (offLap) {
     // the spawn is OFF the lap (Slidden Hill's RX start straight): the grid runs straight back from
     // it along its heading
@@ -164,7 +166,7 @@ function pointBack(line: Point[], backM: number): Point {
  * @returns the position and heading
  */
 function startLineGridPos(slot: number, line: Point[]) {
-  const backM = slot * GRID_STEP, across = gridColumn(slot);
+  const backM = slotBackM(slot, GRID_STEP), across = gridColumn(slot);
   const [x, y] = pointBack(line, backM);
   const [aheadX, aheadY] = pointBack(line, backM - START_HEADING_M);
   const [behindX, behindY] = pointBack(line, backM + START_HEADING_M);
@@ -227,6 +229,7 @@ export function spawnAI(count: number = shared.aiCount) {
   game.ai = [];
   game.poleCar = null;
   const sub = LEVEL.subtrack!;
+  layGridByLength({ front: 0, rear: 0 }, [], 0, GRID_STEP);
   if (!sub || !count) {
     shared.gridSlot = 0;
     return;
@@ -234,6 +237,10 @@ export function spawnAI(count: number = shared.aiCount) {
   shared.gridSlot = drawGridSlot(count);
   const seed = 1 + Math.floor(Math.random() * 1e6), ids = aiCarIds(count, seed),
     nums = aiNumbers(count, seed);
+  // (?gridlen: a towing rig at the back, each slot as long as its car - game/gridlen.ts)
+  const towing = isTowing(game.car);
+  shared.gridSlot = playerSlot(count, shared.gridSlot, towing);
+  layGridByLength(rigExtents(game.car as Tractor, towing), ids, shared.gridSlot, GRID_STEP);
   for (let i = 0; i < count; i++) {
     const car = makeCar(ids[i]) as GameCar, [paint, trim] = AI_LIVERIES[i % AI_LIVERIES.length];
     // own sprite (cached by id), same physics

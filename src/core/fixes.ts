@@ -74,4 +74,7 @@ export const FIX = {
   // every auto box holds an upshift the road speed cannot hold (the next gear's revs at the road's
   // speed under its downshift rpm x 1.3), as low range already did (physics/powertrain.ts)
   boxhold: atLoad('boxhold'),
+  // each grid slot as long as its car (a towing rig at the back), a solo rig slid back clear
+  // (game/gridlen.ts)
+  gridlen: atLoad('gridlen'),
 };

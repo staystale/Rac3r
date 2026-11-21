@@ -33,4 +33,15 @@ export const TEST_LIST: TestEntry[] = [
     wrong: 'The trailer leaving its pin in normal driving, car parts (doors with windows, a '
       + 'bonnet) off it, lamps glowing under its nose, a dark trailer with the lights on.',
   },
+  {
+    id: 'gridlen',
+    added: '2026-11-21',
+    name: 'Grid slots as long as the vehicle: the towing rig at the back, buses spaced out',
+    where: 'Test link + &gridlen=1&trailer=1: the Scanyah towing with AI on a circuit; the school '
+      + 'bus with AI; the Scanyah alone on the Lab',
+    try: 'At the lights nothing overlaps: your rig in the last slot, each bus a slot its own '
+      + 'length; alone, the rig starts clear of the start posts. A grid of cars looks as before.',
+    wrong: 'A trailer over another car or a post at the start, a grid of cars spread out more '
+      + 'than before, or a rig not at the back of a grid.',
+  },
 ];

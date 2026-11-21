@@ -502,7 +502,12 @@ towedInside`). It joins the loose objects' cars (`game/sim.ts looseField`). ITS 
 brake, indicators, hazards, rain, reversing), dark once the pin has broken; the tractor's own rear
 lamps, under its nose, and the trailer's nose show none (`lampLevel`). The garage's TRAILER row
 (`menu/garage.ts addTrailerRow`, the tractor only): the curtainsider (the default) or WITHOUT, kept
-per tractor in the profile (`trailers`) and read at the launch (`chooseTrailer`).
+per tractor in the profile (`trailers`) and read at the launch (`chooseTrailer`). GRID SLOTS BY
+LENGTH (under test, `?gridlen=1`; `game/gridlen.ts`): a circuit's or a start lane's grid keeps each
+slot GRID_CLEAR_M (9 m) behind the tail of the car two slots ahead (`layGridByLength`,
+`slotBackM`: gridPos and the rolling start's formation), a towing rig (`rigExtents`) in the last
+slot (`playerSlot`); a solo rig slides back along the road to a spot clear for its trailer
+(`clearRigSpot`). The highway's grid is its own.
 LOW RANGE (`physics/lowrange.ts`): a car with a two-speed transfer box (`LOW_RANGE`
 by model: the Defunder 110, the Strange Rover) has `car.lowRange`; in low `powertrain.ts` multiplies
 the final drive by `rangeRatio`, `autoShift` holds an upshift the road speed cannot hold

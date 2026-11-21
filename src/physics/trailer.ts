@@ -137,6 +137,34 @@ export function lineUpTrailer(car: Car, trailer: Trailer): void {
 }
 
 /**
+ * How far a car reaches ahead of and behind its middle, m: a tractor that will tow (its trailer
+ * not dropped by the garage's row) to its trailer's tail - lined up as lineUpTrailer puts it;
+ * any other car half its length each way.
+ * @param car the car
+ * @param towing it will tow (?trailer on)
+ * @returns { front, rear } m
+ */
+export function rigExtents(car: Tractor, towing: boolean): { front: number; rear: number } {
+  const half = car.spec.len / 2;
+  if (!towing || car.trailer === null || String(car.spec.id).split('#')[0] !== TRACTOR_ID)
+    return { front: half, rear: half };
+  const trailer = trailerSpec();
+  const pinBack = car.spec.lr - FIFTH_WHEEL_AHEAD;
+  return { front: half, rear: Math.max(half, pinBack + trailer.lf + trailer.len / 2) };
+}
+
+/**
+ * The trailer's middle behind a tractor's, m (lined up: lineUpTrailer).
+ * @param car the tractor
+ * @returns m behind its middle, its length and width
+ */
+export function trailerBehind(car: Car): { back: number; len: number; wid: number } {
+  const trailer = trailerSpec();
+  return { back: car.spec.lr - FIFTH_WHEEL_AHEAD + trailer.lf, len: trailer.len,
+    wid: trailer.wid };
+}
+
+/**
  * ?trailer: hitches a trailer to a tractor that tows one (a new player car).
  * @param car the car
  * @returns its trailer, or null

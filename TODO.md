@@ -102,6 +102,15 @@ MARK TRACK.)
     HALF-FULL (the first, the default) or WITHOUT, kept per tractor in the profile and read at the
     launch (physics/trailer.ts chooseTrailer; menu/garage.ts addTrailerRow). tools/scratch/
     _garagetrailer.mjs (the real menus, both sizes): WITHOUT -> no trailer, CURTAINSIDER -> hitched.
+    GRID SLOTS BY LENGTH BUILT (Worker C 11-21) behind ?gridlen=1 (game/gridlen.ts): each slot keeps
+    9 m clear behind the tail of the car two slots ahead (its column) - two 5 m cars: the old 14 m,
+    so a grid of cars is unchanged - a towing rig (~17.3 m tractor nose to trailer tail) takes the
+    last slot, a solo rig slides back along the road to a spot clear for its trailer (barriers,
+    solids). MEASURED (tools/scratch/_gridlen.mjs, Thruston 5 AI): the rig - bodies closer than 1 m
+    off 1 (the trailer over an AI), on 0, you 37.5 m back (last); the school bus with 5 buses - the
+    column gaps 15 -> 21 m, 0 close either way; the hatch - the same slots off and on (0, 7.5, 15,
+    21, 28.5, 36 m back); the Lab alone - the trailer clear off and on (the tractor's box met the
+    start posts: slid 1 m). The highway's 2-wide grid unchanged. AWAITING THE PHONE TEST.
     THE BOX HUNTING BUILT (Worker C 11-21) behind ?boxhold=1 (owner: one rule for every auto box):
     in 1st the launch slip and the twin rear wheels' spin took the Scanyah to its 1,900 rpm upshift
     at 0.5-0.9 km/h, 2nd fell to its road revs (690-820) under the 1,100 downshift and it dropped

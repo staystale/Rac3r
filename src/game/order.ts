@@ -12,6 +12,7 @@ import { onTrack, queriesAt, querySubtrack } from "../world/tyrewall.ts";
 import { inTrackUnderpass, queryLevelOf } from "../world/trackunder.ts";
 import { onGround } from "../world/crossinggeo.ts";
 import { STAGE_GAP_S, GRID_STEP, gridColumn } from './grid.ts';
+import { slotBackM } from './gridlen.ts';
 import { formationInput, holdSpeed, roadFormationInput } from '../ai/formation.ts';
 import { shared, game, hwLevel } from './state.ts';
 import { firstFree, lapAhead, lapStepBack } from './resetspot.ts';
@@ -87,7 +88,7 @@ export function formationWant(car: GameCar, slot: number, keeper: FormKeeper) {
   }
   keeper.formDrv ??= createAutoDriver(LEVEL.subtrack!);
   return formationInput(car, keeper.formDrv,
-    { columnM: gridColumn(slot), backM: slot * GRID_STEP },
+    { columnM: gridColumn(slot), backM: slotBackM(slot, GRID_STEP) },
     game.poleCar || game.car, LEVEL.subtrack!, rollPaceNow(), ROLL_HOLD_THROTTLE);
 }
 /**
