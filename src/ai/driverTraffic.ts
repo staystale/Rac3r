@@ -427,12 +427,14 @@ const view = { fwd: 0, lat: 0, vAlong: 0 };
  * @param car my car
  * @param other the other car
  * @param byRoad read by the road (both have road frames)
+ * @param hand +1, or -1 on a right-hand road
  * @returns the view (shared: read before the next call)
  */
-function viewOf(car: AiCar, other: AiCar, byRoad: boolean) {
+function viewOf(car: AiCar, other: AiCar, byRoad: boolean, hand = 1) {
   if (byRoad) {
     view.fwd = other._hwf!.s - car._hwf!.s;
-    view.lat = other._hwf!.off - car._hwf!.off;
+    // (the road frame's offsets turned into mine: a right-hand road's the mirror)
+    view.lat = hand * (other._hwf!.off - car._hwf!.off);
     view.vAlong = other._hwf!.v;
     return view;
   }
@@ -530,7 +532,7 @@ export function carsStep(drv: Drv, car: AiCar, others: AiCar[], path: AiPath, ne
   };
   const seen: SeenCar[] = [];
   for (const other of others) {
-    const { fwd, lat, vAlong } = viewOf(car, other, byRoad && !!other._hwf);
+    const { fwd, lat, vAlong } = viewOf(car, other, byRoad && !!other._hwf, state.roadHand);
     // (cars to 60 m behind too - the gap picker's mirror; ahead, read as far in time
     // as a car going my way - one coming at me at the closing speed)
     if (fwd < -60 || fwd > 8 + readSpeed(speed, vAlong) * look || Math.abs(lat) > 8) continue;

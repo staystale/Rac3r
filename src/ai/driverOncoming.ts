@@ -86,7 +86,22 @@ export function ownSideCap(drv: Drv, car: AiCar, ctx: DriveCtx, path: AiPath, ne
   const sideOff = road.middleOff - car.spec.wid / 2 - KEEP_MARGIN_M;
   const window = car._hwf.off <= sideOff + KEEP_MARGIN_M ? KEEP_S + PASS_S : KEEP_S;
   if (near.time * (1 + (state.misjudge ?? 0)) > window) return Infinity;
-  // the road frame's offset of the driver's line frame (both + to the right of the way)
-  const shift = car._hwf.off - (lineOff + lateralOf(car, path, nearIdx));
-  return sideOff - shift;
+  // the road frame's offset of the driver's line frame (both + to the right of the way; on a
+  // right-hand road the road frame's the mirror - its side logic above stays in the road's terms)
+  const hand = road.hand ?? 1;
+  const shift = car._hwf.off - hand * (lineOff + lateralOf(car, path, nearIdx));
+  return hand * (sideOff - shift);
+}
+
+/**
+ * A planned place across held to my own side (ownSideCap: on a right-hand road a lowest place,
+ * the road frame being the line frame's mirror).
+ * @param lat the planned place, m off my line
+ * @param keep the cap (ownSideCap), m off the track's middle
+ * @param lineOff the line's m off the track's middle here
+ * @param hand +1, or -1 on a right-hand road
+ * @returns the place held
+ */
+export function capLat(lat: number, keep: number, lineOff: number, hand = 1): number {
+  return hand < 0 ? Math.max(lat, keep - lineOff) : Math.min(lat, keep - lineOff);
 }

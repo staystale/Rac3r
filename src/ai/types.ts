@@ -119,7 +119,9 @@ export interface DriveCtx {
   vMax?: number;   // the most it drives at, m/s (ai/trafficSpeeder.ts)
   // the endless road (game/ai.ts): cars read by the road; a two-way road's middle line
   // (road frame off, m), null on a road with a central reservation (ai/driverOncoming.ts)
-  road?: { middleOff: number | null };
+  // (hand: -1 on a right-hand road - its road frame's offsets the mirror of the driver's line
+  // frame: highway/road.ts HwState.hand)
+  road?: { middleOff: number | null; hand?: number };
 }
 
 // A loose object on the road (a cone, a tyre) the circuit driver steers round.
@@ -296,7 +298,8 @@ export interface CarsEnv {
 export interface CircuitState extends DriveOutState {
   // the endless road (ai/driverOncoming.ts): cars read by the road; the cap on its lateral place,
   // m; the oncoming car it is judging and how far off its judgement is (share)
-  roadRead?: boolean; keepMax?: number; oncomingCar?: AiCar | null; misjudge?: number;
+  roadRead?: boolean; roadHand?: number; keepMax?: number; oncomingCar?: AiCar | null;
+  misjudge?: number;
   path: Path<DrivePoint>;
   i: number | null;   // null until the first step (and after a relocate) finds its place
   vT: number;

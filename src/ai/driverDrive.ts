@@ -4,7 +4,7 @@ import { profileOf } from "./line.ts";
 import { driveOut } from "./driveOut.ts";
 import { jokerStep } from "./driverJoker.ts";
 import { carsStep, obstacleAvoid } from "./driverTraffic.ts";
-import { ownSideCap } from "./driverOncoming.ts";
+import { ownSideCap, capLat } from "./driverOncoming.ts";
 import { steerSlideStep, pedalStep } from "./driverPedals.ts";
 import { coolStep, COOL_LOOK } from './driverCool.ts';
 import {
@@ -24,6 +24,14 @@ import type { Drv, AiPath } from "./driverCtx.ts";
  * @returns the cap, or Infinity
  */
 const capOf = (ctx: DriveCtx) => ctx.vMax ?? Infinity;
+
+/**
+ * The road's hand for the driver: -1 on a right-hand road (its road frame the mirror of my line
+ * frame: highway/road.ts HwState.hand), else +1.
+ * @param ctx the drive context
+ * @returns +1 or -1
+ */
+const handOfRoad = (ctx: DriveCtx): number => ctx.road?.hand ?? 1;
 
 // m: the lateral target never puts the car's centre closer than this to the road edge
 const WANDER_EDGE = 1.1;
@@ -58,10 +66,11 @@ function targetEdge(state: Drv["state"], latLim: number, onMain: boolean, lineOf
  * @param planned m off my path, the dodge and lane's target
  * @param keepMax the highest place across the road's middle I may take, m (or Infinity)
  * @param lineOff the line's m off the road's middle here
+ * @param hand +1, or -1 on a right-hand road (the cap a lowest place: driverOncoming.ts capLat)
  * @returns m off my path
  */
-function plannedLat(planned: number, keepMax: number, lineOff: number): number {
-  return Math.min(planned, keepMax - lineOff);
+function plannedLat(planned: number, keepMax: number, lineOff: number, hand = 1): number {
+  return capLat(planned, keepMax, lineOff, hand);
 }
 
 /**
@@ -101,8 +110,9 @@ function trafficStep(drv: Drv, car: AiCar, ctx: DriveCtx, path: AiPath, nearIdx:
   const latLim = path === main ? line.hw - WANDER_EDGE : 2;
   // (the endless road: read the cars by the road; keep to my side for oncoming cars)
   state.roadRead = !!ctx.road;
+  state.roadHand = handOfRoad(ctx);
   const keepMax = state.keepMax = ownSideCap(drv, car, ctx, path, nearIdx, lineOff);
-  const myLat = plannedLat(state.dodge + latT, keepMax, lineOff);
+  const myLat = plannedLat(state.dodge + latT, keepMax, lineOff, state.roadHand);
   const cars = carsStep(drv, car, others, path, nearIdx, idx, speed, prec, prof, lineOff, latT,
       startK, latLim, myLat);
   let dodgeT = cars.dodgeT, conflict = cars.conflict;
@@ -126,7 +136,7 @@ function trafficStep(drv: Drv, car: AiCar, ctx: DriveCtx, path: AiPath, nearIdx:
   // (a stopped or much slower car still in line with where the car really is: brake to miss it,
   // and steer round it as a move, not a soft rejoin - ai/stopDodge.ts)
   // (the plan as the oncoming car's keep-to-my-side will let it be)
-  const planned = Math.min(latT + dodgeT, keepMax - lineOff);
+  const planned = capLat(latT + dodgeT, keepMax, lineOff, drv.state.roadHand);
   const stop = stopCap(drv, car, { path, nearIdx, latT: planned }, cars.stopped ?? []);
   followCap = Math.min(followCap, stop.cap);
   conflict ||= stop.inLine;
@@ -145,7 +155,7 @@ function trafficStep(drv: Drv, car: AiCar, ctx: DriveCtx, path: AiPath, nearIdx:
   const edge = targetEdge(state, latLim, path === main, lineOff);
   latT = Math.max(-edge, Math.min(edge, lineOff + latT)) - lineOff;
   // (back over at a move's rate, not a rejoin's: ai/driverOncoming.ts)
-  if (latT > keepMax - lineOff) {
+  if (capLat(latT, keepMax, lineOff, drv.state.roadHand) !== latT) {
     latT = keepMax - lineOff;
     conflict = true;
   }

@@ -82,7 +82,8 @@ export function roadLine(level: HighwayLevel): RacingLine {
   // its LANES (passed 11-07) - a driver keeps the one it is in (driverLane.ts laneStep)
   // (a two-way road's - Deaf Valley's - only our way's, the other lane for passing; the line's
   // room still spans both)
-  const lanes = geo.own.map((centre: number) => centre - mid);
+  // (in the driver's line frame: a right-hand road's turned)
+  const lanes = geo.own.map((centre: number) => (centre - mid) * (level._hw.hand ?? 1));
   const line = Object.assign(path, { hw: laneHalf + LANE_ROOM_M, lat: [], mu: [], best: [], cid,
     corners, lanes }) as RacingLine;
   LINES.set(sub, line);

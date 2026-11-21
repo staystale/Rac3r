@@ -145,7 +145,13 @@ MARK TRACK.)
      and fixed: a kinematic car's drift yawed its nose and moved it on the unturned side
      (ai/trafficPhys.ts carryKinematic). The runs stay exact mirrors for 10 s, then part by the
      real-physics cars' rounding (sin of a mirrored heading is not the same to the last bit).
-     NEXT: the police (moving over, chasing, waiting spots) and the racers checked driving it.
+     THE RACERS (read, not yet run - laptop code only): their line frame is the world's (lateral
+     from each line point's heading), the road frame's offsets a right-hand road's mirror - so the
+     line's lanes are given turned (ai/roadLine.ts), the road view's lateral gap turned
+     (driverTraffic.ts viewOf), and the single lane's keep-to-your-side cap worked in the road's
+     terms and turned back (driverOncoming.ts ownSideCap; driverDrive.ts holds it with capLat: a
+     lowest place on a right-hand road); the start fan works in the line frame (unchanged).
+     NEXT: run them both ways on the PC (a racers' mirror), then the police checked.
 
 - POLICE BY SCENERY (owner 11-21: "too many police on the other levels" - countryside nearly none,
   Deaf Valley some, Stockholm the most, at today's level): BUILT (Worker C 11-21) behind

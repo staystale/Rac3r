@@ -869,7 +869,9 @@ normals, `fields.ts roomFor`, a bridge's skew and quarter turn), so every rule i
 terms - lanes nearside first, the hard shoulder, slips, lay-bys, moving over, the outside of a
 bend - holds unchanged and lands on the mirrored side. A car's `indicator` is its own lamp side:
 the traffic's (set in the road's terms) turned by `trafficCtx.ts handOf`, the police heat's lane
-check turned back. Props are turned, not mirrored (a sign's words still read; its posts and a
+check turned back. The racers drive in their line frame (the world's): the road frame's values
+are turned into it at the edges (`roadLine.ts` lanes, `driverTraffic.ts viewOf`, `driverOncoming.ts
+ownSideCap` / `capLat` - the road context carries the hand). Props are turned, not mirrored (a sign's words still read; its posts and a
 drivable bridge's footway on the turned side). `tools/scratch/_mirror.mjs` builds a seed both
 ways and compares.
 

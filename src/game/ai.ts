@@ -136,10 +136,11 @@ export function refreshAIObstacles(entry: AiEntry, dt: number) {
  * them to their side for oncoming cars (ai/driverOncoming.ts); else nothing.
  * @returns the road context, or undefined
  */
-function roadCtx(): { middleOff: number | null } | undefined {
+function roadCtx(): { middleOff: number | null; hand: number } | undefined {
   if (!LEVEL.endless) return undefined;
   const geo = hwLevel()._hw.geo;
-  return { middleOff: geo.median == null && geo.oncoming.length ? geo.oppL : null };
+  return { middleOff: geo.median == null && geo.oncoming.length ? geo.oppL : null,
+    hand: hwLevel()._hw.hand ?? 1 };
 }
 
 /**
