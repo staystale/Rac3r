@@ -103,6 +103,23 @@ function muBody(surface: { id?: string }) {
 export const rolling = (car: RollCar) => !!(car.roll && car.roll.phase !== 'none'
   && car.roll.phase !== TIP_PHASE);
 
+/** What a crash leaves pending on a car for roll.ts / physics/tip.ts to read on its next step. */
+export interface PendingRoll { _sideKick?: unknown; _rideUp?: unknown; _airT?: number;
+  _tripCell?: number; _tipPull?: number }
+
+/**
+ * ?resetclean: clears the roll triggers a crash left pending (a side impact's kick, a barrier
+ * ride, the air time, the trip cell, the tip's pull).
+ * @param car the car
+ */
+export function clearPendingRoll(car: PendingRoll): void {
+  car._sideKick = null;
+  car._rideUp = null;
+  car._airT = 0;
+  car._tripCell = undefined;
+  car._tipPull = 0;
+}
+
 export function startRoll(car: RollCar, dir: number, vLat: number) {
   car._rolls = (car._rolls || 0) + 1;
   // a spread on the spin, and on what each ground contact takes off it (below), so a roll can end

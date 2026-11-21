@@ -27,6 +27,16 @@ MARK TRACK.)
   1. RESET STUCK: after a reset the car sometimes cannot pull away - not the slippery-ground case
      (that is fine) - find it.
   2. RESET ROLLED: a reset sometimes leaves the car upside down, or keeps its momentum, after a crash.
+     1 + 2 FOUND (Worker B 11-21): a hard side impact queues a roll trigger (car._sideKick, damage.ts)
+     that roll.ts tripCheck reads only while the car is on its wheels; one queued DURING a roll stayed
+     pending, and reset() left it - the first step after the reset rolled the car again with the
+     kick's sideways speed (ending on its side: stuck). BUILT behind ?resetclean=1 (vehicle.ts reset ->
+     roll.ts clearPendingRoll: the kick, a barrier ride, the air time, the trip cell, the tip's pull;
+     game/session.ts doReset snaps the camera on the joker / shoulder / circuit paths too). MEASURED
+     (tools/scratch/_resetcheck.mjs, the real game, REPEAT=6: 57 resets after a crash, a roll or a
+     slide at Thruston, Knobhill and Croughed RX): off, 3 rolled again or overturned after the reset
+     (all at Thruston), on 0; the slow pull-aways left were on mud / sand / gravel (the loose-ground
+     case the owner calls fine). AWAITING THE PHONE TEST.
   3. NO CHEQUERED FLAG at the finish (seen at Angle Sleezy); every AI race must have a finish.
   4. TYRE MARKS CUT OFF in straight lines on one surface (Snoozuka, a couple of turns before the
      tunnel; other tracks too) - a ground-tile edge?
