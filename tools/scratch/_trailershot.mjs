@@ -1,4 +1,4 @@
-// _trailershot.mjs - THE SCANYAH AND ITS TRAILER in the game (?scanyah, the Lab, dry): in line at
+// _trailershot.mjs - THE SCANYAH AND ITS TRAILER in the game (?trailer, the Lab, dry): in line at
 // rest, driven round a left-hand circle (the keys held), folded to a 60 deg hitch, and at night,
 // at 844x390 and 390x844 - how the trailer, its axle group's wheels and the pin read. Nothing in
 // the game is changed. node tools/scratch/_trailershot.mjs  OUT=<folder>
@@ -16,7 +16,7 @@ try {
       deviceScaleFactor: 3 });
     const errors = [];
     page.on('pageerror', (err) => errors.push(err.message));
-    await gotoGame(page, `${server.url}/?pc=1&guide=0&menu=0&rules=0&noaudio=1&scanyah=1`
+    await gotoGame(page, `${server.url}/?pc=1&guide=0&menu=0&rules=0&noaudio=1&trailer=1`
       + (scene === 'night' ? '&night=0.9' : ''));
     await page.mouse.click(size.width / 2, size.height / 2);
     await page.waitForTimeout(1200);

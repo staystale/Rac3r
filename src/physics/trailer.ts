@@ -1,4 +1,4 @@
-// physics/trailer.ts - ?scanyah: THE SCANYAH's TRAILER ON ITS PIN (owner: yes to the four choices:
+// physics/trailer.ts - ?trailer: THE SCANYAH's TRAILER ON ITS PIN (owner: yes to the four choices:
 // a half load of ~10 t, the hitch stop at +-85 deg, a broken pin in a big crash, reversing as in
 // life). The trailer is a second body (x, y, heading, vx, vy, yawRate) with no engine and no
 // steering: one axle group (its three axles' grip and load), rolling resistance, drag, and brakes
@@ -99,7 +99,7 @@ export function lineUpTrailer(car: Car, trailer: Trailer): void {
 }
 
 /**
- * ?scanyah: hitches a trailer to a tractor that tows one (a new player car).
+ * ?trailer: hitches a trailer to a tractor that tows one (a new player car).
  * @param car the car
  * @returns its trailer, or null
  */
@@ -113,7 +113,7 @@ export function attachTrailer(car: Tractor): Trailer | null {
 }
 
 /**
- * ?scanyah, once a frame and before each step: hitches a trailer to a tractor that has none yet (a
+ * ?trailer, once a frame and before each step: hitches a trailer to a tractor that has none yet (a
  * new player car, before its race starts), and lines it up again behind one that was put
  * somewhere (a reset).
  * @param car the player's car
@@ -223,7 +223,7 @@ function wasReset(car: Car, trailer: Trailer, dt: number): boolean {
 }
 
 /**
- * ?scanyah, one step of a tractor's trailer, after the tractor's own step: its body moved by its
+ * ?trailer, one step of a tractor's trailer, after the tractor's own step: its body moved by its
  * forces, then the joint and the hitch stop (unless the pin has broken), and its weight on the
  * fifth wheel for the tractor's next step.
  * @param car the tractor

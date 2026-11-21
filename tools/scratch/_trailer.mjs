@@ -1,9 +1,9 @@
-// _trailer.mjs - THE SCANYAH's TRAILER ON ITS PIN (physics/trailer.ts, ?scanyah), headless with the
+// _trailer.mjs - THE SCANYAH's TRAILER ON ITS PIN (physics/trailer.ts, ?trailer), headless with the
 // game's own steps: a pull from rest, a steady circle (the trailer's hitch angle against the
 // textbook figure), braking in a bend without the trailer's brakes (the jack-knife when the
 // tractor's rear axle locks alone), reversing straight (the fold, the hitch stop), crashes (the
 // pin), and the largest gap at the pin in each run (it should stay under 1 cm). Nothing in the game
-// is changed. node tools/scratch/_trailer.mjs  (SCANYAH=1)
+// is changed. node tools/scratch/_trailer.mjs  (TRAILER=1)
 import { makeCar, step, reset, PHYSICS_STEP_SECONDS as dt } from '../../src/vehicle.ts';
 import { SURFACES } from '../../src/lab.ts';
 import { attachTrailer, stepTrailer } from '../../src/physics/trailer.ts';

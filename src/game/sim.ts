@@ -197,7 +197,7 @@ export function stepCarSignals(inp: CarInput, wallDt: number) {
     }
   }
   updateFieldHeadlights();
-  // (?scanyah: the tractor's trailer hitched, and in line after a reset - before the race too)
+  // (?trailer: the tractor's trailer hitched, and in line after a reset - before the race too)
   hitchPlayerTrailer();
   if (game.car.roll && game.car.roll.phase !== 'rolling' && game.car.roll.phase !== 'none'
     && game.car.roll.phase !== 'tipping' && shared.mode === 'session')
@@ -237,13 +237,13 @@ export function openGuideOnLanding() {
   }
 }
 
-/** ?scanyah: hitches the player's trailer, or lines it up after a reset (physics/trailer.ts). */
+/** ?trailer: hitches the player's trailer, or lines it up after a reset (physics/trailer.ts). */
 function hitchPlayerTrailer() {
-  if (FIX.scanyah) hitchTrailer(game.car as Tractor);
+  if (FIX.trailer) hitchTrailer(game.car as Tractor);
 }
 
 /**
- * ?scanyah: the player's trailer for one step (hitched by stepCarSignals): the world's clamps and
+ * ?trailer: the player's trailer for one step (hitched by stepCarSignals): the world's clamps and
  * their damage on it, its ground, then its body and the pin (physics/trailer.ts).
  * @param inp this step's player input (its brake works the trailer's brakes)
  */
@@ -284,8 +284,8 @@ export function stepCarPhysics(inp: CarInput) {
       tripCheck(game.car, PHYSICS_STEP_SECONDS);
       stepTipping(game.car, PHYSICS_STEP_SECONDS);
     }
-    // (?scanyah: the tractor's trailer on its pin)
-    if (FIX.scanyah) stepPlayerTrailer(inp);
+    // (?trailer: the tractor's trailer on its pin)
+    if (FIX.trailer) stepPlayerTrailer(inp);
     // a tyre burst (heat, wear, debris): a puncture, and news on the HUD
     // a tyre burst (heat, wear, debris): no written notice - the wheel and the tyre diagram
     // show it (owner: no banners)

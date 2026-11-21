@@ -68,4 +68,7 @@ export const FIX = {
   driftbrake: atLoad('driftbrake'),
   // a chasing police car sounds a siren, the light bar's twin (game/sirens.ts, audiosiren.ts)
   siren: atLoad('siren'),
+  // THE SCANYAH's TRAILER on its pin (physics/trailer.ts): the tractor tows a half-loaded
+  // curtainsider - the joint, the hitch stop, a pin that breaks in a big crash
+  trailer: atLoad('trailer'),
 };

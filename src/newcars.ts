@@ -668,7 +668,7 @@ const SCANYAH: RosterRow = {
 // the kingpin 1.2 m behind its nose, the three axles' middle 9.5 m behind the kingpin (EST),
 // 385/65 R22.5 singles, its brakes (EBS) the tractor's pedal. Its row's front "axle" is the
 // kingpin (lf: from its middle - the load's - to the pin), its rear the axle group. No engine.
-// Pulled at its pin by the joint (to come: the owner's choices), never in the garage or the
+// Pulled at its pin by the joint (?trailer: physics/trailer.ts), never in the garage or the
 // traffic on its own.
 export const SCANYAH_TRAILER: RosterRow = {
   id: 'scanyah-trailer', name: 'Scanyah trailer', kind: 'trailer', cls: 'road', sub: 'Truck',
