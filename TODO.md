@@ -76,7 +76,20 @@ MARK TRACK.)
      player). Racers never get mad or move for a flash, but may flash in races. Flashing works only
      with working headlights; dead lamps cannot. OWNER 11-21: the PLAYER flashes with the existing
      lights switch (on / off rapidly) - no new button; damaged FLICKERING lamps act as a flash all the
-     time (they annoy the traffic ahead).
+     time (they annoy the traffic ahead). OWNER 11-21 on the plan: the flicker as it is (3-8 s after
+     a hit, then it settles), on the sim clock; it counts as flashing; NO single-flash anger (3
+     strikes only); three flickers anger as three flashes; the racers' flicker flashes traffic too
+     and a car angered by a racer chases that racer; racers never get mad.
+     BUILT (Worker C 11-21) behind ?lampflash=1 (physics/lampsim.ts, game/flashes.ts, ENGINE:
+     FLASHING THE TRAFFIC; the walkthrough's FLASH THEM card on the highway rules). MEASURED
+     (tools/scratch/_lampflash.mjs, the motorway, autopilot 100 km/h, a car put 35 m ahead):
+     a RACER's corner hit to 0.25 - its lamp flickered ~5 s, the car ahead got 2 flashes, the
+     third made it angry at that racer inside 3 s, and it closed 33 -> 3-4 m on the racer over
+     the next 9 s; no racer ever angry. YOUR corner hit (twice): the lamp flickered ~3 s and
+     settled dead once, steady once; the car ahead got 2 flashes and moved over (half do) before
+     a third. Headlights smashed (0.4): a hand flash reached no one (whole: 1). The FLASH THEM card
+     photographed at 390x844 and 844x390 (fits, points at LIGHTS). A flicker of 2.4 s or more is 3
+     flashes: a car ahead that stays in your lane through it gets angry. AWAITING THE PHONE TEST.
   13. FPS counter as a HUD-list toggle.
      PASSED 11-21 (?fpshud), the default (TODO-DONE, PASSED 11-21, ... THE FLAG).
   14. CAMERA SHAKE in crashes: it already exists (owner 11-21: "there is but it's ok let's leave it

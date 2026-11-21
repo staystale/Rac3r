@@ -412,6 +412,8 @@ export interface TrafficCar {
   edge?: number;
   // when you flashed it (sim s, the last 20 s)
   flashes?: number[];
+  // ?lampflash: when each driver flashed it - you, a racer (sim s, the last 20 s)
+  flashBy?: Map<object, number[]>;
   // the station (its road s) it has passed or chosen (one roll a station)
   stationAt?: number;
   // a trip off or onto the road - leaving by a slip, for fuel, joining from an

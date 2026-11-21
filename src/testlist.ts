@@ -46,4 +46,12 @@ export const TEST_LIST: TestEntry[] = [
     try: 'Drive a few km through the bends and watch the dashed lane lines.',
     wrong: 'Dashes jumping, doubled or broken where the ground joins, or a different length.',
   },
+  {
+    id: 'lampflash',
+    added: '2026-11-21',
+    name: 'Flicker flashing: a damaged headlight flashes the traffic (yours and the racers)',
+    where: 'Test link + &lampflash=1: a highway race with AI and traffic',
+    try: 'Clip a front corner: while the lamp flickers the car ahead moves over or gets angry.',
+    wrong: 'No reaction to a flicker, a racer angry, or a dead headlight still flashing by hand.',
+  },
 ];

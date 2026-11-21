@@ -375,6 +375,17 @@ twins: the flashing light bar (`render/lightbar.ts`) and the HUD's flashing blue
 (`hud/heat.ts`). Rendered to .wav by `tools/scratch/_sirenwav.mjs`; checked live by
 `tools/scratch/_siren.mjs`.
 
+FLASHING THE TRAFFIC (`game/flashes.ts stepFlashes`, each step on the endless roads): your
+LIGHTS off and on inside FLASH_S (1.2 s) flash the nearest car of our way ahead in your lane
+(`ai/trafficYield.ts noteFlash`): half move over (8 s); three flashes inside 20 s make it ANGRY
+(`ai/trafficPolice.ts makeAngry`): a chase driver without lights after whoever angered it
+(`stepAngry`: its target's speed and sight). ?lampflash=1: every car's lamps settle on the sim
+clock (`physics/lampsim.ts`, `stepAllLamps` - the flicker 3-8 s after a hit, then steady or dead;
+the drawing reads it), a FLICKERING headlight - yours or a racer's (its `_hwf`) - flashes once in
+each FLASH_S as a hand flash does, each driver's flashes counted on their own (`flashBy`), and
+your lights cannot flash with no working headlight. Racers are never flashed. The walkthrough's
+FLASH THEM card. `tools/scratch/_lampflash.mjs`.
+
 THE WAITING POLICE WAKE (passed 11-15; `ai/policeWake.ts
 wakeWaiting`, from `ai/trafficPolice.ts runChase` while any driver has stars): a police car of our
 way waiting at the roadside (`putWaiting`: a forecourt, a lay-by, the hard shoulder) that a driver

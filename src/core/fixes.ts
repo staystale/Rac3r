@@ -80,4 +80,8 @@ export const FIX = {
   // the highway's lane dashes laid by the road's distance, not the canvas pattern's length: tiles
   // painted before and after the road window moved line up (render/lanedash.ts)
   dashphase: atLoad('dashphase'),
+  // FLASHING 2: the lamps' flicker on the sim clock (physics/lampsim.ts); a flickering headlight -
+  // yours or a racer's - flashes the traffic ahead, three flickers anger it as three flashes do,
+  // and it chases whoever angered it; a dead headlight cannot flash (game/flashes.ts)
+  lampflash: atLoad('lampflash'),
 };

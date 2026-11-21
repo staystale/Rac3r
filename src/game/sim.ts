@@ -31,7 +31,7 @@ import type { Car, CarInput } from '../vehicle.ts';
 import { advanceWorldClock } from '../world/worldclock.ts';
 import type { TrafficVehicle } from '../ai/types.ts';
 import { noteTouches, notePoliceCamera, stepPoliceGame } from './police.ts';
-import { stepFlashes } from './flashes.ts';
+import { stepAllLamps, stepFlashes } from './flashes.ts';
 import { FIX } from '../core/fixes.ts';
 import { hitchTrailer, mirrorLamps, stepTrailer, type Tractor } from '../physics/trailer.ts';
 import { ROLL_CLEAR_S, respawnBehind } from './resetspot.ts';
@@ -494,6 +494,8 @@ export function stepTrafficContacts(tcars: TrafficVehicle[]) {
     if (game.ai.length) wakeStep(racers.filter(onGround));
   }
   stepPoliceGame();
+  // (?lampflash: every car's lamps on the sim clock - game/flashes.ts)
+  if (FIX.lampflash) stepAllLamps();
   // (your flashes at the car ahead of you)
   stepFlashes();
   // a stock car's roof flaps (physics/roofflaps.ts)
