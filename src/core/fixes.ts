@@ -71,4 +71,7 @@ export const FIX = {
   // THE SCANYAH's TRAILER on its pin (physics/trailer.ts): the tractor tows a half-loaded
   // curtainsider - the joint, the hitch stop, a pin that breaks in a big crash
   trailer: atLoad('trailer'),
+  // every auto box holds an upshift the road speed cannot hold (the next gear's revs at the road's
+  // speed under its downshift rpm x 1.3), as low range already did (physics/powertrain.ts)
+  boxhold: atLoad('boxhold'),
 };

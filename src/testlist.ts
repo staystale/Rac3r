@@ -11,4 +11,15 @@ export interface TestEntry {
   id: string; added: string; name: string; where: string; try: string; wrong: string;
 }
 
-export const TEST_LIST: TestEntry[] = [];
+export const TEST_LIST: TestEntry[] = [
+  {
+    id: 'boxhold',
+    added: '2026-11-21',
+    name: 'Auto box: no hunting between 1st and 2nd (the Scanyah, loaded or not)',
+    where: 'Test link + &boxhold=1: the Scanyah tractor (with &trailer=1 the loaded trailer)',
+    try: 'Pull away flat out and gently, on the flat and up a hill: it holds 1st until it rolls, '
+      + 'then 2nd and up, never back to 1st and again. Every other car shifts as before.',
+    wrong: 'Gears jumping 1-2-1-2, the truck stuck at a crawl up a hill, or any car now slower off '
+      + 'the line or stuck in a gear.',
+  },
+];

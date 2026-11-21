@@ -491,7 +491,8 @@ flip ramp (`world/flipramps.ts`, an armco end; `roll.ts tripCheck` asks it) roll
 LOW RANGE (`physics/lowrange.ts`): a car with a two-speed transfer box (`LOW_RANGE`
 by model: the Defunder 110, the Strange Rover) has `car.lowRange`; in low `powertrain.ts` multiplies
 the final drive by `rangeRatio`, `autoShift` holds an upshift the road speed cannot hold
-(`lowHoldsGear`, a 1.3 margin over the downshift rpm), and `wheelspin.ts axleLaw` raises a driven
+(`lowHoldsGear`, a 1.3 margin over the downshift rpm; under test, `?boxhold=1`: every auto box in
+every range, the next gear's road revs at least its downshift rpm), and `wheelspin.ts axleLaw` raises a driven
 axle's longitudinal peak by `rangeGrip` (`LOW_GRIP`). `requestRange` changes it only under 10 km/h
 (the lever, `hud/lowlever.ts`, through `hitHud` -> `controls.ts hudToggles`; a refusal stamps
 `car.rangeRefusedAt` for the lever's 1 s STOP); the AI's `stepAIRange` (`game/ai.ts`) takes low
