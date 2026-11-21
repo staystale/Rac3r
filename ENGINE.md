@@ -488,7 +488,7 @@ squashes progressively with its air, a rim bare), puffs / shreds / rim sparks in
 `render/particles.ts`, the HUD tyre ring by pressure (`hud/gauges.ts`), `?dev=1` line `air`.
 Tyre spikes (a police stinger, `world/stingers.ts`, drawn by `render/stingers.ts`) on the Lab and Test Track burst every wheel that rolls on. The Lab's
 flip ramp (`world/flipramps.ts`, an armco end; `roll.ts tripCheck` asks it) rolls a car run up it.
-THE SCANYAH'S TRAILER (under test, `?trailer=1`; `physics/trailer.ts`): the player's tractor tows a
+THE SCANYAH'S TRAILER (`physics/trailer.ts`): the player's tractor tows a
 13.6 m curtainsider (`newcars.ts SCANYAH_TRAILER`, half loaded) as a second body on a pin joint at
 the fifth wheel, the hitch stop at +-85 deg, the pin breaking in a big crash; stepped, hitched, hit
 and drawn with the tractor (`game/sim.ts`, `render/screen.ts`). Its OWN CRASH PARTS
@@ -503,7 +503,7 @@ brake, indicators, hazards, rain, reversing), dark once the pin has broken; the 
 lamps, under its nose, and the trailer's nose show none (`lampLevel`). The garage's TRAILER row
 (`menu/garage.ts addTrailerRow`, the tractor only): the curtainsider (the default) or WITHOUT, kept
 per tractor in the profile (`trailers`) and read at the launch (`chooseTrailer`). GRID SLOTS BY
-LENGTH (under test, `?gridlen=1`; `game/gridlen.ts`): a circuit's or a start lane's grid keeps each
+LENGTH (`game/gridlen.ts`): a circuit's or a start lane's grid keeps each
 slot GRID_CLEAR_M (9 m) behind the tail of the car two slots ahead (`layGridByLength`,
 `slotBackM`: gridPos and the rolling start's formation), a towing rig (`rigExtents`) in the last
 slot (`playerSlot`); a solo rig slides back along the road to a spot clear for its trailer
@@ -513,8 +513,8 @@ lined up behind, clear of cars too (`game/resetspot.ts firstFree`).
 LOW RANGE (`physics/lowrange.ts`): a car with a two-speed transfer box (`LOW_RANGE`
 by model: the Defunder 110, the Strange Rover) has `car.lowRange`; in low `powertrain.ts` multiplies
 the final drive by `rangeRatio`, `autoShift` holds an upshift the road speed cannot hold
-(`lowHoldsGear`, a 1.3 margin over the downshift rpm; under test, `?boxhold=1`: every auto box in
-every range, the next gear's road revs at least its downshift rpm), and `wheelspin.ts axleLaw` raises a driven
+(`lowHoldsGear`, a 1.3 margin over the downshift rpm; in the normal range every auto box holds an
+upshift until the next gear's road revs reach its downshift rpm), and `wheelspin.ts axleLaw` raises a driven
 axle's longitudinal peak by `rangeGrip` (`LOW_GRIP`). `requestRange` changes it only under 10 km/h
 (the lever, `hud/lowlever.ts`, through `hitHud` -> `controls.ts hudToggles`; a refusal stamps
 `car.rangeRefusedAt` for the lever's 1 s STOP); the AI's `stepAIRange` (`game/ai.ts`) takes low

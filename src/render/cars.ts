@@ -479,7 +479,7 @@ function drawCarWheels(carsCtx: CarsContext, car: RenderCar, sprite: CarSprite, 
  * @returns the lamp's level 0..1
  */
 export function lampLevel(car: RenderCar, corner: number) {
-  // (?trailer: a rig - the trailer carries its rear lamps - render/riglamps.ts)
+  // (a rig - the trailer carries its rear lamps - render/riglamps.ts)
   if (hidesLamp(car, corner)) return 0;
   const damage = car.dmg ? car.dmg[corner] : 0;
   // a hit's flicker settles - working again, or dead (render/carlamps.ts)

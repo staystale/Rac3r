@@ -63,7 +63,7 @@ export function interpolateCar() {
 }
 
 /**
- * The player's trailer, if it tows one (?trailer: physics/trailer.ts), drawn between its poses as
+ * The player's trailer, if it tows one (physics/trailer.ts), drawn between its poses as
  * the AI are.
  * @returns it, or nothing
  */

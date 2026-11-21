@@ -85,7 +85,7 @@ export function firstFree<T>(first: T, poseOf: (spot: T) => { x: number; y: numb
   heading: number }, next: (spot: T) => T | null, aheadM = 0,
 mover?: { spec: { len: number; wid: number }; others: readonly SpotBody[] }): T {
   const others = mover ? mover.others : resetOthers(), spec = mover ? mover.spec : game.car.spec;
-  // (?trailer: your rig's trailer, lined up behind, must stand clear too)
+  // (your rig's trailer, lined up behind, must stand clear too)
   const trailer = !mover && isTowing(game.car) ? trailerBehind(game.car) : null;
   let spot = first;
   for (let tries = 0; tries < FREE_TRIES; tries++) {

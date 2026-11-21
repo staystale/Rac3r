@@ -13,38 +13,6 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
-    id: 'boxhold',
-    added: '2026-11-21',
-    name: 'Auto box: no hunting between 1st and 2nd (the Scanyah, loaded or not)',
-    where: 'Test link + &boxhold=1: the Scanyah tractor (with &trailer=1 the loaded trailer)',
-    try: 'Pull away flat out and gently, on the flat and up a hill: it holds 1st until it rolls, '
-      + 'then 2nd and up, never back to 1st and again. Every other car shifts as before.',
-    wrong: 'Gears jumping 1-2-1-2, the truck stuck at a crawl up a hill, or any car now slower off '
-      + 'the line or stuck in a gear.',
-  },
-  {
-    id: 'trailer',
-    added: '2026-11-21',
-    name: 'The Scanyah trailer: towed on its pin, its own crash parts, its lamps at night',
-    where: 'Test link + &trailer=1: the Scanyah R-Series (Lab, Test Track, a circuit), day and '
-      + 'night; the garage TRAILER row (CURTAINSIDER HALF-FULL or WITHOUT)',
-    try: 'Pull away, corner, brake hard, reverse; crash it: curtain sections, the rear doors, the '
-      + 'under-run bar and a mudguard come off; at night its tail and brake lights at its back.',
-    wrong: 'The trailer leaving its pin in normal driving, car parts (doors with windows, a '
-      + 'bonnet) off it, lamps glowing under its nose, a dark trailer with the lights on.',
-  },
-  {
-    id: 'gridlen',
-    added: '2026-11-21',
-    name: 'Grid slots as long as the vehicle: the towing rig at the back, buses spaced out',
-    where: 'Test link + &gridlen=1&trailer=1: the Scanyah towing with AI on a circuit; the school '
-      + 'bus with AI; the Scanyah alone on the Lab',
-    try: 'At the lights nothing overlaps: your rig in the last slot, each bus a slot its own '
-      + 'length; alone, the rig starts clear of the start posts. A grid of cars looks as before.',
-    wrong: 'A trailer over another car or a post at the start, a grid of cars spread out more '
-      + 'than before, or a rig not at the back of a grid.',
-  },
-  {
     id: 'labstart',
     added: '2026-11-21',
     name: 'The Lab start in the open, one spot for every vehicle',

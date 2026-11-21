@@ -18,6 +18,8 @@ each car's own crash parts) and ?carshade (every closed car shaded) PASSED 11-17
 now: nothing until the Scanyah trailer (?trailer) lands.
 ?resetclean (bugs 1 + 2, the reset) and ?lamps (bug 5, the headlights) PASSED 11-21, the
 default (TODO-DONE, PASSED 11-21, RESET CLEAN AND LAMPS).
+?trailer, ?boxhold and ?gridlen PASSED 11-21, the default (TODO-DONE, PASSED 11-21, THE
+TRAILER, BOXHOLD, GRIDLEN).
 ?fpshud, ?marksage (tyre marks on big levels), ?blighty and ?flagfix PASSED 11-21, the default (TODO-DONE,
 PASSED 11-21, FPS ROW, MARKS, BLIGHTY, THE FLAG).
 (Their records: TODO-DONE, PASSED 11-17, THE TRACTOR AND THE TWO-WHEEL STATE; and MORE DAMAGE 2 AND
@@ -84,43 +86,9 @@ MARK TRACK.)
 
 - THE 11-16 QUEUE (every item owner-approved after a brief plan; details in each worker's TODO
   entry as it lands):
-  - WORKER A (paused): the Scanyah trailer joint - WIP worker/joint 020b0d07, works; left: the
-    trailer's own parts, test entry, night check. OWNER 11-17: no drips; the truck stays slow but its
-    box must stop hunting 1-2; the GRID gives each vehicle a slot as long as it is (a rig ~20 m, at
-    the back of a mixed grid), a solo start slides back to a spot with the rig's length clear; the
-    GARAGE gets a TRAILER row for tractor units: WITHOUT, or the CURTAINSIDER HALF-FULL only (no load
-    chooser). Later trailer types: a flatbed with visible cargo first (owner: "I don't mind").
-    THE TRAILER'S OWN PARTS + ITS LAMPS (Worker C 11-21, rebased on round166 as worker/c-trailer):
-    a curtain section each side front and back, the twin rear doors, the under-run bar (no bumper
-    at its nose), its mudguards - no glass, engine, exhaust, mirrors or front wheels; thrown from where
-    they sit, drawn lying flat, its load's pallets / its floor under a lost panel (carbits.ts towed,
-    render/carparts.ts, render/underskin.ts). tools/partcheck.mjs walks it: panel 4, bumper 1, boot
-    2, strut 2, wishbone 2. NIGHT CHECK: it was dark at night while the tractor's tail lamps glowed
-    under its nose - now it carries the rig's rear lamps (render/riglamps.ts), dark once the pin
-    breaks. Photos: tools/scratch/_trailershot.mjs parts, partsnight, nightlit.
-    THE GARAGE'S TRAILER ROW (Worker C 11-21): for the tractor unit only, TRAILER · CURTAINSIDER ·
-    HALF-FULL (the first, the default) or WITHOUT, kept per tractor in the profile and read at the
-    launch (physics/trailer.ts chooseTrailer; menu/garage.ts addTrailerRow). tools/scratch/
-    _garagetrailer.mjs (the real menus, both sizes): WITHOUT -> no trailer, CURTAINSIDER -> hitched.
-    GRID SLOTS BY LENGTH BUILT (Worker C 11-21) behind ?gridlen=1 (game/gridlen.ts): each slot keeps
-    9 m clear behind the tail of the car two slots ahead (its column) - two 5 m cars: the old 14 m,
-    so a grid of cars is unchanged - a towing rig (~17.3 m tractor nose to trailer tail) takes the
-    last slot, a solo rig slides back along the road to a spot clear for its trailer (barriers,
-    solids). MEASURED (tools/scratch/_gridlen.mjs, Thruston 5 AI): the rig - bodies closer than 1 m
-    off 1 (the trailer over an AI), on 0, you 37.5 m back (last); the school bus with 5 buses - the
-    column gaps 15 -> 21 m, 0 close either way; the hatch - the same slots off and on (0, 7.5, 15,
-    21, 28.5, 36 m back); the Lab alone - the trailer clear off and on (the tractor's box met the
-    start posts: slid 1 m). The highway's 2-wide grid unchanged. AWAITING THE PHONE TEST.
-    THE BOX HUNTING BUILT (Worker C 11-21) behind ?boxhold=1 (owner: one rule for every auto box):
-    in 1st the launch slip and the twin rear wheels' spin took the Scanyah to its 1,900 rpm upshift
-    at 0.5-0.9 km/h, 2nd fell to its road revs (690-820) under the 1,100 downshift and it dropped
-    back, every ~0.7 s. Now an upshift waits until the next gear's road revs reach its downshift rpm
-    (physics/powertrain.ts lowHoldsGear, low range's 1.3 margin kept). MEASURED (tools/scratch/
-    _boxhunt.mjs, from rest, 30 s): 2 -> 1 drops alone flat 3 -> 0, up 4 % 10 -> 0; towing flat 4 ->
-    0, up 4 % 32 -> 0 (6.9 -> 56.4 km/h at 30 s); towing flat full throttle 72.3 -> 77.7 km/h at 30
-    s. Every car (45, full throttle from rest): only the Scanyah's shifts change; tools/carstats.mjs
-    every car's numbers the same. (A 1.3 margin everywhere held the gear for good on 14 cars - the
-    track car topped out at 116 km/h - so the normal range takes 1.0.) AWAITING THE PHONE TEST.
+  - THE SCANYAH TRAILER (Worker A's joint, finished by Worker C), ?boxhold and ?gridlen PASSED
+    11-21, the default (TODO-DONE, PASSED 11-21, THE TRAILER, BOXHOLD, GRIDLEN). Later trailer types:
+    a flatbed with visible cargo first (owner: "I don't mind").
   - WORKER B (paused): damage items 4 and 3 passed 11-17, the default. Blighty Park
     RX and the Outer circuit: finished by Worker C 11-21 behind ?blighty=1 (3b below).
   - PARKED: PIT STOPS (item 16 below) - owner 11-16: "needs more work and discussion, I have images
@@ -551,12 +519,8 @@ inputs and get the cars back. A SPIKE (two phones on the tunnel) before committi
   P1 on the lap panel (Thruston, 5 AI, the last slot 36-37.5 m back: "P1/6"), with or without
   ?gridlen - the running order before the start (game/order.ts) reads the back of the grid as the
   front. Photo: tools/scratch/_gridlen.mjs hatch-off / rig-on.
-- FOUND (Worker C 11-21, the rig's reset check): (a) a RESET of the towing rig put the tractor on a
-  spot free of cars, but its trailer, lined up 14 m behind, could land on an AI (Thruston, 3 AI,
-  ?gridlen on: 2 of 2 resets) - FIXED behind ?trailer (game/resetspot.ts firstFree tests the
-  trailer's box too): 0 of 6 (mid-race, after a jack-knife, by the barrier at the tightest bend,
-  with the pin broken - re-hitched), the trailer in line (hitch 1-2.4 deg, gap under 0.1 cm), on
-  no car, clear of barriers; at a tight bend it lies straight behind, over the run-off. (b) the Lab's spawn has a street light 2.3 m ahead and 1.3 m right of it: the 2.55 m
+- FOUND (Worker C 11-21, the rig's reset check): (a) the trailer of a reset rig on an AI - FIXED,
+  passed with the trailer (TODO-DONE); (b) the Lab's spawn has a street light 2.3 m ahead and 1.3 m right of it: the 2.55 m
   tractor stands against it and cannot drive straight out (any car narrower than ~2.5 m clears it).
   tools/scratch/_rigreset.mjs. OWNER 11-21: "move the general start position for all vehicles" -
   BUILT behind ?labstart=1 (world/labstart.ts): the start spot (and its painted box) moved to the

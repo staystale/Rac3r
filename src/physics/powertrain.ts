@@ -5,7 +5,6 @@ import { clamp, STEER_MAX, STEER_RATE } from '../vehicle.ts';
 import type { Car, CarInput } from '../vehicle.ts';
 import { drivenWheelSpeed } from './wheelspin.ts';
 import { rangeRatio } from './lowrange.ts';
-import { FIX } from '../core/fixes.ts';
 
 export const CLUTCH_RELEASE = 0.12;   // s to cut drive at the start of a shift
 
@@ -161,7 +160,7 @@ function updateEngineRpm(car: Car, carSpec: Spec, vLong: number, dt: number, inR
 // in low, the next gear's revs at the road's speed must clear the downshift rpm by
 // this share (MEASURED: at no margin, up a 1 in 3 tarmac slope 2nd and 3rd hunted every second)
 const LOW_SHIFT_MARGIN = 1.3;
-// ?boxhold, in the normal range: the next gear's road revs need only reach the downshift rpm
+// in the normal range: the next gear's road revs need only reach the downshift rpm
 // (MEASURED, tools/carstats.mjs, every car: at 1.3 the gear was held for good on 14 of 45 whose
 // usual upshift lands under it - the track car topped out at 116 km/h; at 1.0 none of the 45
 // changes and the Scanyah's 2 -> 1 drops are 0, as at 1.05 and 1.1)
@@ -172,7 +171,7 @@ const SHIFT_MARGIN = 1;
  * speed (not the spinning wheels') under the downshift rpm - is held off. MEASURED (tools/scratch/
  * _lowrange.mjs): up a 1 in 4 dirt slope in low the wheelspin's revs took 1st to 2nd at 0.5 m/s,
  * which bogged and dropped back to 1st, the clutch open half the time - stuck at 1 km/h.
- * ?boxhold: the same hold in EVERY range (tools/scratch/_boxhunt.mjs: the Scanyah's launch slip
+ * The same hold in EVERY range (tools/scratch/_boxhunt.mjs: the Scanyah's launch slip
  * and wheelspin took 1st to 2nd at 0.5-0.9 km/h, 2nd fell to its road revs under the downshift
  * rpm and dropped back - 3 to 32 times in 30 s, towing up a slope stuck at 6.9 km/h).
  * @param car the car
@@ -181,7 +180,7 @@ const SHIFT_MARGIN = 1;
  */
 function lowHoldsGear(car: Car, carSpec: Spec): boolean {
   const range = rangeRatio(car);
-  if ((range === 1 && !FIX.boxhold) || car.gear >= carSpec.gears.length) return false;
+  if (car.gear >= carSpec.gears.length) return false;
   const roadRpm = (Math.abs(car.t.vLong || 0) / carSpec.wheelR) * carSpec.gears[car.gear]
     * carSpec.finalDrive * range * 60 / (2 * Math.PI);
   return roadRpm < carSpec.downshiftRpm * (range === 1 ? SHIFT_MARGIN : LOW_SHIFT_MARGIN);

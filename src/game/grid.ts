@@ -237,7 +237,7 @@ export function spawnAI(count: number = shared.aiCount) {
   shared.gridSlot = drawGridSlot(count);
   const seed = 1 + Math.floor(Math.random() * 1e6), ids = aiCarIds(count, seed),
     nums = aiNumbers(count, seed);
-  // (?gridlen: a towing rig at the back, each slot as long as its car - game/gridlen.ts)
+  // (a towing rig at the back, each slot as long as its car - game/gridlen.ts)
   const towing = isTowing(game.car);
   shared.gridSlot = playerSlot(count, shared.gridSlot, towing);
   layGridByLength(rigExtents(game.car as Tractor, towing), ids, shared.gridSlot, GRID_STEP);

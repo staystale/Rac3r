@@ -29,7 +29,7 @@
 // routemonster and m4gt3 passed 11-16; then corolla, reversefix, f1menu, r13, ibiza and a4avant
 // passed 11-16; lowrange, dmgmore, transitcustom, e36peak and schoolbus passed 11-17; dmgmore2,
 // marktrack, scanyah (the tractor) and tipping passed 11-17; resetclean, lamps, fpshud, marksage
-// blighty and flagfix passed 11-21.)
+// blighty, flagfix, trailer, boxhold and gridlen passed 11-21.)
 import { envValue } from './debug.ts';
 
 /**
@@ -68,15 +68,6 @@ export const FIX = {
   driftbrake: atLoad('driftbrake'),
   // a chasing police car sounds a siren, the light bar's twin (game/sirens.ts, audiosiren.ts)
   siren: atLoad('siren'),
-  // THE SCANYAH's TRAILER on its pin (physics/trailer.ts): the tractor tows a half-loaded
-  // curtainsider - the joint, the hitch stop, a pin that breaks in a big crash
-  trailer: atLoad('trailer'),
-  // every auto box holds an upshift the road speed cannot hold (the next gear's revs at the road's
-  // speed under its downshift rpm x 1.3), as low range already did (physics/powertrain.ts)
-  boxhold: atLoad('boxhold'),
-  // each grid slot as long as its car (a towing rig at the back), a solo rig slid back clear
-  // (game/gridlen.ts)
-  gridlen: atLoad('gridlen'),
   // the Lab's start spot in the open, one for every vehicle (world/labstart.ts)
   labstart: atLoad('labstart'),
 };

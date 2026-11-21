@@ -20,7 +20,6 @@ import { showMainMenu } from './tracks.ts';
 import type { Menu } from '../menu.ts';
 import { MENU_COL } from './palette.ts';
 import { trackCanvas } from '../core/memorybudget.ts';
-import { FIX } from '../core/fixes.ts';
 import { TRACTOR_ID, TRAILER_CHOICES } from '../physics/trailer.ts';
 
 
@@ -196,7 +195,7 @@ AIDS</span><b>${aids}</b>`
 }
 
 /**
- * ?trailer: the TRAILER row for a tractor unit (owner: no load chooser) - one button cycling its
+ * The TRAILER row for a tractor unit (owner: no load chooser) - one button cycling its
  * choices, kept per tractor in the profile; hidden for every other car.
  * @param menu the menu context
  * @param panel the garage pane
@@ -214,7 +213,7 @@ function addTrailerRow(menu: Menu, panel: HTMLElement): () => void {
     show();
   });
   const show = () => {
-    const isTractor = FIX.trailer && garageCarId(menu) === TRACTOR_ID;
+    const isTractor = garageCarId(menu) === TRACTOR_ID;
     row.style.display = isTractor ? '' : 'none';
     button.textContent = 'TRAILER · ' + nameOf(trailers()[TRACTOR_ID]).name;
   };

@@ -409,7 +409,7 @@ function startField() {
     reset(game.car, slotPos.x, slotPos.y, slotPos.h);
     if (shared.renderer && shared.renderer.snap) shared.renderer.snap(game.car);
   } else {
-    // (?gridlen: a solo rig slid back to a spot clear for its trailer - game/gridlen.ts)
+    // (a solo rig slid back to a spot clear for its trailer - game/gridlen.ts)
     const spot = clearRigSpot(game.car);
     if (spot) reset(game.car, spot.x, spot.y, spot.h);
   }

@@ -68,7 +68,7 @@ export function forEachDrawnCar(ctx: ScreenCtx, game: RenderGame,
     for (const rival of game.ai || []) if (isNearView(ctx, rival.car)) draw(rival.car);
   }
   if (!skip('car')) draw(game.car);
-  // (?trailer: the tractor's trailer over its chassis - it sits on the fifth wheel, its nose behind
+  // (the tractor's trailer over its chassis - it sits on the fifth wheel, its nose behind
   // the cab: physics/trailer.ts)
   const trailer = (game.car as { trailer?: RenderCar | null }).trailer;
   if (trailer && !skip('car') && isNearView(ctx, trailer)) draw(trailer);
