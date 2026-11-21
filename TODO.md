@@ -523,8 +523,8 @@ inputs and get the cars back. A SPIKE (two phones on the tunnel) before committi
   real place; once the race steps both read the real place (the order was never wrong after that).
   Also MEASURED (the same tool, 5 AI, each slot): Naffcar's rolling start and Knobhill RX the
   same - off P1 everywhere, on the slot's place. The HIGHWAY's rolling start shows the same P1 at
-  every slot before the first step, and ?gridpos leaves it alone (endless roads left out): an owner
-  question. A stage: left out by the code (LEVEL.stage), not measured. AWAITING THE PHONE TEST.
+  every slot before the first step: now covered too (foreman 11-21: the same bug).
+  A stage: left out by the code (LEVEL.stage). AWAITING THE PHONE TEST.
 - FOUND (Worker C 11-21, the rig's reset check): (a) the trailer of a reset rig on an AI - FIXED,
   passed with the trailer (TODO-DONE); (b) the Lab's spawn has a street light 2.3 m ahead and 1.3 m right of it: the 2.55 m
   tractor stands against it and cannot drive straight out (any car narrower than ~2.5 m clears it).

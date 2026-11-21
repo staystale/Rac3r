@@ -325,7 +325,8 @@ the escape notice and measures its box; `_weathernotice.mjs` steps SEASON weathe
 THE LAP PANEL (`hud/laps.ts drawHudLapTimer`, top right under the speedo, 120 px wide, its rect in
 `hud/layout.ts`): two rows - the lap (or stage / distance) and its clock; under them the best,
 the gap or the joker line on the left and the position (P2/4) on the right (`game/order.ts
-stepOrder`, each sim step; until the race's first step, ?gridpos=1: your grid slot's place,
+stepOrder` / the highway's order, each sim step; until the race's first step, ?gridpos=1: your
+grid slot's place,
 `game/session.ts showGridPlace` - off, the restart's P1 at every slot). Since 11-15
 (passed): in an RX race with AI cars (`lapJokerRowShown`, written to the
 HUD state's `lapJokerRow` each frame before the layout) the panel is one row taller (`LAP_ROW_H`

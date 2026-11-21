@@ -401,11 +401,12 @@ export function onScreen(x: number, y: number) {
  * and you on your slot, the highway's traffic, the race flow.
  */
 /**
- * ?gridpos: the place shown until the running order's first step (game/order.ts) is your grid
- * slot's on a circuit's grid, not the restart's P1.
+ * ?gridpos: the place shown until the running order's first step (game/order.ts, the highway's
+ * hwFlow order) is your grid slot's on a circuit's grid or the highway's rolling start, not the
+ * restart's P1.
  */
 function showGridPlace() {
-  if (FIX.gridpos && game.ai.length && !LEVEL.stage && !LEVEL.endless) {
+  if (FIX.gridpos && game.ai.length && !LEVEL.stage) {
     game.position = shared.gridSlot + 1;
   }
 }
