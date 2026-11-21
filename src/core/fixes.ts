@@ -67,4 +67,7 @@ export const FIX = {
   driftbrake: atLoad('driftbrake'),
   // a chasing police car sounds a siren, the light bar's twin (game/sirens.ts, audiosiren.ts)
   siren: atLoad('siren'),
+  // EACH VEHICLE'S OWN HEADLIGHTS: the beam from its nose and its lamps, nothing lit behind them,
+  // a reach and spread by its kind (render/lamptypes.ts, render/light.ts drawBeams)
+  lamps: atLoad('lamps'),
 };
