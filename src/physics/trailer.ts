@@ -28,6 +28,22 @@ export type Tractor = Car & { trailer?: Trailer | null; hitchLoad?: number };
 
 // the tractor that tows a trailer
 export const TRACTOR_ID = 'scanyah-r450';
+// the garage's TRAILER row for a tractor unit (menu/garage.ts; owner: no load chooser): none, or
+// the half-loaded curtainsider - hitched unless the player chose none
+export const TRAILER_CHOICES = [{ id: 'curtain', name: 'CURTAINSIDER · HALF-FULL' },
+  { id: 'none', name: 'WITHOUT' }];
+
+/**
+ * A launch's trailer for a tractor (the garage's choice): none drops it; else hitched at the first
+ * step (hitchTrailer).
+ * @param car the player's car
+ * @param choice the garage's choice (TRAILER_CHOICES id; none set: the curtainsider)
+ */
+export function chooseTrailer(car: Tractor, choice: string | undefined): void {
+  if (String(car.spec.id).split('#')[0] !== TRACTOR_ID) return;
+  if (choice === 'none') car.trailer = null;
+  else if (car.trailer === null) car.trailer = undefined;
+}
 // m the fifth wheel sits ahead of the tractor's rear axle
 const FIFTH_WHEEL_AHEAD = 0.5;
 const GRAVITY = 9.81;

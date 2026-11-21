@@ -500,7 +500,9 @@ panel its plank floor, and its load's wrapped pallets in its front half (`render
 towedInside`). It joins the loose objects' cars (`game/sim.ts looseField`). ITS LAMPS
 (`render/riglamps.ts`): it carries the rig's rear lamps, lit as the tractor's (`mirrorLamps`: tail,
 brake, indicators, hazards, rain, reversing), dark once the pin has broken; the tractor's own rear
-lamps, under its nose, and the trailer's nose show none (`lampLevel`).
+lamps, under its nose, and the trailer's nose show none (`lampLevel`). The garage's TRAILER row
+(`menu/garage.ts addTrailerRow`, the tractor only): the curtainsider (the default) or WITHOUT, kept
+per tractor in the profile (`trailers`) and read at the launch (`chooseTrailer`).
 LOW RANGE (`physics/lowrange.ts`): a car with a two-speed transfer box (`LOW_RANGE`
 by model: the Defunder 110, the Strange Rover) has `car.lowRange`; in low `powertrain.ts` multiplies
 the final drive by `rangeRatio`, `autoShift` holds an upshift the road speed cannot hold

@@ -27,7 +27,7 @@ export const TEST_LIST: TestEntry[] = [
     added: '2026-11-21',
     name: 'The Scanyah trailer: towed on its pin, its own crash parts, its lamps at night',
     where: 'Test link + &trailer=1: the Scanyah R-Series (Lab, Test Track, a circuit), day and '
-      + 'night',
+      + 'night; the garage TRAILER row (CURTAINSIDER HALF-FULL or WITHOUT)',
     try: 'Pull away, corner, brake hard, reverse; crash it: curtain sections, the rear doors, the '
       + 'under-run bar and a mudguard come off; at night its tail and brake lights at its back.',
     wrong: 'The trailer leaving its pin in normal driving, car parts (doors with windows, a '

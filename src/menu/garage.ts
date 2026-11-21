@@ -20,6 +20,8 @@ import { showMainMenu } from './tracks.ts';
 import type { Menu } from '../menu.ts';
 import { MENU_COL } from './palette.ts';
 import { trackCanvas } from '../core/memorybudget.ts';
+import { FIX } from '../core/fixes.ts';
+import { TRACTOR_ID, TRAILER_CHOICES } from '../physics/trailer.ts';
 
 
 /**
@@ -174,6 +176,7 @@ AIDS</span><b>${aids}</b>`
   addButton(menu, buttonRow, 'RIMS', () => showPaintShop(menu, true));
   addButton(menu, buttonRow, 'BUY CARS', () => {}, '', true, 'SOON');
   addButton(menu, buttonRow, 'UPGRADES', () => {}, '', true, 'SOON');
+  const showTrailer = addTrailerRow(menu, panel);
   // SELECT locks the car in as yours (owner 11-03); browsing alone changes nothing
   const row = addElement(panel, 'div', '', 'row');
   const select = addButton(menu, row, 'SELECT ✓', () => {
@@ -188,8 +191,35 @@ AIDS</span><b>${aids}</b>`
     select.textContent = yours ? 'SELECTED ✓' : 'SELECT ✓';
     select.className = yours ? 'on' : 'go';
   };
-  showCarPicker(menu, pick, (car) => { showStats(); showSelect(); return car; }, {
+  showCarPicker(menu, pick, (car) => { showStats(); showSelect(); showTrailer(); return car; }, {
     get: () => session.viewing, set: (carId) => { session.viewing = carId; } });
+}
+
+/**
+ * ?trailer: the TRAILER row for a tractor unit (owner: no load chooser) - one button cycling its
+ * choices, kept per tractor in the profile; hidden for every other car.
+ * @param menu the menu context
+ * @param panel the garage pane
+ * @returns shows or hides the row for the car being viewed
+ */
+function addTrailerRow(menu: Menu, panel: HTMLElement): () => void {
+  const row = addElement(panel, 'div', '', 'row');
+  const trailers = () => (menu.profile.trailers ||= {});
+  const nameOf = (choiceId: string) => TRAILER_CHOICES.find((choice) => choice.id === choiceId)
+    || TRAILER_CHOICES[0];
+  const button = addButton(menu, row, '', () => {
+    const now = TRAILER_CHOICES.indexOf(nameOf(trailers()[TRACTOR_ID]));
+    trailers()[TRACTOR_ID] = TRAILER_CHOICES[(now + 1) % TRAILER_CHOICES.length].id;
+    saveProfile(menu.profile);
+    show();
+  });
+  const show = () => {
+    const isTractor = FIX.trailer && garageCarId(menu) === TRACTOR_ID;
+    row.style.display = isTractor ? '' : 'none';
+    button.textContent = 'TRAILER · ' + nameOf(trailers()[TRACTOR_ID]).name;
+  };
+  show();
+  return show;
 }
 
 /** The paint shop's working livery: every part set (cars.ts applyLivery reads it). */

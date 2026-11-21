@@ -98,6 +98,10 @@ MARK TRACK.)
     2, strut 2, wishbone 2. NIGHT CHECK: it was dark at night while the tractor's tail lamps glowed
     under its nose - now it carries the rig's rear lamps (render/riglamps.ts), dark once the pin
     breaks. Photos: tools/scratch/_trailershot.mjs parts, partsnight, nightlit.
+    THE GARAGE'S TRAILER ROW (Worker C 11-21): for the tractor unit only, TRAILER · CURTAINSIDER ·
+    HALF-FULL (the first, the default) or WITHOUT, kept per tractor in the profile and read at the
+    launch (physics/trailer.ts chooseTrailer; menu/garage.ts addTrailerRow). tools/scratch/
+    _garagetrailer.mjs (the real menus, both sizes): WITHOUT -> no trailer, CURTAINSIDER -> hitched.
     THE BOX HUNTING BUILT (Worker C 11-21) behind ?boxhold=1 (owner: one rule for every auto box):
     in 1st the launch slip and the twin rear wheels' spin took the Scanyah to its 1,900 rpm upshift
     at 0.5-0.9 km/h, 2nd fell to its road revs (690-820) under the 1,100 downshift and it dropped
