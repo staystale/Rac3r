@@ -1,4 +1,5 @@
 // session.ts — Session: lap timing, reset, restart, records and the race flow.
+import { FIX } from '../core/fixes.ts';
 import { vergeBack } from '../highway/vergeback.ts';
 import { hazardsAfterReset } from './resethazard.ts';
 import { lineUpCrashBench } from './crashbench.ts';
@@ -276,7 +277,11 @@ export function doReset() {
     if (keepT) car.tyreT = keepT.slice();
   };
   if (resetOnJoker(resetKeepingTyres) || resetOnShoulder(resetKeepingTyres)
-    || resetOnCircuit(resetKeepingTyres)) return;
+    || resetOnCircuit(resetKeepingTyres)) {
+    // (?resetclean: the camera jumps to the car here too, as on the crumb and spawn paths)
+    if (FIX.resetclean && shared.renderer && shared.renderer.snap) shared.renderer.snap(game.car);
+    return;
+  }
   if (shared.breadcrumbs.length > 0) {
     // ~2 s back (a car in the way: the next older crumb free of cars)
     const safe = shared.breadcrumbs[freeCrumb()];

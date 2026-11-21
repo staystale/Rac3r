@@ -11,16 +11,17 @@
 // Bicycle model, per-axle friction ellipse. Body-frame integration with centripetal terms, which is
 // more stable near the limit than integrating in world frame and rotating back.
 
-import { defaultMods, spec, SURFACE_LAB, GRAVITY } from './cars.ts';
-import type { Spec, Mods, Surface } from './cars.ts';
+import { clearPendingRoll, type PendingRoll } from './roll.ts';
+import { FIX } from './core/fixes.ts';
+import { defaultMods, spec, SURFACE_LAB, GRAVITY, type Spec, type Mods, type Surface }
+  from './cars.ts';
 import type { WheelGround } from './world/types.ts';
 import { computeAxleLoads, computeLongitudinalDemand } from './physics/loads.ts';
 import { steerFrontWheels, runPowertrain } from './physics/powertrain.ts';
 import { updateTyreTemps } from './physics/tyreheat.ts';
 import { WEATHER } from './world/weather.ts';
 import type { AxleOutcome } from './physics/tyreheat.ts';
-import { ALPHA_PEAK_MIN, ploughingForces } from './physics/tyres.ts';
-import type { AxleTick } from './physics/tyres.ts';
+import { ALPHA_PEAK_MIN, ploughingForces, type AxleTick } from './physics/tyres.ts';
 import { computeWheelForces } from './physics/wheelspin.ts';
 
 // What step reads from the input: steer -1..1, pedals 0..1, handbrake (on/off or 0..1), manual
@@ -127,7 +128,6 @@ const REST_SPEED = 0.15;       // m/s, below which we snap to rest with no throt
 const SLOPE_ROLL = 0.06;
 // g of slope pull across the car (~19 deg) before a stopped car slides sideways
 const SLOPE_SLIDE = 0.35;
-
 
 // ---------------------------------------------------------------------------------------------
 // THE TYRE CURVE. Replaced the linear-plus-hard-clamp law on, after the user reported
@@ -358,8 +358,9 @@ export function reset(car: Car, x = 0, y = 0, heading = -Math.PI / 2) {
   car.prevWheels = null; car.wheelSurf = null;
   // ... and on the ground, off any bridge or tunnel (world/crossings.ts)
   car.crossing = -1; car.crossX = undefined; car.crossY = undefined;
-  // ROLLOVER (roll.ts): a reset puts the car back on its wheels
+  // ROLLOVER (roll.ts): a reset puts the car back on its wheels, nothing pending (?resetclean)
   car.roll = null; car.sparks = false;
+  if (FIX.resetclean) clearPendingRoll(car as Car & PendingRoll);
   // tape stuck to the car goes with it (requirement: resetting should remove any tape)
   car.streamers = null;
   car.x = x; car.y = y;
@@ -745,7 +746,6 @@ export function step(car: Car, input: CarInput, dt = PHYSICS_STEP_SECONDS) {
   // handbrake locks the rear outright 0..1, not a boolean: the handbrake is modulated (see
   // input.ts). still means full, so the headless benches and any older caller keep working.
   const handbrake = handbrakeRaw;
-
 
   // ---- 6/7. per-axle tyre force.
   // (the wheels' real speeds, the tyre law and ABS: physics/wheelspin.ts)

@@ -4,6 +4,8 @@
 // (physics/tip.ts) and reset; reset while still sliding. After each reset: the car's state that
 // could hold it (speed, roll, gear, clutch, brakeArmed, gearLock, rpm, the start hold, the low
 // range, the tip pull, the hanging parts), then the throttle held 2 s - how far it got.
+// REPEAT=<n> runs the crash cases n times a level; the tally counts a BAD reset: rolling or moving
+// 50 ms after it, overturned after the throttle, or under 3 m in the 2 s of throttle.
 // node tools/scratch/_resetcheck.mjs [levels] [extra query]
 import { startServer, launchBrowser, gotoGame } from '../lib/browser.mjs';
 const [levelsArg = 'thruston,knobhill,croughedrx,highway', query = 'x=1'] = process.argv.slice(2);
@@ -60,14 +62,22 @@ try {
     await gotoGame(page, `${server.url}/?pc=1&guide=0&menu=0&rules=0&noaudio=1&${query}`);
     await page.mouse.click(400, 200);
     await page.waitForTimeout(1200);
-    for (const kind of ['plain', 'barrier', 'rolling', 'sliding', 'barrier', 'rolling']) {
+    const kinds = ['barrier', 'rolling', 'sliding'], repeat = Number(process.env.REPEAT || 1);
+    let bad = 0, cases = 0;
+    for (const kind of ['plain', ...Array.from({ length: repeat }, () => kinds).flat()]) {
       const state = await page.evaluate(oneCase, [levelId, kind]);
       await page.keyboard.down('KeyW');
       await page.waitForTimeout(2000);
       await page.keyboard.up('KeyW');
       const result = await page.evaluate(afterThrottle);
-      console.log(levelId, kind, JSON.stringify({ ...state, ...result }));
+      const isBad = state.after.roll || state.after.speed > 0.5 || result.rollNow
+        || result.moved2s < 3;
+      cases++;
+      if (isBad) bad++;
+      if (isBad || !process.env.REPEAT) console.log(levelId, kind, isBad ? 'BAD' : 'ok',
+        JSON.stringify({ ...state, ...result }));
     }
+    console.log(levelId, 'resets', cases, 'bad', bad);
     console.log(levelId, errors.length ? 'ERRORS ' + errors.join(' | ') : 'errors none');
     await page.close();
   }
