@@ -14,6 +14,9 @@
 //     the road), UNDER (front sliding), LINE (none of these: the speed plan itself - the bug class).
 // (d) CLOSE RUNNING - pair-seconds two racers ran within 1 m of each other without touching (both
 //     over 15 m/s), against pair-seconds touching.
+// (e) FOLLOWING (owner 11-21: no panic, adjust, follow, pressure the car ahead): seconds a racer
+//     ran 3-25 m behind a racer, CLOSE BEHIND (under 6 m nose to tail), and OVER-BRAKES (a new
+//     press over 0.6 while the leader brakes under 0.3) - followBase.
 // RUNS=brands,moanaco,thruston,spa,croughedrx,motorway (default all) SEEDS=1,2 SECONDS=240
 // OUT=<file.json>; a switch under test through RAC3R_QUERY. node tools/scratch/_aibase.mjs
 import { writeFileSync } from 'node:fs';
@@ -37,7 +40,8 @@ const SKIP = '&skip=world,ground,car&autopilot=1' + extraQuery();
 async function setupBase() {
   window.__L = await import('/src/lab.ts');
   window.__base = { t: 0, m: 0, hits: [], trafficHits: 0, touching: new Map(), laps: new Map(),
-    lapTimes: [], brakes: {}, brakeBins: {}, touchPairS: 0, closePairS: 0, straight: new Map() };
+    lapTimes: [], brakes: {}, brakeBins: {}, touchPairS: 0, closePairS: 0, straight: new Map(),
+    followS: 0, closeBehindS: 0, overBrakes: 0 };
 }
 
 /** Page side: whether two bodies overlap, each grown by a margin (m), on the first's axes. */
@@ -97,6 +101,40 @@ function causeBase(entry, everyone) {
   return near ? 'NEAR-' + near.kind : 'LINE';
 }
 
+/**
+ * Page side, the owner's FOLLOWER test (11-21: "cars behind don't panic and over-brake - adjust,
+ * follow and put pressure on the car in front"): a racer with a racer 3-25 m ahead within 2.5 m
+ * across is FOLLOWING it - its seconds, its seconds CLOSE BEHIND (nose within 6 m of the leader's
+ * tail), and its OVER-BRAKES: a new press of its brake over 0.6 while the leader's brake is under
+ * 0.3 (the leader not braking hard), one per 1 s.
+ * @param entry the racer
+ * @param racers every racer
+ * @param want its controls this step
+ */
+function followBase(entry, racers, want) {
+  const base = window.__base, car = entry.car, cos = Math.cos(car.heading), sin = Math.sin(car.heading);
+  let leader = null, gap = Infinity;
+  for (const other of racers) {
+    if (other === entry) continue;
+    const dx = other.car.x - car.x, dy = other.car.y - car.y;
+    const fwd = dx * cos + dy * sin, across = -dx * sin + dy * cos;
+    if (fwd > 3 && fwd < 25 && Math.abs(across) < 2.5 && fwd < gap) {
+      leader = other;
+      gap = fwd;
+    }
+  }
+  const was = entry.__hard;
+  entry.__hard = !!leader && want.brake > 0.6;
+  if (!leader) return;
+  base.followS += 1 / 60;
+  if (gap - (car.spec.len + leader.car.spec.len) / 2 < 6) base.closeBehindS += 1 / 60;
+  if (entry.__hard && !was && (leader.car.brakeLight || 0) < 0.3
+    && base.t - (entry.__overT ?? -9) > 1) {
+    entry.__overT = base.t;
+    base.overBrakes++;
+  }
+}
+
 /** Page side: one frame - pace, laps, brakes on straights, touches and close running. */
 function tickBase() {
   const base = window.__base, game = window.__game, racers = game.ai, L = window.__L;
@@ -120,6 +158,7 @@ function tickBase() {
       entry.drv.__wrapped = true;
     }
     const want = entry.__want;
+    if (want && base.t >= 12 && speed > 15) window.__baseFollow(entry, racers, want);
     if (!want || base.t < 12 || speed < 15 || !(want.brake > 0.15 || want.throttle < 0.3)) continue;
     const query = L.querySubtrack(sub, car.x, car.y);
     if (!Number.isFinite(query.trackDist) || !straightBase(sub, query.trackDist)) continue;
@@ -198,6 +237,7 @@ async function runOne(browser, base, id, seed) {
   await page.evaluate(setupBase);
   await page.evaluate(`window.__baseTick = ${tickBase.toString()};
     window.__baseOverlap = ${overlapBase.toString()};
+    window.__baseFollow = ${followBase.toString()};
     var straightBase = ${straightBase.toString()}; var causeBase = ${causeBase.toString()};`);
   for (let done = 0; done < SECONDS * 60; done += CHUNK) {
     await page.evaluate(stepBase, Math.min(CHUNK, SECONDS * 60 - done));
@@ -206,7 +246,8 @@ async function runOne(browser, base, id, seed) {
     const base = window.__base;
     return { hits: base.hits, m: base.m, racers: window.__game.ai.length, lapTimes: base.lapTimes,
       brakes: base.brakes, brakeBins: base.brakeBins, touchPairS: base.touchPairS,
-      closePairS: base.closePairS, trafficHits: base.trafficHits };
+      closePairS: base.closePairS, trafficHits: base.trafficHits, followS: base.followS,
+      closeBehindS: base.closeBehindS, overBrakes: base.overBrakes };
   });
   await page.context().close();
   out.errors = errors.slice(0, 3);
@@ -233,7 +274,10 @@ function lineOf(id, seed, out) {
     + `${incidents.filter((inc) => inc.t < 15).length}); traffic touches ${out.trafficHits}`
     + ` | (c) mid-straight brake/lift ${brakeTotal.toFixed(1)} car-s: ${brakes || 'none'}`
     + `${bins ? ' | LINE at ' + bins : ''} | (d) close ${out.closePairS.toFixed(1)} pair-s, touching`
-    + ` ${out.touchPairS.toFixed(1)} pair-s${out.errors.length ? ' | ERR ' + out.errors[0] : ''}`;
+    + ` ${out.touchPairS.toFixed(1)} pair-s | (e) following ${out.followS.toFixed(0)} car-s, close`
+    + ` behind ${out.closeBehindS.toFixed(0)} car-s, over-brakes ${out.overBrakes} (${(60
+      * out.overBrakes / Math.max(1, out.followS)).toFixed(2)} a following minute)`
+    + `${out.errors.length ? ' | ERR ' + out.errors[0] : ''}`;
 }
 
 const server = await startServer();
