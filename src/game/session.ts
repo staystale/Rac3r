@@ -29,6 +29,7 @@ import { resetCar, armStart, startHeld, startAtOf } from './order.ts';
 import { gridPos, spawnAI } from './grid.ts';
 import { clearRigSpot } from './gridlen.ts';
 import { shared, game } from './state.ts';
+import { FIX } from '../core/fixes.ts';
 import { saveProfile } from '../menu/profile.ts';
 import { restartPoliceGame } from './police.ts';
 import {
@@ -399,6 +400,16 @@ export function onScreen(x: number, y: number) {
  * The field for a (re)start, once the player is on the spawn: the start lights, the AI on the grid
  * and you on your slot, the highway's traffic, the race flow.
  */
+/**
+ * ?gridpos: the place shown until the running order's first step (game/order.ts) is your grid
+ * slot's on a circuit's grid, not the restart's P1.
+ */
+function showGridPlace() {
+  if (FIX.gridpos && game.ai.length && !LEVEL.stage && !LEVEL.endless) {
+    game.position = shared.gridSlot + 1;
+  }
+}
+
 function startField() {
   armStart();
   spawnAI();
@@ -413,6 +424,7 @@ function startField() {
     const spot = clearRigSpot(game.car);
     if (spot) reset(game.car, spot.x, spot.y, spot.h);
   }
+  showGridPlace();
   // (the menu race too - owner 11-07: "no traffic on menu highway races?")
   game.traffic.reset(LEVEL.endless ? hwLevel() : null, shared.trafficDensity);
   if (LEVEL.endless && game.start.rolling) {

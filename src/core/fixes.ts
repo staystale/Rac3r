@@ -74,4 +74,7 @@ export const FIX = {
   aitune: atLoad('aitune'),
   // the Lab's start spot in the open, one for every vehicle (world/labstart.ts)
   labstart: atLoad('labstart'),
+  // the place shown before the running order's first step is your grid slot's, not P1
+  // (game/session.ts startField)
+  gridpos: atLoad('gridpos'),
 };
