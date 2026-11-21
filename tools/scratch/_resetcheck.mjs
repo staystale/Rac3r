@@ -1,37 +1,74 @@
-// _resetcheck.mjs - Brands Snatch Indy, the Formula Won driven off into the gravel 8 times at
-// different places; RESET; what is under the four wheels, and the speed 3 s of full throttle later.
-import { startServer, launchBrowser } from '../lib/browser.mjs';
-const q = process.argv[2] || '';
-const srv = await startServer();
+// _resetcheck.mjs - THE OWNER'S 11-21 BUGS 1 AND 2 (scratch, diagnosis): a crash then a RESET in
+// the real game (game/session.ts doReset, as the R key / the button), per level and case: driven
+// into the barrier at speed; rolled (roll.ts startRoll) and reset mid-roll; tipped onto two wheels
+// (physics/tip.ts) and reset; reset while still sliding. After each reset: the car's state that
+// could hold it (speed, roll, gear, clutch, brakeArmed, gearLock, rpm, the start hold, the low
+// range, the tip pull, the hanging parts), then the throttle held 2 s - how far it got.
+// node tools/scratch/_resetcheck.mjs [levels] [extra query]
+import { startServer, launchBrowser, gotoGame } from '../lib/browser.mjs';
+const [levelsArg = 'thruston,knobhill,croughedrx,highway', query = 'x=1'] = process.argv.slice(2);
+const server = await startServer();
 const browser = await launchBrowser();
-try {
-  const page = await (await browser.newContext({ viewport: { width: 844, height: 390 } })).newPage(); const errs = [];
-  page.on('pageerror', (e) => errs.push(e.message));
-  await page.goto(srv.url + '/?touch=1&guide=0&menu=0&rules=0&level=brands-snatch-indy' + q);
-  await page.waitForFunction(() => window.__game && window.__game.launch, null, { timeout: 60000 });
-  await page.evaluate(() => window.__game.launch('brands-snatch-indy', 'track-rwd', { ai: 0 }));
-  await page.waitForTimeout(1500); await page.mouse.click(422, 195); await page.waitForTimeout(500);
-  const out = [];
-  for (let k = 0; k < 8; k++) {
-    const r = await page.evaluate(async (kk) => {
-      const game = window.__game, sub = game.level.subtrack;
-      const tw = await import('/src/world/tyrewall.ts');
-      // a point on the track, then drive off sideways at 15 m/s
-      const p = tw.onTrack(sub, 120 + kk * 210, 0, {});
-      const side = kk % 2 ? 1 : -1, nx = Math.cos(p.rot + side * Math.PI / 2), ny = Math.sin(p.rot + side * Math.PI / 2);
-      Object.assign(game.car, { x: p.x, y: p.y, heading: Math.atan2(ny, nx), vx: nx * 15, vy: ny * 15, yawRate: 0 });
-      game.input.update = () => ({ steer: 0, throttle: 0, brake: 0.3, handbrake: 0, reverse: 0, shiftUp: false, shiftDown: false });
-      await new Promise((ok) => setTimeout(ok, 2500));
-      game.reset();
-      await new Promise((ok) => setTimeout(ok, 300));
-      game.input.update = () => ({ steer: 0, throttle: 1, brake: 0, handbrake: 0, reverse: 0, shiftUp: false, shiftDown: false });
-      await new Promise((ok) => setTimeout(ok, 400));
-      const surf = (game.car.wheelSurf || []).map((w) => (w ? w.id : '?')).join(',');
-      await new Promise((ok) => setTimeout(ok, 2600));
-      return { surf, kmh: Math.round(Math.hypot(game.car.vx, game.car.vy) * 3.6) };
-    }, k);
-    out.push(`${r.surf} -> ${r.kmh} km/h`);
+
+/** In the page: one case, then the reset and 2 s of throttle. */
+async function oneCase([levelId, kind]) {
+  const game = window.__game, roll = await import('/src/roll.ts');
+  if (window.__lastLevel !== levelId) {
+    game.launch(levelId, 'hatch-rwd', { ai: 0, weather: { mode: 'dry', season: 2, seed: 4 } });
+    await new Promise((done) => setTimeout(done, 3000));
+    window.__lastLevel = levelId;
   }
-  console.log((q || 'switch off') + ':\n  ' + out.join('\n  '));
-  console.log(errs.join('; ') || 'no errors');
-} finally { await browser.close(); srv.stop(); }
+  const car = game.car, wait = (ms) => new Promise((done) => setTimeout(done, ms));
+  const cos = Math.cos(car.heading), sin = Math.sin(car.heading);
+  if (kind === 'barrier') {
+    // (flung sideways off the road at 30 m/s: into whatever stands there)
+    car.vx = -sin * 30; car.vy = cos * 30;
+    await wait(1500);
+  } else if (kind === 'rolling') {
+    car.vx = cos * 15; car.vy = sin * 15;
+    roll.startRoll(car, 1, 12);
+    await wait(500);
+  } else if (kind === 'sliding') {
+    car.vx = -sin * 20; car.vy = cos * 20;
+    await wait(200);
+  }
+  const before = { speed: Math.hypot(car.vx, car.vy).toFixed(1), roll: car.roll?.phase || null };
+  game.reset();
+  await wait(50);
+  const after = { speed: +Math.hypot(car.vx, car.vy).toFixed(2), roll: car.roll?.phase || null,
+    phi: car.roll ? +car.roll.phi.toFixed(2) : 0, gear: car.gear, clutch: car.clutch,
+    brakeArmed: car.brakeArmed, gearLock: car.gearLock, rpm: Math.round(car.rpm),
+    low: car.lowRange || false, tipPull: car._tipPull || 0, belly: car.bellyDepth || 0,
+    surface: car.surface?.id };
+  window.__from = [car.x, car.y];
+  return { before, after };
+}
+
+/** In the page: how far the car got on the throttle since the reset. */
+function afterThrottle() {
+  const car = window.__game.car, [x0, y0] = window.__from;
+  return { moved2s: +Math.hypot(car.x - x0, car.y - y0).toFixed(1),
+    kmh: +(Math.hypot(car.vx, car.vy) * 3.6).toFixed(0), rollNow: car.roll?.phase || null,
+    gear: car.gear, clutch: +car.clutch.toFixed(2), rpm: Math.round(car.rpm) };
+}
+
+try {
+  for (const levelId of levelsArg.split(',')) {
+    const page = await browser.newPage({ viewport: { width: 844, height: 390 } });
+    const errors = [];
+    page.on('pageerror', (err) => errors.push(err.message));
+    await gotoGame(page, `${server.url}/?pc=1&guide=0&menu=0&rules=0&noaudio=1&${query}`);
+    await page.mouse.click(400, 200);
+    await page.waitForTimeout(1200);
+    for (const kind of ['plain', 'barrier', 'rolling', 'sliding', 'barrier', 'rolling']) {
+      const state = await page.evaluate(oneCase, [levelId, kind]);
+      await page.keyboard.down('KeyW');
+      await page.waitForTimeout(2000);
+      await page.keyboard.up('KeyW');
+      const result = await page.evaluate(afterThrottle);
+      console.log(levelId, kind, JSON.stringify({ ...state, ...result }));
+    }
+    console.log(levelId, errors.length ? 'ERRORS ' + errors.join(' | ') : 'errors none');
+    await page.close();
+  }
+} finally { await browser.close(); server.stop(); }
