@@ -16,10 +16,8 @@ each car's own crash parts) and ?carshade (every closed car shaded) PASSED 11-17
 (TODO-DONE, PASSED 11-17, THE PASS BATCH 4). ?dmgmore (the rolled cars, dragging) PASSED 11-17, the default (TODO-DONE, PASSED 11-17, MORE DAMAGE).
 ?dmgmore2, ?marktrack, ?scanyah (the tractor) and ?tipping PASSED 11-17, the default (TODO-DONE). On the phone
 now: nothing until the Scanyah trailer (?trailer) lands.
-?tipping PASSED 11-17, the default (TODO-DONE, PASSED 11-17, THE TRACTOR AND THE TWO-WHEEL STATE).
-?dmgmore2 (the hanging exhaust and bumper, steam and leaks) and ?marktrack PASSED 11-17, the default
-(TODO-DONE, PASSED 11-17, MORE DAMAGE 2 AND MARK TRACK). PASSED 11-17 (owner), to be made the default
-on resume: ?scanyah (the tractor - its trailer then behind its own ?trailer), ?tipping.
+(Their records: TODO-DONE, PASSED 11-17, THE TRACTOR AND THE TWO-WHEEL STATE; and MORE DAMAGE 2 AND
+MARK TRACK.)
 
 ## 2. BEING BUILT
 
