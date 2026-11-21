@@ -10,7 +10,8 @@
 // round, slowed the same), BOXED (the gap picker found no way round: arrive behind it), YIELD
 // (a car leads by half a length on my line), ATTACK (overlapping the car I attack), STOPPED
 // (a stopped car's cap). The speeders (the same driver in the traffic) beside the racers on the
-// highway. RUNS=motorway,thruston,brands SEEDS=1,2 SECONDS=180; a switch through RAC3R_QUERY.
+// highway. BINDS=1 counts only a cap below the plan (state.capBinds: the cap really holding the car).
+// RUNS=motorway,thruston,brands SEEDS=1,2 SECONDS=180; a switch through RAC3R_QUERY.
 import { startServer, launchBrowser, extraQuery } from '../lib/browser.mjs';
 import { openPage, launchLevel, SETTLE_MS } from '../lib/determinism.mjs';
 
@@ -40,6 +41,8 @@ function tickWhy() {
     const car = one.car, speed = Math.hypot(car.vx, car.vy), tally = why[one.who];
     tally.s += 1 / 60;
     if (!one.drv.state.follow || speed < 8) continue;
+    // (BINDS=1: only a cap that holds me below my plan - state.capBinds)
+    if (window.__whyBinds && !one.drv.state.capBinds) continue;
     const cos = Math.cos(car.heading), sin = Math.sin(car.heading);
     let near = null, nearFwd = Infinity;
     for (const other of everyone) {
@@ -78,7 +81,8 @@ async function runOne(browser, base, id, seed) {
   await page.evaluate(launchLevel, [run.level, { car: 'hatch-rwd', ...run.opts }]);
   await page.waitForTimeout(SETTLE_MS);
   await page.evaluate(`window.__why = { t: 0, racer: { s: 0, held: 0, by: {} },
-    speeder: { s: 0, held: 0, by: {} } }; window.__whyTick = ${tickWhy.toString()};`);
+    speeder: { s: 0, held: 0, by: {} } }; window.__whyTick = ${tickWhy.toString()};
+    window.__whyBinds = ${process.env.BINDS ? 1 : 0};`);
   for (let done = 0; done < SECONDS * 60; done += CHUNK) {
     await page.evaluate(stepWhy, Math.min(CHUNK, SECONDS * 60 - done));
   }

@@ -10,6 +10,7 @@ import {
   OBJECT_MORE, clearOf, matchSpeed, reachOf, readBraking, readGain, swerveCap,
 } from "./dodge.ts";
 import { blockOn, gapLine, seeCar } from "./gapPick.ts";
+import { traceBoxed } from "./boxedTrace.ts";
 import type { SeenCar } from "./gapPick.ts";
 
 // MEASURED (aidrivecheck, HB on/off, Realish + Real, hatch + 4x4): Slidden / Knobhill / Castle Kum
@@ -611,6 +612,9 @@ function gapStep(drv: Drv, car: AiCar, acc: CarsAcc, seen: SeenCar[], mine: { my
   // BOXED IN: a car still on the best line - brake to arrive behind it at its speed (MEASURED
   // pacesuite: a pack abreast at 185 km/h kept its foot down to 9 m from 90 km/h traffic, wrecks)
   const block = blockOn(seen, line, half, len);
+  // (the boxed trace, read only - tools/scratch/_boxed.mjs sets __AI_WHY)
+  traceBoxed(state, seen, { line, myLat, half, len, speed, lo: -room - lineOff,
+    hi: Math.max(top, -room - lineOff) }, block);
   if (block && !block.side) {
     const decel = BOXED_BRAKE * carGrip(car.spec).brakeG * GRAVITY * (car.surface.mu || 1);
     capFor(acc, Math.sqrt(Math.max(0, block.v) ** 2

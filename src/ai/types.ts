@@ -303,6 +303,9 @@ export interface CircuitState extends DriveOutState {
   // ?aitune: the followed car's braking (m/s2) and my full-pedal deceleration (m/s2)
   followDec?: number; fullDecel?: number;
   followWhy?: string;   // why it is held (CarsAcc.why, or 'stopped'), '' when not
+  capBinds?: boolean;   // the follow cap is the target speed this step (not above the plan)
+  // the last boxed moment (ai/boxedTrace.ts; only while a tool sets __AI_WHY)
+  boxedNote?: import('./boxedTrace.ts').BoxedNote | null;
   lap: number;
   jokers: number;
   jPlan: number;
