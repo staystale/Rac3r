@@ -13,12 +13,12 @@ not repeated here), then `TODO.md`, then this page. The 11-07 version of this pa
 - **The owner's link** = foreman/round176 (local, CI pushed 11-21 21:40): all switches below. PASSED, being made
   default: rollgreen, hwfan (Worker A, worker/pass-start); trailheal (+RESTART), cabglass, lampflash, dashphase
   (Worker C, worker/c-pass177). Under test: aitune, gapdest, gapcommit, stockholm (being reworked).
-- **Worker A** (a2fab314deb77a72b, worker/aiphase on round165): owner said GO 11-21 on F1 ?gapdest (score the
+- **Worker A** (a2fab314deb77a72b, worker/aiphase, PC repo, port 8091): the AI phase (F1 gapdest, F2 gapcommit).
   11-21 night: owner "keep AI testing light, only what we need, then I test and approve". One PC job (w74):
   the start pass proof + circuit-tuned F1 (racing-line cost x4), 4 seeds. F1 measured: motorway big win
   (held 64->39 %, +10 % speed), circuits more incidents; owner wants ONE AI, highway-only only if forced.
   Owner felt crashes up "in both" - find which switch, tune to at/below today.
-- **Worker C** (a60bdb17a2f902ec3, PC repo2, port 8092): ?gridpos (+ highway rolling start, stage), then
+- **Worker C** (a60bdb17a2f902ec3, PC repo2, port 8092): bugs, passes, Stockholm, flashing.
   Queue: the 4-switch pass proof (c12), STOCKHOLM REWORK (owner: boring, countryside-like; wants a busy city:
   more tunnels, bridges, water, raised/cut roads, city litter; REUSE systems; traffic quantity unchanged),
   ?copmix (police: countryside nearly none, Deaf Valley some, Stockholm today's = most), then the plan for
