@@ -515,26 +515,6 @@ inputs and get the cars back. A SPIKE (two phones on the tunnel) before committi
 
 ### 3e. Small open items
 
-- FOUND + BUILT (Worker C 11-21) behind ?gridpos=1: BEFORE THE RACE'S FIRST STEP every car on a
-  circuit's grid read P1 on the lap panel - the restart sets game.position = 1 and the running order
-  (game/order.ts stepOrder) first runs when the race steps (the first key / tap). Now the place shown
-  until then is your grid slot's (game/session.ts showGridPlace). MEASURED (tools/scratch/
-  _gridplace.mjs, Thruston, 5 AI, each of the 6 slots): off P1 at every slot, on P1-P6 = the slot's
-  real place; once the race steps both read the real place (the order was never wrong after that).
-  Also MEASURED (the same tool, 5 AI, each slot): Naffcar's rolling start and Knobhill RX the
-  same - off P1 everywhere, on the slot's place. The HIGHWAY's rolling start shows the same P1 at
-  every slot before the first step: now covered too (foreman 11-21: the same bug).
-  A stage: left out by the code (LEVEL.stage). AWAITING THE PHONE TEST.
-- FOUND (Worker C 11-21, the rig's reset check): (a) the trailer of a reset rig on an AI - FIXED,
-  passed with the trailer (TODO-DONE); (b) the Lab's spawn has a street light 2.3 m ahead and 1.3 m right of it: the 2.55 m
-  tractor stands against it and cannot drive straight out (any car narrower than ~2.5 m clears it).
-  tools/scratch/_rigreset.mjs. OWNER 11-21: "move the general start position for all vehicles" -
-  BUILT behind ?labstart=1 (world/labstart.ts): the start spot (and its painted box) moved to the
-  middle of the lane between the two rows of lights (-36, 34; 7 m to each row, 10 m to the lights
-  along it), facing down the open lane. MEASURED (tools/scratch/_labstartshot.mjs, 5 s flat out,
-  off / on): the hatch 54.6 / 54.2 m, the bus 24.4 / 24.4 m, the towing Scanyah 4.3 m and stuck
-  against the light / 7.5 m and moving (11 km/h: the 1-2 hunting without ?boxhold); no hits. The Lab
-  tools run (_partsoff, _armzoom, partcheck, balecheck, blendcheck). AWAITING THE PHONE TEST.
 - OWNER BUG 11-21 "Resetting doesn't heal the trailer for the truck" - FOUND + BUILT (Worker C)
   behind ?trailheal=1: RESET (game/session.ts doReset) mended only the tractor (damage.ts repair:
   dents, crush, lost parts, glass, suspension, wheels, tyres, hanging parts; the bill kept); the

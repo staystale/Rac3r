@@ -23,22 +23,6 @@ export const TEST_LIST: TestEntry[] = [
       + 'or slower laps.',
   },
   {
-    id: 'labstart',
-    added: '2026-11-21',
-    name: 'The Lab start in the open, one spot for every vehicle',
-    where: 'Test link + &labstart=1: the Lab (OG Lab) with a car, the bus and the Scanyah towing',
-    try: 'Launch and drive straight off: nothing in the way, a street light row each side 7 m off.',
-    wrong: 'A vehicle starting against a lamp or a cone, or the start box away from the car.',
-  },
-  {
-    id: 'gridpos',
-    added: '2026-11-21',
-    name: 'The place shown on the grid before the start is your slot’s (not P1)',
-    where: 'Test link + &gridpos=1: any circuit or highway race with AI, before you press anything',
-    try: 'Launch with AI: the lap panel shows your grid place (P4/6 from the fourth slot) at once.',
-    wrong: 'P1 shown from a slot behind the pole, or a place that jumps when the race starts.',
-  },
-  {
     id: 'trailheal',
     added: '2026-11-21',
     name: 'RESET mends the truck’s trailer too',

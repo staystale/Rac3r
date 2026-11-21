@@ -99,7 +99,7 @@ export const LEVELS: Level[] = [
       { x: 30, y: 200 }, { x: 55, y: 215 }, { x: 22, y: 222 },
       { x: 150, y: -10 }, { x: 175, y: -10 },
     ],
-    // (?labstart: one start spot for every vehicle, in the open - world/labstart.ts)
+    // (one start spot for every vehicle, in the open - world/labstart.ts)
     spawn: { ...LAB_START },
   },
   // the Lab's sister test grounds (lab-extension.ts): the surface lanes, the off-road area

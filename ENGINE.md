@@ -327,9 +327,8 @@ the escape notice and measures its box; `_weathernotice.mjs` steps SEASON weathe
 THE LAP PANEL (`hud/laps.ts drawHudLapTimer`, top right under the speedo, 120 px wide, its rect in
 `hud/layout.ts`): two rows - the lap (or stage / distance) and its clock; under them the best,
 the gap or the joker line on the left and the position (P2/4) on the right (`game/order.ts
-stepOrder` / the highway's order, each sim step; until the race's first step, ?gridpos=1: your
-grid slot's place,
-`game/session.ts showGridPlace` - off, the restart's P1 at every slot). Since 11-15
+stepOrder` / the highway's order, each sim step; until the race's first step your grid slot's
+place, `game/session.ts showGridPlace`). Since 11-15
 (passed): in an RX race with AI cars (`lapJokerRowShown`, written to the
 HUD state's `lapJokerRow` each frame before the layout) the panel is one row taller (`LAP_ROW_H`
 13 px: 36 -> 49) and every joker line (TO DO, the approach, IN JOKER, TAKEN, DONE, the extra
@@ -512,8 +511,8 @@ LENGTH (`game/gridlen.ts`): a circuit's or a start lane's grid keeps each
 slot GRID_CLEAR_M (9 m) behind the tail of the car two slots ahead (`layGridByLength`,
 `slotBackM`: gridPos and the rolling start's formation), a towing rig (`rigExtents`) in the last
 slot (`playerSlot`); a solo rig slides back along the road to a spot clear for its trailer
-(`clearRigSpot`). The highway's grid is its own. The Lab's start spot (its spawn and painted box) is `world/labstart.ts`; under test,
-`?labstart=1`: in the open lane between its rows of street lights. A reset of a towing rig keeps its trailer's box,
+(`clearRigSpot`). The highway's grid is its own. The Lab's start spot (its spawn and painted box) is `world/labstart.ts`:
+in the open lane between its rows of street lights. A reset of a towing rig keeps its trailer's box,
 lined up behind, clear of cars too (`game/resetspot.ts firstFree`).
 LOW RANGE (`physics/lowrange.ts`): a car with a two-speed transfer box (`LOW_RANGE`
 by model: the Defunder 110, the Strange Rover) has `car.lowRange`; in low `powertrain.ts` multiplies
