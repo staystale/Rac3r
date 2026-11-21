@@ -56,7 +56,8 @@ MARK TRACK.)
      lights switch (on / off rapidly) - no new button; damaged FLICKERING lamps act as a flash all the
      time (they annoy the traffic ahead).
   13. FPS counter as a HUD-list toggle.
-  14. CAMERA SHAKE / a jerk in crashes (maybe).
+  14. CAMERA SHAKE in crashes: it already exists (owner 11-21: "there is but it's ok let's leave it
+     for now"; it may have changed since the camera keeps the player's car clear of the HUD). Parked.
   15. HIGHWAY: a city theme, Stockholm ("getaway"), beside Country and Deaf Valley (owner: yes -
      motorways, tunnels, bridges over water).
 
