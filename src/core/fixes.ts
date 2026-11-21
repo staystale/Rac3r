@@ -80,4 +80,9 @@ export const FIX = {
   // (ai/gapPick.ts lineScore) - MEASURED, the BOXED trace: a roomier line out of one think's
   // reach was 61 % of Thruston's boxed time, 16 % of the motorway's
   gapdest: atLoad('gapdest'),
+  // F2 "COMMIT ONLY WHILE IT PAYS" (owner 11-21, item 7): while the line a driver chose is the one
+  // holding it boxed, only a share of the gap picker's bonus for keeping that line - a sliding
+  // scale per driver type (ai/tune.ts COMMIT_BOXED: the racers, the traffic's speeders); the
+  // defaults keep today's behaviour until the owner picks the lean
+  gapcommit: atLoad('gapcommit'),
 };

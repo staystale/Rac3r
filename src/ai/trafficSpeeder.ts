@@ -7,6 +7,7 @@
 // that speed.
 import { createAIDriver } from './circuit.ts';
 import { aiTraits } from './traits.ts';
+import { commitBoxedOf } from './tune.ts';
 import { tooInjured } from '../damage.ts';
 import { geo } from './trafficCtx.ts';
 import type { TrafficCtx } from './trafficCtx.ts';
@@ -45,7 +46,10 @@ export function makeSpeeder(ctx: TrafficCtx, slot: TrafficCar) {
 export function seatRacer(ctx: TrafficCtx, slot: TrafficCar, difficulty: number,
   aggression: number) {
   const seed = 1 + ((ctx.rnd() * 1e6) | 0);
-  const traits = { ...aiTraits(difficulty, 0, 1, seed), aggression };
+  // (?gapcommit: the speeder's - and police chaser's - share of the keep-the-line bonus,
+  // ai/tune.ts)
+  const traits = { ...aiTraits(difficulty, 0, 1, seed), aggression,
+    commitBoxed: commitBoxedOf('speeder') };
   // (the traffic's level is the game's endless level)
   slot.racer = createAIDriver(ctx.level as unknown as Level, traits);
   slot.quick = true;

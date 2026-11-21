@@ -463,6 +463,19 @@ function placeAcross(env: CarsEnv, other: AiCar, closeIdx: number, halted: boole
   return lat + (point.off ?? 0) - (pts[env.nearIdx].off ?? 0);
 }
 
+/**
+ * ?gapcommit: the share of the keep-the-line bonus (ai/gapPick.ts COMMIT) while the chosen line
+ * is the one holding me boxed (last step's cap: state.followWhy, capBinds) - the driver type's
+ * sliding scale (ai/tune.ts COMMIT_BOXED); 1 otherwise.
+ * @param drv the driver
+ * @returns 0..1
+ */
+function commitShare(drv: Drv): number {
+  const { state } = drv;
+  if (!FIX.gapcommit || state.followWhy !== 'boxed' || !state.capBinds) return 1;
+  return drv.traits.commitBoxed ?? 1;
+}
+
 /** The s of travel the gap spotter reads the cars ahead in, by skill. */
 function gapLook(skill: number) {
   return GAP_LOOK_WEAK + (GAP_LOOK_TOP - GAP_LOOK_WEAK) * Math.max(0, Math.min(1, skill));
@@ -601,7 +614,8 @@ function gapStep(drv: Drv, car: AiCar, acc: CarsAcc, seen: SeenCar[], mine: { my
   const top = Math.min(room, state.keepMax ?? Infinity) - lineOff;
   const pick = { lat: myLat, base: state.gapBase ?? myLat, half, len, speed, look,
     lo: -room - lineOff, hi: Math.max(top, -room - lineOff), edge: latLim, centre: lineOff,
-    lanes: drv.state.path === drv.main ? drv.line.lanes : undefined };
+    lanes: drv.state.path === drv.main ? drv.line.lanes : undefined,
+    commitK: commitShare(drv) };
   const line = gapLine(seen, pick);
   state.gapBase = line;
   acc.dodgeT = line - latT;

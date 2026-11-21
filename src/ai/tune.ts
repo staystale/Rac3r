@@ -7,6 +7,8 @@
 // A seventh, PACE (passed 11-15; 0.5 = x1): every driver's speed plan - its corner and braking grip
 // (ai/line.ts K_CORNER, K_BRAKE) - x paceOf(pace).
 
+import { debugValue } from "../core/debug.ts";
+
 /** The field's AI dials, each 0..1; custom once a dial moved off the difficulty's preset. */
 export interface AiTune {
   skill: number; spread: number; risk: number; aggression: number; defence: number;
@@ -47,6 +49,24 @@ export const AGG_CENTRE = [0.4, 0.45, 0.5, 0.55, 0.6];
 const SKILL_UP = 0.1, LEAN_UP = 0.03;
 // the PACE dial's preset (0.5 = x1)
 const PACE_PRESET = 0.5 + LEAN_UP;
+
+// ?gapcommit, THE SLIDING SCALE (owner 11-21: "a tunable value per driver type, to taste"): the
+// share of the gap picker's bonus for keeping its chosen line (ai/gapPick.ts COMMIT) a driver keeps
+// while that line is the one holding it boxed - 1 = as today (sticks to it), 0 = none (moves for
+// any roomier line). Per driver type: the racers, and the racing driver at a speeder's or a police
+// chaser's wheel (ai/trafficSpeeder.ts seatRacer). Both at today's behaviour until the owner
+// picks which way they lean; the tools try others through __AI_COMMIT_RACER / __AI_COMMIT_SPEEDER.
+export const COMMIT_BOXED = { racer: 1, speeder: 1 };
+
+/**
+ * A driver type's share of the keep-the-line bonus while boxed (COMMIT_BOXED, or a tool's dial).
+ * @param kind the driver type
+ * @returns 0..1
+ */
+export function commitBoxedOf(kind: keyof typeof COMMIT_BOXED): number {
+  const dial = debugValue(kind === 'racer' ? 'AI_COMMIT_RACER' : 'AI_COMMIT_SPEEDER');
+  return Math.max(0, Math.min(1, typeof dial === 'number' ? dial : COMMIT_BOXED[kind]));
+}
 
 /**
  * A difficulty's preset dials.

@@ -130,7 +130,7 @@ function freeTo(block: { gap: number; v: number }, speed: number): number {
  */
 export function gapLine(seen: SeenCar[], mine: { lat: number; base: number; half: number;
   len: number; speed: number; look: number; lo: number; hi: number; edge: number;
-  centre: number; lanes?: number[] }): number {
+  centre: number; lanes?: number[]; commitK?: number }): number {
   const { base, lo, hi } = mine;
   let best = base, bestScore = -Infinity;
   const tries: number[] = [base];
@@ -156,6 +156,24 @@ function destBlock(seen: SeenCar[], dest: number, half: number, len: number) {
   return block && block.side ? { gap: 0, v: block.v } : block;
 }
 
+/**
+ * The swerve's cost to a line (a m across from the line chosen and a share from where I am, more
+ * at speed), less COMMIT x commitK for the line already chosen.
+ * @param dest the line, m off my path
+ * @param from the line chosen last, where I am (m), my m/s and the share of COMMIT (?gapcommit)
+ * @param from.base m
+ * @param from.lat m
+ * @param from.speed m/s
+ * @param from.commitK 0..1
+ * @returns the cost
+ */
+function moveCost(dest: number, from: { base: number; lat: number; speed: number;
+  commitK: number }): number {
+  const { base, lat, speed, commitK } = from;
+  return (Math.abs(dest - base) + 0.3 * Math.abs(dest - lat)) * (MOVE_K + speed * MOVE_SPEED_K)
+    - (Math.abs(dest - base) < 0.6 ? COMMIT * commitK : 0);
+}
+
 /** A line's score as the gap picker reckons it, by its parts (lineScore). */
 export interface LineParts {
   off: number;     // the line scored, m off my path (no further across than a swerve makes)
@@ -178,7 +196,7 @@ export interface LineParts {
  */
 export function lineScore(seen: SeenCar[], want: number, mine: { lat: number; base: number;
   half: number; len: number; speed: number; look: number; edge: number; centre: number;
-  lanes?: number[] }): LineParts | null {
+  lanes?: number[]; commitK?: number }): LineParts | null {
   const { lat, base, half, len, speed, look, edge, centre, lanes } = mine;
   // no further across in one think than a swerve makes
   const off = Math.abs(want - lat) > REACH_M ? lat + Math.sign(want - lat) * REACH_M : want;
@@ -190,8 +208,7 @@ export function lineScore(seen: SeenCar[], want: number, mine: { lat: number; ba
   const block = dest === off ? near : destBlock(seen, dest, half, len);
   const ahead = block ? Math.min(freeTo(block, speed), speed * look) : speed * look + FREE_BONUS;
   const kept = block ? Math.max(0, block.v) * KEPT_V : 0;
-  const move = (Math.abs(dest - base) + 0.3 * Math.abs(dest - lat)) * (MOVE_K
-    + speed * MOVE_SPEED_K) - (Math.abs(dest - base) < 0.6 ? COMMIT : 0);
+  const move = moveCost(dest, { base, lat, speed, commitK: mine.commitK ?? 1 });
   const place = placeCost(dest, centre, edge, lanes);
   let outMid = 0, outMirror = 0;
   if (Math.abs(off - lat) > 1.2) {
