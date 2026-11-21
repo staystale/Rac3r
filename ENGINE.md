@@ -678,6 +678,11 @@ off / on): racing laps fronts smoke 5-8 % -> 1 % of the time; a held 1.1 g corne
   `carlooks.ts` LOOKS, the new cars' in `newcarlooks.ts` and `newcarlooks2.ts` - each painted from its plan,
   a half width per column) and `cardamage.ts`,
   `particles.ts`.
+- A rolled car's side picture (`render/carprofile.ts paintSideProfile`): its roof line, paint, wheels and
+  its side glass - a car's one band from its waist to the roof line (`glass`); ?cabglass=1 a lorry's,
+  van's or bus's own windows instead (`windows`: each from its sill to its head, under the roof line;
+  a bus's bays by `windowBays`) - the Scanyah's door window high on its cab, the vans' door
+  windows, the buses' rows of bays (`tools/scratch/_cabglass.mjs`).
 - A rolled car (`render/rollbody.ts`) is drawn as a body: each column of the car a rounded
   cross-section (a superellipse as round as `physics/rollshape.ts` says), turned to one of 12
   angles, each picture row the nearest point of the turned outline. The outline (`closeRing`, the

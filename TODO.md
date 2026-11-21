@@ -523,6 +523,22 @@ inputs and get the cars back. A SPIKE (two phones on the tunnel) before committi
   (dents 2.20, 3 parts off, a wheel off, 1.8 tyres flat), on all zeros as the tractor, on Thruston
   and the Lab; photos before / after. RESTART has the same gap (the trailer keeps its damage, the
   tractor is mended) - not changed: an owner question. AWAITING THE PHONE TEST.
+- OWNER BUG 11-21 "Lorry cab rolled has no windows? ... Lorries should have side windows like real
+  life" - FOUND + BUILT (Worker C) behind ?cabglass=1. THE CAUSE: not the paint - a rolled car's
+  side picture (render/carprofile.ts paintSideProfile) has ONE glass band from the waist to the
+  roof line, made for cars; the Scanyah's band was its length's last 5 % (the windscreen's rake),
+  so its cab's side was all paint; the vans' bands ran up to the roof (windows over 1 m tall), the
+  school bus's was one pillarless strip and the Routemaster's one band over both decks. THE FIX:
+  each lorry, truck, van and bus has its own side windows (EST from photos): the Scanyah's door
+  window high on the cab and the screen's edge; each Transfit's cab door window and screen edge;
+  the trophy truck's door window; the farm tractor's tall cab glass round its B-pillar; the school
+  bus's ten bays and driver's window; the Routemaster's six upper and five lower bays and the
+  half-cab's window. MEASURED (tools/scratch/_cabglass.mjs: a REAL roll - roll.ts startRoll on a
+  sideways slide, as a side impact starts it - on Deaf Valley's road, paused on its side): all 9
+  on their side at 844x390 and 390x844, by day and at night (the trophy truck landed on its roof
+  at 844x390 night in 6 tries), photos and close-ups tools/scratch/cabglass/, the Scanyah, the
+  buses and the trophy truck off too; no page errors. partcheck (CABGLASS=1): all 18 kinds OK.
+  The Defender keeps the car band (a 4x4's, as the cars). AWAITING THE PHONE TEST.
 - FOR THE AI REWORK / TUNE (owner 11-16: "still looks like on tarmac Pembreezy too many drivers
   come off the track - maybe this should be saved for the ai rework / tune as they seem to go off
   to regularly / pile up on first corner"; "that the same on dongington ect"): the AI on

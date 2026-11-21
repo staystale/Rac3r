@@ -7,6 +7,7 @@
 // paintUnderProfile paint them in the car's colours at its drawn length; heightsPx gives the body's
 // height along its length for the rolled body (render/rollbody.ts).
 import { SPRITE_PPM } from "./shared.ts";
+import { FIX } from "../core/fixes.ts";
 import { shade } from "../render.ts";   // hoisted, only called at draw time (no cycle)
 import { tyreBox } from "./cars.ts";
 import type { RenderCarSpec } from "./types.ts";
@@ -16,12 +17,35 @@ import { SNAP_SHARE, SNAP_SHARE_NO_WISHBONE, SUBFRAME_M, SUSP_ROD, SUSP_SHAFT, S
 
 /** A wing of an open car: from / to share of the length (tail 0, nose 1), low / high m, span. */
 type Wing = [number, number, number, number, number];
+/** A side window: from / to share of the length (tail 0, nose 1), its sill and head, m up (the
+ * roof line clips it: a windscreen's edge under its rake). */
+type SideWindow = [number, number, number, number];
 /** A car's side profile: its real length; its roof line, tail to nose, [share of length, m up];
  * the side glass from / to share and the waist (m) under it; an open car's tub share of the width
  * and wings. */
 export interface CarProfile {
   len: number; roof: [number, number][]; glass?: [number, number]; waist?: number;
   open?: { tub: number; wings: Wing[] };
+  // ?cabglass: a lorry's, van's or bus's own side windows in place of the glass band (its glass
+  // is not one band from the waist to the roof: a high cab's door window, a row of bays)
+  windows?: SideWindow[];
+}
+
+/**
+ * A row of equal window bays between their pillars (a bus's side), its own measures.
+ * @param from the row's tail end, share of the length
+ * @param upto its nose end, share
+ * @param count the bays
+ * @param pillar a pillar's width, share of the length
+ * @param sill the sill, m up
+ * @param head the head, m up
+ * @returns the bays
+ */
+function windowBays(from: number, upto: number, count: number, pillar: number, sill: number,
+  head: number): SideWindow[] {
+  const bay = (upto - from + pillar) / count;
+  return Array.from({ length: count }, (unused, idx): SideWindow =>
+    [from + idx * bay, from + (idx + 1) * bay - pillar, sill, head]);
 }
 
 // the roof lines from photographs of the real cars, tail (0) to nose (1), m up
@@ -53,7 +77,10 @@ export const PROFILES: Record<string, CarProfile> = {
   open: { tub: 0.38, wings: [[0, 0.07, 0.42, 0.92, 0.72], [0.94, 1, 0.08, 0.2, 1]] } },
   naffcar: { len: 5.1, waist: 0.95, glass: [0.3, 0.62], roof: [[0, 0.72], [0.02, 1.0],
     [0.14, 1.0], [0.3, 1.3], [0.55, 1.3], [0.66, 0.95], [0.97, 0.8], [1, 0.5]] },
-  tractor: { len: 5.1, waist: 1.6, glass: [0.33, 0.6], roof: [[0, 1.2], [0.3, 1.2],
+  // (?cabglass) the cab's tall glass: the rear quarter, the B-pillar, the door
+  tractor: { len: 5.1,
+    windows: [[0.335, 0.43, 1.45, 2.75], [0.445, 0.59, 1.35, 2.75]],
+    waist: 1.6, glass: [0.33, 0.6], roof: [[0, 1.2], [0.3, 1.2],
     [0.32, 2.9], [0.6, 2.9], [0.62, 1.5], [1, 1.4]] },
   'mini-fwd': { len: 3.85, waist: 1.0, glass: [0.06, 0.66], roof: [[0, 0.6], [0.01, 1.05],
     [0.06, 1.41], [0.55, 1.41], [0.68, 1.0], [0.95, 0.88], [1, 0.6]] },
@@ -85,20 +112,35 @@ export const PROFILES: Record<string, CarProfile> = {
     [0.22, 0.8], [0.25, 1.08], [0.29, 1.08], [0.31, 0.82], [0.48, 0.84], [0.5, 1.02],
     [0.53, 0.86], [0.86, 0.74], [1, 0.52]] },
   // Transit H2: the tall box to the cab, the raked screen, the short bonnet (EST from photos)
-  'transfit-van': { len: 5.53, waist: 1.25, glass: [0.71, 0.8], roof: [[0, 0.62], [0.01, 2.38],
+  // (?cabglass) the cab door's window (the van's box has none), the screen's edge
+  'transfit-van': { len: 5.53,
+    windows: [[0.62, 0.755, 1.3, 2.08], [0.765, 0.83, 1.3, 2.4]],
+    waist: 1.25, glass: [0.71, 0.8], roof: [[0, 0.62], [0.01, 2.38],
     [0.03, 2.47], [0.72, 2.47], [0.75, 2.32], [0.83, 1.4], [0.97, 1.2], [1, 0.72]] },
   // Transit Custom L1 H1: the 2.0 m box, the steep raked screen, the short sloping bonnet (EST)
-  'transfit-custom': { len: 4.97, waist: 1.15, glass: [0.7, 0.79], roof: [[0, 0.6], [0.01, 1.92],
+  // (?cabglass) the lower cab's door window, the screen's edge
+  'transfit-custom': { len: 4.97,
+    windows: [[0.57, 0.725, 1.15, 1.78], [0.735, 0.8, 1.15, 1.9]],
+    waist: 1.15, glass: [0.7, 0.79], roof: [[0, 0.6], [0.01, 1.92],
     [0.03, 2.0], [0.69, 2.0], [0.72, 1.86], [0.8, 1.22], [0.97, 1.05], [1, 0.66]] },
   // Transit Mk7 SWB low roof: the box to ~2.0 m, the steeper screen, the short bonnet (EST)
-  'transfit-swb': { len: 4.86, waist: 1.2, glass: [0.69, 0.79], roof: [[0, 0.6], [0.01, 1.92],
+  // (?cabglass) the Mk7 cab's door window, the screen's edge
+  'transfit-swb': { len: 4.86,
+    windows: [[0.58, 0.735, 1.2, 1.8], [0.745, 0.81, 1.2, 1.92]],
+    waist: 1.2, glass: [0.69, 0.79], roof: [[0, 0.6], [0.01, 1.92],
     [0.03, 2.0], [0.7, 2.0], [0.73, 1.88], [0.81, 1.3], [0.97, 1.12], [1, 0.7]] },
   // Transit L3 H3: the long, high box (2.65 m) to the same cab (EST from photos)
-  'transfit-lwb': { len: 5.98, waist: 1.25, glass: [0.73, 0.82], roof: [[0, 0.62], [0.01, 2.55],
+  // (?cabglass) the same cab's door window and screen edge on the long box
+  'transfit-lwb': { len: 5.98,
+    windows: [[0.66, 0.775, 1.3, 2.08], [0.785, 0.84, 1.3, 2.4]],
+    waist: 1.25, glass: [0.73, 0.82], roof: [[0, 0.62], [0.01, 2.55],
     [0.03, 2.65], [0.74, 2.65], [0.77, 2.32], [0.84, 1.4], [0.97, 1.2], [1, 0.72]] },
   // trophy truck: the bed with its spares, the cab and roof scoop, the long bonnet, all high
   // on its long-travel wheels (EST from photos)
-  'effing-tt': { len: 5.6, waist: 1.55, glass: [0.38, 0.58], roof: [[0, 1.0], [0.02, 1.4],
+  // (?cabglass) the door window in the cab, the windscreen's edge
+  'effing-tt': { len: 5.6,
+    windows: [[0.42, 0.575, 1.62, 1.98], [0.59, 0.66, 1.6, 2.1]],
+    waist: 1.55, glass: [0.38, 0.58], roof: [[0, 1.0], [0.02, 1.4],
     [0.3, 1.42], [0.34, 1.55], [0.38, 2.05], [0.58, 2.1], [0.66, 1.6], [0.95, 1.42],
     [1, 1.05]] },
   // E36 Peak: the big wing on its necks over the boot, the coupe's roof, the long bonnet (EST)
@@ -133,11 +175,22 @@ export const PROFILES: Record<string, CarProfile> = {
   // (EST from photos)
   // school bus: the dog nose's low bonnet, the tall square body (~3.1 m), its windows (EST)
   // Scanyah tractor: the tall cab (~3.6 m with the spoiler) at the front, the chassis low behind
-  'scanyah-r450': { len: 6.0, waist: 1.2, glass: [0.94, 0.99], roof: [[0, 0.9], [0.6, 1.15],
+  // (?cabglass) the door window high on the cab, the windscreen's edge under its rake
+  'scanyah-r450': { len: 6.0,
+    windows: [[0.8, 0.955, 2.05, 2.9], [0.975, 0.995, 1.95, 3.05]],
+    waist: 1.2, glass: [0.94, 0.99], roof: [[0, 0.9], [0.6, 1.15],
     [0.61, 3.6], [0.97, 3.6], [0.99, 2.6], [1, 1.0]] },
-  'skool-bus': { len: 10.9, waist: 1.75, glass: [0.03, 0.86], roof: [[0, 0.55], [0.005, 3.0],
+  // (?cabglass) ten passenger bays, the driver's window, the windscreen's edge
+  'skool-bus': { len: 10.9,
+    windows: [...windowBays(0.06, 0.78, 10, 0.011, 1.75, 2.55), [0.8, 0.855, 1.75, 2.6],
+      [0.862, 0.882, 1.7, 3.0]],
+    waist: 1.75, glass: [0.03, 0.86], roof: [[0, 0.55], [0.005, 3.0],
     [0.86, 3.05], [0.875, 2.3], [0.885, 1.85], [0.99, 1.6], [1, 0.8]] },
-  routemonster: { len: 8.38, waist: 2.3, glass: [0.05, 0.92], roof: [[0, 0.5], [0.01, 4.1],
+  // (?cabglass) the upper deck's six bays, the lower deck's five, the half-cab's window
+  routemonster: { len: 8.38,
+    windows: [...windowBays(0.05, 0.93, 6, 0.014, 2.95, 3.75),
+      ...windowBays(0.14, 0.78, 5, 0.016, 1.35, 2.15), [0.86, 0.94, 1.6, 2.4]],
+    waist: 2.3, glass: [0.05, 0.92], roof: [[0, 0.5], [0.01, 4.1],
     [0.04, 4.38], [0.95, 4.38], [0.99, 4.1], [1, 1.2]] },
   // Range Rover L322: the flat roof to 1.86 m, the short tailgate, the near upright screen, the
   // long flat bonnet (EST from photos)
@@ -269,14 +322,14 @@ export function paintSideProfile(spec: RenderCarSpec, accents?: SideAccents): Pr
     { img, rect } = pictureOf(lengthPx, heightPx);
   const paint = spec.paint || '#d0552f', outline = shade(paint, 0.4), glass = '#15171d',
     clearance = Math.max(1, (spec.rideH ?? 0.13) * scale);
-  const waist = (profile.waist ?? 0) * scale, [glassFrom, glassTo] = profile.glass ?? [1, 0];
+  const waist = (profile.waist ?? 0) * scale, { glassAt, windows } = glassOf(profile, waist);
   // the glass under the roof line (the windscreen and rear screen at the roof line's angle)
-  const body = profile.open ? shade(paint, 0.85) : paint, glassAt = (share: number, high: number) =>
-    !profile.open && share > glassFrom && share < glassTo && high > waist + 2;
+  const body = profile.open ? shade(paint, 0.85) : paint;
   for (let x = 0; x < lengthPx; x++) {
     const top = heightPx - tops[x];
     rect(x, top, 1, heightPx - clearance - top, body);
     if (glassAt(x / lengthPx, tops[x])) rect(x, top + 1, 1, heightPx - waist - top - 1, glass);
+    windowColumn(rect, windows, { x, lengthPx, top, heightPx, scale }, glass);
     rect(x, top, 1, 1, outline);
     if (accents) accentColumn(rect, accents, x, [top, waist > 0 && tops[x] > waist + 1
       ? heightPx - waist : -1]);
@@ -288,6 +341,53 @@ export function paintSideProfile(spec: RenderCarSpec, accents?: SideAccents): Pr
   rect(0, heightPx - waist - 3, 2, 2, '#c8342a');
   sideWheels(spec, rect, lengthPx, heightPx);
   return { img, Lp: lengthPx, Hp: heightPx };
+}
+
+/**
+ * The glass band's test (a car's side glass from its waist to the roof line), or none.
+ * @param band the band's from / to share, or null (open, or its own windows)
+ * @param waist the waist, px
+ * @returns whether a column at a share with its roof that high, px, is glass
+ */
+const bandGlass = (band: number[] | null, waist: number) => (share: number, high: number) =>
+  !!band && share > band[0] && share < band[1] && high > waist + 2;
+
+/**
+ * A side picture's glass: its own windows (?cabglass, a lorry's, van's or bus's), else the band.
+ * @param profile the car's profile
+ * @param waist the waist, px
+ * @returns the band's test (never with its own windows) and the windows, if any
+ */
+function glassOf(profile: CarProfile, waist: number) {
+  const windows = FIX.cabglass ? profile.windows : undefined;
+  return { windows, glassAt: bandGlass(windows || profile.open ? null : profile.glass ?? [1, 0],
+    waist) };
+}
+
+/**
+ * ?cabglass: a side picture column's own windows (each from its sill to its head, under the
+ * roof line).
+ * @param rect the picture's painter
+ * @param windows the vehicle's windows (none: nothing)
+ * @param column the column: x, the picture's length and height, the roof's row, px a m
+ * @param column.x the column
+ * @param column.lengthPx the picture's length, px
+ * @param column.top the roof line's row
+ * @param column.heightPx the picture's height, px
+ * @param column.scale px a m
+ * @param glass the glass colour
+ */
+function windowColumn(rect: (x: number, y: number, wide: number, tall: number,
+  col: string | number) => void, windows: SideWindow[] | undefined,
+  column: { x: number; lengthPx: number; top: number; heightPx: number; scale: number },
+  glass: string) {
+  const share = (column.x + 0.5) / column.lengthPx;
+  for (const [from, upto, sill, head] of windows ?? []) {
+    if (share < from || share > upto) continue;
+    const high = Math.max(column.top + 1, column.heightPx - head * column.scale);
+    const low = column.heightPx - sill * column.scale;
+    if (low > high) rect(column.x, high, 1, low - high, glass);
+  }
 }
 
 /**

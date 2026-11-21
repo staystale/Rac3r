@@ -74,4 +74,7 @@ export const FIX = {
   aitune: atLoad('aitune'),
   // RESET mends the tractor's trailer as it mends the tractor (game/session.ts doReset)
   trailheal: atLoad('trailheal'),
+  // a lorry's, van's and bus's own side windows on its rolled side (render/carprofile.ts windows:
+  // the Scanyah's cab showed none - its glass band was the screen's last 5 %)
+  cabglass: atLoad('cabglass'),
 };

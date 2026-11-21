@@ -30,4 +30,12 @@ export const TEST_LIST: TestEntry[] = [
     try: 'Crash the trailer (dents, a door or mudguard off, a flat), then press RESET.',
     wrong: 'The trailer still dented, missing parts or on a flat after RESET.',
   },
+  {
+    id: 'cabglass',
+    added: '2026-11-21',
+    name: 'Rolled lorries, vans and buses show their real side windows',
+    where: 'Test link + &cabglass=1: the Scanyah, a Transfit, the buses, the tractor',
+    try: 'Roll one onto its side (a fast slide into a kerb or a barrier) and look at its side.',
+    wrong: 'A cab side with no window, glass up to the roof, or a bus side with no pillars.',
+  },
 ];
