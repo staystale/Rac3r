@@ -77,4 +77,19 @@ export const FIX = {
   // the place shown before the running order's first step is your grid slot's, not P1
   // (game/session.ts startField)
   gridpos: atLoad('gridpos'),
+  // F1 "SCORE THE DESTINATION" (owner 11-21, item 7): the gap picker scores a line more than one
+  // swerve across by its own room ahead, not the part-way point it steers to this think
+  // (ai/gapPick.ts lineScore) - MEASURED, the BOXED trace: a roomier line out of one think's
+  // reach was 61 % of Thruston's boxed time, 16 % of the motorway's
+  gapdest: atLoad('gapdest'),
+  // F2 "COMMIT ONLY WHILE IT PAYS" (owner 11-21, item 7): while the line a driver chose is the one
+  // holding it boxed, only a share of the gap picker's bonus for keeping that line - a sliding
+  // scale per driver type (ai/tune.ts COMMIT_BOXED: the racers, the traffic's speeders); the
+  // defaults keep today's behaviour until the owner picks the lean
+  gapcommit: atLoad('gapcommit'),
+  // THE ROLLING START'S GREEN (owner 11-21, item 10): each AI released at its own reaction after
+  // the green (by skill and personality), a few jumping it (game/greenrelease.ts); the race
+  // driver's start phase counted from its release, not the formation's first move
+  // (ai/driverLane.ts)
+  rollgreen: atLoad('rollgreen'),
 };

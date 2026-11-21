@@ -154,6 +154,8 @@ export function pedalStep(drv: Drv, car: AiCar, path: AiPath, nearIdx: number,
   state.vTPrev = state.vT;
   state.vT = targetSpeed;
   if (FIX.aitune) zoneStep(drv, car, dt);
+  // (read only, the held traces: a car's cap is the speed I am held to, not one above my plan)
+  state.capBinds = followCap <= targetSpeed + 0.01;
   // OFF ROAD / LOOSE (requirement: they still slow down like mad off road / changing surfaces): on
   // loose ground a sliding front is the surface, not a mistake — keep driving (UNDER_LOOSE
   // throttle) and never brake for it. MEASURED before (aifieldcheck SURF, Brands +

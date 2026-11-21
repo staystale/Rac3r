@@ -15,6 +15,7 @@ import { crossedJoker } from './rules.ts';
 import { onTrack } from "../world/tyrewall.ts";
 import { clearOfUnder, trackSpotOf } from "../world/trackunder.ts";
 import { startHeld, carHeld, atPace, formationWant } from './order.ts';
+import { heldAtGreen } from './greenrelease.ts';
 import { RESET_BACK, RESET_ANG } from './session.ts';
 import { shared, game } from './state.ts';
 import { activeLamps } from '../world/lamps.ts';
@@ -160,7 +161,7 @@ export function aiWant(entry: AiEntry, dt: number) {
       cars: [game.car, ...game.ai.map((other) => other.car),
         ...(LEVEL.endless ? game.traffic.ourSide : [])].filter((other) => other !== car
           && sameLevel(other, car)),
-          hold: startHeld(), lap, road: roadCtx(),
+          hold: heldAtGreen(entry, startHeld()), lap, road: roadCtx(),
             laps: game.flow ? game.flow.laps : shared.race.on ? shared.race.laps
               : (LEVEL.joker && LEVEL.joker.laps) || 5 }));
   // waiting out the crash
@@ -192,7 +193,7 @@ function heldInput(entry: AiEntry, want: CarInput, held: boolean): CarInput {
 export function stepAIPhysics(entry: AiEntry, want: CarInput, dt: number) {
   const car = entry.car;
   // (a held car is off at once: no start lights)
-  const held = !entry.held && (LEVEL.stage ? carHeld(car) : startHeld());
+  const held = !entry.held && (LEVEL.stage ? carHeld(car) : heldAtGreen(entry, startHeld()));
   if (rolling(car)) {
     stepRoll(car, dt, (kind, side, weight) => hitRoll(car, kind, side, weight));
     // an overturned AI, once it has stopped: back on its wheels on the road (as a marshal
@@ -261,7 +262,7 @@ function highwayOffTooLong(entry: AiEntry, dt: number): boolean {
  */
 export function stepAIStuck(entry: AiEntry, dt: number) {
   const car = entry.car;
-  const held = LEVEL.stage ? carHeld(car) : startHeld();
+  const held = LEVEL.stage ? carHeld(car) : heldAtGreen(entry, startHeld());
   // (the highway's off-road put-back clear of every car too, as the stuck one: two racers put back
   // in one step landed on one spot, the first's road frame cleared by its reset)
   if (stuckWatchFires(entry, held || entry.hurtWait != null, dt) || highwayOffTooLong(entry, dt)) {

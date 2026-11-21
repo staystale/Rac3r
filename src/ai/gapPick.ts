@@ -13,6 +13,7 @@
 // only when it is clearly quicker.
 import { reachOf } from './dodge.ts';
 import type { AiCar } from './types.ts';
+import { FIX } from '../core/fixes.ts';
 
 /** A car as the gap picker sees it, in my path's frame. */
 export interface SeenCar { fwd: number; lat: number; v: number; across: number; along: number;
@@ -129,31 +130,100 @@ function freeTo(block: { gap: number; v: number }, speed: number): number {
  */
 export function gapLine(seen: SeenCar[], mine: { lat: number; base: number; half: number;
   len: number; speed: number; look: number; lo: number; hi: number; edge: number;
-  centre: number; lanes?: number[] }): number {
-  const { lat, base, half, len, speed, look, lo, hi, edge, centre, lanes } = mine;
+  centre: number; lanes?: number[]; commitK?: number }): number {
+  const { base, lo, hi } = mine;
   let best = base, bestScore = -Infinity;
   const tries: number[] = [base];
   for (let i = 0; i < LINES; i++) tries.push(lo + (hi - lo) * i / (LINES - 1));
   for (const want of tries) {
-    // no further across in one think than a swerve makes
-    const off = Math.abs(want - lat) > REACH_M ? lat + Math.sign(want - lat) * REACH_M : want;
-    const block = blockOn(seen, off, half, len);
-    if (block && block.side) continue;
-    let score = block ? Math.min(freeTo(block, speed), speed * look)
-      + Math.max(0, block.v) * KEPT_V : speed * look + FREE_BONUS;
-    score -= (Math.abs(off - base) + 0.3 * Math.abs(off - lat)) * (MOVE_K + speed * MOVE_SPEED_K)
-      - (Math.abs(off - base) < 0.6 ? COMMIT : 0);
-    score -= placeCost(off, centre, edge, lanes);
-    if (Math.abs(off - lat) > 1.2) {
-      const mid = blockOn(seen, (off + lat) / 2, half, len);
-      if (mid && mid.gap < 1) score -= OUT;
-      if (inMirror(seen, off, half, speed) || inMirror(seen, (off + lat) / 2, half, speed)) {
-        score -= OUT;
-      }
-    }
-    if (score > bestScore) { bestScore = score; best = off; }
+    const parts = lineScore(seen, want, mine);
+    if (parts && parts.total > bestScore) { bestScore = parts.total; best = parts.off; }
   }
   return best;
+}
+
+/**
+ * ?gapdest: the car on a line out of one swerve's reach, as its room ahead (one beside me there
+ * counts as no room: its gap 0, not a side - I am not there yet).
+ * @param seen the cars seen
+ * @param dest the line, m off my path
+ * @param half my half width, m
+ * @param len my length, m
+ * @returns its gap and speed, or null
+ */
+function destBlock(seen: SeenCar[], dest: number, half: number, len: number) {
+  const block = blockOn(seen, dest, half, len);
+  return block && block.side ? { gap: 0, v: block.v } : block;
+}
+
+/**
+ * The swerve's cost to a line (a m across from the line chosen and a share from where I am, more
+ * at speed), less COMMIT x commitK for the line already chosen.
+ * @param dest the line, m off my path
+ * @param from the line chosen last, where I am (m), my m/s and the share of COMMIT (?gapcommit)
+ * @param from.base m
+ * @param from.lat m
+ * @param from.speed m/s
+ * @param from.commitK 0..1
+ * @returns the cost
+ */
+function moveCost(dest: number, from: { base: number; lat: number; speed: number;
+  commitK: number }): number {
+  const { base, lat, speed, commitK } = from;
+  return (Math.abs(dest - base) + 0.3 * Math.abs(dest - lat)) * (MOVE_K + speed * MOVE_SPEED_K)
+    - (Math.abs(dest - base) < 0.6 ? COMMIT * commitK : 0);
+}
+
+/** A line's score as the gap picker reckons it, by its parts (lineScore). */
+export interface LineParts {
+  off: number;     // the line scored, m off my path (no further across than a swerve makes)
+  ahead: number;   // the room ahead on it (its free road, or the reading + FREE_BONUS)
+  kept: number;    // the speed of the car on it, x KEPT_V
+  move: number;    // the swerve's cost, less COMMIT for the line already chosen
+  place: number;   // the verge's and the off-the-racing-line cost
+  outMid: number;  // OUT: a car beside the way across (half way)
+  outMirror: number;   // OUT: a faster car behind arriving on it or half way
+  total: number;
+}
+
+/**
+ * One line's score, by its parts - gapLine's own reckoning (the BOXED trace reads it too:
+ * ai/boxedTrace.ts).
+ * @param seen the cars seen (my path's frame)
+ * @param want the line, m off my path
+ * @param mine as gapLine's
+ * @returns the parts, or null when a car is beside me on it (no way through)
+ */
+export function lineScore(seen: SeenCar[], want: number, mine: { lat: number; base: number;
+  half: number; len: number; speed: number; look: number; edge: number; centre: number;
+  lanes?: number[]; commitK?: number }): LineParts | null {
+  const { lat, base, half, len, speed, look, edge, centre, lanes } = mine;
+  // no further across in one think than a swerve makes
+  const off = Math.abs(want - lat) > REACH_M ? lat + Math.sign(want - lat) * REACH_M : want;
+  const near = blockOn(seen, off, half, len);
+  if (near && near.side) return null;
+  // (?gapdest: the room and the move read on the line itself - the car still steers there one
+  // swerve a think; else on the part-way point)
+  const dest = FIX.gapdest ? want : off;
+  const block = dest === off ? near : destBlock(seen, dest, half, len);
+  const ahead = block ? Math.min(freeTo(block, speed), speed * look) : speed * look + FREE_BONUS;
+  const kept = block ? Math.max(0, block.v) * KEPT_V : 0;
+  const move = moveCost(dest, { base, lat, speed, commitK: mine.commitK ?? 1 });
+  const place = placeCost(dest, centre, edge, lanes);
+  let outMid = 0, outMirror = 0;
+  if (Math.abs(off - lat) > 1.2) {
+    const mid = blockOn(seen, (off + lat) / 2, half, len);
+    if (mid && mid.gap < 1) outMid = OUT;
+    if (inMirror(seen, off, half, speed) || inMirror(seen, (off + lat) / 2, half, speed)) {
+      outMirror = OUT;
+    }
+  }
+  let total = block ? ahead + kept : ahead;
+  total -= move;
+  total -= place;
+  total -= outMid;
+  total -= outMirror;
+  return { off, ahead, kept, move, place, outMid, outMirror, total };
 }
 
 /**

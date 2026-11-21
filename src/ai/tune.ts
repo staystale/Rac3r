@@ -7,6 +7,8 @@
 // A seventh, PACE (passed 11-15; 0.5 = x1): every driver's speed plan - its corner and braking grip
 // (ai/line.ts K_CORNER, K_BRAKE) - x paceOf(pace).
 
+import { debugValue } from "../core/debug.ts";
+
 /** The field's AI dials, each 0..1; custom once a dial moved off the difficulty's preset. */
 export interface AiTune {
   skill: number; spread: number; risk: number; aggression: number; defence: number;
@@ -47,6 +49,39 @@ export const AGG_CENTRE = [0.4, 0.45, 0.5, 0.55, 0.6];
 const SKILL_UP = 0.1, LEAN_UP = 0.03;
 // the PACE dial's preset (0.5 = x1)
 const PACE_PRESET = 0.5 + LEAN_UP;
+
+// ?gapcommit, THE SLIDING SCALE (owner 11-21: "a tunable value per driver type, to taste"): the
+// share of the gap picker's bonus for keeping its chosen line (ai/gapPick.ts COMMIT) a driver keeps
+// while that line is the one holding it boxed - 1 = sticks to it (as before), 0 = none (moves for
+// any roomier line). THE LEAN (owner 11-21): RACERS are loose with lanes and weave for gaps - the
+// loose end; SPEEDERS (and police chasers: the racing driver at a traffic car's wheel,
+// ai/trafficSpeeder.ts seatRacer) keep to lanes more, each its own value from the strict end up to
+// a racer's, seeded per driver. The tools try others: __AI_COMMIT_RACER (the racers' value) and
+// __AI_COMMIT_SPEEDER (the speeders' strict end).
+export const COMMIT_BOXED = { racer: 0, speederStrict: 1 };
+
+/**
+ * A racer's share of the keep-the-line bonus while boxed (COMMIT_BOXED.racer, or a tool's dial).
+ * @returns 0..1
+ */
+export function racerCommitBoxed(): number {
+  const dial = debugValue('AI_COMMIT_RACER');
+  return Math.max(0, Math.min(1, typeof dial === 'number' ? dial : COMMIT_BOXED.racer));
+}
+
+/**
+ * A speeder's share: its own place between the strict end and a racer's, by its seed (the same
+ * driver always the same; no draw from the traffic's random stream).
+ * @param seed the driver's seed
+ * @returns 0..1
+ */
+export function speederCommitBoxed(seed: number): number {
+  const dial = debugValue('AI_COMMIT_SPEEDER');
+  const strict = Math.max(0, Math.min(1, typeof dial === 'number' ? dial
+    : COMMIT_BOXED.speederStrict));
+  const share = (Math.imul(seed | 0, 2654435761) >>> 0) / 4294967296;
+  return strict + (racerCommitBoxed() - strict) * share;
+}
 
 /**
  * A difficulty's preset dials.

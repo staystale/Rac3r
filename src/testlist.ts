@@ -13,6 +13,33 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'rollgreen',
+    added: '2026-11-21',
+    name: 'Rolling starts: each AI goes at its own reaction, a few jump the green, then race',
+    where: 'Test link + &rollgreen=1: a rolling start (Naffcar, Dieatona, Stock Car, the highway)',
+    try: 'Watch the green: the field breaks up, cars pull out and swap places in the first '
+      + 'seconds instead of moving as one block. Count the crashes in the first corner.',
+    wrong: 'The field still moving as a block, or far more crashes and pile-ups than before.',
+  },
+  {
+    id: 'gapdest',
+    added: '2026-11-21',
+    name: 'Racers aim for a gap more than one step across instead of sitting boxed in',
+    where: 'Test link + &gapdest=1: the motorway with racers and traffic; any circuit with a field',
+    try: 'Follow racers in traffic: they move across to a roomier lane instead of sitting behind '
+      + 'a slower car with a clear lane beside.',
+    wrong: 'Racers still sitting behind traffic with a lane free, or cutting across into cars.',
+  },
+  {
+    id: 'gapcommit',
+    added: '2026-11-21',
+    name: 'Lanes: racers weave for gaps; each speeder somewhere from lane-keeping to racer-like',
+    where: 'Test link + &gapcommit=1 (best with &gapdest=1): the motorway with racers and speeders',
+    try: 'Racers leave a blocked lane for a roomier one; speeders vary, some keep their lane, '
+      + 'some weave like racers.',
+    wrong: 'Racers or speeders darting lane to lane for no gain, or sideswiping traffic.',
+  },
+  {
     id: 'aitune',
     added: '2026-11-21',
     name: 'AI tune: later, steady braking; followers and closer running (first try)',

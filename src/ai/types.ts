@@ -41,6 +41,9 @@ export interface Traits {
   kBrake?: number;   // the braking grip it plans (line.ts K_BRAKE by default)
   paceK?: number;    // its speed plan's corner and braking grip x this (ai/tune.ts PACE)
   power?: number;    // its engine power share (a weak driver gives a little away)
+  // ?gapcommit: the share of the keep-the-line bonus kept while that line boxes me in (ai/tune.ts
+  // COMMIT_BOXED, by driver type)
+  commitBoxed?: number;
 }
 
 // What a driver returns each step (the scripted driver has no reverse).
@@ -303,6 +306,9 @@ export interface CircuitState extends DriveOutState {
   // ?aitune: the followed car's braking (m/s2) and my full-pedal deceleration (m/s2)
   followDec?: number; fullDecel?: number;
   followWhy?: string;   // why it is held (CarsAcc.why, or 'stopped'), '' when not
+  capBinds?: boolean;   // the follow cap is the target speed this step (not above the plan)
+  // the last boxed moment (ai/boxedTrace.ts; only while a tool sets __AI_WHY)
+  boxedNote?: import('./boxedTrace.ts').BoxedNote | null;
   lap: number;
   jokers: number;
   jPlan: number;

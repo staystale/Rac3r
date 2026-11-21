@@ -10,6 +10,7 @@ import {
   OBJECT_MORE, clearOf, matchSpeed, reachOf, readBraking, readGain, swerveCap,
 } from "./dodge.ts";
 import { blockOn, gapLine, seeCar } from "./gapPick.ts";
+import { traceBoxed } from "./boxedTrace.ts";
 import type { SeenCar } from "./gapPick.ts";
 
 // MEASURED (aidrivecheck, HB on/off, Realish + Real, hatch + 4x4): Slidden / Knobhill / Castle Kum
@@ -462,6 +463,19 @@ function placeAcross(env: CarsEnv, other: AiCar, closeIdx: number, halted: boole
   return lat + (point.off ?? 0) - (pts[env.nearIdx].off ?? 0);
 }
 
+/**
+ * ?gapcommit: the share of the keep-the-line bonus (ai/gapPick.ts COMMIT) while the chosen line
+ * is the one holding me boxed (last step's cap: state.followWhy, capBinds) - the driver type's
+ * sliding scale (ai/tune.ts COMMIT_BOXED); 1 otherwise.
+ * @param drv the driver
+ * @returns 0..1
+ */
+function commitShare(drv: Drv): number {
+  const { state } = drv;
+  if (!FIX.gapcommit || state.followWhy !== 'boxed' || !state.capBinds) return 1;
+  return drv.traits.commitBoxed ?? 1;
+}
+
 /** The s of travel the gap spotter reads the cars ahead in, by skill. */
 function gapLook(skill: number) {
   return GAP_LOOK_WEAK + (GAP_LOOK_TOP - GAP_LOOK_WEAK) * Math.max(0, Math.min(1, skill));
@@ -598,9 +612,11 @@ function gapStep(drv: Drv, car: AiCar, acc: CarsAcc, seen: SeenCar[], mine: { my
   // (never into the other way's lane while an oncoming car keeps me to my side -
   // ai/driverOncoming.ts; the line picked there was clamped back and the dodge went short)
   const top = Math.min(room, state.keepMax ?? Infinity) - lineOff;
-  const line = gapLine(seen, { lat: myLat, base: state.gapBase ?? myLat, half, len, speed, look,
+  const pick = { lat: myLat, base: state.gapBase ?? myLat, half, len, speed, look,
     lo: -room - lineOff, hi: Math.max(top, -room - lineOff), edge: latLim, centre: lineOff,
-    lanes: drv.state.path === drv.main ? drv.line.lanes : undefined });
+    lanes: drv.state.path === drv.main ? drv.line.lanes : undefined,
+    commitK: commitShare(drv) };
+  const line = gapLine(seen, pick);
   state.gapBase = line;
   acc.dodgeT = line - latT;
   acc.conflict = true;
@@ -611,6 +627,8 @@ function gapStep(drv: Drv, car: AiCar, acc: CarsAcc, seen: SeenCar[], mine: { my
   // BOXED IN: a car still on the best line - brake to arrive behind it at its speed (MEASURED
   // pacesuite: a pack abreast at 185 km/h kept its foot down to 9 m from 90 km/h traffic, wrecks)
   const block = blockOn(seen, line, half, len);
+  // (the boxed trace, read only - tools/scratch/_boxed.mjs sets __AI_WHY)
+  traceBoxed(state, seen, { ...pick, line, myLat }, block);
   if (block && !block.side) {
     const decel = BOXED_BRAKE * carGrip(car.spec).brakeG * GRAVITY * (car.surface.mu || 1);
     capFor(acc, Math.sqrt(Math.max(0, block.v) ** 2
