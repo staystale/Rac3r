@@ -93,6 +93,40 @@ const median = (list) => {
   return sorted.length ? sorted[Math.floor(sorted.length / 2)] : NaN;
 };
 
+/**
+ * What kept the picker off the roomier line (a line with 20 m+ more room ahead): the part of the
+ * two lines' scores (ai/gapPick.ts lineScore) that counts most against the roomier one - or
+ * BESIDE (a car beside me on it: no way through), CLAMPED (more than a swerve across: scored part
+ * way, where it has no more room), PICKED-IT (it was the picked line).
+ * @param note the boxed note
+ * @returns the term
+ */
+function termsOf(episodes) {
+  const counts = {}, timeBy = {};
+  for (const ep of episodes) {
+    if (!(ep.note.bestGap > ep.note.gap + 20)) continue;
+    const term = decidingTerm(ep.note);
+    counts[term] = (counts[term] || 0) + 1;
+    timeBy[term] = (timeBy[term] || 0) + ep.held;
+  }
+  return Object.entries(counts).sort((one, two) => timeBy[two[0]] - timeBy[one[0]])
+    .map(([term, count]) => `${term} ${count} (${timeBy[term].toFixed(0)} car-s)`).join(', ');
+}
+
+/** The deciding term of one boxed note (decidingTerm's doc above). */
+function decidingTerm(note) {
+  const pick = note.picked, room = note.roomiest;
+  if (!room) return 'BESIDE';
+  if (!pick || Math.abs(room.off - pick.off) < 0.01) return 'PICKED-IT';
+  if (Math.abs(room.off - note.bestAt) > 0.01 && room.ahead <= pick.ahead + 20) return 'CLAMPED';
+  const against = {
+    'OUT-MIRROR': room.outMirror - pick.outMirror, 'OUT-MID': room.outMid - pick.outMid,
+    MOVE: room.move - pick.move, PLACE: room.place - pick.place, KEPT: pick.kept - room.kept,
+    AHEAD: pick.ahead - room.ahead,
+  };
+  return Object.entries(against).sort((one, two) => two[1] - one[1])[0][0];
+}
+
 /** Node side: one run's (or all runs') summary. */
 function summary(name, episodes, carS) {
   const heldS = episodes.reduce((sum, ep) => sum + ep.held, 0);
@@ -115,7 +149,8 @@ function summary(name, episodes, carS) {
     + ` % of the held time; a fully FREE line existed:`
     + ` ${share((ep) => ep.note.freeAt != null)}; a line with 20 m+ more room: ${share((ep) =>
       ep.note.bestGap > ep.note.gap + 20)}; blocker 60 m+ ahead: ${share((ep) => ep.note.gap
-      > 60)}; blocker faster than me: ${share((ep) => ep.note.v > ep.note.myV)}`;
+      > 60)}; blocker faster than me: ${share((ep) => ep.note.v > ep.note.myV)}`
+    + ` | WHY NOT the roomier line (score term against it): ${termsOf(episodes)}`;
 }
 
 const server = await startServer();

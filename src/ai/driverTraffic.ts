@@ -599,9 +599,10 @@ function gapStep(drv: Drv, car: AiCar, acc: CarsAcc, seen: SeenCar[], mine: { my
   // (never into the other way's lane while an oncoming car keeps me to my side -
   // ai/driverOncoming.ts; the line picked there was clamped back and the dodge went short)
   const top = Math.min(room, state.keepMax ?? Infinity) - lineOff;
-  const line = gapLine(seen, { lat: myLat, base: state.gapBase ?? myLat, half, len, speed, look,
+  const pick = { lat: myLat, base: state.gapBase ?? myLat, half, len, speed, look,
     lo: -room - lineOff, hi: Math.max(top, -room - lineOff), edge: latLim, centre: lineOff,
-    lanes: drv.state.path === drv.main ? drv.line.lanes : undefined });
+    lanes: drv.state.path === drv.main ? drv.line.lanes : undefined };
+  const line = gapLine(seen, pick);
   state.gapBase = line;
   acc.dodgeT = line - latT;
   acc.conflict = true;
@@ -613,8 +614,7 @@ function gapStep(drv: Drv, car: AiCar, acc: CarsAcc, seen: SeenCar[], mine: { my
   // pacesuite: a pack abreast at 185 km/h kept its foot down to 9 m from 90 km/h traffic, wrecks)
   const block = blockOn(seen, line, half, len);
   // (the boxed trace, read only - tools/scratch/_boxed.mjs sets __AI_WHY)
-  traceBoxed(state, seen, { line, myLat, half, len, speed, lo: -room - lineOff,
-    hi: Math.max(top, -room - lineOff) }, block);
+  traceBoxed(state, seen, { ...pick, line, myLat }, block);
   if (block && !block.side) {
     const decel = BOXED_BRAKE * carGrip(car.spec).brakeG * GRAVITY * (car.surface.mu || 1);
     capFor(acc, Math.sqrt(Math.max(0, block.v) ** 2

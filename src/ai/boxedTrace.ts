@@ -4,8 +4,8 @@
 // whether my own lane is blocked too, and whether any way round was free across the room the
 // picker had. Recorded only while a tool sets globalThis.__AI_WHY (tools/scratch/_boxed.mjs); the
 // game never computes it.
-import { blockOn } from './gapPick.ts';
-import type { SeenCar } from './gapPick.ts';
+import { blockOn, lineScore } from './gapPick.ts';
+import type { LineParts, SeenCar } from './gapPick.ts';
 import { debugValue } from '../core/debug.ts';
 
 /** One boxed moment, as the driver saw it. */
@@ -21,7 +21,13 @@ export interface BoxedNote {
   bestGap: number;      // the most room ahead on any line across the room, m (Infinity: free)
   bestAt: number;       // that line, m off my path
   room: [number, number];  // the room the picker had, m off my path
+  picked: LineParts | null;   // the picked line's score, by its parts (ai/gapPick.ts lineScore)
+  roomiest: LineParts | null;   // the score of the line with the most room ahead
 }
+
+/** The gap picker's view at a boxed moment (its gapLine input) and the line it picked. */
+type Pick = Parameters<typeof lineScore>[2] & { line: number; myLat: number; lo: number;
+  hi: number };
 
 // m between the lines tried for a free way round
 const STEP_M = 0.5;
@@ -29,12 +35,11 @@ const STEP_M = 0.5;
 /**
  * The note for a boxed moment.
  * @param seen the cars seen (the gap picker's)
- * @param mine the line picked, where I am, my half width and length, my m/s, the room (lo, hi)
+ * @param mine the gap picker's input (ai/gapPick.ts gapLine), the line picked and where I am
  * @param block the car on the picked line: m to it, its m/s
  * @returns the note
  */
-export function boxedNote(seen: SeenCar[], mine: { line: number; myLat: number; half: number;
-  len: number; speed: number; lo: number; hi: number }, block: { gap: number; v: number }):
+export function boxedNote(seen: SeenCar[], mine: Pick, block: { gap: number; v: number }):
   BoxedNote {
   const { line, myLat, half, len, speed, lo, hi } = mine;
   let lat = line, best = Infinity;
@@ -51,7 +56,8 @@ export function boxedNote(seen: SeenCar[], mine: { line: number; myLat: number; 
     if (freeAt == null || Math.abs(off - myLat) < Math.abs(freeAt - myLat)) freeAt = off;
   }
   return { gap: block.gap, v: block.v, myV: speed, lat, line, myLat,
-    ownBlocked: !!blockOn(seen, myLat, half, len), freeAt, bestGap, bestAt, room: [lo, hi] };
+    ownBlocked: !!blockOn(seen, myLat, half, len), freeAt, bestGap, bestAt, room: [lo, hi],
+    picked: lineScore(seen, line, mine), roomiest: lineScore(seen, bestAt, mine) };
 }
 
 /**
