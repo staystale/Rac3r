@@ -36,7 +36,7 @@ Older design notes and measurements are in the git history of this file.
 | `ai/` | One AI engine. Circuits: `circuit.ts` (`createAIDriver`) with `driver*.ts` steps, `line.ts` (racing line, speed profiles), `racecraft.ts`, `traits.ts` (difficulty, personality). Highway: `weaver.ts` (`roadDriver`) with `weaver*.ts`; traffic `traffic*.ts`; the highway race flow `hwFlow*.ts`. `autodrive.ts` the scripted demo / test driver. |
 | `highwayrace.ts`, `traffic.ts`, `raceflow.ts` | Highway race rules, highway traffic, how a race ends (results, estimates, DNF). |
 | `render.ts`, `render/` | Drawing (below). |
-| `marks.ts` | The world-space skid-mark layer. |
+| `marks.ts` | The world-space skid-mark layer. Under test, `?marksage=1`: a level bigger than the layer keeps its marks in 256 px tiles over the whole level (`marktiles.ts`), never wiped by the window's move, at most 104 tiles, the oldest fading first. |
 | `hud.ts`, `hud/` | The HUD on the full-resolution canvas: `layout.js` every rectangle and tap hit-test, `gauges.js`, `laps.js`, `overlays.js`, `controls.js`, `widgets.js`, `minimap.js` (minimap + progress bar). The pause menu's HUD list (`?hudmenu=0` = the old MINIMAP row) (`menu/race.ts`, `game/menuflow.ts` hudActions) turns each display piece on or off; under test, `?fpshud=1`: an FPS row too (`hud/fpstoggle.ts`, kept on the device; unset, the FPS strip shows in TEST MODE only). |
 | `menu.ts`, `menu/` | Main menu, test mode, garage (paint, tyres), race setup and results. |
 | `input.ts` | One normalised input state from keyboard and touch; the car never sees an event. A held throttle ramps (0.26 at once, full after 1.5 s); one pressed at a standstill (under 0.5 m/s) is full at once while held - a launch. |

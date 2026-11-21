@@ -33,6 +33,17 @@ MARK TRACK.)
   3. NO CHEQUERED FLAG at the finish (seen at Angle Sleezy); every AI race must have a finish.
   4. TYRE MARKS CUT OFF in straight lines on one surface (Snoozuka, a couple of turns before the
      tunnel; other tracks too) - a ground-tile edge?
+     FOUND + BUILT (Worker C 11-21) behind ?marksage=1: on the 41 levels bigger than the marks layer
+     (marks.ts MARK_EXTENT 302 m) its window followed the player and wiped each strip of ground that
+     left it - marks ~300 m behind were cut along a straight line. Now a big level's marks go in
+     256 px tiles (61 m, the same 4.2 px/m strokes) made where a mark is laid (marktiles.ts),
+     never wiped by a move; a tile goes when the aged fade has cleared it, at most 104 held (the old
+     layer's 26 MB, which is freed), the oldest tile fading out first over the cap. MEASURED
+     (tools/scratch/_marksage.mjs, a 20 m skid, the window moved 500 m away and back): Spa off 3644
+     -> 110 px of skid left, on 3382 -> 3224; the Nordschlep (390x844) off 4997 -> 295, on 5674 ->
+     5788; the fade still clears it (on: 120 s faint, 160 s gone); canvases 100 -> 79 MB (Spa).
+     Tiles by the lap (_marksize.mjs): Spa 122, Le Manky 256, the Nordschlep 383. AWAITING the PC
+     numbers (live tiles in a 20-car race, frame cost) and THE PHONE TEST.
   5. HEADLIGHT GLOW drawn behind the lamp, on the car's own body: each car's lamps light only what
      a real one would, with their own shape and reach.
      PASSED 11-21 (?lamps), the default (TODO-DONE, PASSED 11-21, RESET CLEAN AND LAMPS).

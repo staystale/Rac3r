@@ -22,4 +22,14 @@ export const TEST_LIST: TestEntry[] = [
     wrong: 'The FPS panel still showing when OFF, missing when ON, the row missing, or the choice '
       + 'forgotten after a restart or a reload.',
   },
+  {
+    id: 'marksage',
+    added: '2026-11-21',
+    name: 'Tyre marks on big tracks kept whole, never cut off in a straight line',
+    where: 'Test link + &marksage=1: Spa, Snoozuka, the Nordschlep, Le Manky (a big track)',
+    try: 'Lay skids or slide through a corner, drive on a lap (or a few hundred metres) and come '
+      + 'back: the marks are all still there, fading with age, then gone ~2.5 min after.',
+    wrong: 'Marks ending in a straight line across the track, marks gone early, a seam or a grid '
+      + 'of squares in the marks, or a stutter when marks are laid.',
+  },
 ];

@@ -69,4 +69,7 @@ export const FIX = {
   siren: atLoad('siren'),
   // the FPS counter as a row of the pause menu's HUD list, on or off in any mode (hud/fpstoggle.ts)
   fpshud: atLoad('fpshud'),
+  // a big level's tyre marks kept whole in tiles, never wiped by the window's move: the oldest
+  // fade first (marktiles.ts; marks.ts useTiles)
+  marksage: atLoad('marksage'),
 };
