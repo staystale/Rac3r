@@ -71,4 +71,8 @@ export const FIX = {
   // the chequered flag for every race's finish, not only the first of a session: the HUD's count
   // of flags shown is kept per race flow (hud/overlays.ts drawHudFlag)
   flagfix: atLoad('flagfix'),
+  // THE AI TUNE (owner 11-21, TODO 2 item 9): the speed plan brakes later and harder (ai/line.ts
+  // K_BRAKE, tarmac and loose alike - the drivers correct), and the brake pedal holds through a
+  // braking zone instead of dabbing on and off (ai/driverPedals.ts pedals)
+  aitune: atLoad('aitune'),
 };

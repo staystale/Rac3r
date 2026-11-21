@@ -292,6 +292,9 @@ export interface CircuitState extends DriveOutState {
   path: Path<DrivePoint>;
   i: number | null;   // null until the first step (and after a relocate) finds its place
   vT: number;
+  vTPrev?: number;   // the last step's target speed (?aitune: a falling plan - ai/driverPedals.ts)
+  // ?aitune: the plan's fall, m/s2 (smoothed), and the brake pedal that holds it (feed-forward)
+  zoneDecel?: number; zoneFF?: number;
   lap: number;
   jokers: number;
   jPlan: number;
