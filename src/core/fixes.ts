@@ -77,4 +77,8 @@ export const FIX = {
   // each grid slot as long as its car (a towing rig at the back), a solo rig slid back clear
   // (game/gridlen.ts)
   gridlen: atLoad('gridlen'),
+  // THE AI TUNE (owner 11-21, TODO 2 item 9): the speed plan brakes later and harder (ai/line.ts
+  // K_BRAKE, tarmac and loose alike - the drivers correct), and the brake pedal holds through a
+  // braking zone instead of dabbing on and off (ai/driverPedals.ts pedals)
+  aitune: atLoad('aitune'),
 };

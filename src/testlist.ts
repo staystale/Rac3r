@@ -13,6 +13,16 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'aitune',
+    added: '2026-11-21',
+    name: 'AI tune: later, steady braking; followers and closer running (first try)',
+    where: 'Test link + &aitune=1: any circuit with a full AI field; the motorway with racers',
+    try: 'Race a few laps: AI brake later and smoothly, no dabbing or braking mid-straight, '
+      + 'followers close up without panic-braking. Note crashes on tight or loose tracks.',
+    wrong: 'AI braking on straights, crashing into corners or each other far more than before, '
+      + 'or slower laps.',
+  },
+  {
     id: 'boxhold',
     added: '2026-11-21',
     name: 'Auto box: no hunting between 1st and 2nd (the Scanyah, loaded or not)',

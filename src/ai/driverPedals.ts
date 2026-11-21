@@ -61,6 +61,57 @@ export function throttleFor(drv: Drv, speed: number, targetSpeed: number, slide:
       speed < targetSpeed ? Math.min(1, gap) * feel : 0;
 }
 
+// ?aitune: m/s2 the plan must fall at (smoothed) to be a braking zone, the smoothing's share a
+// step (~0.1 s at 120 steps a second: the plan falls in steps, one a path point), and the brake's
+// dead band outside a zone (m/s over the plan)
+const ZONE_DECEL = 2, ZONE_SMOOTH = 0.08, BRAKE_BAND = 0.3;
+// ?aitune: the trim on the speed over the plan in a zone, pedal per m/s (1.5 swung the pedal
+// 0 .. 0.8 on the plan's steps, one a path point; 0.7 held it 0.3 .. 0.5 - Thruston's 1600 m)
+const ZONE_TRIM = 0.7;
+
+/**
+ * ?aitune, each step: the plan's fall (m/s2, smoothed over the path points' steps) and the brake
+ * pedal that alone would hold it - the plan's deceleration over the car's full-pedal deceleration
+ * (physics/loads.ts: brakeMaxDecel x g x the brakes' torque).
+ * @param drv the driver (state)
+ * @param car the car
+ * @param dt the step, s
+ */
+function zoneStep(drv: Drv, car: AiCar, dt: number) {
+  const { state } = drv;
+  const fall = Math.max(0, ((state.vTPrev ?? state.vT) - state.vT) / dt);
+  state.zoneDecel = (state.zoneDecel ?? 0) + (Math.min(fall, 30) - (state.zoneDecel ?? 0))
+    * ZONE_SMOOTH;
+  const spec = car.spec as { brakeMaxDecel?: number };
+  const torque = (car as { mods?: { brakeTorque?: number } }).mods?.brakeTorque ?? 1;
+  const fullDecel = (spec.brakeMaxDecel ?? 1.8) * 9.81 * torque;
+  state.zoneFF = state.zoneDecel > ZONE_DECEL ? Math.min(1, state.zoneDecel / fullDecel) : 0;
+  state.fullDecel = fullDecel;
+}
+
+/**
+ * The brake for the target speed. ?aitune: in a braking zone (zoneFF) the pedal that holds the
+ * plan's fall, and following a car (forCar) the pedal that copies its braking as I read it
+ * (owner 11-21: "copying the leader is the idea") - each plus a trim on the speed over the target,
+ * no dead band, no on / off; CAR_FULL m/s over a car's cap still brakes as before (closing too
+ * fast). Else a share of the speed over the plan past a dead band.
+ * @param drv the driver (state.zoneFF, followDec, fullDecel)
+ * @param speed m/s
+ * @param targetSpeed m/s
+ * @param forCar a car ahead sets the target
+ * @returns the pedal, 0..1 (before the turn's share)
+ */
+function brakeFor(drv: Drv, speed: number, targetSpeed: number, forCar: boolean): number {
+  const { state } = drv;
+  const tuned = FIX.aitune && !(forCar && speed > targetSpeed + CAR_FULL);
+  const copy = forCar ? (state.followDec ?? 0) / (state.fullDecel || 17.7) : 0;
+  const feed = tuned ? Math.max(state.zoneFF ?? 0, copy) : 0;
+  if (feed > 0 || (tuned && forCar)) {
+    return Math.max(0, Math.min(1, feed + (speed - targetSpeed) * ZONE_TRIM));
+  }
+  return speed > targetSpeed + BRAKE_BAND ? Math.min(1, (speed - targetSpeed) * 1.5) : 0;
+}
+
 /** Throttle and brake for the target speed. */
 // m/s over the speed it wants, a car the reason, from which an AI brakes fully even turning
 const CAR_FULL = 2;
@@ -78,8 +129,9 @@ export function pedals(drv: Drv, speed: number, targetSpeed: number, thrForce: b
   // braked 30-47 % and ran into the car ahead)
   const turnShare = forCar && speed > targetSpeed + CAR_FULL ? 1
     : Math.max(0.6, 1 - Math.abs(steer) / 0.5);
-  let brake = speed > targetSpeed + 0.3 ? Math.min(1, (speed - targetSpeed) * 1.5) * turnShare
-    : 0;
+  // (?aitune: in a braking zone the pedal holds the plan's fall - the dead band's on / off read
+  // as dabbing, owner 11-21)
+  let brake = brakeFor(drv, speed, targetSpeed, forCar) * turnShare;
   if (under && !looseUnder && speed > 0.85 * targetSpeed) brake = Math.max(brake, 0.35);
   if (over || drifting) brake = 0;
   return { throttle, brake };
@@ -99,7 +151,9 @@ export function pedalStep(drv: Drv, car: AiCar, path: AiPath, nearIdx: number,
   let targetSpeed = profileSpeed(main, car, path, nearIdx, idx, speed, prof, latT, lineOff,
     scale.aim);
   targetSpeed = Math.min(targetSpeed * traits.pace * push * vMul, jCap, followCap);
+  state.vTPrev = state.vT;
   state.vT = targetSpeed;
+  if (FIX.aitune) zoneStep(drv, car, dt);
   // OFF ROAD / LOOSE (requirement: they still slow down like mad off road / changing surfaces): on
   // loose ground a sliding front is the surface, not a mistake — keep driving (UNDER_LOOSE
   // throttle) and never brake for it. MEASURED before (aifieldcheck SURF, Brands +

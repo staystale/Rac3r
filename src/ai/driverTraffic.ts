@@ -1,6 +1,7 @@
 // ai/driverTraffic.ts: the circuit driver's reading of traffic and obstacles: cars ahead,
 // alongside and behind, and loose objects on the road. Functions take the driver context.
 import { debugValue } from "../core/debug.ts";
+import { FIX } from "../core/fixes.ts";
 import { GRAVITY } from "../cars.ts";
 import { OBST_CLEAR, carGrip, profileOf } from "./line.ts";
 import type { AiCar, CarsAcc, CarsEnv, DriveCtx } from "./types.ts";
@@ -97,7 +98,7 @@ export function closestPathIdx(drv: Drv, env: CarsEnv, other: AiCar, fwd: number
 export function followAhead(drv: Drv, acc: CarsAcc, env: CarsEnv, fwd: number, otherLat: number,
     vAlong: number, closeIdx: number) {
   const { state } = drv;
-  const { car, speed, lineOff, latT, latLim, myLat, clear, gapF } = env;
+  const { speed, lineOff, latLim, myLat, clear, gapF } = env;
   acc.conflict = true;
   // GO ROUND, DON'T QUEUE (requirement: AI still seem to almost queue and wait rather than overtake
   // and avoid blocking cars, even if it's slightly off track): the room to pass may use WIDE m past
@@ -121,22 +122,81 @@ export function followAhead(drv: Drv, acc: CarsAcc, env: CarsEnv, fwd: number, o
   const cands = (onRoad.length || !offTrackOk(vAlong, speed) ? onRoad : both.filter(
       (cand) => Math.abs(lineOff + cand) <= wide)).filter((cand) => lineOff + cand <= keepMax)
       .sort((first, second) => Math.abs(first - myLat) - Math.abs(second - myLat));
-  if (cands.length && fwd > 3) {
-    acc.dodgeT = cands[0] - latT;
-    // no time to swerve at this speed -> brake until there is (ai/dodge.ts)
-    {
-      const room = fwd - (env.along ?? 2) - car.spec.len / 2;
-      const cap = swerveCap(Math.abs(cands[0] - myLat), room, speed, vAlong);
-      if (cap < Infinity) { acc.followCap = Math.min(acc.followCap, cap); acc.urgent = true; }
-    }
-    if (Math.abs(lineOff + cands[0]) > latLim) {
-      state.wide = wide;
-      state.wideUntil = state.t + 1.2;
-    }
-  }
+  if (cands.length && fwd > 3) goRound(drv, acc, env, { side: cands[0], fwd, vAlong, wide });
   if (!cands.length || (fwd < gapF && Math.abs(otherLat - myLat) < 1.6)) {
-    acc.followCap = Math.min(acc.followCap, followCapOf(drv, env, fwd, vAlong, closeIdx));
+    const cap = followCapOf(drv, env, fwd, vAlong, closeIdx);
+    whyFor(acc, cap, heldWhy(cands.length, onRoad.length));
+    noteFollowCap(acc, cap, env.dec ?? 0);
   }
+}
+
+/**
+ * Why a car is followed, not gone round: close behind it with a side chosen, no side but one my
+ * own side of the road rules out, or no room on the road (read only: _whyheld.mjs).
+ * @param sides the sides left to go round by
+ * @param onRoad the sides with room on the road
+ * @returns the reason
+ */
+const heldWhy = (sides: number, onRoad: number) => (sides ? 'close'
+  : onRoad ? 'keep-side' : 'no-room');
+
+/**
+ * Going round a car ahead by a side: the dodge to it, and - no time to swerve at this speed -
+ * brake until there is (ai/dodge.ts); past the usual edge, the room to.
+ * @param drv the driver context
+ * @param acc the cars' read so far
+ * @param env the cars' environment, sized to the car
+ * @param way the side (m off my path), m it is ahead, its m/s along my way, the room past the edge
+ * @param way.side m
+ * @param way.fwd m
+ * @param way.vAlong m/s
+ * @param way.wide m
+ */
+function goRound(drv: Drv, acc: CarsAcc, env: CarsEnv, way: { side: number; fwd: number;
+  vAlong: number; wide: number }) {
+  const { state } = drv, { car, speed, lineOff, latT, latLim, myLat } = env;
+  acc.dodgeT = way.side - latT;
+  const room = way.fwd - (env.along ?? 2) - car.spec.len / 2;
+  const cap = swerveCap(Math.abs(way.side - myLat), room, speed, way.vAlong);
+  if (cap < Infinity) { capFor(acc, cap, 'swerve'); acc.urgent = true; }
+  if (Math.abs(lineOff + way.side) > latLim) {
+    state.wide = way.wide;
+    state.wideUntil = state.t + 1.2;
+  }
+}
+
+/**
+ * Notes why a follow cap is set, if it is the lowest yet (read only: tools/scratch/_whyheld.mjs).
+ * @param acc the cars' read so far
+ * @param cap m/s
+ * @param why the reason
+ */
+function whyFor(acc: CarsAcc, cap: number, why: string) {
+  if (cap < acc.followCap) acc.why = why;
+}
+
+/**
+ * A follow cap kept if it is the lowest yet, its reason noted (whyFor).
+ * @param acc the cars' read so far
+ * @param cap m/s
+ * @param why the reason
+ */
+function capFor(acc: CarsAcc, cap: number, why: string) {
+  whyFor(acc, cap, why);
+  acc.followCap = Math.min(acc.followCap, cap);
+}
+
+/**
+ * A follow cap kept if it is the lowest yet, with the braking of the car that sets it (?aitune:
+ * its follower copies that braking - ai/driverPedals.ts brakeFor).
+ * @param acc the cars' read so far
+ * @param cap m/s
+ * @param dec how fast that car is slowing as I read it, m/s2
+ */
+function noteFollowCap(acc: CarsAcc, cap: number, dec: number) {
+  if (cap >= acc.followCap) return;
+  acc.followCap = cap;
+  acc.followDec = dec;
 }
 
 /**
@@ -170,13 +230,17 @@ function followCapOf(drv: Drv, env: CarsEnv, fwd: number, vAlong: number, closeI
   return capF;
 }
 
+// m between two cars' middles side by side (a hatch: 0.6 m between their sides; ?aitune, owner
+// 11-21 "happy to run close": 2.2)
+const SIDE_GAP = FIX.aitune ? 2.2 : 2.4;
+
 /** A car alongside (or just behind): remember its place and keep a gap from it. */
 export function alongsideCar(drv: Drv, acc: CarsAcc, env: CarsEnv, fwd: number, otherLat: number,
     vAlong: number, halted = false) {
   const { latT, startK, myLat } = env;
   if (fwd > -2.5) acc.side = acc.side || Math.sign(otherLat - myLat);
   acc.alg.push(otherLat);
-  const gapA = 2.4 + START_GAP * startK;
+  const gapA = SIDE_GAP + START_GAP * startK;
   // who OWNS THE LINE (passed 11-04; owner: "if a car has the lead (half a car) over another car
   // they have the priority on racing line and the car behind even if it's side by side still
   // yields to it")
@@ -195,7 +259,7 @@ export function alongsideCar(drv: Drv, acc: CarsAcc, env: CarsEnv, fwd: number, 
   const racing = !halted;
   if (racing && fwd >= half && Math.sign(latT - myLat) === side) {
     // it leads and my line is across it: give way - drop in behind it, then take the line
-    acc.followCap = Math.min(acc.followCap, vAlong - YIELD_V);
+    capFor(acc, vAlong - YIELD_V, 'yield');
   }
   if (Math.abs(otherLat - myLat) < gapA) {
     acc.conflict = true;
@@ -310,8 +374,8 @@ export function noteLeadThreat(drv: Drv, acc: CarsAcc, env: CarsEnv, other: AiCa
 export function attackedCar(drv: Drv, acc: CarsAcc, env: CarsEnv, fwd: number, otherLat: number,
     vAlong: number) {
   acc.atkLat = otherLat;
-  if (fwd > 2.5 && fwd < 5 && Math.abs(otherLat - env.myLat) < 1.5) acc.followCap = Math.min(
-      acc.followCap, vAlong + 0.5);
+  if (fwd > 2.5 && fwd < 5 && Math.abs(otherLat - env.myLat) < 1.5) capFor(acc, vAlong + 0.5,
+    'attack');
   if (fwd < 4.5 && fwd > -4.5) acc.alg.push(otherLat);
 }
 
@@ -331,7 +395,9 @@ function sizedEnv(env: CarsEnv, car: AiCar, other: AiCar, pathH: number): CarsEn
 
 // s of travel a driver reads the cars ahead in, skill 0 / skill 1 (the highway driver's;
 // at 240 km/h against 90 km/h traffic 0.8 .. 2.1 s hit it in 17-19 of 45 weavecheck scenarios)
-const GAP_LOOK_WEAK = 2.6, GAP_LOOK_TOP = 3.8;
+// (?aitune, owner 11-21 "better dodging ... prediction": a weak driver reads 3.2 s ahead - it
+// sees a crash forming 0.6 s sooner)
+const GAP_LOOK_WEAK = FIX.aitune ? 3.2 : 2.6, GAP_LOOK_TOP = 3.8;
 // boxed in: the share of full braking planned (late: going round is tried first, braking only
 // once it must - owner 11-04: "avoid it not just brake... it should brake too if it needs to"),
 // and the m kept behind the car
@@ -547,12 +613,12 @@ function gapStep(drv: Drv, car: AiCar, acc: CarsAcc, seen: SeenCar[], mine: { my
   const block = blockOn(seen, line, half, len);
   if (block && !block.side) {
     const decel = BOXED_BRAKE * carGrip(car.spec).brakeG * GRAVITY * (car.surface.mu || 1);
-    acc.followCap = Math.min(acc.followCap, Math.sqrt(Math.max(0, block.v) ** 2
-      + 2 * decel * Math.max(0, block.gap - BOXED_GAP_M)));
+    capFor(acc, Math.sqrt(Math.max(0, block.v) ** 2
+      + 2 * decel * Math.max(0, block.gap - BOXED_GAP_M)), 'boxed');
     // and as it slows (ai/dodge.ts matchSpeed)
     if (block.dec) {
-      acc.followCap = Math.min(acc.followCap, matchSpeed(Math.max(0, block.v), block.dec, decel,
-        block.gap - BOXED_GAP_M));
+      capFor(acc, matchSpeed(Math.max(0, block.v), block.dec, decel, block.gap - BOXED_GAP_M),
+        'boxed');
     }
   }
   if (Math.abs(lineOff + line) > latLim) { state.wide = room; state.wideUntil = state.t + 1.2; }
@@ -585,7 +651,7 @@ function roundIt(acc: CarsAcc, seen: SeenCar[], mine: { line: number; myLat: num
   if (!now || now.side || Math.abs(line - myLat) <= 0.3) return;
   if (speed > SWERVE_MIN_V) {
     const cap = swerveCap(Math.abs(line - myLat), now.gap, speed, now.v);
-    if (cap < Infinity) { acc.followCap = Math.min(acc.followCap, cap); acc.urgent = true; }
+    if (cap < Infinity) { capFor(acc, cap, 'swerve-gap'); acc.urgent = true; }
   } else if (now.v < CREEP_UNDER_V && !blockOn(seen, line, half, len))
     acc.followCap = Math.max(acc.followCap, Math.max(0, now.v) + CREEP_V);
 }
