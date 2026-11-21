@@ -67,4 +67,6 @@ export const FIX = {
   driftbrake: atLoad('driftbrake'),
   // a chasing police car sounds a siren, the light bar's twin (game/sirens.ts, audiosiren.ts)
   siren: atLoad('siren'),
+  // the FPS counter as a row of the pause menu's HUD list, on or off in any mode (hud/fpstoggle.ts)
+  fpshud: atLoad('fpshud'),
 };

@@ -3,6 +3,7 @@
 // tests as the drawing: a chip only on a car with that aid, a hidden panel takes no room, the
 // pedals only with touch controls. Not listed: the steering stick (it sits under the thumb) and
 // the passing notices and flag (drawn over the middle on purpose, for a moment).
+import { isFpsShown } from './fpstoggle.ts';
 import { LEVEL } from '../world/state.ts';
 import { layoutHud } from './layout.ts';
 import { minimapBox } from './minimap.ts';
@@ -35,7 +36,7 @@ export function hudKeepout(state: HudState, game: HudGame, width: number, height
   for (const rect of pieces) if (takesRoom(rect)) KEEPOUT.push(rect);
   if (aids && aids.abs) KEEPOUT.push(rects.absChip);
   if (aids && aids.tcs) KEEPOUT.push(rects.tcsChip);
-  if (game.testMode && game.fps) KEEPOUT.push(rects.fps);
+  if (isFpsShown(game.testMode) && game.fps) KEEPOUT.push(rects.fps);
   if (LEVEL.coneCount && game.cones.knocked > 0) KEEPOUT.push(rects.tally);
   if (game.heat) KEEPOUT.push(rects.heat);
   const map = minimapBox(rects);

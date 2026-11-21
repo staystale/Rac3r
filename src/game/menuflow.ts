@@ -1,4 +1,6 @@
 // menuflow.ts — Menu, launch, pause and the results screen flow.
+import { FIX } from '../core/fixes.ts';
+import { isFpsShown, setFpsShown } from '../hud/fpstoggle.ts';
 import { applyLivery, applyTyre } from '../cars.ts';
 import { createCones } from '../cones.ts';
 import { rulesSeen } from '../guide.ts';
@@ -65,6 +67,9 @@ function hudActions() {
       { id: 'lapTimer', label: 'LAP TIMER', on: hud.pieceShown('lapTimer'), locked: false },
       { id: 'speedo', label: 'SPEEDO', on: hud.pieceShown('speedo'), locked: false },
       { id: 'tyres', label: 'TYRE / DAMAGE', on: hud.tyreHud, locked: false },
+      // (?fpshud: the FPS counter, in any mode - hud/fpstoggle.ts)
+      ...(FIX.fpshud ? [{ id: 'fps', label: 'FPS', on: isFpsShown(game.testMode), locked: false }]
+        : []),
       ...unitItems(),
     ],
     set: (pieceId: string, shown: boolean) => {
@@ -74,6 +79,7 @@ function hudActions() {
       else if (pieceId === 'trackTemp') setTrackTempSetting(mode, shown);
       else if (pieceId === 'speedUnits') hud.setMph(!hud.mph);
       else if (pieceId === 'tempUnits') hud.setTempF(!hud.tempF);
+      else if (pieceId === 'fps') setFpsShown(shown);
       else hud.setPieceShown(pieceId, shown);
       refreshMinimap();
     },

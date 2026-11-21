@@ -1,6 +1,7 @@
 // hud/controls.ts — touch pedals, the ?dev=1 readout and the fps counter.
 // Pure moves out of hud.ts.
 
+import { isFpsShown } from './fpstoggle.ts';
 import { COL } from '../world/colours.ts';
 import { MARGIN, drawHudPanel, drawHudLabel } from './widgets.ts';
 import type { HudState, HudCar, HudGame } from './hudtypes.ts';
@@ -128,7 +129,8 @@ export function drawHudDevReadout(ctx: CanvasRenderingContext2D, state: HudState
 }
 
 /**
- * FPS, test mode: now + the worst of the last ~10 s; amber under 50, red under 30.
+ * FPS, test mode (?fpshud: the HUD list's choice): now + the worst of the last ~10 s; amber under
+ * 50, red under 30.
  * @param ctx
  * @param game the game
  * @param rects the layout rectangles
@@ -136,7 +138,7 @@ export function drawHudDevReadout(ctx: CanvasRenderingContext2D, state: HudState
  */
 export function drawHudFps(ctx: CanvasRenderingContext2D, game: HudGame, rects: HudRects) {
   // (a landscape column too short drops FPS - its rect has no height: hud/hudfit.ts)
-  if (game.testMode && game.fps && rects.fps.h) {
+  if (isFpsShown(game.testMode) && game.fps && rects.fps.h) {
     const fpsRect = rects.fps, fpsLow = game.fpsLow || game.fps,
       col = (value: number) => (value < 30 ? '#ff6a5c' : value < 50 ? '#e8a13a' : COL.live);
     drawHudPanel(ctx, fpsRect, { fill: 'rgba(14,15,18,0.82)' });

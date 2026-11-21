@@ -67,6 +67,12 @@ MARK TRACK.)
      lights switch (on / off rapidly) - no new button; damaged FLICKERING lamps act as a flash all the
      time (they annoy the traffic ahead).
   13. FPS counter as a HUD-list toggle.
+     BUILT (Worker C 11-21) behind ?fpshud=1 (hud/fpstoggle.ts; game/menuflow.ts hudActions): an
+     FPS row in the pause menu's HUD list, on / off, kept on the device (localStorage
+     carsim.hud.fps); until it is set the counter shows as before (TEST MODE). MEASURED
+     (tools/scratch/_fpshud.mjs, the real menu and pause menu, 844x390 and 390x844): the row reads
+     FPS · ON -> OFF -> ON, the panel gone and back, stored 0 / 1, no page errors. Not covered: a
+     non-TEST-MODE race (STORY is locked). AWAITING THE PHONE TEST.
   14. CAMERA SHAKE in crashes: it already exists (owner 11-21: "there is but it's ok let's leave it
      for now"; it may have changed since the camera keeps the player's car clear of the HUD). Parked.
   15. HIGHWAY: a city theme, Stockholm ("getaway"), beside Country and Deaf Valley (owner: yes -

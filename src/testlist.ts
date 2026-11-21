@@ -11,4 +11,15 @@ export interface TestEntry {
   id: string; added: string; name: string; where: string; try: string; wrong: string;
 }
 
-export const TEST_LIST: TestEntry[] = [];
+export const TEST_LIST: TestEntry[] = [
+  {
+    id: 'fpshud',
+    added: '2026-11-21',
+    name: 'FPS counter: a row in the pause menu HUD list, on or off',
+    where: 'Test link + &fpshud=1: any race, pause -> HUD -> FPS (at the end of the list)',
+    try: 'Tap FPS to OFF and resume: the FPS panel under the lap timer is gone; tap it ON: back. '
+      + 'Your choice is kept on the phone for the next race and the next visit.',
+    wrong: 'The FPS panel still showing when OFF, missing when ON, the row missing, or the choice '
+      + 'forgotten after a restart or a reload.',
+  },
+];
