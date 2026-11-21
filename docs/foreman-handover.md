@@ -8,19 +8,20 @@ not repeated here), then `TODO.md`, then this page. The 11-07 version of this pa
 
 - **ITCH** = `2026-11-21-67c5592c` (push #5, owner yes): + the reset fix, headlights, FPS toggle,
   tyre marks kept whole, Blighty Park RX + circuit, the chequered flag every race. Ask before #6.
-- **Main** = 67c5592c (round166 + laplengths, CI green). Serve by local checkout; push only for CI.
+- **Main** = 186bfb32 (round171: trailer/boxhold/gridlen passed, CI green). Serve locally; push only for CI.
   LESSON: a level made plain needs tools/laplengths.mjs re-run (CI failed on it twice).
-- **The owner's link** = foreman/round168 (local): ?trailer ?boxhold ?gridlen (+ the rig reset fix). Lab rig
-  start: (a) move the light or (b) start to the side - asked.
-- **Worker A** (a2fab314deb77a72b): the ?aitune round reported 11-21 (worker/aiphase 51c5c546, results in
-  scratchpad/w69). Steps 1+2 (K_BRAKE 0.85, the steady pedal): braking on straights much better, more crashes
-  on Moanaco/Croughed/Spa. Steps 3-5 not better. Racers held = the gap picker BOXED cap (both modes).
-  Owner asked: (a) keep the pedal, K_BRAKE ~0.78, 4 seeds; (b) drop 3-5. Running meanwhile: the BOXED trace
-  (read-only), then a gapStep fix PLAN.
-- **Worker C** (a60bdb17a2f902ec3, fresh 11-21, brief scratchpad/briefC1.md, PC repo2): the resetclean +
-  lamps pass; then fpshud, marksage (oldest marks fade first, no straight cuts), the CHEQUERED FLAG
-  (missing at the end of many races - diagnosis first), the Pembreezy trace (b4y) results, then
-  Blighty Park. Worker B retired 11-21 (context full).
+- **The owner's link** = foreman/round172 (local): ?aitune (owner: "does seem better"), ?labstart, ?gridpos.
+- **Worker A** (a2fab314deb77a72b, worker/aiphase on round165): owner said GO 11-21 on F1 ?gapdest (score the
+  destination line), the ?aitune 1+2 vs 1-5 re-measure, F2 ?gapcommit (lane commit as a SLIDER per driver type,
+  COMMIT_BOXED in ai/tune.ts, defaults = today until the owner picks the lean: asked racers loose/speeders
+  strict?). Then rolling starts (rare green jumps, reaction by skill+personality, 2x2 to the line; the G1 fix
+  explained, awaiting yes), then handbrake when advantageous (fwd/rally mostly) + tarmac drift (drift cars,
+  aggressive drivers). Drift cost/events later. Results: scratchpad w68-w72.
+- **Worker C** (a60bdb17a2f902ec3, PC repo2, port 8092): ?gridpos (+ highway rolling start, stage), then
+  GETAWAY STOCKHOLM step 1 behind ?stockholm (owner answers 11-21: all 5 roads, slatted tunnels like Moanaco,
+  water with gaps / weak fences, own season values in the ONE weather system, existing cars reweighted, a little
+  more police and speeders, blue signs, silly signs written by us + owner approves; drive-left assumed, asked).
+  FLASHING plan (most exists: ?moveover/?roadrage) - 5 owner questions open.
 - **PARKED, the owner's next list:** PIT STOPS (the owner has IMAGES - ask for them, then discuss);
   the AI rework (circuits' off-track and first-corner pile-ups, Pembreezy); a hill climb stage for
   the E36; Glen Hellish, Swapsies; Story mode / upgrades (race conversions, the repair bill: pay or
