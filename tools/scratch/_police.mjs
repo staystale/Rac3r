@@ -12,7 +12,8 @@
 //             recorded (you carried along the offside lane); how long the right-hand run stays the
 //             left's exact mirror image (x -> -x),
 //             and over the whole run which side of the road our way's traffic keeps to, world side
-//             and road side (STOCKHOLM=1)
+//             and road side; MIRROR_RIVALS racers (3) reading by the road as the game's
+//             (STOCKHOLM=1)
 // [PART=survey|scenarios|all|mirror] [KM=6] [SEEDS=4242,7] node tools/scratch/_police.mjs
 process.env.POLICE = '1';
 const { makeCar, reset, step, PHYSICS_STEP_SECONDS: DT } = await import('../../src/vehicle.ts');
@@ -22,6 +23,7 @@ const { createAIDriver } = await import('../../src/ai/circuit.ts');
 const { aiTraits } = await import('../../src/ai/traits.ts');
 const { clampWorld } = await import('../../src/world/crossings.ts');
 const { createTraffic } = await import('../../src/traffic.ts');
+const { hwFrames: hwFramesOf } = await import('../../src/highwayrace.ts');
 const { createHeat, stepHeats, boxGap, heatOf } = await import('../../src/ai/policeHeat.ts');
 const { makeSpeeder } = await import('../../src/ai/trafficSpeeder.ts');
 const { makePolice } = await import('../../src/ai/trafficPolice.ts');
@@ -87,6 +89,9 @@ function stepWorld(world) {
     L.applyGround(you, DT);
     step(you, input, DT);
   }
+  // (world.byRoad: every car's road frame each step, as the game's - highwayrace.ts hwFrames)
+  if (world.byRoad) hwFramesOf(level, [you, ...world.rivals.map((rival) => rival.car),
+    ...traffic.cars]);
   for (const rival of world.rivals) stepRival(world, rival);
   hw.stepHighway(level, you);
   const cam = hw.speedCamera(level, you);
@@ -142,8 +147,11 @@ function noteOther(world, driver, what) {
 /** A racing AI rival, stepped as you are (held after a bust: on the brakes). */
 function stepRival(world, rival) {
   const car = rival.car;
+  // (world.byRoad: read by the road, as the game's racers - game/ai.ts roadCtx)
+  const geo = level._hw.geo, road = world.byRoad ? { road: { middleOff: geo.median == null
+    && geo.oncoming.length ? geo.oppL : null, hand: level._hw.hand ?? 1 } } : {};
   const input = { ...rival.driver.drive(car, DT, { cars: [world.you, ...world.traffic.cars],
-    vMax: Math.max(1, rival.want), lap: 1, laps: 99 }) };
+    vMax: Math.max(1, rival.want), lap: 1, laps: 99, ...road }) };
   if (Math.hypot(car.vx, car.vy) > rival.want) input.throttle = 0;
   if (rival.heldT > 0 || rival.want < 0.5) Object.assign(input, { throttle: 0, brake: 1 });
   rival.heldT = Math.max(0, (rival.heldT || 0) - DT);
@@ -894,6 +902,12 @@ function mirrorRun(rightHand, seconds, road) {
   // by the road: ai/roadLine.ts)
   world.carry = world.want;
   world.carryOff = level._hw.geo.centres[level._hw.geo.centres.length - 1];
+  // (MIRROR_RIVALS racers, reading by the road as the game's, started ahead in our lanes)
+  world.byRoad = true;
+  run(world, 1);
+  const lanes = level._hw.geo.own.length;
+  for (let i = 0; i < +(process.env.MIRROR_RIVALS ?? 3); i++)
+    addRival(world, 40 + 30 * i, i % lanes, +(process.env.KMH || 130), +(process.env.KMH || 130) + 25);
   const record = [];
   let tick = 0;
   run(world, seconds, (each) => {
@@ -906,7 +920,13 @@ function mirrorRun(rightHand, seconds, road) {
         const world = Math.sign(frame.dx * (slot.car.y - pose.y) - frame.dy * (slot.car.x - pose.x));
         return { x: slot.car.x, y: slot.car.y, off: frame.off, world };
       });
-    record.push({ you: [each.you.x, each.you.y], cars });
+    const rivals = each.rivals.map((rival) => {
+      const frame = hw.roadFrame(level, rival.car.x, rival.car.y, rival.frame?.s ?? null);
+      const pose = hw.roadPose(level, frame.s, 0);
+      return { x: rival.car.x, y: rival.car.y, off: frame.off, world: Math.sign(frame.dx
+        * (rival.car.y - pose.y) - frame.dy * (rival.car.x - pose.x)) };
+    });
+    record.push({ you: [each.you.x, each.you.y], cars: [...cars, ...rivals], rivals });
   });
   return record;
 }
@@ -939,6 +959,8 @@ function scenarioMirror() {
     + ` left's exact mirror for ${exactUntil === null ? 'all ' + errs.length : exactUntil} s`
     + ` (worst error then ${Math.max(0, ...errs.slice(0, exactUntil ?? errs.length)).toExponential(1)} m;`
     + ` at 10 / 30 s ${(errs[9] ?? NaN).toFixed(2)} / ${(errs[29] ?? NaN).toFixed(2)} m)`);
-  console.log(`  our way's traffic, left-hand: ${side(left)}`);
-  console.log(`  our way's traffic, right-hand: ${side(right)}`);
+  console.log(`  our way's traffic and racers, left-hand: ${side(left)}`);
+  console.log(`  our way's traffic and racers, right-hand: ${side(right)}`);
+  const racers = (record) => side(record.map((each) => ({ cars: each.rivals })));
+  console.log(`  the racers, left-hand: ${racers(left)}; right-hand: ${racers(right)}`);
 }
