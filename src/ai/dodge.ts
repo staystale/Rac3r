@@ -14,8 +14,9 @@ import { FIX } from '../core/fixes.ts';
 
 // s more of travel ahead a driver sees a loose object in (driverTraffic.ts obstacleStep)
 export const OBJECT_MORE = 0.3;
-// m kept between the two cars' sides going round
-const MARGIN = 0.6;
+// m kept between the two cars' sides going round (?aitune, owner 11-21: close but not touching -
+// 0.45)
+const MARGIN = FIX.aitune ? 0.45 : 0.6;
 // m/s sideways a driver swerves at round a car in the way (the dodge's rate, driverDrive.ts)
 export const SWERVE_RATE = 3;
 

@@ -184,13 +184,17 @@ function followCapOf(drv: Drv, env: CarsEnv, fwd: number, vAlong: number, closeI
   return capF;
 }
 
+// m between two cars' middles side by side (a hatch: 0.6 m between their sides; ?aitune, owner
+// 11-21 "happy to run close": 2.2)
+const SIDE_GAP = FIX.aitune ? 2.2 : 2.4;
+
 /** A car alongside (or just behind): remember its place and keep a gap from it. */
 export function alongsideCar(drv: Drv, acc: CarsAcc, env: CarsEnv, fwd: number, otherLat: number,
     vAlong: number, halted = false) {
   const { latT, startK, myLat } = env;
   if (fwd > -2.5) acc.side = acc.side || Math.sign(otherLat - myLat);
   acc.alg.push(otherLat);
-  const gapA = 2.4 + START_GAP * startK;
+  const gapA = SIDE_GAP + START_GAP * startK;
   // who OWNS THE LINE (passed 11-04; owner: "if a car has the lead (half a car) over another car
   // they have the priority on racing line and the car behind even if it's side by side still
   // yields to it")
