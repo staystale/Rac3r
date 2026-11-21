@@ -80,4 +80,7 @@ export const FIX = {
   // the highway's lane dashes laid by the road's distance, not the canvas pattern's length: tiles
   // painted before and after the road window moved line up (render/lanedash.ts)
   dashphase: atLoad('dashphase'),
+  // the GETAWAY STOCKHOLM scenery for the endless roads, step 1: its card, the city's stretches,
+  // its lots of buildings behind noise walls, blue signs (highway/city.ts)
+  stockholm: atLoad('stockholm'),
 };

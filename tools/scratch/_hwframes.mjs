@@ -1,6 +1,7 @@
 // _hwframes.mjs - frame work on the highway at CPU x4 with the autopilot driving (framecheck's
 // autodriver does not drive the highway): 15 s of race after launch, our rAF work per frame and
 // tiles painted, for an A/B of a switch. node tools/scratch/_hwframes.mjs [extra query]
+// [SCENERY=stockholm (with &stockholm=1)] [AI=5] [TRAFFIC=1: the game's own density, else 0]
 import { startServer, launchBrowser, gotoGame } from '../lib/browser.mjs';
 const srv = await startServer();
 const b = await launchBrowser();
@@ -19,8 +20,10 @@ try {
     + (process.argv[2] || ''));
   await p.touchscreen.tap(400, 200);
   await p.waitForTimeout(300);
-  await p.evaluate(() => window.__game.launch('highway', 'hatch-rwd',
-    { ai: 0, weather: { mode: 'dry', season: 2, seed: 4 } }));
+  await p.evaluate(([scenery, ai, traffic]) => window.__game.launch('highway', 'hatch-rwd',
+    { ai, weather: { mode: 'dry', season: 2, seed: 4 }, road: 'motorway',
+      ...(scenery ? { scenery } : {}), ...(traffic ? {} : { traffic: 0 }) }),
+  [process.env.SCENERY || '', +(process.env.AI || 0), process.env.TRAFFIC === '1']);
   await p.waitForTimeout(6000);
   const cdp = await ctx.newCDPSession(p); await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
   const r = await p.evaluate(async () => {
@@ -31,7 +34,8 @@ try {
       moved: Math.hypot(g.car.x - x0, g.car.y - y0) };
   });
   const wk = r.work.sort((a, c) => a - c), q = (f) => wk[Math.floor(f * (wk.length - 1))].toFixed(1);
-  console.log(`[${process.argv[2] || 'plain'}] moved ${r.moved.toFixed(0)} m, frames ${wk.length},`
+  console.log(`[${process.argv[2] || 'plain'} ${process.env.SCENERY || 'countryside'} AI `
+    + `${process.env.AI || 0} traffic ${process.env.TRAFFIC === '1' ? 'on' : 'off'}] moved ${r.moved.toFixed(0)} m, frames ${wk.length},`
     + ` work median ${q(0.5)} p95 ${q(0.95)} worst ${wk[wk.length - 1].toFixed(1)} ms,`
     + ` over 14 ms ${wk.filter((x) => x > 14).length}; tiles ${r.tiles}; errors ${errors.length}`);
 } finally { await b.close(); srv.stop(); }

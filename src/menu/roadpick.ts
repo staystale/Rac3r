@@ -17,6 +17,8 @@ const CARD_W = 320, CARD_H = 200;
 const LOOK: Record<string, { ground: string; band: string; dot: string; dot2: string }> = {
   countryside: { ground: '#4f7a3a', band: '#5d8a44', dot: '#2f5a2a', dot2: '#3d6b30' },
   canyon: { ground: '#c9a46a', band: '#d8b77e', dot: '#9a4a2c', dot2: '#4f7a3a' },
+  // GETAWAY STOCKHOLM (?stockholm): concrete lots, grey flat roofs and the old town's red ones
+  stockholm: { ground: '#8d9196', band: '#9a9ea3', dot: '#4a4f57', dot2: '#a2452f' },
 };
 const TARMAC = '#3b3e44', PAINT = '#e8e8e0', WALL = '#9a9a94';
 
