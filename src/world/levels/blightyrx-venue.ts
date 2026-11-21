@@ -51,11 +51,9 @@ export const BLIGHTYRX_SPEC: VenueSpec = {
   // the start / finish on the west straight
   start: [-230, 48],
   startOnLine: true,
-  // m (game): the north hairpin (the Spur's turn off the Outer) opened so the finished lap keeps
-  // the venues' 10 m over 8 m, the trace's own measure (MEASURED, tools/scratch/_lapradius.mjs:
-  // at 10 its least radius read 9.5 m over 8 m, 8.9 m through points 3 apart; at 11, 10.6 and 9.9;
-  // the lap 1429 -> 1421 m)
-  minR: 11,
+  // m (game): the venues' least radius, the house standard (tools/scratch/_lapradius.mjs reads
+  // the finished lap's north hairpin at 9.5 m over 8 m, 8.9 m through points 3 apart)
+  minR: 10,
   // real m: a flat airfield
   hills: [],
   banks: BANKS,

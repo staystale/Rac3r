@@ -2,6 +2,7 @@
 // Pure moves out of hud.ts.
 
 import { drawHudPanel, drawHudLabel } from './widgets.ts';
+import { FIX } from '../core/fixes.ts';
 import type { HudState, HudFlow, HudStart, HudGame } from './hudtypes.ts';
 
 /**
@@ -195,6 +196,22 @@ function highwayFlag(flow: HudFlow, place?: number): string {
 }
 
 /**
+ * How many of this flow's flags have been shown. ?flagfix: a new race (a restart, another track)
+ * makes a new flow in one step, never a step without one, so the count is kept per flow - else the
+ * next race's first flag is never new and never drawn.
+ * @param state the shared HUD state (flagSeen, flagFlow)
+ * @param flow the race flow
+ * @returns the flags shown
+ */
+function flagsShown(state: HudState, flow: HudFlow): number {
+  if (FIX.flagfix && state.flagFlow !== flow) {
+    state.flagFlow = flow;
+    state.flagSeen = 0;
+  }
+  return state.flagSeen;
+}
+
+/**
  * Draw the waving chequered flag; tracks new flags in state.
  * @param state the shared HUD state (flagSeen, flagAt, flagTxt)
  * @param ctx
@@ -216,7 +233,7 @@ export function drawHudFlag(state: HudState, ctx: CanvasRenderingContext2D, game
     return;
   }
   const now = performance.now() / 1000;
-  if (flow.flags.length > state.flagSeen) noteNewFlag(state, flow, now);
+  if (flow.flags.length > flagsShown(state, flow)) noteNewFlag(state, flow, now);
   const progress = (now - state.flagAt) / FLAG_S;
   if (!state.flagSeen || progress > 1) return;
   const FLAG_COLS = 18, FLAG_ROWS = 11, flagWidth = Math.min(width * 0.62, height * 1.15),

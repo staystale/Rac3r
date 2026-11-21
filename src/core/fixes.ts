@@ -28,7 +28,8 @@
 // fuelcarry and rollguard passed 11-16; then ts010 (with its PROTOTYPE class), tesla,
 // routemonster and m4gt3 passed 11-16; then corolla, reversefix, f1menu, r13, ibiza and a4avant
 // passed 11-16; lowrange, dmgmore, transitcustom, e36peak and schoolbus passed 11-17; dmgmore2,
-// marktrack, scanyah (the tractor) and tipping passed 11-17.)
+// marktrack, scanyah (the tractor) and tipping passed 11-17; resetclean, lamps, fpshud, marksage
+// and blighty passed 11-21.)
 import { envValue } from './debug.ts';
 
 /**
@@ -67,13 +68,7 @@ export const FIX = {
   driftbrake: atLoad('driftbrake'),
   // a chasing police car sounds a siren, the light bar's twin (game/sirens.ts, audiosiren.ts)
   siren: atLoad('siren'),
-  // the FPS counter as a row of the pause menu's HUD list, on or off in any mode (hud/fpstoggle.ts)
-  fpshud: atLoad('fpshud'),
-  // a big level's tyre marks kept whole in tiles, never wiped by the window's move: the oldest
-  // fade first (marktiles.ts; marks.ts useTiles)
-  marksage: atLoad('marksage'),
-  // BLIGHTY PARK, Blyton Park from the map: its rallycross at full size (the gravel loop invented:
-  // no map of the real course) and the Outer circuit at half size (blightyrx-venue.ts,
-  // blighty-venue.ts)
-  blighty: atLoad('blighty'),
+  // the chequered flag for every race's finish, not only the first of a session: the HUD's count
+  // of flags shown is kept per race flow (hud/overlays.ts drawHudFlag)
+  flagfix: atLoad('flagfix'),
 };

@@ -17,6 +17,43 @@ lighting, bushes and trees - OWNER LIST 10-24; the checking tools - Tools that a
 
 
 
+## PASSED 11-21, FPS ROW, MARKS, BLIGHTY (owner: ?fpshud, ?marksage and ?blighty passed)
+
+The default 11-21, their switches deleted:
+- THE FPS ROW (the owner's list of 11-21, item 13):
+  BUILT (Worker C 11-21) behind ?fpshud=1 (hud/fpstoggle.ts; game/menuflow.ts hudActions): an
+  FPS row in the pause menu's HUD list, on / off, kept on the device (localStorage
+  carsim.hud.fps); until it is set the counter shows as before (TEST MODE). MEASURED
+  (tools/scratch/_fpshud.mjs, the real menu and pause menu, 844x390 and 390x844): the row reads
+  FPS · ON -> OFF -> ON, the panel gone and back, stored 0 / 1, no page errors. Not covered: a
+  non-TEST-MODE race (STORY is locked).
+- TYRE MARKS KEPT WHOLE ON BIG LEVELS (bug 4):
+  FOUND + BUILT (Worker C 11-21) behind ?marksage=1: on the 41 levels bigger than the marks layer
+  (marks.ts MARK_EXTENT 302 m) its window followed the player and wiped each strip of ground that
+  left it - marks ~300 m behind were cut along a straight line. Now a big level's marks go in
+  256 px tiles (61 m, the same 4.2 px/m strokes) made where a mark is laid (marktiles.ts),
+  never wiped by a move; a tile goes when the aged fade has cleared it, at most 104 held (the old
+  layer's 26 MB, which is freed), the oldest tile fading out first over the cap. MEASURED
+  (tools/scratch/_marksage.mjs, a 20 m skid, the window moved 500 m away and back): Spa off 3644
+  -> 110 px of skid left, on 3382 -> 3224; the Nordschlep (390x844) off 4997 -> 295, on 5674 ->
+  5788; the fade still clears it (on: 120 s faint, 160 s gone); canvases 100 -> 79 MB (Spa).
+  Tiles by the lap (_marksize.mjs): Spa 122, Le Manky 256, the Nordschlep 383.
+  PC (round 11-21, 19 AI, 150 s, tools/scratch/_marksrate.mjs): tiles live at most 61 (Spa), 57
+  (the Nordschlep), 60 (Le Manky), 43 (Pembreezy RX) of the 104 cap; a stroke list for the fade's
+  154 s would have held 80 000-377 000 strokes. Switch off SAME (simhash; renderhash thruston,
+  sillystone).
+- BLIGHTY PARK:
+  BLIGHTY PARK BUILT (Worker B 11-16, finished by Worker C 11-21) behind ?blighty=1: Blighty Park
+  RX at full size (1429 m, 323 m gravel: the gravel loop INVENTED - no map of the real course - and
+  NO JOKER, none shown anywhere) and the Outer circuit at half size (1156 m, all tarmac), one map
+  download (world/levels/blightyrx-venue.ts, blighty-venue.ts). The RX at the house minR 10 (owner
+  11-21: the track is not changed to suit the AI; the AI is tuned to drive it): its north hairpin
+  reads 9.5 m over 8 m (8.9 m through points 3 apart), lap 1429 m; the AI's occasional run wide
+  there goes to the AI tune. MEASURED: barriercheck all OK and venueaudit "nothing overlaps" on
+  both, propcheck OK; aidrivecheck (blightyrx) real rx-super 52.7 s, hatch-fwd 59.4 s, 0 m off,
+  realish 0.4 / 0.2 m off. Photos
+  (tools/scratch/_pbzshots.mjs, both sizes + overview) and menu thumbnails.
+
 ## PASSED 11-21, RESET CLEAN AND LAMPS (owner: ?resetclean and ?lamps passed)
 
 The default 11-21, their switches deleted (the owner's list of 11-21, bugs 1 + 2 and 5):

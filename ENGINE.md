@@ -36,8 +36,8 @@ Older design notes and measurements are in the git history of this file.
 | `ai/` | One AI engine. Circuits: `circuit.ts` (`createAIDriver`) with `driver*.ts` steps, `line.ts` (racing line, speed profiles), `racecraft.ts`, `traits.ts` (difficulty, personality). Highway: `weaver.ts` (`roadDriver`) with `weaver*.ts`; traffic `traffic*.ts`; the highway race flow `hwFlow*.ts`. `autodrive.ts` the scripted demo / test driver. |
 | `highwayrace.ts`, `traffic.ts`, `raceflow.ts` | Highway race rules, highway traffic, how a race ends (results, estimates, DNF). |
 | `render.ts`, `render/` | Drawing (below). |
-| `marks.ts` | The world-space skid-mark layer. Under test, `?marksage=1`: a level bigger than the layer keeps its marks in 256 px tiles over the whole level (`marktiles.ts`), never wiped by the window's move, at most 104 tiles, the oldest fading first. |
-| `hud.ts`, `hud/` | The HUD on the full-resolution canvas: `layout.js` every rectangle and tap hit-test, `gauges.js`, `laps.js`, `overlays.js`, `controls.js`, `widgets.js`, `minimap.js` (minimap + progress bar). The pause menu's HUD list (`?hudmenu=0` = the old MINIMAP row) (`menu/race.ts`, `game/menuflow.ts` hudActions) turns each display piece on or off; under test, `?fpshud=1`: an FPS row too (`hud/fpstoggle.ts`, kept on the device; unset, the FPS strip shows in TEST MODE only). |
+| `marks.ts` | The world-space skid-mark layer. A level bigger than the layer (not the endless road) keeps its marks in 256 px tiles over the whole level (`marktiles.ts`), never wiped by the window's move, at most 104 tiles, the oldest fading first. |
+| `hud.ts`, `hud/` | The HUD on the full-resolution canvas: `layout.js` every rectangle and tap hit-test, `gauges.js`, `laps.js`, `overlays.js`, `controls.js`, `widgets.js`, `minimap.js` (minimap + progress bar). The pause menu's HUD list (`?hudmenu=0` = the old MINIMAP row) (`menu/race.ts`, `game/menuflow.ts` hudActions) turns each display piece on or off, the FPS row too (`hud/fpstoggle.ts`, kept on the device; unset, the FPS strip shows in TEST MODE only). The finish flag (`overlays.ts drawHudFlag`) sweeps once for each new flag of the race flow; under test, `?flagfix=1`: the count of flags shown is kept per flow, so every race's finish shows it, not only the first of a session. |
 | `menu.ts`, `menu/` | Main menu, test mode, garage (paint, tyres), race setup and results. |
 | `input.ts` | One normalised input state from keyboard and touch; the car never sees an event. A held throttle ramps (0.26 at once, full after 1.5 s); one pressed at a standstill (under 0.5 m/s) is full at once while held - a launch. |
 | `audio.ts`, `audiosiren.ts` | Procedural Web Audio: engine note, tyre squeal, surface sounds; the police siren (`?siren=1`). See Sound. |
@@ -959,14 +959,13 @@ CR_RAILS`) and its slope are shared. Dressing: grass banks (catch-fenced) inside
 between the start lane and the return leg and inside Hawthorn, crowds, Union flags, the paddock's
 hospitality units (`block` landmarks), transporters and spares (`dress`), a TV tower; the big screen
 stands in as a board (LIVE): no screen prop.
-BLIGHTY PARK (`world/levels/blighty-venue.ts`, `blightyrx-venue.ts`; under test, `?blighty=1`):
+BLIGHTY PARK (`world/levels/blighty-venue.ts`, `blightyrx-venue.ts`; the default since 11-21):
 Blyton Park as ONE venue (`Level.venue` Blighty Park) in two builds of one map download
 (`tools/venues/blighty.osm.json`): the Outer circuit at half size (`blighty.json` ->
 `venues/blighty.ts`, share 0.5, all tarmac, clockwise from the west straight) and the rallycross
 at full size (`blightyrx.json` -> `venues/blightyrx.ts`, share 1: the Outer's north loop, the Spur
 and the Link from the map, and an INVENTED gravel loop through the infield - no map of the real
-course; 1421 m, 323 m gravel; no joker). The RX's `minR` is 11 (its north hairpin opened to keep
-10 m over 8 m). The map has no barriers: the venues' run-off rule. Dressing: hedgerow trees, a
+course; 1429 m, 323 m gravel; no joker), at the venues' `minR` 10. The map has no barriers: the venues' run-off rule. Dressing: hedgerow trees, a
 windsock, Union flags (`unionFlags`), the paddock (`blightyPaddock(anchor)`), grass banks with
 crowds inside the RX's north hairpin and gravel loop.
 
