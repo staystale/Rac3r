@@ -81,4 +81,6 @@ export const FIX = {
   // K_BRAKE, tarmac and loose alike - the drivers correct), and the brake pedal holds through a
   // braking zone instead of dabbing on and off (ai/driverPedals.ts pedals)
   aitune: atLoad('aitune'),
+  // the Lab's start spot in the open, one for every vehicle (world/labstart.ts)
+  labstart: atLoad('labstart'),
 };

@@ -558,7 +558,13 @@ inputs and get the cars back. A SPIKE (two phones on the tunnel) before committi
   with the pin broken - re-hitched), the trailer in line (hitch 1-2.4 deg, gap under 0.1 cm), on
   no car, clear of barriers; at a tight bend it lies straight behind, over the run-off. (b) the Lab's spawn has a street light 2.3 m ahead and 1.3 m right of it: the 2.55 m
   tractor stands against it and cannot drive straight out (any car narrower than ~2.5 m clears it).
-  tools/scratch/_rigreset.mjs.
+  tools/scratch/_rigreset.mjs. OWNER 11-21: "move the general start position for all vehicles" -
+  BUILT behind ?labstart=1 (world/labstart.ts): the start spot (and its painted box) moved to the
+  middle of the lane between the two rows of lights (-36, 34; 7 m to each row, 10 m to the lights
+  along it), facing down the open lane. MEASURED (tools/scratch/_labstartshot.mjs, 5 s flat out,
+  off / on): the hatch 54.6 / 54.2 m, the bus 24.4 / 24.4 m, the towing Scanyah 4.3 m and stuck
+  against the light / 7.5 m and moving (11 km/h: the 1-2 hunting without ?boxhold); no hits. The Lab
+  tools run (_partsoff, _armzoom, partcheck, balecheck, blendcheck). AWAITING THE PHONE TEST.
 - FOR THE AI REWORK / TUNE (owner 11-16: "still looks like on tarmac Pembreezy too many drivers
   come off the track - maybe this should be saved for the ai rework / tune as they seem to go off
   to regularly / pile up on first corner"; "that the same on dongington ect"): the AI on

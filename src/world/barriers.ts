@@ -5,6 +5,7 @@ import { hoodooSpires, archShape } from './formations.ts';
 import { WRECK_M, SHACK_M, GAS_SHOP, GAS_PUMPS, GAS_POSTS } from './desertjunk.ts';
 import { SERVICES_HALL } from './stationbrands.ts';
 import { LEVEL } from "./state.ts";
+import { LAB_START } from "./labstart.ts";
 import {
   GRID_REACH_M, barrierCellOf, barriersNear, noteBarrierBuilt, refileBarrier, segsNear,
 } from "./barriergrid.ts";
@@ -761,7 +762,8 @@ function clampBarrierSegs(car: CarBody, barrier: Barrier, open: boolean,
 export const LAB_PAINT = [
   { kind: 'ring', x: 0, y: 0, r: 40, lw: 0.18, tone: 0.55 },      // skidpad
   { kind: 'ring', x: 0, y: 0, r: 20, lw: 0.12, tone: 0.35 },
-  { kind: 'box', x: -28.3, y: 28.3, w: 6, h: 11, tone: 0.5 },     // start box, on the skidpad ring
+  // the start box (world/labstart.ts)
+  { kind: 'box', x: LAB_START.x, y: LAB_START.y, w: 6, h: 11, tone: 0.5 },
   { kind: 'box', x: 210, y: 200, w: 60, h: 60, tone: 0.40 },      // donut pad, south-east
   // drag strip along the south edge
   { kind: 'lane', x: -120, y: 240, w: 200, h: 11, tone: 0.35 },

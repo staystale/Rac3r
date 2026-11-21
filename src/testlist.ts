@@ -54,4 +54,12 @@ export const TEST_LIST: TestEntry[] = [
     wrong: 'A trailer over another car or a post at the start, a grid of cars spread out more '
       + 'than before, or a rig not at the back of a grid.',
   },
+  {
+    id: 'labstart',
+    added: '2026-11-21',
+    name: 'The Lab start in the open, one spot for every vehicle',
+    where: 'Test link + &labstart=1: the Lab (OG Lab) with a car, the bus and the Scanyah towing',
+    try: 'Launch and drive straight off: nothing in the way, a street light row each side 7 m off.',
+    wrong: 'A vehicle starting against a lamp or a cone, or the start box away from the car.',
+  },
 ];
