@@ -6,10 +6,10 @@ not repeated here), then `TODO.md`, then this page. The 11-07 version of this pa
 
 ## Where we are (11-17 morning - PAUSED by the owner to round up)
 
-- **ITCH** = `2026-11-15-7c4af37a` (unchanged). Push #4 HELD until all the cars and open bugs pass.
-  Left: the Scanyah's trailer (the last car) and the owner's tests below. Then ASK about itch.
-- **Main** = ea383773 (round139). CI is running on foreman/round161 (pushed alone after cancelling
-  34 jammed runs with the owner's yes): when green, push it to main.
+- **ITCH** = `2026-11-21-6f5012ea` (push #4, owner yes 11-21, staged rac3r-2026-11-21): every pass to
+  11-17 incl. tipping, the Scanyah tractor, hanging exhaust / steam / leaks, marktrack. NEXT push: the
+  reset fix + headlights (passed 11-21, Worker C defaulting) - ask first.
+- **Main** = 6f5012ea (round162, CI green). Serve rounds by local checkout; push only for CI.
 - **The owner's link** = foreman/round161 (local; served by checkout, not pushed). UNDER TEST:
   ?scanyah (the tractor alone), ?tipping (two wheels, tall vehicles only), ?marktrack (rear-right
   skid mark at the rear track), ?dmgmore2 (hanging exhaust - REVERTED to the car's own drawing,
