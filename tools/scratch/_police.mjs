@@ -7,7 +7,13 @@
 //             an unsignalled lane change beside one and a signalled one; flashing the lights by
 //             one; chasers per star (1-3, 30 s each); BUSTED when you stop with 2 stars; an escape
 //             (you at 260 km/h); a chaser wrecked.
-// [PART=survey|scenarios|all] [KM=6] [SEEDS=4242,7] node tools/scratch/_police.mjs
+//   mirror    (?keepright, round 2) GETAWAY STOCKHOLM driven left-hand then right-hand on the same
+//             dice (MIRROR_S s, you on the racing driver at KMH): every second you and the traffic
+//             recorded (you carried along the offside lane); how long the right-hand run stays the
+//             left's exact mirror image (x -> -x),
+//             and over the whole run which side of the road our way's traffic keeps to, world side
+//             and road side (STOCKHOLM=1)
+// [PART=survey|scenarios|all|mirror] [KM=6] [SEEDS=4242,7] node tools/scratch/_police.mjs
 process.env.POLICE = '1';
 const { makeCar, reset, step, PHYSICS_STEP_SECONDS: DT } = await import('../../src/vehicle.ts');
 const L = await import('../../src/lab.ts');
@@ -28,10 +34,12 @@ L.setLevel('highway');
 const level = L.LEVEL;
 
 /** A fresh road and traffic, you at the spawn. */
-function newWorld(road, scenery, seed, density = 0.6) {
+function newWorld(road, scenery, seed, density = 0.6, rightHand = false) {
   level.seed = seed;
   level.roadType = null;
   hw.setHighwayPreset(level, road, scenery);
+  // (round 2 of ?keepright: the same road right-hand - its config's rightHand)
+  if (rightHand) level._cfg = { ...level._cfg, rightHand: true };
   hw.resetHighway(level);
   const traffic = createTraffic({ rnd: mulberry(seed) });
   traffic.reset(level, density);
@@ -822,6 +830,7 @@ function trace() {
   });
 }
 if (PART === 'trace') trace();
+if (PART === 'mirror') scenarioMirror();
 if (PART === 'escape') scenarioEscape();
 if (PART === 'bust') scenarioBust(+(process.env.KMH || 130), +(process.env.STARS || 3));
 
@@ -866,4 +875,70 @@ if (PART === 'fueltrace') {
       + ` youDs ${(slot.s - level._hw.q.s).toFixed(0)} parked ${slot.parked}` : 'done / gone');
     if (!stop || slot.parked) break;
   }
+}
+
+/**
+ * ?keepright round 2: one run's record - each second you and our way's traffic (slot by slot):
+ * where, and the road side (the code's offset) and world side (+1: the right of travel) of each.
+ * @param rightHand the road right-hand
+ * @param seconds s
+ * @param road the road type
+ * @returns the record
+ */
+function mirrorRun(rightHand, seconds, road) {
+  Math.random = mulberry(0x5eed);
+  const world = newWorld(road, 'stockholm', 4242, 0.6, rightHand);
+  world.want = +(process.env.KMH || 130) / 3.6;
+  // (you carried along our offside lane: the circuit driver's racing line is a circuit's - its
+  // maths reads the subtrack's normals, turned on a right-hand road - the road's racers drive
+  // by the road: ai/roadLine.ts)
+  world.carry = world.want;
+  world.carryOff = level._hw.geo.centres[level._hw.geo.centres.length - 1];
+  const record = [];
+  let tick = 0;
+  run(world, seconds, (each) => {
+    if (++tick % 120) return;
+    const cars = each.traffic.list.filter((slot) => !slot.parked && (slot.dir ?? 1) > 0)
+      .map((slot) => {
+        const frame = hw.roadFrame(level, slot.car.x, slot.car.y, slot.s);
+        // (the world side: the cross of the road's direction and the car's offset from it)
+        const pose = hw.roadPose(level, frame.s, 0);
+        const world = Math.sign(frame.dx * (slot.car.y - pose.y) - frame.dy * (slot.car.x - pose.x));
+        return { x: slot.car.x, y: slot.car.y, off: frame.off, world };
+      });
+    record.push({ you: [each.you.x, each.you.y], cars });
+  });
+  return record;
+}
+
+function scenarioMirror() {
+  const seconds = +(process.env.MIRROR_S || 60), road = process.env.ROADS || 'motorway';
+  const left = mirrorRun(false, seconds, road), right = mirrorRun(true, seconds, road);
+  let exactUntil = null;
+  const errs = [];
+  for (let i = 0; i < Math.min(left.length, right.length); i++) {
+    const one = left[i], two = right[i];
+    let err = Math.hypot(two.you[0] + one.you[0], two.you[1] - one.you[1]);
+    for (let j = 0; j < Math.min(one.cars.length, two.cars.length); j++)
+      err = Math.max(err, Math.hypot(two.cars[j].x + one.cars[j].x, two.cars[j].y - one.cars[j].y));
+    if (one.cars.length !== two.cars.length) err = Infinity;
+    errs.push(err);
+    if (exactUntil === null && err > 0.01) exactUntil = i;
+  }
+  const side = (record) => {
+    let roadSide = 0, worldSide = 0, count = 0;
+    for (const each of record) for (const car of each.cars) {
+      roadSide += Math.sign(car.off);
+      worldSide += car.world;
+      count++;
+    }
+    return `road side ${(roadSide / Math.max(1, count)).toFixed(2)}, world side `
+      + `${(worldSide / Math.max(1, count)).toFixed(2)} (-1 all left, +1 all right; ${count})`;
+  };
+  console.log(`MIRROR ${road} ${seconds} s at ${process.env.KMH || 130} km/h: the right-hand run the`
+    + ` left's exact mirror for ${exactUntil === null ? 'all ' + errs.length : exactUntil} s`
+    + ` (worst error then ${Math.max(0, ...errs.slice(0, exactUntil ?? errs.length)).toExponential(1)} m;`
+    + ` at 10 / 30 s ${(errs[9] ?? NaN).toFixed(2)} / ${(errs[29] ?? NaN).toFixed(2)} m)`);
+  console.log(`  our way's traffic, left-hand: ${side(left)}`);
+  console.log(`  our way's traffic, right-hand: ${side(right)}`);
 }

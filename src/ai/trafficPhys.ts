@@ -73,9 +73,10 @@ export function carryKinematic(
   slot.kOff = offK;
   // (the other way's: down the road, turned round - its sideways drift and the bend's turn as
   // the car feels them flip with it)
-  const dir = slot.dir ?? 1, sNext = slot.s + dir * slot.vAl * dt;
+  // (the drift in the world: a right-hand road's offsets turned - highway/road.ts HwState.hand)
+  const dir = slot.dir ?? 1, sNext = slot.s + dir * slot.vAl * dt, drift = dir * latV * handOf(ctx);
   const pose = roadPose(ctx.level!, sNext, offK), faced = pose.h + (dir < 0 ? Math.PI : 0),
-    heading = faced + Math.atan2(dir * latV, Math.max(3, slot.vAl));
+    heading = faced + Math.atan2(drift, Math.max(3, slot.vAl));
   // yaw rate + steering held at what the BEND needs (MEASURED: woken with both 0 in a
   // bend, a car ran 0.3 m off the edge for 1.2 s)
   const poseAhead = roadPose(ctx.level!, sNext + 4, offK);
@@ -85,8 +86,8 @@ export function carryKinematic(
   car.x = pose.x;
   car.y = pose.y;
   car.heading = heading;
-  car.vx = Math.cos(faced) * slot.vAl - Math.sin(faced) * dir * latV;
-  car.vy = Math.sin(faced) * slot.vAl + Math.cos(faced) * dir * latV;
+  car.vx = Math.cos(faced) * slot.vAl - Math.sin(faced) * drift;
+  car.vy = Math.sin(faced) * slot.vAl + Math.cos(faced) * drift;
   car.yawRate = slot.vAl * kRoad;
   car.delta = Math.atan(kRoad * car.spec.L);
   car.indicator = slot.laneT !== slot.lane ? slot.ind * handOf(ctx) : 0;

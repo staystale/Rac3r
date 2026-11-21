@@ -138,8 +138,14 @@ MARK TRACK.)
      mirrored) on all 5 road types for seed 4242 and on the motorway and single lane for seed 7;
      the dual, walled and interstate on seed 7 the same but near a sign board or a drivable
      bridge - their posts and footway are turned with the picture, not mirrored - where a lamp or
-     an approach's end may stand a little differently (both worlds whole). NEXT: round 2, the
-     traffic, police and racers checked driving it.
+     an approach's end may stand a little differently (both worlds whole). ROUND 2 (started): the
+     traffic driven both ways on the same dice (tools/scratch/_police.mjs PART=mirror, you carried
+     along the offside lane at 130 km/h, 30 s): our way's traffic keeps the world's RIGHT on the
+     right-hand road (world side +0.99, road side the same -0.99 as the left-hand's -1.00). Found
+     and fixed: a kinematic car's drift yawed its nose and moved it on the unturned side
+     (ai/trafficPhys.ts carryKinematic). The runs stay exact mirrors for 10 s, then part by the
+     real-physics cars' rounding (sin of a mirrored heading is not the same to the last bit).
+     NEXT: the police (moving over, chasing, waiting spots) and the racers checked driving it.
 
 - POLICE BY SCENERY (owner 11-21: "too many police on the other levels" - countryside nearly none,
   Deaf Valley some, Stockholm the most, at today's level): BUILT (Worker C 11-21) behind
