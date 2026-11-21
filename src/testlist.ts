@@ -22,4 +22,14 @@ export const TEST_LIST: TestEntry[] = [
     wrong: 'A car rolling, sliding or upside down after a reset, or one that cannot pull away on '
       + 'tarmac; the camera sliding over from where you crashed.',
   },
+  {
+    id: 'lamps',
+    added: '2026-11-21',
+    name: 'Each vehicle\'s own headlights: the beam from its nose, nothing lit on its own bonnet',
+    where: 'Test link + &lamps=1 at night: a hatch, the Transfit, the Routemonster, the Seven',
+    try: 'The beam starts at the lamps: the bonnet, the van\'s cab and the bus stay dark behind '
+      + 'them; the bus and van reach a little further, the Seven and the tractor shorter.',
+    wrong: 'Light on the car\'s own body behind its lamps, a beam starting ahead of the nose, a '
+      + 'beam off to one side.',
+  },
 ];

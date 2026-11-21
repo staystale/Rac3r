@@ -4,6 +4,8 @@
 // rubbed out of it (destination-out, with pictures drawn once: no gradient is made per frame),
 // then the glows' colour is laid in as a tint; then it is laid over the screen canvas once, under
 // the HUD. The cost is one extra full-screen image a frame.
+import { FIX } from '../core/fixes.ts';
+import { lampTypeOf } from './lamptypes.ts';
 import { crossingOf } from "../world/crossinggeo.ts";
 import { clipToCut } from './coverlight.ts';
 import { DAYLIGHT } from '../world/daylight.ts';
@@ -451,15 +453,20 @@ function drawBeams(painter: PoolPainter, beam: HTMLCanvasElement, car: RenderCar
   if (!car.lightsOn && !isAngryFlashOn(car)) return;
   const { lightCtx, artX, artY } = painter;
   const scale = painter.artPerMetre(), cos = Math.cos(car.heading), sin = Math.sin(car.heading);
-  const reach = BEAM_REACH_M * scale;
+  // (?lamps: the car's own lamps - at its nose, its reach and spread: render/lamptypes.ts)
+  const own = FIX.lamps ? lampTypeOf(car.spec.kind) : null;
+  const reach = (own ? own.reachM : BEAM_REACH_M) * scale;
   if (!painter.isNear(artX(car.x), artY(car.y), reach)) return;
-  const along = reach / PICTURE_PX, across = (2 * BEAM_HALF_M * scale) / PICTURE_PX;
+  const along = reach / PICTURE_PX;
+  const across = (2 * (own ? own.halfM : BEAM_HALF_M) * scale) / PICTURE_PX;
+  const startM = own ? car.spec.len / 2 : BEAM_START_M;
+  const sideM = own ? own.across * car.spec.wid / 2 : LAMP_SIDE_M;
   for (let corner = 0; corner < 2; corner++) {
     const level = lampLevel(car, corner);
     if (!level) continue;
-    const side = corner === 0 ? -LAMP_SIDE_M : LAMP_SIDE_M;
-    const lampX = car.x + cos * BEAM_START_M - sin * side;
-    const lampY = car.y + sin * BEAM_START_M + cos * side;
+    const side = corner === 0 ? -sideM : sideM;
+    const lampX = car.x + cos * startM - sin * side;
+    const lampY = car.y + sin * startM + cos * side;
     lightCtx.globalAlpha = BEAM_STRENGTH * level;
     lightCtx.setTransform(cos * along, sin * along, -sin * across, cos * across,
       artX(lampX), artY(lampY));

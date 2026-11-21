@@ -72,4 +72,7 @@ export const FIX = {
   // roll rolled the car again just after the reset) - and the camera snaps to it on every reset
   // path (game/session.ts doReset)
   resetclean: atLoad('resetclean'),
+  // EACH VEHICLE'S OWN HEADLIGHTS: the beam from its nose and its lamps, nothing lit behind them,
+  // a reach and spread by its kind (render/lamptypes.ts, render/light.ts drawBeams)
+  lamps: atLoad('lamps'),
 };
