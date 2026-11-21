@@ -1,5 +1,5 @@
-// render/lanedash.ts - ?dashphase: THE HIGHWAY'S LANE DASHES LAID BY THE ROAD'S DISTANCE. The
-// canvas dash pattern (render/road.ts drawLaneDashes) runs along the stroked line's own length
+// render/lanedash.ts - THE HIGHWAY'S LANE DASHES LAID BY THE ROAD'S DISTANCE. A canvas dash
+// pattern (render/road.ts drawLaneDashes, before) runs along the stroked line's own length
 // from the road window's first point; on a bend a lane line off the centre is longer or shorter
 // than the road, so each time the window drops points behind, a spot's dashes move along it. A
 // ground tile is painted once and kept (render/tiles.ts): tiles painted before and after a move

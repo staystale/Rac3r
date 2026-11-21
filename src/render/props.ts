@@ -156,7 +156,7 @@ function drawPropList(propCtx: PropCtx, overhead = false) {
  */
 function drawListedProp(propCtx: PropCtx, prop: Prop, ppm: number, overhead: boolean) {
   // a tree's canopy hangs over the cars too; a drivable bridge is in both layers
-  const isOver = OVERHEAD.has(prop.kind) || prop.kind === 'tree';
+  const isOver = OVERHEAD.has(prop.kind) || prop.kind === 'tree' || !!prop.overRoad;
   if (isOver !== overhead && !isDrivableBridge(prop)) return;
   if (prop.kind === 'garagerow') {
     drawGarageRow(propCtx, prop, ppm);

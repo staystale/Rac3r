@@ -82,19 +82,10 @@ export const FIX = {
   // scale per driver type (ai/tune.ts COMMIT_BOXED: the racers, the traffic's speeders); the
   // defaults keep today's behaviour until the owner picks the lean
   gapcommit: atLoad('gapcommit'),
-  // RESET mends the tractor's trailer as it mends the tractor (game/session.ts doReset)
-  trailheal: atLoad('trailheal'),
-  // a lorry's, van's and bus's own side windows on its rolled side (render/carprofile.ts windows:
-  // the Scanyah's cab showed none - its glass band was the screen's last 5 %)
-  cabglass: atLoad('cabglass'),
-  // the highway's lane dashes laid by the road's distance, not the canvas pattern's length: tiles
-  // painted before and after the road window moved line up (render/lanedash.ts)
-  dashphase: atLoad('dashphase'),
-  // FLASHING 2: the lamps' flicker on the sim clock (physics/lampsim.ts); a flickering headlight -
-  // yours or a racer's - flashes the traffic ahead, three flickers anger it as three flashes do,
-  // and it chases whoever angered it; a dead headlight cannot flash (game/flashes.ts)
-  lampflash: atLoad('lampflash'),
   // the GETAWAY STOCKHOLM scenery for the endless roads, step 1: its card, the city's stretches,
   // its lots of buildings behind noise walls, blue signs (highway/city.ts)
   stockholm: atLoad('stockholm'),
+  // the police by scenery: the countryside nearly none, Deaf Valley some, Stockholm today's
+  // (ai/trafficPolice.ts COP_MIX)
+  copmix: atLoad('copmix'),
 };

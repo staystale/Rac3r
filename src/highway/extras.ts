@@ -19,6 +19,9 @@ import { JUNCTION_SHARE, LEAD_POINTS, layJunction } from './junctions.ts';
 // a drivable road bridge's ramps up from its approach roads, m (the venues'
 // longest: a 2.5 m rise over the crossing stays gentle - world/crossings.ts RISE_SHARE)
 const RAMP_M = 14;
+// the share of the bridges' spacing in the city (cuts.ts BRIDGE_EVERY: 1.1-2.4 km, the city's
+// 0.55-1.2 km)
+const CITY_BRIDGES = 0.5;
 // Deaf Valley: open ground (no rock wall, no gorge) this far back and ahead of an
 // extra, m - the signs before it, a long slip's bend, the services' side road and yard after it;
 // and the step the check walks, m
@@ -312,7 +315,11 @@ function buildBridge(level: HwLevel, i: number, dist: number, pointAt: (i: numbe
     halfWidth = state.geo.hw,
     rand = state.xrnd,
     walled = !!level._cfg.walls;
-  state.nextBridge = dist + BRIDGE_EVERY[0] + rand() * (BRIDGE_EVERY[1] - BRIDGE_EVERY[0]);
+  // (GETAWAY STOCKHOLM's at CITY_BRIDGES the spacing: owner 11-21, "busier means more bridges,
+  // tunnels and scenery")
+  const every = level._cfg.theme === 'city' ? BRIDGE_EVERY.map((metres) => metres * CITY_BRIDGES)
+    : BRIDGE_EVERY;
+  state.nextBridge = dist + every[0] + rand() * (every[1] - every[0]);
   // no slip under a bridge's approach
   if (dist > state.nextSlip! - 400) state.nextSlip = dist + 400;
   const kind = isJunction ? (rand(), 'road') : bridgeKind(rand(), !!state.desert);

@@ -115,8 +115,9 @@ export interface HwState {
   nextServices?: number; servicesN?: number;   // the next services, how many so far
   gantryDue?: boolean; villageNext?: number;
   lotNext?: Record<number, number>;   // the city's next lot's road distance, by side (city.ts)
+  waterNext?: number;   // the city's next water piece's road distance (citywater.ts)
   // the city's lot due on each side: where it starts (road distance) and its length, m
-  lotDue?: Record<number, { s: number; len: number } | null>;
+  lotDue?: Record<number, { s: number; len: number; kind: string } | null>;
   looseCut?: number | null; looseNew?: LevelObj[];   // the loose objects dropped / added
   tookExit?: boolean;   // the player left by a slip
   // the crash-cushion barrels' bookkeeping (highway/cushions.ts): where this stretch's barriers

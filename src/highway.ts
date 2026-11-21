@@ -36,6 +36,7 @@ import { laneGeo, stateOf, growTo, locate, roadFrame, shoulderOff } from "./high
 import { syncCovers, SIDE_W_HALF } from "./highway/cuts.ts";
 import { dress } from "./highway/dress.ts";
 import { desertGround, REACH, resetStreamed, pruneStreamed } from "./highway/gorge.ts";
+import { cityGround } from "./highway/cityplan.ts";
 import type { HwState, HwLevel, HwCar, HwCfg, HwPoint } from './highway/hwtypes.ts';
 import { syncBridgeways } from './highway/bridgeways.ts';
 import { crossingOf } from './world/crossinggeo.ts';
@@ -76,7 +77,7 @@ function rebuild(level: HwLevel) {
     [],
     true,
     // Deaf Valley's ground is shaped further out (its gorges: highway/gorge.ts)
-    level._cfg.theme === 'canyon' ? REACH : undefined,
+    level._cfg.theme === 'canyon' || level._cfg.theme === 'city' ? REACH : undefined,
   );
   // the closing segment, end -> start: never road
   ghostSegment(sub, road.length - 1);
@@ -476,10 +477,12 @@ export function setHighwayPreset(level: HwLevel, preset: string, scenery?: strin
 // "use gravel and sand for the desert not dirt")
 const baseOf = (cfg: HwCfg) => cfg.theme === 'canyon' ? SURFACES.gravel : SURFACES.grass;
 // the ground off the road: Deaf Valley's gorges and washes (highway/gorge.ts), else flat
+// (GETAWAY STOCKHOLM: its embankments, cuttings and tunnels - highway/cityplan.ts)
 const roadsideOf = (level: HwLevel, cfg: HwCfg) => cfg.theme === 'canyon'
   ? (dist: number, offset: number, halfWidth: number, spot: { x: number; y: number }) =>
     desertGround(dist, offset, halfWidth + bayOut(level, dist, offset < 0 ? -1 : 1), level.seed,
-      spot) : undefined;
+      spot) : cfg.theme === 'city' ? (dist: number, offset: number, halfWidth: number) =>
+    cityGround(dist, offset, halfWidth, level.seed) : undefined;
 const settings = readSettings(typeof location !== 'undefined' ? location.search : '');
 const QUERY_PRESET = typeof location !== 'undefined' ? settings.highwayDebug : null;
 export function createHighway(seed: number = 4242, preset: string = 'motorway') {

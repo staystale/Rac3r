@@ -178,6 +178,9 @@ export interface Prop {
   field?: number;
   _s?: number;
   house?: boolean;
+  // a slat over a road (GETAWAY STOCKHOLM's tunnels: highway/city.ts): drawn over the cars, never
+  // solid (render/props.ts, world/barriers.ts)
+  overRoad?: boolean;
   church?: boolean;
   blue?: boolean;
   bars?: number;

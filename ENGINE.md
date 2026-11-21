@@ -129,8 +129,8 @@ Every reset lands the car still and on its wheels with nothing a crash left pend
 reset -> `roll.ts clearPendingRoll`: a side impact's queued roll kick, a barrier ride, the air
 time, the trip cell, the tip's pull), and the camera snaps to it on every path
 (`game/session.ts doReset`); `tools/scratch/_resetcheck.mjs` resets after crashes, rolls and slides.
-A reset mends the car (`damage.ts repair`: the bill kept); ?trailheal=1 its trailer too, the same
-way (`tools/scratch/_trailheal.mjs`).
+A reset mends the car (`damage.ts repair`: the bill kept) and its trailer the same way; a restart
+mends both and clears their bills (`tools/scratch/_trailheal.mjs`).
 
 STUCK AI AND TRAFFIC. A racing AI first drives itself out (`ai/driveOut.ts`: nearly still 1.2 s ->
 reverse 1-1.5 s with the wheel turned toward the road; three tries inside 15 s = `giveUp`, read by
@@ -379,12 +379,18 @@ FLASHING THE TRAFFIC (`game/flashes.ts stepFlashes`, each step on the endless ro
 LIGHTS off and on inside FLASH_S (1.2 s) flash the nearest car of our way ahead in your lane
 (`ai/trafficYield.ts noteFlash`): half move over (8 s); three flashes inside 20 s make it ANGRY
 (`ai/trafficPolice.ts makeAngry`): a chase driver without lights after whoever angered it
-(`stepAngry`: its target's speed and sight). ?lampflash=1: every car's lamps settle on the sim
+(`stepAngry`: its target's speed and sight). Every car's lamps settle on the sim
 clock (`physics/lampsim.ts`, `stepAllLamps` - the flicker 3-8 s after a hit, then steady or dead;
 the drawing reads it), a FLICKERING headlight - yours or a racer's (its `_hwf`) - flashes once in
 each FLASH_S as a hand flash does, each driver's flashes counted on their own (`flashBy`), and
 your lights cannot flash with no working headlight. Racers are never flashed. The walkthrough's
 FLASH THEM card. `tools/scratch/_lampflash.mjs`.
+
+THE POLICE BY SCENERY (?copmix=1; `ai/trafficPolice.ts COP_MIX`): every police chance - the
+share of the cars put back that are police (1/60, 1/15 while police are due: over 70 mph or a
+camera) and a police car placed ahead every 400 m (0.35, 0.7 due) - times the road's scenery's
+share: the countryside 0.1, Deaf Valley 0.4, Stockholm 1 (today's). The chases a driver's heat
+sends are not scaled. `tools/scratch/_police.mjs` PART=survey (KMH, SCENERIES).
 
 THE WAITING POLICE WAKE (passed 11-15; `ai/policeWake.ts
 wakeWaiting`, from `ai/trafficPolice.ts runChase` while any driver has stars): a police car of our
@@ -659,9 +665,9 @@ off / on): racing laps fronts smoke 5-8 % -> 1 % of the time; a held 1.1 g corne
   that push with its speed changing at most 3 px / frame / frame (`render/hudclear.ts
   followPush`), taken whole only after a teleport, so the view never jumps. Not avoided: the
   steering stick under the thumb, the passing notices, the speed camera's flash, the finish flag.
-- THE HIGHWAY'S LANE DASHES (`render/road.ts drawLaneDashes`, painted into the tiles): the canvas
-  dash pattern phased by `sub.sBase`; ?dashphase=1 lays each dash by the road's absolute distance
-  (`render/lanedash.ts`), so tiles painted before and after the road window moved line up.
+- THE HIGHWAY'S LANE DASHES (`render/road.ts drawLaneDashes`, painted into the tiles):
+  each dash laid by the road's absolute distance (`render/lanedash.ts`), so tiles painted before
+  and after the road window moved line up.
 - `render/tiles.ts`: what lies over the floor and zones (track ribbon, lanes, patches, covers,
   wear, kerbs) is painted into cached tiles within a time budget per frame (`tilesBudget.ts`);
   the GPU ground scales them to the exact zoom and draws each at its exact place. Tiles under new
@@ -693,7 +699,7 @@ off / on): racing laps fronts smoke 5-8 % -> 1 % of the time; a held 1.1 g corne
   a half width per column) and `cardamage.ts`,
   `particles.ts`.
 - A rolled car's side picture (`render/carprofile.ts paintSideProfile`): its roof line, paint, wheels and
-  its side glass - a car's one band from its waist to the roof line (`glass`); ?cabglass=1 a lorry's,
+  its side glass - a car's one band from its waist to the roof line (`glass`); a lorry's,
   van's or bus's own windows instead (`windows`: each from its sill to its head, under the roof line;
   a bus's bays by `windowBays`) - the Scanyah's door window high on its cab, the vans' door
   windows, the buses' rows of bays (`tools/scratch/_cabglass.mjs`).
@@ -826,18 +832,30 @@ and tyre stacks (`rallycross-venue.ts rallycrossLevel` -> `rxDress(..., floorM)`
 the LEVEL'S OWN floor (`level.floor`, as the tape's `onFloor` reads it), not the standard 260 m:
 Croughed RX (546 m) keeps all 396 loose objects.
 
-GETAWAY STOCKHOLM (?stockholm=1, step 1; `highway/city.ts`): a third scenery (`presets.ts
-HW_SCENERY.stockholm`, theme 'city', every road type) dressed as the countryside is (`dress.ts
-dressStretch`: slips, bridges, services, gantries, lamps, litter, walls, median, cushions) with
-its own stretches (`CITY_BIOMES`: city / green in a random order, never the same twice; green the
-forest's trees) and, in place of the fields, LOTS on each side of a city stretch: concrete 6 m
-past the road edge (a 2 m verge), a noise wall ('wall') on its road side, a street down its middle,
-a row of buildings either side ('block': modern slabs and offices, or the old town's houses under
-ochre / red / copper roofs, now and then a church). A lot is a keep rect with a field id: a later
-slip, approach or river drops it whole. The right side's lots test the ground with the dress
-context's `clearRight` (the left's side road not counted). Its signs are blue (`CITY_SIGNS`, the
-distance that goes up: CENTRUM n KM). `tools/scratch/_citylots.mjs` (node: how much of each side is
-lots), `_cityshot.mjs` (photos).
+GETAWAY STOCKHOLM (?stockholm=1; `highway/cityplan.ts`, `city.ts`, `citywater.ts`): a third
+scenery (`presets.ts HW_SCENERY.stockholm`, theme 'city', every road type) dressed as the
+countryside is (`dress.ts dressStretch`: slips, bridges, services, gantries, lamps, litter, walls,
+median, cushions) with its own STRETCHES (`cityStretchAt`: Deaf Valley's mechanism,
+`highway/stretchplan.ts makeStretchPlan`) - CITY, TUNNEL, WATER, RAISED, CUTTING and a rare short
+GREEN park, in a random order, never the same twice. The ground beside the road by stretch
+(`Level.roadside` = `cityGround`, the road's lookup reaching REACH as Deaf Valley's): 6 m below a
+raised stretch, 5 m above a cutting and a tunnel, eased in at the ends and back out before REACH.
+The barriers along the edges by stretch (`dress.ts layWalls` with `cityWallAt`): a cutting's and
+a tunnel's retaining walls, a raised stretch's Armco, over the water a post-and-rail fence with a
+22 m gap in every 110 (you can go in). LOTS (`city.ts`) on every built-up stretch, set back by
+stretch (`LOT_OUT_M`): concrete past a verge, a street with cars parked along it ('parkedcar'),
+two rows of buildings ('block') in four styles - modern slabs, the old town's houses (now and then
+a church), towers behind a modern row, shops with a car park - wheelie bins by the doors; a city
+stretch's lot has a noise wall. A lot is a keep rect with a field id (a later slip, approach or
+river drops it whole), laid once the dressing reaches its last point (the side road along it
+known); the right side tests the ground with `clearRight`. WATER (`citywater.ts`): the river's
+scenery water ('wet') both sides from a concrete quay, in 60 m pieces, yachts moored off it; no
+slips, bridges or services off the water or out of a tunnel. A TUNNEL's cover is Moanaco's slats
+over the road, each `overRoad` (drawn over the cars, never solid), where its ground has risen.
+Its litter is its own (`litter.ts cityLitter`: cones and sandbags, bins, boxes, crates, pallets;
+1.5x the countryside's chances; none on the water or in a tunnel). Its signs are blue
+(`CITY_SIGNS`, the distance that goes up: CENTRUM n KM). `tools/scratch/_citylots.mjs` (node:
+lots by stretch, clashes with the roads), `_cityshot.mjs` (a photo of each stretch).
 
 THE HIGHWAY'S CHEVRON BOARDS (`highway/litter.ts layLooseRoadside`, knockable loose objects,
 cones TOPPLES, 45 kg; since 11-15, passed - the old rally boards on every bend tighter than R 650

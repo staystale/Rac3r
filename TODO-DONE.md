@@ -42,6 +42,72 @@ The default 11-21, their switches deleted:
 PROOF (second PC, round176 with ?rollgreen and ?hwfan on -> this plain): worldhash --highway 20, simhash
 and renderhash (Thruston, Brands, the highway) SAME.
 
+## PASSED 11-21, TRAILHEAL, CABGLASS, LAMPFLASH, DASHPHASE (owner: "lorries are good, both fixes", "flicker pass too", the Deaf Valley markings)
+
+The default 11-21, their switches deleted (RESET - and RESTART, owner 11-21: "like every other
+vehicle" - mends the trailer: MEASURED with the pass, tools/scratch/_trailheal.mjs, the trailer
+all zeros after RESET on Thruston and the Lab and after RESTART; the highway's lane dashes laid by
+the road's distance; lorries, vans and buses show
+their own side windows when rolled; the lamps' flicker on the sim clock and its flashes):
+- OWNER BUG 11-21 "Resetting doesn't heal the trailer for the truck" - FOUND + BUILT (Worker C)
+  behind ?trailheal=1: RESET (game/session.ts doReset) mended only the tractor (damage.ts repair:
+  dents, crush, lost parts, glass, suspension, wheels, tyres, hanging parts; the bill kept); the
+  trailer is a car of its own and was never mended. Now it is mended the same way. MEASURED
+  (tools/scratch/_trailheal.mjs, the same damage on both, R): off the trailer kept all of it
+  (dents 2.20, 3 parts off, a wheel off, 1.8 tyres flat), on all zeros as the tractor, on Thruston
+  and the Lab; photos before / after. RESTART has the same gap (the trailer keeps its damage, the
+  tractor is mended) - not changed: an owner question. PASSED 11-21.
+- OWNER BUG 11-21 "Lorry cab rolled has no windows? ... Lorries should have side windows like real
+  life" - FOUND + BUILT (Worker C) behind ?cabglass=1. THE CAUSE: not the paint - a rolled car's
+  side picture (render/carprofile.ts paintSideProfile) has ONE glass band from the waist to the
+  roof line, made for cars; the Scanyah's band was its length's last 5 % (the windscreen's rake),
+  so its cab's side was all paint; the vans' bands ran up to the roof (windows over 1 m tall), the
+  school bus's was one pillarless strip and the Routemaster's one band over both decks. THE FIX:
+  each lorry, truck, van and bus has its own side windows (EST from photos): the Scanyah's door
+  window high on the cab and the screen's edge; each Transfit's cab door window and screen edge;
+  the trophy truck's door window; the farm tractor's tall cab glass round its B-pillar; the school
+  bus's ten bays and driver's window; the Routemaster's six upper and five lower bays and the
+  half-cab's window. MEASURED (tools/scratch/_cabglass.mjs: a REAL roll - roll.ts startRoll on a
+  sideways slide, as a side impact starts it - on Deaf Valley's road, paused on its side): all 9
+  on their side at 844x390 and 390x844, by day and at night (the trophy truck landed on its roof
+  at 844x390 night in 6 tries), photos and close-ups tools/scratch/cabglass/, the Scanyah, the
+  buses and the trophy truck off too; no page errors. partcheck (CABGLASS=1): all 18 kinds OK.
+  The Defender keeps the car band (a 4x4's, as the cars). PASSED 11-21.
+- FLASHING: racers may flash a car blocking them (traffic or a racer). Traffic flashed moves
+  over; flashed too much (a chance) it gets mad and chases whoever flashed it (an AI or the
+  player). Racers never get mad or move for a flash, but may flash in races. Flashing works only
+  with working headlights; dead lamps cannot. OWNER 11-21: the PLAYER flashes with the existing
+  lights switch (on / off rapidly) - no new button; damaged FLICKERING lamps act as a flash all the
+  time (they annoy the traffic ahead). OWNER 11-21 on the plan: the flicker as it is (3-8 s after
+  a hit, then it settles), on the sim clock; it counts as flashing; NO single-flash anger (3
+  strikes only); three flickers anger as three flashes; the racers' flicker flashes traffic too
+  and a car angered by a racer chases that racer; racers never get mad.
+  BUILT (Worker C 11-21) behind ?lampflash=1 (physics/lampsim.ts, game/flashes.ts, ENGINE:
+  FLASHING THE TRAFFIC; the walkthrough's FLASH THEM card on the highway rules). MEASURED
+  (tools/scratch/_lampflash.mjs, the motorway, autopilot 100 km/h, a car put 35 m ahead):
+  a RACER's corner hit to 0.25 - its lamp flickered ~5 s, the car ahead got 2 flashes, the
+  third made it angry at that racer inside 3 s, and it closed 33 -> 3-4 m on the racer over
+  the next 9 s; no racer ever angry. YOUR corner hit (twice): the lamp flickered ~3 s and
+  settled dead once, steady once; the car ahead got 2 flashes and moved over (half do) before
+  a third. Headlights smashed (0.4): a hand flash reached no one (whole: 1). The FLASH THEM card
+  photographed at 390x844 and 844x390 (fits, points at LIGHTS). A flicker of 2.4 s or more is 3
+  flashes: a car ahead that stays in your lane through it gets angry. PASSED 11-21.
+
+- OWNER BUG 11-21 "Road markings skipping about on the highway level Devils" (Deaf Valley: no level
+  is named Devil; its sign DEVIL'S GOLF CORSE) - FOUND + BUILT (Worker C) behind ?dashphase=1. THE
+  CAUSE: the lane dashes are painted into ground tiles that are kept (render/tiles.ts) with the
+  canvas dash pattern, which runs along the stroked line's own length from the road window's first
+  point (phased by sub.sBase). A lane line off the centre is longer or shorter than the road on a
+  bend, so each time the window drops road behind, a spot's dashes move along the line; tiles
+  painted before and after a move do not line up. Every endless road with lanes off the centre
+  (the countryside the same), not the single lane (its one dashed line is the centre line).
+  MEASURED (tools/scratch/_dashphase.mjs, in node, 6 km): a spot's dash phase moved per window move
+  (every ~300 m) motorway 2.37 m median, p95 4.28 m (of the 9 m pattern); interstate 1.93 / 4.09
+  m; single lane 0. THE FIX (render/lanedash.ts): each dash laid where the road's absolute distance
+  is in the first 3 m of each 9 m - a dash start's world spot moved 0.000 m between windows
+  (motorway 476, interstate 738 checks). Looks the same (photos _canyondashoff / on). AWAITING THE
+  PHONE TEST.
+
 ## PASSED 11-21, LABSTART AND GRIDPOS (owner: ?labstart and ?gridpos passed)
 
 The default 11-21, their switches deleted (the Lab's one start spot in the open lane; the grid's

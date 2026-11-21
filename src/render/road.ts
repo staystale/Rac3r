@@ -10,7 +10,6 @@ import { drawPaintLine } from "./paintline.ts";
 import { drawCurvedKerbs } from "./kerbs.ts";
 import { underRoadOver } from "../world/trackunder.ts";
 import { strokeRoadDashes } from "./lanedash.ts";
-import { FIX } from "../core/fixes.ts";
 import type { Prop } from "../world/types.ts";
 import type { Cam, ForSide, RenderMarks, RoadGame, View } from "./types.ts";
 
@@ -351,10 +350,10 @@ function strokeOffsetLine(ctx: RoadCtx, sub: Sub, off: number) {
 }
 
 /**
- * LANE DASHES (the highway, sub.laneDash = lateral offsets): white dashes 3 m on / 6 m off,
- * phased by the road's ABSOLUTE distance (sub.sBase) so they line up across ground tiles painted
- * before and after the road window moved; then the SOLID lines (sub.laneSolid, the highway's
- * hard-shoulder line).
+ * LANE DASHES (the highway, sub.laneDash = lateral offsets): white dashes 3 m on / 6 m off, each
+ * laid by the road's ABSOLUTE distance (render/lanedash.ts) so they line up across ground tiles
+ * painted before and after the road window moved; then the SOLID lines (sub.laneSolid, the
+ * highway's hard-shoulder line).
  * @param ctx the road context
  */
 function drawLaneDashes(ctx: RoadCtx) {
@@ -364,15 +363,8 @@ function drawLaneDashes(ctx: RoadCtx) {
   view.ctx.save();
   view.ctx.strokeStyle = 'rgba(245,245,240,0.8)';
   view.ctx.lineWidth = Math.max(1, 0.15 * pxPerM);
-  // (?dashphase: each dash laid by the road's distance - render/lanedash.ts)
-  if (FIX.dashphase) for (const off of sub.laneDash) strokeRoadDashes({ ctx: view.ctx,
-    toScreenX: ctx.toScreenX, toScreenY: ctx.toScreenY }, sub, off);
-  else {
-    view.ctx.setLineDash([3 * pxPerM, 6 * pxPerM]);
-    view.ctx.lineDashOffset = ((sub.sBase || 0) * pxPerM) % (9 * pxPerM);
-    for (const off of sub.laneDash) strokeOffsetLine(ctx, sub, off);
-    view.ctx.setLineDash([]);
-  }
+  for (const off of sub.laneDash) strokeRoadDashes({ ctx: view.ctx, toScreenX: ctx.toScreenX,
+    toScreenY: ctx.toScreenY }, sub, off);
   for (const off of sub.laneSolid || []) strokeOffsetLine(ctx, sub, off);
   view.ctx.restore();
 }
