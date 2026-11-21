@@ -507,7 +507,8 @@ LENGTH (under test, `?gridlen=1`; `game/gridlen.ts`): a circuit's or a start lan
 slot GRID_CLEAR_M (9 m) behind the tail of the car two slots ahead (`layGridByLength`,
 `slotBackM`: gridPos and the rolling start's formation), a towing rig (`rigExtents`) in the last
 slot (`playerSlot`); a solo rig slides back along the road to a spot clear for its trailer
-(`clearRigSpot`). The highway's grid is its own. A reset of a towing rig keeps its trailer's box,
+(`clearRigSpot`). The highway's grid is its own. The Lab's start spot (its spawn and painted box) is `world/labstart.ts`; under test,
+`?labstart=1`: in the open lane between its rows of street lights. A reset of a towing rig keeps its trailer's box,
 lined up behind, clear of cars too (`game/resetspot.ts firstFree`).
 LOW RANGE (`physics/lowrange.ts`): a car with a two-speed transfer box (`LOW_RANGE`
 by model: the Defunder 110, the Strange Rover) has `car.lowRange`; in low `powertrain.ts` multiplies

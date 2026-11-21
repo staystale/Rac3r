@@ -77,4 +77,6 @@ export const FIX = {
   // each grid slot as long as its car (a towing rig at the back), a solo rig slid back clear
   // (game/gridlen.ts)
   gridlen: atLoad('gridlen'),
+  // the Lab's start spot in the open, one for every vehicle (world/labstart.ts)
+  labstart: atLoad('labstart'),
 };
