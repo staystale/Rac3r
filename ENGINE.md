@@ -125,6 +125,10 @@ a stage never into its gap between the stop zone and the run-up, `lapBack`), the
 put-back keeping 1.5 s of its speed clear ahead; the police are not cleared from round the spot
 (`traffic.clearAround(..., true)`: they go only when wrecked or after a bust). Your resets only (the
 AI's own: `game/ai.ts aiReset`). `tools/scratch/_resetback.mjs` tries each mode.
+Every reset lands the car still and on its wheels with nothing a crash left pending (`vehicle.ts`
+reset -> `roll.ts clearPendingRoll`: a side impact's queued roll kick, a barrier ride, the air
+time, the trip cell, the tip's pull), and the camera snaps to it on every path
+(`game/session.ts doReset`); `tools/scratch/_resetcheck.mjs` resets after crashes, rolls and slides.
 
 STUCK AI AND TRAFFIC. A racing AI first drives itself out (`ai/driveOut.ts`: nearly still 1.2 s ->
 reverse 1-1.5 s with the wheel turned toward the road; three tries inside 15 s = `giveUp`, read by
@@ -665,7 +669,9 @@ off / on): racing laps fronts smoke 5-8 % -> 1 % of the time; a held 1.1 g corne
   cars' lamp glows rubbed out, then the pools' warm tint and the glows' colour laid in; laid over
   the screen canvas once a frame under the HUD (nothing by day). The light level is
   `world/daylight.ts` (`?night=` fixes it, a test tool); the AI and traffic run headlights by it
-  (`game/sim.ts updateFieldHeadlights`; the player's LIGHTS are their own).
+  (`game/sim.ts updateFieldHeadlights`; the player's LIGHTS are their own). Each vehicle's beams start at its own
+  lamps on its nose (nothing behind them lit), with a reach and spread by its kind
+  (`render/lamptypes.ts`; `drawBeams`).
 - Lamps: `world/lamps.ts` makes the level's street lights (`lamps` data) and floodlight pylons
   into lamps with a solid post (`barriers.ts solidClamp`), lit from dusk; the night layer draws
   their pools, `render/props/lamps.ts` the street lights (overhead layer). A street course

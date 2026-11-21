@@ -11,25 +11,4 @@ export interface TestEntry {
   id: string; added: string; name: string; where: string; try: string; wrong: string;
 }
 
-export const TEST_LIST: TestEntry[] = [
-  {
-    id: 'resetclean',
-    added: '2026-11-21',
-    name: 'Reset after a crash: never rolled again, never left moving, overturned or stuck',
-    where: 'Test link + &resetclean=1: any circuit or RX course (Thruston, Knobhill, Croughed RX)',
-    try: 'Crash hard into a barrier or roll the car, and press RESET while it is still rolling or '
-      + 'sliding: it lands on its wheels, still, and pulls away at once.',
-    wrong: 'A car rolling, sliding or upside down after a reset, or one that cannot pull away on '
-      + 'tarmac; the camera sliding over from where you crashed.',
-  },
-  {
-    id: 'lamps',
-    added: '2026-11-21',
-    name: 'Each vehicle\'s own headlights: the beam from its nose, nothing lit on its own bonnet',
-    where: 'Test link + &lamps=1 at night: a hatch, the Transfit, the Routemonster, the Seven',
-    try: 'The beam starts at the lamps: the bonnet, the van\'s cab and the bus stay dark behind '
-      + 'them; the bus and van reach a little further, the Seven and the tractor shorter.',
-    wrong: 'Light on the car\'s own body behind its lamps, a beam starting ahead of the nose, a '
-      + 'beam off to one side.',
-  },
-];
+export const TEST_LIST: TestEntry[] = [];

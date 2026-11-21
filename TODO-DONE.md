@@ -17,6 +17,27 @@ lighting, bushes and trees - OWNER LIST 10-24; the checking tools - Tools that a
 
 
 
+## PASSED 11-21, RESET CLEAN AND LAMPS (owner: ?resetclean and ?lamps passed)
+
+The default 11-21, their switches deleted (the owner's list of 11-21, bugs 1 + 2 and 5):
+- RESET CLEAN (bugs 1 + 2, RESET STUCK / RESET ROLLED):
+  1 + 2 FOUND (Worker B 11-21): a hard side impact queues a roll trigger (car._sideKick, damage.ts)
+  that roll.ts tripCheck reads only while the car is on its wheels; one queued DURING a roll stayed
+  pending, and reset() left it - the first step after the reset rolled the car again with the
+  kick's sideways speed (ending on its side: stuck). BUILT behind ?resetclean=1 (vehicle.ts reset ->
+  roll.ts clearPendingRoll: the kick, a barrier ride, the air time, the trip cell, the tip's pull;
+  game/session.ts doReset snaps the camera on the joker / shoulder / circuit paths too). MEASURED
+  (tools/scratch/_resetcheck.mjs, the real game, REPEAT=6: 57 resets after a crash, a roll or a
+  slide at Thruston, Knobhill and Croughed RX): off, 3 rolled again or overturned after the reset
+  (all at Thruston), on 0; the slow pull-aways left were on mud / sand / gravel (the loose-ground
+  case the owner calls fine).
+- EACH VEHICLE'S OWN HEADLIGHTS (bug 5, HEADLIGHT GLOW):
+  FOUND + BUILT (Worker B 11-21) behind ?lamps=1: render/light.ts drawBeams started every beam
+  1.8 m ahead of the car's centre at +-0.7 m (the bonnet lit on a 4 m car, the cab on the van, 2.4 m
+  inside the bus); now from the nose at the car's own lamps, a reach and spread by kind
+  (render/lamptypes.ts). Photos (tools/scratch/_lampshots.mjs, night, before / after, both sizes):
+  the hatch's bonnet, the van's cab and the bus dark behind their lamps.
+
 ## PASSED 11-17, THE TRACTOR AND THE TWO-WHEEL STATE (owner: ?tipping and the ?scanyah tractor passed)
 
 The default 11-17, their switches deleted:

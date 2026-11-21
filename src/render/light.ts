@@ -4,7 +4,6 @@
 // rubbed out of it (destination-out, with pictures drawn once: no gradient is made per frame),
 // then the glows' colour is laid in as a tint; then it is laid over the screen canvas once, under
 // the HUD. The cost is one extra full-screen image a frame.
-import { FIX } from '../core/fixes.ts';
 import { lampTypeOf } from './lamptypes.ts';
 import { crossingOf } from "../world/crossinggeo.ts";
 import { clipToCut } from './coverlight.ts';
@@ -36,13 +35,14 @@ import { trackCanvas } from '../core/memorybudget.ts';
 // the night's dark at darkness 1 this opaque (the darkest patches still show the track's shape
 // faintly); its colour is the sky's (world/daylight.ts: blue-black, or a sunrise / sunset)
 const NIGHT_ALPHA = 0.9;
-// a headlight beam: where it starts ahead of the car's centre, its reach and half spread, m
+// a car's headlight beam as the light's reach and the tunnel clip reckon it (the beams themselves
+// are each vehicle's own: render/lamptypes.ts): start ahead of the centre, reach, half spread, m
 const BEAM_START_M = 1.8, BEAM_REACH_M = 32, BEAM_HALF_M = 9;
 // m a car's light reaches from its centre: the beam's far end (the glows well within it)
 const LIGHT_REACH_M = BEAM_START_M + BEAM_REACH_M;
 // the reach a tunnel's light clip is cut to (render/coverlight.ts)
 const LIGHT_CLIP = { lightM: LIGHT_REACH_M, beamM: BEAM_REACH_M };
-// each headlight's sideways offset from the car's centre line, m
+// a headlight's sideways offset from the centre line, m, as the light's reach reckons it
 const LAMP_SIDE_M = 0.7;
 // how much of the dark one headlight rubs out at its brightest (two overlap to ~0.84)
 const BEAM_STRENGTH = 0.6;
@@ -453,14 +453,14 @@ function drawBeams(painter: PoolPainter, beam: HTMLCanvasElement, car: RenderCar
   if (!car.lightsOn && !isAngryFlashOn(car)) return;
   const { lightCtx, artX, artY } = painter;
   const scale = painter.artPerMetre(), cos = Math.cos(car.heading), sin = Math.sin(car.heading);
-  // (?lamps: the car's own lamps - at its nose, its reach and spread: render/lamptypes.ts)
-  const own = FIX.lamps ? lampTypeOf(car.spec.kind) : null;
-  const reach = (own ? own.reachM : BEAM_REACH_M) * scale;
+  // the car's own lamps - at its nose, its reach and spread (render/lamptypes.ts)
+  const own = lampTypeOf(car.spec.kind);
+  const reach = own.reachM * scale;
   if (!painter.isNear(artX(car.x), artY(car.y), reach)) return;
   const along = reach / PICTURE_PX;
-  const across = (2 * (own ? own.halfM : BEAM_HALF_M) * scale) / PICTURE_PX;
-  const startM = own ? car.spec.len / 2 : BEAM_START_M;
-  const sideM = own ? own.across * car.spec.wid / 2 : LAMP_SIDE_M;
+  const across = (2 * own.halfM * scale) / PICTURE_PX;
+  const startM = car.spec.len / 2;
+  const sideM = own.across * car.spec.wid / 2;
   for (let corner = 0; corner < 2; corner++) {
     const level = lampLevel(car, corner);
     if (!level) continue;

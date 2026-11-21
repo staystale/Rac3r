@@ -16,6 +16,8 @@ each car's own crash parts) and ?carshade (every closed car shaded) PASSED 11-17
 (TODO-DONE, PASSED 11-17, THE PASS BATCH 4). ?dmgmore (the rolled cars, dragging) PASSED 11-17, the default (TODO-DONE, PASSED 11-17, MORE DAMAGE).
 ?dmgmore2, ?marktrack, ?scanyah (the tractor) and ?tipping PASSED 11-17, the default (TODO-DONE). On the phone
 now: nothing until the Scanyah trailer (?trailer) lands.
+?resetclean (bugs 1 + 2, the reset) and ?lamps (bug 5, the headlights) PASSED 11-21, the
+default (TODO-DONE, PASSED 11-21, RESET CLEAN AND LAMPS).
 (Their records: TODO-DONE, PASSED 11-17, THE TRACTOR AND THE TWO-WHEEL STATE; and MORE DAMAGE 2 AND
 MARK TRACK.)
 
@@ -27,26 +29,13 @@ MARK TRACK.)
   1. RESET STUCK: after a reset the car sometimes cannot pull away - not the slippery-ground case
      (that is fine) - find it.
   2. RESET ROLLED: a reset sometimes leaves the car upside down, or keeps its momentum, after a crash.
-     1 + 2 FOUND (Worker B 11-21): a hard side impact queues a roll trigger (car._sideKick, damage.ts)
-     that roll.ts tripCheck reads only while the car is on its wheels; one queued DURING a roll stayed
-     pending, and reset() left it - the first step after the reset rolled the car again with the
-     kick's sideways speed (ending on its side: stuck). BUILT behind ?resetclean=1 (vehicle.ts reset ->
-     roll.ts clearPendingRoll: the kick, a barrier ride, the air time, the trip cell, the tip's pull;
-     game/session.ts doReset snaps the camera on the joker / shoulder / circuit paths too). MEASURED
-     (tools/scratch/_resetcheck.mjs, the real game, REPEAT=6: 57 resets after a crash, a roll or a
-     slide at Thruston, Knobhill and Croughed RX): off, 3 rolled again or overturned after the reset
-     (all at Thruston), on 0; the slow pull-aways left were on mud / sand / gravel (the loose-ground
-     case the owner calls fine). AWAITING THE PHONE TEST.
+     PASSED 11-21 (?resetclean), the default (TODO-DONE, PASSED 11-21, RESET CLEAN AND LAMPS).
   3. NO CHEQUERED FLAG at the finish (seen at Angle Sleezy); every AI race must have a finish.
   4. TYRE MARKS CUT OFF in straight lines on one surface (Snoozuka, a couple of turns before the
      tunnel; other tracks too) - a ground-tile edge?
   5. HEADLIGHT GLOW drawn behind the lamp, on the car's own body: each car's lamps light only what
      a real one would, with their own shape and reach.
-     FOUND + BUILT (Worker B 11-21) behind ?lamps=1: render/light.ts drawBeams started every beam
-     1.8 m ahead of the car's centre at +-0.7 m (the bonnet lit on a 4 m car, the cab on the van, 2.4 m
-     inside the bus); now from the nose at the car's own lamps, a reach and spread by kind
-     (render/lamptypes.ts). Photos (tools/scratch/_lampshots.mjs, night, before / after, both sizes):
-     the hatch's bonnet, the van's cab and the bus dark behind their lamps. AWAITING THE PHONE TEST.
+     PASSED 11-21 (?lamps), the default (TODO-DONE, PASSED 11-21, RESET CLEAN AND LAMPS).
   6. PEMBREEZY AI: odd behaviour - put back whatever the earlier "fix" changed so it drives like
      every other level; check the line for kinks, queuing, braking on straights (suspect: the
      brake-and-steer-to-avoid rule, to tune with the rest of the AI).
