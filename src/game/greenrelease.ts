@@ -1,4 +1,4 @@
-// game/greenrelease.ts - ?rollgreen: THE ROLLING START'S RELEASE, PER AI DRIVER (owner 11-21, item
+// game/greenrelease.ts - THE ROLLING START'S RELEASE, PER AI DRIVER (owner 11-21, item
 // 10: "a few drivers rarely jump the green slightly", "reaction at the green by skill and
 // personality", two by two to the line as now). MEASURED before (tools/scratch/_rollgreen.mjs, 4
 // seeds): the whole field let go of the formation on the same step at the green, every car gaining
@@ -8,7 +8,6 @@
 // then (a share by its risk) a driver JUMPS: it goes a fraction of a second before the green. The
 // values are a driver's own, from its seed (no draw from the game's random stream). The start phase
 // it then races (ai/driverLane.ts goT) begins at its release, not at the formation's first move.
-import { FIX } from '../core/fixes.ts';
 import { LEVEL } from '../world/state.ts';
 import { game } from './state.ts';
 import type { AiEntry } from './state.ts';
@@ -65,14 +64,14 @@ function toGreenS(): number {
 }
 
 /**
- * Whether an AI is still held by the start: as the field (game/order.ts startHeld), or - ?rollgreen
- * on a rolling start - until its own release (a reaction after the green, or a jump before it).
+ * Whether an AI is still held by the start: as the field (game/order.ts startHeld), or - on a
+ * rolling start - until its own release (a reaction after the green, or a jump before it).
  * @param entry the AI
  * @param fieldHeld the field's hold (startHeld)
  * @returns held
  */
 export function heldAtGreen(entry: AiEntry, fieldHeld: boolean): boolean {
-  if (!FIX.rollgreen || !game.start.on || !game.start.rolling) return fieldHeld;
+  if (!game.start.on || !game.start.rolling) return fieldHeld;
   let release = RELEASES.get(entry);
   if (!release) {
     release = releaseOf(entry.drv.traits as Traits);

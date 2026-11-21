@@ -29,7 +29,7 @@
 // routemonster and m4gt3 passed 11-16; then corolla, reversefix, f1menu, r13, ibiza and a4avant
 // passed 11-16; lowrange, dmgmore, transitcustom, e36peak and schoolbus passed 11-17; dmgmore2,
 // marktrack, scanyah (the tractor) and tipping passed 11-17; resetclean, lamps, fpshud, marksage
-// blighty, flagfix, trailer, boxhold and gridlen passed 11-21.)
+// blighty, flagfix, trailer, boxhold and gridlen passed 11-21; rollgreen and hwfan passed 11-21.)
 import { envValue } from './debug.ts';
 
 /**
@@ -82,16 +82,6 @@ export const FIX = {
   // scale per driver type (ai/tune.ts COMMIT_BOXED: the racers, the traffic's speeders); the
   // defaults keep today's behaviour until the owner picks the lean
   gapcommit: atLoad('gapcommit'),
-  // THE ROLLING START'S GREEN (owner 11-21, item 10): each AI released at its own reaction after
-  // the green (by skill and personality), a few jumping it (game/greenrelease.ts); the race
-  // driver's start phase counted from its release, not the formation's first move
-  // (ai/driverLane.ts)
-  rollgreen: atLoad('rollgreen'),
-  // THE HIGHWAY START, FANNED (owner 11-21: "they all drift to one side and weave back"): no dodge
-  // plan kept while the start holds a car; in its start phase it holds its formation lane, going
-  // round only a truly slower car, to its own column's side (ai/startFan.ts) - the endless road
-  // only
-  hwfan: atLoad('hwfan'),
   // RESET mends the tractor's trailer as it mends the tractor (game/session.ts doReset)
   trailheal: atLoad('trailheal'),
   // a lorry's, van's and bus's own side windows on its rolled side (render/carprofile.ts windows:

@@ -13,25 +13,6 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
-    id: 'hwfan',
-    added: '2026-11-21',
-    name: 'Highway race start: cars hold their lane at the green, then fan out to their own side',
-    where: 'Test link + &hwfan=1: a motorway race (rolling start) with racers and traffic',
-    try: 'Watch the green: the two columns stay in their lanes, then the left column goes round '
-      + 'slower cars to the left and the right column to the right.',
-    wrong: 'The field sliding together into one lane at the green and weaving back, or cars '
-      + 'leaving their lane while the car ahead is just as fast.',
-  },
-  {
-    id: 'rollgreen',
-    added: '2026-11-21',
-    name: 'Rolling starts: each AI goes at its own reaction, a few jump the green, then race',
-    where: 'Test link + &rollgreen=1: a rolling start (Naffcar, Dieatona, Stock Car, the highway)',
-    try: 'Watch the green: the field breaks up, cars pull out and swap places in the first '
-      + 'seconds instead of moving as one block. Count the crashes in the first corner.',
-    wrong: 'The field still moving as a block, or far more crashes and pile-ups than before.',
-  },
-  {
     id: 'gapdest',
     added: '2026-11-21',
     name: 'Racers aim for a gap more than one step across instead of sitting boxed in',

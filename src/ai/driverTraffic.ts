@@ -487,8 +487,8 @@ const wideFor = (inWay: SeenCar[]) => (!inWay.length ? 0
   : inWay.some((other) => other.v < CREEP_UNDER_V) ? WIDE_SLOW : WIDE);
 
 /**
- * ?hwfan (ai/startFan.ts): in a highway start phase, false - no pick, the formation lane held -
- * or the pick's room cut to my column's side; true to pick.
+ * The highway start (ai/startFan.ts): in a highway start phase, false - no pick, the formation
+ * lane held - or the pick's room cut to my column's side; true to pick.
  * @param drv the driver
  * @param seen the cars seen
  * @param pick the gap picker's input (its room cut in place)
@@ -645,7 +645,7 @@ function gapStep(drv: Drv, car: AiCar, acc: CarsAcc, seen: SeenCar[], mine: { my
     lo: -room - lineOff, hi: Math.max(top, -room - lineOff), edge: latLim, centre: lineOff,
     lanes: drv.state.path === drv.main ? drv.line.lanes : undefined,
     commitK: commitShare(drv) };
-  // (?hwfan: a highway start phase holds its formation lane, or fans to its column's side)
+  // (a highway start phase holds its formation lane, or fans to its column's side)
   if (!fanned(drv, seen, pick, mine.startK)) return;
   const line = gapLine(seen, pick);
   state.gapBase = line;

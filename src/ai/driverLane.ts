@@ -1,7 +1,6 @@
 // ai/driverLane.ts: the circuit driver's place on the path, its mistakes, its lateral lane
 // (line share, grid lane), the push of a battle and its racecraft. Functions take the
 // driver context.
-import { FIX } from "../core/fixes.ts";
 import { lateralOf } from './rejoin.ts';
 import { querySubtrack } from "../world/tyrewall.ts";
 import { K_BRAKE, nearestIdx, profileOf } from "./line.ts";
@@ -23,13 +22,13 @@ const ATK_ROOM = 0.3;        // m more than that an attack aims beside the car
 const START_BLEND = 9;
 
 /**
- * ?rollgreen: whether the start holds me this think (driverDrive.ts noteHeld stamps it).
+ * Whether the start holds me this think (driverDrive.ts noteHeld stamps it).
  * @param state my state
  * @param state.t s
  * @param state.heldT s, the last think the start held me
  * @returns held now
  */
-const heldNow = (state: { t: number; heldT?: number }) => FIX.rollgreen && state.heldT === state.t;
+const heldNow = (state: { t: number; heldT?: number }) => state.heldT === state.t;
 
 /**
  * Whether my start phase begins now: my first move over 2 m/s on the main line, not while held.
@@ -187,8 +186,8 @@ export function laneStep(drv: Drv, car: AiCar, path: AiPath, nearIdx: number, sp
   // from the line when it set off) and eases onto the line over START_BLEND s; in that
   // phase cars alongside get more room (START_GAP) and a car ahead is gone round rather than
   // followed.
-  // (?rollgreen: not while the start holds me - a rolling start's formation moves, and the start
-  // phase was spent before the green: tools/scratch/_rollgreen.mjs)
+  // (not while the start holds me - a rolling start's formation moves, and the start phase was
+  // spent before the green: tools/scratch/_rollgreen.mjs)
   if (startsNow(state, speed, path === main)) {
     state.goT = state.t;
     const here = pts[nearIdx];

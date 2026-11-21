@@ -17,6 +17,31 @@ lighting, bushes and trees - OWNER LIST 10-24; the checking tools - Tools that a
 
 
 
+## PASSED 11-21, THE ROLLING GREEN AND THE HIGHWAY FAN (owner: "Starts are good")
+
+The default 11-21, their switches deleted:
+- THE ROLLING GREEN (410bafc9, game/greenrelease.ts, ai/driverLane.ts startsNow): on a rolling start
+  each AI keeps its formation place until its own release - a reaction after the green by skill
+  (0.15 s at skill 1 .. 0.45 s at skill 0) and personality (quick / aggressive -0.05, steady /
+  defensive +0.05), or for a share of drivers by risk (5 % + 10 % x risk) a jump 0.1-0.3 s before
+  the green - from its seed; the race driver's start phase (keep the grid lane, room, go round)
+  begins at its release. MEASURED before (tools/scratch/_rollgreen.mjs, 4 seeds): the start phase
+  begun 10-11 s before the green on every oval and all spent there; every car gaining speed
+  0.9-1.1 s after the green; Dieatona's order unchanged in 10 s in 3 of 4 seeds.
+  MEASURED after (_rollgreen, 4 seeds, the first 15 s after the green, Naffcar / Stock Car /
+  Dieatona / the motorway together): touches 157 -> 156, incidents 35 -> 29, pile-ups (5+ cars)
+  9 -> 12, places changed by 15 s 131 -> 148 (Dieatona 14 -> 24).
+- THE HIGHWAY FAN (0824ea76, ai/startFan.ts): no dodge plan or picked line kept while the start holds
+  a car on the endless road; in its start phase it holds its formation lane unless a car truly
+  slower (under 0.8 x its speed) is on it, then goes round only to its own column's side. MEASURED
+  before (tools/scratch/_hwside.mjs, every switch off): the field slid into the one free lane at the
+  green (its mean across -6.3 -> -7.8 m, spread 3.7 -> 8.2 m in 4 s), then weaved back.
+  MEASURED after (_hwside, 4 seeds): the field's spread across the road 1 s after the green 5.4-6.2
+  -> 3.6-3.7 m, 2 s after 6.2-8.0 -> 3.7-3.8 m (no slide into one lane); the motorway's touches in
+  the first 15 s 3 -> 2 (_rollgreen).
+PROOF (second PC, round176 with ?rollgreen and ?hwfan on -> this plain): worldhash --highway 20, simhash
+and renderhash (Thruston, Brands, the highway) SAME.
+
 ## PASSED 11-21, LABSTART AND GRIDPOS (owner: ?labstart and ?gridpos passed)
 
 The default 11-21, their switches deleted (the Lab's one start spot in the open lane; the grid's
