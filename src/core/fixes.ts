@@ -93,6 +93,10 @@ export const FIX = {
   // needed"): the field goes round a stopped car on one side, and a car beside a swerver makes room
   // (ai/hazards.ts)
   hazard: atLoad('hazard'),
+  // REVERSE ONLY WHEN STUCK (owner 11-22: "should only kick in if it's stuck still"): the AI's
+  // drive-out (ai/driveOut.ts) counts its still time only while it wants to go - not while a car
+  // ahead holds it or its plan stands still - and over a longer wait
+  revstuck: atLoad('revstuck'),
   // the GETAWAY STOCKHOLM scenery for the endless roads, step 1: its card, the city's stretches,
   // its lots of buildings behind noise walls, blue signs (highway/city.ts)
   stockholm: atLoad('stockholm'),

@@ -148,6 +148,8 @@ export interface DriveOutState {
   outN?: number;
   outAt?: number;
   giveUp?: boolean;
+  // (?revstuck: the last think's - held to a car ahead's speed, and the target speed, m/s)
+  follow?: boolean; capBinds?: boolean; vT?: number;
 }
 
 // A point of a path: finishPath sets h, R, turn and mu.
