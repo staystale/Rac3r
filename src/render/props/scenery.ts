@@ -594,18 +594,25 @@ const SLAT_STONE = '#8f8a80', SLAT_TOP = '#a9a49a', SLAT_JOINT = '#3b4047';
 // GETAWAY STOCKHOLM's tunnel under its slats: dark inside (owner 11-21); ?tunnellamps lighter, the
 // cars clear between the slats (owner 11-22: "day seems too dark in the tunnel")
 const TUNNEL_SHADE = 'rgba(4,6,10,0.55)', TUNNEL_SHADE_LIGHT = 'rgba(4,6,10,0.3)';
+// a slat's shadow on the ground past its edge (Moanaco's: under the cars), 1.2 m
+const SLAT_SHADOW = 'rgba(10,12,16,0.45)';
 
 export function drawSlat(propCtx: PropCtx, prop: Prop, ppm: number) {
   const { view } = propCtx;
   const halfW = prop.w! / 2, halfH = prop.h! / 2;
-  // (one over the endless road's tunnel: the tunnel's shade over its whole pitch, the gap after it
-  // too - the road and a car glimpsed in it dark)
-  if (prop.overRoad) {
-    view.ctx.fillStyle = FIX.tunnellamps ? TUNNEL_SHADE_LIGHT : TUNNEL_SHADE;
-    view.ctx.fillRect(-halfW * ppm, -halfH * ppm, (prop.wid || prop.w!) * ppm, prop.h! * ppm);
+  // (?tunnellamps: one over the endless road is drawn over the cars - its shade and shadow fall on
+  // the road under them, drawSlatUnder, never over a car in the gap: owner 11-22, a dark band over
+  // the slat and onto the car)
+  if (!(FIX.tunnellamps && prop.overRoad)) {
+    // (one over the endless road's tunnel: the tunnel's shade over its whole pitch, the gap after
+    // it too - the road and a car glimpsed in it dark)
+    if (prop.overRoad) {
+      view.ctx.fillStyle = TUNNEL_SHADE;
+      view.ctx.fillRect(-halfW * ppm, -halfH * ppm, (prop.wid || prop.w!) * ppm, prop.h! * ppm);
+    }
+    view.ctx.fillStyle = SLAT_SHADOW;
+    view.ctx.fillRect(-halfW * ppm, -halfH * ppm, (prop.w! + 1.2) * ppm, prop.h! * ppm);
   }
-  view.ctx.fillStyle = 'rgba(10,12,16,0.45)';
-  view.ctx.fillRect(-halfW * ppm, -halfH * ppm, (prop.w! + 1.2) * ppm, prop.h! * ppm);
   view.ctx.fillStyle = SLAT_JOINT;
   view.ctx.fillRect(-halfW * ppm, -halfH * ppm, prop.w! * ppm, prop.h! * ppm);
   view.ctx.fillStyle = SLAT_STONE;
@@ -614,3 +621,20 @@ export function drawSlat(propCtx: PropCtx, prop: Prop, ppm: number) {
   view.ctx.fillStyle = SLAT_TOP;
   view.ctx.fillRect((-halfW + 0.2) * ppm, (-halfH + 0.2) * ppm, 0.5 * ppm, (prop.h! - 0.4) * ppm);
 }
+/**
+ * ?tunnellamps: under the cars, a slat over the endless road's shade and shadow - the tunnel's
+ * shade over its pitch (the gap after it too) and its shadow 1.2 m past it, as Moanaco's slats
+ * cast theirs on the road under the cars; the slat itself is drawn over them (drawSlat).
+ * @param propCtx the view and painter helpers
+ * @param prop the slat (w, wid, h)
+ * @param ppm pixels per metre
+ */
+export function drawSlatUnder(propCtx: PropCtx, prop: Prop, ppm: number) {
+  const { view } = propCtx;
+  const halfW = prop.w! / 2, halfH = prop.h! / 2;
+  view.ctx.fillStyle = TUNNEL_SHADE_LIGHT;
+  view.ctx.fillRect(-halfW * ppm, -halfH * ppm, (prop.wid || prop.w!) * ppm, prop.h! * ppm);
+  view.ctx.fillStyle = SLAT_SHADOW;
+  view.ctx.fillRect(-halfW * ppm, -halfH * ppm, (prop.w! + 1.2) * ppm, prop.h! * ppm);
+}
+
