@@ -11,6 +11,7 @@ import {
 } from "./dodge.ts";
 import { blockOn, gapLine, seeCar } from "./gapPick.ts";
 import { traceBoxed } from "./boxedTrace.ts";
+import { hazardStep } from "./hazards.ts";
 import { startFan } from "./startFan.ts";
 import { capRoom, withinCap } from "./driverOncoming.ts";
 import type { SeenCar } from "./gapPick.ts";
@@ -533,6 +534,7 @@ export function carsStep(drv: Drv, car: AiCar, others: AiCar[], path: AiPath, ne
     dodgeT: 0, followCap: Infinity, conflict: false, lead: null, threat: null, side: 0, alg: []
   };
   const seen: SeenCar[] = [];
+  const beside: { lat: number; car: AiCar }[] = [];
   for (const other of others) {
     const { fwd, lat, vAlong } = viewOf(car, other, byRoad && !!other._hwf, state.roadHand);
     // (cars to 60 m behind too - the gap picker's mirror; ahead, read as far in time
@@ -557,9 +559,12 @@ export function carsStep(drv: Drv, car: AiCar, others: AiCar[], path: AiPath, ne
       dec: envO.dec });
     noteLeadThreat(drv, acc, env, other, fwd, otherLat, vAlong);
     if (halted) noteStopped(acc, other, { fwd, otherLat, vAlong }, envO);
+    if (fwd > -4 && fwd < 2.5) beside.push({ lat: otherLat, car: other });
     reactTo(drv, acc, [env, envO], { fwd, otherLat, vAlong, closeIdx, attacked: !!attacked,
       halted });
   }
+  // (?hazard: one side round a stopped car for the field, room for a swerver - ai/hazards.ts)
+  hazardStep(car, acc, seen, { myLat, latT, beside });
   gapStep(drv, car, acc, seen, { myLat, latT, lineOff, latLim, speed, look, startK });
   acc.seen = seen;
   return acc;

@@ -89,6 +89,10 @@ export const FIX = {
   // plan's fall (feed-forward) with a trim, no on / off dabbing - at today's braking point (K_BRAKE
   // 0.70); following a car as before (ai/driverPedals.ts pedalZone)
   brakepedal: atLoad('brakepedal'),
+  // SHARED HAZARD AWARENESS (owner 11-22: "all nearby cars react ... avoid, and slow only if
+  // needed"): the field goes round a stopped car on one side, and a car beside a swerver makes room
+  // (ai/hazards.ts)
+  hazard: atLoad('hazard'),
   // the GETAWAY STOCKHOLM scenery for the endless roads, step 1: its card, the city's stretches,
   // its lots of buildings behind noise walls, blue signs (highway/city.ts)
   stockholm: atLoad('stockholm'),
