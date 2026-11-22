@@ -14,6 +14,7 @@ import { dressCanyon } from "./canyon.ts";
 import { layCityLots } from "./city.ts";
 import { layCityWater, layTunnelSlats } from "./citywater.ts";
 import { cityStretchAt, cityWallAt } from "./cityplan.ts";
+import { hillWallOf } from "./hillground.ts";
 import { medianAt } from "./medians.ts";
 import { layCushions, markBarriers, noteMedianPiece } from "./cushions.ts";
 import type { LevelObj } from '../cones/coneTypes.ts';
@@ -309,14 +310,14 @@ function layWalls(ctx: DressCtx) {
   // (the walled road's wall all along; GETAWAY STOCKHOLM's by stretch - highway/cityplan.ts)
   const wallAt: WallRule | null = cfg.walls ? () => ({ kind: cfg.walls as BarrierKind,
     gap: cfg.wallGap || 0 }) : cfg.theme === 'city' ? (dist) => cityWallAt(dist, level._hw.seed)
-    : null;
+    : cfg.theme === 'peak' ? hillWallOf(level) : null;
   if (wallAt)
     for (let startIdx = Math.max(0, firstIdx - 1); startIdx < endIdx; startIdx += 30)
       for (const side of [-1, 1]) layWallPiece(ctx, wallAt, startIdx, side);
 }
 
-/** The wall along the road's edges at a road distance: its kind and m off the edge, or none. */
-type WallRule = (dist: number) => { kind: BarrierKind; gap: number } | null;
+/** The wall along a side of the road at a road distance: its kind and m off the edge, or none. */
+type WallRule = (dist: number, side: number) => { kind: BarrierKind; gap: number } | null;
 
 /**
  * One ~120 m piece of the walls on one side (layWalls), a new one where the kind changes.
@@ -339,7 +340,7 @@ function layWallPiece(ctx: DressCtx, wallAt: WallRule, startIdx: number, side: n
         // wall across every services' way in)
         const lastIdx = Math.min(road.length - 1, endIdx - 1, startIdx + 30);
         for (let j = startIdx; j <= lastIdx; j++) {
-          const wall = wallAt(road[j].s);
+          const wall = wallAt(road[j].s, side);
           if (!wall || wall.kind !== kind) {
             flush();
             kind = wall ? wall.kind : null;
@@ -453,6 +454,11 @@ function dressStretch(level: HwLevel, firstIdx: number, endIdx: number, loose: L
   const ctx = makeDressContext(level, firstIdx, endIdx, loose);
   // (the barriers this stretch lays are read for their ends)
   markBarriers(ctx);
+  // (the hill climb: a closed mountain road - only its barriers at the worst corners for now)
+  if (level._cfg.theme === 'peak') {
+    layWalls(ctx);
+    return;
+  }
   // (the lay-bys first - the scenery keeps off them)
   layLaybys(ctx);
   // a themed road dresses its own way (Deaf Valley: highway/canyon.ts)

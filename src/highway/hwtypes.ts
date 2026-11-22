@@ -15,13 +15,18 @@ export interface HwCfg {
   pStraight: number; pBend: number;   // the chance of a straight / a tight bend
   walls?: string; wallGap?: number;   // walled in: the barrier kind, m off the road edge
   // its own roadside (highway/canyon.ts, highway/city.ts); none: the countryside
-  theme?: 'canyon' | 'city';
+  theme?: 'canyon' | 'city' | 'peak';
   // drives on the RIGHT (GETAWAY STOCKHOLM): the road's world the mirror image of its
   // left-hand twin - every rule in road terms as it is (highway/road.ts HwState.hand)
   rightHand?: boolean;
   kRate?: number;   // the fastest curvature change, 1/m per m (road.ts; else presets.ts K_RATE)
   // its changes by road distance (Deaf Valley's HIGH road: highway/desertplan.ts)
   stretch?: (dist: number, seed: number) => Partial<HwCfg> | null;
+  // a hill climb's switchback cluster on this stretch (highway/hillplan.ts; road.ts
+  // switchbackElements): its stretch's number, hairpins, their radius and leg ranges (m), the legs'
+  // heading off straight up (deg)
+  switchbacks?: { index: number; hairpins: number; radius: number[]; leg: number[];
+    legDeg: number };
   // the other way's traffic: 'carriageway' - a second carriageway, mirrored, the far side of a
   // central reservation (its barriers: medians); 'lane' - a single carriageway
   // whose right-hand lane comes the other way (road.ts laneGeo)
@@ -104,6 +109,7 @@ export interface HwState {
   geo: HwGeo;
   pts: HwPoint[];
   plan: HwElem[];
+  wIndex?: number;   // the switchback cluster laid last (road.ts: one a stretch)
   x: number; y: number; hdg: number; s: number;   // where the road has grown to
   dressed: number;   // points dressed so far
   target: number; tUntil: number; tSide: number;   // the lean the road steers toward

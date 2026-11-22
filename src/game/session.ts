@@ -317,6 +317,14 @@ export function doReset() {
 }
 
 /**
+ * The traffic a start brings: the player's density, none on the hill climb's closed road
+ * (highway/hillplan.ts).
+ * @returns the density
+ */
+const trafficNow = (): number => (LEVEL.endless && hwLevel()._cfg.theme === 'peak' ? 0
+  : shared.trafficDensity);
+
+/**
  * Clears every car's track-cut state at the start of a run.
  */
 export function clearCutCounts() {
@@ -449,7 +457,7 @@ function startField() {
   }
   showGridPlace();
   // (the menu race too - owner 11-07: "no traffic on menu highway races?")
-  game.traffic.reset(LEVEL.endless ? hwLevel() : null, shared.trafficDensity);
+  game.traffic.reset(LEVEL.endless ? hwLevel() : null, trafficNow());
   if (LEVEL.endless && game.start.rolling) {
     const [spanStart, spanEnd] = hwGridSpan(hwLevel(), game.ai.length + 1);
     game.traffic.clearSpan(spanStart, spanEnd);

@@ -97,12 +97,22 @@ function nextElement(state: HwState, cfg: HwCfg) {
     turn = ((6 + rand() * 10) * Math.PI) / 180;
   }
   turn = Math.min(turn, Math.max(0.02, max - dir * off));
-  // total turn = k * (ramp + hold); length = 2 ramp + hold. The RAMP is long enough that curvature
-  // changes no faster than K_RATE per m (MEASURED, tools/treadmillcheck: a 30 m minimum
-  // ramp gave the dual carriageway's R 120-200 bends a 5.7e-4 jump per 4 m step and the bench
-  // driver ran wide out of an S-bend); a turn too small for that ramp is made WIDER (lower k),
-  // never sharper.
-  const kRate = cfg.kRate || K_RATE;
+  return turnElement(dir, turn, rad, cfg.kRate || K_RATE);
+}
+
+/**
+ * A curve element: total turn = k * (ramp + hold); length = 2 ramp + hold. The RAMP is long enough
+ * that curvature changes no faster than kRate per m (MEASURED, tools/treadmillcheck: a 30 m minimum
+ * ramp gave the dual carriageway's R 120-200 bends a 5.7e-4 jump per 4 m step and the bench
+ * driver ran wide out of an S-bend); a turn too small for that ramp is made WIDER (lower k),
+ * never sharper.
+ * @param dir +1 or -1
+ * @param turn the total turn, rad
+ * @param rad its radius, m
+ * @param kRate the fastest curvature change, 1/m per m
+ * @returns the element
+ */
+function turnElement(dir: number, turn: number, rad: number, kRate: number): HwElem {
   let curv = 1 / rad, ramp = Math.max(curv / kRate, Math.min(160, turn * rad * 0.35));
   if (curv * ramp > turn) {
     ramp = Math.max(ramp * 0.5, Math.sqrt(turn / kRate));
@@ -110,6 +120,35 @@ function nextElement(state: HwState, cfg: HwCfg) {
   }
   const hold = Math.max(0, turn / curv - ramp);
   return { len: 2 * ramp + hold, k: dir * curv, ramp, hold };
+}
+
+/**
+ * A SWITCHBACK CLUSTER (the hill climb's "W": highway/hillplan.ts): from where the heading is, a
+ * turn onto a leg across the slope (legDeg off straight up), then hairpins - each turning the
+ * road back across through straight up, so it climbs - with a leg after each, and a turn back
+ * toward straight up. Its numbers from the road's own stream.
+ * @param state the road (its heading, its shape stream)
+ * @param cfg the stretch's switchbacks
+ * @returns the elements, in order
+ */
+function switchbackElements(state: HwState, cfg: HwCfg): HwElem[] {
+  const rand = state.grnd, spec = cfg.switchbacks!, kRate = cfg.kRate || K_RATE;
+  const pick = (range: number[]) => range[0] + rand() * (range[1] - range[0]);
+  const legRad = spec.legDeg * Math.PI / 180;
+  let off = wrap(state.hdg - UP_HEADING);
+  const side = off > 0 ? -1 : 1, out: HwElem[] = [];
+  // (onto the first leg, the side the heading is not already on)
+  out.push(turnElement(Math.sign(side * legRad - off) || side, Math.abs(side * legRad - off),
+    pick(cfg.bend), kRate));
+  off = side * legRad;
+  for (let pin = 0; pin < spec.hairpins; pin++) {
+    out.push({ len: pick(spec.leg), k: 0, ramp: 0, hold: 0 });
+    out.push(turnElement(-Math.sign(off), 2 * legRad, pick(spec.radius), kRate));
+    off = -off;
+  }
+  out.push({ len: pick(spec.leg), k: 0, ramp: 0, hold: 0 });
+  out.push(turnElement(-Math.sign(off), legRad, pick(cfg.bend), kRate));
+  return out;
 }
 const curvAt = (elem: HwElem, along: number) =>
   !elem.k
@@ -125,7 +164,12 @@ export function growTo(level: HwLevel, sTarget: number) {
     if (!state.plan.length) {
       // a road type that changes along the road (Deaf Valley's HIGH road) plans from where it is
       const changes = level._cfg.stretch?.(state.s, state.seed);
-      state.plan.push(nextElement(state, changes ? { ...level._cfg, ...changes } : level._cfg));
+      const cfg = changes ? { ...level._cfg, ...changes } : level._cfg;
+      // (a hill climb's switchbacks: one cluster a stretch - highway/hillplan.ts)
+      if (cfg.switchbacks && state.wIndex !== cfg.switchbacks.index) {
+        state.wIndex = cfg.switchbacks.index;
+        state.plan.push(...switchbackElements(state, cfg));
+      } else state.plan.push(nextElement(state, cfg));
     }
     const elem = state.plan[0], along = elem.done || 0;
     // midpoint curvature over the step: exact for a linear ramp, so the heading lands exactly where

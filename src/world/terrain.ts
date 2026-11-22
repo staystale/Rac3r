@@ -196,11 +196,14 @@ function roadsideHeight(track: Subtrack, hit: SubtrackHit, x: number, y: number)
  * The ground's rise at a lookup's nearest point of the road (a hill climb's grade: level.climb).
  * @param track the road
  * @param hit the lookup's hit on it
+ * @param x the ground point, m
+ * @param y the ground point, m
  * @returns m
  */
-function climbHeight(track: Subtrack, hit: SubtrackHit): number {
-  if (hit.seg == null || !Number.isFinite(hit.dist)) return 0;
-  return LEVEL.climb!(hit.trackDist + (track.sBase || 0));
+function climbHeight(track: Subtrack, hit: SubtrackHit, x: number, y: number): number {
+  // (past the lookup's reach: no road distance - the level's far ground)
+  if (hit.seg == null || !Number.isFinite(hit.dist)) return LEVEL.climb!(NaN, x, y, Infinity);
+  return LEVEL.climb!(hit.trackDist + (track.sBase || 0), x, y, hit.dist - track.width / 2);
 }
 /**
  * Whether a ground lookup needs its nearest point of the road: banking, camber, the level's ground
@@ -223,7 +226,7 @@ const needsRoadHit = (track: Subtrack, smooth: boolean): boolean => !!(LEVEL.ban
  */
 function roadGroundHeight(track: Subtrack, hit: SubtrackHit, x: number, y: number): number {
   return (LEVEL.roadside ? roadsideHeight(track, hit, x, y) : 0)
-    + (LEVEL.climb ? climbHeight(track, hit) : 0);
+    + (LEVEL.climb ? climbHeight(track, hit, x, y) : 0);
 }
 // the ground point handed to level.roadside (no allocation per lookup)
 const ROADSIDE_AT = { x: 0, y: 0 };

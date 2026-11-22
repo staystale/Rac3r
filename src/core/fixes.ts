@@ -96,4 +96,8 @@ export const FIX = {
   // THE HILL CLIMB'S GRADE, step 1 (owner 11-22: a real 7 % climb): the endless road rising
   // HILL_GRADE along its length (highway/hillgrade.ts) - the engine piece, measured alone
   hillgrade: atLoad('hillgrade'),
+  // THE HILL CLIMB, step 2 (owner 11-22: Pikes Peak style, 5 km): its road - sweepers, esses,
+  // switchback clusters, short straights -, its grade, its hillside and drops (highway/hillplan.ts,
+  // hillground.ts), a scenery of the endless roads
+  hillclimb: atLoad('hillclimb'),
 };
