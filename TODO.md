@@ -336,6 +336,10 @@ THE 10 NEW CARS (owner-approved names 11-16; one switch and one hand-back each; 
   The Bird's Mess built; ACCORDION STADIUM (Sydney 2025) and DUSSELDORK ARENA (2010-11) not built
   unless their track is really special.
 - X GAYMS RALLYCROSS, the course L.A. LIVELY: PASSED 11-13, the default (TODO-DONE).
+- OLD WOBBLY SETTLED (owner 11-22): the 1963-on stadium with its twin towers but NO ROOF (the track seen
+  and played whole); TARMAC; a ~555 m lap; a football pitch + a small pit area with bangers; the white
+  safety fence with boards, tyres only in the pit / infield; floodlights; the Stock Car oval's rolling
+  start and contact racing; behind ?oldwobbly, under OVALS (Worker C, after the SPIKES items).
 - OLD WOBBLY (approved 11-10): the old Wembley's stock car / speedway track round the pitch, 345 m
   real (378 yd), so built at its size (Wembley's shape, a ~550 m lap) in the old stadium's bowl
   with its twin towers ("it can size match with the current stock car circuit or relative if it's
