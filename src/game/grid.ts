@@ -16,6 +16,8 @@ import { onTrack, querySubtrack } from "../world/tyrewall.ts";
 import { START_STEP, ROLL_BACK } from './order.ts';
 import { shared, game } from './state.ts';
 import { FIX } from '../core/fixes.ts';
+import { layStageTracks } from './stagetracks.ts';
+import { prefillStageSplits } from './stagepos.ts';
 import type { GameCar } from './state.ts';
 import type { Point } from '../world/types.ts';
 import { isTowing, layGridByLength, playerSlot, slotBackM } from './gridlen.ts';
@@ -71,6 +73,12 @@ export function drawGridSlot(count: number) {
 // already down the stage where their own pace would have taken them (lineRun); those AFTER you
 // queue behind and go STAGE_GAP_S apart. (Was: everyone queued 6 s apart — a race in single file.)
 export const STAGE_GAP_S = 30, STAGE_GAP_M = 9;
+// ?stagetimes: an AI car's DRIVEN stage time over its predicted one (ai/line.ts lineRun) - the
+// prediction runs every corner at the speed profile and leaves out the driver's own losses.
+// MEASURED (tools/scratch/_stagecount.mjs, Sweaty Lamb, REALISH, 13 cars started 1-3 slots
+// ahead: the part driven over its predicted part) 1.10-1.15, mean 1.12. A car home before your
+// green is timed at its prediction x this.
+export const STAGE_DRIVEN_RATIO = 1.12;
 export function gridPos(slot: number) {
   // the highway: 2 wide in the right-hand lanes (highwayrace.js)
   if (LEVEL.endless) return hwGrid(hwLevel(), slot);
@@ -226,6 +234,45 @@ function aiNumbers(count: number, seed: number) {
   }
   return deck.slice(0, count);
 }
+/**
+ * Places a rally stage's AI car by its start, relative to yours (rel < 0 started before you,
+ * > 0 queues behind you): ahead, where its own pace has it 4 s before your green, already
+ * driving - or home where that is past the finish (its predicted time its result; ?stagetimes:
+ * x STAGE_DRIVEN_RATIO); behind, in the queue.
+ * @param car the car
+ * @param pace its driver's pace
+ * @param rel its slot relative to yours
+ * @returns 'home' (not on the road) or 'road'
+ */
+function placeStageCar(car: GameCar, pace: number, rel: number): 'home' | 'road' {
+  car._slot = rel;
+  car._predT = lineRun(LEVEL, car.spec, pace, Infinity, LEVEL.stage!.finish).t;
+  const headS = -rel * STAGE_GAP_S - 4 * START_STEP;
+  // (home where its placement - at the predicted pace - is past the finish)
+  if (rel < 0 && car._predT <= headS) {
+    car._stageStart = rel * STAGE_GAP_S;
+    car._stageTime = car._predT * (FIX.stagetimes ? STAGE_DRIVEN_RATIO : 1);
+    // (?stagepos: its splits over the whole stage, scaled to its result)
+    if (FIX.stagepos)
+      prefillStageSplits(car, pace, LEVEL.stage!.finish, car._stageTime / car._predT);
+    return 'home';
+  }
+  if (rel < 0) {
+    const run = lineRun(LEVEL, car.spec, pace, headS);
+    reset(car, run.x, run.y, run.h);
+    car.vx = Math.cos(run.h) * run.v;
+    car.vy = Math.sin(run.h) * run.v;
+    car._stageStart = rel * STAGE_GAP_S;
+    car._prog = run.dist;
+    car._lastQ = run.dist;
+    if (FIX.stagepos) prefillStageSplits(car, pace, run.dist, 1);
+  } else {
+    const pos = gridPos(rel);
+    reset(car, pos.x, pos.y, pos.h);
+  }
+  return 'road';
+}
+
 export function spawnAI(count: number = shared.aiCount) {
   game.ai = [];
   game.aiDone = [];
@@ -258,30 +305,9 @@ export function spawnAI(count: number = shared.aiCount) {
     car._prog = undefined;
     car._stageStart = undefined;
     if (LEVEL.stage) {
-      // slot relative to yours: < 0 started before you (already on the stage), > 0 queues behind
-      // you
-      const rel = slot - shared.gridSlot;
-      car._slot = rel;
-      car._predT = lineRun(LEVEL, car.spec, drv.traits.pace, Infinity, LEVEL.stage.finish).t;
-      const headS = -rel * STAGE_GAP_S - 4 * START_STEP;
-      if (rel < 0 && FIX.stagedone && car._predT <= headS) {
-        // home before your green: not on the road, its predicted time its result
-        car._stageStart = rel * STAGE_GAP_S;
-        car._stageTime = car._predT;
-        game.aiDone.push(car);
+      if (placeStageCar(car, drv.traits.pace, slot - shared.gridSlot) === 'home') {
+        game.aiDone!.push(car);
         continue;
-      }
-      if (rel < 0) {
-        const run = lineRun(LEVEL, car.spec, drv.traits.pace, headS);
-        reset(car, run.x, run.y, run.h);
-        car.vx = Math.cos(run.h) * run.v;
-        car.vy = Math.sin(run.h) * run.v;
-        car._stageStart = rel * STAGE_GAP_S;
-        car._prog = run.dist;
-        car._lastQ = run.dist;
-      } else {
-        const pos = gridPos(rel);
-        reset(car, pos.x, pos.y, pos.h);
       }
     } else {
       const pos = gridPos(slot);
@@ -292,4 +318,6 @@ export function spawnAI(count: number = shared.aiCount) {
     }
     game.ai.push({ car, drv, inGate: false });
   }
+  // (?stagetracks: the tracks of the cars already through - game/stagetracks.ts)
+  if (FIX.stagetracks && LEVEL.stage) game.stageTracksMs = layStageTracks();
 }

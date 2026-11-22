@@ -13,6 +13,9 @@ import { inTrackUnderpass, queryLevelOf } from "../world/trackunder.ts";
 import { onGround } from "../world/crossinggeo.ts";
 import { STAGE_GAP_S, GRID_STEP, gridColumn } from './grid.ts';
 import { slotBackM } from './gridlen.ts';
+import { stagePosition } from './stagepos.ts';
+import { FIX } from '../core/fixes.ts';
+import type { RaceFlow } from '../raceflow.ts';
 import { formationInput, holdSpeed, roadFormationInput } from '../ai/formation.ts';
 import { shared, game, hwLevel } from './state.ts';
 import { firstFree, lapAhead, lapStepBack } from './resetspot.ts';
@@ -54,14 +57,17 @@ export function armStart() {
   // in formation (highwayrace.js)
   if (isRolling && LEVEL.endless) game.start.tGreen = game.start.tGreen0 = HW_GREEN;
 }
+// s a car may go before its green: START_EARLY, none on a rally stage under ?stagehold (owner
+// 11-22: "jump starts shouldn't be possible - the car is held until its green")
+const earlyS = () => (FIX.stagehold && LEVEL.stage ? 0 : START_EARLY);
 export const startHeld = () => game.start.on && !game.start.green
-  && game.start.t < game.start.tGreen - START_EARLY;
+  && game.start.t < game.start.tGreen - earlyS();
 // a car's own release: everyone at the green, except a RALLY STAGE: a later starter (slot k > 0
 // behind you) goes k x STAGE_GAP_S after your green
 export const startAtOf = (car: GameCar) => (game.start.tGreen0 ?? game.start.tGreen) + (LEVEL.stage
   ? (car._slot || 0) * STAGE_GAP_S : 0);
 export const carHeld = (car: GameCar) => game.start.on && !game.start.rolling
-  && game.start.t < startAtOf(car) - START_EARLY;
+  && game.start.t < startAtOf(car) - earlyS();
 // cap a driver's output at the rolling-start pace (the highway's; a circuit's cars drive in
 // formation, formationWant)
 export function atPace(out: CarInput, car: GameCar) {
@@ -280,4 +286,7 @@ export function stepOrder() {
       : car._prog);
   const mine = key(game.car);
   game.position = 1 + all.filter((car) => car !== game.car && key(car) > mine).length;
+  // (?stagepos: a stage's place from the times so far - game/stagepos.ts)
+  if (FIX.stagepos && LEVEL.stage && game.flow)
+    game.position = stagePosition(game.flow as RaceFlow);
 }

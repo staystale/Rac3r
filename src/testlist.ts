@@ -13,6 +13,43 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'stagehold',
+    added: '2026-11-22',
+    name: 'Rally stage: every car held until its own green - no jump start, you or the AI',
+    where: 'Test link + &stagehold=1: TEST MODE, a rally stage, VS AI',
+    try: 'Hold the throttle through the countdown: the car moves only on GO; cars behind leave '
+      + 'on their own green.',
+    wrong: 'Any car moving before its green, a car stuck after it, or a circuit start changed.',
+  },
+  {
+    id: 'stagepos',
+    added: '2026-11-22',
+    name: 'Rally stage: P n/N from the times so far at the same distance, like live timing',
+    where: 'Test link + &stagepos=1: TEST MODE, a rally stage, VS AI 5 (start mid-field)',
+    try: 'Watch P n/N as you drive: it moves as you gain or lose time on the cars ahead; N is the '
+      + 'whole field; at your finish it matches the results.',
+    wrong: 'P that disagrees with the gaps you see, N shrinking as cars finish, or your place '
+      + 'at the finish different from the results.',
+  },
+  {
+    id: 'stagetracks',
+    added: '2026-11-22',
+    name: 'Rally stage: tyre tracks of the cars that started before you, from the start line',
+    where: 'Test link + &stagetracks=1: TEST MODE, Sweaty Lamb, VS AI 5 (start 2nd or later)',
+    try: 'Look at the gravel ahead after the start: ruts from the cars ahead, each its own line, '
+      + 'running into each car where you catch up with it.',
+    wrong: 'No ruts on gravel, ruts on tarmac, ruts off the road or straight through bends, or a '
+      + 'stutter at the start.',
+  },
+  {
+    id: 'stagetimes',
+    added: '2026-11-22',
+    name: 'Rally stage: a car already home is timed at the AI driven pace, not the prediction',
+    where: 'Test link + &stagetimes=1: TEST MODE, Sweaty Lamb, VS AI 5 (start 5th or 6th)',
+    try: 'Restart until you start late (cars home before your green); drive it; read the results.',
+    wrong: 'Home cars always on top (they were), or always last, or far off the driven times.',
+  },
+  {
     id: 'revroom',
     added: '2026-11-22',
     name: 'AI stuck behind a crashed car reverse out sooner and far enough to steer round it',
@@ -23,14 +60,4 @@ export const TEST_LIST: TestEntry[] = [
     wrong: 'AI still nudging back and forth and getting put back, reversing into cars behind, '
       + 'or reversing in normal racing.',
   },
-  {
-    id: 'stagedone',
-    added: '2026-11-22',
-    name: 'Rally stage: a car that started long before you is home, not on the road',
-    where: 'Test link + &stagedone=1: TEST MODE, Sweaty Lamb, VS AI 5 (a late start for you)',
-    try: 'Start the stage a few times until you start 4th or later; drive it and read the results.',
-    wrong: 'A car parked or driving off just ahead of you at the start, a car finishing at the '
-      + 'green, or a time near 270 s; a car missing from the results.',
-  },
-
 ];

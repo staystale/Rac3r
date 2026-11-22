@@ -528,14 +528,39 @@ STORY (Story mode with its garage, money, BUY & FIT, "buy what you last tested" 
   hill-climb TRACK TYPE (a real road traced as data, point-to-point like a stage; an EVENT row -
   UP / DOWN / UP + DOWN - in place of laps) - the plan with the owner. Later: snow near the
   summit, the ghost, the start gantry.
-- A STAGE CAR ALREADY HOME (owner 11-22, fix (a)): BUILT behind ?stagedone (Worker C; game/grid.ts
-  spawnAI, raceflow.ts homeBefore) - a car whose predicted run ends before your green is not on
-  the road, its predicted time its result. MEASURED (tools/scratch/_stagecount.mjs, Sweaty Lamb,
-  5 AI, you 6th): before, slot -5 placed 33 m down the stage just ahead of you, its start -150 s
-  kept - a 270.4 s result, last; slot -4 placed past the finish (1961 m of 1821), timed at the
-  green (120.0 s); after, both home and off the road (111.7, 113.2 s). THE PREDICTION IS FAST:
-  driven stage times ran 3.5-10.1 s over each car's predicted time (lineRun) - home cars now
-  take P1-P2 (owner to decide). AWAITING THE PHONE TEST. NEXT: the real rally start (plan).
+  ROUND 1 (THE DATA) DONE (Worker C): the road from OpenStreetMap (tools/venues/spikes.osm.json,
+  ODbL), heights from USGS 3DEP via Open Topo Data (ned10m, tools/venues/spikes.elev.json, 20 m
+  samples, 10 calls), credited (menu/credits.ts); tools/scratch/_spikesroad.mjs. MEASURED: the
+  course 19.99 km, 2858 -> 4298 m (the event's own 2862 / 4302), rise 1440 m, mean 7.2 %;
+  steepest 500 m 13.6 %, 100 m 26.5 % (at a hairpin: likely the DEM, to smooth); 51 turns over
+  30 deg in 60 m (120 over 10 deg; the event counts 156), 22 hairpins; 25 turns under the venues'
+  least radius 10 m at half scale (47 under the 15.5 m default). OWNER'S ANSWERS FIRST (round 2):
+  real grades at half scale, the top section's length, widening the tight hairpins.
+- A HOME CAR'S TIME AS DRIVEN (owner 11-22: "try (a)", else (b) the class's driven average):
+  BUILT behind ?stagetimes (Worker C; game/grid.ts STAGE_DRIVEN_RATIO 1.12, MEASURED: 13 cars
+  started 1-3 slots ahead on Sweaty Lamb, REALISH, their driven part over its predicted part
+  1.10-1.15). A home car 4 slots ahead: 110.9 s predicted -> 124.2 s, 5th of 6 (the driven cars
+  114.8-122.9 s). Found: a car placed down the stage keeps the prediction's pace for the part it
+  never drove (up to ~10 s for 3 slots ahead). AWAITING THE PHONE TEST.
+- A STAGE'S TYRE TRACKS (owner 11-22: from the start line for each car already through, cheap):
+  BUILT behind ?stagetracks (Worker C, game/stagetracks.ts): the skid-mark layer's own wheel marks
+  along the racing line with each car's own smooth wander, eased onto the line before the car (its
+  own marks carry on). MEASURED: 37-82 ms once at the spawn for 4-5 cars (12-16k marks); ruts on
+  the gravel only (a rolling tyre marks nothing on tarmac, as everywhere), faint before the first
+  car, clear in the bends. AWAITING THE PHONE TEST.
+- A STAGE'S LIVE POSITION (owner 11-22: "P n/N should show true to the current times
+  available"): BUILT behind ?stagepos (Worker C, game/stagepos.ts): each car's time every 20 m
+  from its own start (a car placed down the stage, and one home, filled from the pace that placed
+  it); a car is ahead when, at the furthest split you both have, its time is less; not started:
+  behind. N the whole field (hud/laps.ts). MEASURED (tools/scratch/_stagepos.mjs, Sweaty Lamb, 5
+  AI): live place at your finish 3, your result 3; P1 for the first 31 s was true (your 24.10 s
+  at 300 m to the car ahead's 25.25 s). AWAITING THE PHONE TEST.
+- A STAGE START HELD TO THE GREEN (owner 11-22: "jump starts shouldn't be possible, like all other
+  events"): BUILT behind ?stagehold (Worker C, game/order.ts earlyS): no car goes before its own
+  green on a rally stage. MEASURED (tools/scratch/_stagejump.mjs, throttle held through the
+  lights): before, you and the queued car first moved 0.033 s BEFORE your / its green (START_EARLY
+  0.12 s - every event has it); after, 0.083 s after. OWNER: the circuits, RX and highway starts
+  still allow 0.12 s early - the same there? AWAITING THE PHONE TEST.
 - [ ] STORY MODE: ROOKIE SEASON (grass track, stock car, time trials: hillclimb / runway cones) ->
   ROOKIE 2 (similar events, track variations, harder to win); we pick the events; money / points
   also for NOT finishing top 3; replayable events / championships for more money (finish 5th,
