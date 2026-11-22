@@ -86,19 +86,32 @@ export function layCityWater(ctx: DressCtx, i: number, kind: string) {
   state.coversDirty = true;
 }
 
+// m: a slat's pitch (the slat and the gap after it)
+const SLAT_PITCH_M = SLAT_M + SLAT_GAP_M;
+
+/**
+ * The first slat number at or past a road distance: the one rounding for both ends of every span
+ * (a road point every STEP m meets a slat's start every 92 m, where s / pitch is a whole number
+ * give or take its last bit - two rules there laid one slat twice or none).
+ * @param dist m along the road
+ * @returns the slat number (its start over the pitch)
+ */
+const slatFrom = (dist: number): number => Math.ceil(dist / SLAT_PITCH_M - 1e-9);
+
 /**
  * The tunnel's slats at road point i: each one whose start falls between this point and the next
  * (laid by the road's distance - the same spots in every dress call), on a TUNNEL stretch where
- * its ground has risen.
+ * its ground has risen; every SLATS_A_ROOF-th, counted from the tunnel's own first slat, under a
+ * roof to the last slat.
  * @param ctx the dress context
  * @param i the road point
  */
 export function layTunnelSlats(ctx: DressCtx, i: number) {
   const { level, state, road, halfWidth, pointAt } = ctx;
   if (i + 1 >= road.length) return;
-  const from = road[i].s, upto = road[i + 1].s, pitch = SLAT_M + SLAT_GAP_M;
-  for (let slatAt = Math.ceil(from / pitch) * pitch; slatAt < upto; slatAt += pitch) {
-    const stretch = cityStretchAt(slatAt + SLAT_M / 2, state.seed);
+  const from = road[i].s, upto = road[i + 1].s, pitch = SLAT_PITCH_M;
+  for (let slatIdx = slatFrom(from); slatIdx < slatFrom(upto); slatIdx++) {
+    const slatAt = slatIdx * pitch, stretch = cityStretchAt(slatAt + SLAT_M / 2, state.seed);
     if (stretch.kind !== 'tunnel' || stretch.along < SLAT_IN_M
       || stretch.len - stretch.along < SLAT_IN_M) continue;
     const share = (slatAt + SLAT_M / 2 - from) / Math.max(1e-6, upto - from);
@@ -106,12 +119,27 @@ export function layTunnelSlats(ctx: DressCtx, i: number) {
     const x = here.x + (next.x - here.x) * share, y = here.y + (next.y - here.y) * share;
     // (wid its whole pitch: the gap after it is in the tunnel's shade too - props/scenery.ts)
     level.props.push({ kind: 'slat', x, y, rot: here.rot, w: SLAT_M, wid: pitch, h: wide,
-      overRoad: true, _s: road[i].s });
-    if (Math.round(slatAt / pitch) % SLATS_A_ROOF === 0) {
-      const roofLen = SLATS_A_ROOF * pitch, ahead = roofLen / 2 - SLAT_M / 2;
-      level.zones.push({ x: x + Math.cos(here.rot) * ahead, y: y + Math.sin(here.rot) * ahead,
-        w: roofLen + 1, h: wide, rot: here.rot, surface: SURFACES.tarmac, roof: true,
-        _s: road[i].s });
-    }
+      overRoad: true, _s: from });
+    const slats = roofSlats(slatIdx, slatAt + SLAT_M / 2 - stretch.along, stretch.len);
+    if (!slats) continue;
+    const roofLen = slats * pitch, ahead = roofLen / 2 - SLAT_M / 2;
+    level.zones.push({ x: x + Math.cos(here.rot) * ahead, y: y + Math.sin(here.rot) * ahead,
+      w: roofLen + 1, h: wide, rot: here.rot, surface: SURFACES.tarmac, roof: true, _s: from });
   }
+}
+
+/**
+ * How many slats a roof laid at this slat covers: SLATS_A_ROOF from every SLATS_A_ROOF-th slat
+ * counted from the tunnel's first (fewer at its last), else 0.
+ * @param slatIdx the slat's number (its start over the pitch)
+ * @param tunnelFrom the tunnel stretch's start, m along the road
+ * @param tunnelLen its length, m
+ * @returns the slats under the roof laid here, or 0
+ */
+function roofSlats(slatIdx: number, tunnelFrom: number, tunnelLen: number): number {
+  // (the slats stand where SLAT_M / 2 past their start is SLAT_IN_M in from each end)
+  const first = slatFrom(tunnelFrom + SLAT_IN_M - SLAT_M / 2),
+    last = Math.floor((tunnelFrom + tunnelLen - SLAT_IN_M - SLAT_M / 2) / SLAT_PITCH_M + 1e-9);
+  if ((slatIdx - first) % SLATS_A_ROOF !== 0) return 0;
+  return Math.max(1, Math.min(SLATS_A_ROOF, last - slatIdx + 1));
 }

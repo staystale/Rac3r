@@ -35,7 +35,7 @@ for (const seed of [4242, 7, 99]) {
   L.LEVELS.push(level);
   L.setLevel('highway');
   resetHighway(level);
-  const lane = level._hw.geo.centres[1] ?? level._hw.geo.centres[0], car = { x: 0, y: 0 };
+  const lane = level._hw.geo.centres[0], car = { x: 0, y: 0 };
   const driveTo = (target) => {
     for (let dist = 300; dist <= target; dist += 4) {
       const pose = roadPose(level, dist, lane);
@@ -49,15 +49,19 @@ for (const seed of [4242, 7, 99]) {
   const tunnel = firstOf('tunnel', seed), water = firstOf('water', seed);
   const out = [];
   if (tunnel) {
-    driveTo(tunnel[0] - 300);
+    driveTo(tunnel[0]);
+    // (every lane both ways: a roof is a straight zone over a road that may bend)
+    const lanes = level._hw.geo.centres.concat(level._hw.geo.oncoming);
     const tally = (from, to) => {
-      const seen = {};
-      for (let dist = from; dist < to; dist += 4) {
-        const pose = roadPose(level, dist, lane), surface = groundAt(pose.x, pose.y).surface;
-        const key = `${surface.id}@${surface.mu.toFixed(2)}`;
-        seen[key] = (seen[key] || 0) + 1;
-      }
-      return JSON.stringify(seen);
+      const seen = {}, wet = [];
+      for (const across of lanes)
+        for (let dist = from; dist < to; dist += 4) {
+          const pose = roadPose(level, dist, across), surface = groundAt(pose.x, pose.y).surface;
+          const key = `${surface.id}@${surface.mu.toFixed(2)}`;
+          seen[key] = (seen[key] || 0) + 1;
+          if (surface.mu < 0.9 && wet.length < 10) wet.push(`${Math.round(dist)}/${across}`);
+        }
+      return JSON.stringify(seen) + (wet.length ? ` wet at ${wet.join(' ')}` : '');
     };
     out.push(`tunnel ${Math.round(tunnel[0])}-${Math.round(tunnel[1])} m: in it (60 m in from each`
       + ` end) ${tally(tunnel[0] + 60, tunnel[1] - 60)}; the open road before it`

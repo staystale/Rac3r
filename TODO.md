@@ -115,7 +115,11 @@ MARK TRACK.)
      underpasses a km, with 0.29 tunnels and 0.27 long bridges over water a km. OWNER 11-21: the
      tunnels "dark AND DRY inside", the yachts SOLID, SAND under the water: DONE (citywater.ts: the
      slats' shade over their whole pitch, roof zones - no rain, the yachts moored, a sand zone under
-     each water piece), measured on the PC (tools/scratch/_cityroof.mjs). OWNER on round177: "Okay,
+     each water piece), measured on the PC (tools/scratch/_cityroof.mjs). c14 found the tunnels
+     partly WET (seed 7: 23 of 44 points): the roofs counted from road distance 0, not the tunnel's
+     first slat, and every 92 m a slat laid twice or not at all (two roundings at a span's ends) -
+     FIXED: in a downpour 0 wet points in every tunnel lane both ways, 5 roads x 3 seeds; every
+     slat laid once (60 / 39 / 33). OWNER on round177: "Okay,
      better Stockholm"; BUG "petrol stations that had water in them on the single track" - FIXED:
      the lay-bys (and their stations) were planned before the water existed and the slips and
      services tested the ground only where they started; now no lay-by, station, slip, services,

@@ -855,7 +855,9 @@ scenery water ('wet') both sides from a concrete quay, in 60 m pieces, SAND unde
 off it (`moored`: solid); no slips, bridges or services off the water or out of a tunnel. A
 TUNNEL's cover is Moanaco's slats over the road, each `overRoad` (drawn over the cars, never solid,
 its whole pitch in the tunnel's shade: dark), where its ground has risen; under them ROOF zones
-(`Zone.roof`, `Level._roofs`: `world/wear.ts roofed` - no rain, the road dry).
+(`Zone.roof`, `Level._roofs`: `world/wear.ts roofed` - no rain, the road dry), one over each
+10 slats counted from the tunnel's first, the last to its last slat; a slat's number by one
+rounding at both ends of each road span (`slatFrom`).
 Its litter is its own (`litter.ts cityLitter`: cones and sandbags, bins, boxes, crates, pallets;
 1.5x the countryside's chances; none on the water or in a tunnel). Its signs are blue
 (`CITY_SIGNS`, the distance that goes up: CENTRUM n KM). `tools/scratch/_citylots.mjs` (node:
