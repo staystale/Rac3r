@@ -70,17 +70,22 @@ try {
       const done = await page.evaluate(([where, target, index]) => {
         const game = window.__game, level = game.level, car = game.car;
         if (where === 'city') return (level._hw?.q?.s ?? 0) >= target;
-        // Moanaco: the slats in their laid order along the tunnel; the nearest's index
+        // Moanaco: the slats the car has passed over (within 4 m) - the first one it reaches, half
+        // of them, all but one, then 25 m clear of every slat (whichever way the lap runs)
         const slats = level.props.filter((prop) => prop.kind === 'slat');
-        if (!slats.length) return true;
-        let near = 0, best = Infinity;
+        // (a venue loads its map first: no slats yet)
+        if (!slats.length) return false;
+        const seen = (window.__slatsSeen ||= new Set());
+        let best = Infinity;
         slats.forEach((slat, i) => {
           const dist = Math.hypot(slat.x - car.x, slat.y - car.y);
-          if (dist < best) { best = dist; near = i; }
+          best = Math.min(best, dist);
+          if (dist < 4) seen.add(i);
         });
-        const want = [0, slats.length >> 1, slats.length - 1, slats.length - 1][index];
-        if (index === 3) return near === slats.length - 1 && best > 25;
-        return near === want && best < 4;
+        if (index === 0) return seen.size >= 1;
+        if (index === 1) return seen.size >= slats.length >> 1;
+        if (index === 2) return seen.size >= slats.length - 2;
+        return best > 25;
       }, [WHERE, spots ? spots[shot] : 0, shot]);
       if (done) break;
       await page.waitForTimeout(100);

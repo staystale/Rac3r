@@ -6,14 +6,14 @@
 // the HUD. The cost is one extra full-screen image a frame.
 import { lampTypeOf } from './lamptypes.ts';
 import { crossingOf } from "../world/crossinggeo.ts";
-import { clipToCut } from './coverlight.ts';
+import { clipCarLight } from './coverlight.ts';
 import { DAYLIGHT } from '../world/daylight.ts';
 import { activeLamps, lampsLit } from '../world/lamps.ts';
 import { drawPools, paintPool, paintPoolTint } from './lamppools.ts';
 import type { PoolPainter } from './lamppools.ts';
 import { hazardsOn, indicatorBlinkOn, lampLevel } from './cars.ts';
 import { rigOf } from './riglamps.ts';
-import { traceDecks } from './lightdecks.ts';
+import { rubCoverLamps, traceDecks } from './lightdecks.ts';
 import { drawEventGlows } from './eventglows.ts';
 import type { EventPainter } from './eventglows.ts';
 import { BRAKE_GLOW, BRAKE_GLOW_HOT, BRAKE_GLOW_M, hotBrakes } from './brakeglow.ts';
@@ -222,7 +222,7 @@ function paintCarGlows(painter: GlowPainter, game: RenderGame, level: CarLevel =
   const each = (car: RenderCar) => {
     if (!isOnLevel(car, level)) return;
     // (a car in a tunnel lights only its own open cut)
-    const clipped = clipToCut(painter.ctx, car, painter.mapX, painter.mapY, LIGHT_CLIP);
+    const clipped = clipCarLight(painter.ctx, car, painter.mapX, painter.mapY, LIGHT_CLIP);
     drawCarGlows(painter, car, isBlinkOn);
     if (clipped) painter.ctx.restore();
   };
@@ -487,11 +487,9 @@ function drawBeams(painter: PoolPainter, beam: HTMLCanvasElement, car: RenderCar
 function drawFieldBeams(painter: PoolPainter, beam: HTMLCanvasElement, game: RenderGame,
   level: CarLevel = 'all') {
   const each = (car: RenderCar) => {
-    // a car in a tunnel lights only its cut, never its cover (render/coverlight.ts clipToCut): a
-    // car under a whole cover still throws its light out of the mouths, as seen from above
+    // a car in a tunnel lights its cut, never its cover (render/coverlight.ts clipCarLight)
     if (!isOnLevel(car, level)) return;
-    const clipped = clipToCut(painter.lightCtx, car, painter.artX, painter.artY,
-      LIGHT_CLIP);
+    const clipped = clipCarLight(painter.lightCtx, car, painter.artX, painter.artY, LIGHT_CLIP);
     drawBeams(painter, beam, car);
     drawReverseBeams(painter, beam, car);
     if (clipped) painter.lightCtx.restore();
@@ -620,6 +618,7 @@ function paintUnderDecks(painter: DeckPainter, game: RenderGame) {
   // (the cars below: their light reaches the decks' edges, never their tops)
   painter.drawAllBeams(game, 'ground');
   mapGlows.parts.rubCars(game, 'ground');
+  rubCoverLamps(pools);
   lightCtx.globalAlpha = 1;
   lightCtx.fillStyle = '#000';
   lightCtx.fill();

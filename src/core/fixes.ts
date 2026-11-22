@@ -90,4 +90,10 @@ export const FIX = {
   // GETAWAY STOCKHOLM drives on the RIGHT (owner 11-21: keep right, overtake on the left): its
   // road's world the mirror image of its left-hand twin (highway/road.ts HwState.hand)
   keepright: atLoad('keepright'),
+  // A TUNNEL NEVER SWITCHES A LIGHT (owner 11-22: "controlled with LAYERING, not code"): its cover
+  // (the slats, a straight one's underground stretch) is a deck over the light map - the cars'
+  // beams and glows below never light its top, they show between the slats - and no car's light
+  // is clipped by where the car is (render/coverlight.ts clipToCut off); the tunnel's own lamps
+  // light its road (render/lightdecks.ts); GETAWAY STOCKHOLM's day shade lighter
+  tunnellamps: atLoad('tunnellamps'),
 };

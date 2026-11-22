@@ -5,6 +5,7 @@ import { isHutWrecked } from '../../world/marshalbox.ts';
 import { drawSeasonTree } from '../trees.ts';
 import type { Prop } from '../../world/types.ts';
 import type { PropCtx } from './types.ts';
+import { FIX } from '../../core/fixes.ts';
 import { PLANE_SPAN_M, SCULPTURE_M } from '../../world/barriers.ts';
 
 /**
@@ -590,8 +591,9 @@ const SLAT_STONE = '#8f8a80', SLAT_TOP = '#a9a49a', SLAT_JOINT = '#3b4047';
  * @param prop the slat (w, h)
  * @param ppm pixels per metre
  */
-// GETAWAY STOCKHOLM's tunnel under its slats: dark inside (owner 11-21)
-const TUNNEL_SHADE = 'rgba(4,6,10,0.55)';
+// GETAWAY STOCKHOLM's tunnel under its slats: dark inside (owner 11-21); ?tunnellamps lighter, the
+// cars clear between the slats (owner 11-22: "day seems too dark in the tunnel")
+const TUNNEL_SHADE = 'rgba(4,6,10,0.55)', TUNNEL_SHADE_LIGHT = 'rgba(4,6,10,0.3)';
 
 export function drawSlat(propCtx: PropCtx, prop: Prop, ppm: number) {
   const { view } = propCtx;
@@ -599,7 +601,7 @@ export function drawSlat(propCtx: PropCtx, prop: Prop, ppm: number) {
   // (one over the endless road's tunnel: the tunnel's shade over its whole pitch, the gap after it
   // too - the road and a car glimpsed in it dark)
   if (prop.overRoad) {
-    view.ctx.fillStyle = TUNNEL_SHADE;
+    view.ctx.fillStyle = FIX.tunnellamps ? TUNNEL_SHADE_LIGHT : TUNNEL_SHADE;
     view.ctx.fillRect(-halfW * ppm, -halfH * ppm, (prop.wid || prop.w!) * ppm, prop.h! * ppm);
   }
   view.ctx.fillStyle = 'rgba(10,12,16,0.45)';

@@ -5,6 +5,7 @@
 // of its cover's slats, which stand over the tunnel road - clipOffCovers (a cover out of its
 // light's reach costs one box test).
 import { LEVEL } from '../world/state.ts';
+import { FIX } from '../core/fixes.ts';
 import { crossingOf } from '../world/crossinggeo.ts';
 import { lineBox, isBeyondBox } from '../world/venuegeo.ts';
 import type { LineBox } from '../world/venuegeo.ts';
@@ -70,6 +71,21 @@ export function clipOffCovers(ctx: CanvasRenderingContext2D, car: RenderCar,
   // (the map less the slats: each slat's outline inside the map's rectangle)
   if (isClipping) ctx.clip('evenodd');
   return isClipping;
+}
+
+/**
+ * A car's light clipped by where the car is (clipToCut), or not at all with ?tunnellamps: there a
+ * tunnel's cover is a deck over the light map (render/lightdecks.ts) - no tunnel hides a light.
+ * @param ctx the light map's context (identity transform)
+ * @param car the car
+ * @param toX world x to the map's px
+ * @param toY world y to the map's px
+ * @param reach the light's reach: lightM from the car's centre, beamM a beam's, m
+ * @returns true when it clipped (the caller restores the context)
+ */
+export function clipCarLight(ctx: CanvasRenderingContext2D, car: RenderCar,
+  toX: (x: number) => number, toY: (y: number) => number, reach: LightReach): boolean {
+  return !FIX.tunnellamps && clipToCut(ctx, car, toX, toY, reach);
 }
 
 // m a tunnel's wall's line lies outside its face (world/crossings.ts WALL_HALF_M): a bent tunnel's
