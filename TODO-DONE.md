@@ -17,6 +17,17 @@ lighting, bushes and trees - OWNER LIST 10-24; the checking tools - Tools that a
 
 
 
+## PASSED 11-22, NO CATCH-UP SPIKE (owner: ?spikecap "Seems much better", "Yes pass")
+
+The default 11-22, its switch deleted (8feccb31; game/loop.ts runSimSteps): a slow frame's sim no
+longer catches up in one burst - once 2 steps have run a frame stops stepping after 10 ms of sim and
+carries the time left to the next frames (at most 0.1 s carried; more dropped as before); the
+fixed 120 Hz step unchanged. Traced (tools/scratch/_perfspikes.mjs, Moanaco with 19 AI, the
+laptop's browser): the frames over 33 ms ran 4.7-6.1 steps (2.1 the rest) - the catch-up spiral.
+MEASURED (2 runs each, off -> on): frame p99 52.3 / 72.3 -> 36.4 / 36.2 ms, worst 53.7 / 129.8 ->
+53.4 / 38.6 ms; frames with work over 33 ms 20 / 37 -> 5 / 1; sim time a wall second 0.970 / 0.974
+-> 0.959 / 0.965 (the race a little slower while the device is overloaded).
+
 ## PASSED 11-22, GHOST CARS AND ACCOLADES (owner: ?ghost passed on the phone)
 
 The default 11-22, its switch deleted (9d874d73; game/ghostcar.ts, game/ghostrun.ts, render/
