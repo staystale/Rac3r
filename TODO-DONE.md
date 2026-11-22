@@ -17,6 +17,21 @@ lighting, bushes and trees - OWNER LIST 10-24; the checking tools - Tools that a
 
 
 
+## PASSED 11-22, REVERSE OUT WITH ROOM (owner: ?revroom passed)
+
+The default 11-22, its switch deleted (40dd64da, ba275c30; ai/driveOut.ts, ai/revRoom.ts; owner:
+"if stuck behind a car they don't reverse quick enough ... and they also don't reverse enough to
+steer clear"; "they should reverse quicker rather than resetting"): held by a STOPPED car in my way,
+the hold is stuck after 1.5 s (not 4); still with a car within 1 m of my nose, the reverse after
+1.5 s (not 2.5); behind a car in my way it backs up until its nose is a car length + 2.5 m from it
+(at most 3 s; it stops for a car within 1.5 m behind), the nose swung away from it. MEASURED
+(tools/scratch/_revscene.mjs, nose 0.5 m from a car crashed across the road by the wall, 8 drivers,
+seeds 1 / 2, off -> on): first reverse 2.5 -> 1.5 s; alone - freed in 10.1-33.5 -> 9.8-9.9 s,
+given up 1 / 0 -> 0 / 0; boxed in by a second stopped car alongside - given up (the game puts it
+back) 6 / 8 -> 0 / 0 of 8, freed 5-6 / 1 -> 8 / 8 in 12.6-21.5 s, touches 12-52 / 22-39 -> 3-5.
+Normal racing (tools/scratch/_revcount.mjs, Brands, seeds 1-2, 180 s): reverses 8 -> 6, the game's
+put-backs 6 -> 4.
+
 ## PASSED 11-22, GO ROUND EARLIER AND WIDER (owner: ?passearly + ?passwide "pass")
 
 The default 11-22, their switches deleted (e5a4600f; owner round189 "AI seemed to stop when cars

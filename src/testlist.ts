@@ -13,17 +13,6 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
-    id: 'revroom',
-    added: '2026-11-22',
-    name: 'AI stuck behind a crashed car reverse out sooner and far enough to steer round it',
-    where: 'Test link + &revroom=1: any circuit with a full field, a pile-up or a car stuck '
-      + 'against the wall',
-    try: 'Watch an AI stuck nose-in behind a stopped car: it backs up after a couple of seconds, '
-      + 'far enough to clear it, nose turned away, and drives round - fewer cars put back.',
-    wrong: 'AI still nudging back and forth and getting put back, reversing into cars behind, '
-      + 'or reversing in normal racing.',
-  },
-  {
     id: 'stagedone',
     added: '2026-11-22',
     name: 'Rally stage: a car that started long before you is home, not on the road',

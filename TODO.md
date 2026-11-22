@@ -69,7 +69,8 @@ MARK TRACK.)
      trace on the highway AND circuits. ONE BASE AI, highway-only tweaks only where essential.
      PASSED 11-22, the default (TODO-DONE, PASSED 11-22, THE AI TUNE): shared hazard awareness, the
      soft return, the steady brake pedal, the gap picker on the highway; ?aitune and ?gapcommit
-     dropped; the reverse only when truly stuck. Contact costs by kind (?contactcost) dropped 11-22;
+     dropped; the reverse only when truly stuck - and out with room, sooner (REVERSE OUT WITH
+     ROOM passed 11-22, TODO-DONE). Contact costs by kind (?contactcost) dropped 11-22;
      the slider sweep not run (owner 11-22: "I can test, no need for heavy tests atm"). GO ROUND
      EARLIER AND WIDER PASSED 11-22, the default (TODO-DONE, PASSED 11-22, GO ROUND EARLIER AND
      WIDER).

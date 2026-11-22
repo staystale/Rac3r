@@ -31,7 +31,7 @@
 // marktrack, scanyah (the tractor) and tipping passed 11-17; resetclean, lamps, fpshud, marksage
 // blighty, flagfix, trailer, boxhold and gridlen passed 11-21; rollgreen and hwfan passed 11-21;
 // hazard, softback, brakepedal, gapdest and revstuck passed 11-22, aitune, gapcommit and
-// contactcost dropped; passearly, passwide and trailroll passed 11-22.)
+// contactcost dropped; passearly, passwide, trailroll and revroom passed 11-22.)
 import { envValue } from './debug.ts';
 
 /**
@@ -73,13 +73,6 @@ export const FIX = {
   // THE HILL CLIMB'S GRADE, step 1 (owner 11-22: a real 7 % climb): the endless road rising
   // HILL_GRADE along its length (highway/hillgrade.ts) - the engine piece, measured alone
   hillgrade: atLoad('hillgrade'),
-  // REVERSE OUT WITH ROOM (owner 11-22: "they don't reverse quick enough ... and they also don't
-  // reverse enough to steer clear"; "reverse quicker rather than resetting"): held by a STOPPED
-  // car in my way, stuck after 1.5 s (not 4), and still with a car within 1 m of my nose, a reverse
-  // after 1.5 s (not 2.5); the reverse goes on until there is a car length and
-  // the lock's room to it (at most 3 s, or a car close behind), the nose swung away from it
-  // (ai/driveOut.ts, ai/revRoom.ts)
-  revroom: atLoad('revroom'),
   // A STAGE CAR ALREADY HOME (owner 11-22, fix (a)): a car that started so far ahead of you that
   // its predicted run is over before your green is not on the road - it is home, its predicted
   // time its result, like a real rally (game/grid.ts spawnAI; it was placed past the finish, or
