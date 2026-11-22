@@ -96,4 +96,7 @@ export const FIX = {
   // is clipped by where the car is (render/coverlight.ts clipToCut off); the tunnel's own lamps
   // light its road (render/lightdecks.ts); GETAWAY STOCKHOLM's day shade lighter
   tunnellamps: atLoad('tunnellamps'),
+  // A TOWING RIG'S RESET (owner 11-22, option b): the whole rig inside the road's edge on the
+  // bend's line, the trailer following the road there (game/rigreset.ts), not straight behind
+  trailreset: atLoad('trailreset'),
 };
