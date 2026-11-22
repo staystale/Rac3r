@@ -5,8 +5,8 @@
 // (by the wall); scenes:
 //   wall    just that car ahead (the rest of the road free)
 //   boxed   and a second stopped car alongside it on the free side, its nose level with mine
-// Per scene 8 drivers (traits 1-8 of 8), 40 s: the s to its first reverse (from the start - the
-// drive-out waits 3 s), reverses, the most m backed in one, given up (three in 15 s: the game
+// Per scene 8 drivers (traits 1-8 of 8), 40 s: the s to its first reverse from when it can (the
+// drive-out waits 3 s after the start - a race's - so from 3 s, or from when it is still), reverses, the most m backed in one, given up (three in 15 s: the game
 // would put it back), freed (past the crashed car) and the s it took, contacts with the stopped
 // cars. Headless (the game's driver, vehicle step and contact); switches as node tools read them.
 // node tools/scratch/_revscene.mjs [scenes] [seed]
@@ -55,7 +55,7 @@ function runOne(scene, index) {
   }
   const drv = createAIDriver(L.LEVEL, aiTraits(2, index, DRIVERS, seed));
   const res = { firstRev: null, revs: 0, backed: 0, gaveUp: false, freedAt: null, touched: 0 };
-  let revFrom = null, lastOut = 0;
+  let revFrom = null, lastOut = 0, stillAt = null;
   const touching = new Set();
   for (let t = 0; t < RUN_S && res.freedAt === null; t += DT) {
     L.applyGround(me, DT);
@@ -69,9 +69,10 @@ function runOne(scene, index) {
       if (hit) touching.add(car); else touching.delete(car);
     }
     const st = drv.state;
+    if (stillAt === null && t > 3 && Math.hypot(me.vx, me.vy) < 1.5) stillAt = t;
     if ((st.nOut ?? 0) > lastOut) {
       lastOut = st.nOut; res.revs = lastOut;
-      if (res.firstRev === null) res.firstRev = t;
+      if (res.firstRev === null) res.firstRev = t - (stillAt ?? t);
       revFrom = { x: me.x, y: me.y };
     }
     if (revFrom && controls.reverse) {

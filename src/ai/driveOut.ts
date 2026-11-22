@@ -28,6 +28,9 @@ const HELD_T = 4;
 // hold is stuck; the most s a reverse goes on for room; the heading error (rad) past which the
 // nose is swung back to the road, not away from the car
 const HELD_STOPPED_T = 1.5, BLOCKER_STILL_V = 1, REV_MAX_S = 3, HEAD_BACK = 0.6;
+// ?revroom: s still, wanting to go, before a reverse with a car within NOSE_IN_M m of my nose (not
+// STUCK_T: owner 11-22 "they should reverse quicker rather than resetting")
+const STUCK_CLOSE_T = 1.5, NOSE_IN_M = 1;
 
 /**
  * Whether a car's stillness is not being stuck - a car ahead holds it to its speed,
@@ -48,6 +51,15 @@ const TRYING_GAIN = 0.08;
  */
 const heldFor = (blocker: Blocker | null) => (blocker && blocker.v < BLOCKER_STILL_V
   ? HELD_STOPPED_T : HELD_T);
+
+/**
+ * The s a car still, wanting to go, waits before it reverses: STUCK_T, or ?revroom STUCK_CLOSE_T
+ * with a car within NOSE_IN_M of its nose.
+ * @param blocker the car in my way (?revroom), if any
+ * @returns s
+ */
+const stuckFor = (blocker: Blocker | null) => (blocker && blocker.gap < NOSE_IN_M
+  ? STUCK_CLOSE_T : STUCK_T);
 
 /**
  * Counts the seconds a car has been nearly still (state.slowT); going forwards and
@@ -154,7 +166,7 @@ export function driveOut(
   // (?revroom: the car in my way, read only while nearly still)
   const blocker = FIX.revroom && speed < 1.5 ? blockerOf(car, ctx.cars) : null;
   noteSlow(state, car, speed, dt, blocker);
-  if (state.slowT! > STUCK_T) {
+  if (state.slowT! > stuckFor(blocker)) {
     startReverse(state, car, blocker, rnd);
     state.nOut = (state.nOut || 0) + 1;
     state.outN = state.t - (state.outAt ?? -99) < 15 ? (state.outN || 0) + 1 : 1;
