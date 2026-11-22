@@ -21,7 +21,7 @@ import { tidyBarriers } from "./venuetidy.ts";
 import { evenStadiumEdge } from "./stadiumtidy.ts";
 import { CIRCUIT_BUSHES } from "./levels/bushes.ts";
 import { buildVenueScenery } from "./venuescenery.ts";
-import { racePits } from "./pitlane.ts";
+import { boxLines, racePits } from "./pitlane.ts";
 import { FIX } from "../core/fixes.ts";
 import { VENUE_ROAD_M, distToLine, isNearLine, kerbOut, lineLength, pointAlong }
   from "./venuegeo.ts";
@@ -429,6 +429,15 @@ export function venueBuild(rawSpec: VenueSpec): VenueBuild {
 }
 
 /**
+ * ?pitstops: the pit lane as the race uses it (world/pitlane.ts), from the first laid.
+ * @param sub the lap
+ * @param laid the pit lanes laid
+ * @returns the pit lane, or null (none, or the switch off)
+ */
+const levelPits = (sub: Subtrack, laid: Lane[]) => (FIX.pitstops && laid.length
+  ? racePits(sub, laid[0]) : null);
+
+/**
  * The pieces a layout does not race, as road lanes (on their own surface), and a tyre row across
  * each where it leaves the layout's road (as the real circuit closes them) - but the joker's and
  * the start lane's, which stay open: those lanes run over them.
@@ -664,6 +673,7 @@ export function venueLevel(spec: VenueSpec, layout: string, levelId: string,
   const loose = tidyLoose([...closed.cones.filter((tyre) => !scenery.lanes.some((lane) =>
     distToLine(lane.pts, tyre.x, tyre.y) < lane.width / 2)), ...scenery.cones],
   spec.evenEdge ? barriers : scenery.barriers, sub, scenery.covers);
+  const pits = levelPits(sub, scenery.pitLanes);
   return {
     id: levelId, name, base: SURFACES[spec.base || 'grass'], subtrack: sub,
     bounds: scenery.bounds,
@@ -679,10 +689,9 @@ export function venueLevel(spec: VenueSpec, layout: string, levelId: string,
     ...(spec.bushless ? {} : { bushes: CIRCUIT_BUSHES }),
     lanes, barriers, props, solids: solidsFromProps(props), crossings: venueCrossings(props),
     paint: [{ kind: 'chequered', x: sub.pts[0].x, y: sub.pts[0].y, len: 1.6, wid: VENUE_ROAD_M,
-      rot: sub.pts[0].heading }, ...splitLinePaint(spec, sub), ...scenery.paint],
+      rot: sub.pts[0].heading }, ...splitLinePaint(spec, sub), ...scenery.paint,
+      ...(pits ? boxLines(pits) : [])],
     spawn: { x: start.x, y: start.y, heading: start.rot },
-    // (?pitstops: the pit lane as the race uses it - world/pitlane.ts)
-    ...(FIX.pitstops && scenery.pitLanes.length ? { pits: racePits(sub, scenery.pitLanes[0]) }
-      : {}),
+    ...(pits ? { pits } : {}),
   } as Level;
 }

@@ -115,6 +115,8 @@ export function drawHudLapJoker(ctx: CanvasRenderingContext2D, game: HudGame, ra
  * @returns true when the panel has the third row
  */
 export function lapJokerRowShown(game: HudGame): boolean {
+  // (?pitstops: the compulsory pit stop's line takes the joker's row - never both in one race)
+  if (game.pitCue) return true;
   return !!LEVEL.subtrack && !!LEVEL.joker && !LEVEL.endless && !LEVEL.stage
     && !!game.race && game.race.on && !!game.ai && game.ai.length > 0;
 }
@@ -187,20 +189,47 @@ function jokerTurnDist(): number | null {
   return dist;
 }
 
+/** A lane the race asks you to take: the joker, or (?pitstops) the pit lane - never both. */
+interface LaneCue { name: string; done: boolean; times: number; extraS: number }
+
 /**
- * The joker line text and colour for the lap panel.
- * @param race the race state
+ * The lane line's text and colour for the lap panel (the joker's; the pit stop's the same, PIT).
+ * @param cue the lane: its name, taken, how often, the s too many cost
  * @param flags flags: near, flash, inLane, fresh, blink
  * @returns the text and the colour
  */
-function jokerLine(race: HudRace, flags: JokerFlags) {
-  const { near, flash, inLane, fresh, blink } = flags;
-  const jTxt = race.jokers > 1 ? `JOKER x${race.jokers}: +${(race.jokers - 1) * 30} s`
-    : fresh ? 'JOKER TAKEN ✓' : race.joker ? 'JOKER DONE ✓' : inLane ? 'IN JOKER ›' : near
-    ? 'JOKER  ›››' : 'JOKER TO DO';
-  const jCol = race.jokers > 1 ? COL.danger : fresh ? (blink ? '#ffffff' : COL.live)
-    : race.joker || inLane ? COL.live : flash ? '#ffffff' : COL.warn || '#e8a13a';
+function cueLine(cue: LaneCue, flags: JokerFlags) {
+  const { near, flash, inLane, fresh, blink } = flags, name = cue.name;
+  const jTxt = cue.extraS > 0 ? `${name} x${cue.times}: +${cue.extraS} s`
+    : fresh ? `${name} TAKEN ✓` : cue.done ? `${name} DONE ✓` : inLane ? `IN ${name} ›`
+    : near ? `${name}  ›››` : `${name} TO DO`;
+  const jCol = cue.extraS > 0 ? COL.danger : fresh ? (blink ? '#ffffff' : COL.live)
+    : cue.done || inLane ? COL.live : flash ? '#ffffff' : COL.warn || '#e8a13a';
   return [jTxt, jCol];
+}
+
+/** The lane line's lane and its state: on it, when taken (performance.now), its turn-off near. */
+interface LaneNow { cue: LaneCue; inLane: unknown; at: number; near: unknown }
+
+/**
+ * Draws the lane line (the joker's; the pit stop's) in the lap panel: it switches as it happens -
+ * TO DO -> ››› (approaching) -> IN (on the lane) -> TAKEN ✓ (flashing 2 s) -> DONE.
+ * @param ctx the HUD canvas
+ * @param game the game
+ * @param lapRect the lap panel
+ * @param lane the lane and its state
+ * @returns {void}
+ */
+function drawCueLine(ctx: CanvasRenderingContext2D, game: HudGame, lapRect: HudRect,
+  lane: LaneNow) {
+  const { cue, inLane, at, near } = lane;
+  const flash = near && Math.floor(performance.now() / 250) % 2 === 0;
+  const fresh = cue.done && cue.times === 1 && performance.now() - (at || 0) < 2000;
+  const blink = Math.floor(performance.now() / 200) % 2 === 0;
+  const [jTxt, jCol] = cueLine(cue, { near, flash, inLane, fresh, blink });
+  const line = jokerLineAt(game, lapRect);
+  drawHudLabel(ctx, jTxt, lapRect.x + 8, line.y,
+    { size: near || fresh || inLane ? 10.5 : 9, weight: 800, col: jCol, maxW: line.maxW });
 }
 
 /**
@@ -220,17 +249,10 @@ function drawHudLapJokerLive(ctx: CanvasRenderingContext2D, game: HudGame, race:
     { size: 11, weight: 600, align: 'right', col: COL.hudText });
   // approaching the joker turn-off without it done: the line FLASHES "JOKER >" (the
   // approach arrow's distance, lab.ts jokerApproach)
-  const near = jokerIsNear(game, race);
-  const flash = near && Math.floor(performance.now() / 250) % 2 === 0;
-  // the line switches as it happens: TO DO -> ››› (approaching) -> IN JOKER (on the lane)
-  // -> JOKER TAKEN ✓ (flashing 2 s) -> JOKER DONE
-  const inLane = !race.joker && game.inJokerLane, fresh = race.joker && race.jokers === 1
-    && performance.now() - (game.jokerAt || 0) < 2000;
-  const blink = Math.floor(performance.now() / 200) % 2 === 0;
-  const [jTxt, jCol] = jokerLine(race, { near, flash, inLane, fresh, blink });
-  const line = jokerLineAt(game, lapRect);
-  drawHudLabel(ctx, jTxt, lapRect.x + 8, line.y,
-    { size: near || fresh || inLane ? 10.5 : 9, weight: 800, col: jCol, maxW: line.maxW });
+  const cue = { name: 'JOKER', done: !!race.joker, times: race.jokers,
+    extraS: race.jokers > 1 ? (race.jokers - 1) * 30 : 0 };
+  drawCueLine(ctx, game, lapRect, { cue, inLane: !race.joker && game.inJokerLane,
+    at: game.jokerAt || 0, near: jokerIsNear(game, race) });
 }
 
 /**
@@ -255,6 +277,32 @@ export function drawHudLapRace(ctx: CanvasRenderingContext2D, game: HudGame, lap
   const bestTxt = game.lap.bestTime ? `BEST ${fmtTime(game.lap.bestTime)}` : 'BEST --:--.--';
   drawHudLabel(ctx, bestTxt, lapRect.x + 8, lapRect.y + 26,
     { size: 9, weight: 600, col: COL.inkSoft });
+  // (?pitstops: the compulsory stop's line - the joker's, PIT for JOKER)
+  if (game.pitCue) drawPitCue(ctx, game, lapRect, !!player && player.finish != null);
+}
+
+/**
+ * The compulsory pit stop's line in the lap panel - the joker's line, PIT for JOKER; once home the
+ * verdict, as the joker's.
+ * @param ctx the HUD canvas
+ * @param game the game (pitCue)
+ * @param lapRect the lap panel
+ * @param home you have finished
+ * @returns {void}
+ */
+function drawPitCue(ctx: CanvasRenderingContext2D, game: HudGame, lapRect: HudRect, home: boolean) {
+  const pit = game.pitCue!;
+  if (home) {
+    const line = jokerLineAt(game, lapRect);
+    drawHudLabel(ctx, pit.done ? 'PIT DONE' : '+30 s NO PIT', lapRect.x + 8, line.y,
+      { size: 9, weight: 700, col: pit.done ? COL.live : COL.danger, maxW: line.maxW });
+    return;
+  }
+  const total = LEVEL.subtrack ? LEVEL.subtrack.totalDist : 0, here = game.trackD;
+  const near = !pit.done && here != null && total > 0
+    && (((pit.turnD - here) % total) + total) % total < 140;
+  drawCueLine(ctx, game, lapRect, { cue: { name: 'PIT', done: pit.done, times: pit.done ? 1 : 0,
+    extraS: 0 }, inLane: !pit.done && pit.inLane, at: pit.at, near });
 }
 
 /**

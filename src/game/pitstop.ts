@@ -10,7 +10,7 @@
 import { FIX } from '../core/fixes.ts';
 import { LEVEL } from '../world/state.ts';
 import { WEATHER } from '../world/weather.ts';
-import { onPitLane } from '../world/pitlane.ts';
+import { boxArrow, onPitLane } from '../world/pitlane.ts';
 import type { PitBox, PitLevel } from '../world/pitlane.ts';
 import { applyTyre, ROSTER, TYRES, tyreFits } from '../cars.ts';
 import { repair } from '../damage.ts';
@@ -36,6 +36,9 @@ export interface PitChoice { tyre: string | null; repair: boolean }
 // the GO's clock, whether you left the box since the last stop, whether fresh tyres went on
 const pit = { phase: 'out' as 'out' | 'menu' | 'work' | 'go', until: 0, clock: 0,
   left: true, tyresDone: false };
+// when fresh tyres went on, wall clock (performance.now): the lap panel's PIT TAKEN flash, as the
+// joker's (a wall-clock flash, CLAUDE.md §3)
+let tyresAt = 0;
 
 /**
  * Whether pit stops run in this session: the switch, the setup's PIT STOPS, a pit lane.
@@ -67,7 +70,34 @@ export function resetPitStop(): void {
   pit.clock = 0;
   game.pitGo = null;
   game.pitLimiter = false;
+  game.pitCue = null;
+  game.pitArrows = null;
+  game.pitBox = null;
+  tyresAt = 0;
   (game.car as GameCar & { _pitPen?: number })._pitPen = 0;
+}
+
+/**
+ * Shows where to stop, as a joker lap is shown: your box marked (always, pit stops on); while the
+ * compulsory stop is to do, the joker's arrows into the pit lane and to your box, and the lap
+ * panel's joker line as PIT (hud/laps.ts).
+ * @param inLane you are on the pit lane
+ */
+function showPitCues(inLane: boolean): void {
+  const pits = (LEVEL as PitLevel).pits!, box = myBox();
+  game.pitBox = box;
+  if (!compulsory()) {
+    game.pitCue = null;
+    game.pitArrows = null;
+    return;
+  }
+  const cue = game.pitCue || { done: false, inLane: false, at: 0, turnD: pits.entryD };
+  cue.done = pit.tyresDone;
+  cue.inLane = inLane;
+  cue.at = tyresAt;
+  game.pitCue = cue;
+  game.pitArrows = pit.tyresDone ? null : game.pitArrows || (box ? [...pits.arrows,
+    boxArrow(box, pits.width)] : pits.arrows);
 }
 
 /**
@@ -140,6 +170,7 @@ export function pitChosen(choice: PitChoice | null): void {
     applyTyre(car.spec, choice.tyre);
     car.tyreWear = [0, 0, 0, 0];
     pit.tyresDone = true;
+    tyresAt = performance.now();
   }
   if (choice.repair) repair(car);
   pit.phase = 'work';
@@ -180,12 +211,14 @@ export function pitInput(inp: CarInput): CarInput {
   stepPitClock();
   const car = game.car as GameCar & { _pitPen?: number };
   if (pit.phase === 'menu' || pit.phase === 'work') {
+    showPitCues(true);
     return { ...inp, throttle: 0, brake: 1, handbrake: 1 };
   }
   if (pit.phase === 'go') pit.phase = 'out';
   const inLane = onPitLane(LEVEL as PitLevel, car.x, car.y);
   const speed = Math.hypot(car.vx, car.vy);
   game.pitLimiter = inLane;
+  showPitCues(inLane);
   if (!inLane) {
     pit.left = true;
     return inp;
