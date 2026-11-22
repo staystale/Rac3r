@@ -99,4 +99,7 @@ export const FIX = {
   // A TOWING RIG'S RESET (owner 11-22, option b): the whole rig inside the road's edge on the
   // bend's line, the trailer following the road there (game/rigreset.ts), not straight behind
   trailreset: atLoad('trailreset'),
+  // THE HILL CLIMB'S GRADE, step 1 (owner 11-22: a real 7 % climb): the endless road rising
+  // HILL_GRADE along its length (highway/hillgrade.ts) - the engine piece, measured alone
+  hillgrade: atLoad('hillgrade'),
 };
