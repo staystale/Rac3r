@@ -562,6 +562,27 @@ STORY (Story mode with its garage, money, BUY & FIT, "buy what you last tested" 
   lights): before, you and the queued car first moved 0.033 s BEFORE your / its green (START_EARLY
   0.12 s - every event has it); after, 0.083 s after. OWNER: the circuits, RX and highway starts
   still allow 0.12 s early - the same there? AWAITING THE PHONE TEST.
+- STORY PLAN (owner 11-22, the ladder - later order to discuss as we get there). Currency: £. Start
+  with £1,000; your first car a low-statted banger. A crash or RESET in a licence event fails it: a free
+  restart (a fee only the first time).
+  1. DRIVING LICENCE: 4 events in a car park (drive round the parked and moving cars without a crash;
+     pull up in a space; reverse park; pull out, round again and out onto a road) in the school car,
+     teaching every control; run as a mini championship (all 4 for the trophy, the licence).
+  2. SOLO HIGHWAY RUNS unlock: pick 5-10 km and the traffic density, survive; more money the quicker,
+     always some - THE MONEY FLOOR, always available.
+  3. ADVANCED DRIVING LICENCE: 3-4 events (night, wet, handbrake turns ...), a mini championship.
+  4. ARDS RACE LICENCE: one clean lap under a fair time (the AI average x ~1.15 in a fixed hire car) on one
+     of ~5 UK circuits.
+  5. GRASS TRACK + SMALL ENGLISH HILL CLIMBS (popular ones you can throw a cheap car round and come back
+     to in another class / upgraded; coned or small - NOT Pikes Peak yet). TO BUILD before / with Story.
+  6. ROAD CARS ON UK CIRCUITS, then up naturally.
+  STREET RACES (the highway, story speak): ALWAYS available, not pushed. Randomised: field size, a class
+  you own, the drivers' skill - scaling with your Story progress. An entry fee by Story progression; the
+  pot: 20 cars - the winner most, the next 3 most of the rest, a little to 5th; 10 cars - top 3; 5 cars -
+  winner takes all. Police: fines rising with the wanted level and crimes, speed cameras too; BUSTED 3
+  TIMES IN ONE STREET RACE = the car impounded, a release fee.
+  SAVES: a SAVE CODE (copy out / paste back) - "still unsure", to discuss more; Safari wipes site data
+  unvisited for 7 days.
 - [ ] STORY MODE: ROOKIE SEASON (grass track, stock car, time trials: hillclimb / runway cones) ->
   ROOKIE 2 (similar events, track variations, harder to win); we pick the events; money / points
   also for NOT finishing top 3; replayable events / championships for more money (finish 5th,
