@@ -257,6 +257,17 @@ RACE TRACKS:
       where a race needs it; charged in career / story later.
     - Pit lane: automatic limiter, no penalty. AI: the same rules, a short skill-based delay for the menu.
     - Cost: free in test mode, charged later.
+    - THE MENU (owner 11-22, with the owner's icons and mock-up in Desktop/G/owner-art/pitstop, NOT in the
+      repo): our normal menu style (no mock-up banner), only the title PIT STOP a bit bigger; one row each
+      TYRES / REFUEL / REPAIR with the owner's icons cut out with their glow at our pixel size ("let's try it
+      and see"), a bar and value each (wear %, fuel %, damage %); then CONFIRM & GO (the GO) and CANCEL (leave
+      with nothing done). TYRES keeps the agreed choice (same again / wets / slicks / the car's own) - the
+      mock-up's single REPLACE is wrong. REFUEL only where a race needs refuelling (fuel on the HUD maybe
+      later, if it fits nicely). REPAIR all or nothing. Prices: FREE in test mode, $ in Story.
+    - THE STOP'S TIME (owner 11-22): the taps + ~0.5 s PLUS the work - repairs and refuelling OVERLAP
+      (the longest counts, not the sum); worse damage takes longer to repair; fuel by the litre.
+    - NO RESET IN THE PIT LANE (owner 11-22): a reset in the pit lane puts you back on the track at the
+      pit lane's entrance.
     - WALKTHROUGH (owner 11-15: "Make sure it's all explained in the walk thru the first time an event of
       that type ect starts"): the event rules walkthrough (guide.ts RULES) gets pit-stop cards shown the first
       time a race WITH pit stops starts: the pit lane and limiter, stopping in your box, the menu, compulsory
