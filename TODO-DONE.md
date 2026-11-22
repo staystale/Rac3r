@@ -17,7 +17,7 @@ lighting, bushes and trees - OWNER LIST 10-24; the checking tools - Tools that a
 
 
 
-## PASSED 11-22, THE AI TUNE: SHARED HAZARDS, SOFT RETURN, STEADY PEDAL, HIGHWAY GAP PICKER (owner: passed on round186, "minus this reverse fix")
+## PASSED 11-22, THE AI TUNE: SHARED HAZARDS, SOFT RETURN, STEADY PEDAL, HIGHWAY GAP PICKER, REVERSE WHEN STUCK (owner: passed on round186 and round190)
 
 The default 11-22, their switches deleted:
 - SHARED HAZARD AWARENESS (?hazard, tuned: 01dbf8ee, 183be3d4; ai/hazards.ts): the first driver to
@@ -30,6 +30,19 @@ The default 11-22, their switches deleted:
   (tools/scratch/_pileups.mjs, round182, Brands / Spa): 11 of 13 / 11 of 17 touches into a stopped
   car by a driver who had judged it stopped, each going its own way round; the pack squeezed past at
   a median 12 km/h. Owner 11-22 on round185 "OK, better", round186 "OK, better", passed.
+  THE STOP FIX (cad100c3, owner round189: "AI seemed to stop when cars were stopped ahead but there
+  was plenty of room to the side"): the lift braked every driver within the hazard's width + 1.5 m
+  toward 0 at a stopped car's tail - the cars already clear beside it too; now only while my body
+  is in line with it. MEASURED (tools/scratch/_stopside.mjs, 1 or 3 cars stopped across one half
+  of Brands' straight, 8 AI, 4 seeds, 16 scenes; passed in 45 s of 128 / held still over 1 s):
+  before 90 / 52, the lift fix 107 / 24, with the held rule below 121 / 25, every switch off
+  119 / 7. One side per hazard chosen by the room was tried and dropped (worse).
+- REVERSE ONLY WHEN STUCK (?revstuck, 9e32abd8, cad100c3; ai/driveOut.ts): the drive-out counts
+  its still time only while the driver wants to go (not held to a car ahead's speed, its plan over
+  2 m/s), over 2.5 s; a hold that has not moved for 4 s counts as stuck. MEASURED
+  (tools/scratch/_revcount.mjs, Brands + Moanaco, 2 seeds, 180 s): reverses 69 -> 20, of them
+  behind a car ahead 35 -> 0, give-ups 3 -> 0, the game's put-backs 12 -> 19; the 4 s rule
+  changed nothing in those races (it acts behind a real blockage).
 - THE SOFT RETURN (?softback, 2432e649; ai/driverDrive.ts crossCap, softBack): every move back
   toward the line takes the soft rejoin's cap, also in traffic; a move out stays free. MEASURED
   (tools/scratch/_rejoinharsh.mjs, round182, Brands, seed 1, 90 s): the cap applied 23 -> 56 % of a
