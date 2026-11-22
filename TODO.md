@@ -568,8 +568,8 @@ STORY (Story mode with its garage, money, BUY & FIT, "buy what you last tested" 
   0.12 s - every event has it); after, 0.083 s after. OWNER: the circuits, RX and highway starts
   still allow 0.12 s early - the same there? AWAITING THE PHONE TEST.
 - STORY PLAN (owner 11-22, the ladder - later order to discuss as we get there). Currency: £. START
-  MONEY BY THE DIFFICULTY picked ONCE at the start of Story (owner 11-22): from £3,000 on the easiest to
-  £900 on the hardest (the steps between to confirm); your first car a low-statted banger. A crash or RESET in a licence event fails it: a free
+  MONEY BY THE DIFFICULTY picked ONCE at the start of Story (owner 11-22): Mobile game £3,000, Game £2,200,
+  Realish £1,600, Real but you're rich £1,200, Real £900; the difficulty LOCKED for that Story save; your first car a low-statted banger. A crash or RESET in a licence event fails it: a free
   restart (a fee only the first time).
   1. DRIVING LICENCE: 4 events in a car park (drive round the parked and moving cars without a crash;
      pull up in a space; reverse park; pull out, round again and out onto a road) in the school car,
