@@ -72,6 +72,10 @@ function goRound(car: AiCar, acc: CarsAcc, stop: StoppedCar, how: { side: number
     acc.dodgeT = target - latT;
     acc.conflict = true;
   }
+  // (the lift only while my body is still in line with it: once across, beside it, I pass at
+  // speed - the lift to 0 at its tail held the cars already clear beside it, MEASURED
+  // tools/scratch/_stopside.mjs)
+  if (Math.abs(myLat - stop.lat) >= stop.clear) return;
   const gap = Math.max(0, stop.fwd - stop.along - car.spec.len / 2);
   acc.followCap = Math.min(acc.followCap, Math.max(0, stop.v)
     + Math.sqrt(2 * (LIFT_DECEL / size) * gap));

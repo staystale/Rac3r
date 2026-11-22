@@ -15,6 +15,10 @@ const DRIVE_OUT_T = 1.2;
 // ?revstuck: s still, wanting to go, before a reverse (a real driver waits a little longer before
 // he decides he is stuck), and the target m/s from which the plan wants to go
 const STUCK_T = 2.5, WANTS_GO = 2;
+// ?revstuck: s still while held before the hold counts as a blockage, not a wait (MEASURED,
+// tools/scratch/_stopside.mjs: cars boxed in behind stopped cars never reversed out - held to
+// the stopped car ahead's speed, 0, they "waited" for good)
+const HELD_T = 4;
 
 /**
  * ?revstuck: whether a car's stillness is not being stuck - a car ahead holds it to its speed,
@@ -36,7 +40,8 @@ const TRYING_GAIN = 0.08;
  * @param dt s
  */
 function noteSlow(state: DriveOutState, car: AiCar, speed: number, dt: number) {
-  if (waiting(state)) {
+  state.heldT = waiting(state) && speed < 1.5 ? (state.heldT ?? 0) + dt : 0;
+  if (state.heldT > 0 && state.heldT < HELD_T) {
     state.slowT = 0;
     state.slowFrom = undefined;
     return;
