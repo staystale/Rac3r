@@ -151,7 +151,14 @@ MARK TRACK.)
      (driverTraffic.ts viewOf), and the single lane's keep-to-your-side cap worked in the road's
      terms and turned back (driverOncoming.ts ownSideCap; driverDrive.ts holds it with capLat: a
      lowest place on a right-hand road); the start fan works in the line frame (unchanged).
-     NEXT: run them both ways on the PC (a racers' mirror), then the police checked.
+     THE POLICE (read): moving over, the yield lane, edging to the shoulder, the flash target,
+     waiting spots and the wake all in the road's terms (mirrored); the chase driver reads by
+     heading (the world's). ROUND 3 (read + photographed): the guard's reset onto our hard
+     shoulder and the highway grid's columns in the road's terms; the walkthrough's STAY ON IT
+     card says the RIGHT lane on a right-hand road (guide.ts). Photos tools/scratch/_cityrh-*
+     (390x844, 844x390, ?keepright): our carriageway right of the median, our way's traffic
+     going up on the right; the water drawn as water over its sand (art seabed). The racers'
+     moving mirror and the switch-off proof run on the PC (c14). AWAITING THE PHONE TEST.
 
 - POLICE BY SCENERY (owner 11-21: "too many police on the other levels" - countryside nearly none,
   Deaf Valley some, Stockholm the most, at today's level): BUILT (Worker C 11-21) behind

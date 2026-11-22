@@ -56,4 +56,12 @@ export const TEST_LIST: TestEntry[] = [
     try: 'Drive a few km in each, legal then fast, and count the police cars you meet.',
     wrong: 'As many police in the countryside as before, or fewer in Stockholm than before.',
   },
+  {
+    id: 'keepright',
+    added: '2026-11-22',
+    name: 'GETAWAY STOCKHOLM drives on the RIGHT (keep right, overtake on the left)',
+    where: 'Test link + &stockholm=1&keepright=1: GETAWAY STOCKHOLM, any road, with AI and traffic',
+    try: 'Race: our way on the right, slips and lay-bys off the right, the traffic keeps right.',
+    wrong: 'A car on the wrong side, a slip or sign on the left, indicators the wrong way.',
+  },
 ];

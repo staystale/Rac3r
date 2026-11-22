@@ -230,8 +230,10 @@ export const RULES: Record<string, GuideCard[]> = {
     },
     {
       title: 'STAY ON IT',
+      // (a right-hand road's nearside lane is its right one: ?keepright)
       text: () => 'Go the wrong way, drop back, or wander far off the road and you are put back '
-        + 'in the left lane. Running wide starts a countdown: get back on the road before it '
+        + `in the ${(LEVEL as { _cfg?: { rightHand?: boolean } })._cfg?.rightHand ? 'right'
+          : 'left'} lane. Running wide starts a countdown: get back on the road before it `
         + 'ends.',
       target: NOTICE,
     },
