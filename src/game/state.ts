@@ -70,6 +70,7 @@ export interface LaunchOpts {
   weather?: { mode: WeatherMode; season: number }; time?: number | null;   // the conditions
   livery?: { paint?: string; trim?: string; num?: number } | null; tyre?: string;   // garage
   trailer?: string;   // a tractor's trailer (the garage's TRAILER row)
+  ghost?: boolean;   // ?ghost: the setup's GHOST
   aiTune?: AiTune | null;   // the AI DRIVERS dials (ai/tune.ts)
 }
 
@@ -146,6 +147,7 @@ export interface Game {
   raceHeld?: boolean;   // the loading screen and its fly-in hold the race this frame
   drawn?: { x: number; y: number; t: number };   // where the car was drawn last frame
   testMode: boolean; paused: boolean; menuMode?: boolean;
+  ghostCar?: GameCar | null;   // ?ghost: the best's car, only drawn (game/ghostrun.ts)
   notice?: { text: string; good?: boolean; at: number } | null;
   position?: number;   // your place in a race
   trackD?: number | null;   // your distance round the track
@@ -199,6 +201,7 @@ export interface Shared {
   fpsHist: number[]; fpsAcc: number; fpsN: number;
   minimapOn: boolean; progressOn: boolean; trackTempOn: boolean;
   weatherPlan: WeatherPlan | null;
+  ghostOn?: boolean;   // ?ghost: the setup's GHOST (game/ghostrun.ts)
   meterTiles: number; meterTouches: number; meterUploads: number; meterMipmaps: number;
   warmMs: number; loadMs?: number; nanReports: number;
 }

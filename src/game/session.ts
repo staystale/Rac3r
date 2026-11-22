@@ -25,6 +25,7 @@ import {
   FREE_STEP_M, firstFree, lapStepBack, notAheadOf, respawnBehind,
 } from './resetspot.ts';
 import { useRigPose } from './resetspot.ts';
+import { resetGhost, saveGhostBest } from './ghostrun.ts';
 import { circuitTrailer, followedTrailer, placeTrailer, rigInset } from './rigreset.ts';
 import type { RigPose } from './rigreset.ts';
 import { resetCar, armStart, startHeld, startAtOf } from './order.ts';
@@ -401,6 +402,7 @@ export function loadTyreWear(car: GameCar) {
   car.tyreWearOwned = true;
 }
 export function saveRecords() {
+  saveGhostBest();
   try {
     if ((game.hwBest | 0) > (shared.savedHwBest | 0)) {
       localStorage.setItem('rac3r.hwbest', String(game.hwBest | 0));
@@ -531,6 +533,7 @@ function restartNow() {
   shared.lapState.started = false;
   shared.lapState.halfway = false;
   reset(game.car, SPAWN.x, SPAWN.y, SPAWN.heading);
+  resetGhost();
   if (shared.renderer && shared.renderer.snap) shared.renderer.snap(game.car);
   game.cones.reset();
   game.marks.clear();

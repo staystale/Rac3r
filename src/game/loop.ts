@@ -13,6 +13,7 @@ import { stepStage, stepJoker, stepRace } from './rules.ts';
 import { stepStart } from './order.ts';
 import { stepAI } from './ai.ts';
 import { updateRecoveryTracking } from './session.ts';
+import { stepGhost } from './ghostrun.ts';
 import { stepResults } from './menuflow.ts';
 import { holdRace, loadingNow } from './loading.ts';
 import { takeMenuTaps } from '../menu/widgets.ts';
@@ -111,6 +112,8 @@ export function stepWorld(inp: CarInput) {
   updateRecoveryTracking(game.car, PHYSICS_STEP_SECONDS);
   stepJoker(game, game.car);
   stepStage(game, PHYSICS_STEP_SECONDS);
+  // ?ghost: record the lap / run, place the best's ghost (game/ghostrun.ts)
+  stepGhost();
   // THE ENDLESS HIGHWAY: build ahead / drop behind; when the window moves, everything
   // remembered as a road distance moves with it
   if (LEVEL.endless && !stepEndlessHighway()) return false;

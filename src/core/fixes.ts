@@ -85,4 +85,9 @@ export const FIX = {
   // time its result, like a real rally (game/grid.ts spawnAI; it was placed past the finish, or
   // round the racing line back at the start line with its old start time)
   stagedone: atLoad('stagedone'),
+  // GHOST CARS (owner 11-22): in TEST MODE, on every track but the highways, the quickest lap or
+  // stage run - this session's or the saved best per track, direction and car - played back as a
+  // see-through car that is only drawn; a GHOST switch on the setup (on solo, off VS AI); the
+  // fastest laps listed in SETTINGS > ACCOLADES (game/ghostcar.ts, ghostrun.ts, menu/accolades.ts)
+  ghost: atLoad('ghost'),
 };
