@@ -31,7 +31,8 @@
 // marktrack, scanyah (the tractor) and tipping passed 11-17; resetclean, lamps, fpshud, marksage
 // blighty, flagfix, trailer, boxhold and gridlen passed 11-21; rollgreen and hwfan passed 11-21;
 // hazard, softback, brakepedal, gapdest and revstuck passed 11-22, aitune, gapcommit and
-// contactcost dropped; passearly, passwide, trailroll, revroom and stagedone passed 11-22.)
+// contactcost dropped; passearly, passwide, trailroll, revroom, stagedone and ghost passed 11-22;
+// stagetimes, stagepos and stagehold passed 11-22.)
 import { envValue } from './debug.ts';
 
 /**
@@ -93,11 +94,6 @@ export const FIX = {
   // prop not a banner): reds one a second, the green, dark otherwise; a stage's counts each car
   // down at the line (world/startlights.ts)
   gantrylights: atLoad('gantrylights'),
-  // GHOST CARS (owner 11-22): in TEST MODE, on every track but the highways, the quickest lap or
-  // stage run - this session's or the saved best per track, direction and car - played back as a
-  // see-through car that is only drawn; a GHOST switch on the setup (on solo, off VS AI); the
-  // fastest laps listed in SETTINGS > ACCOLADES (game/ghostcar.ts, ghostrun.ts, menu/accolades.ts)
-  ghost: atLoad('ghost'),
   // SPIKES PEAK, THE HILL CLIMB, round 2 (owner 11-22: its own track type, the real course at half
   // scale): the road and its climb, in TEST MODE's track lists (world/levels/spikes.ts)
   spikespeak: atLoad('spikespeak'),

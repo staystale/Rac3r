@@ -1,8 +1,7 @@
-// menu/ghostrow.ts - the setup's GHOST switch (?ghost; owner 11-22: always there in TEST MODE's
+// menu/ghostrow.ts - the setup's GHOST switch (passed 11-22; owner: always there in TEST MODE's
 // setup, off when AI are on, on solo - until the player picks): GHOST ON / OFF, and under it the
 // best the ghost would race (game/ghostcar.ts) - "BEST 1:23.45 (BMV E36 PEAK)" - for this track
 // and your car. Not on the highways (no ghosts there).
-import { FIX } from '../core/fixes.ts';
 import { ROSTER } from '../cars.ts';
 import { fmtTime } from '../hud/widgets.ts';
 import { ghostKey, loadGhost } from '../game/ghostcar.ts';
@@ -39,7 +38,7 @@ function bestLine(level: Level, carId: string): string {
 }
 
 /**
- * Adds the GHOST row to the setup (with ?ghost, not on a highway): a button that turns it on / off,
+ * Adds the GHOST row to the setup (not on a highway): a button that turns it on / off,
  * the best under it; the solo / VS AI buttons put it back to their default (state.ghost unset).
  * @param menu the menu context
  * @param panel the setup pane
@@ -47,7 +46,7 @@ function bestLine(level: Level, carId: string): string {
  * @param state the setup state (reads / writes ghost; its paint wrapped)
  */
 export function addGhostRow(menu: Menu, panel: HTMLElement, level: Level, state: SetupState) {
-  if (!FIX.ghost || level.endless) return;
+  if (level.endless) return;
   const row = addElement(panel, 'div', '', 'row');
   const button = addButton(menu, row, 'GHOST', () => {
     state.ghost = !ghostOnOf(state);

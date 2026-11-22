@@ -1,4 +1,4 @@
-// menu/accolades.ts - SETTINGS > ACCOLADES (?ghost; owner 11-22: "make it neat, keep it in one,
+// menu/accolades.ts - SETTINGS > ACCOLADES (passed 11-22; owner: "make it neat, keep it in one,
 // with our theme"): one screen, two parts in the menu's own boxes. TROPHIES - the Story's, from the
 // profile (Profile.trophies: Story adds them when it is built; until then one line says how they
 // are won). FASTEST LAPS (TEST MODE) - the ghosts' saved bests (game/ghostcar.ts), per track (and

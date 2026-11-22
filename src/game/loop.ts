@@ -119,7 +119,7 @@ export function stepWorld(inp: CarInput) {
   updateRecoveryTracking(game.car, PHYSICS_STEP_SECONDS);
   stepJoker(game, game.car);
   stepStage(game, PHYSICS_STEP_SECONDS);
-  // ?ghost: record the lap / run, place the best's ghost (game/ghostrun.ts)
+  // GHOST CARS: record the lap / run, place the best's ghost (game/ghostrun.ts)
   stepGhost();
   // THE ENDLESS HIGHWAY: build ahead / drop behind; when the window moves, everything
   // remembered as a road distance moves with it

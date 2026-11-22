@@ -17,6 +17,22 @@ lighting, bushes and trees - OWNER LIST 10-24; the checking tools - Tools that a
 
 
 
+## PASSED 11-22, GHOST CARS AND ACCOLADES (owner: ?ghost passed on the phone)
+
+The default 11-22, its switch deleted (9d874d73; game/ghostcar.ts, game/ghostrun.ts, render/
+screen.ts, menu/ghostrow.ts, menu/accolades.ts): in TEST MODE, on every track but the highways,
+each lap (lap 1 and laps with a reset too) or stage run is recorded 20 times a second of its own
+clock and the quickest - this session's or the saved best per track, direction (a level's ghostDir:
+the hill climb's hook) and car - played back on the same clock as a car drawn 40 % see-through
+under the cars, only drawn (never in the field, the contacts or the AI's view); a new best saved at
+the safe moments (at most 40 kept). The setup's GHOST row stays the player's option (on solo, off
+VS AI until picked; "BEST 1:23.44 (BMV EM135AYE)" under it). SETTINGS > ACCOLADES: TROPHIES (the
+profile's trophies - Story adds them; one line until then) and FASTEST LAPS (TEST MODE) per track
+and car. MEASURED (tools/scratch/_ghostcheck.mjs): a lap's pose error mean 0.1 cm, worst 0.4 cm
+(0.8 cm after saving and loading); 268 characters a second saved (a 78.8 s lap 20.6 KB);
+tools/scratch/_ghostshots.mjs: the ghost from lap 2 every second in the real game, never in the
+field.
+
 ## PASSED 11-22, REVERSE OUT WITH ROOM (owner: ?revroom passed)
 
 The default 11-22, its switch deleted (40dd64da, ba275c30; ai/driveOut.ts, ai/revRoom.ts; owner:

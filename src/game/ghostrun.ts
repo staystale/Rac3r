@@ -1,4 +1,4 @@
-// game/ghostrun.ts - GHOST CARS in a session (?ghost; owner 11-22): in TEST MODE only, on every
+// game/ghostrun.ts - GHOST CARS in a session (passed 11-22): in TEST MODE only, on every
 // track but the highways, with the setup's GHOST on. Each lap (the lap timer's: lap 1 from the
 // move off the grid, then every crossing of the line) or stage run (start line to finish) is
 // recorded (game/ghostcar.ts); the quickest - this session's or the saved one, whichever is
@@ -6,7 +6,6 @@
 // is only drawn (game.ghostCar, render/screen.ts): never in the field, the contacts or the AI's
 // view.
 // A new best is saved at the safe moments (game/session.ts saveRecords).
-import { FIX } from '../core/fixes.ts';
 import { LEVEL } from '../world/state.ts';
 import { makeCar } from '../vehicle.ts';
 import { game, shared } from './state.ts';
@@ -20,11 +19,10 @@ const run = { key: '', rec: null as GhostTape | null, recLap: 0, best: null as G
   dirty: false, car: null as GameCar | null };
 
 /**
- * Whether ghosts run in this session: the switch, the setup's GHOST, TEST MODE, a track (not a
- * highway).
+ * Whether ghosts run in this session: the setup's GHOST, TEST MODE, a track (not a highway).
  * @returns on
  */
-const ghostOn = () => FIX.ghost && !!shared.ghostOn && !!game.testMode && !!LEVEL.subtrack
+const ghostOn = () => !!shared.ghostOn && !!game.testMode && !!LEVEL.subtrack
   && !LEVEL.endless;
 
 /**

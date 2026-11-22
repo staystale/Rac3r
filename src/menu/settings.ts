@@ -5,7 +5,6 @@
 import { addPane, addButton, addElement } from './widgets.ts';
 import { STEER_FEEL, setSteerFeel, stickReach, curveSteer } from '../core/steerfeel.ts';
 import { MENU_COL } from './palette.ts';
-import { FIX } from '../core/fixes.ts';
 import { showAccolades } from './accolades.ts';
 
 // what one menu context needs here (menu.ts builds it)
@@ -85,11 +84,9 @@ export function showSettings(menu: Menu, back: () => void, resume?: () => void):
   addElement(panel, 'h2', 'SETTINGS');
   addButton(menu, panel, 'STEERING CONTROLS ›',
     () => showSteering(menu, () => showSettings(menu, back, resume), resume));
-  // (?ghost: the Story's trophies and the test mode's fastest laps - menu/accolades.ts)
-  if (FIX.ghost) {
-    addButton(menu, panel, 'ACCOLADES ›',
-      () => showAccolades(menu, () => showSettings(menu, back, resume), resume));
-  }
+  // (the Story's trophies and the test mode's fastest laps - menu/accolades.ts)
+  addButton(menu, panel, 'ACCOLADES ›',
+    () => showAccolades(menu, () => showSettings(menu, back, resume), resume));
   addFootRow(menu, panel, back, resume);
 }
 
