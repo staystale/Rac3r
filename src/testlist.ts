@@ -32,14 +32,5 @@ export const TEST_LIST: TestEntry[] = [
     wrong: 'A car parked or driving off just ahead of you at the start, a car finishing at the '
       + 'green, or a time near 270 s; a car missing from the results.',
   },
-  {
-    id: 'trailroll',
-    added: '2026-11-22',
-    name: 'Truck and trailer roll: gently together, violently the pin snaps (about 0.45 g)',
-    where: 'Test link + &trailroll=1: TEST MODE, the Scanyah with its trailer, the endless road',
-    try: 'Take a long bend hard, keep building speed until it goes over; crash it side-on; RESET.',
-    wrong: 'Rolling into the bend, cab and trailer apart after a gentle tip or on different '
-      + 'faces, a wheel drawn off it, or RESET leaving either on its side.',
-  },
 
 ];

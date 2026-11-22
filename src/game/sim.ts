@@ -257,13 +257,11 @@ function stepPlayerTrailer(inp: CarInput) {
   clampWorld(trailer, PHYSICS_STEP_SECONDS);
   hit(trailer, vx0, vy0);
   applyGround(trailer, PHYSICS_STEP_SECONDS);
-  // (?trailroll: the trailer tips and rolls, with its cab or alone - physics/trailroll.ts)
-  if (FIX.trailroll) {
-    stepRigRoll(car, trailer, { vx: vx0, vy: vy0 },
-      () => stepTrailer(car, inp.brake, PHYSICS_STEP_SECONDS),
-      (body) => stepRoll(body, PHYSICS_STEP_SECONDS, (kind, side, weight) => hitRoll(body, kind,
-        side, weight)), PHYSICS_STEP_SECONDS);
-  } else stepTrailer(car, inp.brake, PHYSICS_STEP_SECONDS);
+  // (the trailer tips and rolls, with its cab or alone - physics/trailroll.ts)
+  stepRigRoll(car, trailer, { vx: vx0, vy: vy0 },
+    () => stepTrailer(car, inp.brake, PHYSICS_STEP_SECONDS),
+    (body) => stepRoll(body, PHYSICS_STEP_SECONDS, (kind, side, weight) => hitRoll(body, kind,
+      side, weight)), PHYSICS_STEP_SECONDS);
   mirrorLamps(car);
 }
 

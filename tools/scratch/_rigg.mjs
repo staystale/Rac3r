@@ -12,7 +12,6 @@ import { attachTrailer, stepTrailer } from '../../src/physics/trailer.ts';
 import { stepTipping } from '../../src/physics/tip.ts';
 import { stepRigRoll } from '../../src/physics/trailroll.ts';
 import { rolling, stepRoll, tripCheck } from '../../src/roll.ts';
-import { FIX } from '../../src/core/fixes.ts';
 
 const G = 9.81;
 const TRAILER_TIP_G = 2.04 / (2 * 1.5), TRAILER_TIP_G_SOFT = TRAILER_TIP_G * (1 - 0.12);
@@ -37,31 +36,25 @@ function both(car, input, rec) {
   car.surface = SURFACES.tarmac;
   car.trailer.surface = SURFACES.tarmac;
   const trailer = car.trailer, v0x = trailer.vx, v0y = trailer.vy;
-  if (FIX.trailroll) {
-    // (as game/sim.ts: a rolling cab tumbles, else its step and two-wheel state; then the trailer
-    // with the roll - physics/trailroll.ts stepRigRoll)
-    if (rolling(car)) stepRoll(car, dt, () => {});
-    else {
-      step(car, input, dt);
-      // (a crash's side kick trips it as the game's: the dice always against it here)
-      tripCheck(car, dt, () => 0);
-      stepTipping(car, dt);
-    }
-    const cabWas = rolling(car), wasRolling = rolling(trailer);
-    stepRigRoll(car, trailer, { vx: v0x, vy: v0y }, () => stepTrailer(car, input.brake, dt),
-      (body) => stepRoll(body, dt, () => {}), dt);
-    if (rec && !rec.first && (cabWas || rolling(trailer))) {
-      const cabFirst = cabWas && !wasRolling;
-      rec.first = { who: cabFirst ? 'cab' : 'trailer', rate: Math.abs((cabFirst ? car : trailer)
-        .roll.w), time: rec.time };
-    }
-    if (rec && rec.first && !rec.outcome) rec.outcome = trailer.pinFree ? 'pin snapped'
-      : rolling(car) && rolling(trailer) ? 'together' : null;
-  } else {
+  // (as game/sim.ts: a rolling cab tumbles, else its step and two-wheel state; then the trailer
+  // with the roll - physics/trailroll.ts stepRigRoll)
+  if (rolling(car)) stepRoll(car, dt, () => {});
+  else {
     step(car, input, dt);
-    if (!car.roll || car.roll.phase === 'none' || car.roll.phase === 'tipping') stepTipping(car, dt);
-    stepTrailer(car, input.brake, dt);
+    // (a crash's side kick trips it as the game's: the dice always against it here)
+    tripCheck(car, dt, () => 0);
+    stepTipping(car, dt);
   }
+  const cabWas = rolling(car), wasRolling = rolling(trailer);
+  stepRigRoll(car, trailer, { vx: v0x, vy: v0y }, () => stepTrailer(car, input.brake, dt),
+    (body) => stepRoll(body, dt, () => {}), dt);
+  if (rec && !rec.first && (cabWas || rolling(trailer))) {
+    const cabFirst = cabWas && !wasRolling;
+    rec.first = { who: cabFirst ? 'cab' : 'trailer', rate: Math.abs((cabFirst ? car : trailer)
+      .roll.w), time: rec.time };
+  }
+  if (rec && rec.first && !rec.outcome) rec.outcome = trailer.pinFree ? 'pin snapped'
+    : rolling(car) && rolling(trailer) ? 'together' : null;
   if (!rec) return;
   const ax = (trailer.vx - v0x) / dt, ay = (trailer.vy - v0y) / dt;
   const latG = Math.abs(-ax * Math.sin(trailer.heading) + ay * Math.cos(trailer.heading)) / G;
@@ -91,7 +84,7 @@ for (const kph of [60, 80, 100]) {
   runs.push([`J-turn ${kph}`, kph, () => ({ steer: 0.55, throttle: 0.6, brake: 0 }), 4]);
 }
 // (TRAILROLL=1 only: the steadier circles and side hits on the trailer)
-if (FIX.trailroll) {
+{
   for (const steer of [0.15, 0.25]) runs.push([`circle steer ${steer}`, 40, () => ({ steer,
     throttle: 1, brake: 0 }), 20]);
   for (const kick of [4, 8, 14]) runs.push([`side hit ${kick} m/s at 60`, 60, () => ({ steer: 0,
@@ -100,7 +93,16 @@ if (FIX.trailroll) {
   for (const kick of [8, 14]) runs.push([`cab hit ${kick} m/s at 60`, 60, () => ({ steer: 0,
     throttle: 0.4, brake: 0 }), 4, kick, true]);
 }
+// (Math.random seeded afresh for each run: a crash trip's spin draws from it - roll.ts startRoll -
+// so the output is the same every time: a pass's proof compares it)
+const seeded = (seed) => () => {
+  seed = (seed + 0x6d2b79f5) | 0;
+  let mix = Math.imul(seed ^ (seed >>> 15), seed | 1);
+  mix ^= mix + Math.imul(mix ^ (mix >>> 7), mix | 61);
+  return ((mix ^ (mix >>> 14)) >>> 0) / 4294967296;
+};
 for (const [name, kph, control, seconds, kick, cabHit] of runs) {
+  Math.random = seeded(0x5eed);
   const car = rigAt(kph), rec = { trailerG: 0, tractorG: 0, pastSoft: 0, pastTip: 0, hitch: 0,
     phase: 'none', liftG: null, over: null, trailerPhase: 'none', first: null, outcome: null,
     time: 0 };
@@ -118,9 +120,8 @@ for (const [name, kph, control, seconds, kick, cabHit] of runs) {
     .toFixed(2)} g (past ${TRAILER_TIP_G_SOFT.toFixed(2)} g ${rec.pastSoft.toFixed(2)} s, past `
     + `${TRAILER_TIP_G.toFixed(2)} g ${rec.pastTip.toFixed(2)} s), hitch up to ${rec.hitch.toFixed(0)}`
     + ` deg, the tractor ${rec.phase} at the end, ${(car.t.vLong * 3.6).toFixed(0)} km/h`
-    + (FIX.trailroll && rec.first ? `; FIRST OVER: the ${rec.first.who} at ${rec.first.time.toFixed(1)} s, ${rec.first.rate.toFixed(1)} rad/s -> ${rec.outcome}; the cab ${car.roll?.phase ?? 'none'}, the trailer ${car.trailer.roll?.phase ?? 'none'}` : '')
-    + (FIX.trailroll ? `; the trailer ${rec.liftG === null ? 'never lifted' : 'lifted at '
+    + (rec.first ? `; FIRST OVER: the ${rec.first.who} at ${rec.first.time.toFixed(1)} s, ${rec.first.rate.toFixed(1)} rad/s -> ${rec.outcome}; the cab ${car.roll?.phase ?? 'none'}, the trailer ${car.trailer.roll?.phase ?? 'none'}` : '')
+    + `; the trailer ${rec.liftG === null ? 'never lifted' : 'lifted at '
       + rec.liftG.toFixed(2) + ' g'}${rec.over ? ', WENT OVER (pin ' + (rec.over.pinFree ? 'snapped'
-      : 'held') + ', ' + (rec.over.outward ? 'outward' : 'INWARD') + ')' : ''}, ${rec.trailerPhase}`
-      : ''));
+      : 'held') + ', ' + (rec.over.outward ? 'outward' : 'INWARD') + ')' : ''}, ${rec.trailerPhase}`);
 }

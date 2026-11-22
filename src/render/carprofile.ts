@@ -179,7 +179,7 @@ export const PROFILES: Record<string, CarProfile> = {
     windows: [[0.8, 0.955, 2.05, 2.9], [0.975, 0.995, 1.95, 3.05]],
     waist: 1.2, glass: [0.94, 0.99], roof: [[0, 0.9], [0.6, 1.15],
     [0.61, 3.6], [0.97, 3.6], [0.99, 2.6], [1, 1.0]] },
-  // Scanyah's curtainsider (?trailroll: drawn rolled): the box from its deck (~1.25 m) to its
+  // Scanyah's curtainsider (drawn rolled): the box from its deck (~1.25 m) to its
   // roof (~4.0 m) the whole length, no glass; low at each end only where its chassis rails show
   'scanyah-trailer': { len: 13.6, waist: 1.25, glass: [0, 0], windows: [],
     roof: [[0, 1.25], [0.01, 4.0], [0.99, 4.0], [1, 1.25]] },

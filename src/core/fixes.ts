@@ -31,7 +31,7 @@
 // marktrack, scanyah (the tractor) and tipping passed 11-17; resetclean, lamps, fpshud, marksage
 // blighty, flagfix, trailer, boxhold and gridlen passed 11-21; rollgreen and hwfan passed 11-21;
 // hazard, softback, brakepedal, gapdest and revstuck passed 11-22, aitune, gapcommit and
-// contactcost dropped; passearly and passwide passed 11-22.)
+// contactcost dropped; passearly, passwide and trailroll passed 11-22.)
 import { envValue } from './debug.ts';
 
 /**
@@ -73,9 +73,6 @@ export const FIX = {
   // THE HILL CLIMB'S GRADE, step 1 (owner 11-22: a real 7 % climb): the endless road rising
   // HILL_GRADE along its length (highway/hillgrade.ts) - the engine piece, measured alone
   hillgrade: atLoad('hillgrade'),
-  // THE TRAILER TIPS AND ROLLS (owner 11-22: realistic, ~0.45 g): its own two-wheel state, over
-  // past its balance - the pin snaps, it rolls and slides on its own (physics/trailroll.ts)
-  trailroll: atLoad('trailroll'),
   // REVERSE OUT WITH ROOM (owner 11-22: "they don't reverse quick enough ... and they also don't
   // reverse enough to steer clear"; "reverse quicker rather than resetting"): held by a STOPPED
   // car in my way, stuck after 1.5 s (not 4), and still with a car within 1 m of my nose, a reverse
