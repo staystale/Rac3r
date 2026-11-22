@@ -157,6 +157,7 @@ export interface Game {
   pitArrows?: { x: number; y: number; rot: number; len: number }[] | null;
   pitCue?: { done: boolean; inLane: boolean; at: number; turnD: number } | null;
   pitBox?: PitBox | null;   // ?pitstops: your box, marked (render/pitbox.ts)
+  pitParked?: boolean;   // ?pitstops: you are stopped in it (its menu open, or the work)
   ghostCar?: GameCar | null;   // the ghost: the best's car, only drawn (game/ghostrun.ts)
   notice?: { text: string; good?: boolean; at: number } | null;
   position?: number;   // your place in a race

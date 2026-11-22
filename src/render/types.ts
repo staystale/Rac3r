@@ -153,7 +153,7 @@ export interface RoadGame {
   // ?pitstops: the pit lane's arrows to show (its entrance, along it, your box), as the joker's
   pitArrows?: { x: number; y: number; rot: number; len: number }[] | null;
   // ?pitstops: your box to mark (render/pitbox.ts) and whether its lollipop shows GO
-  pitBox?: PitBox | null; pitGo?: unknown;
+  pitBox?: PitBox | null; pitGo?: unknown; pitParked?: boolean;
 }
 
 // The worn cells of one surface for one drawWear pass: rects as x, y, w, h, and their world box.

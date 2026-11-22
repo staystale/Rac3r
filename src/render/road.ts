@@ -491,7 +491,7 @@ function drawArrows(ctx: RoadCtx, game: RoadGame, wallT?: number) {
   const pxPerM = PPMz();
   if (game.pitBox) {
     drawYourBox({ canvasCtx: view.ctx, pxPerM, toScreenX, toScreenY }, game.pitBox,
-      !!game.pitGo);
+      { showsGo: !!game.pitGo, parked: !!game.pitParked, wallT: wallT || 0 });
   }
   if (!arrows) return;
   // stronger + OUTLINED: at 0.28-0.5 alpha it faded into the grey tarmac

@@ -72,6 +72,7 @@ export function resetPitStop(): void {
   game.pitCue = null;
   game.pitArrows = null;
   game.pitBox = null;
+  game.pitParked = false;
   tyresAt = 0;
   (game.car as GameCar & { _pitPen?: number })._pitPen = 0;
 }
@@ -85,6 +86,7 @@ export function resetPitStop(): void {
 function showPitCues(inLane: boolean): void {
   const pits = (LEVEL as PitLevel).pits!, box = myBox();
   game.pitBox = box;
+  game.pitParked = pit.phase === 'menu' || pit.phase === 'work';
   if (!pitRule()) {
     game.pitCue = null;
     game.pitArrows = null;

@@ -20,8 +20,9 @@ export const TEST_LIST: TestEntry[] = [
       + 'a pit lane (Brands, Sillystone, Le Manky...); the setup PIT STOPS row',
     try: 'Follow the arrows into the pit lane (as a joker lap: the lap panel line PIT TO DO, '
       + 'PIT >>> near the entrance, IN PIT on the lane; the PIT LIMITER light, 60 km/h). Your box '
-      + 'is the green outline with the red lollipop (every box is painted; yours is also a green '
-      + 'dot on the minimap). Stop in it, pick tyres / repair, CONFIRM & GO: held for the work, '
+      + 'is the orange outline with the red lollipop (every box is painted; yours is also an '
+      + 'orange dot on the minimap), flashing blue once you are parked in it. Stop in it, pick '
+      + 'tyres / repair, CONFIRM & GO: held for the work, '
       + 'the lollipop turns green at GO, PIT TAKEN then PIT DONE. A RESET in the pit lane: back '
       + 'at its entrance. Skip the stop in a dry F1 race: +30 s NO PIT at the finish.',
     wrong: 'Your box hard to spot at speed, arrows pointing the wrong way, no menu in your box, '

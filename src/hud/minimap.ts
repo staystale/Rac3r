@@ -174,14 +174,15 @@ function drawJokerLane(ctx: CanvasRenderingContext2D, game: HudGame, scale: numb
 }
 
 /**
- * ?pitstops: your pit box as a dot on the minimap, over the road, in its marking's colour.
+ * ?pitstops: your pit box as a dot on the minimap, over the road, in its marking's colour (the
+ * theme orange: render/pitbox.ts).
  * @param ctx the HUD context, in world units
  * @param game the game (pitBox)
  * @param scale css px per m
  */
 function drawPitBoxDot(ctx: CanvasRenderingContext2D, game: HudGame, scale: number) {
   if (!game.pitBox) return;
-  ctx.fillStyle = COL.live;
+  ctx.fillStyle = COL.theme;
   ctx.beginPath();
   ctx.arc(game.pitBox.x, game.pitBox.y, BOX_DOT_PX / scale, 0, Math.PI * 2);
   ctx.fill();

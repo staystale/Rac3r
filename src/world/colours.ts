@@ -64,4 +64,7 @@ export const COL = {
   // countryside, the rally boards' yellow on Deaf Valley
   cushionBlue: '#2b56b5',
   cushionYellow: '#f2c21b',
+  // the game's theme (the logo's): its ember orange and electric blue - the menu's accent and its
+  // "better" (menu/palette.ts); your pit box (render/pitbox.ts): orange, flashing blue once parked
+  theme: '#ff7a2a', themeBlue: '#4fd8ff',
 };
