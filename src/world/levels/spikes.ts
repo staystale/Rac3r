@@ -176,6 +176,8 @@ export function buildSpikes(): Level {
   };
   return {
     id: 'spikes-peak', name: 'Spikes Peak',
+    // (its bests and ghosts by direction: one run, up - game/ghostrun.ts)
+    ghostDir: 'up',
     base: SURFACES.gravel,                    // the mountain's broken rock
     subtrack: sub, bounds,
     floor: Math.ceil(Math.max(-bounds.x0, bounds.x1, -bounds.y0, bounds.y1)),

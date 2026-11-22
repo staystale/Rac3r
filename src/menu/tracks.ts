@@ -38,7 +38,7 @@ export const KIND: Record<string, string> = { lab: 'TEST GROUND', 'test-track': 
   bathurst: 'WORLD CIRCUIT · MOUNTAIN', moanaco: 'WORLD CIRCUIT · STREETS',
   'brands-snatch-indy': 'UK CIRCUIT · INDY', snotterton: 'UK CIRCUIT · 300',
   'snotterton-200': 'UK CIRCUIT · 200', 'snotterton-100': 'UK CIRCUIT · 100',
-  'sweaty-lamb': 'RALLY STAGE',
+  'sweaty-lamb': 'RALLY STAGE', 'spikes-peak': 'HILL CLIMB',
   killder: 'RALLY STAGE · FOREST', 'slidden-hill': 'RALLYCROSS', 'grass-track': 'AUTOGRASS',
   'stock-car': 'OVAL', naffcar: 'OVAL', dieatona: 'SUPERSPEEDWAY',
   'dieatona-road': 'SUPERSPEEDWAY · ROAD COURSE', sandbox: 'CIRCUIT',
@@ -53,6 +53,8 @@ const CATS = [
   { id: 'world', name: 'WORLD CIRCUITS',
     sub: 'endurance · GT · mountain' },
   { id: 'rally', name: 'RALLY STAGES', sub: 'point to point · against the clock' },
+  // (shown only with a hill climb in it: SPIKES PEAK, ?spikespeak)
+  { id: 'hillclimb', name: 'HILL CLIMBS', sub: 'one run up · against the clock' },
   { id: 'rx', name: 'RALLYCROSS', sub: 'mixed surface' },
   { id: 'ovals', name: 'OVALS', sub: 'stock car · speedway · autograss' },
   { id: 'roads', name: 'ENDLESS ROADS', sub: 'how far can you get?' },
@@ -160,12 +162,22 @@ export function showMainMenu(menu: Menu) {
 const CAT_THUMBS = 3;
 
 /**
+ * Whether a level is listed in a TEST MODE category: its own, or ALL TRACKS - every level but the
+ * hill climbs (owner 11-22: their own track type, listed only under HILL CLIMBS).
+ * @param level the level
+ * @param catId the category
+ * @returns it is
+ */
+const inCat = (level: Level, catId: string) => (catId === 'all' ? menuCatOf(level) !== 'hillclimb'
+  : menuCatOf(level) === catId);
+
+/**
  * A TEST MODE category's levels, in the menu's order.
  * @param catId the category ('all': every level)
  * @returns its levels
  */
 function levelsOfCat(catId: string): Level[] {
-  return LEVELS.filter((entry) => catId === 'all' || menuCatOf(entry) === catId);
+  return LEVELS.filter((entry) => inCat(entry, catId));
 }
 
 /**
@@ -299,7 +311,7 @@ function addLength(button: HTMLElement, levels: Level[]) {
 function layoutsOf(level: Level, cat: string): Level[] {
   if (!level.venue) return [level];
   return LEVELS.filter((entry) => entry.venue === level.venue
-    && (cat === 'all' || menuCatOf(entry) === cat));
+    && inCat(entry, cat));
 }
 
 /**
@@ -342,7 +354,7 @@ export function showTrackList(menu: Menu, cat: string) {
       !== cur.gen![key])) menu.api.genStage(savedGen);
   }
   const grid = addElement(panel, 'div', '', 'grid'), venues = new Set<string>();
-  for (const level of LEVELS.filter((entry) => cat === 'all' || menuCatOf(entry) === cat)) {
+  for (const level of LEVELS.filter((entry) => inCat(entry, cat))) {
     const layouts = layoutsOf(level, cat);
     if (layouts.length < 2) addTrackCard(menu, grid, level);
     else if (!venues.has(level.venue!)) {
@@ -367,7 +379,7 @@ export function showLayoutList(menu: Menu, cat: string, venue: string) {
   menu.thumbs = menu.api.thumbs();
   const grid = addElement(panel, 'div', '', 'grid');
   for (const level of LEVELS.filter((entry) => entry.venue === venue
-    && (cat === 'all' || menuCatOf(entry) === cat))) addTrackCard(menu, grid, level);
+    && inCat(entry, cat))) addTrackCard(menu, grid, level);
   const row = addElement(panel, 'div', '', 'row');
   addButton(menu, row, '◀ TRACKS', () => showTrackList(menu, cat));
 }
