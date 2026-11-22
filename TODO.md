@@ -556,19 +556,6 @@ STORY (Story mode with its garage, money, BUY & FIT, "buy what you last tested" 
   autopilot drives it, the hairpins at 22-32 km/h, ~56 fps (one dip to 44), the car's height
   the profile's (138.6 m at 2.7 km). NEXT: round 3, the world (drops, armco, rocks and trees by
   height, the gantry, the summit); the AI; the menu's own category.
-- A STAGE'S TYRE TRACKS (owner 11-22: from the start line for each car already through, cheap):
-  BUILT behind ?stagetracks (Worker C, game/stagetracks.ts): the skid-mark layer's own wheel marks
-  along the racing line with each car's own smooth wander, eased onto the line before the car (its
-  own marks carry on). MEASURED: 37-82 ms once at the spawn for 4-5 cars (12-16k marks); ruts on
-  the gravel only (a rolling tyre marks nothing on tarmac, as everywhere), faint before the first
-  car, clear in the bends. OWNER on round202: NOT PASSED - "look weird and have strange horizontal lines thru them". CAUSE: a stroke every racing-line point (~1.5 m: each joint of two round-capped strokes doubled into a bar across the rut) and 4 cars x 4 wheels within ~1.4 m of one line (one dark band). FIXED: a stroke every 0.25 m (a car's own at ~30 m/s), each car's line 1 m apart, its wander gentler; 162-213 ms once at the spawn. AWAITING THE PHONE TEST.
-- THE STARTS (owner 11-22, the suggestions passed): BUILT (Worker C), each behind its switch:
-  ?nojump - no early start anywhere (START_EARLY 0 for every car; no AI jumps a rolling start's
-  green, its reaction kept); ?stageplace - a stage car ahead placed at its driven pace (x 1.12);
-  ?stageline - the queue creeps up a place as each car goes, the next onto your start spot, every
-  car timed from its own green (game/stagequeue.ts); ?gantrylights - every start gantry's pods
-  show the countdown and the green, a stage's each car at the line (world/startlights.ts).
-  AWAITING THE PHONE TEST.
 - STORY PLAN (owner 11-22, the ladder - later order to discuss as we get there). Currency: £. START
   MONEY BY THE DIFFICULTY picked ONCE at the start of Story (owner 11-22): Mobile game £3,000, Game £2,200,
   Realish £1,600, Real but you're rich £1,200, Real £900; the difficulty LOCKED for that Story save; your first car a low-statted banger. A crash or RESET in a licence event fails it: a free
@@ -591,6 +578,18 @@ STORY (Story mode with its garage, money, BUY & FIT, "buy what you last tested" 
   TIMES IN ONE STREET RACE = the car impounded, a release fee.
   SAVES: a SAVE CODE (copy out / paste back) - "still unsure", to discuss more; Safari wipes site data
   unvisited for 7 days.
+- THE QUEUE ON A GENERATED STAGE (owner on round205: "I didn't see any other AI racers on rally
+  start behind me and I couldn't see any on the minimap. Do they still spawn?"). MEASURED
+  (tools/scratch/_stagebehind.mjs, VS AI 5, starting 1st): Sweaty Lamb and Killder - all 5 queued
+  9-41 m behind you on the road, drawn and on the minimap, with or without ?stageline; the
+  generator's stage (its run-up 45 m) - the 5th car 174-183 m away, past the run-up on the ghost
+  segment. BUILT behind ?queuefit (Worker C, game/grid.ts gridPos, game/stagequeue.ts): the queue
+  carried on straight back from the run-up's start (all 5 then on the start spot at their greens,
+  -6.5 to -6.8 m; a queued car stops while a car is within 7 m of its nose - two still came 3.7 m
+  apart centre to centre once: OPEN, the trace stopped for low memory). ALSO: your start slot on a stage is drawn with
+  the difficulty's grid bias (game/grid.ts drawGridSlot: harder, further back) - starting last,
+  every AI car is 30 s or more ahead: none behind, none in the minimap's reach (OWNER: keep?).
+  AWAITING THE PHONE TEST.
 - [ ] STORY MODE: ROOKIE SEASON (grass track, stock car, time trials: hillclimb / runway cones) ->
   ROOKIE 2 (similar events, track variations, harder to win); we pick the events; money / points
   also for NOT finishing top 3; replayable events / championships for more money (finish 5th,

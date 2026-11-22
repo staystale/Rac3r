@@ -1,4 +1,4 @@
-// game/stagetracks.ts - A STAGE'S TYRE TRACKS FROM THE CARS ALREADY THROUGH (?stagetracks; owner
+// game/stagetracks.ts - A STAGE'S TYRE TRACKS FROM THE CARS ALREADY THROUGH (owner
 // 11-22: "paint tyre tracks from the start line for each car that has already driven,
 // randomised", connected to where each car is when it appears down the stage; cheap - no run is
 // simulated). Each car started before you lays its wheels' marks (the skid-mark layer's own:
@@ -94,7 +94,7 @@ function layTracks(car: GameCar, endDist: number): number {
 }
 
 /**
- * Lays the tracks of every car already through the start (?stagetracks, a rally stage): on the
+ * Lays the tracks of every car already through the start (a rally stage): on the
  * road ahead of you to where it is, home over the whole stage.
  * @returns ms it took (the tools read it: window.__game.stageTracksMs)
  */

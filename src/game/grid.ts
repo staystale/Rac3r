@@ -15,8 +15,8 @@ import { splitLineDist } from "../world/splitstart.ts";
 import { onTrack, querySubtrack } from "../world/tyrewall.ts";
 import { START_STEP, ROLL_BACK } from './order.ts';
 import { shared, game } from './state.ts';
-import { FIX } from '../core/fixes.ts';
 import { layStageTracks } from './stagetracks.ts';
+import { FIX } from '../core/fixes.ts';
 import { prefillStageSplits } from './stagepos.ts';
 import type { GameCar } from './state.ts';
 import type { Point } from '../world/types.ts';
@@ -88,8 +88,16 @@ export function gridPos(slot: number) {
     offLap = querySubtrack(sub, spawn.x, spawn.y).dist > sub.width / 2;
   if (LEVEL.stage && slot > 0) {
     const spawnDist = querySubtrack(sub, spawn.x, spawn.y).trackDist,
-      point = onTrack(sub,
-        ((spawnDist - slot * STAGE_GAP_M) % sub.totalDist + sub.totalDist) % sub.totalDist, 0, {});
+      dist = ((spawnDist - slot * STAGE_GAP_M) % sub.totalDist + sub.totalDist) % sub.totalDist;
+    // (?queuefit: a place past the run-up's start - on the ghost segment back to the stop zone -
+    // carried straight back from that start instead)
+    const ghost = sub.ghost;
+    if (FIX.queuefit && ghost && dist > ghost.d0 && dist < ghost.d1) {
+      const runStart = onTrack(sub, ghost.d1, 0, {}), back = ghost.d1 - dist;
+      return { x: runStart.x - Math.cos(runStart.rot) * back,
+        y: runStart.y - Math.sin(runStart.rot) * back, h: runStart.rot };
+    }
+    const point = onTrack(sub, dist, 0, {});
     return { x: point.x, y: point.y, h: point.rot };
   }
   // A REAL 2-WIDE STAGGERED GRID (requirement: grid starts are wonky / place the player too close
@@ -248,8 +256,8 @@ function placeStageCar(car: GameCar, pace: number, rel: number): 'home' | 'road'
   car._slot = rel;
   car._predT = lineRun(LEVEL, car.spec, pace, Infinity, LEVEL.stage!.finish).t;
   const headS = -rel * STAGE_GAP_S - 4 * START_STEP;
-  // (?stageplace: placed at its driven pace, not the prediction's)
-  const placeRatio = FIX.stageplace ? STAGE_DRIVEN_RATIO : 1;
+  // (placed at its driven pace, not the prediction's)
+  const placeRatio = STAGE_DRIVEN_RATIO;
   // (home where its placement is past the finish)
   if (rel < 0 && car._predT * placeRatio <= headS) {
     car._stageStart = rel * STAGE_GAP_S;
@@ -270,8 +278,8 @@ function placeStageCar(car: GameCar, pace: number, rel: number): 'home' | 'road'
   } else {
     const pos = gridPos(rel);
     reset(car, pos.x, pos.y, pos.h);
-    // (?stageline: timed from its own green, k x STAGE_GAP_S after yours)
-    if (FIX.stageline) car._stageStart = rel * STAGE_GAP_S;
+    // (timed from its own green, k x STAGE_GAP_S after yours)
+    car._stageStart = rel * STAGE_GAP_S;
   }
   return 'road';
 }
@@ -321,6 +329,6 @@ export function spawnAI(count: number = shared.aiCount) {
     }
     game.ai.push({ car, drv, inGate: false });
   }
-  // (?stagetracks: the tracks of the cars already through - game/stagetracks.ts)
-  if (FIX.stagetracks && LEVEL.stage) game.stageTracksMs = layStageTracks();
+  // (the tracks of the cars already through - game/stagetracks.ts)
+  if (LEVEL.stage) game.stageTracksMs = layStageTracks();
 }

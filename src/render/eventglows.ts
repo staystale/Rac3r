@@ -11,7 +11,6 @@
 //   trains        a rail bridge's train: the leading car's headlight thrown up the
 //                 track, the coaches' windows lit warm; a freight's headlight and its dim cab
 // Only from dusk (the lamps' light sensor) and only what is near the screen.
-import { FIX } from '../core/fixes.ts';
 import { isStartGantry, litPods } from '../world/startlights.ts';
 import { lampsLit } from '../world/lamps.ts';
 import { LEVEL, PROPS } from '../world/state.ts';
@@ -63,7 +62,7 @@ const BULB_COLOURS = ['255,70,60', '255,170,40', '255,230,90', '90,230,110', '80
   '220,90,255'];
 // the start gantry: the light bar's pool depth either side of the beam, m, and brightness; a
 // start light's glow radius, m, and the seconds the green shows after the start
-const BAR_DEPTH_M = 9, BAR = 0.55, START_GLOW_M = 3.2, GREEN_HOLD_S = 3, START_STEP_S = 1;
+const BAR_DEPTH_M = 9, BAR = 0.55, START_GLOW_M = 3.2;
 // a caravan's spill: half length and half width of the glow round it, m, and brightness
 const CARAVAN_LONG_M = 4.5, CARAVAN_WIDE_M = 3, CARAVAN = 0.45;
 // pit lamps: pool radius, m, brightness, and the spacing along a pit wall, m
@@ -303,9 +302,8 @@ function noteGantry(note: NoteLight, prop: Prop) {
  * @param painter the light map
  * @param isTint the tint pass
  * @param prop the gantry
- * @param game the game (its start)
  */
-function gantryLights(painter: EventPainter, isTint: boolean, prop: Prop, game: RenderGame) {
+function gantryLights(painter: EventPainter, isTint: boolean, prop: Prop) {
   const rot = prop.rot || 0, width = prop.wid || 26;
   if (painter.note) {
     noteGantry(painter.note, prop);
@@ -314,11 +312,12 @@ function gantryLights(painter: EventPainter, isTint: boolean, prop: Prop, game: 
   if (paintsPart(painter, true)) {
     glow(painter, isTint, prop.x, prop.y, width / 2 + 2, WHITE, BAR, { wideM: BAR_DEPTH_M, rot });
   }
-  if (paintsPart(painter, false)) startLights(painter, isTint, prop, game);
+  if (paintsPart(painter, false)) gantryStartLights(painter, isTint, prop);
 }
 
 /**
- * ?gantrylights: a start gantry's lit pods, as its sprite shows them (world/startlights.ts).
+ * A start gantry's lit pods, as its sprite shows them (world/startlights.ts): reds one a second,
+ * the green, dark otherwise.
  * @param painter the light map
  * @param isTint the tint pass
  * @param prop the gantry
@@ -335,33 +334,6 @@ function gantryStartLights(painter: EventPainter, isTint: boolean, prop: Prop) {
   }
 }
 
-/**
- * A start gantry's start lights: reds one a second while the start is held, then all green for a
- * few seconds.
- * @param painter the light map
- * @param isTint the tint pass
- * @param prop the gantry
- * @param game the game (its start)
- */
-function startLights(painter: EventPainter, isTint: boolean, prop: Prop, game: RenderGame) {
-  if (FIX.gantrylights) {
-    gantryStartLights(painter, isTint, prop);
-    return;
-  }
-  const rot = prop.rot || 0, width = prop.wid || 26, start = game.start;
-  if (!start || !start.on || LEVEL.endless) return;
-  const sinceGreen = start.t - start.tGreen;
-  const isGreen = start.green && sinceGreen < GREEN_HOLD_S;
-  const reds = start.green ? 0 : Math.min(3, Math.floor(start.t / START_STEP_S));
-  if (!isGreen && !reds) return;
-  const cos = Math.cos(rot), sin = Math.sin(rot), spacing = width / 8, mid = prop.podX || 0;
-  const pods = isGreen ? [-2, -1, 0, 1, 2] : [-1, 0, 1].slice(0, reds);
-  for (const pod of pods) {
-    const along = mid + pod * spacing;
-    glow(painter, isTint, prop.x + cos * along, prop.y + sin * along,
-      START_GLOW_M, isGreen ? GREEN : RED, 0.9);
-  }
-}
 
 /**
  * Pit lamps: one over each garage door of a garage row (between its front points), or along a
@@ -446,7 +418,7 @@ function propLights(painter: EventPainter, isTint: boolean, game: RenderGame): v
     else if (prop.kind === 'bridge') {
       if (prop.carries === 'rail' && paintsPart(painter, false)) trainLights(painter, isTint, prop);
     }
-    else if (prop.kind === 'gantry') gantryLights(painter, isTint, prop, game);
+    else if (prop.kind === 'gantry') gantryLights(painter, isTint, prop);
     else if (paintsPart(painter, true)) propLightOf(painter, prop, game, isTint);
   }
 }
@@ -464,7 +436,7 @@ function propLightOf(painter: EventPainter, prop: Prop, game: RenderGame, isTint
   else if (kind === 'grandstand' || kind === 'stadium_grandstand') {
     festoon(painter, isTint, frontEdge(prop));
   }
-  else if (kind === 'gantry') gantryLights(painter, isTint, prop, game);
+  else if (kind === 'gantry') gantryLights(painter, isTint, prop);
   else if (kind === 'garagerow' || kind === 'pit_wall') pitLamps(painter, isTint, prop);
 }
 

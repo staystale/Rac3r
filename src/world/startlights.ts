@@ -1,4 +1,4 @@
-// world/startlights.ts - THE START GANTRY'S LIGHTS (?gantrylights; owner 11-22: "start gantries
+// world/startlights.ts - THE START GANTRY'S LIGHTS (owner 11-22: "start gantries
 // show the countdown and the green on ALL tracks" - a prop, not a banner). The game sets them each
 // step from its start (game/order.ts stepStart): reds one a second before a green (the HUD's own
 // three), the green held a moment, dark otherwise. A rally stage's gantry counts each car down at

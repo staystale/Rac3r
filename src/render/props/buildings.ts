@@ -1,7 +1,6 @@
 // The pit-lane buildings and trackside structures: garage rows, grandstand, official box,
 // gantry, pit wall and pylon.
 import { LEVEL } from '../../world/state.ts';
-import { FIX } from '../../core/fixes.ts';
 import { isStartGantry, litPods } from '../../world/startlights.ts';
 import { PENNANTS } from '../../world/colours.ts';
 import { lampOfProp, lampsLit } from '../../world/lamps.ts';
@@ -258,10 +257,10 @@ const POD_RED = { halo: 'rgba(239, 68, 68, 0.35)', core: '#ef4444' },
 function drawGantryPods(propCtx: PropCtx, prop: Prop, gantryW: number, ppm: number) {
   const { view, roundRect } = propCtx;
   // 5 circular start light pods with bright red glowing LED cores (over the road's centre: podX);
-  // ?gantrylights: a start gantry's show the start - lit red or green, else dark
+  // a start gantry's show the start - lit red or green, else dark
   // (world/startlights.ts)
   const lightSpacing = gantryW / 8, podMid = (prop.podX || 0) * ppm;
-  const live = FIX.gantrylights && isStartGantry(prop), lit = live ? litPods() : null;
+  const live = isStartGantry(prop), lit = live ? litPods() : null;
   for (let pod = -2; pod <= 2; pod++) {
     const podX = podMid + pod * lightSpacing;
     const colour = !live ? POD_RED : lit && lit.pods.includes(pod) ? (lit.green ? POD_GREEN

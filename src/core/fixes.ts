@@ -74,26 +74,11 @@ export const FIX = {
   // THE HILL CLIMB'S GRADE, step 1 (owner 11-22: a real 7 % climb): the endless road rising
   // HILL_GRADE along its length (highway/hillgrade.ts) - the engine piece, measured alone
   hillgrade: atLoad('hillgrade'),
-  // A STAGE'S TYRE TRACKS (owner 11-22): the cars already through the start leave their wheels'
-  // marks along the racing line, each its own wander, up to where each is placed
-  // (game/stagetracks.ts)
-  stagetracks: atLoad('stagetracks'),
-  // NO EARLY STARTS ANYWHERE (owner 11-22: "fine if players can too" - one rule for every car):
-  // START_EARLY 0 on every start, you and the AI (game/order.ts; a rally stage's is 0 already),
-  // and no AI jumps the green of a rolling start (game/greenrelease.ts: its reaction kept)
-  nojump: atLoad('nojump'),
-  // A STAGE CAR PLACED AT ITS DRIVEN PACE (owner 11-22): a car started before you is placed where
-  // its driven pace (the prediction / STAGE_DRIVEN_RATIO) has it, home only when that is past the
-  // finish (game/grid.ts placeStageCar) - it had the prediction's pace for the part not driven
-  stageplace: atLoad('stageplace'),
-  // THE NEXT CAR AT THE LINE (owner 11-22): a stage's queued cars creep up a place as each one
-  // goes, the next onto your start spot, and leave from a standstill on their own green; every
-  // car on a stage (you too) timed from its own green (game/ai.ts, raceflow.ts, game/rules.ts)
-  stageline: atLoad('stageline'),
-  // THE START GANTRY'S LIGHTS (owner 11-22: the countdown and the green on every start gantry, a
-  // prop not a banner): reds one a second, the green, dark otherwise; a stage's counts each car
-  // down at the line (world/startlights.ts)
-  gantrylights: atLoad('gantrylights'),
+  // A STAGE'S QUEUE PAST ITS RUN-UP (owner on round205: no cars seen behind at a start - they were
+  // there on the set stages; on a generated stage, whose run-up is 45 m, the fifth queued car's
+  // place fell past it onto the ghost segment, 174-183 m away): the queue carried on straight back
+  // from the run-up's start (game/grid.ts gridPos)
+  queuefit: atLoad('queuefit'),
   // SPIKES PEAK, THE HILL CLIMB, round 2 (owner 11-22: its own track type, the real course at half
   // scale): the road and its climb, in TEST MODE's track lists (world/levels/spikes.ts)
   spikespeak: atLoad('spikespeak'),

@@ -13,6 +13,15 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'queuefit',
+    added: '2026-11-22',
+    name: 'Generated rally stage: all five cars queued behind you at the start',
+    where: 'Test link + &queuefit=1: TEST MODE, RALLY STAGES, the stage generator, VS AI 5 (1st)',
+    try: 'Start first and look behind: five cars in the queue, each moving up and going on its '
+      + 'own green.',
+    wrong: 'A car missing from the queue, one parked off the road far away, or one stuck.',
+  },
+  {
     id: 'pitstops',
     added: '2026-11-22',
     name: 'Pit stops (your car): the pit lane, limiter, your box, the PIT STOP menu, GO',
@@ -32,46 +41,10 @@ export const TEST_LIST: TestEntry[] = [
     try: 'Race in the pack for a few laps: fewer hitches, the LOW fps figure higher.',
     wrong: 'Cars or the race clock visibly slowing down, or a stutter right after a hitch.',
   },
-  {
-    id: 'nojump',
-    added: '2026-11-22',
-    name: 'No early starts anywhere: every car, you and the AI, held until the green',
-    where: 'Test link + &nojump=1: any race VS AI - a circuit, RX, an oval, the highway',
-    try: 'Hold the throttle through the lights: nothing moves before GREEN; on a rolling '
-      + 'start no AI jumps it.',
-    wrong: 'Any car moving before the green, a car stuck after it, or the start feeling late.',
-  },
-  {
-    id: 'stageplace',
-    added: '2026-11-22',
-    name: 'Rally stage: cars that started before you placed at their driven pace',
-    where: 'Test link + &stageplace=1: TEST MODE, a rally stage, VS AI 5 (start 3rd or later)',
-    try: 'Drive the stage and read the results: the cars ahead of you in the order should have '
-      + 'times like the cars that drove the whole stage.',
-    wrong: 'Cars ahead always far quicker than the rest (as before), or a car appearing past '
-      + 'the finish.',
-  },
-  {
-    id: 'stageline',
-    added: '2026-11-22',
-    name: 'Rally stage: the next car creeps up to the line and leaves on its own green',
-    where: 'Test link + &stageline=1: TEST MODE, a rally stage, VS AI 5 (start 1st)',
-    try: 'Start 1st and watch behind you: the queue moves up a place, the next car stops on '
-      + 'the line and goes on its own green; everyone timed from their green.',
-    wrong: 'Cars driving off from back in the queue, bumping, creeping past the line, or '
-      + 'times that look short by a second or two.',
-  },
-  {
-    id: 'gantrylights',
-    added: '2026-11-22',
-    name: 'Start gantries show the countdown and the green, on every track',
-    where: 'Test link + &gantrylights=1: any race with a start gantry (stages, Knobhill, '
-      + 'Naffcar, circuits)',
-    try: 'Watch the gantry at the start: dark, then reds one a second, then green, then dark; on a '
-      + 'stage it counts each later car down at the line.',
-    wrong: 'The gantry red all the time (as before), lights out of step with the HUD lights, or a '
-      + 'finish gantry counting down.',
-  },
+
+
+
+
   {
     id: 'spikespeak',
     added: '2026-11-22',
@@ -82,14 +55,5 @@ export const TEST_LIST: TestEntry[] = [
     wrong: 'A kink or a gap in the road, a hairpin you cannot get round, the ground stepping, the '
       + 'car floating or sinking, or a stutter as you drive.',
   },
-  {
-    id: 'stagetracks',
-    added: '2026-11-22',
-    name: 'Rally stage: tyre tracks of the cars that started before you, from the start line',
-    where: 'Test link + &stagetracks=1: TEST MODE, Sweaty Lamb, VS AI 5 (start 2nd or later)',
-    try: 'Look at the gravel ahead after the start: ruts from the cars ahead, each its own line, '
-      + 'running into each car where you catch up with it.',
-    wrong: 'No ruts on gravel, ruts on tarmac, ruts off the road or straight through bends, or a '
-      + 'stutter at the start.',
-  },
+
 ];

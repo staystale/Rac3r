@@ -15,7 +15,6 @@ import { STAGE_GAP_S, GRID_STEP, gridColumn } from './grid.ts';
 import { slotBackM } from './gridlen.ts';
 import { stagePosition } from './stagepos.ts';
 import { setStartLights } from '../world/startlights.ts';
-import { FIX } from '../core/fixes.ts';
 import type { RaceFlow } from '../raceflow.ts';
 import { formationInput, holdSpeed, roadFormationInput } from '../ai/formation.ts';
 import { shared, game, hwLevel } from './state.ts';
@@ -27,12 +26,12 @@ export const resetCar = reset;
 // START LIGHTS (requirement: all races started by lights that clearly go red to green, maybe a
 // countdown; "circuits with ROLLING starts: the game controls ALL cars, AI and player, until the
 // start, then releases them"). Any race (VS AI or the RX race): three reds light one per second
-// with 3-2-1, then GREEN + GO!. Every car is held until GREEN - START_EARLY ("free to go at green
-// or a split second before", the same for player and AI). Rolling start (LEVEL.rollingStart, the
+// with 3-2-1, then GREEN + GO!. Every car is held until GREEN (the
+// same for player and AI). Rolling start (LEVEL.rollingStart, the
 // ovals): the grid starts 120 m further back, the game drives every car up to ROLL_PACE
 // in grid order behind red lights, and it goes green as the front car crosses the line. Sim time
 // (rule 5: what the cars do). Solo practice: no lights.
-export const START_STEP = 1.0, START_EARLY = 0.12, ROLL_PACE = 16, ROLL_BACK = 120;
+export const START_STEP = 1.0, ROLL_PACE = 16, ROLL_BACK = 120;
 // m/s2 the formation's pace rises at from the grid (16 m/s in 6.4 s; MEASURED,
 // headless: every car but the tractor reaches 16 m/s in 1.5-4.9 s at its best throttle, the Mini
 // 7.7 s at the old 0.55), and the throttle each car may use to hold it
@@ -58,17 +57,16 @@ export function armStart() {
   // in formation (highwayrace.js)
   if (isRolling && LEVEL.endless) game.start.tGreen = game.start.tGreen0 = HW_GREEN;
 }
-// s a car may go before its green: START_EARLY, none on a rally stage (owner 11-22: "jump starts
-// shouldn't be possible - the car is held until its green"; ?nojump: none anywhere)
-const earlyS = () => (FIX.nojump || LEVEL.stage ? 0 : START_EARLY);
+// (no car goes before its green - owner 11-22: "jump starts shouldn't be possible, like all other
+// events"; was START_EARLY 0.12 s, "free to go at green or a split second before")
 export const startHeld = () => game.start.on && !game.start.green
-  && game.start.t < game.start.tGreen - earlyS();
+  && game.start.t < game.start.tGreen;
 // a car's own release: everyone at the green, except a RALLY STAGE: a later starter (slot k > 0
 // behind you) goes k x STAGE_GAP_S after your green
 export const startAtOf = (car: GameCar) => (game.start.tGreen0 ?? game.start.tGreen) + (LEVEL.stage
   ? (car._slot || 0) * STAGE_GAP_S : 0);
 export const carHeld = (car: GameCar) => game.start.on && !game.start.rolling
-  && game.start.t < startAtOf(car) - earlyS();
+  && game.start.t < startAtOf(car);
 // cap a driver's output at the rolling-start pace (the highway's; a circuit's cars drive in
 // formation, formationWant)
 export function atPace(out: CarInput, car: GameCar) {
@@ -120,7 +118,7 @@ function stepRollingGreen(startState: typeof game.start) {
 const GANTRY_GREEN_S = 3;
 
 /**
- * The start gantry's lights now (?gantrylights: world/startlights.ts): the next green not yet
+ * The start gantry's lights now (world/startlights.ts): the next green not yet
  * past - yours, and on a rally stage each later starter's - its reds one a START_STEP before it,
  * then its green for GANTRY_GREEN_S; a rolling start's reds until its green.
  */
@@ -149,7 +147,7 @@ function stepStartLights() {
 }
 
 export function stepStart(dt: number) {
-  if (FIX.gantrylights) stepStartLights();
+  stepStartLights();
   // the clock keeps running after green so the HUD can take the lights away 1.2 s later
   // (requirement: race start lights don't vanish — it stopped at green)
   const startState = game.start;
