@@ -77,6 +77,26 @@ line 120 m ahead - the move begun 27-28 -> 54-55 m out, km/h lost 109-125 -> 6-1
 8 / 8 -> 0 / 0 of 8, 6.2-6.9 -> 3.9-4.1 s to pass; a car 15 m/s slower 50 m ahead - lost 33-46 /
 11-44 -> 0-1 / 0 km/h, the stopped-car brake's re-holds 6-12 / 0-10 -> 0-2 / 0-3; a stopped car
 on the line 70 m ahead - lost 24-93 / 10-58 -> 2-9 / 2-8 km/h.
+## PASSED 11-22, THE STARTS AND THE TYRE TRACKS (owner: ?nojump, ?stageplace, ?stageline, ?gantrylights, ?stagetracks passed on round205)
+
+The defaults 11-22, their switches and old paths deleted (Worker C): no early start on any start
+(START_EARLY gone; a rolling start's would-be jumper goes on the green itself); a stage car ahead
+placed at its driven pace; a stage's queue creeping up, each car timed from its own green; every
+start gantry's lights; a stage's tyre tracks.
+[A STAGE'S TYRE TRACKS (owner 11-22: from the start line for each car already through, cheap):
+  BUILT behind ?stagetracks (Worker C, game/stagetracks.ts): the skid-mark layer's own wheel marks
+  along the racing line with each car's own smooth wander, eased onto the line before the car (its
+  own marks carry on). MEASURED: 37-82 ms once at the spawn for 4-5 cars (12-16k marks); ruts on
+  the gravel only (a rolling tyre marks nothing on tarmac, as everywhere), faint before the first
+  car, clear in the bends. OWNER on round202: NOT PASSED - "look weird and have strange horizontal lines thru them". CAUSE: a stroke every racing-line point (~1.5 m: each joint of two round-capped strokes doubled into a bar across the rut) and 4 cars x 4 wheels within ~1.4 m of one line (one dark band). FIXED: a stroke every 0.25 m (a car's own at ~30 m/s), each car's line 1 m apart, its wander gentler; 162-213 ms once at the spawn. AWAITING THE PHONE TEST.]
+[THE STARTS (owner 11-22, the suggestions passed): BUILT (Worker C), each behind its switch:
+  ?nojump - no early start anywhere (START_EARLY 0 for every car; no AI jumps a rolling start's
+  green, its reaction kept); ?stageplace - a stage car ahead placed at its driven pace (x 1.12);
+  ?stageline - the queue creeps up a place as each car goes, the next onto your start spot, every
+  car timed from its own green (game/stagequeue.ts); ?gantrylights - every start gantry's pods
+  show the countdown and the green, a stage's each car at the line (world/startlights.ts).
+  AWAITING THE PHONE TEST.]
+
 ## PASSED 11-22, ?STAGETIMES, ?STAGEPOS, ?STAGEHOLD (owner: passed on round202)
 
 The defaults 11-22, their switches deleted (Worker C). A home car's time is its prediction x

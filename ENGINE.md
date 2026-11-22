@@ -857,13 +857,14 @@ run (`_predT`) ends before that is home (`grid.ts placeStageCar`) - not on the r
 (`game.aiDone`), finished at its start plus its predicted time x STAGE_DRIVEN_RATIO 1.12 (the AI's
 driven pace: `raceflow.ts homeBefore`); lineRun had run it past the finish or, past one whole
 line, back to the start line. No car goes before its own green on a stage (`game/order.ts
-earlyS`; ?nojump: on every start). ?stageplace: a car ahead placed at its driven pace. ?stageline
+startHeld`, `carHeld`: no START_EARLY on any start). A car ahead placed at its driven pace. The queue
 (`game/stagequeue.ts`): the queue creeps up a place as each car goes, the next onto your start
-spot, every car timed from its own green. ?stagetracks (`game/stagetracks.ts`): each car
+spot, every car timed from its own green (?queuefit: on a generated stage the queue carried on
+straight back past the run-up). Its tyre tracks (`game/stagetracks.ts`): each car
 already through lays its wheels' marks along the racing line, its own wander, eased onto the line
 before it. The live position (`game/stagepos.ts`): P n/N from every car's time each 20 m from its own
 start, compared at the furthest split both have; N the whole field (`hud/laps.ts fieldSize`).
-?gantrylights (`world/startlights.ts`): the game sets the start lights each step
+THE START GANTRY'S LIGHTS (`world/startlights.ts`): the game sets the start lights each step
 (`game/order.ts stepStartLights`: the next green not yet past - yours, a stage's each later
 starter's - its reds one a second before it, its green 3 s); a gantry within 30 m of the start
 line shows them on its pods (`render/props/buildings.ts drawGantryPods`) and at night as glows

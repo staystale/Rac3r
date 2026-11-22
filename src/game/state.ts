@@ -138,7 +138,7 @@ export interface Game {
   // a rally stage's AI cars already home before your green (game/grid.ts placeStageCar) -
   // in the results, not on the road
   aiDone?: GameCar[];
-  stageTracksMs?: number;   // ?stagetracks: ms the tracks took to lay (game/stagetracks.ts)
+  stageTracksMs?: number;   // ms the tracks took to lay (game/stagetracks.ts)
   poleCar?: GameCar | null;
   flow: RaceFlow | HwFlow | null; flowShown?: boolean; flowDoneAt?: number;
   start: GameStart;

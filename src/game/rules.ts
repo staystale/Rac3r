@@ -1,6 +1,5 @@
 // rules.ts — the RX race, stage timing and joker rules, stepped on the fixed physics step.
 // Every function takes the game state it works on; there is no module-level state here.
-import { FIX } from '../core/fixes.ts';
 import { LEVEL } from '../world/state.ts';
 import { querySubtrack } from '../world/tyrewall.ts';
 import { jokerLane, laneSpot } from '../world/joker.ts';
@@ -37,14 +36,14 @@ export function resetStage(game: Game) {
   stage.pen = 0;
 }
 /**
- * Starts your stage clock: as you cross the start line, or (?stageline, a start with lights) at
+ * Starts your stage clock: as you cross the start line, or (a start with lights) at
  * your green.
  * @param game the game state
  * @param crossedStart you crossed the start line this step
  */
 function startStageClock(game: Game, crossedStart: boolean) {
   const stage = game.stage, green = game.start.tGreen0 ?? game.start.tGreen;
-  const fromGreen = FIX.stageline && game.start.on;
+  const fromGreen = game.start.on;
   if (!(fromGreen ? game.start.t >= green : crossedStart)) return;
   stage.state = 'running';
   stage.t = fromGreen ? game.start.t - green : 0;

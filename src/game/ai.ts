@@ -17,7 +17,6 @@ import { clearOfUnder, trackSpotOf } from "../world/trackunder.ts";
 import { startHeld, carHeld, atPace, formationWant } from './order.ts';
 import { heldAtGreen } from './greenrelease.ts';
 import { queueInput } from './stagequeue.ts';
-import { FIX } from '../core/fixes.ts';
 import { RESET_BACK, RESET_ANG } from './session.ts';
 import { shared, game } from './state.ts';
 import { activeLamps } from '../world/lamps.ts';
@@ -185,8 +184,8 @@ export function aiWant(entry: AiEntry, dt: number) {
  */
 function heldInput(entry: AiEntry, want: CarInput, held: boolean): CarInput {
   const car = entry.car;
-  // (?stageline: a stage's queued car creeps up to its place - game/stagequeue.ts)
-  const queued = held && FIX.stageline && LEVEL.stage ? queueInput(entry, want) : null;
+  // (a stage's queued car creeps up to its place - game/stagequeue.ts)
+  const queued = held && LEVEL.stage ? queueInput(entry, want) : null;
   if (queued) return queued;
   const formed = held && game.start.rolling && formationWant(car, car._slot || 0, entry);
   return formed || (held ? (game.start.rolling ? atPace(want, car)
