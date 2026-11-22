@@ -10,19 +10,20 @@ not repeated here), then `TODO.md`, then this page. The 11-07 version of this pa
   tyre marks kept whole, Blighty Park RX + circuit, the chequered flag every race. Ask before #6.
 - **Main** = 186bfb32 (round171: trailer/boxhold/gridlen passed, CI green). Serve locally; push only for CI.
   LESSON: a level made plain needs tools/laplengths.mjs re-run (CI failed on it twice).
-- **The owner's link** = foreman/round176 (local, CI pushed 11-21 21:40): all switches below. PASSED, being made
-  default: rollgreen, hwfan (Worker A, worker/pass-start); trailheal (+RESTART), cabglass, lampflash, dashphase
-  (Worker C, worker/c-pass177). Under test: aitune, gapdest, gapcommit, stockholm (being reworked).
+- **The owner's link** = foreman/round182 (local, 11-22 08:30): ?aitune (a) (owner: worse - drop or pedal only,
+  asked), ?gapdest (highway only), ?stockholm, ?copmix, ?keepright. Passed + default since main: rollgreen, hwfan,
+  trailheal(+restart), cabglass, lampflash, dashphase, labstart, gridpos. ?gapcommit DROPPED (tested worse).
+  PC jobs: ONE detached wmic launch each (scratchpad/launch1.sh confirms start); the laptop memory reaper kills
+  long laptop loops. Foreman uses CronCreate one-shots to check PC jobs.
 - **Worker A** (a2fab314deb77a72b, worker/aiphase, PC repo, port 8091): the AI phase (F1 gapdest, F2 gapcommit).
-  11-21 night: owner "keep AI testing light, only what we need, then I test and approve". One PC job (w74):
-  the start pass proof + circuit-tuned F1 (racing-line cost x4), 4 seeds. F1 measured: motorway big win
-  (held 64->39 %, +10 % speed), circuits more incidents; owner wants ONE AI, highway-only only if forced.
-  Owner felt crashes up "in both" - find which switch, tune to at/below today.
+  11-22: PLAN ONLY for (1) pile-ups (followers not avoiding a small crash), (2) harsh return to the racing
+  line, (3) ?aitune keep/drop; then remove ?gapcommit. aitune data: scratchpad w79-w82 (closer running = most
+  of the extra crashes; K 0.78 needed for the straight-braking gain; Moanaco/Croughed still above off).
 - **Worker C** (a60bdb17a2f902ec3, PC repo2, port 8092): bugs, passes, Stockholm, flashing.
-  Queue: the 4-switch pass proof (c12), STOCKHOLM REWORK (owner: boring, countryside-like; wants a busy city:
-  more tunnels, bridges, water, raised/cut roads, city litter; REUSE systems; traffic quantity unchanged),
-  ?copmix (police: countryside nearly none, Deaf Valley some, Stockholm today's = most), then the plan for
-  RIGHT-HAND driving in Stockholm (owner: yes, real world, overtake on the left).
+  Queue 11-22: TUNNELS (Moanaco slat spacing, day/night shade, headlights never switched by a tunnel -
+  LAYERING not code, ?tunnellamps), Stockholm rolling-start weave (hwfan with keepright?), ?trailreset (rig
+  follows the bend, rigs reset inside the edge), HILL CLIMB (approved: Pikes-Peak-style parody, 4-6 km, real
+  grade - step 1 the grade engine piece). Branch worker/c-city3 6f884a9b (all proofs SAME, c12-c16).
 - **PARKED, the owner's next list:** PIT STOPS (the owner has IMAGES - ask for them, then discuss);
   the AI rework (circuits' off-track and first-corner pile-ups, Pembreezy); a hill climb stage for
   the E36; Glen Hellish, Swapsies; Story mode / upgrades (race conversions, the repair bill: pay or
