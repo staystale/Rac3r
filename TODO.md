@@ -155,6 +155,12 @@ MARK TRACK.)
 
 ## 3. OPEN, IN THE OWNER'S ORDER
 
+THE ROAD TO THE FINISHED PRODUCT (owner 11-22: "that's about right"): 1 ghost + accolades, the
+stage fixes, SPIKES PEAK; 2 PIT STOPS; 3 LOADING + PERFORMANCE (a steady 60 fps); 4 the new
+rallycross tracks + Old Wobbly; 5 SOUND + SETTINGS (G); 6 UPGRADES + GARAGE + STORY (H, the plan
+discussed with the owner first, any time); 7 the CHAMPIONSHIPS (3c). Then MULTIPLAYER (I).
+Foreman's rough estimate 11-22: 6-8 weeks at the current pace.
+
 ### 3a. The owner's list (11-10: "Add this to the todo and work thru it logically"), round 5
 
 ROUND 5, LOADING AND SPEED:
@@ -532,6 +538,8 @@ wrapper, so it is built once. Needs a small signalling server (room codes) and a
 networks; one phone hosts the race (best connection, measured in the lobby), the others send
 inputs and get the cars back. A SPIKE (two phones on the tunnel) before committing.
 - Owner (10-24): "Multiplayer: no rush; talk it through in detail when we get there."
+- Owner (11-22): "Multiplayer is still a desire but only after we iron out most issues and keep
+  the FPS constant at 60" - so it comes after the finished product (below), gated on a steady 60 fps.
 - A player too far behind is LEFT BEHIND (the endless road would grow past memory): a hard limit by
   time or distance; the place at that limit is the result (first out of a 10-car race = 10th).
 - The other players' cars are drawn through the same off-view cull as the AI's (render/screen.ts
