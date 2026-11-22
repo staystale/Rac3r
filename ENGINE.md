@@ -854,12 +854,20 @@ lights; a car k slots ahead started k x 30 s before you, placed where its own pa
 lineRun`) has it 4 s before your green, already driving; a car k slots behind queues k x 9 m
 back, held until k x 30 s after your green (`game/order.ts startAtOf`). A car whose predicted
 run (`_predT`) ends before that is home (`grid.ts placeStageCar`) - not on the road
-(`game.aiDone`), finished at its start plus its predicted time (`raceflow.ts homeBefore`;
-?stagetimes: x STAGE_DRIVEN_RATIO 1.12, the AI's driven pace); lineRun had run it past the finish
-or, past one whole line, back to the start line. ?stagetracks (`game/stagetracks.ts`): each car
+(`game.aiDone`), finished at its start plus its predicted time x STAGE_DRIVEN_RATIO 1.12 (the AI's
+driven pace: `raceflow.ts homeBefore`); lineRun had run it past the finish or, past one whole
+line, back to the start line. No car goes before its own green on a stage (`game/order.ts
+earlyS`; ?nojump: on every start). ?stageplace: a car ahead placed at its driven pace. ?stageline
+(`game/stagequeue.ts`): the queue creeps up a place as each car goes, the next onto your start
+spot, every car timed from its own green. ?stagetracks (`game/stagetracks.ts`): each car
 already through lays its wheels' marks along the racing line, its own wander, eased onto the line
-before it. ?stagepos (`game/stagepos.ts`): P n/N from every car's time each 20 m from its own
+before it. The live position (`game/stagepos.ts`): P n/N from every car's time each 20 m from its own
 start, compared at the furthest split both have; N the whole field (`hud/laps.ts fieldSize`).
+?gantrylights (`world/startlights.ts`): the game sets the start lights each step
+(`game/order.ts stepStartLights`: the next green not yet past - yours, a stage's each later
+starter's - its reds one a second before it, its green 3 s); a gantry within 30 m of the start
+line shows them on its pods (`render/props/buildings.ts drawGantryPods`) and at night as glows
+(`render/eventglows.ts`); the endless road's gantries are its speed cameras, left alone.
 A LEVEL BUILT ON FIRST USE (`Level._build`: the venues, the set rally stages, the generator's
 stage; `world/load.ts buildLevel`) read the floor of whatever level was set before it: `kit.ts`
 `trackKit`'s `clear` and `rxDress`'s `free` keep a prop or a bale 5-6 m inside the live

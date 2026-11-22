@@ -1,5 +1,6 @@
 // rules.ts — the RX race, stage timing and joker rules, stepped on the fixed physics step.
 // Every function takes the game state it works on; there is no module-level state here.
+import { FIX } from '../core/fixes.ts';
 import { LEVEL } from '../world/state.ts';
 import { querySubtrack } from '../world/tyrewall.ts';
 import { jokerLane, laneSpot } from '../world/joker.ts';
@@ -36,6 +37,20 @@ export function resetStage(game: Game) {
   stage.pen = 0;
 }
 /**
+ * Starts your stage clock: as you cross the start line, or (?stageline, a start with lights) at
+ * your green.
+ * @param game the game state
+ * @param crossedStart you crossed the start line this step
+ */
+function startStageClock(game: Game, crossedStart: boolean) {
+  const stage = game.stage, green = game.start.tGreen0 ?? game.start.tGreen;
+  const fromGreen = FIX.stageline && game.start.on;
+  if (!(fromGreen ? game.start.t >= green : crossedStart)) return;
+  stage.state = 'running';
+  stage.t = fromGreen ? game.start.t - green : 0;
+  stage.pen = 0;
+}
+/**
  * Steps the point-to-point stage timer: start line, running, finish line.
  * @param game the game state
  * @param dt the step in seconds
@@ -49,11 +64,7 @@ export function stepStage(game: Game, dt: number) {
   if (prev == null) return;
   const total = LEVEL.subtrack!.totalDist, crossedStart = prev > total - 60 && dist < 60;
   if (stage.state !== 'running') {
-    if (crossedStart) {
-      stage.state = 'running';
-      stage.t = 0;
-      stage.pen = 0;
-    }
+    startStageClock(game, crossedStart);
     return;
   }
   stage.t += dt;

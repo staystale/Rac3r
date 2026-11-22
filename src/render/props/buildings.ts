@@ -1,6 +1,8 @@
 // The pit-lane buildings and trackside structures: garage rows, grandstand, official box,
 // gantry, pit wall and pylon.
 import { LEVEL } from '../../world/state.ts';
+import { FIX } from '../../core/fixes.ts';
+import { isStartGantry, litPods } from '../../world/startlights.ts';
 import { PENNANTS } from '../../world/colours.ts';
 import { lampOfProp, lampsLit } from '../../world/lamps.ts';
 import type { Point, Prop } from '../../world/types.ts';
@@ -241,6 +243,55 @@ export function drawOfficialBox(propCtx: PropCtx, prop: Prop, ppm: number) {
   view.ctx.fillRect(-2.05 * ppm, -1.35 * ppm, 0.35 * ppm, 0.25 * ppm);
 }
 
+// a start pod's lamp: lit red (as always drawn), lit green, dark (its glass only)
+const POD_RED = { halo: 'rgba(239, 68, 68, 0.35)', core: '#ef4444' },
+  POD_GREEN = { halo: 'rgba(34, 197, 94, 0.4)', core: '#22c55e' },
+  POD_DARK = { halo: '', core: '#2b2f36' };
+
+/**
+ * A gantry's 5 start light pods (over the road's centre: podX).
+ * @param propCtx the view and painter helpers
+ * @param prop the gantry
+ * @param gantryW its width, px
+ * @param ppm pixels per metre
+ */
+function drawGantryPods(propCtx: PropCtx, prop: Prop, gantryW: number, ppm: number) {
+  const { view, roundRect } = propCtx;
+  // 5 circular start light pods with bright red glowing LED cores (over the road's centre: podX);
+  // ?gantrylights: a start gantry's show the start - lit red or green, else dark
+  // (world/startlights.ts)
+  const lightSpacing = gantryW / 8, podMid = (prop.podX || 0) * ppm;
+  const live = FIX.gantrylights && isStartGantry(prop), lit = live ? litPods() : null;
+  for (let pod = -2; pod <= 2; pod++) {
+    const podX = podMid + pod * lightSpacing;
+    const colour = !live ? POD_RED : lit && lit.pods.includes(pod) ? (lit.green ? POD_GREEN
+      : POD_RED) : POD_DARK;
+    view.ctx.fillStyle = '#111317';
+    roundRect(view.ctx, podX - 0.35 * ppm, -0.45 * ppm, 0.7 * ppm, 0.9 * ppm, 3);
+    view.ctx.fill();
+    view.ctx.strokeStyle = '#4a5160';
+    view.ctx.lineWidth = 1;
+    view.ctx.stroke();
+    // Outer glow (none when dark)
+    if (colour.halo) {
+      view.ctx.fillStyle = colour.halo;
+      view.ctx.beginPath();
+      view.ctx.arc(podX, 0, 0.35 * ppm, 0, Math.PI * 2);
+      view.ctx.fill();
+    }
+    // Solid core
+    view.ctx.fillStyle = colour.core;
+    view.ctx.beginPath();
+    view.ctx.arc(podX, 0, 0.2 * ppm, 0, Math.PI * 2);
+    view.ctx.fill();
+    // White specular highlight
+    view.ctx.fillStyle = '#fff';
+    view.ctx.beginPath();
+    view.ctx.arc(podX - 0.05 * ppm, -0.05 * ppm, 0.06 * ppm, 0, Math.PI * 2);
+    view.ctx.fill();
+  }
+}
+
 /**
  * Draws the gantry prop (gantry).
  * @param propCtx the view and painter helpers
@@ -286,32 +337,8 @@ export function drawGantry(propCtx: PropCtx, prop: Prop, ppm: number) {
     view.ctx.lineTo(braceX, 0.6 * ppm);
   }
   view.ctx.stroke();
-  // 5 circular start light pods with bright red glowing LED cores (over the road's centre: podX)
-  const lightSpacing = gantryW / 8, podMid = (prop.podX || 0) * ppm;
-  for (let pod = -2; pod <= 2; pod++) {
-    const podX = podMid + pod * lightSpacing;
-    view.ctx.fillStyle = '#111317';
-    roundRect(view.ctx, podX - 0.35 * ppm, -0.45 * ppm, 0.7 * ppm, 0.9 * ppm, 3);
-    view.ctx.fill();
-    view.ctx.strokeStyle = '#4a5160';
-    view.ctx.lineWidth = 1;
-    view.ctx.stroke();
-    // Outer red glow
-    view.ctx.fillStyle = 'rgba(239, 68, 68, 0.35)';
-    view.ctx.beginPath();
-    view.ctx.arc(podX, 0, 0.35 * ppm, 0, Math.PI * 2);
-    view.ctx.fill();
-    // Solid red core
-    view.ctx.fillStyle = '#ef4444';
-    view.ctx.beginPath();
-    view.ctx.arc(podX, 0, 0.2 * ppm, 0, Math.PI * 2);
-    view.ctx.fill();
-    // White specular highlight
-    view.ctx.fillStyle = '#fff';
-    view.ctx.beginPath();
-    view.ctx.arc(podX - 0.05 * ppm, -0.05 * ppm, 0.06 * ppm, 0, Math.PI * 2);
-    view.ctx.fill();
-  }
+  const podMid = (prop.podX || 0) * ppm;
+  drawGantryPods(propCtx, prop, gantryW, ppm);
   // Center digital lap / position board with green LEDs
   view.ctx.fillStyle = '#0a0d0a';
   roundRect(view.ctx, podMid - 1.4 * ppm, -0.55 * ppm, 2.8 * ppm, 0.45 * ppm, 2);

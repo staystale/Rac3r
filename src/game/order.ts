@@ -14,6 +14,7 @@ import { onGround } from "../world/crossinggeo.ts";
 import { STAGE_GAP_S, GRID_STEP, gridColumn } from './grid.ts';
 import { slotBackM } from './gridlen.ts';
 import { stagePosition } from './stagepos.ts';
+import { setStartLights } from '../world/startlights.ts';
 import { FIX } from '../core/fixes.ts';
 import type { RaceFlow } from '../raceflow.ts';
 import { formationInput, holdSpeed, roadFormationInput } from '../ai/formation.ts';
@@ -57,9 +58,9 @@ export function armStart() {
   // in formation (highwayrace.js)
   if (isRolling && LEVEL.endless) game.start.tGreen = game.start.tGreen0 = HW_GREEN;
 }
-// s a car may go before its green: START_EARLY, none on a rally stage under ?stagehold (owner
-// 11-22: "jump starts shouldn't be possible - the car is held until its green")
-const earlyS = () => (FIX.stagehold && LEVEL.stage ? 0 : START_EARLY);
+// s a car may go before its green: START_EARLY, none on a rally stage (owner 11-22: "jump starts
+// shouldn't be possible - the car is held until its green"; ?nojump: none anywhere)
+const earlyS = () => (FIX.nojump || LEVEL.stage ? 0 : START_EARLY);
 export const startHeld = () => game.start.on && !game.start.green
   && game.start.t < game.start.tGreen - earlyS();
 // a car's own release: everyone at the green, except a RALLY STAGE: a later starter (slot k > 0
@@ -115,7 +116,40 @@ function stepRollingGreen(startState: typeof game.start) {
   startState.prevD = dist;
 }
 
+// s the gantry's green stays lit after a green (render/eventglows.ts: its glow's)
+const GANTRY_GREEN_S = 3;
+
+/**
+ * The start gantry's lights now (?gantrylights: world/startlights.ts): the next green not yet
+ * past - yours, and on a rally stage each later starter's - its reds one a START_STEP before it,
+ * then its green for GANTRY_GREEN_S; a rolling start's reds until its green.
+ */
+function stepStartLights() {
+  const start = game.start;
+  if (!start.on || LEVEL.endless) {
+    setStartLights(false, 0, false);
+    return;
+  }
+  let next = start.tGreen0 ?? start.tGreen;
+  if (LEVEL.stage) for (const entry of game.ai) {
+    const due = startAtOf(entry.car);
+    if ((entry.car._slot ?? 0) > 0 && start.t < due + GANTRY_GREEN_S
+      && (start.t >= next + GANTRY_GREEN_S || due < next)) next = due;
+  }
+  if (start.t >= next + GANTRY_GREEN_S) {
+    setStartLights(true, 0, false);
+    return;
+  }
+  const isGreen = start.t >= next;
+  // (a rolling start's green has no time yet: its reds lit from the start)
+  const reds = isGreen ? 0 : Math.max(0, Math.min(3, isFinite(next)
+    ? Math.floor((start.t - (next - 3 * START_STEP)) / START_STEP) + 1
+    : Math.floor(start.t / START_STEP)));
+  setStartLights(true, reds, isGreen);
+}
+
 export function stepStart(dt: number) {
+  if (FIX.gantrylights) stepStartLights();
   // the clock keeps running after green so the HUD can take the lights away 1.2 s later
   // (requirement: race start lights don't vanish — it stopped at green)
   const startState = game.start;
@@ -286,7 +320,7 @@ export function stepOrder() {
       : car._prog);
   const mine = key(game.car);
   game.position = 1 + all.filter((car) => car !== game.car && key(car) > mine).length;
-  // (?stagepos: a stage's place from the times so far - game/stagepos.ts)
-  if (FIX.stagepos && LEVEL.stage && game.flow)
+  // (a stage's place from the times so far - game/stagepos.ts)
+  if (LEVEL.stage && game.flow)
     game.position = stagePosition(game.flow as RaceFlow);
 }

@@ -16,8 +16,14 @@ import type { GameCar } from './state.ts';
 
 // m: a car's own line off the racing line (its base, either side); the long and the short wander's
 // size and length; the run back onto the line before the car
-const TRACK_BASE_M = 0.5, TRACK_LONG_M = 0.6, TRACK_LONG_L = 120, TRACK_SHORT_M = 0.3,
+// (owner on round202: the cars' ruts merged into one dark band - each car now further off the
+// next, its own line wandering less: two thin tracks a car)
+const TRACK_BASE_M = 1, TRACK_LONG_M = 0.4, TRACK_LONG_L = 120, TRACK_SHORT_M = 0.15,
   TRACK_SHORT_L = 37, TRACK_JOIN_M = 25;
+// m between the painted wheels' stamps: a car's own at ~30 m/s (the sim's 120 Hz step). At the
+// racing line's own spacing (~1.5 m) every joint of two strokes doubled up into a dark bar across
+// the rut - the owner's "strange horizontal lines" (round202).
+const TRACK_STAMP_M = 0.25;
 // m: kept this far inside the road's edge
 const TRACK_EDGE_M = 1;
 
@@ -57,20 +63,32 @@ function layTracks(car: GameCar, endDist: number): number {
     Object.create(car) as GameCar;
   painter.t = { ...car.t, slipSpeedF: 0, slipSpeedR: 0 };
   painter.wheelSurf = null;
-  let stamps = 0, lastDist = -Infinity;
-  for (let step = 0; step < count; step++, index = (index + 1) % count) {
+  let stamps = 0;
+  const room = line.hw - TRACK_EDGE_M;
+  let prev = pts[index];
+  for (let step = 1; step < count; step++) {
+    index = (index + 1) % count;
     const point = pts[index];
     // (past the car, or round the line's end)
-    if (point.dist > endDist || point.dist < lastDist) break;
-    lastDist = point.dist;
-    const ease = Math.min(1, (endDist - point.dist) / TRACK_JOIN_M), room = line.hw - TRACK_EDGE_M;
-    const off = Math.max(-room, Math.min(room, point.off + wander(point.dist) * ease)) - point.off;
-    painter.x = point.x + point.nx * off;
-    painter.y = point.y + point.ny * off;
-    painter.heading = point.h;
-    painter.surface = groundAt(painter.x, painter.y).surface as GameCar['surface'];
-    game.marks.stamp(game.marks.wheelsOf(painter));
-    stamps++;
+    if (point.dist < prev.dist || prev.dist >= endDist) break;
+    // every TRACK_STAMP_M between two of the line's points
+    const span = point.dist - prev.dist, parts = Math.max(1, Math.ceil(span / TRACK_STAMP_M));
+    for (let part = 1; part <= parts; part++) {
+      const share = part / parts, dist = prev.dist + span * share;
+      if (dist > endDist) break;
+      const ease = Math.min(1, (endDist - dist) / TRACK_JOIN_M);
+      const lineOff = prev.off + (point.off - prev.off) * share;
+      const off = Math.max(-room, Math.min(room, lineOff + wander(dist) * ease)) - lineOff;
+      const normalX = prev.nx + (point.nx - prev.nx) * share,
+        normalY = prev.ny + (point.ny - prev.ny) * share;
+      painter.x = prev.x + (point.x - prev.x) * share + normalX * off;
+      painter.y = prev.y + (point.y - prev.y) * share + normalY * off;
+      painter.heading = Math.atan2(point.y - prev.y, point.x - prev.x);
+      painter.surface = groundAt(painter.x, painter.y).surface as GameCar['surface'];
+      game.marks.stamp(game.marks.wheelsOf(painter));
+      stamps++;
+    }
+    prev = point;
   }
   return stamps;
 }

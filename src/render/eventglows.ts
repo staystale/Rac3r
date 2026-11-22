@@ -11,6 +11,8 @@
 //   trains        a rail bridge's train: the leading car's headlight thrown up the
 //                 track, the coaches' windows lit warm; a freight's headlight and its dim cab
 // Only from dusk (the lamps' light sensor) and only what is near the screen.
+import { FIX } from '../core/fixes.ts';
+import { isStartGantry, litPods } from '../world/startlights.ts';
 import { lampsLit } from '../world/lamps.ts';
 import { LEVEL, PROPS } from '../world/state.ts';
 import { querySubtrack } from '../world/tyrewall.ts';
@@ -316,6 +318,24 @@ function gantryLights(painter: EventPainter, isTint: boolean, prop: Prop, game: 
 }
 
 /**
+ * ?gantrylights: a start gantry's lit pods, as its sprite shows them (world/startlights.ts).
+ * @param painter the light map
+ * @param isTint the tint pass
+ * @param prop the gantry
+ */
+function gantryStartLights(painter: EventPainter, isTint: boolean, prop: Prop) {
+  const lit = isStartGantry(prop) ? litPods() : null;
+  if (!lit) return;
+  const rot = prop.rot || 0, spacing = (prop.wid || 26) / 8, mid = prop.podX || 0;
+  const cos = Math.cos(rot), sin = Math.sin(rot);
+  for (const pod of lit.pods) {
+    const along = mid + pod * spacing;
+    glow(painter, isTint, prop.x + cos * along, prop.y + sin * along, START_GLOW_M,
+      lit.green ? GREEN : RED, 0.9);
+  }
+}
+
+/**
  * A start gantry's start lights: reds one a second while the start is held, then all green for a
  * few seconds.
  * @param painter the light map
@@ -324,6 +344,10 @@ function gantryLights(painter: EventPainter, isTint: boolean, prop: Prop, game: 
  * @param game the game (its start)
  */
 function startLights(painter: EventPainter, isTint: boolean, prop: Prop, game: RenderGame) {
+  if (FIX.gantrylights) {
+    gantryStartLights(painter, isTint, prop);
+    return;
+  }
   const rot = prop.rot || 0, width = prop.wid || 26, start = game.start;
   if (!start || !start.on || LEVEL.endless) return;
   const sinceGreen = start.t - start.tGreen;

@@ -556,31 +556,19 @@ STORY (Story mode with its garage, money, BUY & FIT, "buy what you last tested" 
   autopilot drives it, the hairpins at 22-32 km/h, ~56 fps (one dip to 44), the car's height
   the profile's (138.6 m at 2.7 km). NEXT: round 3, the world (drops, armco, rocks and trees by
   height, the gantry, the summit); the AI; the menu's own category.
-- A HOME CAR'S TIME AS DRIVEN (owner 11-22: "try (a)", else (b) the class's driven average):
-  BUILT behind ?stagetimes (Worker C; game/grid.ts STAGE_DRIVEN_RATIO 1.12, MEASURED: 13 cars
-  started 1-3 slots ahead on Sweaty Lamb, REALISH, their driven part over its predicted part
-  1.10-1.15). A home car 4 slots ahead: 110.9 s predicted -> 124.2 s, 5th of 6 (the driven cars
-  114.8-122.9 s). Found: a car placed down the stage keeps the prediction's pace for the part it
-  never drove (up to ~10 s for 3 slots ahead). AWAITING THE PHONE TEST.
 - A STAGE'S TYRE TRACKS (owner 11-22: from the start line for each car already through, cheap):
   BUILT behind ?stagetracks (Worker C, game/stagetracks.ts): the skid-mark layer's own wheel marks
   along the racing line with each car's own smooth wander, eased onto the line before the car (its
   own marks carry on). MEASURED: 37-82 ms once at the spawn for 4-5 cars (12-16k marks); ruts on
   the gravel only (a rolling tyre marks nothing on tarmac, as everywhere), faint before the first
-  car, clear in the bends. AWAITING THE PHONE TEST.
-- A STAGE'S LIVE POSITION (owner 11-22: "P n/N should show true to the current times
-  available"): BUILT behind ?stagepos (Worker C, game/stagepos.ts): each car's time every 20 m
-  from its own start (a car placed down the stage, and one home, filled from the pace that placed
-  it); a car is ahead when, at the furthest split you both have, its time is less; not started:
-  behind. N the whole field (hud/laps.ts). MEASURED (tools/scratch/_stagepos.mjs, Sweaty Lamb, 5
-  AI): live place at your finish 3, your result 3; P1 for the first 31 s was true (your 24.10 s
-  at 300 m to the car ahead's 25.25 s). AWAITING THE PHONE TEST.
-- A STAGE START HELD TO THE GREEN (owner 11-22: "jump starts shouldn't be possible, like all other
-  events"): BUILT behind ?stagehold (Worker C, game/order.ts earlyS): no car goes before its own
-  green on a rally stage. MEASURED (tools/scratch/_stagejump.mjs, throttle held through the
-  lights): before, you and the queued car first moved 0.033 s BEFORE your / its green (START_EARLY
-  0.12 s - every event has it); after, 0.083 s after. OWNER: the circuits, RX and highway starts
-  still allow 0.12 s early - the same there? AWAITING THE PHONE TEST.
+  car, clear in the bends. OWNER on round202: NOT PASSED - "look weird and have strange horizontal lines thru them". CAUSE: a stroke every racing-line point (~1.5 m: each joint of two round-capped strokes doubled into a bar across the rut) and 4 cars x 4 wheels within ~1.4 m of one line (one dark band). FIXED: a stroke every 0.25 m (a car's own at ~30 m/s), each car's line 1 m apart, its wander gentler; 162-213 ms once at the spawn. AWAITING THE PHONE TEST.
+- THE STARTS (owner 11-22, the suggestions passed): BUILT (Worker C), each behind its switch:
+  ?nojump - no early start anywhere (START_EARLY 0 for every car; no AI jumps a rolling start's
+  green, its reaction kept); ?stageplace - a stage car ahead placed at its driven pace (x 1.12);
+  ?stageline - the queue creeps up a place as each car goes, the next onto your start spot, every
+  car timed from its own green (game/stagequeue.ts); ?gantrylights - every start gantry's pods
+  show the countdown and the green, a stage's each car at the line (world/startlights.ts).
+  AWAITING THE PHONE TEST.
 - STORY PLAN (owner 11-22, the ladder - later order to discuss as we get there). Currency: £. START
   MONEY BY THE DIFFICULTY picked ONCE at the start of Story (owner 11-22): Mobile game £3,000, Game £2,200,
   Realish £1,600, Real but you're rich £1,200, Real £900; the difficulty LOCKED for that Story save; your first car a low-statted banger. A crash or RESET in a licence event fails it: a free

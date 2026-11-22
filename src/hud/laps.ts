@@ -2,7 +2,6 @@
 // Pure moves out of hud.ts.
 
 import { LEVEL } from '../world/state.ts';
-import { FIX } from '../core/fixes.ts';
 import { COL } from '../world/colours.ts';
 import { querySubtrack } from '../world/tyrewall.ts';
 import { fmtTime, drawHudPanel, drawHudLabel, LAP_ROW_H } from './widgets.ts';
@@ -259,13 +258,13 @@ export function drawHudLapRace(ctx: CanvasRenderingContext2D, game: HudGame, lap
 }
 
 /**
- * How many cars the place is out of: the AI on the road and you - on a stage (?stagepos) the
+ * How many cars the place is out of: the AI on the road and you - on a stage the
  * whole field, those home included (game/stagepos.ts).
  * @param game the game
  * @returns the field's size
  */
 function fieldSize(game: HudGame): number {
-  if (FIX.stagepos && LEVEL.stage && game.flow && !game.flow.highway)
+  if (LEVEL.stage && game.flow && !game.flow.highway)
     return game.flow.entries.length;
   return game.ai && game.ai.length ? game.ai.length + 1 : 0;
 }
