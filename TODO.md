@@ -564,7 +564,15 @@ STORY (Story mode with its garage, money, BUY & FIT, "buy what you last tested" 
   share of the push and its drag: at 10 m/s a pebble 0-4 m, the boulder 2.3-6.3 m); the drops'
   looks (render/droplooks.ts, in the hill shade): ?spikescree (slope over 0.4: ~10-13 % of the
   ground), ?spikeshadow, ?spikehaze - MEASURED 1.0-2.8 ms a shade chunk (no work a frame; the base
-  1.0-1.7). NEXT: the ~5 km course with connecting bends (owner: not the mirrored W's).
+  1.0-1.7). ?spikedrops - the kept drop code (hillground.ts hillRoadsideOf: a bend's outside
+  falls 25 m past the verge; the road's lookup at REACH; drops kept 60 m clear of other road
+  parts, the endless road's 120 m left them only on the first 2.3 km): MEASURED, ground 5-30 m
+  past the edge more than 15 m below the road 21-29 % (none without), in 30 stretches up to 5.4
+  km (none in the W's or above: the legs within 60 m). The looks on the drops: the hill shade
+  darkens them; ?spikeshadow a little more; ?spikehaze hardly seen (ground over 15 m below only
+  at the drops' feet). ?spikeshort - the ~5 km course (tools/spikestrace.mjs -> venues/spikes5.ts:
+  game m 0-1950, 5300-7050, 8650-9990 joined by R 45 m sweepers of -60 / +60 deg): 5.14 km,
+  366 m up (7.1 %), 13 hairpins (least 5.1 m), stretches at least 43 m apart.
 - A STAGE'S TYRE TRACKS (owner 11-22: from the start line for each car already through, cheap):
   BUILT behind ?stagetracks (Worker C, game/stagetracks.ts): the skid-mark layer's own wheel marks
   along the racing line with each car's own smooth wander, eased onto the line before the car (its

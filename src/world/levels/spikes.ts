@@ -11,9 +11,11 @@
 import { createSubtrack, ghostSegment } from '../subtrack.ts';
 import { onTrack, querySubtrack } from '../tyrewall.ts';
 import { SURFACES } from '../surfaces.ts';
-import { hillClimbOf } from '../../highway/hillground.ts';
+import { hillClimbOf, hillRoadsideOf } from '../../highway/hillground.ts';
+import { REACH } from '../../highway/gorge.ts';
 import { STEP } from '../../highway/presets.ts';
 import { SPIKES_ROAD, SPIKES_RISE } from './venues/spikes.ts';
+import { SPIKES5_ROAD, SPIKES5_RISE } from './venues/spikes5.ts';
 import { spikeStones, spikeRocks } from './spikesdress.ts';
 import { FIX } from '../../core/fixes.ts';
 import type { Level, Point } from '../types.ts';
@@ -25,6 +27,11 @@ const SPIKES_ROAD_M = 8.2, SPIKES_RUNUP_M = 60, SPIKES_STOP_M = 60, SPIKES_MARGI
 // m the hillside is laid ahead of the furthest road distance the ground is asked about (laying the
 // whole 10 km at once is seconds of work: highway/hillground.ts)
 const SPIKES_LAY_AHEAD_M = 300;
+// m: (?spikedrops) no drop where another part of the road comes this near - the drop reaches
+// ~36 m past the edge and eases back up before the lookup's REACH (50 m), so REACH + half the road
+// + a margin; the endless road's 120 m (hillground.ts DROP_CLEAR_M) left drops only on the first
+// 2.3 km here, every switchback within 120 m of another
+const SPIKES_DROP_CLEAR_M = 60;
 // m between the points the run-up and the stop zone are laid with (the road's own spacing)
 const SPIKES_PT_M = 2;
 // (?spikesmooth; owner on round203: the corners looked "hexagonal" - the road's 2 m points, 23 deg
@@ -123,15 +130,20 @@ function hillRoadOf(sub: ReturnType<typeof createSubtrack>, stopEnd: number) {
  * @returns the level
  */
 export function buildSpikes(): Level {
-  const { road, rises } = FIX.spikesmooth ? smoothRoad(SPIKES_ROAD, SPIKES_RISE)
+  // (?spikeshort: the ~5 km course - three real stretches joined by sweepers: venues/spikes5.ts)
+  const course = FIX.spikeshort ? { road: SPIKES5_ROAD, rises: SPIKES5_RISE }
     : { road: SPIKES_ROAD, rises: SPIKES_RISE };
+  const { road, rises } = FIX.spikesmooth ? smoothRoad(course.road, course.rises) : course;
   const count = road.length;
   const stop = straightOn(road[count - 1], road[count - 2], SPIKES_STOP_M);
   // (the run-up ends one point before the start line: the closing segment is the last real one)
   const runUp = straightOn(road[0], road[1], SPIKES_RUNUP_M).reverse();
   const pts = [...road, ...stop, ...runUp], ghostIdx = count + stop.length - 1;
+  // (?spikedrops: the road's lookup reaching REACH, as the endless road's - the drop eases back
+  // up before it ends; at the 18 m default it stepped back to the hillside there)
   const sub = ghostSegment(createSubtrack(pts, SPIKES_ROAD_M,
-    [{ startDist: 0, endDist: 1e9, surface: SURFACES.tarmac }], [], true), ghostIdx);
+    [{ startDist: 0, endDist: 1e9, surface: SURFACES.tarmac }], [], true,
+    FIX.spikedrops ? REACH : undefined), ghostIdx);
   const courseDists = sub.pts.slice(0, count).map((point) => point.dist);
   const finish = courseDists[count - 1], stopEnd = sub.pts[ghostIdx].dist;
   const roadX = pts.map((point) => point[0]), roadY = pts.map((point) => point[1]);
@@ -146,8 +158,11 @@ export function buildSpikes(): Level {
   const spawn = onTrack(sub, sub.totalDist - 6, 0, {});
   // (the run-up's road distances run on past the ghost to the loop's end: read as before the
   // start - its rise none, and the hillside not laid out to them)
-  const hill = hillClimbOf(hillRoadOf(sub, stopEnd), riseAlong(courseDists, stopEnd, rises),
-    SPIKES_LAY_AHEAD_M);
+  const hillRoad = hillRoadOf(sub, stopEnd);
+  const hill = hillClimbOf(hillRoad, riseAlong(courseDists, stopEnd, rises), SPIKES_LAY_AHEAD_M);
+  // (?spikedrops: the kept drop code - past the verge on a bend's outside the ground falls away
+  // DROP_M, where no other part of the road comes near: highway/hillground.ts)
+  const drop = FIX.spikedrops ? hillRoadsideOf(hillRoad, SPIKES_DROP_CLEAR_M) : null;
   // (?spikemarks: the two-way road's centre line, as the highway's twisty road: render/road.ts)
   if (FIX.spikemarks) sub.laneDash = [0];
   const props = FIX.spikestones ? spikeStones(sub, stopEnd) : [];
@@ -171,6 +186,8 @@ export function buildSpikes(): Level {
     cones: FIX.spikerocks ? spikeRocks(sub, finish) : [], props, barriers: [], solids: [],
     lanes: [],
     stage: { finish }, roadRiseAt,
+    ...(drop ? { roadside: (dist: number, offset: number, halfWidth: number) => drop(dist
+      > stopEnd ? dist - sub.totalDist : dist, offset, halfWidth) } : {}),
     spawn: { x: spawn.x, y: spawn.y, heading: spawn.rot },
   } as Level;
 }

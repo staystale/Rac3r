@@ -303,7 +303,7 @@ const report = {
   closest: { before: closestBefore, after: closestAfter },
 };
 console.log(JSON.stringify(report, null, 1));
-if (process.argv.includes('--dry')) process.exit(0);
+const isDry = process.argv.includes('--dry');
 const fmt = (value) => +value.toFixed(2);
 /** An array's items as source lines of at most 98 characters (the lint's 100). */
 const wrapItems = (items) => {
@@ -329,17 +329,100 @@ const header = [
   `// (smoothed, halved with the length: the real grades). ${report.course.gameKm} km, rise`,
   `// ${report.course.riseGameM} m (mean ${report.course.meanGrade} %).`,
 ].join('\n');
-writeFileSync(OUT, `${header}
-import type { Point } from '../../types.ts';
+if (!isDry) {
+  writeFileSync(OUT, [header,
+    "import type { Point } from '../../types.ts';",
+    '',
+    "/** The road's centre line, start -> summit (game m). */",
+    'export const SPIKES_ROAD: Point[] = [',
+    wrapItems(out.map(([x, y]) => `[${fmt(x)}, ${fmt(y)}]`)),
+    '];',
+    '',
+    "/** The road's rise above the start at each point of SPIKES_ROAD (m). */",
+    'export const SPIKES_RISE: number[] = [',
+    wrapItems(rises.map(fmt)),
+    '];',
+    ''].join('\n'));
+  console.log('wrote', OUT);
+}
 
-/** The road's centre line, start -> summit (game m). */
-export const SPIKES_ROAD: Point[] = [
-${wrapItems(out.map(([x, y]) => `[${fmt(x)}, ${fmt(y)}]`))}
-];
-
-/** The road's rise above the start at each point of SPIKES_ROAD (m). */
-export const SPIKES_RISE: number[] = [
-${wrapItems(rises.map(fmt))}
-];
-`);
-console.log('wrote', OUT);
+// ---- 6. THE SHORT COURSE (owner on round203: "nearly 10 minutes" - a ~5 km "greatest hits"; on
+// round206: joined by connecting bends, not a mirrored section): three real stretches of the
+// half-scale road - the lower sweepers to the first hairpin, the W's switchbacks, the final climb -
+// each joined to the last by a sweeper of SHORT_BEND_R turning SHORT_BEND_DEG (searched over
+// -150..150 deg by 15 for the most room between the stretches: tools/scratch _spikes bend plan),
+// the next stretch turned whole to carry on from the bend; its rise at the mean of the grades
+// either side. Written to src/world/levels/venues/spikes5.ts (SPIKES5_ROAD, SPIKES5_RISE).
+const SHORT_OUT = 'src/world/levels/venues/spikes5.ts';
+// game m along the half-scale course: each stretch kept
+const SHORT_STRETCHES = [[0, 1950], [5300, 7050], [8650, 9990]];
+// m: each connecting bend's radius; deg it turns (- one way, + the other; screen frame, y down)
+const SHORT_BEND_R = 45, SHORT_BEND_DEG = [-60, 60];
+{
+  const riseOfPath = path.map((pt, i) => riseAt(i / (path.length - 1)));
+  const headingAt = (pts, i) => Math.atan2(pts[i + 1][1] - pts[i][1], pts[i + 1][0] - pts[i][0]);
+  let road = [], rise = [];
+  SHORT_STRETCHES.forEach(([from, to], k) => {
+    const first = Math.round(from / step), last = Math.min(path.length - 1, Math.round(to / step));
+    const pts = path.slice(first, last + 1), up = riseOfPath.slice(first, last + 1);
+    if (!k) {
+      road = pts.map((pt) => [...pt]);
+      rise = [...up];
+      return;
+    }
+    // the bend: an arc from the end of the road so far, its rise at the grades' mean either side
+    const turn = SHORT_BEND_DEG[k - 1] * RAD, arc = Math.abs(turn) * SHORT_BEND_R;
+    const parts = Math.max(2, Math.ceil(arc / step)), gradeBefore = (rise[rise.length - 1]
+      - rise[rise.length - 21]) / (20 * step), gradeAfter = (up[20] - up[0]) / (20 * step);
+    const grade = Math.max(0, (gradeBefore + gradeAfter) / 2);
+    let head = headingAt(road, road.length - 2), [x, y] = road[road.length - 1];
+    for (let part = 0; part < parts; part++) {
+      head += turn / parts;
+      x += Math.cos(head) * arc / parts;
+      y += Math.sin(head) * arc / parts;
+      road.push([x, y]);
+      rise.push(rise[rise.length - 1] + grade * arc / parts);
+    }
+    // the stretch turned whole to carry on from the bend's end
+    const spin = head - headingAt(pts, 0), cos = Math.cos(spin), sin = Math.sin(spin);
+    const [x0, y0] = pts[0], base = rise[rise.length - 1] - up[0];
+    for (let i = 1; i < pts.length; i++) {
+      const dx = pts[i][0] - x0, dy = pts[i][1] - y0;
+      road.push([x + dx * cos - dy * sin, y + dx * sin + dy * cos]);
+      rise.push(up[i] + base);
+    }
+  });
+  const shortOut = resample(road, OUT_M);
+  const shortRise = shortOut.map((pt, i) => {
+    const at = i / (shortOut.length - 1) * (rise.length - 1), low = Math.floor(at);
+    return rise[low] + ((rise[Math.min(low + 1, rise.length - 1)] - rise[low]) * (at - low));
+  });
+  const pins = findHairpins(road, step), near = closestParts(road, step);
+  const km = +((shortOut.length - 1) * OUT_M / 1000).toFixed(2);
+  const riseM = Math.round(shortRise[shortRise.length - 1]);
+  console.log(JSON.stringify({ short: { km, riseM, meanGrade: +(riseM / (km * 1000) * 100)
+    .toFixed(1), hairpins: pins.length, leastR: +Math.min(...pins.map((pin) => pin.r)).toFixed(1),
+  closest: near, bends: SHORT_BEND_DEG.map((deg) => `${deg} deg R${SHORT_BEND_R}`) } }));
+  if (!process.argv.includes('--dry')) {
+    writeFileSync(SHORT_OUT, [
+      "// world/levels/venues/spikes5.ts - SPIKES PEAK'S SHORT COURSE (GENERATED by",
+      '// tools/spikestrace.mjs: do not edit by hand). Three real stretches of the half-scale course',
+      `// (game m ${SHORT_STRETCHES.map(([from, to]) => `${from}-${to}`).join(', ')}: the lower sweepers, the`,
+      `// W's, the final climb), joined by sweepers of R ${SHORT_BEND_R} m (${SHORT_BEND_DEG.join(', ')} deg);`,
+      `// ${km} km, rise ${riseM} m. Road: (c) OpenStreetMap contributors, ODbL. Heights: USGS`,
+      '// 3DEP via Open Topo Data.',
+      "import type { Point } from '../../types.ts';",
+      '',
+      '/** The short course\'s centre line, start -> summit (game m). */',
+      'export const SPIKES5_ROAD: Point[] = [',
+      wrapItems(shortOut.map(([px, py]) => `[${fmt(px)}, ${fmt(py)}]`)),
+      '];',
+      '',
+      '/** Its rise above the start at each point (m). */',
+      'export const SPIKES5_RISE: number[] = [',
+      wrapItems(shortRise.map(fmt)),
+      '];',
+      ''].join('\n'));
+    console.log('wrote', SHORT_OUT);
+  }
+}

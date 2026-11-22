@@ -2,7 +2,9 @@
 // course drawn to scale, the start and the summit marked, every hairpin numbered with its radius
 // (tools/spikestrace.mjs), the ones pushed apart (would fold) in red. tools/scratch/_spikes-map.png
 import { launchBrowser } from '../lib/browser.mjs';
-import { SPIKES_ROAD } from '../../src/world/levels/venues/spikes.ts';
+// (SHORT=1: the ~5 km course, venues/spikes5.ts)
+const SPIKES_ROAD = process.env.SHORT ? (await import('../../src/world/levels/venues/spikes5.ts'))
+  .SPIKES5_ROAD : (await import('../../src/world/levels/venues/spikes.ts')).SPIKES_ROAD;
 
 const PINS = JSON.parse(process.env.PINS || '[]');   // [[game m, radius, pushed 0/1], ...]
 const xs = SPIKES_ROAD.map((pt) => pt[0]), ys = SPIKES_ROAD.map((pt) => pt[1]);
@@ -23,7 +25,7 @@ const browser = await launchBrowser();
 try {
   const page = await browser.newPage({ viewport: { width: Math.ceil(w * scale), height: 1400 } });
   await page.setContent(`<body style="margin:0">${svg}</body>`);
-  await page.screenshot({ path: 'tools/scratch/_spikes-map.png' });
+  await page.screenshot({ path: process.env.SHORT ? 'tools/scratch/_spikes5-map.png' : 'tools/scratch/_spikes-map.png' });
   console.log('map', Math.ceil(w * scale), 'x 1400');
 } finally {
   await browser.close();

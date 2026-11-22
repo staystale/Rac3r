@@ -13,6 +13,22 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'spikeshort',
+    added: '2026-11-22',
+    name: 'SPIKES PEAK: the ~5 km course - sweepers, the switchbacks, the final climb',
+    where: 'Test link + &spikespeak=1&spikeshort=1&spikesmooth=1: TEST MODE, Spikes Peak',
+    try: 'Drive start to summit: about half the time of the full road; two joining sweepers.',
+    wrong: 'A kink or a step at a join, a join that feels made up, or still far too long.',
+  },
+  {
+    id: 'spikedrops',
+    added: '2026-11-22',
+    name: 'SPIKES PEAK: the ground falls away past the verge on the outside of bends',
+    where: 'Test link + &spikespeak=1&spikedrops=1: TEST MODE, Spikes Peak (first ~5 km)',
+    try: 'Look over the outside of the bends: the ground drops ~25 m; run wide to feel it.',
+    wrong: 'A cliff into another part of the road, a step in the ground, or the car stuck.',
+  },
+  {
     id: 'spikesmooth',
     added: '2026-11-22',
     name: 'SPIKES PEAK: the road as true curves, hairpins too',

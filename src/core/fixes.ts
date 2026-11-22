@@ -108,6 +108,10 @@ export const FIX = {
   spikescree: atLoad('spikescree'),
   spikeshadow: atLoad('spikeshadow'),
   spikehaze: atLoad('spikehaze'),
+  // the kept drop code switched on: a bend's outside falls away past its verge (hillground.ts)
+  spikedrops: atLoad('spikedrops'),
+  // the ~5 km course (owner: "nearly 10 minutes"; connecting bends): world/levels/venues/spikes5.ts
+  spikeshort: atLoad('spikeshort'),
   // NO CATCH-UP SPIKE (perf 1, owner 11-22): a slow frame's sim no longer catches up in one burst -
   // the steps a frame runs stop once SIM_BUDGET_MS of them is spent (2 always); the time left over
   // carries to the next frames (game/loop.ts runSimSteps)
