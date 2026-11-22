@@ -45,8 +45,9 @@ function layWaterSide(ctx: DressCtx, mid: number, side: number, dist: number) {
   state.covers.push({ cover: 'wet', water: true, shape: 'rect', x: centre.x, y: centre.y,
     w: PIECE_M + 8, h: WATER_W_M, rot: centre.rot, _s: dist } as Cover);
   // (SAND under it - owner 11-21: "so it's hard to drive on if you go in")
+  // (its look the bed seen through the water: render/ground/art.ts seabed)
   level.zones.push({ x: centre.x, y: centre.y, w: PIECE_M + 8, h: WATER_W_M, rot: centre.rot,
-    surface: SURFACES.sand, _s: dist });
+    surface: SURFACES.sand, art: 'seabed', _s: dist });
   keepOut(level, { x: centre.x, y: centre.y, ax: Math.cos(centre.rot), ay: Math.sin(centre.rot),
     hu: PIECE_M / 2 + 4, hv: WATER_W_M / 2 }, dist);
   const quay = pointAt(mid, side * (halfWidth + QUAY_M - QUAY_EDGE_M / 2));

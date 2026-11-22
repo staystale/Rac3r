@@ -250,6 +250,9 @@ function addFieldLooks(SURFACE_ART: Record<string, SurfaceArt | null>) {
       ['grain', '#93533a', 0.55, 0.07],
     ],
   };
+  // GETAWAY STOCKHOLM's water's bed (highway/citywater.ts): sand to the tyres, seen through the
+  // water deep blue-grey (owner 11-21: sand under the water - it must still read as water)
+  SURFACE_ART.seabed = recolour('sand', '#3b5866', ['#466573', '#304b58', '#52707d']);
   // long grass, ripe gold
   SURFACE_ART.wheat = recolour('grassLong', '#bf9f4e', ['#dcc074', '#9c7f38']);
   // long grass, yellow flower over green
