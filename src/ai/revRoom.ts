@@ -1,5 +1,5 @@
-// ai/revRoom.ts - ?revroom, REVERSE OUT WITH ROOM (owner 11-22: "if stuck behind a car they don't
-// reverse quick enough perhaps and they also don't reverse enough to steer clear when they go
+// ai/revRoom.ts - REVERSE OUT WITH ROOM (passed 11-22; owner 11-22: "if stuck behind a car they
+// don't reverse quick enough perhaps and they also don't reverse enough to steer clear when they go
 // forward n keep getting stuck"; "they should reverse quicker rather than resetting"). The car in
 // my way and the car close behind, read for the drive-out (ai/driveOut.ts): a stopped car in my way
 // makes a hold stuck sooner; the reverse goes on until there is room to steer round it (or a car
