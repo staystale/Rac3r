@@ -40,10 +40,10 @@ import type { ReportFrame } from '../ui/report.ts';
 // "background tab lurch" the cap was guarding against.
 export const MAX_STEPS = 12;                // per frame; drop the rest
 // NO CATCH-UP SPIKE (passed 11-22): ms of sim steps a frame runs before the rest of its time
-// carries to the next frames (MEASURED tools/scratch/_perfspikes.mjs, Moanaco with 19 AI on the laptop: the frames over 33 ms
-// ran 5.3 steps on average (2.1 the rest) - a slow frame owed more steps, so the next was slow
-// too: the catch-up spiral, p99 70-89 ms), the steps always run however slow, and the most time
-// carried (s): more is dropped as before
+// carries to the next frames (MEASURED tools/scratch/_perfspikes.mjs, Moanaco with 19 AI on the
+// laptop: the frames over 33 ms ran 5.3 steps on average (2.1 the rest) - a slow frame owed more
+// steps, so the next was slow too: the catch-up spiral, p99 70-89 ms), the steps always run however
+// slow, and the most time carried (s): more is dropped as before
 const SIM_BUDGET_MS = 10, SIM_MIN_STEPS = 2, CARRY_MAX_S = 0.1;
 // the MOBILE difficulty mode (menu/setup.ts DIFF[0], shared.aiDiff): the weather's notices show
 // there only (the owner: no new banners; the game should show what happens)
