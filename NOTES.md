@@ -99,7 +99,9 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   Esprit Arena = Dusseldork Arena; the old Wembley (the Empire Stadium, its stock car oval) = Old
   Wobbly; X Games = X Gayms (the owner's), L.A. Live = L.A. Lively, Holjes = Holy Jeez (owner 11-13),
   Croft RX = Croughed RX (owner 11-13: its own full-size level of the Croughed venue), Pembrey =
-  Pembreezy (owner 11-13: Pembreezy Circuit and Pembreezy RX, one venue).
+  Pembreezy (owner 11-13: Pembreezy Circuit and Pembreezy RX, one venue). Approved 11-22: Shelsley Walsh =
+  Shelsley Squalls, Prescott = Prescot Free (the English hill climbs); Blyton = Blighton (RX); the outdoor
+  Nitro-style RX track = Nitrous Nook; the head-to-head swap-over track = Crossover Cross.
   TOWNS (the countryside highway's exit signs, owner 11-14 "Pun them"): Goole = GHOULE, Scunthorpe =
   SKUNKTHORPE, Brigg = BRIGGADOON, Howden = HOWDY-DEN.
 - No keys, tokens, tunnel URLs or process IDs in the repo. No itch.io push until the owner says so.

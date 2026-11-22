@@ -587,6 +587,8 @@ STORY (Story mode with its garage, money, BUY & FIT, "buy what you last tested" 
   MONEY BY THE DIFFICULTY picked ONCE at the start of Story (owner 11-22): Mobile game £3,000, Game £2,200,
   Realish £1,600, Real but you're rich £1,200, Real £900; the difficulty LOCKED for that Story save; your first car a low-statted banger. A crash or RESET in a licence event fails it: a free
   restart (a fee only the first time).
+  THE DRIVING LICENCE IS THE GAME'S FIRST EVENT (owner 11-22): semi-realistic, BLENDED WITH THE
+  WALKTHROUGH that pops up (it teaches the controls); TEST MODE LOCKED until you have the driving licence.
   1. DRIVING LICENCE: 4 events in a car park (drive round the parked and moving cars without a crash;
      pull up in a space; reverse park; pull out, round again and out onto a road) in the school car,
      teaching every control; run as a mini championship (all 4 for the trophy, the licence).
