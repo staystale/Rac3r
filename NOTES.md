@@ -67,6 +67,9 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
 - ONE CAR, MANY SPECS (owner 11-22: "try not to repeat cars - but require the road version to be
   upgraded to meet race or rally specs"): a race / rally / RX / Dakar version is the road car upgraded
   to that spec, not a second car. Purpose-built racers with no road car (F1, SST) stay their own cars.
+  HOW (owner 11-22, the agreed upgrade system - TODO H, RACE CONVERSIONS AND SERIES ENTRY): INCREMENTAL,
+  through the normal upgrade levels, nothing new; a series sets the stats a car must reach (e.g. Sax Max:
+  bodywork maxed for strength and weight) before it may enter, and its caps above which it must downgrade.
 - ONE PARODY PER REAL NAME (owner 11-03: "make sure all our naming conventions are consistent ...
   dont go generating similar different ones if we already have that name parody"). Check this
   register before naming anything; reuse the entry; add every new one here.
