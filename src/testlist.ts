@@ -13,18 +13,6 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
-    id: 'ghost',
-    added: '2026-11-22',
-    name: 'Ghost cars: race your best lap (test mode), and SETTINGS > ACCOLADES',
-    where: 'Test link + &ghost=1: TEST MODE, any track but the highways (a rally stage too); the '
-      + 'setup GHOST switch; SETTINGS > ACCOLADES',
-    try: 'Solo, GHOST on: drive a few laps - from the next lap a see-through car drives your best '
-      + 'one; come back later, it is still there. VS AI it starts off. ACCOLADES lists your '
-      + 'fastest laps per track and car.',
-    wrong: 'The ghost hitting or being hit, out of step with the lap clock, a wrong car, on a '
-      + 'highway, or a best lost after leaving the track.',
-  },
-  {
     id: 'spikespeak',
     added: '2026-11-22',
     name: 'SPIKES PEAK, the hill climb: the real 10 km road at half scale, climbing 718 m',

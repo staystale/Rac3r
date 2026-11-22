@@ -1,4 +1,4 @@
-// game/ghostcar.ts - GHOST CARS, the tape (?ghost; owner 11-22: test mode only, every track but the
+// game/ghostcar.ts - GHOST CARS, the tape (passed 11-22; owner: test mode only, every track but the
 // highways, any lap the quickest - lap 1 and laps with a reset too - one best per track, its
 // layout / direction and the CAR). A lap or a stage run is recorded as the player car's place and
 // heading GHOST_HZ times a second of its own clock (the lap's or the stage's), and played back on

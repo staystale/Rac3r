@@ -220,7 +220,7 @@ function drawSharpCar(ctx: ScreenCtx, car: RenderCar, sharp: SharpScale) {
   mainCtx.setTransform(1, 0, 0, 1, 0, 0);
 }
 
-// ?ghost: how see-through the ghost car is drawn
+// how see-through the ghost car is drawn
 const GHOST_ALPHA = 0.4;
 
 /**
