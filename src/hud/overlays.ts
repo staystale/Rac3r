@@ -306,9 +306,13 @@ const LIMITER_COL = '#ffb020';
  * @param ctx the HUD canvas
  * @param width px
  * @param height px
+ * @param underGo the stop's GO lights show in its place: the light goes under them and their GO
  */
-export function drawPitLimiter(ctx: CanvasRenderingContext2D, width: number, height: number) {
-  const size = Math.round(Math.min(width, height) * 0.035), y = Math.round(height * 0.2);
+export function drawPitLimiter(ctx: CanvasRenderingContext2D, width: number, height: number,
+  underGo: boolean) {
+  // (the lights' box and their GO's line: drawHudLights - 3 lights' sizes below their top)
+  const size = Math.round(Math.min(width, height) * 0.035);
+  const y = Math.round(height * 0.2 + (underGo ? Math.min(width, height) * 0.11 * 3 : 0));
   ctx.fillStyle = LIMITER_COL;
   ctx.fillRect(Math.round(width / 2 - size * 4), y - size / 2, size, size);
   drawHudLabel(ctx, 'PIT LIMITER', Math.round(width / 2 - size * 2.5), y + size / 2,

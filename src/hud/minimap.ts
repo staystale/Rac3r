@@ -18,6 +18,8 @@
 import { LEVEL } from '../world/state.ts';
 import { MARGIN } from './widgets.ts';
 import { jokerLane } from '../world/joker.ts';
+import { COL } from '../world/colours.ts';
+import type { PitLevel } from '../world/pitlane.ts';
 import { inTrackUnderpass } from '../world/trackunder.ts';
 import { drawHighwayMarks, drawHighwaySideRoads } from './minimapHighway.ts';
 import type { HudState, HudGame } from './hudtypes.ts';
@@ -147,14 +149,20 @@ export function setProgressSource(source: () => boolean) {
   progressNow = source;
 }
 
+// css px: your pit box's dot on the minimap (?pitstops)
+const BOX_DOT_PX = 3.5;
+
 /**
  * Draws the level's joker lane as road (the same two strokes as the lap), under the lap so the
- * junctions read as one road.
+ * junctions read as one road; or (?pitstops, a race with pit stops) the pit lane the same, with
+ * your box a dot over it (drawPitBoxDot).
  * @param ctx the HUD context, in world units
+ * @param game the game (pitBox: pit stops on)
  * @param scale css px per m
  */
-function drawJokerLane(ctx: CanvasRenderingContext2D, scale: number) {
-  const lane = LEVEL.joker ? jokerLane(LEVEL) : null;
+function drawJokerLane(ctx: CanvasRenderingContext2D, game: HudGame, scale: number) {
+  const pits = game.pitBox ? (LEVEL as PitLevel).pits : null;
+  const lane = LEVEL.joker ? jokerLane(LEVEL) : pits;
   if (!lane) return;
   for (const [width, colour] of ROAD_STROKES) {
     ctx.lineWidth = width / scale;
@@ -163,6 +171,20 @@ function drawJokerLane(ctx: CanvasRenderingContext2D, scale: number) {
     lane.pts.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
     ctx.stroke();
   }
+}
+
+/**
+ * ?pitstops: your pit box as a dot on the minimap, over the road, in its marking's colour.
+ * @param ctx the HUD context, in world units
+ * @param game the game (pitBox)
+ * @param scale css px per m
+ */
+function drawPitBoxDot(ctx: CanvasRenderingContext2D, game: HudGame, scale: number) {
+  if (!game.pitBox) return;
+  ctx.fillStyle = COL.live;
+  ctx.beginPath();
+  ctx.arc(game.pitBox.x, game.pitBox.y, BOX_DOT_PX / scale, 0, Math.PI * 2);
+  ctx.fill();
 }
 
 /**
@@ -403,11 +425,12 @@ function drawWindow(ctx: CanvasRenderingContext2D, game: HudGame, x: number, y: 
   ctx.translate(-car.x, -car.y);
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
-  drawJokerLane(ctx, scale);
+  drawJokerLane(ctx, game, scale);
   // (the roads leaving the motorway, under it; a side road's points are ~30 m apart)
   const reach = (radius + lead) / scale;
   drawHighwaySideRoads(ctx, game, reach + SIDE_ROAD_PAD_M, scale);
   drawRoad(ctx, pts, idx, closed ? sub.totalDist : null, scale, span);
+  drawPitBoxDot(ctx, game, scale);
   ctx.globalAlpha = OPACITY;
   drawRivals(ctx, game, reach, scale);
   ctx.restore();

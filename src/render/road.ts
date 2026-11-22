@@ -10,6 +10,7 @@ import { drawPaintLine } from "./paintline.ts";
 import { drawCurvedKerbs } from "./kerbs.ts";
 import { underRoadOver } from "../world/trackunder.ts";
 import { strokeRoadDashes } from "./lanedash.ts";
+import { drawYourBox } from "./pitbox.ts";
 import type { Prop } from "../world/types.ts";
 import type { Cam, ForSide, RenderMarks, RoadGame, View } from "./types.ts";
 
@@ -483,12 +484,20 @@ function drawJokerArrow(ctx: RoadCtx, arrow: JokerArrow, alpha: number, pxPerM: 
  */
 function drawArrows(ctx: RoadCtx, game: RoadGame, wallT?: number) {
   const { view, PPMz, toScreenX, toScreenY } = ctx;
-  const joker = LEVEL.joker; if (!joker || !joker.arrows) return;
-  if (game.jokerTaken) return;
+  // (the joker's, until it is taken; or the pit lane's while your stop is to do - ?pitstops: a race
+  // has one or the other, never both)
+  const joker = LEVEL.joker, arrows = joker && joker.arrows && !game.jokerTaken ? joker.arrows
+    : game.pitArrows;
+  const pxPerM = PPMz();
+  if (game.pitBox) {
+    drawYourBox({ canvasCtx: view.ctx, pxPerM, toScreenX, toScreenY }, game.pitBox,
+      !!game.pitGo);
+  }
+  if (!arrows) return;
   // stronger + OUTLINED: at 0.28-0.5 alpha it faded into the grey tarmac
-  const pxPerM = PPMz(), alpha = 0.45 + 0.35 * (0.5 + 0.5 * Math.sin((wallT || 0) * 3.2));
+  const alpha = 0.45 + 0.35 * (0.5 + 0.5 * Math.sin((wallT || 0) * 3.2));
   // ar! below: the arrows hold no null once built (the builders filter them)
-  for (const arrow of joker.arrows) {
+  for (const arrow of arrows) {
     if (toScreenX(arrow!.x) < -200 || toScreenX(arrow!.x) > view.W + 200 ||
         toScreenY(arrow!.y) < -200 || toScreenY(arrow!.y) > view.H + 200) continue;
     drawJokerArrow(ctx, arrow, alpha, pxPerM);

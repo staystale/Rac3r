@@ -1,4 +1,5 @@
 // Shared render-layer shapes; the CARS / AI / GAME ones list only the fields the render code reads.
+import type { PitBox } from '../world/pitlane.ts';
 import type { Level, Spray } from "../world/types.ts";
 import type { Spec } from "../cars.ts";
 import type { Car } from "../vehicle.ts";
@@ -149,6 +150,10 @@ export type ForSide = (
 // What drawArrows reads of the game.
 export interface RoadGame {
   jokerTaken?: boolean;
+  // ?pitstops: the pit lane's arrows to show (its entrance, along it, your box), as the joker's
+  pitArrows?: { x: number; y: number; rot: number; len: number }[] | null;
+  // ?pitstops: your box to mark (render/pitbox.ts) and whether its lollipop shows GO
+  pitBox?: PitBox | null; pitGo?: unknown;
 }
 
 // The worn cells of one surface for one drawWear pass: rects as x, y, w, h, and their world box.

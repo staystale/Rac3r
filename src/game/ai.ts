@@ -28,6 +28,7 @@ import type { AiEntry, HurtEntry } from './state.ts';
 import type { CarInput } from '../vehicle.ts';
 import type { RaceFlow } from '../raceflow.ts';
 import { stepAIRange } from '../physics/lowrange.ts';
+import { pitRule, pitsOn } from './pitstop.ts';
 
 // AI RESET (requirement: reset AI should reset like the player's, at the edge of the track):
 // RESET_BACK m behind the last point it was on the road, centred on the edge it left by (half on /
@@ -165,6 +166,8 @@ export function aiWant(entry: AiEntry, dt: number) {
         ...(LEVEL.endless ? game.traffic.ourSide : [])].filter((other) => other !== car
           && sameLevel(other, car)),
           hold: heldAtGreen(entry, startHeld()), lap, road: roadCtx(),
+          // (?pitstops: the race's stops - ai/driverPits.ts)
+          pits: { on: pitsOn(), compulsory: pitRule() },
             laps: game.flow ? game.flow.laps : shared.race.on ? shared.race.laps
               : (LEVEL.joker && LEVEL.joker.laps) || 5 }));
   // waiting out the crash
@@ -271,7 +274,10 @@ export function stepAIStuck(entry: AiEntry, dt: number) {
   const held = LEVEL.stage ? carHeld(car) : heldAtGreen(entry, startHeld());
   // (the highway's off-road put-back clear of every car too, as the stuck one: two racers put back
   // in one step landed on one spot, the first's road frame cleared by its reset)
-  if (stuckWatchFires(entry, held || entry.hurtWait != null, dt) || highwayOffTooLong(entry, dt)) {
+  // (?pitstops: an AI standing in its box is not stuck)
+  const inBox = (entry.drv.state as { pit?: { phase: string } }).pit?.phase === 'stopped';
+  if (stuckWatchFires(entry, held || inBox || entry.hurtWait != null, dt)
+    || highwayOffTooLong(entry, dt)) {
     aiReset(entry, true);
   }
 }

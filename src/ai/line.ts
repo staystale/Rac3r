@@ -10,6 +10,9 @@
 // 3. SPEED PROFILE per car model (cached per path): sqrt(K_CORNER x mu x gripG x g x R) from the
 //    car's MEASURED grip (carstats.ts), then a backward braking pass, so the target at any point
 //    already brakes for everything ahead.
+import { FIX } from "../core/fixes.ts";
+import { distToLine } from "../world/venuegeo.ts";
+import type { PitLevel } from "../world/pitlane.ts";
 import { debugValue } from "../core/debug.ts";
 import { groundAt } from "../world/wear.ts";
 import { dampSurface, surfaceById } from "../world/wet.ts";
@@ -493,6 +496,17 @@ function branches(level: Level, line: RacingLine): Branches {
         usable,
       );
     }
+  }
+  // (?pitstops: the pit lane, a branch as the joker's - ai/driverPits.ts)
+  const pits = FIX.pitstops ? (level as PitLevel).pits : undefined;
+  if (pits) {
+    const sub = level.subtrack!, laneXY = pits.pts.map(([x, y]) => [x, y]);
+    const usable = (x: number, y: number, margin: number) => (
+      querySubtrack(sub, x, y).dist <= halfWidth - margin
+        || distToLine(pits.pts, x, y) <= pits.width / 2 - margin);
+    out.pit = branch(line, laneXY, nearestIdx(line.pts, pits.pts[0][0], pits.pts[0][1]),
+      nearestIdx(line.pts, pits.pts[pits.pts.length - 1][0], pits.pts[pits.pts.length - 1][1]),
+      50, 15, 60, 25, usable);
   }
   // the START lane: the lane the spawn sits on, when the spawn is off the lap (Slidden Hill's RX
   // start straight)

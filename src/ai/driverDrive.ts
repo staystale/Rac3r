@@ -1,5 +1,6 @@
 // ai/driverDrive.ts: one tick of the circuit driver: place, joker, mistakes, lane, traffic,
 // racecraft, then steering and pedals. Takes the driver context.
+import { pitStep } from "./driverPits.ts";
 import { profileOf } from "./line.ts";
 import { driveOut } from "./driveOut.ts";
 import { jokerStep } from "./driverJoker.ts";
@@ -240,7 +241,10 @@ export function drive(drv: Drv, car: AiCar, dt = 1 / 120, ctx: DriveCtx = {}) {
   const push = battleStep(drv, car, others);
   // ---- JOKER: decide once per lap ~220 m before the branch; take it at the switch point (and a
   // speeder's most)
-  const jCap = Math.min(jokerStep(drv, car, ctx, path, nearIdx, lap, laps), capOf(ctx));
+  // ---- PIT STOPS (?pitstops): decide at the branch, the limiter, the stop in its box
+  const pitWant = pitStep(drv, car, ctx, { path, nearIdx, lap, laps });
+  const jCap = Math.min(jokerStep(drv, car, ctx, path, nearIdx, lap, laps), capOf(ctx),
+    pitWant.cap);
 
   // ---- MISTAKES (requirement: genuine subtle driving errors that lead to crashes and / or slower
   // lap times), drawn per corner ~45 m out
@@ -256,7 +260,7 @@ export function drive(drv: Drv, car: AiCar, dt = 1 / 120, ctx: DriveCtx = {}) {
   const cool = coolStep(drv, car, path, idx(nearIdx + Math.round(COOL_LOOK / path.sp)),
     path === main ? drv.line.hw - 1 : 1);
   vMul *= cool.vMul;
-  latT += cool.lat;
+  latT += cool.lat + pitWant.lat;
 
   const traffic = trafficStep(drv, car, ctx, path, nearIdx, idx, speed, dt, lineOff, startK,
       { latT, vMul, prof });
