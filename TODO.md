@@ -531,11 +531,14 @@ STORY (Story mode with its garage, money, BUY & FIT, "buy what you last tested" 
   hill-climb TRACK TYPE (a real road traced as data, point-to-point like a stage; an EVENT row -
   UP / DOWN / UP + DOWN - in place of laps) - the plan with the owner. Later: snow near the
   summit, the ghost, the start gantry.
-- RALLY STAGES HAVE NO LAPS (owner 11-22: "Single rally stages shouldn't have laps either"):
-  Worker C, menu/setup.ts isStage - no LAPS row VS AI on a set or generated stage, one run
-  launched (the race flow ran one anyway). Before: "3 LAPS" shown on Sweaty Lamb and the
-  generator's stage; after: none; Thruston's still shown. The stage HUD already read STAGE /
-  clock / BEST (no laps): unchanged. AWAITING THE PHONE TEST.
+- A STAGE CAR ALREADY HOME (owner 11-22, fix (a)): BUILT behind ?stagedone (Worker C; game/grid.ts
+  spawnAI, raceflow.ts homeBefore) - a car whose predicted run ends before your green is not on
+  the road, its predicted time its result. MEASURED (tools/scratch/_stagecount.mjs, Sweaty Lamb,
+  5 AI, you 6th): before, slot -5 placed 33 m down the stage just ahead of you, its start -150 s
+  kept - a 270.4 s result, last; slot -4 placed past the finish (1961 m of 1821), timed at the
+  green (120.0 s); after, both home and off the road (111.7, 113.2 s). THE PREDICTION IS FAST:
+  driven stage times ran 3.5-10.1 s over each car's predicted time (lineRun) - home cars now
+  take P1-P2 (owner to decide). AWAITING THE PHONE TEST. NEXT: the real rally start (plan).
 - [ ] STORY MODE: ROOKIE SEASON (grass track, stock car, time trials: hillclimb / runway cones) ->
   ROOKIE 2 (similar events, track variations, harder to win); we pick the events; money / points
   also for NOT finishing top 3; replayable events / championships for more money (finish 5th,

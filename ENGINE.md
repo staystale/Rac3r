@@ -835,6 +835,13 @@ A RALLY STAGE HAS NO LAPS (set or generated: `menu/setup.ts isStage`, `level.sta
 `level.gen`): its setup has no LAPS row VS AI and launches one run (the race flow's stage is one
 run anyway: `game/session.ts`, laps 1); its HUD panel is STAGE, the clock, BEST (`hud/laps.ts
 drawHudLapStage`), never LAP n/N.
+A STAGE'S STAGGERED START (`game/grid.ts spawnAI`, STAGE_GAP_S 30 s): you start at the
+lights; a car k slots ahead started k x 30 s before you, placed where its own pace (`ai/line.ts
+lineRun`) has it 4 s before your green, already driving; a car k slots behind queues k x 9 m
+back, held until k x 30 s after your green (`game/order.ts startAtOf`). ?stagedone: a car whose
+predicted run (`_predT`) ends before that is home - not on the road (`game.aiDone`), finished at
+its start plus its predicted time (`raceflow.ts homeBefore`); without it lineRun ran it past the
+finish or, past one whole line, back to the start line.
 A LEVEL BUILT ON FIRST USE (`Level._build`: the venues, the set rally stages, the generator's
 stage; `world/load.ts buildLevel`) read the floor of whatever level was set before it: `kit.ts`
 `trackKit`'s `clear` and `rxDress`'s `free` keep a prop or a bale 5-6 m inside the live

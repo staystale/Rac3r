@@ -35,6 +35,14 @@ line 120 m ahead - the move begun 27-28 -> 54-55 m out, km/h lost 109-125 -> 6-1
 8 / 8 -> 0 / 0 of 8, 6.2-6.9 -> 3.9-4.1 s to pass; a car 15 m/s slower 50 m ahead - lost 33-46 /
 11-44 -> 0-1 / 0 km/h, the stopped-car brake's re-holds 6-12 / 0-10 -> 0-2 / 0-3; a stopped car
 on the line 70 m ahead - lost 24-93 / 10-58 -> 2-9 / 2-8 km/h.
+## PASSED 11-22, RALLY STAGES HAVE NO LAPS (owner: stagenolaps passed)
+
+Owner 11-22: "Single rally stages shouldn't have laps either." As built (round196, Worker C;
+menu/setup.ts isStage - level.stage or level.gen): no LAPS row VS AI on a set or generated
+stage, a stage launched as one run (the race flow ran one anyway: game/session.ts laps 1). The
+stage HUD already read STAGE / clock / BEST, unchanged. MEASURED (tools/scratch/_stagesetup.mjs,
+the real menu by taps, 390x844 and 844x390): before, "3 LAPS" on Sweaty Lamb and the generator's
+stage; after, none; Thruston's still shown.
 
 ## PASSED 11-22, THE AI TUNE: SHARED HAZARDS, SOFT RETURN, STEADY PEDAL, HIGHWAY GAP PICKER, REVERSE WHEN STUCK (owner: passed on round186 and round190)
 

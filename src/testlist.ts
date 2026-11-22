@@ -24,14 +24,13 @@ export const TEST_LIST: TestEntry[] = [
       + 'or reversing in normal racing.',
   },
   {
-    id: 'stagenolaps',
+    id: 'stagedone',
     added: '2026-11-22',
-    name: 'Rally stages have no laps: no LAPS row in the setup, set or generated',
-    where: 'TEST MODE: RALLY STAGES - Sweaty Lamb, Killder, the stage generator - VS AI',
-    try: 'Pick VS AI on each stage: no LAPS row; launch and race to the finish. Then a circuit '
-      + 'VS AI: its LAPS row still there.',
-    wrong: 'A LAPS row on any stage, LAP n/N on its HUD, the stage running past its finish, or '
-      + 'a circuit or rallycross race with no LAPS row.',
+    name: 'Rally stage: a car that started long before you is home, not on the road',
+    where: 'Test link + &stagedone=1: TEST MODE, Sweaty Lamb, VS AI 5 (a late start for you)',
+    try: 'Start the stage a few times until you start 4th or later; drive it and read the results.',
+    wrong: 'A car parked or driving off just ahead of you at the start, a car finishing at the '
+      + 'green, or a time near 270 s; a car missing from the results.',
   },
   {
     id: 'trailroll',

@@ -83,4 +83,9 @@ export const FIX = {
   // the lock's room to it (at most 3 s, or a car close behind), the nose swung away from it
   // (ai/driveOut.ts, ai/revRoom.ts)
   revroom: atLoad('revroom'),
+  // A STAGE CAR ALREADY HOME (owner 11-22, fix (a)): a car that started so far ahead of you that
+  // its predicted run is over before your green is not on the road - it is home, its predicted
+  // time its result, like a real rally (game/grid.ts spawnAI; it was placed past the finish, or
+  // round the racing line back at the start line with its old start time)
+  stagedone: atLoad('stagedone'),
 };
