@@ -162,7 +162,18 @@ MARK TRACK.)
      card says the RIGHT lane on a right-hand road (guide.ts). Photos tools/scratch/_cityrh-*
      (390x844, 844x390, ?keepright): our carriageway right of the median, our way's traffic
      going up on the right; the water drawn as water over its sand (art seabed). The racers'
-     moving mirror and the switch-off proof run on the PC (c14). AWAITING THE PHONE TEST.
+     moving mirror and the switch-off proof run on the PC (c14). c14: the racers on their side
+     only +0.32 of the time on the right-hand road (traffic +0.85; the left-hand -1.00), the runs
+     apart from the first second. FOUND and FIXED (laptop, _police.mjs PART=mirror with a
+     per-step trace): capLat turned no cap (Infinity) into a lowest place of Infinity - the
+     racers steered into the outer wall; the start fan's middle-lane side by seed not turned
+     (startFan.ts columnSide); and the oncoming cap's other readers (the side to go round, the
+     oncoming car passed by, the gap picker's room: driverOncoming.ts withinCap / capRoom).
+     MEASURED (20 s): the motorway's racers and traffic world side +1.00 (left-hand -1.00), the
+     single lane's racers +0.83 (left-hand -0.70, overtaking in the other lane); the runs the
+     exact mirror for 2 s, then apart from 1e-7 m after 3 physics steps (rounding), every
+     decision the same until then. The 60 s run on the PC. NOT on the owner's link until racers
+     and traffic read +0.99. AWAITING THE PHONE TEST.
      THE WATER'S MERGE BY 64 m SQUARE (?waterinc, for c13's ~1 s worst frame): DROPPED, not
      measurably better in the game (c14, PC CPU x4, 5 AI, traffic, 3 runs each: Stockholm's worst
      265-298 ms off, 276-305 on, medians alike; the ~1 s frame no longer seen with it off).

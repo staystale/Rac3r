@@ -12,6 +12,7 @@ import {
 import { blockOn, gapLine, seeCar } from "./gapPick.ts";
 import { traceBoxed } from "./boxedTrace.ts";
 import { startFan } from "./startFan.ts";
+import { capRoom, withinCap } from "./driverOncoming.ts";
 import type { SeenCar } from "./gapPick.ts";
 
 // MEASURED (aidrivecheck, HB on/off, Realish + Real, hatch + 4x4): Slidden / Knobhill / Castle Kum
@@ -122,7 +123,8 @@ export function followAhead(drv: Drv, acc: CarsAcc, env: CarsEnv, fwd: number, o
   // (the endless road: an oncoming car close - no side in the other way's lane: driverOncoming.ts)
   const keepMax = state.keepMax ?? Infinity;
   const cands = (onRoad.length || !offTrackOk(vAlong, speed) ? onRoad : both.filter(
-      (cand) => Math.abs(lineOff + cand) <= wide)).filter((cand) => lineOff + cand <= keepMax)
+      (cand) => Math.abs(lineOff + cand) <= wide))
+      .filter((cand) => withinCap(lineOff + cand, keepMax, state.roadHand))
       .sort((first, second) => Math.abs(first - myLat) - Math.abs(second - myLat));
   if (cands.length && fwd > 3) goRound(drv, acc, env, { side: cands[0], fwd, vAlong, wide });
   if (!cands.length || (fwd < gapF && Math.abs(otherLat - myLat) < 1.6)) {
@@ -580,7 +582,7 @@ const ONCOMING_V = -2;
 function passingOncoming(drv: Drv, env: CarsEnv, otherLat: number, vAlong: number): boolean {
   const keepMax = drv.state.keepMax ?? Infinity;
   return vAlong < ONCOMING_V && Number.isFinite(keepMax)
-    && env.lineOff + otherLat > keepMax;
+    && !withinCap(env.lineOff + otherLat, keepMax, drv.state.roadHand);
 }
 
 /**
@@ -642,9 +644,9 @@ function gapStep(drv: Drv, car: AiCar, acc: CarsAcc, seen: SeenCar[], mine: { my
   const room = latLim + wideFor(inWay);
   // (never into the other way's lane while an oncoming car keeps me to my side -
   // ai/driverOncoming.ts; the line picked there was clamped back and the dodge went short)
-  const top = Math.min(room, state.keepMax ?? Infinity) - lineOff;
-  const pick = { lat: myLat, base: state.gapBase ?? myLat, half, len, speed, look,
-    lo: -room - lineOff, hi: Math.max(top, -room - lineOff), edge: latLim, centre: lineOff,
+  const { lo, hi } = capRoom(room, state.keepMax ?? Infinity, lineOff, state.roadHand);
+  const pick = { lat: myLat, base: state.gapBase ?? myLat, half, len, speed, look, lo, hi,
+    edge: latLim, centre: lineOff,
     lanes: drv.state.path === drv.main ? drv.line.lanes : undefined,
     commitK: commitShare(drv) };
   // (a highway start phase holds its formation lane, or fans to its column's side)

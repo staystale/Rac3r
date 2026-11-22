@@ -29,15 +29,17 @@ export function clearHeldPlan(state: Drv['state'], held: boolean): void {
 
 /**
  * My column's side: the side of the middle of the lanes my lane is on (-1 / 1); in the middle
- * lane, by my seed.
- * @param drv the driver (its line's lanes, its lane, its seed)
+ * lane, by my seed - a side of the road, so turned into my line frame on a right-hand road (its
+ * road frame the mirror: highway/road.ts HwState.hand; the mirror fanned the other way).
+ * @param drv the driver (its line's lanes, its lane, its seed, the road's hand)
  * @returns -1 or 1
  */
 function columnSide(drv: Drv): number {
   const lanes = drv.line.lanes, mine = drv.state.laneLat ?? 0;
-  if (!lanes || !lanes.length) return drv.traits.seed % 2 ? 1 : -1;
+  const bySeed = (drv.traits.seed % 2 ? 1 : -1) * (drv.state.roadHand ?? 1);
+  if (!lanes || !lanes.length) return bySeed;
   const middle = (Math.min(...lanes) + Math.max(...lanes)) / 2;
-  return Math.abs(mine - middle) < 0.5 ? (drv.traits.seed % 2 ? 1 : -1) : Math.sign(mine - middle);
+  return Math.abs(mine - middle) < 0.5 ? bySeed : Math.sign(mine - middle);
 }
 
 /**

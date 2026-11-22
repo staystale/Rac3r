@@ -103,5 +103,36 @@ export function ownSideCap(drv: Drv, car: AiCar, ctx: DriveCtx, path: AiPath, ne
  * @returns the place held
  */
 export function capLat(lat: number, keep: number, lineOff: number, hand = 1): number {
-  return hand < 0 ? Math.max(lat, keep - lineOff) : Math.min(lat, keep - lineOff);
+  if (hand > 0) return Math.min(lat, keep - lineOff);
+  // (no cap - ownSideCap's Infinity - is no lowest place either: as a lowest place it sent the
+  // racers' target to Infinity, into the outer wall - MEASURED, _police.mjs PART=mirror)
+  return keep === Infinity ? lat : Math.max(lat, keep - lineOff);
+}
+
+/**
+ * Whether a place across is on my own side of the cap (ownSideCap: on a right-hand road a lowest
+ * place - no cap, Infinity, none).
+ * @param place m off the track's middle, my line frame
+ * @param keep the cap (ownSideCap), m off the track's middle
+ * @param hand +1, or -1 on a right-hand road
+ * @returns it is (on a left-hand road: at most the cap)
+ */
+export function withinCap(place: number, keep: number, hand = 1): boolean {
+  if (hand > 0) return place <= keep;
+  return keep === Infinity || place >= keep;
+}
+
+/**
+ * The gap picker's room across (m off my line) held to my own side of the cap: on a left-hand
+ * road a highest place, on a right-hand one a lowest (capLat; no cap, Infinity, none).
+ * @param room m either side of the track's middle the pick may use
+ * @param keep the cap (ownSideCap), m off the track's middle
+ * @param lineOff the line's m off the track's middle here
+ * @param hand +1, or -1 on a right-hand road
+ * @returns the room's lowest and highest place, m off my line
+ */
+export function capRoom(room: number, keep: number, lineOff: number, hand = 1) {
+  const top = (hand > 0 ? Math.min(room, keep) : room) - lineOff;
+  const bottom = (hand < 0 && keep !== Infinity ? Math.max(-room, keep) : -room) - lineOff;
+  return { lo: bottom, hi: Math.max(top, bottom) };
 }
