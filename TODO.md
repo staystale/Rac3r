@@ -529,6 +529,11 @@ STORY (Story mode with its garage, money, BUY & FIT, "buy what you last tested" 
   hill-climb TRACK TYPE (a real road traced as data, point-to-point like a stage; an EVENT row -
   UP / DOWN / UP + DOWN - in place of laps) - the plan with the owner. Later: snow near the
   summit, the ghost, the start gantry.
+- RALLY STAGES HAVE NO LAPS (owner 11-22: "Single rally stages shouldn't have laps either"):
+  Worker C, menu/setup.ts isStage - no LAPS row VS AI on a set or generated stage, one run
+  launched (the race flow ran one anyway). Before: "3 LAPS" shown on Sweaty Lamb and the
+  generator's stage; after: none; Thruston's still shown. The stage HUD already read STAGE /
+  clock / BEST (no laps): unchanged. AWAITING THE PHONE TEST.
 - [ ] STORY MODE: ROOKIE SEASON (grass track, stock car, time trials: hillclimb / runway cones) ->
   ROOKIE 2 (similar events, track variations, harder to win); we pick the events; money / points
   also for NOT finishing top 3; replayable events / championships for more money (finish 5th,

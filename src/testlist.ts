@@ -13,6 +13,16 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'stagenolaps',
+    added: '2026-11-22',
+    name: 'Rally stages have no laps: no LAPS row in the setup, set or generated',
+    where: 'TEST MODE: RALLY STAGES - Sweaty Lamb, Killder, the stage generator - VS AI',
+    try: 'Pick VS AI on each stage: no LAPS row; launch and race to the finish. Then a circuit '
+      + 'VS AI: its LAPS row still there.',
+    wrong: 'A LAPS row on any stage, LAP n/N on its HUD, the stage running past its finish, or '
+      + 'a circuit or rallycross race with no LAPS row.',
+  },
+  {
     id: 'contactcost',
     added: '2026-11-22',
     name: 'AI weigh contact when picking a line: no rear-ending, no chopping a car alongside',
