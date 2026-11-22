@@ -160,7 +160,8 @@ THE ROAD TO THE FINISHED PRODUCT (owner 11-22: "that's about right"): 1 ghost + 
 11-22: TODO-DONE, PASSED 11-22, GHOST CARS AND ACCOLADES), the stage fixes, SPIKES PEAK; 2 PIT STOPS; 3 LOADING + PERFORMANCE (a steady 60 fps); 4 the new
 rallycross tracks + Old Wobbly; 4b 40 MORE CARS (owner 11-22: "before sound and story so it's padded
 out and ready", in batches of 10; NO REPEATED CARS - a race / rally / RX / Dakar version is the road car
-UPGRADED to that spec, not a second car); 5 SOUND + SETTINGS (G); 6 UPGRADES + GARAGE + STORY (H, the plan
+UPGRADED to that spec, not a second car; the EXISTING PAIRS - Saxo VTR / Saxo Max, Clio RS 200 / Clio Cup,
+Fiesta / Fiesta RX and any others - MERGE into one car with upgrade paths when the upgrade system comes); 5 SOUND + SETTINGS (G); 6 UPGRADES + GARAGE + STORY (H, the plan
 discussed with the owner first, any time); 7 the CHAMPIONSHIPS (3c). Then MULTIPLAYER (I).
 Foreman's rough estimate 11-22: 6-8 weeks at the current pace.
 
