@@ -1,6 +1,7 @@
 // The PROPS layer of the renderer: the fence, the barriers and the trackside props, each prop
 // kind dispatched to its painter in render/props/, with the overhead ones drawn above the cars.
 import { LEVEL, PROPS } from '../world/state.ts';
+import { FIX } from '../core/fixes.ts';
 import type { Prop } from '../world/types.ts';
 import type { Cam, View } from './types.ts';
 import type { PropCtx, PropDrawer, PropsHelpers } from './props/types.ts';
@@ -27,7 +28,7 @@ import {
   drawCrowd,
   drawMarshal,
   drawSculpture,
-  drawBlock, drawYacht, drawSlat,
+  drawBlock, drawYacht, drawSlat, drawSlatUnder,
   drawChevron,
   drawBale,
   drawFlag,
@@ -157,7 +158,7 @@ function drawPropList(propCtx: PropCtx, overhead = false) {
 function drawListedProp(propCtx: PropCtx, prop: Prop, ppm: number, overhead: boolean) {
   // a tree's canopy hangs over the cars too; a drivable bridge is in both layers
   const isOver = OVERHEAD.has(prop.kind) || prop.kind === 'tree' || !!prop.overRoad;
-  if (isOver !== overhead && !isDrivableBridge(prop)) return;
+  if (isOver !== overhead && !isDrivableBridge(prop) && !isSlatUnder(prop, overhead)) return;
   if (prop.kind === 'garagerow') {
     drawGarageRow(propCtx, prop, ppm);
     return;
@@ -186,9 +187,20 @@ function drawOneProp(propCtx: PropCtx, prop: Prop, ppm: number, overhead: boolea
   if (prop.rot) view.ctx.rotate(prop.rot);
   const drawer = PROP_DRAWERS[prop.kind];
   if (isDrivableBridge(prop)) drawVenueBridge(propCtx, prop, ppm, overhead ? 'deck' : 'base');
+  else if (isSlatUnder(prop, overhead)) drawSlatUnder(propCtx, prop, ppm);
   else if (drawer) drawer(propCtx, prop, ppm);
   view.ctx.restore();
 }
+
+/**
+ * Whether this is the ground pass of a slat over the endless road (?tunnellamps): its shade and
+ * shadow under the cars (props/scenery.ts drawSlatUnder), the slat over them.
+ * @param prop the prop
+ * @param overhead the overhead pass
+ * @returns true for one
+ */
+const isSlatUnder = (prop: Prop, overhead: boolean): boolean => !overhead && FIX.tunnellamps
+  && prop.kind === 'slat' && !!prop.overRoad;
 
 /**
  * Whether a prop is a drivable venue bridge (world/crossings.ts): its ramps and abutments are drawn
