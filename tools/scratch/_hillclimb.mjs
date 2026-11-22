@@ -14,7 +14,7 @@ const { createAIDriver } = await import('../../src/ai/circuit.ts');
 const { aiTraits } = await import('../../src/ai/traits.ts');
 const { heightAt } = await import('../../src/world/terrain.ts');
 const { SPAWN_S } = await import('../../src/highway/presets.ts');
-const { hillStretchAt, HILL_LENGTH_M } = await import('../../src/highway/hillplan.ts');
+const { HILL_LENGTH_M } = await import('../../src/highway/hillplan.ts');
 
 const SEEDS = (process.env.SEEDS || '4242,7,99').split(',').map(Number);
 const CAR = process.env.CAR || 'bmv-e36peak';
@@ -35,7 +35,7 @@ function checkGround(seed, acc, fromS) {
     const here = pts[i];
     if (here.s <= fromS || here.s > SPAWN_S + HILL_LENGTH_M) continue;
     acc.checkedS = Math.max(acc.checkedS, here.s);
-    const kind = hillStretchAt(here.s, seed).kind, ahead = pts[i + 5];
+    const kind = here.tag || 'straight', ahead = pts[i + 5];
     const grade = (heightAt(ahead.x, ahead.y) - heightAt(here.x, here.y)) / (ahead.s - here.s);
     (acc.grades[kind] ||= []).push(grade);
     const heading = Math.atan2(pts[i + 1].y - pts[i - 1].y, pts[i + 1].x - pts[i - 1].x);
@@ -89,7 +89,7 @@ for (const seed of SEEDS) {
     const kmh = Math.hypot(car.vx, car.vy) * 3.6;
     top = Math.max(top, kmh);
     if (Math.abs(frame.off) > level._hw.geo.hw) offRoadM += Math.max(0, frame.s - lastS);
-    if (hillStretchAt(frame.s, seed).kind === 'switchbacks') switchV.push(kmh);
+    if (level._hw.pts.find((point) => point.s >= frame.s)?.tag === 'switchbacks') switchV.push(kmh);
     lastS = frame.s;
     if (frame.s >= SPAWN_S + HILL_LENGTH_M) break;
   }

@@ -22,11 +22,12 @@ export interface HwCfg {
   kRate?: number;   // the fastest curvature change, 1/m per m (road.ts; else presets.ts K_RATE)
   // its changes by road distance (Deaf Valley's HIGH road: highway/desertplan.ts)
   stretch?: (dist: number, seed: number) => Partial<HwCfg> | null;
-  // a hill climb's switchback cluster on this stretch (highway/hillplan.ts; road.ts
-  // switchbackElements): its stretch's number, hairpins, their radius and leg ranges (m), the legs'
-  // heading off straight up (deg)
+  // a hill climb's cluster of bends on this stretch - its switchbacks, its esses, its sweepers
+  // (highway/hillplan.ts; road.ts switchbackElements): its stretch's number, its turns, their
+  // radius and leg ranges (m), the legs' heading off straight up (deg), the road kind it lays
   switchbacks?: { index: number; hairpins: number; radius: number[]; leg: number[];
-    legDeg: number };
+    legDeg: number; tag: string };
+  tag?: string;   // a hill climb's road kind, carried by its elements and points (hillplan.ts)
   // the other way's traffic: 'carriageway' - a second carriageway, mirrored, the far side of a
   // central reservation (its barriers: medians); 'lane' - a single carriageway
   // whose right-hand lane comes the other way (road.ts laneGeo)
@@ -55,10 +56,12 @@ export interface HwPoint {
   gapL?: number;   // 1 where the side road opens the left verge (the guard lets you through)
   gapR?: number;   // 1 where a bridge's approach opens the right (Deaf Valley's rock, roadparity)
   sideOut?: number;   // m a services' yard reaches past the side road's far edge
+  tag?: string;   // the hill climb's road kind it was laid as (its element's: hillplan.ts)
 }
 
 /** A road element still to be laid: its length, curvature, the ramp in and out, the hold. */
-export interface HwElem { len: number; k: number; ramp: number; hold: number; done?: number }
+export interface HwElem { len: number; k: number; ramp: number; hold: number; done?: number;
+  tag?: string }   // tag: the hill climb's road kind it was laid as (highway/hillplan.ts)
 
 /** A point on (or off) the road: where, and the road's heading there. */
 export interface HwPose { x: number; y: number; rot: number }

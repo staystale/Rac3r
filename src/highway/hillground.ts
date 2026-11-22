@@ -1,14 +1,14 @@
-// highway/hillground.ts - THE HILL CLIMB'S GROUND (?hillclimb; highway/hillplan.ts): the road
-// rises along its length (riseAt), and the ground off it is the hillside between the road's legs.
-// Heights from the nearest road point alone made a cliff halfway between two switchback legs
-// (30-60 m apart, their rises 4-26 m apart): here the ground off the road is blended from the
-// nearest point of each part of the road within BLEND_M (inverse distance), on a grid of
-// CELL_M cells built as the road grows, eased in from the road's own rise over EASE_M past its
-// edge. DROPS: past the verge on the outside of a bend tighter than DROP_R_M (not in a switchback
-// cluster: there the outside is the hillside up to the next leg) the ground falls away DROP_M -
-// over the edge is a fall (the world's reset).
+// highway/hillground.ts - THE HILL CLIMB'S GROUND (?hillclimb; highway/hillplan.ts): the road rises
+// along its length (riseOf: each laid point by its road kind's grade), and the ground off it is the
+// hillside between the road's legs. Heights from the nearest road point alone made a cliff halfway
+// between two switchback legs (30-60 m apart, their rises 4-26 m apart): here the ground off the
+// road is blended from the nearest point of each part of the road within BLEND_M (inverse
+// distance), on a grid of CELL_M cells built as the road grows, eased in from the road's own rise
+// over EASE_M past its edge. DROPS: past the verge on the outside of a bend tighter than DROP_R_M
+// (not in a switchback cluster: there the outside is the hillside up to the next leg) the ground
+// falls away DROP_M - over the edge is a fall (the world's reset).
 import type { HwLevel } from './hwtypes.ts';
-import { hillStretchAt, riseAt } from './hillplan.ts';
+import { gradeOf } from './hillplan.ts';
 import { STEP } from './presets.ts';
 import { REACH } from './gorge.ts';
 
@@ -30,7 +30,9 @@ interface Cell { parts: number[]; dists: number[]; rises: number[]; height: numb
 
 /** One road's hillside: its cells, its far rows, the road distance laid up to, its finish line. */
 interface Hillside { cells: Map<number, Cell>; rows: Map<number, { sum: number; count: number }>;
-  laidS: number; finishS: number }
+  laidS: number; finishS: number;
+  // the road's rise at each laid point (by road distance), and the road it was laid for
+  rises: Map<number, number>; road: object | null }
 
 // m: a far row's depth up the screen (FAR GROUND: past the hillside, the road's average rise
 // along each row - the hill rising as the road climbs up the screen)
@@ -143,8 +145,16 @@ function layNewRoad(level: HwLevel, side: Hillside) {
   const pts = level._hw.pts;
   let first = pts.length;
   while (first > 0 && pts[first - 1].s > side.laidS) first--;
+  // (each point's rise from the one before, by the grade of the road kind it was laid as: a
+  // switchback cluster's 10 % on its own hairpins, wherever its stretch began)
+  for (let i = Math.max(1, first); i < pts.length; i++) {
+    const before = side.rises.get(pts[i - 1].s) ?? 0;
+    side.rises.set(pts[i].s, pts[i].s > side.finishS ? before
+      : before + gradeOf(pts[i].tag) * (pts[i].s - pts[i - 1].s));
+  }
+  if (first === 0 && pts.length) side.rises.set(pts[0].s, side.rises.get(pts[0].s) ?? 0);
   for (let i = first; i < pts.length; i++) {
-    const rise = riseAt(pts[i].s, level._hw.seed, side.finishS);
+    const rise = riseOf(side, pts[i].s);
     layPoint(side, pts[i], rise);
     const row = Math.round(pts[i].y / FAR_ROW_M), known = side.rows.get(row);
     if (known) {
@@ -163,18 +173,53 @@ function layNewRoad(level: HwLevel, side: Hillside) {
  * @returns the climb
  */
 export function hillClimbOf(level: HwLevel, finishS: number) {
-  const side: Hillside = { cells: new Map(), rows: new Map(), laidS: -Infinity, finishS };
+  const side: Hillside = { cells: new Map(), rows: new Map(), laidS: -Infinity, finishS,
+    rises: new Map(), road: null };
   return (dist: number, x: number, y: number, outM: number): number => {
+    // (a new road - a reset, another seed: laid afresh)
+    if (side.road !== level._hw) Object.assign(side, { cells: new Map(), rows: new Map(),
+      laidS: -Infinity, rises: new Map(), road: level._hw });
     if (level._hw.pts.length && level._hw.pts[level._hw.pts.length - 1].s > side.laidS)
       layNewRoad(level, side);
     // (past the road lookup's reach: the hillside, the far ground past that)
     if (Number.isNaN(dist)) return hillsideAt(side, x, y);
-    const road = riseAt(dist, level._hw.seed, finishS);
+    const road = riseOf(side, dist);
     if (outM <= 0) return road;
     const hill = hillsideAt(side, x, y);
     const ease = Math.min(1, outM / EASE_M), smooth = ease * ease * (3 - 2 * ease);
     return road + (hill - road) * smooth;
   };
+}
+
+/**
+ * The road's rise at a road distance, between its laid points (past them: the nearest).
+ * @param side the hillside (its laid rises)
+ * @param dist road distance, m
+ * @returns m
+ */
+function riseOf(side: Hillside, dist: number): number {
+  const low = Math.floor(dist / STEP) * STEP, share = (dist - low) / STEP;
+  const below = side.rises.get(low), above = side.rises.get(low + STEP);
+  if (below !== undefined && above !== undefined) return below + (above - below) * share;
+  if (below !== undefined || above !== undefined) return (below ?? above)!;
+  let nearest = 0, gap = Infinity;
+  for (const [atS, rise] of side.rises) {
+    if (Math.abs(atS - dist) >= gap) continue;
+    gap = Math.abs(atS - dist);
+    nearest = rise;
+  }
+  return nearest;
+}
+
+/**
+ * The hill climb's road kind at a road distance (its nearest laid point's tag), or none.
+ * @param level the highway level
+ * @param dist road distance, m
+ * @returns the kind
+ */
+function tagAt(level: HwLevel, dist: number): string | undefined {
+  const pts = level._hw.pts, i = Math.round((dist - (pts[0]?.s ?? 0)) / STEP);
+  return pts[Math.max(0, Math.min(pts.length - 1, i))]?.tag;
 }
 
 /**
@@ -203,7 +248,7 @@ export function hillRoadsideOf(level: HwLevel) {
   const open = new Map<number, boolean>();
   return (dist: number, offset: number, halfWidth: number): number => {
     const past = Math.abs(offset) - halfWidth - DROP_VERGE_M;
-    if (past <= 0 || hillStretchAt(dist, level._hw.seed).kind === 'switchbacks') return 0;
+    if (past <= 0 || tagAt(level, dist) === 'switchbacks') return 0;
     const curv = curvatureAt(level, dist);
     // (the outside: the side the bend turns away from; + offset the left)
     if (Math.abs(curv) < 1 / DROP_R_M || Math.sign(offset) === Math.sign(curv)) return 0;
@@ -274,7 +319,7 @@ const WORST_R_M = 55, ARMCO_GAP_M = 0.8;
  */
 export function hillWallOf(level: HwLevel) {
   return (dist: number, side: number): { kind: 'armco'; gap: number } | null => {
-    if (hillStretchAt(dist, level._hw.seed).kind === 'switchbacks') return null;
+    if (tagAt(level, dist) === 'switchbacks') return null;
     const curv = curvatureAt(level, dist);
     return Math.abs(curv) > 1 / WORST_R_M && Math.sign(side) !== Math.sign(curv)
       ? { kind: 'armco', gap: ARMCO_GAP_M } : null;

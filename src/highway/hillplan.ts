@@ -3,7 +3,8 @@
 // outside edges, barriers only at the worst corners, the summit the finish with a stop zone). Its
 // stretches by road distance (highway/stretchplan.ts, as Deaf Valley's and GETAWAY STOCKHOLM's):
 // SWEEPERS, ESSES, a SWITCHBACK cluster (a "W": road.ts switchbackElements) and a short STRAIGHT,
-// each with its own bends and grade; the ground's rise along the road from them (riseAt; the
+// each with its own bends and grade (gradeOf, by the road kind each point was laid as - a
+// switchback cluster's own elements its 10 %); the ground's rise along the road from them (the
 // ground off the road: highway/hillground.ts).
 import type { HwCfg } from './hwtypes.ts';
 import { makeStretchPlan } from './stretchplan.ts';
@@ -22,7 +23,7 @@ export type HillStretch = PlanStretch<HillKind>;
 const KINDS: Record<HillKind, KindRule> = {
   sweepers: { min: 300, max: 600, weight: 1 },
   esses: { min: 250, max: 450, weight: 1 },
-  switchbacks: { min: 550, max: 800, weight: 1.1 },
+  switchbacks: { min: 550, max: 800, weight: 0.8 },
   straight: { min: 100, max: 200, weight: 0.5 },
 };
 
@@ -42,15 +43,24 @@ const GRADE: Record<HillKind, number> = {
 };
 
 // each kind's road shape (road.ts nextElement): radius ranges, m, and the chances of a straight
-// and of a tight bend; a switchback cluster's hairpins (R 14-20 m), its legs (50-110 m) running
-// 80 deg off straight up, one hairpin for each ~150 m of its stretch (3-5)
+// and of a tight bend
 const SHAPES: Record<HillKind, Partial<HwCfg>> = {
   sweepers: { sweep: [120, 260], bend: [80, 120], pStraight: 0.15, pBend: 0.3, maxDeg: 60 },
   esses: { sweep: [60, 110], bend: [40, 70], pStraight: 0.05, pBend: 0.6, maxDeg: 70 },
   switchbacks: { bend: [40, 70] },
   straight: { sweep: [500, 900], pStraight: 0.9, pBend: 0, maxDeg: 40 },
 };
-const HAIRPIN_R_M = [14, 20], LEG_M = [50, 110], LEG_DEG = 80, M_A_HAIRPIN = 150;
+// each kind's CLUSTER of bends (road.ts switchbackElements; the stretch's own shape above for
+// what is left of it): its turns' radius and its legs' length ranges (m), its legs' heading off
+// straight up (deg - each turn twice that), m of stretch a turn and the most and fewest turns -
+// the switchbacks' hairpins; the esses' S-bends; the sweepers' long sweeps (the road's own
+// lean-holding element runs left long, near-straight diagonals: stiff)
+const CLUSTERS: Partial<Record<HillKind, { radius: number[]; leg: number[]; legDeg: number;
+  each: number; turns: number[] }>> = {
+  switchbacks: { radius: [14, 20], leg: [50, 110], legDeg: 80, each: 150, turns: [3, 5] },
+  esses: { radius: [40, 70], leg: [20, 60], legDeg: 35, each: 80, turns: [3, 6] },
+  sweepers: { radius: [120, 250], leg: [40, 120], legDeg: 20, each: 150, turns: [2, 4] },
+};
 
 /**
  * The hill climb's road shape at a road distance (presets.ts sceneryCfg's stretch hook).
@@ -60,31 +70,21 @@ const HAIRPIN_R_M = [14, 20], LEG_M = [50, 110], LEG_DEG = 80, M_A_HAIRPIN = 150
  */
 export function hillRoadAt(dist: number, seed: number): Partial<HwCfg> {
   const stretch = hillStretchAt(dist, seed), shape = SHAPES[stretch.kind];
-  if (stretch.kind !== 'switchbacks') return shape;
-  const hairpins = Math.max(3, Math.min(5, Math.floor(stretch.len / M_A_HAIRPIN)));
-  return { ...shape, switchbacks: { index: stretch.index, hairpins, radius: HAIRPIN_R_M,
-    leg: LEG_M, legDeg: LEG_DEG } };
+  const cluster = CLUSTERS[stretch.kind];
+  // (what the cluster leaves of a stretch: its own shape - a switchbacks stretch's, esses)
+  const tag = stretch.kind === 'switchbacks' ? 'esses' : stretch.kind;
+  if (!cluster) return { ...shape, tag };
+  const turns = Math.max(cluster.turns[0], Math.min(cluster.turns[1],
+    Math.floor(stretch.len / cluster.each)));
+  return { ...shape, tag, switchbacks: { index: stretch.index, hairpins: turns,
+    radius: cluster.radius, leg: cluster.leg, legDeg: cluster.legDeg, tag: stretch.kind } };
 }
-
-// per road seed: each stretch's start (m) and the ground's rise there (m), laid as asked
-const RISES = new Map<number, { starts: number[]; rise: number[] }>();
 
 /**
- * The ground's rise at a road distance: each stretch's grade over its length, from the road's
- * start to the summit's finish line, level past it (the stop zone and on).
- * @param dist road distance, m
- * @param seed the road's seed
- * @param finishS the finish line's road distance, m
- * @returns m risen
+ * The grade of a road kind (a laid road point's tag: road.ts; none - the start's run-up - a
+ * straight's).
+ * @param tag the road kind
+ * @returns the rise per m along the road
  */
-export function riseAt(dist: number, seed: number, finishS: number): number {
-  const upTo = Math.max(0, Math.min(dist, finishS)), here = hillStretchAt(upTo, seed);
-  let known = RISES.get(seed);
-  if (!known) RISES.set(seed, (known = { starts: [0], rise: [0] }));
-  while (known.starts.length <= here.index) {
-    const last = known.starts.length - 1, stretch = hillStretchAt(known.starts[last], seed);
-    known.starts.push(known.starts[last] + stretch.len);
-    known.rise.push(known.rise[last] + GRADE[stretch.kind] * stretch.len);
-  }
-  return known.rise[here.index] + GRADE[here.kind] * here.along;
-}
+export const gradeOf = (tag?: string): number => GRADE[(tag || 'straight') as HillKind]
+  ?? GRADE.straight;

@@ -9,7 +9,6 @@ import { resetHighway, roadFrame, roadPose, roadSpan, rehome, playerOutM }
 import { bayBehind } from '../highway/laybys.ts';
 import { shoulderOff } from '../highway/road.ts';
 import { clearFinishLine, createHwFlow, hwGridSpan } from '../highwayrace.ts';
-import { finishOf } from '../highway/finish.ts';
 import { createRaceFlow } from '../raceflow.ts';
 import { repair, resetBill } from '../damage.ts';
 import { SPAWN, LEVEL } from "../world/state.ts";
@@ -28,7 +27,7 @@ import {
 import { useRigPose } from './resetspot.ts';
 import { circuitTrailer, followedTrailer, placeTrailer, rigInset } from './rigreset.ts';
 import type { RigPose } from './rigreset.ts';
-import { resetCar, armStart, startHeld, startAtOf } from './order.ts';
+import { resetCar, armStart, startHeld, startAtOf, hwFinishNow } from './order.ts';
 import { gridPos, spawnAI } from './grid.ts';
 import { clearRigSpot, isTowing } from './gridlen.ts';
 import { shared, game } from './state.ts';
@@ -345,7 +344,7 @@ export function buildFlow() {
     // (the getaway counts only on the road - the car's middle inside its edge)
     return createHwFlow({ lv: hwLevel(), offRoad: () => playerOutM(hwLevel()) > 0,
       cars: [{ car: game.car, player: true }, ...game.ai.map((entry) => ({ car: entry.car }))],
-        visible: (car) => onScreen(car.x, car.y), finish: finishOf(shared.hwFinish) });
+        visible: (car) => onScreen(car.x, car.y), finish: hwFinishNow() });
   }
   if (LEVEL.stage) {
     return createRaceFlow({ cars: [{ car: game.car, player: true },
@@ -373,7 +372,7 @@ export function startFlow() {
   clearCutCounts();
   // (a highway run with a finish has its flow solo too)
   if (shared.mode !== 'session' || !LEVEL.subtrack || !(game.ai.length || shared.race.on
-    || (LEVEL.endless && finishOf(shared.hwFinish)))) {
+    || (LEVEL.endless && hwFinishNow()))) {
     if (LEVEL.endless) clearFinishLine(hwLevel());
     return;
   }

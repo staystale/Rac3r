@@ -165,11 +165,13 @@ export function growTo(level: HwLevel, sTarget: number) {
       // a road type that changes along the road (Deaf Valley's HIGH road) plans from where it is
       const changes = level._cfg.stretch?.(state.s, state.seed);
       const cfg = changes ? { ...level._cfg, ...changes } : level._cfg;
-      // (a hill climb's switchbacks: one cluster a stretch - highway/hillplan.ts)
+      // (a hill climb's cluster of bends: one a stretch - highway/hillplan.ts)
       if (cfg.switchbacks && state.wIndex !== cfg.switchbacks.index) {
         state.wIndex = cfg.switchbacks.index;
-        state.plan.push(...switchbackElements(state, cfg));
-      } else state.plan.push(nextElement(state, cfg));
+        state.plan.push(...switchbackElements(state, cfg).map((elem) => ({ ...elem,
+          tag: cfg.switchbacks!.tag })));
+      } else state.plan.push(cfg.tag ? { ...nextElement(state, cfg), tag: cfg.tag }
+        : nextElement(state, cfg));
     }
     const elem = state.plan[0], along = elem.done || 0;
     // midpoint curvature over the step: exact for a linear ramp, so the heading lands exactly where
@@ -183,7 +185,7 @@ export function growTo(level: HwLevel, sTarget: number) {
     elem.done = along + STEP;
     // (a right-hand road's points mirrored: its world the left-hand twin's mirror image)
     state.pts.push({ x: (state.hand ?? 1) * state.x, y: state.y, s: state.s,
-      curv: curvAt(elem, elem.done) });
+      curv: curvAt(elem, elem.done), ...(elem.tag ? { tag: elem.tag } : {}) });
     if (elem.done >= elem.len - 1e-6) state.plan.shift();
   }
 }

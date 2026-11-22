@@ -8,13 +8,13 @@ const L = await import('../../src/lab.ts');
 const hw = await import('../../src/highway.ts');
 const { growTo } = await import('../../src/highway/road.ts');
 const { HW_PRESETS, UP_HEADING, wrap } = await import('../../src/highway/presets.ts');
-const { hillRoadAt, hillStretchAt, riseAt, HILL_LENGTH_M } = await import(
+const { hillRoadAt, hillStretchAt, gradeOf, HILL_LENGTH_M } = await import(
   '../../src/highway/hillplan.ts');
 
 const SEEDS = (process.env.SEEDS || '4242,7,99').split(',').map(Number);
 for (const seed of SEEDS) {
   const level = hw.createHighway(seed, 'twisty');
-  level._cfg = { ...HW_PRESETS.twisty, kRate: 2.5e-3, stretch: hillRoadAt };
+  level._cfg = { ...HW_PRESETS.twisty, kRate: 2.5e-3, stretch: hillRoadAt, theme: 'peak' };
   L.LEVELS.push(level);
   L.setLevel('highway');
   hw.resetHighway(level);
@@ -41,6 +41,15 @@ for (const seed of SEEDS) {
     if (gap < leastGap) { leastGap = gap; gapAt = [Math.round(pts[i].s), Math.round(pts[j].s)]; }
     if (gap < width + 4) touching++;
   }
+  // (the climb as the game lays it: each point by its road kind's grade - highway/hillground.ts)
+  const { SPAWN_S } = await import('../../src/highway/presets.ts');
+  let climbed = 0;
+  const laid = {};
+  for (let i = 1; i < pts.length; i++) {
+    if (pts[i].s <= SPAWN_S || pts[i].s > SPAWN_S + HILL_LENGTH_M) continue;
+    climbed += gradeOf(pts[i].tag) * (pts[i].s - pts[i - 1].s);
+    laid[pts[i].tag || 'none'] = (laid[pts[i].tag || 'none'] || 0) + 4;
+  }
   const offs = pts.map((point, i) => (i ? wrap(Math.atan2(point.y - pts[i - 1].y,
     point.x - pts[i - 1].x) - UP_HEADING) * 180 / Math.PI : 0));
   const kinds = [];
@@ -53,6 +62,7 @@ for (const seed of SEEDS) {
   console.log(`  hairpins ${hairpins}, least radius ${leastR.toFixed(1)} m; least gap between `
     + `parts of the road ${leastGap.toFixed(1)} m (at ${gapAt}), point pairs under the width + 4 m `
     + `${touching}; heading off up ${Math.min(...offs).toFixed(0)}..${Math.max(...offs).toFixed(0)}`
-    + ` deg; rise at the finish ${riseAt(HILL_LENGTH_M, seed, HILL_LENGTH_M).toFixed(0)} m`);
+    + ` deg; the 5 km from the start line rise ${climbed.toFixed(0)} m (${(climbed / 50).toFixed(1)} %),`
+    + ` laid as ${JSON.stringify(laid)} m`);
   L.LEVELS.pop();
 }

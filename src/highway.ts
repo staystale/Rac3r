@@ -488,7 +488,9 @@ export function setHighwayPreset(level: HwLevel, preset: string, scenery?: strin
 }
 // the ground off the road: the countryside's grass, Deaf Valley's desert gravel (owner 11-09:
 // "use gravel and sand for the desert not dirt")
-const baseOf = (cfg: HwCfg) => cfg.theme === 'canyon' ? SURFACES.gravel : SURFACES.grass;
+// (the hill climb's: gravel - a hairpin's inside the risky cut: highway/hillplan.ts)
+const baseOf = (cfg: HwCfg) => cfg.theme === 'canyon' || cfg.theme === 'peak' ? SURFACES.gravel
+  : SURFACES.grass;
 // the ground off the road: Deaf Valley's gorges and washes (highway/gorge.ts), else flat
 // (GETAWAY STOCKHOLM: its embankments, cuttings and tunnels - highway/cityplan.ts)
 const roadsideOf = (level: HwLevel, cfg: HwCfg) => cfg.theme === 'canyon'
