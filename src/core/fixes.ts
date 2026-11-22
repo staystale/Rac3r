@@ -93,15 +93,6 @@ export const FIX = {
   // needed"): the field goes round a stopped car on one side, and a car beside a swerver makes room
   // (ai/hazards.ts)
   hazard: atLoad('hazard'),
-  // the GETAWAY STOCKHOLM scenery for the endless roads, step 1: its card, the city's stretches,
-  // its lots of buildings behind noise walls, blue signs (highway/city.ts)
-  stockholm: atLoad('stockholm'),
-  // the police by scenery: the countryside nearly none, Deaf Valley some, Stockholm today's
-  // (ai/trafficPolice.ts COP_MIX)
-  copmix: atLoad('copmix'),
-  // GETAWAY STOCKHOLM drives on the RIGHT (owner 11-21: keep right, overtake on the left): its
-  // road's world the mirror image of its left-hand twin (highway/road.ts HwState.hand)
-  keepright: atLoad('keepright'),
   // A TUNNEL NEVER SWITCHES A LIGHT (owner 11-22: "controlled with LAYERING, not code"): its cover
   // (the slats, a straight one's underground stretch) is a deck over the light map - the cars'
   // beams and glows below never light its top, they show between the slats - and no car's light

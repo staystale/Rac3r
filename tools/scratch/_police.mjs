@@ -36,12 +36,13 @@ L.setLevel('highway');
 const level = L.LEVEL;
 
 /** A fresh road and traffic, you at the spawn. */
-function newWorld(road, scenery, seed, density = 0.6, rightHand = false) {
+function newWorld(road, scenery, seed, density = 0.6, rightHand = undefined) {
   level.seed = seed;
   level.roadType = null;
   hw.setHighwayPreset(level, road, scenery);
-  // (round 2 of ?keepright: the same road right-hand - its config's rightHand)
-  if (rightHand) level._cfg = { ...level._cfg, rightHand: true };
+  // (the mirror test: the same road left- or right-hand - its config's rightHand; GETAWAY
+  // STOCKHOLM's own is right-hand)
+  if (rightHand !== undefined) level._cfg = { ...level._cfg, rightHand };
   hw.resetHighway(level);
   const traffic = createTraffic({ rnd: mulberry(seed) });
   traffic.reset(level, density);

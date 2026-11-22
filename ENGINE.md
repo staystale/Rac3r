@@ -386,7 +386,7 @@ each FLASH_S as a hand flash does, each driver's flashes counted on their own (`
 your lights cannot flash with no working headlight. Racers are never flashed. The walkthrough's
 FLASH THEM card. `tools/scratch/_lampflash.mjs`.
 
-THE POLICE BY SCENERY (?copmix=1; `ai/trafficPolice.ts COP_MIX`): every police chance - the
+THE POLICE BY SCENERY (passed 11-22; `ai/trafficPolice.ts COP_MIX`): every police chance - the
 share of the cars put back that are police (1/60, 1/15 while police are due: over 70 mph or a
 camera) and a police car placed ahead every 400 m (0.35, 0.7 due) - times the road's scenery's
 share: the countryside 0.1, Deaf Valley 0.4, Stockholm 1 (today's; passed by the owner), and a
@@ -832,7 +832,7 @@ and tyre stacks (`rallycross-venue.ts rallycrossLevel` -> `rxDress(..., floorM)`
 the LEVEL'S OWN floor (`level.floor`, as the tape's `onFloor` reads it), not the standard 260 m:
 Croughed RX (546 m) keeps all 396 loose objects.
 
-GETAWAY STOCKHOLM (?stockholm=1; `highway/cityplan.ts`, `city.ts`, `citywater.ts`): a third
+GETAWAY STOCKHOLM (passed 11-22; `highway/cityplan.ts`, `city.ts`, `citywater.ts`): a third
 scenery (`presets.ts HW_SCENERY.stockholm`, theme 'city', every road type) dressed as the
 countryside is (`dress.ts dressStretch`: slips, bridges, services, gantries, lamps, litter, walls,
 median, cushions) with its own STRETCHES (`cityStretchAt`: Deaf Valley's mechanism,
@@ -863,7 +863,7 @@ Its litter is its own (`litter.ts cityLitter`: cones and sandbags, bins, boxes, 
 (`CITY_SIGNS`, the distance that goes up: CENTRUM n KM). `tools/scratch/_citylots.mjs` (node:
 lots by stretch, clashes with the roads), `_cityshot.mjs` (a photo of each stretch).
 
-A RIGHT-HAND ROAD (?keepright=1, GETAWAY STOCKHOLM's: `HwCfg.rightHand`, `HwState.hand` -1): the
+A RIGHT-HAND ROAD (passed 11-22, GETAWAY STOCKHOLM's: `HwCfg.rightHand`, `HwState.hand` -1): the
 road's world is the mirror image of its left-hand twin - `road.ts growTo` stores its points with x
 mirrored, and every offset from the road is turned where the road's normal is made
 (`roadPose`, `roadFrame`, `locate`, `dress.ts pointAt`, `ai/roadLine.ts`, the subtrack's

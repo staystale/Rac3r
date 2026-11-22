@@ -66,28 +66,4 @@ export const TEST_LIST: TestEntry[] = [
     wrong: 'AI braking on straights, crashing into corners or each other far more than before, '
       + 'or slower laps.',
   },
-  {
-    id: 'stockholm',
-    added: '2026-11-21',
-    name: 'GETAWAY STOCKHOLM: the city scenery (reworked)',
-    where: 'Test link + &stockholm=1: TEST MODE > ENDLESS ROADS > GETAWAY STOCKHOLM, any road',
-    try: 'Drive: city blocks, slatted tunnels, long bridges over water, embankments, cuttings.',
-    wrong: 'Buildings on the road or a slip, a wall across a way in, an empty city, a bad sign.',
-  },
-  {
-    id: 'copmix',
-    added: '2026-11-21',
-    name: 'Police by scenery: few in the countryside, some in Deaf Valley, most in Stockholm',
-    where: 'Test link + &copmix=1 (&stockholm=1 for Stockholm): an endless road in each scenery',
-    try: 'Drive a few km in each, legal then fast, and count the police cars you meet.',
-    wrong: 'As many police in the countryside as before, or fewer in Stockholm than before.',
-  },
-  {
-    id: 'keepright',
-    added: '2026-11-22',
-    name: 'GETAWAY STOCKHOLM drives on the RIGHT (keep right, overtake on the left)',
-    where: 'Test link + &stockholm=1&keepright=1: GETAWAY STOCKHOLM, any road, with AI and traffic',
-    try: 'Race: our way on the right, slips and lay-bys off the right, the traffic keeps right.',
-    wrong: 'A car on the wrong side, a slip or sign on the left, indicators the wrong way.',
-  },
 ];

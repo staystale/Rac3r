@@ -36,33 +36,31 @@ import type { AiCar, DriveInput, TrafficCar, TrafficEnt, TrafficVehicle } from '
 import { boxGap } from './policeHeat.ts';
 import type { Heat, Suspect } from './policeHeat.ts';
 import { wakeWaiting } from './policeWake.ts';
-import { FIX } from '../core/fixes.ts';
 
 // the share of the cars put back that are police, and the share while police are due (MEASURED,
 // tools/scratch/_police.mjs survey: at 1 / 30 an oncoming police car every 0.3-0.8 km - you sped
 // past one every minute)
 const POLICE_SHARE = 1 / 60, DUE_SHARE = 1 / 15;
-// ?copmix (owner 11-21: "too many police on the other levels - countryside nearly none, Deaf
-// Valley some, Stockholm the most, at today's level"; the shares passed, and the chases a heat
-// sends scaled too): every police chance above and below times its scenery's share (the road's
-// theme; none: the countryside)
+// THE POLICE BY SCENERY (owner 11-21: "too many police on the other levels - countryside nearly
+// none, Deaf Valley some, Stockholm the most, at today's level"; the shares passed, and the
+// chases a heat sends scaled too): every police chance above and below times its scenery's share
+// (the road's theme; none: the countryside)
 const COP_MIX: Record<string, number> = { countryside: 0.1, canyon: 0.4, city: 1 };
 
 /**
- * The police's share on this road (?copmix: by its scenery; else all of today's).
+ * The police's share on this road, by its scenery (COP_MIX).
  * @param ctx the traffic
  * @returns 0..1
  */
-const copMix = (ctx: TrafficCtx): number => (FIX.copmix
-  ? COP_MIX[ctx.level?._cfg?.theme ?? 'countryside'] ?? 1 : 1);
+const copMix = (ctx: TrafficCtx): number => COP_MIX[ctx.level?._cfg?.theme ?? 'countryside'] ?? 1;
 
 /**
- * Whether a chaser due to be sent from behind is sent (?copmix: only by its scenery's share -
- * owner 11-21: "scale the heat-sent chases by the same shares"; off, always and no dice drawn).
+ * Whether a chaser due to be sent from behind is sent: by its scenery's share (owner 11-21:
+ * "scale the heat-sent chases by the same shares").
  * @param ctx the traffic
  * @returns it is
  */
-const copSends = (ctx: TrafficCtx): boolean => !FIX.copmix || ctx.rnd() < copMix(ctx);
+const copSends = (ctx: TrafficCtx): boolean => ctx.rnd() < copMix(ctx);
 // m of road you drive between two chances of a police car of our way placed ahead, the chance
 // each time and while police are due, and m ahead it is placed (out of sight)
 const PLACE_EVERY_M = 400, PLACE_CHANCE = 0.35, DUE_PLACE_CHANCE = 0.7;

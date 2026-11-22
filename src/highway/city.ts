@@ -1,4 +1,4 @@
-// highway/city.ts - GETAWAY STOCKHOLM's LOTS (behind ?stockholm; owner 11-21 on step 1: "very
+// highway/city.ts - GETAWAY STOCKHOLM's LOTS (owner 11-21 on step 1: "very
 // boring and not varied enough ... like a city, much busier"): on every built-up stretch
 // (highway/cityplan.ts: the city, a cutting's and a tunnel's tops, below a raised stretch) each
 // side

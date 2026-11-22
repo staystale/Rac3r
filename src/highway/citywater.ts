@@ -1,5 +1,5 @@
-// highway/citywater.ts - GETAWAY STOCKHOLM's WATER and TUNNELS (behind ?stockholm;
-// highway/cityplan.ts lays out the stretches). WATER: the road on a long bridge over open water -
+// highway/citywater.ts - GETAWAY STOCKHOLM's WATER and TUNNELS (highway/cityplan.ts lays out the
+// stretches). WATER: the road on a long bridge over open water -
 // both sides the river's scenery water (highway/cuts.ts river: a 'wet' cover, never dries) from a
 // concrete quay out WATER_W_M, laid in pieces as the road grows, kept clear (keep rects); yachts
 // moored off the quays (Moanaco's). Its edges are weak fences with gaps (cityplan.ts cityWallAt:
