@@ -4,7 +4,7 @@
 // from the launch to the green + 10 s, each racer's place across the road (its road frame, car._hwf
 // off, m), its driver's lane (state.laneLat), its dodge and gap-picker line (state.dodge,
 // gapBase), whether the start holds it; then the FIELD'S MEAN across and its spread, and each
-// racer's lane changes. The switches through RAC3R_QUERY. SEED=1 SECONDS=16
+// racer's lane changes. The switches through RAC3R_QUERY. SEED=1 SECONDS=16 [SCENERY=stockholm]
 // node tools/scratch/_hwside.mjs
 import { startServer, launchBrowser, extraQuery } from '../lib/browser.mjs';
 import { openPage, launchLevel, SETTLE_MS } from '../lib/determinism.mjs';
@@ -34,7 +34,8 @@ try {
     window.__rt.step(10);
   });
   await page.evaluate((value) => window.__rt.seed(value), SEED);
-  await page.evaluate(launchLevel, ['highway', { car: 'hatch-rwd', ai: 5, traffic: 1.5, road: ROAD }]);
+  await page.evaluate(launchLevel, ['highway', { car: 'hatch-rwd', ai: 5, traffic: 1.5, road: ROAD,
+    ...(process.env.SCENERY ? { scenery: process.env.SCENERY } : {}) }]);
   await page.waitForTimeout(SETTLE_MS);
   const samples = [];
   for (let frames = 0; frames < SECONDS * 60; frames += 30) {

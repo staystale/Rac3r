@@ -119,8 +119,10 @@ export function roadFormationInput(car: AiCar, place: FormationPlace, pole: AiCa
   const ahead = roadPose(level, axle.s + 2 + speed * 0.15, place.columnM);
   let psi = ahead.h - car.heading;
   psi = Math.atan2(Math.sin(psi), Math.cos(psi));
-  const demand = steerDemand(psi, axle.off - place.columnM, speed, car.yawRate, car.delta,
-    car.spec.L);
+  // (the cross-track error in the world's terms, as psi is: a right-hand road's road frame is the
+  // mirror - highway/road.ts HwState.hand; unturned, the formation steered away from its column)
+  const cross = (level._hw.hand ?? 1) * (axle.off - place.columnM);
+  const demand = steerDemand(psi, cross, speed, car.yawRate, car.delta, car.spec.L);
   const cap = steerCap(car.spec.L, (car.spec.mu || 1) * (car.surface.mu || 1), speed, lock);
   const steer = Math.max(-cap, Math.min(cap, demand / lock));
   return { steer, ...slotPedals(car, poleAt.s - place.backM - (axle.s - half),
