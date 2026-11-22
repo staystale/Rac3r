@@ -589,6 +589,12 @@ STORY (Story mode with its garage, money, BUY & FIT, "buy what you last tested" 
   pot: 20 cars - the winner most, the next 3 most of the rest, a little to 5th; 10 cars - top 3; 5 cars -
   winner takes all. Police: fines rising with the wanted level and crimes, speed cameras too; BUSTED 3
   TIMES IN ONE STREET RACE = the car impounded, a release fee.
+  RESTART CAREER (owner 11-22): a RESTART STORY option for when you run out of money. Licences once
+  earned are KEPT whatever difficulty they were earned on: a restart (or a fresh career after them)
+  skips past the licences to "about to buy your first car" with that difficulty's start money; the
+  difficulty can be CHANGED at a restart (otherwise locked per save).
+  REPLAYS: Story events stay replayable as another way to earn, always IN SPEC (the event's class /
+  spec limits - no fast car in a slow race).
   SAVES: a SAVE CODE (copy out / paste back) - "still unsure", to discuss more; Safari wipes site data
   unvisited for 7 days.
 - [ ] STORY MODE: ROOKIE SEASON (grass track, stock car, time trials: hillclimb / runway cones) ->
