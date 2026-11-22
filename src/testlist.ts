@@ -23,7 +23,7 @@ export const TEST_LIST: TestEntry[] = [
   {
     id: 'brakepedal',
     added: '2026-11-22',
-    name: 'AI: a steady brake pedal through a braking zone (no dabbing), at today's braking point',
+    name: 'AI: a steady brake pedal through a braking zone (no dabbing), at the usual braking point',
     where: 'Test link + &brakepedal=1 (without &aitune=1): any circuit with a full field',
     try: 'Follow AI into heavy braking zones: one smooth stop, no on-off-on brake lights.',
     wrong: 'Brake lights flickering on and off into a corner, or AI overshooting corners.',
