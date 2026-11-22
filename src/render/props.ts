@@ -1,7 +1,6 @@
 // The PROPS layer of the renderer: the fence, the barriers and the trackside props, each prop
 // kind dispatched to its painter in render/props/, with the overhead ones drawn above the cars.
 import { LEVEL, PROPS } from '../world/state.ts';
-import { FIX } from '../core/fixes.ts';
 import type { Prop } from '../world/types.ts';
 import type { Cam, View } from './types.ts';
 import type { PropCtx, PropDrawer, PropsHelpers } from './props/types.ts';
@@ -193,13 +192,13 @@ function drawOneProp(propCtx: PropCtx, prop: Prop, ppm: number, overhead: boolea
 }
 
 /**
- * Whether this is the ground pass of a slat over the endless road (?tunnellamps): its shade and
+ * Whether this is the ground pass of a slat over the endless road: its shade and
  * shadow under the cars (props/scenery.ts drawSlatUnder), the slat over them.
  * @param prop the prop
  * @param overhead the overhead pass
  * @returns true for one
  */
-const isSlatUnder = (prop: Prop, overhead: boolean): boolean => !overhead && FIX.tunnellamps
+const isSlatUnder = (prop: Prop, overhead: boolean): boolean => !overhead
   && prop.kind === 'slat' && !!prop.overRoad;
 
 /**

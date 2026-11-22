@@ -129,6 +129,10 @@ Every reset lands the car still and on its wheels with nothing a crash left pend
 reset -> `roll.ts clearPendingRoll`: a side impact's queued roll kick, a barrier ride, the air
 time, the trip cell, the tip's pull), and the camera snaps to it on every path
 (`game/session.ts doReset`); `tools/scratch/_resetcheck.mjs` resets after crashes, rolls and slides.
+A towing rig's reset (`game/rigreset.ts`, passed 11-22): the tractor along the road, its widest half
+0.4 m inside the edge, the trailer as if it had followed the road there - its kingpin on the fifth
+wheel, its axle group on the road's line one trailer wheelbase back - a spot whose hitch passes 45
+deg, or (circuits) with a trailer corner off the road, passed over (`resetspot.ts useRigPose`).
 A reset mends the car (`damage.ts repair`: the bill kept) and its trailer the same way; a restart
 mends both and clears their bills (`tools/scratch/_trailheal.mjs`).
 
@@ -287,6 +291,15 @@ are not waited for: the menu never waited for them, and holding for them made th
 same time (a START needs a tap, and the bar takes every tap). With no menu (`?menu=0`, the tools)
 the bar ends at once over the boot tap. A failed code load takes it down so the error shows.
 
+A TUNNEL IN THE NIGHT LAYER (passed 11-22: "controlled with LAYERING, not code"): no car's light is
+clipped by where the car is; each tunnel cover - every slat (Moanaco's, GETAWAY STOCKHOLM's), a
+straight tunnel's underground stretch - is a deck over the light map (`props/bridges.ts
+overheadDeck`, `render/lightdecks.ts`: traced by its longer half), its own lamps a pool in each gap
+from dusk (`rubCoverLamps`), and the night's dark put back over every cover last, after every
+light and tint (`darkenCovers`): beams, lamps, indicators, hazards and police lights show only in
+the gaps. A slat over the endless road draws its shade and shadow under the cars
+(`props/scenery.ts drawSlatUnder`), its body over them.
+
 THE NIGHT FLY-IN (the default since 11-14): two parts.
 - THE CANOPY CUT (`render/canopycut.ts`; game-wide: every level, in race and in the fly-in, with or
   without the fly-in): the night layer puts its
@@ -386,7 +399,7 @@ each FLASH_S as a hand flash does, each driver's flashes counted on their own (`
 your lights cannot flash with no working headlight. Racers are never flashed. The walkthrough's
 FLASH THEM card. `tools/scratch/_lampflash.mjs`.
 
-THE POLICE BY SCENERY (?copmix=1; `ai/trafficPolice.ts COP_MIX`): every police chance - the
+THE POLICE BY SCENERY (passed 11-22; `ai/trafficPolice.ts COP_MIX`): every police chance - the
 share of the cars put back that are police (1/60, 1/15 while police are due: over 70 mph or a
 camera) and a police car placed ahead every 400 m (0.35, 0.7 due) - times the road's scenery's
 share: the countryside 0.1, Deaf Valley 0.4, Stockholm 1 (today's; passed by the owner), and a
@@ -832,7 +845,7 @@ and tyre stacks (`rallycross-venue.ts rallycrossLevel` -> `rxDress(..., floorM)`
 the LEVEL'S OWN floor (`level.floor`, as the tape's `onFloor` reads it), not the standard 260 m:
 Croughed RX (546 m) keeps all 396 loose objects.
 
-GETAWAY STOCKHOLM (?stockholm=1; `highway/cityplan.ts`, `city.ts`, `citywater.ts`): a third
+GETAWAY STOCKHOLM (passed 11-22; `highway/cityplan.ts`, `city.ts`, `citywater.ts`): a third
 scenery (`presets.ts HW_SCENERY.stockholm`, theme 'city', every road type) dressed as the
 countryside is (`dress.ts dressStretch`: slips, bridges, services, gantries, lamps, litter, walls,
 median, cushions) with its own STRETCHES (`cityStretchAt`: Deaf Valley's mechanism,
@@ -863,7 +876,7 @@ Its litter is its own (`litter.ts cityLitter`: cones and sandbags, bins, boxes, 
 (`CITY_SIGNS`, the distance that goes up: CENTRUM n KM). `tools/scratch/_citylots.mjs` (node:
 lots by stretch, clashes with the roads), `_cityshot.mjs` (a photo of each stretch).
 
-A RIGHT-HAND ROAD (?keepright=1, GETAWAY STOCKHOLM's: `HwCfg.rightHand`, `HwState.hand` -1): the
+A RIGHT-HAND ROAD (passed 11-22, GETAWAY STOCKHOLM's: `HwCfg.rightHand`, `HwState.hand` -1): the
 road's world is the mirror image of its left-hand twin - `road.ts growTo` stores its points with x
 mirrored, and every offset from the road is turned where the road's normal is made
 (`roadPose`, `roadFrame`, `locate`, `dress.ts pointAt`, `ai/roadLine.ts`, the subtrack's

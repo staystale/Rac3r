@@ -3,7 +3,6 @@
 import { lcg } from "../core/random.ts";
 import { desertRoadAt, desertWideAt } from "./desertplan.ts";
 import type { HwCfg } from "./hwtypes.ts";
-import { FIX } from "../core/fixes.ts";
 // lanes / laneW / shoulder (left, hard shoulder; a solid line inside it when >= 2 m) / edge (right
 // margin) in m; maxDeg off straight up; sweep / bend = radius ranges (m); pStraight / pBend =
 // chance an element is a straight / a tight bend (else a sweeper)
@@ -98,9 +97,8 @@ export const HW_PRESETS: Record<string, HwCfg> = {
 export const HW_SCENERY: Record<string, { name: string; line: string }> = {
   countryside: { name: "COUNTRYSIDE", line: "FIELDS · HEDGES · BRIDGES" },
   canyon: { name: "DEAF VALLEY", line: "CANYONS · GORGES · DUNES" },
-  // (?stockholm: highway/city.ts)
-  ...(FIX.stockholm
-    ? { stockholm: { name: "GETAWAY STOCKHOLM", line: "CITY · NOISE WALLS · PINES" } } : {}),
+  // (highway/city.ts)
+  stockholm: { name: "GETAWAY STOCKHOLM", line: "CITY · NOISE WALLS · PINES" },
 };
 export const HW_ROADS: Record<string, { name: string; line: string }> = {
   motorway: { name: "MOTORWAY", line: "3 + 3 LANES" },
@@ -137,8 +135,8 @@ export function sceneryCfg(road: string, scenery: string): HwCfg {
   if (!cfg) {
     cfg = scenery === 'canyon' ? { ...HW_PRESETS[road], theme: 'canyon',
       stretch: road === 'twisty' ? desertRoadAt : desertWideAt }
-      : scenery === 'stockholm' ? { ...HW_PRESETS[road], theme: 'city',
-        ...(FIX.keepright ? { rightHand: true } : {}) } : HW_PRESETS[road];
+      : scenery === 'stockholm' ? { ...HW_PRESETS[road], theme: 'city', rightHand: true }
+        : HW_PRESETS[road];
     SCENERY_CFGS.set(key, cfg);
   }
   return cfg;

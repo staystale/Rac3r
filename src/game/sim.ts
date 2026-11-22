@@ -34,6 +34,7 @@ import { noteTouches, notePoliceCamera, stepPoliceGame } from './police.ts';
 import { stepAllLamps, stepFlashes } from './flashes.ts';
 import { FIX } from '../core/fixes.ts';
 import { hitchTrailer, mirrorLamps, stepTrailer, type Tractor } from '../physics/trailer.ts';
+import { stepRigRoll } from '../physics/trailroll.ts';
 import { ROLL_CLEAR_S, respawnBehind } from './resetspot.ts';
 import { stepSirens } from './sirens.ts';
 import { halfTrackAt } from '../world/wheels.ts';
@@ -256,7 +257,13 @@ function stepPlayerTrailer(inp: CarInput) {
   clampWorld(trailer, PHYSICS_STEP_SECONDS);
   hit(trailer, vx0, vy0);
   applyGround(trailer, PHYSICS_STEP_SECONDS);
-  stepTrailer(car, inp.brake, PHYSICS_STEP_SECONDS);
+  // (?trailroll: the trailer tips and rolls, with its cab or alone - physics/trailroll.ts)
+  if (FIX.trailroll) {
+    stepRigRoll(car, trailer, { vx: vx0, vy: vy0 },
+      () => stepTrailer(car, inp.brake, PHYSICS_STEP_SECONDS),
+      (body) => stepRoll(body, PHYSICS_STEP_SECONDS, (kind, side, weight) => hitRoll(body, kind,
+        side, weight)), PHYSICS_STEP_SECONDS);
+  } else stepTrailer(car, inp.brake, PHYSICS_STEP_SECONDS);
   mirrorLamps(car);
 }
 

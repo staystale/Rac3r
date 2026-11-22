@@ -16,7 +16,7 @@ export interface HwCfg {
   walls?: string; wallGap?: number;   // walled in: the barrier kind, m off the road edge
   // its own roadside (highway/canyon.ts, highway/city.ts); none: the countryside
   theme?: 'canyon' | 'city';
-  // drives on the RIGHT (?keepright: GETAWAY STOCKHOLM): the road's world the mirror image of its
+  // drives on the RIGHT (GETAWAY STOCKHOLM): the road's world the mirror image of its
   // left-hand twin - every rule in road terms as it is (highway/road.ts HwState.hand)
   rightHand?: boolean;
   kRate?: number;   // the fastest curvature change, 1/m per m (road.ts; else presets.ts K_RATE)

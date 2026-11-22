@@ -83,122 +83,31 @@ MARK TRACK.)
      PASSED 11-21 (?fpshud), the default (TODO-DONE, PASSED 11-21, ... THE FLAG).
   14. CAMERA SHAKE in crashes: it already exists (owner 11-21: "there is but it's ok let's leave it
      for now"; it may have changed since the camera keeps the player's car clear of the HUD). Parked.
-  15. HIGHWAY: a city theme, Stockholm ("getaway"), beside Country and Deaf Valley (owner: yes -
-     motorways, tunnels, bridges over water). OWNER 11-21 on the plan: the name GETAWAY STOCKHOLM;
-     all 5 road types; tunnels SLATTED as Moanaco's; water NOT walled all the way (gaps, weak
-     fences - you can go in); its own colder season numbers in the one weather system (snow banks
-     only if the game has them); the existing cars reweighted, no new ones; the same police for now;
-     blue signs; Worker C writes the silly signs, the owner approves; police and other speeders
-     slightly up (numbers proposed, not set). Build order: (1) card, city stretches, buildings,
-     noise walls, signs; (2) water and long bridges; (3) tunnels; (4) climate, traffic, police -
-     each to the phone before the next. Drive on the left kept (foreman confirming).
-     STEP 1 BUILT (Worker C 11-21) behind ?stockholm=1 (highway/city.ts, ENGINE: GETAWAY
-     STOCKHOLM). MEASURED (tools/scratch/_citylots.mjs, node, the first city stretch 400-2100 m,
-     3 seeds): share of each side that is a lot - motorway 64%, interstate 59%, dual 61%, walled
-     48%, single lane 64% (the rest: slips / approaches / lay-bys 2-8%, the side road 0-17%, gaps
-     and bends 16-37%); no building or noise wall on the road or any lane (0 of 576-776 checked
-     per road type: a lot is laid once the side road along it is known); photos
-     tools/scratch/_city-*-390x844 / 844x390, no page errors. The silly
-     signs (presets.ts CITY_SIGNS) FOR THE OWNER TO APPROVE.
-     OWNER 11-21 on step 1: "very boring and not varied enough. It needs more unique litter and
-     scenery, varying road terrain, more tunnels and bridges etc. Like a city, much busier ...
-     Currently it just seems like countryside"; reuse the systems. REWORKED (Worker C 11-21, ENGINE:
-     GETAWAY STOCKHOLM): its own stretches on Deaf Valley's plan (city, tunnel, water, raised,
-     cutting, a rare park); the ground raised / sunk by stretch (Deaf Valley's roadside hook);
-     Moanaco's slats over its tunnels; the river's water both sides of its long bridges, fences
-     with gaps, yachts; lots in four styles with parked cars and bins on every built-up stretch;
-     its own litter. MEASURED (tools/scratch/_citylots.mjs, node, 400-6000 m, 3 seeds, every road
-     type): lots on 61-77% of the city stretches' sides, 57-86% of a cutting's, raised's or
-     tunnel's, none on the water; 0 buildings, noise walls or parked cars on the road or a lane
-     (of 5,300-5,960 per road type); the desert's stretches the same after the plan was shared
-     (8,110 points, 0 different). A window (1.55 km) holds 140-420 parked cars, 70-170 buildings,
-     35 slats in a tunnel. Photos of each stretch at 390x844 and 844x390, no page errors. Frame
-     time at real counts: on the PC. OWNER 11-21: the traffic stays as it is; "busier" means more
-     bridges, tunnels and scenery - the city's bridges over the road at half the spacing (extras.ts
-     CITY_BRIDGES): MEASURED (tools/scratch/_citybridges.mjs, 45 km) 0.42 -> 0.62 bridges or
-     underpasses a km, with 0.29 tunnels and 0.27 long bridges over water a km. OWNER 11-21: the
-     tunnels "dark AND DRY inside", the yachts SOLID, SAND under the water: DONE (citywater.ts: the
-     slats' shade over their whole pitch, roof zones - no rain, the yachts moored, a sand zone under
-     each water piece), measured on the PC (tools/scratch/_cityroof.mjs). c14 found the tunnels
-     partly WET (seed 7: 23 of 44 points): the roofs counted from road distance 0, not the tunnel's
-     first slat, and every 92 m a slat laid twice or not at all (two roundings at a span's ends) -
-     FIXED: in a downpour 0 wet points in every tunnel lane both ways, 5 roads x 3 seeds; every
-     slat laid once (60 / 39 / 33). OWNER on round177: "Okay,
-     better Stockholm"; BUG "petrol stations that had water in them on the single track" - FIXED:
-     the lay-bys (and their stations) were planned before the water existed and the slips and
-     services tested the ground only where they started; now no lay-by, station, slip, services,
-     junction or bridge is built off a closed stretch (cityplan.ts cityOpenSpan: the water, a
-     tunnel, a cutting, an embankment - laybys.ts's plan, extras.ts isOpenGround over its window);
-     tools/scratch/_citylots.mjs counts them (before / after on the PC). "I didn't see any slatted
-     bridges or tunnels": the tunnels the likeliest stretch after the city, the city's blocks
-     shorter (cityplan.ts KINDS), tunnels a km measured on the PC (_citybridges.mjs). AWAITING THE
-     PHONE TEST.
-     RIGHT-HAND DRIVING (owner 11-21: GO - keep right, overtake on the left; 3-4 rounds, the mirror
-     test first). ROUND 1 BUILT (Worker C) behind ?keepright=1 (with ?stockholm=1): the road's world
-     the MIRROR IMAGE of its left-hand twin (highway/road.ts HwState.hand: its points' x mirrored,
-     every offset from the road turned - roadPose, roadFrame, locate, dress.ts pointAt, the racing
-     line, the lane lines), so every rule in the road's terms holds as it is (keep to the nearside,
-     the outside of a bend, slips off the nearside); fields.ts roomFor's normal and a bridge's skew
-     and quarter turn turned too (found by the test); a car's indicator its own lamp side (the
-     traffic's turned as it is set; the police heat's lane check turned back). MEASURED
-     (tools/scratch/_mirror.mjs, node, the same seed built both ways): every road point, prop,
-     barrier, zone, lane, water cover and street light the exact mirror (worst 2e-13 m, every turn
-     mirrored) on all 5 road types for seed 4242 and on the motorway and single lane for seed 7;
-     the dual, walled and interstate on seed 7 the same but near a sign board or a drivable
-     bridge - their posts and footway are turned with the picture, not mirrored - where a lamp or
-     an approach's end may stand a little differently (both worlds whole). ROUND 2 (started): the
-     traffic driven both ways on the same dice (tools/scratch/_police.mjs PART=mirror, you carried
-     along the offside lane at 130 km/h, 30 s): our way's traffic keeps the world's RIGHT on the
-     right-hand road (world side +0.99, road side the same -0.99 as the left-hand's -1.00). Found
-     and fixed: a kinematic car's drift yawed its nose and moved it on the unturned side
-     (ai/trafficPhys.ts carryKinematic). The runs stay exact mirrors for 10 s, then part by the
-     real-physics cars' rounding (sin of a mirrored heading is not the same to the last bit).
-     THE RACERS (read, not yet run - laptop code only): their line frame is the world's (lateral
-     from each line point's heading), the road frame's offsets a right-hand road's mirror - so the
-     line's lanes are given turned (ai/roadLine.ts), the road view's lateral gap turned
-     (driverTraffic.ts viewOf), and the single lane's keep-to-your-side cap worked in the road's
-     terms and turned back (driverOncoming.ts ownSideCap; driverDrive.ts holds it with capLat: a
-     lowest place on a right-hand road); the start fan works in the line frame (unchanged).
-     THE POLICE (read): moving over, the yield lane, edging to the shoulder, the flash target,
-     waiting spots and the wake all in the road's terms (mirrored); the chase driver reads by
-     heading (the world's). ROUND 3 (read + photographed): the guard's reset onto our hard
-     shoulder and the highway grid's columns in the road's terms; the walkthrough's STAY ON IT
-     card says the RIGHT lane on a right-hand road (guide.ts). Photos tools/scratch/_cityrh-*
-     (390x844, 844x390, ?keepright): our carriageway right of the median, our way's traffic
-     going up on the right; the water drawn as water over its sand (art seabed: only with
-     ?stockholm - every look's colours make the ground's palette, render/tilesPalette.ts, and its
-     four moved Thruston's t14 picture (renderhash, bisected c15); when Stockholm passes, the
-     palette changes on every level - renderhash saved again then). The racers'
-     moving mirror and the switch-off proof run on the PC (c14). c14: the racers on their side
-     only +0.32 of the time on the right-hand road (traffic +0.85; the left-hand -1.00), the runs
-     apart from the first second. FOUND and FIXED (laptop, _police.mjs PART=mirror with a
-     per-step trace): capLat turned no cap (Infinity) into a lowest place of Infinity - the
-     racers steered into the outer wall; the start fan's middle-lane side by seed not turned
-     (startFan.ts columnSide); and the oncoming cap's other readers (the side to go round, the
-     oncoming car passed by, the gap picker's room: driverOncoming.ts withinCap / capRoom).
-     MEASURED (20 s): the motorway's racers and traffic world side +1.00 (left-hand -1.00), the
-     single lane's racers +0.83 (left-hand -0.70, overtaking in the other lane); the runs the
-     exact mirror for 2 s, then apart from 1e-7 m after 3 physics steps (rounding), every
-     decision the same until then. The 60 s run on the PC. NOT on the owner's link until racers
-     and traffic read +0.99. AWAITING THE PHONE TEST.
-     THE WATER'S MERGE BY 64 m SQUARE (?waterinc, for c13's ~1 s worst frame): DROPPED, not
-     measurably better in the game (c14, PC CPU x4, 5 AI, traffic, 3 runs each: Stockholm's worst
-     265-298 ms off, 276-305 on, medians alike; the ~1 s frame no longer seen with it off).
-
-- POLICE BY SCENERY (owner 11-21: "too many police on the other levels" - countryside nearly none,
-  Deaf Valley some, Stockholm the most, at today's level): BUILT (Worker C 11-21) behind
-  ?copmix=1 (ENGINE: THE POLICE BY SCENERY). The shares of today's, the countryside 0.1, Deaf
-  Valley 0.4, Stockholm 1 - OWNER 11-21: YES, and scale the heat-sent chases the same: DONE (a
-  chaser due from behind is sent at the share), measured on the PC (tools/scratch/_police.mjs). MEASURED (tools/scratch/_police.mjs survey,
-  8 km x 3 seeds x the motorway and the dual carriageway, police met within 150 m per 10 km, off ->
-  on): at 95 km/h (legal) the countryside 9.0 -> 1.25, Deaf Valley 20.6 -> 5.6, Stockholm 13.5 ->
-  14.8 (the same: noise); at 150 km/h (police due, heat and chases) the countryside 40.8 -> 7.5,
-  Deaf Valley 38.5 -> 31.0, Stockholm 56.8 -> 45.6 (noise) - most met at speed are oncoming
-  police and the chasers a driver's heat sends, which ?copmix does not scale (two Deaf Valley
-  dual runs stalled early: its number is rough). AWAITING THE PHONE TEST.
+  15. HIGHWAY: a city theme, Stockholm - PASSED 11-22 (?stockholm, ?keepright), the default
+     (TODO-DONE, PASSED 11-22, GETAWAY STOCKHOLM, KEEP RIGHT, POLICE BY SCENERY).
 
 - THE 11-16 QUEUE (every item owner-approved after a brief plan; details in each worker's TODO
   entry as it lands):
+  - THE TRAILER TIPS AND ROLLS (owner 11-22: "can the truck and trailer roll, or just the truck?" -
+    the trailer too, realistic ~0.45 g; the cab follows under a roll-moment limit, the pin snaps
+    past it; reset rights both; AI and traffic rigs the same; the load shift later). STEP 1
+    MEASURED (tools/scratch/_rigg.mjs, flat tarmac): the tractor tipped at ~1 g (static 0.93 g)
+    in circles and J-turns while its trailer stayed upright at 0.44-0.54 g (static 0.68 g, 0.60 g
+    with the springs' roll). STEP 2 BUILT behind ?trailroll (physics/trailroll.ts): the trailer's
+    own two-wheel state at TRAILER_TIP_G 0.45 g; past its balance it goes over, the pin snaps, it
+    rolls and slides on its own (roll.ts); reset rights it; its roll pictures (carprofile.ts: a
+    box to 4.0 m; rollshape.ts; rollbody.ts wheels from axlerows.ts - its axle group only).
+    MEASURED: it lifts at 0.45-0.48 g, goes over OUTWARD in steady circles (pin snapped); in the
+    game's hard turns the cab still goes over first (its tyres pull ~1 g, the trailer ~0.5 g
+    behind it). STEP 3 BUILT (owner: "the cab follows if it's a gentler tip; the pin snaps and the
+    trailer rolls alone if it's violent", both ways; physics/trailroll.ts stepRigRoll): a body
+    going over gently takes the other with it - one roll, the pin held, the same face; violently
+    (a roll rate past 5 rad/s, or a pull past 1.6x its own tip point while it leaned) the pin
+    snaps. MEASURED (_rigg.mjs): every bend and J-turn over together (cab first, or the trailer
+    first in a steady circle), the same face; a 14 m/s side hit on the trailer and every cab
+    crash trip (10-14 rad/s) snapped the pin; 8 m/s on the trailer together. In the game
+    (_trailrollshot.mjs, the endless road): over together, on their sides, RESET rights both.
+    Switch off: every run to the digit. No AI or traffic tows a trailer yet (later).
   - THE SCANYAH TRAILER (Worker A's joint, finished by Worker C), ?boxhold and ?gridlen PASSED
     11-21, the default (TODO-DONE, PASSED 11-21, THE TRAILER, BOXHOLD, GRIDLEN). Later trailer types:
     a flatbed with visible cargo first (owner: "I don't mind").

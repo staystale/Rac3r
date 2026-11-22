@@ -16,6 +16,8 @@ import { makeCar, type Car } from '../vehicle.ts';
 import { spec as rowSpec, type Spec } from '../cars.ts';
 import { SCANYAH_TRAILER } from '../newcars.ts';
 import { PAINT_STOCK } from '../carpaint.ts';
+import { FIX } from '../core/fixes.ts';
+import { trailerTipGive } from './trailroll.ts';
 
 /**
  * A trailer: a car body stepped here, whether its pin still holds, the pin's gap (m), and where
@@ -23,7 +25,7 @@ import { PAINT_STOCK } from '../carpaint.ts';
  */
 export type Trailer = Car & { pinFree?: boolean; pinGap?: number;
   towedBy?: { x: number; y: number; heading: number };
-  // (?trailreset: where a reset puts it - game/rigreset.ts; taken once by lineUpTrailer)
+  // (where a reset puts it - game/rigreset.ts; taken once by lineUpTrailer)
   resetPose?: { x: number; y: number; heading: number } | null };
 /** A tractor that may tow one. */
 export type Tractor = Car & { trailer?: Trailer | null; hitchLoad?: number };
@@ -74,6 +76,8 @@ function trailerSpec(): Spec {
     ...PAINT_STOCK[SCANYAH_TRAILER.id] } as Spec;
   out.L = out.lf + out.lr;
   out.Izz = out.mass * (out.len * out.len + out.wid * out.wid) / 12;
+  // (?trailroll: its springs, tyres and load lift it at physics/trailroll.ts TRAILER_TIP_G)
+  if (FIX.trailroll) (out as Spec & { tipGive?: number }).tipGive = trailerTipGive(out);
   return out;
 }
 
@@ -123,6 +127,20 @@ function trailerPin(trailer: Car) {
 }
 
 /**
+ * ?trailroll: holds a trailer rolling with its tractor on the pin - its kingpin put on the fifth
+ * wheel (its own heading kept), sliding as the tractor does (physics/trailroll.ts).
+ * @param car the tractor
+ * @param trailer its trailer
+ */
+export function holdOnPin(car: Car, trailer: Trailer): void {
+  const pin = tractorPin(car), own = trailerPin(trailer);
+  trailer.x += pin.x - own.x;
+  trailer.y += pin.y - own.y;
+  trailer.vx = car.vx;
+  trailer.vy = car.vy;
+}
+
+/**
  * Puts the trailer in line behind its tractor, at rest with it (a reset, a new car).
  * @param car the tractor
  * @param trailer its trailer
@@ -136,6 +154,11 @@ export function lineUpTrailer(car: Car, trailer: Trailer): void {
   trailer.y = placed ? placed.y : pin.y - Math.sin(car.heading) * trailer.spec.lf;
   trailer.vx = car.vx; trailer.vy = car.vy; trailer.yawRate = 0;
   trailer.pinFree = false;
+  // (?trailroll: a reset rights it - its two-wheel state or roll gone)
+  if (FIX.trailroll) {
+    trailer.roll = null;
+    (trailer as Trailer & { _tipPull?: number })._tipPull = 0;
+  }
   trailer.towedBy = { x: car.x, y: car.y, heading: car.heading };
   trailer._p = null;
 }

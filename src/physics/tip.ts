@@ -47,10 +47,21 @@ type TipCar = RollCar & { t?: { ay?: number }; _tipPull?: number };
 /** A car's tipping geometry: its half track, its centre of gravity's height, m. */
 function geometry(car: RollCar) {
   const halfT = (car.spec.trackWidth || 1.5) / 2, high = car.spec.cg || car.spec.cgH || 0.52;
-  const give = ROLL_COMPLIANCE * Math.max(0, Math.min(1,
+  // (a spec may give its own: ?trailroll's trailer - physics/trailroll.ts)
+  const give = car.spec.tipGive ?? ROLL_COMPLIANCE * Math.max(0, Math.min(1,
     (high - COMPLIANCE_FROM) / (COMPLIANCE_FULL - COMPLIANCE_FROM)));
   return { halfT, high, give, balance: Math.atan2(halfT, high),
     inertia: INERTIA_K * (high * high + halfT * halfT) };
+}
+
+/**
+ * A car's tip point: the sideways acceleration that lifts its inside wheels (tipCheck), m/s^2.
+ * @param car the car
+ * @returns m/s^2
+ */
+export function tipPoint(car: RollCar): number {
+  const { halfT, high, give } = geometry(car);
+  return GRAVITY * halfT / high * (1 - give);
 }
 
 /**

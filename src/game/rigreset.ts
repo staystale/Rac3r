@@ -1,13 +1,13 @@
-// game/rigreset.ts - A TOWING RIG'S RESET (?trailreset; owner 11-22, option b: "articulated lorries
-// reset fully inside the road's edge, on the bend's line, ready to drive off"). Was: the tractor
-// put down as any car (half on the edge, its nose turned back 5-15 deg) and its trailer straight
-// behind it (physics/trailer.ts lineUpTrailer) - on a tight bend across the run-off (a 15.8 m rig
-// on a 30 m bend strays ~4 m off the road's line). Now the tractor stands along the road, its whole
-// width inside the edge, and the trailer as if it had followed the road there: its kingpin on the
-// tractor's fifth wheel, its axle group on the road's line one trailer wheelbase back from the pin
-// (where a towed axle runs round a bend: inside the tractor's path), facing the pin. A spot whose
-// hitch angle passes RIG_HITCH_MAX, or where a trailer corner stands off the road, is not used: the
-// reset tries the next one back (game/resetspot.ts firstFree).
+// game/rigreset.ts - A TOWING RIG'S RESET (passed 11-22; owner 11-22, option b: "articulated
+// lorries reset fully inside the road's edge, on the bend's line, ready to drive off"). Was: the
+// tractor put down as any car (half on the edge, its nose turned back 5-15 deg) and its trailer
+// straight behind it (physics/trailer.ts lineUpTrailer) - on a tight bend across the run-off (a
+// 15.8 m rig on a 30 m bend strays ~4 m off the road's line). Now the tractor stands along the
+// road, its whole width inside the edge, and the trailer as if it had followed the road there: its
+// kingpin on the tractor's fifth wheel, its axle group on the road's line one trailer wheelbase
+// back from the pin (where a towed axle runs round a bend: inside the tractor's path), facing the
+// pin. A spot whose hitch angle passes RIG_HITCH_MAX, or where a trailer corner stands off the
+// road, is not used: the reset tries the next one back (game/resetspot.ts firstFree).
 import { lineUpTrailer, rigGeometry } from '../physics/trailer.ts';
 import type { Tractor } from '../physics/trailer.ts';
 import { onTrack, querySubtrack } from '../world/tyrewall.ts';

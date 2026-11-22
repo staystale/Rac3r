@@ -28,7 +28,6 @@ import {
 import { useRigPose } from './resetspot.ts';
 import { circuitTrailer, followedTrailer, placeTrailer, rigInset } from './rigreset.ts';
 import type { RigPose } from './rigreset.ts';
-import { FIX } from '../core/fixes.ts';
 import { resetCar, armStart, startHeld, startAtOf } from './order.ts';
 import { gridPos, spawnAI } from './grid.ts';
 import { clearRigSpot, isTowing } from './gridlen.ts';
@@ -201,8 +200,8 @@ function resetOnShoulder(place: PlaceCar): boolean {
   const shoulderSpot = (dist: number) => vergeBack(level, dist, floor)
     ?? bayBehind(level, dist, undefined, floor) ?? { s: dist, off: shoulderOff(level) };
   let pose, trailerPose = null;
-  // (?trailreset: a towing rig's trailer following the road back from the shoulder spot)
-  const rig = FIX.trailreset && isTowing(game.car);
+  // (a towing rig's trailer following the road back from the shoulder spot)
+  const rig = isTowing(game.car);
   const trailerAt = (tractor: RigPose, spot: { s: number; off: number }) => followedTrailer(
     game.car, tractor, (along) => roadPose(level, along, spot.off), spot.s);
   if (here) {
@@ -249,8 +248,8 @@ function resetOnCircuit(place: PlaceCar) {
   const side = Math.sign(rec.off) || (Math.random() < 0.5 ? -1 : 1);
   let dist = clearOfUnder(sub, (rec.dist - RESET_BACK + sub.totalDist) % sub.totalDist);
   const ang = (RESET_ANG[0] + Math.random() * (RESET_ANG[1] - RESET_ANG[0])) * Math.PI / 180;
-  // (?trailreset: a towing rig along the road, its whole width inside the edge - game/rigreset.ts)
-  const rig = FIX.trailreset && isTowing(game.car), turn = rig ? 0 : ang;
+  // (a towing rig along the road, its whole width inside the edge - game/rigreset.ts)
+  const rig = isTowing(game.car), turn = rig ? 0 : ang;
   const across = side * (rig ? rigInset(game.car, sub.width / 2)
     : Math.max(0, sub.width / 2 - resetInset(ang)));
   if (rig) useRigPose((pose, spot) => circuitTrailer(game.car, sub, across, pose, spot as number));
