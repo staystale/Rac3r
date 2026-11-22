@@ -78,11 +78,11 @@ in git, open work in `TODO.md`. Write a handover document only when the owner as
   MICKY TOMSON, BFGoodrich = BF GOODWRENCH, Firestone = FIRESTONED.
   CARS: VW = Folksvagon, BMW = BMV, Subaru = Subaroo, Volvo = Volvoh, Chevrolet = Chevvy, Audi =
   Ordi, JCB = JCBee, Mini = Minnie, Lamborghini = Lamburghini, Nissan = Nissun, Peugeot =
-  Pugeot, Ford = Fjord, NASCAR = Naffcar, Formula One / Two = Formula Won / Too, BriSCA = BriSKA. Porsche = Porch (owner-approved 11-16: the Porch 911
+  Pugoat (was Pugeot, owner 11-22), Ford = Fjord, NASCAR = Naffcar, Formula One / Two = Formula Won / Too, BriSCA = BriSKA. Porsche = Porch (owner-approved 11-16: the Porch 911
   GT3 Arr; a model's R = Arr, as the Volvoh V70 Arr), Caterham = Caterpillar (the Caterpillar Seven), Transit = Transfit (the Fjord Transfit), F-150 = Effing-150 (the Fjord Effing-150 Trophy Truck), Honda = Honder, Civic = Civvic (the Honder Civvic Type Arr BTCC), Land Rover = Lend Rover, Defender = Defunder (the Lend Rover Defunder 110), Focus = Focust (the Fjord Focust ST), Renault = Renolt, Clio = Cleo (the Renolt Cleo Cup, the Renolt Cleo RS 200). BATCH 1 (owner 11-22): Vauxhall = Vaxhaul (the Vaxhaul Coarsa, the Vaxhaul Ashtray), Skoda =
   Skode (the Skode Octayevia), Mercedes = Mershady (the Mershady Sprintah), the Fjord Fiester, Toyota =
   Toyoter (the Toyoter Yawris), the Folksvagon Pollo, the Nissun Cashcow, Kia = Kiya (the Kiya
-  Sportsage); the 106 = the Pugoat 106 (Peugeot = Pugoat or Pugeot: owner to settle, one name).
+  Sportsage); PEUGEOT = PUGOAT everywhere (owner 11-22; was Pugeot): the Pugoat 106, the Pugoat 306 Maxxi.
   TRACKS: Thruxton = Thruston, Castle Combe = Castle Kum (renamed from Castle Cum, owner 11-08),
   Brands Hatch = Brands Snatch,
   Knockhill = Knobhill, Lydden Hill = Slidden Hill, Kielder = Killder, Daytona = Dieatona,
