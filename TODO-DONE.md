@@ -58,6 +58,12 @@ The default 11-22, their switches deleted:
   91 -> 118), so highway only (owner 11-21: "only if we have to, ideally 1 AI").
 
 DROPPED 11-22 (owner), their code removed:
+- ?contactcost (contact costs by kind in the gap picker's line score, after GT Sophy: rear-end 40 a
+  s under 2 s, side rub 20 a m under 1 m, cut-off 30 a s under 3 s and 90 within 3 m - d801486c,
+  d7f9993f): not measurably better - in staged scenes (tools/scratch/_contactscene.mjs, removed
+  with it) it changed the pick only when a level car's nose sat at the driver's back wheels (8 of 8
+  drivers moved over -> 3 and 5 of 8, its touches 0 -> 3: held back, then a late squeeze past the
+  slow car ahead); owner dropped.
 - ?aitune (the AI tune plan, TODO item 9): K_BRAKE 0.85, 0.78 and 0.70 with the follower copying
   the leader's braking, faster reading (READ_WEAK 0.8, READ_S 0.05, GAP_LOOK_WEAK 3.2), closer
   running (2.2 m side by side, 0.45 m going round) and the (a) / (b) variants - every one above off

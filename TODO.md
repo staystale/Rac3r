@@ -69,8 +69,8 @@ MARK TRACK.)
      trace on the highway AND circuits. ONE BASE AI, highway-only tweaks only where essential.
      PASSED 11-22, the default (TODO-DONE, PASSED 11-22, THE AI TUNE): shared hazard awareness, the
      soft return, the steady brake pedal, the gap picker on the highway; ?aitune and ?gapcommit
-     dropped; the reverse only when truly stuck. NEXT: the slider sweep (light: 4 levels x 4 seeds)
-     and contact costs by kind in the gap picker (own switch).
+     dropped; the reverse only when truly stuck. Contact costs by kind (?contactcost) dropped 11-22;
+     the slider sweep not run (owner 11-22: "I can test, no need for heavy tests atm").
   10. ROLLING STARTS: after the GREEN the cars still move a bit uniform, as a block - each should
      race its own line from the green (owner 11-21: b). PASSED 11-21, the default (TODO-DONE,
      PASSED 11-21, THE ROLLING GREEN AND THE HIGHWAY FAN): each AI's own reaction at the green, a

@@ -13,16 +13,6 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
-    id: 'contactcost',
-    added: '2026-11-22',
-    name: 'AI weigh contact when picking a line: no rear-ending, no chopping a car alongside',
-    where: 'Test link + &contactcost=1: any circuit with a full field; the motorway with racers',
-    try: 'Race in a pack: AI pick gaps that do not run into the back of a car, do not squeeze a '
-      + 'car alongside and do not pull across a car just behind them; they still race close.',
-    wrong: 'AI too timid to take a line they are ahead on, never defending, or the same contact '
-      + 'as before.',
-  },
-  {
     id: 'trailroll',
     added: '2026-11-22',
     name: 'Truck and trailer roll: gently together, violently the pin snaps (about 0.45 g)',

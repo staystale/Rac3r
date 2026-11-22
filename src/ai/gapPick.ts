@@ -13,7 +13,6 @@
 // only when it is clearly quicker.
 import { reachOf } from './dodge.ts';
 import type { AiCar } from './types.ts';
-import { FIX } from '../core/fixes.ts';
 
 /** A car as the gap picker sees it, in my path's frame. */
 export interface SeenCar { fwd: number; lat: number; v: number; across: number; along: number;
@@ -194,110 +193,7 @@ export interface LineParts {
   place: number;   // the verge's and the off-the-racing-line cost
   outMid: number;  // OUT: a car beside the way across (half way)
   outMirror: number;   // OUT: a faster car behind arriving on it or half way
-  contact: number;   // ?contactcost: the contact risk's cost (rear-end, side rub, cut-off)
   total: number;
-}
-
-// ?contactcost, the first settings. REAR-END: per s the line's car ahead is reached in under
-// REAR_T s at the closing speed, at most REAR_MAX; SIDE RUB: per m under SIDE_ROOM_M of side gap a
-// car alongside is left on the way across - one I move closer to - at most SIDE_MAX (close
-// running stays cheap); CUT-OFF:
-// per s a car behind on the line (not already behind me on mine) reaches me in under CUT_T s, at
-// most CUT_MAX - and CUT_MAX for one within CUT_CLOSE_M of me, however fast
-const REAR_T = 2, REAR_K = 40, REAR_MAX = 80;
-const SIDE_ROOM_M = 1, SIDE_K = 20, SIDE_MAX = 20;
-const CUT_T = 3, CUT_K = 30, CUT_MAX = 90, CUT_CLOSE_M = 3;
-// m past our bodies' overlap a car still counts as alongside
-const SIDE_REACH_M = 2;
-
-/**
- * Rear-end: running into the car ahead on the line - the s to reach it at the closing speed.
- * @param block the car ahead on the line (its gap, m; m/s along my way), or null
- * @param speed my m/s
- * @returns the cost
- */
-function rearCost(block: { gap: number; v: number } | null, speed: number): number {
-  if (!block) return 0;
-  const closing = speed - block.v;
-  if (closing <= 0) return 0;
-  return Math.min(REAR_MAX, REAR_K * Math.max(0, REAR_T - block.gap / closing));
-}
-
-/**
- * Side rub: the least side gap a car alongside is left as I cross from where I am to the line -
- * one I move closer to (one I am already close to and move away from costs nothing).
- * @param seen the cars seen
- * @param off the line, m off my path
- * @param mine where I am (m), my half width and length (m), my m/s
- * @param mine.lat m
- * @param mine.half m
- * @param mine.len m
- * @param mine.speed m/s
- * @returns the cost
- */
-function sideCost(seen: SeenCar[], off: number, mine: { lat: number; half: number; len: number;
-  speed: number }): number {
-  const { lat, half, len } = mine;
-  const low = Math.min(lat, off), high = Math.max(lat, off);
-  let worst = 0;
-  for (const car of seen) {
-    const reach = len / 2 + car.along + SIDE_REACH_M;
-    if (Math.abs(car.fwd) > reach) continue;
-    const apart = car.lat < low ? low - car.lat : car.lat > high ? car.lat - high : 0;
-    if (apart >= Math.abs(car.lat - lat)) continue;
-    const gap = apart - (car.across + half + MARGIN);
-    worst = Math.max(worst, Math.min(SIDE_MAX, SIDE_K * Math.max(0, SIDE_ROOM_M - gap)));
-  }
-  return worst;
-}
-
-/**
- * Cut-off: a car behind on the line - one not already behind me on my own - the s before it
- * reaches me (a car right behind costs CUT_MAX, however fast).
- * @param seen the cars seen
- * @param off the line, m off my path
- * @param mine where I am (m), my half width and length (m), my m/s
- * @param mine.lat m
- * @param mine.half m
- * @param mine.len m
- * @param mine.speed m/s
- * @returns the cost
- */
-function cutCost(seen: SeenCar[], off: number, mine: { lat: number; half: number; len: number;
-  speed: number }): number {
-  const { lat, half, len, speed } = mine;
-  let worst = 0;
-  for (const car of seen) {
-    const width = car.across + half + MARGIN;
-    if (car.fwd >= 0 || Math.abs(car.lat - off) >= width || Math.abs(car.lat - lat) < width) {
-      continue;
-    }
-    const gap = -car.fwd - car.along - len / 2;
-    if (gap < -1) continue;
-    const closing = car.v - speed;
-    const cost = gap < CUT_CLOSE_M ? CUT_MAX
-      : closing > 0 ? CUT_K * Math.max(0, CUT_T - gap / closing) : 0;
-    worst = Math.max(worst, Math.min(CUT_MAX, cost));
-  }
-  return worst;
-}
-
-/**
- * ?contactcost: what a line costs for the contact it risks, by kind - running into the car ahead
- * on it, rubbing a car alongside on the way across, cutting off a car behind on it.
- * @param seen the cars seen
- * @param off the line, m off my path
- * @param block the car ahead on it, or null
- * @param mine where I am (m), my half width and length (m), my m/s
- * @param mine.lat m
- * @param mine.half m
- * @param mine.len m
- * @param mine.speed m/s
- * @returns the cost
- */
-function contactCost(seen: SeenCar[], off: number, block: { gap: number; v: number } | null,
-  mine: { lat: number; half: number; len: number; speed: number }): number {
-  return rearCost(block, mine.speed) + sideCost(seen, off, mine) + cutCost(seen, off, mine);
 }
 
 /**
@@ -332,14 +228,12 @@ export function lineScore(seen: SeenCar[], want: number, mine: { lat: number; ba
       outMirror = OUT;
     }
   }
-  const contact = FIX.contactcost ? contactCost(seen, off, block, mine) : 0;
   let total = block ? ahead + kept : ahead;
   total -= move;
   total -= place;
   total -= outMid;
   total -= outMirror;
-  total -= contact;
-  return { off, ahead, kept, move, place, outMid, outMirror, contact, total };
+  return { off, ahead, kept, move, place, outMid, outMirror, total };
 }
 
 /**
