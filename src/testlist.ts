@@ -25,35 +25,62 @@ export const TEST_LIST: TestEntry[] = [
       + 'the limiter off on the lane or on the track, or a reset leaving you in the pit lane.',
   },
   {
-    id: 'ghost',
+    id: 'spikecap',
     added: '2026-11-22',
-    name: 'Ghost cars: race your best lap (test mode), and SETTINGS > ACCOLADES',
-    where: 'Test link + &ghost=1: TEST MODE, any track but the highways (a rally stage too); the '
-      + 'setup GHOST switch; SETTINGS > ACCOLADES',
-    try: 'Solo, GHOST on: drive a few laps - from the next lap a see-through car drives your best '
-      + 'one; come back later, it is still there. VS AI it starts off. ACCOLADES lists your '
-      + 'fastest laps per track and car.',
-    wrong: 'The ghost hitting or being hit, out of step with the lap clock, a wrong car, on a '
-      + 'highway, or a best lost after leaving the track.',
+    name: 'Smoother busy races: a slow frame no longer makes the next ones stutter',
+    where: 'Test link + &spikecap=1: Moanaco (or any circuit) with a full F1 field',
+    try: 'Race in the pack for a few laps: fewer hitches, the LOW fps figure higher.',
+    wrong: 'Cars or the race clock visibly slowing down, or a stutter right after a hitch.',
   },
   {
-    id: 'stagehold',
+    id: 'nojump',
     added: '2026-11-22',
-    name: 'Rally stage: every car held until its own green - no jump start, you or the AI',
-    where: 'Test link + &stagehold=1: TEST MODE, a rally stage, VS AI',
-    try: 'Hold the throttle through the countdown: the car moves only on GO; cars behind leave '
-      + 'on their own green.',
-    wrong: 'Any car moving before its green, a car stuck after it, or a circuit start changed.',
+    name: 'No early starts anywhere: every car, you and the AI, held until the green',
+    where: 'Test link + &nojump=1: any race VS AI - a circuit, RX, an oval, the highway',
+    try: 'Hold the throttle through the lights: nothing moves before GREEN; on a rolling '
+      + 'start no AI jumps it.',
+    wrong: 'Any car moving before the green, a car stuck after it, or the start feeling late.',
   },
   {
-    id: 'stagepos',
+    id: 'stageplace',
     added: '2026-11-22',
-    name: 'Rally stage: P n/N from the times so far at the same distance, like live timing',
-    where: 'Test link + &stagepos=1: TEST MODE, a rally stage, VS AI 5 (start mid-field)',
-    try: 'Watch P n/N as you drive: it moves as you gain or lose time on the cars ahead; N is the '
-      + 'whole field; at your finish it matches the results.',
-    wrong: 'P that disagrees with the gaps you see, N shrinking as cars finish, or your place '
-      + 'at the finish different from the results.',
+    name: 'Rally stage: cars that started before you placed at their driven pace',
+    where: 'Test link + &stageplace=1: TEST MODE, a rally stage, VS AI 5 (start 3rd or later)',
+    try: 'Drive the stage and read the results: the cars ahead of you in the order should have '
+      + 'times like the cars that drove the whole stage.',
+    wrong: 'Cars ahead always far quicker than the rest (as before), or a car appearing past '
+      + 'the finish.',
+  },
+  {
+    id: 'stageline',
+    added: '2026-11-22',
+    name: 'Rally stage: the next car creeps up to the line and leaves on its own green',
+    where: 'Test link + &stageline=1: TEST MODE, a rally stage, VS AI 5 (start 1st)',
+    try: 'Start 1st and watch behind you: the queue moves up a place, the next car stops on '
+      + 'the line and goes on its own green; everyone timed from their green.',
+    wrong: 'Cars driving off from back in the queue, bumping, creeping past the line, or '
+      + 'times that look short by a second or two.',
+  },
+  {
+    id: 'gantrylights',
+    added: '2026-11-22',
+    name: 'Start gantries show the countdown and the green, on every track',
+    where: 'Test link + &gantrylights=1: any race with a start gantry (stages, Knobhill, '
+      + 'Naffcar, circuits)',
+    try: 'Watch the gantry at the start: dark, then reds one a second, then green, then dark; on a '
+      + 'stage it counts each later car down at the line.',
+    wrong: 'The gantry red all the time (as before), lights out of step with the HUD lights, or a '
+      + 'finish gantry counting down.',
+  },
+  {
+    id: 'spikespeak',
+    added: '2026-11-22',
+    name: 'SPIKES PEAK, the hill climb: the real 10 km road at half scale, climbing 718 m',
+    where: 'Test link + &spikespeak=1: TEST MODE, RALLY STAGES (or ALL TRACKS), Spikes Peak, SOLO',
+    try: 'Drive it start to summit: the road and its 23 hairpins, the climb, the time; tell us if '
+      + 'it is too long.',
+    wrong: 'A kink or a gap in the road, a hairpin you cannot get round, the ground stepping, the '
+      + 'car floating or sinking, or a stutter as you drive.',
   },
   {
     id: 'stagetracks',
@@ -64,24 +91,5 @@ export const TEST_LIST: TestEntry[] = [
       + 'running into each car where you catch up with it.',
     wrong: 'No ruts on gravel, ruts on tarmac, ruts off the road or straight through bends, or a '
       + 'stutter at the start.',
-  },
-  {
-    id: 'stagetimes',
-    added: '2026-11-22',
-    name: 'Rally stage: a car already home is timed at the AI driven pace, not the prediction',
-    where: 'Test link + &stagetimes=1: TEST MODE, Sweaty Lamb, VS AI 5 (start 5th or 6th)',
-    try: 'Restart until you start late (cars home before your green); drive it; read the results.',
-    wrong: 'Home cars always on top (they were), or always last, or far off the driven times.',
-  },
-  {
-    id: 'revroom',
-    added: '2026-11-22',
-    name: 'AI stuck behind a crashed car reverse out sooner and far enough to steer round it',
-    where: 'Test link + &revroom=1: any circuit with a full field, a pile-up or a car stuck '
-      + 'against the wall',
-    try: 'Watch an AI stuck nose-in behind a stopped car: it backs up after a couple of seconds, '
-      + 'far enough to clear it, nose turned away, and drives round - fewer cars put back.',
-    wrong: 'AI still nudging back and forth and getting put back, reversing into cars behind, '
-      + 'or reversing in normal racing.',
   },
 ];

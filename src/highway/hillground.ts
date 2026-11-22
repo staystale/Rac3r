@@ -10,6 +10,9 @@
 // edge is a fall (the world's reset). MEASURED on the endless road's generated climb (3 seeds): no
 // slope between the road's parts past 0.75 (worst 0.56-0.62).
 import type { HwLevel } from './hwtypes.ts';
+
+/** A road the hillside is laid along: its points, STEP m apart, with their road distance. */
+export interface HillRoad { _hw: { pts: { x: number; y: number; s: number }[] } }
 import { STEP } from './presets.ts';
 import { REACH } from './gorge.ts';
 
@@ -35,7 +38,10 @@ interface Cell { parts: number[]; dists: number[]; rises: number[]; height: numb
 /** One road's hillside: its cells, its far rows, the road distance laid up to, the road's rise
  * (m at a road distance) and the road it was laid for. */
 interface Hillside { cells: Map<number, Cell>; rows: Map<number, { sum: number; count: number }>;
-  laidS: number; riseAt: (dist: number) => number; road: object | null }
+  laidS: number; riseAt: (dist: number) => number; road: object | null;
+  // the furthest road distance asked about, and how far past it the road is laid (a whole set
+  // road laid at once is seconds of work: it is laid as it is driven)
+  askedS: number; aheadM: number }
 
 // m: a far row's depth up the screen (FAR GROUND: past the hillside, the road's average rise
 // along each row - the hill rising as the road climbs up the screen)
@@ -139,16 +145,21 @@ function farAt(side: Hillside, y: number): number {
   return best;
 }
 
+/** The road distance the hillside is laid up to: all, or its lay-ahead past the furthest asked. */
+const layLimit = (side: Hillside) => (side.aheadM === Infinity ? Infinity
+  : side.askedS + side.aheadM);
+
 /**
- * Lays the road points grown since the last call onto the hillside.
- * @param level the highway level
+ * Lays the road points grown since the last call onto the hillside (up to its lay-ahead).
+ * @param level the road
  * @param side the hillside
  */
-function layNewRoad(level: HwLevel, side: Hillside) {
-  const pts = level._hw.pts;
-  let first = pts.length;
+function layNewRoad(level: HillRoad, side: Hillside) {
+  const pts = level._hw.pts, limit = layLimit(side);
+  let first = pts.length, last = first;
   while (first > 0 && pts[first - 1].s > side.laidS) first--;
-  for (let i = first; i < pts.length; i++) {
+  while (last > first && pts[last - 1].s > limit) last--;
+  for (let i = first; i < last; i++) {
     const rise = side.riseAt(pts[i].s);
     layPoint(side, pts[i], rise);
     const row = Math.round(pts[i].y / FAR_ROW_M), known = side.rows.get(row);
@@ -157,24 +168,29 @@ function layNewRoad(level: HwLevel, side: Hillside) {
       known.count++;
     } else side.rows.set(row, { sum: rise, count: 1 });
   }
-  if (pts.length) side.laidS = Math.max(side.laidS, pts[pts.length - 1].s);
+  if (last > first) side.laidS = Math.max(side.laidS, pts[last - 1].s);
 }
 
 /**
  * The hill climb's climb (world/types.ts Level.climb): on the road its own rise at its road
  * distance; past its edge eased into the hillside (the blended grid; none laid yet: the road's).
- * @param level the highway level
+ * @param level the road (the endless road's level, or a set road's points)
  * @param riseAt the road's rise at a road distance, m (the track's own profile)
+ * @param aheadM how far past the furthest road distance asked about the road is laid, m (the
+ * endless road: all of it, as it grows)
  * @returns the climb
  */
-export function hillClimbOf(level: HwLevel, riseAt: (dist: number) => number) {
+export function hillClimbOf(level: HillRoad, riseAt: (dist: number) => number,
+  aheadM = Infinity) {
   const side: Hillside = { cells: new Map(), rows: new Map(), laidS: -Infinity, riseAt,
-    road: null };
+    road: null, askedS: -Infinity, aheadM };
   return (dist: number, x: number, y: number, outM: number): number => {
     // (a new road - a reset, another seed: laid afresh)
     if (side.road !== level._hw) Object.assign(side, { cells: new Map(), rows: new Map(),
-      laidS: -Infinity, road: level._hw });
-    if (level._hw.pts.length && level._hw.pts[level._hw.pts.length - 1].s > side.laidS)
+      laidS: -Infinity, road: level._hw, askedS: -Infinity });
+    if (dist > side.askedS) side.askedS = dist;
+    const pts = level._hw.pts;
+    if (pts.length && pts[pts.length - 1].s > side.laidS && side.laidS < layLimit(side))
       layNewRoad(level, side);
     // (past the road lookup's reach: the hillside, the far ground past that)
     if (Number.isNaN(dist)) return hillsideAt(side, x, y);

@@ -69,7 +69,8 @@ MARK TRACK.)
      trace on the highway AND circuits. ONE BASE AI, highway-only tweaks only where essential.
      PASSED 11-22, the default (TODO-DONE, PASSED 11-22, THE AI TUNE): shared hazard awareness, the
      soft return, the steady brake pedal, the gap picker on the highway; ?aitune and ?gapcommit
-     dropped; the reverse only when truly stuck. Contact costs by kind (?contactcost) dropped 11-22;
+     dropped; the reverse only when truly stuck - and out with room, sooner (REVERSE OUT WITH
+     ROOM passed 11-22, TODO-DONE). Contact costs by kind (?contactcost) dropped 11-22;
      the slider sweep not run (owner 11-22: "I can test, no need for heavy tests atm"). GO ROUND
      EARLIER AND WIDER PASSED 11-22, the default (TODO-DONE, PASSED 11-22, GO ROUND EARLIER AND
      WIDER).
@@ -155,8 +156,8 @@ MARK TRACK.)
 
 ## 3. OPEN, IN THE OWNER'S ORDER
 
-THE ROAD TO THE FINISHED PRODUCT (owner 11-22: "that's about right"): 1 ghost + accolades, the
-stage fixes, SPIKES PEAK; 2 PIT STOPS; 3 LOADING + PERFORMANCE (a steady 60 fps); 4 the new
+THE ROAD TO THE FINISHED PRODUCT (owner 11-22: "that's about right"): 1 ghost + accolades (PASSED
+11-22: TODO-DONE, PASSED 11-22, GHOST CARS AND ACCOLADES), the stage fixes, SPIKES PEAK; 2 PIT STOPS; 3 LOADING + PERFORMANCE (a steady 60 fps); 4 the new
 rallycross tracks + Old Wobbly; 5 SOUND + SETTINGS (G); 6 UPGRADES + GARAGE + STORY (H, the plan
 discussed with the owner first, any time); 7 the CHAMPIONSHIPS (3c). Then MULTIPLAYER (I).
 Foreman's rough estimate 11-22: 6-8 weeks at the current pace.
@@ -266,6 +267,11 @@ RACE TRACKS:
       later, if it fits nicely). REPAIR all or nothing. Prices: FREE in test mode, $ in Story.
     - THE STOP'S TIME (owner 11-22): the taps + ~0.5 s PLUS the work - repairs and refuelling OVERLAP
       (the longest counts, not the sum); worse damage takes longer to repair; fuel by the litre.
+    - THE PLAN'S ANSWERS (owner 11-22): pit-lane limit 60 km/h (the limiter light only); the compulsory stop
+      = ONE STOP FOR FRESH TYRES (more tyre types, F1 compounds, later), +30 s at the finish if missed; the
+      race runs on while you are in the menu, the AI the same; your box = your grid slot's, in the pit lane;
+      fuel after the first build. THE NORDSCHLEIFE: no pit stops now, LATER the GP circuit and its real pits.
+      Le Manky's 24-hour pit lane traced (worker/pitstops 5254c8a3, scenery, behind ?pitstops).
     - NO RESET IN THE PIT LANE (owner 11-22): a reset in the pit lane puts you back on the track at the
       pit lane's entrance.
     - WALKTHROUGH (owner 11-15: "Make sure it's all explained in the walk thru the first time an event of
@@ -536,31 +542,55 @@ STORY (Story mode with its garage, money, BUY & FIT, "buy what you last tested" 
   30 deg in 60 m (120 over 10 deg; the event counts 156), 22 hairpins; 25 turns under the venues'
   least radius 10 m at half scale (47 under the 15.5 m default). OWNER'S ANSWERS FIRST (round 2):
   real grades at half scale, the top section's length, widening the tight hairpins.
-- A HOME CAR'S TIME AS DRIVEN (owner 11-22: "try (a)", else (b) the class's driven average):
-  BUILT behind ?stagetimes (Worker C; game/grid.ts STAGE_DRIVEN_RATIO 1.12, MEASURED: 13 cars
-  started 1-3 slots ahead on Sweaty Lamb, REALISH, their driven part over its predicted part
-  1.10-1.15). A home car 4 slots ahead: 110.9 s predicted -> 124.2 s, 5th of 6 (the driven cars
-  114.8-122.9 s). Found: a car placed down the stage keeps the prediction's pace for the part it
-  never drove (up to ~10 s for 3 slots ahead). AWAITING THE PHONE TEST.
+  OWNER: one run up; real grades at half scale ("let's try it"); the full true course (~10 km,
+  the owner tests the length); hairpins "tight is ok, but keep it looking smooth and connected".
+  ROUND 2 (THE ROAD AND ITS CLIMB) BUILT behind ?spikespeak (Worker C; tools/spikestrace.mjs ->
+  world/levels/venues/spikes.ts, world/levels/spikes.ts): the course at half scale, 9.99 km,
+  718 m up (mean 7.2 %), 8.2 m tarmac (the twisty road's lanes), point to point (run-up, the
+  finish at the summit, a 60 m stop zone, one ghost segment); the map's polygon smoothed (its
+  10-15 deg kinks); 23 hairpins as tight as the real ones (5.1-14.9 m), only the 7 whose road
+  would fold (under 5.1 m: 3.8-5.0) pushed apart as a whole, eased back along both legs, no two
+  parts of the road under 9.8 m apart; the heights smoothed (median 9 + mean 9 of the 20 m
+  samples: the steepest 100 m 26.5 -> 14.2 %, 500 m 13.6 -> 11.0 %); the ground through
+  highway/hillground.ts (now any road, laid 300 m ahead as driven). MEASURED: built in 50 ms; the
+  autopilot drives it, the hairpins at 22-32 km/h, ~56 fps (one dip to 44), the car's height
+  the profile's (138.6 m at 2.7 km). NEXT: round 3, the world (drops, armco, rocks and trees by
+  height, the gantry, the summit); the AI; the menu's own category.
 - A STAGE'S TYRE TRACKS (owner 11-22: from the start line for each car already through, cheap):
   BUILT behind ?stagetracks (Worker C, game/stagetracks.ts): the skid-mark layer's own wheel marks
   along the racing line with each car's own smooth wander, eased onto the line before the car (its
   own marks carry on). MEASURED: 37-82 ms once at the spawn for 4-5 cars (12-16k marks); ruts on
   the gravel only (a rolling tyre marks nothing on tarmac, as everywhere), faint before the first
-  car, clear in the bends. AWAITING THE PHONE TEST.
-- A STAGE'S LIVE POSITION (owner 11-22: "P n/N should show true to the current times
-  available"): BUILT behind ?stagepos (Worker C, game/stagepos.ts): each car's time every 20 m
-  from its own start (a car placed down the stage, and one home, filled from the pace that placed
-  it); a car is ahead when, at the furthest split you both have, its time is less; not started:
-  behind. N the whole field (hud/laps.ts). MEASURED (tools/scratch/_stagepos.mjs, Sweaty Lamb, 5
-  AI): live place at your finish 3, your result 3; P1 for the first 31 s was true (your 24.10 s
-  at 300 m to the car ahead's 25.25 s). AWAITING THE PHONE TEST.
-- A STAGE START HELD TO THE GREEN (owner 11-22: "jump starts shouldn't be possible, like all other
-  events"): BUILT behind ?stagehold (Worker C, game/order.ts earlyS): no car goes before its own
-  green on a rally stage. MEASURED (tools/scratch/_stagejump.mjs, throttle held through the
-  lights): before, you and the queued car first moved 0.033 s BEFORE your / its green (START_EARLY
-  0.12 s - every event has it); after, 0.083 s after. OWNER: the circuits, RX and highway starts
-  still allow 0.12 s early - the same there? AWAITING THE PHONE TEST.
+  car, clear in the bends. OWNER on round202: NOT PASSED - "look weird and have strange horizontal lines thru them". CAUSE: a stroke every racing-line point (~1.5 m: each joint of two round-capped strokes doubled into a bar across the rut) and 4 cars x 4 wheels within ~1.4 m of one line (one dark band). FIXED: a stroke every 0.25 m (a car's own at ~30 m/s), each car's line 1 m apart, its wander gentler; 162-213 ms once at the spawn. AWAITING THE PHONE TEST.
+- THE STARTS (owner 11-22, the suggestions passed): BUILT (Worker C), each behind its switch:
+  ?nojump - no early start anywhere (START_EARLY 0 for every car; no AI jumps a rolling start's
+  green, its reaction kept); ?stageplace - a stage car ahead placed at its driven pace (x 1.12);
+  ?stageline - the queue creeps up a place as each car goes, the next onto your start spot, every
+  car timed from its own green (game/stagequeue.ts); ?gantrylights - every start gantry's pods
+  show the countdown and the green, a stage's each car at the line (world/startlights.ts).
+  AWAITING THE PHONE TEST.
+- STORY PLAN (owner 11-22, the ladder - later order to discuss as we get there). Currency: £. START
+  MONEY BY THE DIFFICULTY picked ONCE at the start of Story (owner 11-22): Mobile game £3,000, Game £2,200,
+  Realish £1,600, Real but you're rich £1,200, Real £900; the difficulty LOCKED for that Story save; your first car a low-statted banger. A crash or RESET in a licence event fails it: a free
+  restart (a fee only the first time).
+  1. DRIVING LICENCE: 4 events in a car park (drive round the parked and moving cars without a crash;
+     pull up in a space; reverse park; pull out, round again and out onto a road) in the school car,
+     teaching every control; run as a mini championship (all 4 for the trophy, the licence).
+  2. SOLO HIGHWAY RUNS unlock: pick 5-10 km and the traffic density, survive; more money the quicker,
+     always some - THE MONEY FLOOR, always available.
+  3. ADVANCED DRIVING LICENCE: 3-4 events (night, wet, handbrake turns ...), a mini championship.
+  4. ARDS RACE LICENCE: one clean lap under a fair time (the AI average x ~1.15 in a fixed hire car) on one
+     of ~5 UK circuits.
+  5. GRASS TRACK + SMALL ENGLISH HILL CLIMBS (popular ones you can throw a cheap car round and come back
+     to in another class / upgraded; coned or small - NOT Pikes Peak yet). TO BUILD before / with Story.
+  6. ROAD CARS ON UK CIRCUITS, then up naturally.
+  STREET RACES (the highway, story speak): ALWAYS available, not pushed. Randomised: field size, a class
+  you own, the drivers' skill - scaling with your Story progress. An entry fee by Story progression; the
+  pot: 20 cars - the winner most, the next 3 most of the rest, a little to 5th; 10 cars - top 3; 5 cars -
+  winner takes all. Police: fines rising with the wanted level and crimes, speed cameras too; BUSTED 3
+  TIMES IN ONE STREET RACE = the car impounded, a release fee.
+  SAVES: a SAVE CODE (copy out / paste back) - "still unsure", to discuss more; Safari wipes site data
+  unvisited for 7 days.
 - [ ] STORY MODE: ROOKIE SEASON (grass track, stock car, time trials: hillclimb / runway cones) ->
   ROOKIE 2 (similar events, track variations, harder to win); we pick the events; money / points
   also for NOT finishing top 3; replayable events / championships for more money (finish 5th,

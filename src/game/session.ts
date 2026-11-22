@@ -30,6 +30,7 @@ import { resetGhost, saveGhostBest } from './ghostrun.ts';
 import { circuitTrailer, followedTrailer, placeTrailer, rigInset } from './rigreset.ts';
 import type { RigPose } from './rigreset.ts';
 import { resetCar, armStart, startHeld, startAtOf } from './order.ts';
+import { FIX } from '../core/fixes.ts';
 import { finishOf } from '../highway/finish.ts';
 import { gridPos, spawnAI } from './grid.ts';
 import { clearRigSpot, isTowing } from './gridlen.ts';
@@ -344,6 +345,8 @@ export function buildFlow() {
         visible: (car) => onScreen(car.x, car.y), finish: finishOf(shared.hwFinish) });
   }
   if (LEVEL.stage) {
+    // (?stageline: you too timed from your green - flow.t 0 - not from crossing the line)
+    game.car._stageStart = FIX.stageline && game.start.on ? 0 : undefined;
     return createRaceFlow({ cars: [{ car: game.car, player: true },
       ...game.ai.map((entry) => ({ car: entry.car })),
       ...(game.aiDone || []).map((car) => ({ car }))], total: LEVEL.subtrack!.totalDist, laps: 1,

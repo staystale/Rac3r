@@ -5,7 +5,7 @@
 // 600 frames driven by the demo driver - the frame-to-frame time's median, 99th percentile and
 // worst, the game's own work per frame, and the top self-time functions in that window (the CDP
 // sampling profiler). node tools/scratch/_perfscenes.mjs [scene ...]
-import { startServer, launchBrowser } from '../lib/browser.mjs';
+import { startServer, launchBrowser, extraQuery } from '../lib/browser.mjs';
 
 const SCENES = {
   moanaco: { level: 'moanaco', car: 'track-rwd', opts: { ai: 19 } },
@@ -75,7 +75,7 @@ try {
       });
     });
     const opened = Date.now();
-    await page.goto(`${server.url}/?touch=1&guide=0&menu=0&rules=0&level=${scene.level}`);
+    await page.goto(`${server.url}/?touch=1&guide=0&menu=0&rules=0&level=${scene.level}${extraQuery()}`);
     await page.waitForFunction(() => window.__game && window.__game.level && window.__game.launch,
       null, { timeout: 120000 });
     const builtMs = Date.now() - opened;

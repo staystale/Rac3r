@@ -17,6 +17,37 @@ lighting, bushes and trees - OWNER LIST 10-24; the checking tools - Tools that a
 
 
 
+## PASSED 11-22, GHOST CARS AND ACCOLADES (owner: ?ghost passed on the phone)
+
+The default 11-22, its switch deleted (9d874d73; game/ghostcar.ts, game/ghostrun.ts, render/
+screen.ts, menu/ghostrow.ts, menu/accolades.ts): in TEST MODE, on every track but the highways,
+each lap (lap 1 and laps with a reset too) or stage run is recorded 20 times a second of its own
+clock and the quickest - this session's or the saved best per track, direction (a level's ghostDir:
+the hill climb's hook) and car - played back on the same clock as a car drawn 40 % see-through
+under the cars, only drawn (never in the field, the contacts or the AI's view); a new best saved at
+the safe moments (at most 40 kept). The setup's GHOST row stays the player's option (on solo, off
+VS AI until picked; "BEST 1:23.44 (BMV EM135AYE)" under it). SETTINGS > ACCOLADES: TROPHIES (the
+profile's trophies - Story adds them; one line until then) and FASTEST LAPS (TEST MODE) per track
+and car. MEASURED (tools/scratch/_ghostcheck.mjs): a lap's pose error mean 0.1 cm, worst 0.4 cm
+(0.8 cm after saving and loading); 268 characters a second saved (a 78.8 s lap 20.6 KB);
+tools/scratch/_ghostshots.mjs: the ghost from lap 2 every second in the real game, never in the
+field.
+
+## PASSED 11-22, REVERSE OUT WITH ROOM (owner: ?revroom passed)
+
+The default 11-22, its switch deleted (40dd64da, ba275c30; ai/driveOut.ts, ai/revRoom.ts; owner:
+"if stuck behind a car they don't reverse quick enough ... and they also don't reverse enough to
+steer clear"; "they should reverse quicker rather than resetting"): held by a STOPPED car in my way,
+the hold is stuck after 1.5 s (not 4); still with a car within 1 m of my nose, the reverse after
+1.5 s (not 2.5); behind a car in my way it backs up until its nose is a car length + 2.5 m from it
+(at most 3 s; it stops for a car within 1.5 m behind), the nose swung away from it. MEASURED
+(tools/scratch/_revscene.mjs, nose 0.5 m from a car crashed across the road by the wall, 8 drivers,
+seeds 1 / 2, off -> on): first reverse 2.5 -> 1.5 s; alone - freed in 10.1-33.5 -> 9.8-9.9 s,
+given up 1 / 0 -> 0 / 0; boxed in by a second stopped car alongside - given up (the game puts it
+back) 6 / 8 -> 0 / 0 of 8, freed 5-6 / 1 -> 8 / 8 in 12.6-21.5 s, touches 12-52 / 22-39 -> 3-5.
+Normal racing (tools/scratch/_revcount.mjs, Brands, seeds 1-2, 180 s): reverses 8 -> 6, the game's
+put-backs 6 -> 4.
+
 ## PASSED 11-22, GO ROUND EARLIER AND WIDER (owner: ?passearly + ?passwide "pass")
 
 The default 11-22, their switches deleted (e5a4600f; owner round189 "AI seemed to stop when cars
@@ -35,6 +66,32 @@ line 120 m ahead - the move begun 27-28 -> 54-55 m out, km/h lost 109-125 -> 6-1
 8 / 8 -> 0 / 0 of 8, 6.2-6.9 -> 3.9-4.1 s to pass; a car 15 m/s slower 50 m ahead - lost 33-46 /
 11-44 -> 0-1 / 0 km/h, the stopped-car brake's re-holds 6-12 / 0-10 -> 0-2 / 0-3; a stopped car
 on the line 70 m ahead - lost 24-93 / 10-58 -> 2-9 / 2-8 km/h.
+## PASSED 11-22, ?STAGETIMES, ?STAGEPOS, ?STAGEHOLD (owner: passed on round202)
+
+The defaults 11-22, their switches deleted (Worker C). A home car's time is its prediction x
+STAGE_DRIVEN_RATIO 1.12 (game/grid.ts placeStageCar); a stage's P n/N is live timing
+(game/stagepos.ts: splits every 20 m, N the whole field, hud/laps.ts fieldSize); no car goes
+before its green on a rally stage (game/order.ts earlyS; every other start too under ?nojump).
+[A HOME CAR'S TIME AS DRIVEN (owner 11-22: "try (a)", else (b) the class's driven average):
+  BUILT behind ?stagetimes (Worker C; game/grid.ts STAGE_DRIVEN_RATIO 1.12, MEASURED: 13 cars
+  started 1-3 slots ahead on Sweaty Lamb, REALISH, their driven part over its predicted part
+  1.10-1.15). A home car 4 slots ahead: 110.9 s predicted -> 124.2 s, 5th of 6 (the driven cars
+  114.8-122.9 s). Found: a car placed down the stage keeps the prediction's pace for the part it
+  never drove (up to ~10 s for 3 slots ahead). AWAITING THE PHONE TEST.]
+[A STAGE'S LIVE POSITION (owner 11-22: "P n/N should show true to the current times
+  available"): BUILT behind ?stagepos (Worker C, game/stagepos.ts): each car's time every 20 m
+  from its own start (a car placed down the stage, and one home, filled from the pace that placed
+  it); a car is ahead when, at the furthest split you both have, its time is less; not started:
+  behind. N the whole field (hud/laps.ts). MEASURED (tools/scratch/_stagepos.mjs, Sweaty Lamb, 5
+  AI): live place at your finish 3, your result 3; P1 for the first 31 s was true (your 24.10 s
+  at 300 m to the car ahead's 25.25 s). AWAITING THE PHONE TEST.]
+[A STAGE START HELD TO THE GREEN (owner 11-22: "jump starts shouldn't be possible, like all other
+  events"): BUILT behind ?stagehold (Worker C, game/order.ts earlyS): no car goes before its own
+  green on a rally stage. MEASURED (tools/scratch/_stagejump.mjs, throttle held through the
+  lights): before, you and the queued car first moved 0.033 s BEFORE your / its green (START_EARLY
+  0.12 s - every event has it); after, 0.083 s after. OWNER: the circuits, RX and highway starts
+  still allow 0.12 s early - the same there? AWAITING THE PHONE TEST.]
+
 ## PASSED 11-22, A STAGE CAR ALREADY HOME (owner: ?stagedone passed)
 
 The default 11-22, its switch deleted. As built (Worker C; game/grid.ts placeStageCar,

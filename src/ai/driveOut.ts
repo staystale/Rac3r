@@ -1,7 +1,6 @@
 // ai/driveOut.ts - a driver DRIVES ITSELF OUT when stuck (every AI driver; was in the highway
 // weaver, ai/weaver.ts, deleted 11-04 with the one AI).
 import { envValue } from "../core/debug.ts";
-import { FIX } from "../core/fixes.ts";
 import { blockerOf, carBehind, roomOf } from "./revRoom.ts";
 import type { Blocker } from "./revRoom.ts";
 import type { AiCar, DriveCtx, DriveOutState } from "./types.ts";
@@ -24,11 +23,11 @@ const STUCK_T = 2.5, WANTS_GO = 2;
 // tools/scratch/_stopside.mjs: cars boxed in behind stopped cars never reversed out - held to
 // the stopped car ahead's speed, 0, they "waited" for good)
 const HELD_T = 4;
-// ?revroom: s still while held by a STOPPED car in my way (under BLOCKER_STILL_V m/s) before the
-// hold is stuck; the most s a reverse goes on for room; the heading error (rad) past which the
-// nose is swung back to the road, not away from the car
+// REVERSE OUT WITH ROOM (passed 11-22): s still while held by a STOPPED car in my way (under
+// BLOCKER_STILL_V m/s) before the hold is stuck; the most s a reverse goes on for room; the
+// heading error (rad) past which the nose is swung back to the road, not away from the car
 const HELD_STOPPED_T = 1.5, BLOCKER_STILL_V = 1, REV_MAX_S = 3, HEAD_BACK = 0.6;
-// ?revroom: s still, wanting to go, before a reverse with a car within NOSE_IN_M m of my nose (not
+// s still, wanting to go, before a reverse with a car within NOSE_IN_M m of my nose (not
 // STUCK_T: owner 11-22 "they should reverse quicker rather than resetting")
 const STUCK_CLOSE_T = 1.5, NOSE_IN_M = 1;
 
@@ -44,7 +43,7 @@ const waiting = (state: DriveOutState) => (!!state.follow && !!state.capBinds)
 // stuck - MEASURED: a hatch at 0.9 m/s and climbing reversed on ice and spun its wheels backwards
 const TRYING_GAIN = 0.08;
 /**
- * The s a car may be held still before it is stuck: HELD_T, or ?revroom HELD_STOPPED_T held by a
+ * The s a car may be held still before it is stuck: HELD_T, or HELD_STOPPED_T held by a
  * stopped car in my way.
  * @param blocker the car in my way, if any
  * @returns s
@@ -53,9 +52,9 @@ const heldFor = (blocker: Blocker | null) => (blocker && blocker.v < BLOCKER_STI
   ? HELD_STOPPED_T : HELD_T);
 
 /**
- * The s a car still, wanting to go, waits before it reverses: STUCK_T, or ?revroom STUCK_CLOSE_T
+ * The s a car still, wanting to go, waits before it reverses: STUCK_T, or STUCK_CLOSE_T
  * with a car within NOSE_IN_M of its nose.
- * @param blocker the car in my way (?revroom), if any
+ * @param blocker the car in my way, if any
  * @returns s
  */
 const stuckFor = (blocker: Blocker | null) => (blocker && blocker.gap < NOSE_IN_M
@@ -68,7 +67,7 @@ const stuckFor = (blocker: Blocker | null) => (blocker && blocker.gap < NOSE_IN_
  * @param car the car
  * @param speed m/s
  * @param dt s
- * @param blocker ?revroom: the car in my way, if any
+ * @param blocker the car in my way, if any
  */
 function noteSlow(state: DriveOutState, car: AiCar, speed: number, dt: number,
   blocker: Blocker | null = null) {
@@ -102,7 +101,7 @@ function trying(state: DriveOutState, car: AiCar, speed: number): boolean {
 
 /**
  * The controls while reversing out: the wheel turned to swing the nose back toward the road's
- * direction; ?revroom, backing up for room past a car in my way - the nose swung away from it
+ * direction; backing up for room past a car in my way - the nose swung away from it
  * (back to the road past HEAD_BACK), and done once there is room or a car is close behind.
  * @param state the driver's drive-out state
  * @param car the car
@@ -128,11 +127,11 @@ function reversing(state: DriveOutState, car: AiCar, ctx: DriveCtx, roadH: () =>
 }
 
 /**
- * A reverse begins: a burst of 1-1.5 s; ?revroom, behind a car in my way short of room, up to
+ * A reverse begins: a burst of 1-1.5 s; behind a car in my way short of room, up to
  * REV_MAX_S - until there is room - the nose swung away from it.
  * @param state the driver's drive-out state
  * @param car the car
- * @param blocker the car in my way (?revroom), if any
+ * @param blocker the car in my way, if any
  * @param rnd the driver's random stream
  */
 function startReverse(state: DriveOutState, car: AiCar, blocker: Blocker | null,
@@ -163,8 +162,8 @@ export function driveOut(
 ) {
   if (ctx.hold || !(state.t > 3) || NOOUT) return null;
   if (state.t < (state.revUntil || 0)) return reversing(state, car, ctx, roadH);
-  // (?revroom: the car in my way, read only while nearly still)
-  const blocker = FIX.revroom && speed < 1.5 ? blockerOf(car, ctx.cars) : null;
+  // (the car in my way, read only while nearly still)
+  const blocker = speed < 1.5 ? blockerOf(car, ctx.cars) : null;
   noteSlow(state, car, speed, dt, blocker);
   if (state.slowT! > stuckFor(blocker)) {
     startReverse(state, car, blocker, rnd);

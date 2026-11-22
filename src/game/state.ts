@@ -72,7 +72,7 @@ export interface LaunchOpts {
   livery?: { paint?: string; trim?: string; num?: number } | null; tyre?: string;   // garage
   trailer?: string;   // a tractor's trailer (the garage's TRAILER row)
   pits?: boolean;   // ?pitstops: the setup's PIT STOPS
-  ghost?: boolean;   // ?ghost: the setup's GHOST
+  ghost?: boolean;   // the setup's GHOST
   aiTune?: AiTune | null;   // the AI DRIVERS dials (ai/tune.ts)
 }
 
@@ -152,7 +152,7 @@ export interface Game {
   testMode: boolean; paused: boolean; menuMode?: boolean;
   // ?pitstops: the stop's GO (the start lights' GO, game/pitstop.ts) and the pit limiter's light
   pitGo?: { on: boolean; t: number; tGreen: number; green: boolean } | null; pitLimiter?: boolean;
-  ghostCar?: GameCar | null;   // ?ghost: the best's car, only drawn (game/ghostrun.ts)
+  ghostCar?: GameCar | null;   // the ghost: the best's car, only drawn (game/ghostrun.ts)
   notice?: { text: string; good?: boolean; at: number } | null;
   position?: number;   // your place in a race
   trackD?: number | null;   // your distance round the track
@@ -207,7 +207,7 @@ export interface Shared {
   minimapOn: boolean; progressOn: boolean; trackTempOn: boolean;
   weatherPlan: WeatherPlan | null;
   pitsOn?: boolean;   // ?pitstops: the setup's PIT STOPS (game/pitstop.ts)
-  ghostOn?: boolean;   // ?ghost: the setup's GHOST (game/ghostrun.ts)
+  ghostOn?: boolean;   // the setup's GHOST (game/ghostrun.ts)
   meterTiles: number; meterTouches: number; meterUploads: number; meterMipmaps: number;
   warmMs: number; loadMs?: number; nanReports: number;
 }

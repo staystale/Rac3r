@@ -77,6 +77,6 @@ export interface SetupState {
   weather?: { mode: string; season: number };
   time?: number | null;   // the hour the event starts at (null: live; the clock on)
   aiTune?: AiTune | null;   // the AI DRIVERS dials (null: the difficulty's preset)
-  ghost?: boolean;   // ?ghost: the GHOST switch as picked (unset: on solo, off VS AI)
+  ghost?: boolean;   // the GHOST switch as picked (unset: on solo, off VS AI)
   pits?: boolean;   // ?pitstops: the PIT STOPS switch as picked (unset: by the rules)
 }

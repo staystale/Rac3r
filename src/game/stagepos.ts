@@ -1,4 +1,4 @@
-// game/stagepos.ts - A RALLY STAGE'S LIVE POSITION (?stagepos; owner 11-22: "P n/N should show
+// game/stagepos.ts - A RALLY STAGE'S LIVE POSITION (owner 11-22: "P n/N should show
 // true to the current times available"): like real live timing, each car's time at every SPLIT_M
 // of the stage from its own start; a car is ahead of you when, at the furthest split you both have
 // (yours if it has passed you, its own if not), its time is less than yours. A car not started yet

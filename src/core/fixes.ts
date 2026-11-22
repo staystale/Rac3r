@@ -31,7 +31,8 @@
 // marktrack, scanyah (the tractor) and tipping passed 11-17; resetclean, lamps, fpshud, marksage
 // blighty, flagfix, trailer, boxhold and gridlen passed 11-21; rollgreen and hwfan passed 11-21;
 // hazard, softback, brakepedal, gapdest and revstuck passed 11-22, aitune, gapcommit and
-// contactcost dropped; passearly, passwide and trailroll passed 11-22.)
+// contactcost dropped; passearly, passwide, trailroll, revroom, stagedone and ghost passed 11-22;
+// stagetimes, stagepos and stagehold passed 11-22.)
 import { envValue } from './debug.ts';
 
 /**
@@ -73,34 +74,35 @@ export const FIX = {
   // THE HILL CLIMB'S GRADE, step 1 (owner 11-22: a real 7 % climb): the endless road rising
   // HILL_GRADE along its length (highway/hillgrade.ts) - the engine piece, measured alone
   hillgrade: atLoad('hillgrade'),
-  // REVERSE OUT WITH ROOM (owner 11-22: "they don't reverse quick enough ... and they also don't
-  // reverse enough to steer clear"; "reverse quicker rather than resetting"): held by a STOPPED
-  // car in my way, stuck after 1.5 s (not 4), and still with a car within 1 m of my nose, a reverse
-  // after 1.5 s (not 2.5); the reverse goes on until there is a car length and
-  // the lock's room to it (at most 3 s, or a car close behind), the nose swung away from it
-  // (ai/driveOut.ts, ai/revRoom.ts)
-  revroom: atLoad('revroom'),
-  // A HOME CAR'S TIME AS DRIVEN (owner 11-22, (a)): a stage car home before your green is timed at
-  // its predicted run x STAGE_DRIVEN_RATIO - the AI's driven pace, not the prediction's
-  // (game/grid.ts placeStageCar)
-  stagetimes: atLoad('stagetimes'),
   // A STAGE'S TYRE TRACKS (owner 11-22): the cars already through the start leave their wheels'
   // marks along the racing line, each its own wander, up to where each is placed
   // (game/stagetracks.ts)
   stagetracks: atLoad('stagetracks'),
-  // A STAGE'S LIVE POSITION (owner 11-22: "true to the current times available"): P n/N from the
-  // times at the same distance, like live timing; N the whole field (game/stagepos.ts)
-  stagepos: atLoad('stagepos'),
-  // A STAGE START HELD TO THE GREEN (owner 11-22): no car goes before its own green on a rally
-  // stage - START_EARLY's 0.12 s (every event) is 0 there (game/order.ts)
-  stagehold: atLoad('stagehold'),
-  // GHOST CARS (owner 11-22): in TEST MODE, on every track but the highways, the quickest lap or
-  // stage run - this session's or the saved best per track, direction and car - played back as a
-  // see-through car that is only drawn; a GHOST switch on the setup (on solo, off VS AI); the
-  // fastest laps listed in SETTINGS > ACCOLADES (game/ghostcar.ts, ghostrun.ts, menu/accolades.ts)
-  ghost: atLoad('ghost'),
-  // PIT STOPS (owner 11-15 / 11-22, TODO 16), step 4: Le Manky's 24-hour pit lane from the map
-  // data, laid as every venue's (world/venuepit.ts: the lane, its wall, lines and garages); no
-  // stops yet
+  // NO EARLY STARTS ANYWHERE (owner 11-22: "fine if players can too" - one rule for every car):
+  // START_EARLY 0 on every start, you and the AI (game/order.ts; a rally stage's is 0 already),
+  // and no AI jumps the green of a rolling start (game/greenrelease.ts: its reaction kept)
+  nojump: atLoad('nojump'),
+  // A STAGE CAR PLACED AT ITS DRIVEN PACE (owner 11-22): a car started before you is placed where
+  // its driven pace (the prediction / STAGE_DRIVEN_RATIO) has it, home only when that is past the
+  // finish (game/grid.ts placeStageCar) - it had the prediction's pace for the part not driven
+  stageplace: atLoad('stageplace'),
+  // THE NEXT CAR AT THE LINE (owner 11-22): a stage's queued cars creep up a place as each one
+  // goes, the next onto your start spot, and leave from a standstill on their own green; every
+  // car on a stage (you too) timed from its own green (game/ai.ts, raceflow.ts, game/rules.ts)
+  stageline: atLoad('stageline'),
+  // THE START GANTRY'S LIGHTS (owner 11-22: the countdown and the green on every start gantry, a
+  // prop not a banner): reds one a second, the green, dark otherwise; a stage's counts each car
+  // down at the line (world/startlights.ts)
+  gantrylights: atLoad('gantrylights'),
+  // SPIKES PEAK, THE HILL CLIMB, round 2 (owner 11-22: its own track type, the real course at half
+  // scale): the road and its climb, in TEST MODE's track lists (world/levels/spikes.ts)
+  spikespeak: atLoad('spikespeak'),
+  // NO CATCH-UP SPIKE (perf 1, owner 11-22): a slow frame's sim no longer catches up in one burst -
+  // the steps a frame runs stop once SIM_BUDGET_MS of them is spent (2 always); the time left over
+  // carries to the next frames (game/loop.ts runSimSteps)
+  spikecap: atLoad('spikecap'),
+  // PIT STOPS (owner 11-15 / 11-22, TODO 16): the pit lane as the race uses it (world/pitlane.ts),
+  // Le Manky's 24-hour pit lane from the map data, and your car's stop - the limiter, your box, the
+  // PIT STOP menu, the work, GO (game/pitstop.ts, menu/pitmenu.ts, menu/pitrow.ts)
   pitstops: atLoad('pitstops'),
 };
