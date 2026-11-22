@@ -584,7 +584,9 @@ STORY (Story mode with its garage, money, BUY & FIT, "buy what you last tested" 
      of ~5 UK circuits.
   5. GRASS TRACK + SMALL ENGLISH HILL CLIMBS (popular ones you can throw a cheap car round and come back
      to in another class / upgraded; coned or small - NOT Pikes Peak yet). TO BUILD before / with Story.
-  6. ROAD CARS ON UK CIRCUITS, then up naturally.
+  6. ROAD CARS ON UK CIRCUITS, then up naturally. (Owner 11-22:) several road-car championships open
+     at once, by power band (low to high powered road cars) - the order is open, but at first you can
+     only afford a car / the money for one; the 40 new cars must give a good spread for this.
   STREET RACES (the highway, story speak): ALWAYS available, not pushed. Randomised: field size, a class
   you own, the drivers' skill - scaling with your Story progress. An entry fee by Story progression; the
   pot: 20 cars - the winner most, the next 3 most of the rest, a little to 5th; 10 cars - top 3; 5 cars -
