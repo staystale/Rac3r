@@ -13,6 +13,16 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'stagenolaps',
+    added: '2026-11-22',
+    name: 'Rally stages have no laps: no LAPS row in the setup, set or generated',
+    where: 'TEST MODE: RALLY STAGES - Sweaty Lamb, Killder, the stage generator - VS AI',
+    try: 'Pick VS AI on each stage: no LAPS row; launch and race to the finish. Then a circuit '
+      + 'VS AI: its LAPS row still there.',
+    wrong: 'A LAPS row on any stage, LAP n/N on its HUD, the stage running past its finish, or '
+      + 'a circuit or rallycross race with no LAPS row.',
+  },
+  {
     id: 'passearly',
     added: '2026-11-22',
     name: 'AI see a stopped car on their line sooner and go round it without braking on and off',
@@ -41,14 +51,5 @@ export const TEST_LIST: TestEntry[] = [
     wrong: 'Rolling into the bend, cab and trailer apart after a gentle tip or on different '
       + 'faces, a wheel drawn off it, or RESET leaving either on its side.',
   },
-  {
-    id: 'hillclimb',
-    added: '2026-11-22',
-    name: 'SPIKES PEAK: the E36 hill climb - 5 km, switchbacks, drops, the summit the finish',
-    where: 'Test link + &hillclimb=1: TEST MODE > ENDLESS ROADS > SPIKES PEAK, the BMV E36 Peak',
-    try: 'Climb to the summit flag against the clock; cut a hairpin over its gravel; go off a '
-      + 'bend\'s outside edge.',
-    wrong: 'A wall or step in the ground, the road not climbing, a drop on a bend\'s inside, a '
-      + 'prop or armco on the road, or no finish at the summit.',
-  },
+
 ];

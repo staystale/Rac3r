@@ -831,6 +831,10 @@ traced track), generated stages from `stagegen.ts`, and the endless highway (`hi
 parody pun (CLAUDE.md). A level is loaded by `world/load.ts`; `world/state.ts` holds the active one and its
 lists (zones, bumps, props, barriers), which the physics and the renderer both read, so what you see is
 what you drive on.
+A RALLY STAGE HAS NO LAPS (set or generated: `menu/setup.ts isStage`, `level.stage` or
+`level.gen`): its setup has no LAPS row VS AI and launches one run (the race flow's stage is one
+run anyway: `game/session.ts`, laps 1); its HUD panel is STAGE, the clock, BEST (`hud/laps.ts
+drawHudLapStage`), never LAP n/N.
 A LEVEL BUILT ON FIRST USE (`Level._build`: the venues, the set rally stages, the generator's
 stage; `world/load.ts buildLevel`) read the floor of whatever level was set before it: `kit.ts`
 `trackKit`'s `clear` and `rxDress`'s `free` keep a prop or a bale 5-6 m inside the live

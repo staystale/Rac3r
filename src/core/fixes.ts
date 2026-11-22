@@ -76,10 +76,6 @@ export const FIX = {
   // THE TRAILER TIPS AND ROLLS (owner 11-22: realistic, ~0.45 g): its own two-wheel state, over
   // past its balance - the pin snaps, it rolls and slides on its own (physics/trailroll.ts)
   trailroll: atLoad('trailroll'),
-  // THE HILL CLIMB, step 2 (owner 11-22: Pikes Peak style, 5 km): its road - sweepers, esses,
-  // switchback clusters, short straights -, its grade, its hillside and drops (highway/hillplan.ts,
-  // hillground.ts), a scenery of the endless roads
-  hillclimb: atLoad('hillclimb'),
   // GO ROUND EARLIER (owner 11-22): a stopped car ahead is also read in my line's
   // terms (where my line will be at it - a line sweeping across the road ran into one it had read
   // 8 m off to the side; ai/driverTraffic.ts pushSeen), and the stopped-car brake lets go of a car

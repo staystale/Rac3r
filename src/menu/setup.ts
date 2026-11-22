@@ -273,10 +273,12 @@ function addLapsRow(menu: Menu, panel: HTMLElement, level: Level, state: SetupSt
   const lRow = addElement(panel, 'div', '', 'row'), lLbl = addElement(lRow, 'div', '');
   lLbl.style.cssText = 'flex:1;display:flex;align-items:center;justify-content:center;\
 font-size:14px';
-  // (the highway has no laps: its FINISH rows and their line say how it ends - menu/finishrow.ts)
+  // (the highway has no laps: its FINISH rows and their line say how it ends - menu/finishrow.ts;
+  // nor has a rally stage: one run, start to finish)
   const lPaint = () => {
     lLbl.textContent = state.laps + (state.laps === 1 ? ' LAP' : ' LAPS');
-    lRow.style.display = (state.opponents || state.rxRace) && !level.endless ? '' : 'none';
+    lRow.style.display = (state.opponents || state.rxRace) && !level.endless && !isStage(level)
+      ? '' : 'none';
   };
   addButton(menu, lRow, '−', () => {
     state.laps = Math.max(1, state.laps - 1);
@@ -359,7 +361,7 @@ function addLaunchButtons(menu: Menu, panel: HTMLElement, level: Level, state: S
         ...(state.time !== undefined ? { time: state.time } : {}),
         ...(level.endless ? { traffic: state.traffic, litter: state.litter,
           finish: state.finish ?? null } : {}),
-        laps: state.opponents || state.rxRace ? state.laps : 0,
+        laps: state.opponents || state.rxRace ? (isStage(level) ? 1 : state.laps) : 0,
         livery: (profile.livery || {})[profile.active],
         tyre: (profile.tyres || {})[profile.active],
         trailer: (profile.trailers || {})[profile.active] });
@@ -406,6 +408,14 @@ function addTimeRows(menu: Menu, panel: HTMLElement, state: SetupState) {
  * @returns true to show it
  */
 const aiPanel = (menu: Menu) => menu.api.dev;
+
+/**
+ * Whether a level is a single rally stage, set or generated (owner 11-22: "single rally stages
+ * shouldn't have laps either"): one run, start to finish - no LAPS row.
+ * @param level the level (a generated stage's recipe: gen; built: stage)
+ * @returns it is
+ */
+const isStage = (level: Level): boolean => !!level.stage || !!level.gen;
 
 /**
  * The setup's choices, kept across a visit to another screen (the garage, AI DRIVERS).
@@ -467,7 +477,7 @@ export function showSetup(menu: Menu, level: Level, kept: Partial<SetupState> = 
     aiCars: 'class',   // AI cars: class or same
     rxRace: false,   // the RX race (joker level) rather than practice
     // laps of a race (a split start's: one timed lap)
-    laps: level.joker ? level.joker.laps || 5 : level.splitStart ? 1 : 3,
+    laps: level.joker ? level.joker.laps || 5 : level.splitStart || isStage(level) ? 1 : 3,
     ...kept,
     ui: {},   // the opponent / difficulty widgets paintSetupOpponents updates
     paint: () => {},   // repaints the setup rows (wrapped by the laps row)

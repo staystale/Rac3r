@@ -15,19 +15,13 @@ export interface HwCfg {
   pStraight: number; pBend: number;   // the chance of a straight / a tight bend
   walls?: string; wallGap?: number;   // walled in: the barrier kind, m off the road edge
   // its own roadside (highway/canyon.ts, highway/city.ts); none: the countryside
-  theme?: 'canyon' | 'city' | 'peak';
+  theme?: 'canyon' | 'city';
   // drives on the RIGHT (GETAWAY STOCKHOLM): the road's world the mirror image of its
   // left-hand twin - every rule in road terms as it is (highway/road.ts HwState.hand)
   rightHand?: boolean;
   kRate?: number;   // the fastest curvature change, 1/m per m (road.ts; else presets.ts K_RATE)
   // its changes by road distance (Deaf Valley's HIGH road: highway/desertplan.ts)
   stretch?: (dist: number, seed: number) => Partial<HwCfg> | null;
-  // a hill climb's cluster of bends on this stretch - its switchbacks, its esses, its sweepers
-  // (highway/hillplan.ts; road.ts switchbackElements): its stretch's number, its turns, their
-  // radius and leg ranges (m), the legs' heading off straight up (deg), the road kind it lays
-  switchbacks?: { index: number; hairpins: number; radius: number[]; leg: number[];
-    legDeg: number; tag: string };
-  tag?: string;   // a hill climb's road kind, carried by its elements and points (hillplan.ts)
   // the other way's traffic: 'carriageway' - a second carriageway, mirrored, the far side of a
   // central reservation (its barriers: medians); 'lane' - a single carriageway
   // whose right-hand lane comes the other way (road.ts laneGeo)
@@ -56,12 +50,10 @@ export interface HwPoint {
   gapL?: number;   // 1 where the side road opens the left verge (the guard lets you through)
   gapR?: number;   // 1 where a bridge's approach opens the right (Deaf Valley's rock, roadparity)
   sideOut?: number;   // m a services' yard reaches past the side road's far edge
-  tag?: string;   // the hill climb's road kind it was laid as (its element's: hillplan.ts)
 }
 
 /** A road element still to be laid: its length, curvature, the ramp in and out, the hold. */
-export interface HwElem { len: number; k: number; ramp: number; hold: number; done?: number;
-  tag?: string }   // tag: the hill climb's road kind it was laid as (highway/hillplan.ts)
+export interface HwElem { len: number; k: number; ramp: number; hold: number; done?: number }
 
 /** A point on (or off) the road: where, and the road's heading there. */
 export interface HwPose { x: number; y: number; rot: number }
@@ -112,7 +104,6 @@ export interface HwState {
   geo: HwGeo;
   pts: HwPoint[];
   plan: HwElem[];
-  wIndex?: number;   // the switchback cluster laid last (road.ts: one a stretch)
   x: number; y: number; hdg: number; s: number;   // where the road has grown to
   dressed: number;   // points dressed so far
   target: number; tUntil: number; tSide: number;   // the lean the road steers toward
