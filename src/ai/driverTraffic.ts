@@ -232,9 +232,9 @@ function followCapOf(drv: Drv, env: CarsEnv, fwd: number, vAlong: number, closeI
   return capF;
 }
 
-// m between two cars' middles side by side (a hatch: 0.6 m between their sides; ?aitune, owner
-// 11-21 "happy to run close": 2.2)
-const SIDE_GAP = FIX.aitune ? 2.2 : 2.4;
+// m between two cars' middles side by side (a hatch: 0.6 m between their sides; ?aitune tried 2.2
+// and the contact rose: tools/scratch/_aibase.mjs, 4 seeds)
+const SIDE_GAP = 2.4;
 
 /** A car alongside (or just behind): remember its place and keep a gap from it. */
 export function alongsideCar(drv: Drv, acc: CarsAcc, env: CarsEnv, fwd: number, otherLat: number,
