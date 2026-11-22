@@ -28,6 +28,9 @@ export interface Profile {
   hwScenery?: string; hwRoad?: string;   // ?hwpick=1: the endless road's scenery and road picked
   weather?: Record<string, unknown>;   // setup: the weather picks
   gen?: { theme: string; len: string; style: string; seed: number };   // the last generated stage
+  // the Story's trophies (SETTINGS > ACCOLADES, menu/accolades.ts): Story adds one per win - its
+  // name and when (as shown)
+  trophies?: { name: string; won: string }[];
 }
 
 // PLAYER PROFILE (spec §5): unlocked cars, active car, last track. Every car is SEEDED unlocked for

@@ -116,6 +116,9 @@ export function drawSharpCarLayers(ctx: ScreenCtx, game: RenderGame, lock: Scree
   drawSparksOnScreen(ctx, lock);
   // (the phone report: the cars' time - ui/gpustat.ts)
   const carsT0 = statNow();
+  if (game.ghostCar && !ctx.skip('car') && isNearView(ctx, game.ghostCar)) {
+    drawGhostCar(ctx, game.ghostCar, sharp);
+  }
   forEachDrawnCar(ctx, game, (car) => {
     const way = crossingOf(car);
     if (!way) drawSharpCar(ctx, car, sharp);
@@ -215,6 +218,22 @@ function drawSharpCar(ctx: ScreenCtx, car: RenderCar, sharp: SharpScale) {
   mainCtx.scale(sharp.scale, sharp.scale);
   mainCtx.drawImage(picture.canvas, -picture.originX, -picture.originY);
   mainCtx.setTransform(1, 0, 0, 1, 0, 0);
+}
+
+// ?ghost: how see-through the ghost car is drawn
+const GHOST_ALPHA = 0.4;
+
+/**
+ * Draws the ghost car (game/ghostrun.ts) see-through under the cars: only drawn, never in the
+ * field.
+ * @param ctx the renderer context
+ * @param car the ghost's car
+ * @param sharp the frame's sharp-car scale
+ */
+function drawGhostCar(ctx: ScreenCtx, car: RenderCar, sharp: SharpScale) {
+  ctx.mainCtx.globalAlpha = GHOST_ALPHA;
+  drawSharpCar(ctx, car, sharp);
+  ctx.mainCtx.globalAlpha = 1;
 }
 
 // m: a tunnel's underground stretch reaches this far past its walls (a car's mirror over them)

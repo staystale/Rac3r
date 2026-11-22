@@ -19,6 +19,7 @@ import { ROSTER } from '../cars.ts';
 import { showAiDrivers, storedTune, storeTune, tuneLine } from './aidrivers.ts';
 import { HW_ROADS, HW_SCENERY } from '../highway/presets.ts';
 import { addFinishRows } from './finishrow.ts';
+import { addGhostRow, ghostOnOf } from './ghostrow.ts';
 
 // WEATHER: follow the SEASON (its chances; it can change in the race) or a fixed sky
 const WEATHER_MODES = [['season', 'SEASON'], ['dry', 'DRY'], ['hot', 'HOT'],
@@ -129,10 +130,12 @@ function addOpponentCountRows(menu: Menu, panel: HTMLElement, state: SetupState)
   const modeRow = addElement(panel, 'div', '', 'row');
   state.ui.bSolo = addButton(menu, modeRow, 'SOLO', () => {
     state.opponents = 0;
+    state.ghost = undefined;
     state.paint();
   }, 'on');
   state.ui.bAI = addButton(menu, modeRow, 'VS AI', () => {
     state.opponents = state.aiN;
+    state.ghost = undefined;
     state.paint();
   });
   state.ui.nRow = addElement(panel, 'div', '', 'row');
@@ -364,7 +367,7 @@ function addLaunchButtons(menu: Menu, panel: HTMLElement, level: Level, state: S
         laps: state.opponents || state.rxRace ? (isStage(level) ? 1 : state.laps) : 0,
         livery: (profile.livery || {})[profile.active],
         tyre: (profile.tyres || {})[profile.active],
-        trailer: (profile.trailers || {})[profile.active] });
+        trailer: (profile.trailers || {})[profile.active], ghost: ghostOnOf(state) });
   }, 'go');
   addButton(menu, panel, '◀ BACK', () => backToTracks(menu, level));
 }
@@ -424,9 +427,9 @@ const isStage = (level: Level): boolean => !!level.stage || !!level.gen;
  */
 function setupChoices(state: SetupState): Partial<SetupState> {
   const { road, scenery, traffic, litter, opponents, aiN, diff, aiCars, rxRace, laps, time,
-    aiTune, finish } = state;
+    aiTune, finish, ghost } = state;
   return { road, scenery, traffic, litter, opponents, aiN, diff, aiCars, rxRace, laps, time,
-    aiTune, finish };
+    aiTune, finish, ghost };
 }
 
 /**
@@ -492,6 +495,7 @@ export function showSetup(menu: Menu, level: Level, kept: Partial<SetupState> = 
   addRxRaceRow(menu, panel, level, state);
   addLapsRow(menu, panel, level, state);
   addFinishRows(menu, panel, level, state);
+  addGhostRow(menu, panel, level, state);
   state.paint();
   addWeatherRows(menu, panel, state, level);
   if (menu.api.daytime) addTimeRows(menu, panel, state);

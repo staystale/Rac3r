@@ -94,4 +94,9 @@ export const FIX = {
   // A STAGE START HELD TO THE GREEN (owner 11-22): no car goes before its own green on a rally
   // stage - START_EARLY's 0.12 s (every event) is 0 there (game/order.ts)
   stagehold: atLoad('stagehold'),
+  // GHOST CARS (owner 11-22): in TEST MODE, on every track but the highways, the quickest lap or
+  // stage run - this session's or the saved best per track, direction and car - played back as a
+  // see-through car that is only drawn; a GHOST switch on the setup (on solo, off VS AI); the
+  // fastest laps listed in SETTINGS > ACCOLADES (game/ghostcar.ts, ghostrun.ts, menu/accolades.ts)
+  ghost: atLoad('ghost'),
 };

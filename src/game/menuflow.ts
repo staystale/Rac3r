@@ -182,6 +182,7 @@ export function applyLaunchOptions(levelId: string, opts: LaunchOpts) {
   shared.aiTune = opts.aiTune || null;
   shared.raceLaps = Math.max(0, Math.min(10, (opts.laps ?? 0) | 0));
   shared.hwFinish = opts.finish ?? null;
+  shared.ghostOn = !!opts.ghost;
   // WEATHER (setup): the plan and the seed its random stream starts from, so a restart
   // replays the same weather; none = the dry 18 C game
   // the game clock: the global time, or (TEST MODE) the hour the setup picked, or the level's own
