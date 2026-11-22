@@ -76,4 +76,8 @@ export const FIX = {
   // THE TRAILER TIPS AND ROLLS (owner 11-22: realistic, ~0.45 g): its own two-wheel state, over
   // past its balance - the pin snaps, it rolls and slides on its own (physics/trailroll.ts)
   trailroll: atLoad('trailroll'),
+  // CONTACT COSTS BY KIND (owner-approved 11-22, after GT Sophy: a small cost for any contact, a
+  // larger one for a rear-end hit and for cutting a car off): the gap picker's line score less a
+  // cost for each kind of contact a line risks (ai/gapPick.ts contactCost)
+  contactcost: atLoad('contactcost'),
 };
