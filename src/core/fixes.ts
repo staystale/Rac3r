@@ -82,6 +82,21 @@ export const FIX = {
   // SPIKES PEAK, THE HILL CLIMB, round 2 (owner 11-22: its own track type, the real course at half
   // scale): the road and its climb, in TEST MODE's track lists (world/levels/spikes.ts)
   spikespeak: atLoad('spikespeak'),
+  // the ~5 km course (owner: "nearly 10 minutes"; connecting bends): world/levels/venues/spikes5.ts
+  spikeshort: atLoad('spikeshort'),
+  // the kept drop code switched on: a bend's outside falls away past its verge (hillground.ts)
+  spikedrops: atLoad('spikedrops'),
+  // SPIKES PEAK'S REWORK (owner on round203), each its own switch: the road as true curves (its
+  // corners looked "hexagonal"); the two-way road's centre line; the scenery stones; the movable
+  // stones (cones/stones.ts: a 2 % puncture a hit, likelier driven over each hit); the drops' looks
+  // - scree on steep ground, a drop shadow, height haze (world/levels/spikes*.ts)
+  spikesmooth: atLoad('spikesmooth'),
+  spikemarks: atLoad('spikemarks'),
+  spikestones: atLoad('spikestones'),
+  spikerocks: atLoad('spikerocks'),
+  spikescree: atLoad('spikescree'),
+  spikeshadow: atLoad('spikeshadow'),
+  spikehaze: atLoad('spikehaze'),
   // PIT STOPS (owner 11-15 / 11-22, TODO 16): the pit lane as the race uses it (world/pitlane.ts),
   // Le Manky's 24-hour pit lane from the map data, and your car's stop - the limiter, your box, the
   // PIT STOP menu, the work, GO (game/pitstop.ts, menu/pitmenu.ts, menu/pitrow.ts)

@@ -1,5 +1,6 @@
 // cones/coneStep.ts: one simulation step of the loose objects: motion by mode (roll, flip,
 // wobble, flat slide), spin, the floor, the cars' hits, then the object-object collisions.
+import { STONE_KINDS } from './stones.ts';
 import { FX0, FX1, FY0, FY1 } from "../world/bounds.ts";
 import { BROKEN, DRAG, REST_V, SLEEP_V, SPIN_DRAG, TUMBLE_AHEAD_M, TUMBLE_EASE,
   TUMBLE_GUST, TUMBLE_SPINUP_S } from "./coneConsts.ts";
@@ -77,7 +78,7 @@ function moveFlat(obj: Loose, dt: number) {
       ? 6.5
     : obj.kind === 'tyrestack' || obj.kind === 'sheep' ? 4.5 : obj.kind === 'tyre' ? 3.8
         : obj.kind === 'barrel' ? 1.6 : obj.kind === 'tarp' ? 5 : BROKEN.has(obj.kind) ? 7
-        : DRAG;
+        : STONE_KINDS[obj.kind] ? STONE_KINDS[obj.kind].drag : DRAG;
   const decay = Math.exp(-dragVal * dt);
   obj.vx *= decay; obj.vy *= decay;
 }

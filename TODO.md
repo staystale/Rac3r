@@ -560,6 +560,23 @@ STORY (Story mode with its garage, money, BUY & FIT, "buy what you last tested" 
   autopilot drives it, the hairpins at 22-32 km/h, ~56 fps (one dip to 44), the car's height
   the profile's (138.6 m at 2.7 km). NEXT: round 3, the world (drops, armco, rocks and trees by
   height, the gantry, the summit); the AI; the menu's own category.
+- SPIKES PEAK REWORK (owner on round203): BUILT (Worker C), each behind its switch under
+  ?spikespeak: ?spikesmooth - the road as true curves (Catmull-Rom points, one a 2 deg of turn:
+  5057 -> 9465 points); ?spikemarks - the two-way centre line; ?spikestones - ~1570 small rock
+  props off the road; ?spikerocks - ~106 movable stones (cones/stones.ts: 10 / 60 / 500 kg, a 2 %
+  puncture a distinct hit, the drive-over chance up by a quarter of what is left each hit, a rock's
+  share of the push and its drag: at 10 m/s a pebble 0-4 m, the boulder 2.3-6.3 m); the drops'
+  looks (render/droplooks.ts, in the hill shade): ?spikescree (slope over 0.4: ~10-13 % of the
+  ground), ?spikeshadow, ?spikehaze - MEASURED 1.0-2.8 ms a shade chunk (no work a frame; the base
+  1.0-1.7). ?spikedrops - the kept drop code (hillground.ts hillRoadsideOf: a bend's outside
+  falls 25 m past the verge; the road's lookup at REACH; drops kept 60 m clear of other road
+  parts, the endless road's 120 m left them only on the first 2.3 km): MEASURED, ground 5-30 m
+  past the edge more than 15 m below the road 21-29 % (none without), in 30 stretches up to 5.4
+  km (none in the W's or above: the legs within 60 m). The looks on the drops: the hill shade
+  darkens them; ?spikeshadow a little more; ?spikehaze hardly seen (ground over 15 m below only
+  at the drops' feet). ?spikeshort - the ~5 km course (tools/spikestrace.mjs -> venues/spikes5.ts:
+  game m 0-1950, 5300-7050, 8650-9990 joined by R 45 m sweepers of -60 / +60 deg): 5.14 km,
+  366 m up (7.1 %), 13 hairpins (least 5.1 m), stretches at least 43 m apart.
 - STORY PLAN (owner 11-22, the ladder - later order to discuss as we get there). Currency: £. START
   MONEY BY THE DIFFICULTY picked ONCE at the start of Story (owner 11-22): Mobile game £3,000, Game £2,200,
   Realish £1,600, Real but you're rich £1,200, Real £900; the difficulty LOCKED for that Story save; your first car a low-statted banger. A crash or RESET in a licence event fails it: a free
@@ -607,7 +624,7 @@ STORY (Story mode with its garage, money, BUY & FIT, "buy what you last tested" 
   -6.5 to -6.8 m; a queued car stops while a car is within 7 m of its nose - two still came 3.7 m
   apart centre to centre once: OPEN, the trace stopped for low memory). ALSO: your start slot on a stage is drawn with
   the difficulty's grid bias (game/grid.ts drawGridSlot: harder, further back) - starting last,
-  every AI car is 30 s or more ahead: none behind, none in the minimap's reach (OWNER: keep?).
+  every AI car is 30 s or more ahead: none behind, none in the minimap's reach (OWNER 11-22: KEEP - "you should also start further back").
   AWAITING THE PHONE TEST.
 - [ ] STORY MODE: ROOKIE SEASON (grass track, stock car, time trials: hillclimb / runway cones) ->
   ROOKIE 2 (similar events, track variations, harder to win); we pick the events; money / points

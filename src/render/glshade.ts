@@ -11,6 +11,7 @@ import { bushAt, wearEpoch } from "../world/wear.ts";
 import { TEX_PPM } from "./textures.ts";
 import { SHADE_CELL_M, sampleHeights, shadeLevels, shadeTint } from "./tilesShade.ts";
 import { wrapTexels } from "./glpaint.ts";
+import { addDropLooks, dropLooksOn } from './droplooks.ts';
 import type { PaintCamera } from "./glpaint.ts";
 
 const CHUNK_CELLS = 16;             // cells per chunk side (8 m)
@@ -139,6 +140,7 @@ function computeChunk(webgl: WebGL2RenderingContext, grid: ShadeGrid, chunkX: nu
   const minX = chunkX * CHUNK_M, minY = chunkY * CHUNK_M;
   const heights = sampleHeights(cells, cell, CHUNK_M, minX + CHUNK_M / 2, minY + CHUNK_M / 2);
   const { levels } = shadeLevels(heights, cells, cell);
+  const looks = dropLooksOn(), side = cells + 2, cellRgba = [0, 0, 0, 0];
   for (let index = 0; index < levels.length; index++) {
     const centreX = minX + ((index % cells) + 0.5) * cell,
       centreY = minY + (Math.floor(index / cells) + 0.5) * cell;
@@ -146,10 +148,21 @@ function computeChunk(webgl: WebGL2RenderingContext, grid: ShadeGrid, chunkX: nu
     const level = bushAt(centreX, centreY) ? 0 : levels[index],
       strength = Math.abs(level), offset = index * 4;
     const tint = level === 0 ? null : shadeTint(level, centreX, centreY);
-    pixels[offset] = tint ? Math.round(tint[0] * strength) : 0;
-    pixels[offset + 1] = tint ? Math.round(tint[1] * strength) : 0;
-    pixels[offset + 2] = tint ? Math.round(tint[2] * strength) : 0;
-    pixels[offset + 3] = Math.round(strength * 255);
+    cellRgba[0] = tint ? tint[0] * strength : 0;
+    cellRgba[1] = tint ? tint[1] * strength : 0;
+    cellRgba[2] = tint ? tint[2] * strength : 0;
+    cellRgba[3] = strength;
+    // (the drops' looks over the shade: render/droplooks.ts)
+    if (looks) {
+      const centre = (Math.floor(index / cells) + 1) * side + (index % cells) + 1;
+      const slope = Math.hypot(heights[centre + 1] - heights[centre - 1], heights[centre + side]
+        - heights[centre - side]) / (2 * cell);
+      addDropLooks(cellRgba, slope, heights[centre], centreX, centreY);
+    }
+    pixels[offset] = Math.round(cellRgba[0]);
+    pixels[offset + 1] = Math.round(cellRgba[1]);
+    pixels[offset + 2] = Math.round(cellRgba[2]);
+    pixels[offset + 3] = Math.round(cellRgba[3] * 255);
   }
   const slotX = wrapIndex(chunkX, GRID_CHUNKS), slotY = wrapIndex(chunkY, GRID_CHUNKS);
   // the cells are already premultiplied: the GPU ground's context premultiplies uploads otherwise

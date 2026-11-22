@@ -10,6 +10,7 @@ import { fileAtRest, rebuildRestGrid } from "./cones/coneGrid.ts";
 import { stepCones } from "./cones/coneStep.ts";
 import { joinAwake, wakeAll } from "./cones/coneSleep.ts";
 import { CONE_R, DEBRIS, TOPPLES, heightenStack } from "./cones/coneConsts.ts";
+import { stoneOverChance } from './cones/stones.ts';
 import type { ConesCtx, Loose, LevelObj, ConeCar, TapeSection } from './cones/coneTypes.ts';
 
 export { DEBRIS };
@@ -74,6 +75,8 @@ function liveAsPlaced(levelObj: LevelObj): Loose {
     col: levelObj.col, tape: levelObj.tape, idx: levelObj.idx, field: levelObj.field,
     paint: levelObj.paint, bare: levelObj.bare,
     num: levelObj.num,
+    // (a stone's chance of being driven over: cones/stones.ts)
+    overChance: stoneOverChance(levelObj.kind || ''),
     wind: levelObj.wind, lead: levelObj.lead,
     hitCount: 0,
     rollDist: 0,

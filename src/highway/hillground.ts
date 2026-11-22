@@ -208,7 +208,7 @@ export function hillClimbOf(level: HillRoad, riseAt: (dist: number) => number,
  * @param dist road distance, m
  * @returns 1/m (+ turning one way, - the other), 0 off the laid road
  */
-function curvatureAt(level: HwLevel, dist: number): number {
+function curvatureAt(level: HillRoad, dist: number): number {
   const pts = level._hw.pts;
   if (pts.length < 3) return 0;
   const i = Math.round((dist - pts[0].s) / STEP);
@@ -221,10 +221,11 @@ function curvatureAt(level: HwLevel, dist: number): number {
 /**
  * The hill climb's ground off the road (world/types.ts Level.roadside): a DROP past the verge on
  * the outside of a bend tighter than DROP_R_M.
- * @param level the highway level
+ * @param level the road
+ * @param clearM no drop where another part of the road comes this near, m (DROP_CLEAR_M)
  * @returns the roadside (road distance, offset across - + the left -, half width), m
  */
-export function hillRoadsideOf(level: HwLevel) {
+export function hillRoadsideOf(level: HillRoad, clearM = DROP_CLEAR_M) {
   const open = new Map<number, boolean>();
   return (dist: number, offset: number, halfWidth: number): number => {
     const past = Math.abs(offset) - halfWidth - DROP_VERGE_M;
@@ -232,7 +233,7 @@ export function hillRoadsideOf(level: HwLevel) {
     const curv = curvatureAt(level, dist);
     // (the outside: the side the bend turns away from; + offset the left)
     if (Math.abs(curv) < 1 / DROP_R_M || Math.sign(offset) === Math.sign(curv)) return 0;
-    const clear = dropClear(level, open, dist);
+    const clear = dropClear(level, open, dist, clearM);
     if (clear <= 0) return 0;
     // (it falls past the verge, and eases back up before the road's lookup ends - as Deaf
     // Valley's gorges: no step at REACH)
@@ -255,12 +256,14 @@ const smooth = (share: number) => {
  * @param level the highway level
  * @param open the road points known clear (by road distance)
  * @param dist road distance, m
+ * @param clearM the clearance asked, m
  * @returns 0..1
  */
-function dropClear(level: HwLevel, open: Map<number, boolean>, dist: number): number {
+function dropClear(level: HillRoad, open: Map<number, boolean>, dist: number, clearM: number):
+  number {
   let clear = 1;
   for (let along = -DROP_EASE_M; along <= DROP_EASE_M; along += STEP) {
-    if (!isOpenAt(level, open, Math.round((dist + along) / STEP) * STEP))
+    if (!isOpenAt(level, open, Math.round((dist + along) / STEP) * STEP, clearM))
       clear = Math.min(clear, Math.abs(along) / DROP_EASE_M);
   }
   return clear;
@@ -271,18 +274,20 @@ function dropClear(level: HwLevel, open: Map<number, boolean>, dist: number): nu
  * @param level the highway level
  * @param open the cache
  * @param dist the road point's distance, m
+ * @param clearM the clearance asked, m
  * @returns clear (off the laid road: not)
  */
-function isOpenAt(level: HwLevel, open: Map<number, boolean>, dist: number): boolean {
+function isOpenAt(level: HillRoad, open: Map<number, boolean>, dist: number, clearM: number):
+  boolean {
   const known = open.get(dist);
   if (known !== undefined) return known;
   const pts = level._hw.pts, i = Math.round((dist - (pts[0]?.s ?? 0)) / STEP);
   if (i < 0 || i >= pts.length) return false;
   const here = pts[i];
   const clear = !pts.some((other) => Math.abs(other.s - here.s) > DROP_APART_M
-    && Math.hypot(other.x - here.x, other.y - here.y) < DROP_CLEAR_M);
+    && Math.hypot(other.x - here.x, other.y - here.y) < clearM);
   // (only once the road past it is laid far enough to tell)
-  if (pts[pts.length - 1].s > dist + DROP_APART_M + DROP_CLEAR_M) open.set(dist, clear);
+  if (pts[pts.length - 1].s > dist + DROP_APART_M + clearM) open.set(dist, clear);
   return clear;
 }
 

@@ -1,6 +1,7 @@
 // cones/coneCar.ts: ONE CAR vs ONE OBJECT (multi-car: AI cars hit the same cones /
 // tyres / bales): the contact, the momentum swap, and what the hit does to the object (topple,
 // break, burst, tip, pop). Every function takes the one cones context made in cones.ts.
+import { STONE_KINDS, hitStone, stonePush } from './stones.ts';
 import { debrisPunctures } from '../physics/tyrewear.ts';
 import { noteHit, PRICKLY } from '../physics/punctures.ts';
 import { tumblesOverObject } from '../physics/tumble.ts';
@@ -150,6 +151,8 @@ function transferMomentum(obj: Loose, car: ConeCar, contact: Contact) {
 
   obj.vx = pvx + wnx * rel * (1 + rest);
   obj.vy = pvy + wny * rel * (1 + rest);
+  // (a stone takes its share by its weight: cones/stones.ts)
+  stonePush(obj, car.spec.mass);
 
   let speed = Math.hypot(obj.vx, obj.vy);
   if (speed > MAX_CONE_V) {
@@ -198,7 +201,8 @@ function drivenOver(ctx: ConesCtx, obj: Loose, car: ConeCar, relX: number, relY:
   // a car tumbling fast goes over a light one (physics/tumble.ts)
   if (tumblesOverObject(car, obj.mass)) return true;
   if (obj.kind === 'tarp' || rollsOver(ctx, obj, car)) {
-    dragTarp(obj, car, relX, relY);
+    // (a stone driven over stays where it lies: cones/stones.ts)
+    if (!STONE_KINDS[obj.kind]) dragTarp(obj, car, relX, relY);
     return true;
   }
   return !!obj.flat;
@@ -372,11 +376,14 @@ export function hitByCar(ctx: ConesCtx, obj: Loose, car: ConeCar, newTyres: Loos
   const speed = transferMomentum(obj, car, contact);
   countChevronImpacts(ctx, obj);
   breakDebris(ctx, obj, rel);
-  // hitting debris hard may puncture the front tyre on that side
-  if (debrisPunctures(obj.kind, rel, !!DEBRIS[obj.kind])) {
-    car.burstTyre = -Math.sin(car.heading) * relX + Math.cos(car.heading) * relY > 0 ? 0 : 1;
+  // hitting debris hard may puncture the front tyre on that side (a stone: once a distinct hit,
+  // cones/stones.ts)
+  const tyre = -Math.sin(car.heading) * relX + Math.cos(car.heading) * relY > 0 ? 0 : 1;
+  if (!STONE_KINDS[obj.kind] && debrisPunctures(obj.kind, rel, !!DEBRIS[obj.kind])) {
+    car.burstTyre = tyre;
     car.burstSlow = true;
   }
+  hitStone(ctx, obj, car, rel, tyre);
   hitAnimal(ctx, obj, rel);
   hitCushion(ctx, obj, rel);
   afterHit(ctx, obj, car, newTyres, rel, speed);
