@@ -162,6 +162,8 @@ export function driveOut(
 ) {
   if (ctx.hold || !(state.t > 3) || NOOUT) return null;
   if (state.t < (state.revUntil || 0)) return reversing(state, car, ctx, roadH);
+  // (?pitstops: standing in its box is not being stuck - ai/driverPits.ts)
+  if ((state as { pit?: { phase: string } }).pit?.phase === 'stopped') return null;
   // (the car in my way, read only while nearly still)
   const blocker = speed < 1.5 ? blockerOf(car, ctx.cars) : null;
   noteSlow(state, car, speed, dt, blocker);

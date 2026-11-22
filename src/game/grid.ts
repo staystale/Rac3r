@@ -303,6 +303,8 @@ export function spawnAI(count: number = shared.aiCount) {
     const tune = shared.aiTune || tuneOf(shared.aiDiff);
     const drv = createAIDriver(LEVEL, aiTraits(shared.aiDiff, i, count, seed, tune)),
       slot = i < shared.gridSlot ? i : i + 1;
+    // (?pitstops: its box, its grid slot's - ai/driverPits.ts)
+    (car as { _pitBox?: number })._pitBox = slot;
     car.mods.power *= drv.traits.power ?? 1;
     car._jokers = 0;
     car._prog = undefined;

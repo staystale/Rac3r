@@ -99,3 +99,22 @@ export function onPitLane(level: PitLevel, x: number, y: number): boolean {
   return distToLine(pits.pts, x, y) < pits.width / 2
     && querySubtrack(sub, x, y).dist > sub.width / 2;
 }
+
+// s: a stop's own part (after the menu), fitting a set of tyres, a repair's floor and its growth
+// with the damage squared (worse damage takes longer: 100 % ~22 s); m/s: the pit lane's limit
+// (60 km/h)
+const STOP_S = 0.5, TYRES_S = 4, REPAIR_S = 2, REPAIR_GROW_S = 20;
+export const PIT_LIMIT_V = 60 / 3.6;
+
+/**
+ * A stop's work in s: the jobs overlap (the longest counts), a repair longer the worse the damage;
+ * + STOP_S. The same for you and the AI.
+ * @param tyres fresh tyres fitted
+ * @param repair a repair done
+ * @param damage the car's damage, 0..1
+ * @returns s
+ */
+export function pitWorkTime(tyres: boolean, repair: boolean, damage: number): number {
+  return STOP_S + Math.max(tyres ? TYRES_S : 0, repair ? REPAIR_S + REPAIR_GROW_S * damage * damage
+    : 0);
+}

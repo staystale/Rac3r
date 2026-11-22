@@ -211,6 +211,7 @@ export interface RacingLine extends Path<LinePoint> {
 // The branch paths of a level (branches): the joker lane, the start lane.
 export interface Branches {
   joker?: Path;
+  pit?: Path;   // ?pitstops: the pit lane as a branch (ai/driverPits.ts)
   start?: Path;
   startLane?: Lane;
 }
