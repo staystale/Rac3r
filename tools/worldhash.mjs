@@ -119,7 +119,11 @@ function fingerprint(id) {
 function foldHighway(hash, lv) {
   const own = ['lanes', 'covers', 'cuts', 'props', 'solids', 'zones', 'cones'];
   const more = ['bumps', 'barriers', 'paint', 'boards', 'spawn'];
-  const parts = [lv._hw, ...own.map((key) => lv[key]), ...more.map((key) => lv[key])];
+  // (the road's hand folded only when it is not the left-hand +1 - highway/road.ts HwState.hand:
+  // a plain world hashes as before the field was added, a right-hand one still shows)
+  const { hand, ...hwPlain } = lv._hw;
+  const road = hand == null || hand === 1 ? hwPlain : lv._hw;
+  const parts = [road, ...own.map((key) => lv[key]), ...more.map((key) => lv[key])];
   hash.update(ser(parts));
 }
 
