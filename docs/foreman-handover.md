@@ -1,7 +1,7 @@
 # Foreman handover
 
 Kept current as the work goes (owner 11-12: "update the handover as we go"). Last updated
-2026-11-17 (morning, paused). Read `CLAUDE.md`, then `NOTES.md` (the owner's rules and the Routine at its end,
+2026-11-22 (afternoon). Read `CLAUDE.md`, then `NOTES.md` (the owner's rules and the Routine at its end,
 not repeated here), then `TODO.md`, then this page. The 11-07 version of this page is in git.
 
 ## Where we are (11-21)
@@ -10,20 +10,21 @@ not repeated here), then `TODO.md`, then this page. The 11-07 version of this pa
   tyre marks kept whole, Blighty Park RX + circuit, the chequered flag every race. Ask before #6.
 - **Main** = 186bfb32 (round171: trailer/boxhold/gridlen passed, CI green). Serve locally; push only for CI.
   LESSON: a level made plain needs tools/laplengths.mjs re-run (CI failed on it twice).
-- **The owner's link** = foreman/round182 (local, 11-22 08:30): ?aitune (a) (owner: worse - drop or pedal only,
-  asked), ?gapdest (highway only), ?stockholm, ?copmix, ?keepright. Passed + default since main: rollgreen, hwfan,
-  trailheal(+restart), cabglass, lampflash, dashphase, labstart, gridpos. ?gapcommit DROPPED (tested worse).
-  PC jobs: ONE detached wmic launch each (scratchpad/launch1.sh confirms start); the laptop memory reaper kills
-  long laptop loops. Foreman uses CronCreate one-shots to check PC jobs.
-- **Worker A** (a2fab314deb77a72b, worker/aiphase, PC repo, port 8091): the AI phase (F1 gapdest, F2 gapcommit).
-  11-22: PLAN ONLY for (1) pile-ups (followers not avoiding a small crash), (2) harsh return to the racing
-  line, (3) ?aitune keep/drop; then remove ?gapcommit. aitune data: scratchpad w79-w82 (closer running = most
-  of the extra crashes; K 0.78 needed for the straight-braking gain; Moanaco/Croughed still above off).
-- **Worker C** (a60bdb17a2f902ec3, PC repo2, port 8092): bugs, passes, Stockholm, flashing.
-  Queue 11-22: TUNNELS (Moanaco slat spacing, day/night shade, headlights never switched by a tunnel -
-  LAYERING not code, ?tunnellamps), Stockholm rolling-start weave (hwfan with keepright?), ?trailreset (rig
-  follows the bend, rigs reset inside the edge), HILL CLIMB (approved: Pikes-Peak-style parody, 4-6 km, real
-  grade - step 1 the grade engine piece). Branch worker/c-city3 6f884a9b (all proofs SAME, c12-c16).
+- **The owner's link** = foreman/round191 074b8bc8 (local, 11-22 14:20): the AI pass, proved w88 SAME
+  (plain: hazard incl. the stop fix, softback, brakepedal, gapdest highway-only, revstuck 4 s rule; aitune
+  and gapcommit REMOVED). Not yet on main: rounds 172-191. Merge the c-pass186 (c19), c-pass-tl (c20)
+  passes once proved, then CI, then push main.
+- **NOISE (w86/w87):** off alone moves up to 51 incidents/track and 22 km/h on the motorway between
+  4-seed sets. 4-seed sweeps cannot judge AI changes; the owner's phone decides (or ~16 seeds/side).
+  PC jobs: ONE detached wmic launch each (scratchpad/launch1.sh confirms start); the laptop memory
+  reaper kills long laptop loops. Foreman uses CronCreate one-shots to check PC jobs.
+- **Worker A** (a2fab314deb77a72b, PC repo, port 8091): ?contactcost (plan approved 11-22: rear-end,
+  side rub, cut-off costs in ai/gapPick.ts lineScore; staged scenes, no sweeps). Then the slider sweep
+  (waiting: the owner picks more seeds vs phone).
+- **Worker C** (a60bdb17a2f902ec3, PC repo2, port 8092): ?trailroll step 2 done (worker/c-trailroll
+  47ca3285, trailer tips at 0.45 g, owner chose (a)); step 3 (cab and trailer roll together) building;
+  load shift and AI/traffic trailers LATER. Hill climb SPIKES PEAK parked on worker/c-hill2 559d13fd
+  (grade too steep, ease to 7.9 %). PC proofs: c19 running (14:23), then c20, then c18 (read each .cmd).
 - **PARKED, the owner's next list:** PIT STOPS (the owner has IMAGES - ask for them, then discuss);
   the AI rework (circuits' off-track and first-corner pile-ups, Pembreezy); a hill climb stage for
   the E36; Glen Hellish, Swapsies; Story mode / upgrades (race conversions, the repair bill: pay or
