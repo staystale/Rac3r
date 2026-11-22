@@ -100,7 +100,9 @@ try {
  * @param waitFor waits for the rig to pass a test
  */
 async function driveToRoll(shoot, waitFor) {
-  if (await waitFor((rig) => rig.trailer === 'tipping', 40)) await shoot('1-lifts');
+  // (either lifting first: the cab or the trailer - step 3 takes the other over with it)
+  if (await waitFor((rig) => rig.trailer !== 'none' || rig.tractor !== 'none', 40))
+    await shoot('1-lifts');
   else await shoot('1-never-lifted');
   if (await waitFor((rig) => rig.trailer !== 'none' && rig.trailer !== 'tipping', 6)) {
     await shoot('2-rolls');

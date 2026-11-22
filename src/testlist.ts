@@ -69,10 +69,10 @@ export const TEST_LIST: TestEntry[] = [
   {
     id: 'trailroll',
     added: '2026-11-22',
-    name: 'The Scanyah\'s trailer tips and rolls (about 0.45 g); the pin snaps as it goes over',
+    name: 'Truck and trailer roll: gently together, violently the pin snaps (about 0.45 g)',
     where: 'Test link + &trailroll=1: TEST MODE, the Scanyah with its trailer, the endless road',
-    try: 'Take a long bend hard and keep building speed; jack-knife it; then RESET.',
-    wrong: 'The trailer rolling into the bend, standing back up on its own, a wheel drawn off it, '
-      + 'or RESET leaving either on its side.',
+    try: 'Take a long bend hard, keep building speed until it goes over; crash it side-on; RESET.',
+    wrong: 'Rolling into the bend, cab and trailer apart after a gentle tip or on different '
+      + 'faces, a wheel drawn off it, or RESET leaving either on its side.',
   },
 ];

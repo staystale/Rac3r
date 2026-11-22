@@ -127,6 +127,20 @@ function trailerPin(trailer: Car) {
 }
 
 /**
+ * ?trailroll: holds a trailer rolling with its tractor on the pin - its kingpin put on the fifth
+ * wheel (its own heading kept), sliding as the tractor does (physics/trailroll.ts).
+ * @param car the tractor
+ * @param trailer its trailer
+ */
+export function holdOnPin(car: Car, trailer: Trailer): void {
+  const pin = tractorPin(car), own = trailerPin(trailer);
+  trailer.x += pin.x - own.x;
+  trailer.y += pin.y - own.y;
+  trailer.vx = car.vx;
+  trailer.vy = car.vy;
+}
+
+/**
  * Puts the trailer in line behind its tractor, at rest with it (a reset, a new car).
  * @param car the tractor
  * @param trailer its trailer

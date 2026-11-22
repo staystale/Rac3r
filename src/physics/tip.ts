@@ -55,6 +55,16 @@ function geometry(car: RollCar) {
 }
 
 /**
+ * A car's tip point: the sideways acceleration that lifts its inside wheels (tipCheck), m/s^2.
+ * @param car the car
+ * @returns m/s^2
+ */
+export function tipPoint(car: RollCar): number {
+  const { halfT, high, give } = geometry(car);
+  return GRAVITY * halfT / high * (1 - give);
+}
+
+/**
  * Whether a car is up on two wheels now.
  * @param car the car
  * @returns tipping
