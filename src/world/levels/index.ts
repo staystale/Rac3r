@@ -64,6 +64,8 @@ import { KH_LEVEL } from "./knobhill.ts";
 import { rxDress, jokerBales } from "./kit.ts";
 import { LAB_BUSHES, RALLY_BUSHES, TEST_TRACK_BUSHES } from "./bushes.ts";
 import { SH_TYREWALL, SH_STARTWALL } from "./slidden-hill.ts";
+import { buildSpikes } from "./spikes.ts";
+import { FIX } from "../../core/fixes.ts";
 // =============================================================================================
 // THE LEVELS. `base` is what you are on where no zone covers you; `zones` are first-hit-wins.
 
@@ -183,6 +185,9 @@ export const LEVELS: Level[] = [
       return { x: pose.x, y: pose.y, heading: pose.rot };
     })(),
   },
+  // SPIKES PEAK, the hill climb (?spikespeak; round 2: the road and its climb), built on first use
+  ...(FIX.spikespeak ? [{ id: 'spikes-peak', name: 'Spikes Peak', _build: buildSpikes } as Level]
+    : []),
   {
     id: 'slidden-hill', name: 'Slidden Hill',
     base: SURFACES.grass,

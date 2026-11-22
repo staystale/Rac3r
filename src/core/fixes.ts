@@ -94,4 +94,7 @@ export const FIX = {
   // A STAGE START HELD TO THE GREEN (owner 11-22): no car goes before its own green on a rally
   // stage - START_EARLY's 0.12 s (every event) is 0 there (game/order.ts)
   stagehold: atLoad('stagehold'),
+  // SPIKES PEAK, THE HILL CLIMB, round 2 (owner 11-22: its own track type, the real course at half
+  // scale): the road and its climb, in TEST MODE's track lists (world/levels/spikes.ts)
+  spikespeak: atLoad('spikespeak'),
 };

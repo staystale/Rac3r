@@ -838,6 +838,13 @@ traced track), generated stages from `stagegen.ts`, and the endless highway (`hi
 parody pun (CLAUDE.md). A level is loaded by `world/load.ts`; `world/state.ts` holds the active one and its
 lists (zones, bumps, props, barriers), which the physics and the renderer both read, so what you see is
 what you drive on.
+SPIKES PEAK, THE HILL CLIMB (?spikespeak, `world/levels/spikes.ts`): the real Pikes Peak course
+at half scale from `tools/spikestrace.mjs` (`world/levels/venues/spikes.ts`: the road every 2 m
+and its rise, generated - OSM road, USGS 3DEP heights via Open Topo Data, credited in
+`menu/credits.ts`). Point to point as a rally stage (a ghost segment closes the loop); its
+`Level.climb` is `highway/hillground.ts hillClimbOf` over the road's own STEP points (a
+`HillRoad`), laid 300 m ahead of the furthest point asked (the run-up's distances read as before
+the start). Category: rally (its own later).
 A RALLY STAGE HAS NO LAPS (set or generated: `menu/setup.ts isStage`, `level.stage` or
 `level.gen`): its setup has no LAPS row VS AI and launches one run (the race flow's stage is one
 run anyway: `game/session.ts`, laps 1); its HUD panel is STAGE, the clock, BEST (`hud/laps.ts
