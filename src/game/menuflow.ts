@@ -295,7 +295,9 @@ export function openPause() {
       shared.paused = false;
       shared.guide.openRules(kind);
     } : null,
-    tests: game.testMode,   // the TESTING list (src/testlist.ts) in the pause menu, test mode only
+    // the TESTING list (src/testlist.ts) in the pause menu: test mode on a test link (?report=1)
+    // only, so a public build never lists the work still under test
+    tests: game.testMode && shared.settings.report,
     audio: shared.audio,                  // the SOUND slider + MUTE (menu.ts pause)
     hud: hudActions(),   // the HUD list (each piece on / off for this difficulty mode)
     exit: () => {
