@@ -76,4 +76,10 @@ export const FIX = {
   // THE TRAILER TIPS AND ROLLS (owner 11-22: realistic, ~0.45 g): its own two-wheel state, over
   // past its balance - the pin snaps, it rolls and slides on its own (physics/trailroll.ts)
   trailroll: atLoad('trailroll'),
+  // REVERSE OUT WITH ROOM (owner 11-22: "they don't reverse quick enough ... and they also don't
+  // reverse enough to steer clear"; "reverse quicker rather than resetting"): held by a STOPPED
+  // car in my way, stuck after 1.5 s (not 4); the reverse goes on until there is a car length and
+  // the lock's room to it (at most 3 s, or a car close behind), the nose swung away from it
+  // (ai/driveOut.ts, ai/revRoom.ts)
+  revroom: atLoad('revroom'),
 };
