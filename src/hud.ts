@@ -145,7 +145,7 @@ export function createHud() {
         drawHudLights(ctx, game, width, height);
         // (?pitstops: the stop's GO - the start lights' - and the pit limiter's light)
         if (game.pitGo) drawHudLights(ctx, { ...game, start: game.pitGo }, width, height);
-        if (game.pitLimiter) drawPitLimiter(ctx, width, height);
+        if (game.pitLimiter) drawPitLimiter(ctx, width, height, !!game.pitGo);
         drawHudNotice(ctx, game, width, height);
         drawHudCamera(ctx, game, width, height);
         // (portrait: under the top-right column, its FPS strip the lowest)

@@ -4,11 +4,17 @@
 // of the lane (the garages' side), your box your grid slot's. A venue with no pit lane has none: no
 // stops.
 import { distToLine, lineLength, pointAlong } from "./venuegeo.ts";
-import { querySubtrack } from "./tyrewall.ts";
-import type { Lane, Level, Point, Subtrack } from "./types.ts";
+import { onTrack, querySubtrack } from "./tyrewall.ts";
+import type { Lane, Level, Paint, Point, Subtrack } from "./types.ts";
 
 /** One box: its middle, the lane's heading there, its size (m). */
-export interface PitBox { x: number; y: number; heading: number; len: number; wid: number }
+// (side: the garages' side of the lane, across the box's heading - +1 its left)
+export interface PitBox {
+  x: number; y: number; heading: number; len: number; wid: number; side: number;
+}
+
+/** An arrow painted on the road as the joker lane's are (render/road.ts drawArrows). */
+export interface PitArrow { x: number; y: number; rot: number; len: number }
 
 /** A level's pit lane as raced. */
 export interface Pits {
@@ -16,6 +22,8 @@ export interface Pits {
   width: number;   // m
   entryD: number; exitD: number;   // track m where it leaves / rejoins the lap
   boxes: PitBox[];   // by grid slot
+  // the arrows into the pit lane (on the lap before its entrance, then along it), as the joker's
+  arrows: PitArrow[];
 }
 
 /** A level with its pit lane (?pitstops: world/venue.ts sets it). */
@@ -66,7 +74,7 @@ function laneBoxes(sub: Subtrack, pts: Point[], width: number): PitBox[] {
       >= querySubtrack(sub, mid.x - mid.nx * quarter, mid.y - mid.ny * quarter).dist ? 1 : -1;
     boxes.push({ x: mid.x + mid.nx * quarter * side, y: mid.y + mid.ny * quarter * side,
       heading: Math.atan2(ahead.y - mid.y, ahead.x - mid.x), len: Math.min(BOX_LEN, step - 0.5),
-      wid: BOX_WID });
+      wid: BOX_WID, side });
   }
   return boxes;
 }
@@ -82,8 +90,75 @@ export function racePits(sub: Subtrack, lane: Lane): Pits | null {
   const pts = raceWay(sub, lane.pts);
   const boxes = laneBoxes(sub, pts, lane.width);
   if (!boxes.length) return null;
-  return { pts, width: lane.width, entryD: lapAt(sub, pts[0]),
-    exitD: lapAt(sub, pts[pts.length - 1]), boxes };
+  const entryD = lapAt(sub, pts[0]);
+  return { pts, width: lane.width, entryD, exitD: lapAt(sub, pts[pts.length - 1]), boxes,
+    arrows: pitArrows(sub, pts, entryD) };
+}
+
+// the joker's arrows' size (m), the track m before the entrance the lap's arrows stand at, how far
+// in from the road's edge, their turn toward the lane (rad), and the m between the lane's arrows
+const ARROW_LEN = 7, ENTRY_ARROWS_M = [60, 40, 20], ARROW_IN_M = 2.5, ARROW_TURN = 0.3;
+const LANE_ARROW_GAP_M = 40;
+
+/**
+ * The arrows into the pit lane as the joker's: three on the lap before its entrance, on the lane's
+ * side and turned toward it, then one every LANE_ARROW_GAP_M along the lane up to the boxes.
+ * @param sub the lap
+ * @param pts the lane, entry first
+ * @param entryD its entrance, track m
+ * @returns the arrows
+ */
+function pitArrows(sub: Subtrack, pts: Point[], entryD: number): PitArrow[] {
+  const hit = querySubtrack(sub, pts[0][0], pts[0][1]), side = hit.side === 'left' ? 1 : -1;
+  const total = sub.totalDist, arrows: PitArrow[] = [];
+  for (const back of ENTRY_ARROWS_M) {
+    const spot = onTrack(sub, ((entryD - back) % total + total) % total,
+      side * (sub.width / 2 - ARROW_IN_M), {});
+    arrows.push({ x: spot.x, y: spot.y, rot: spot.rot + side * ARROW_TURN, len: ARROW_LEN });
+  }
+  const length = lineLength(pts);
+  for (let along = LANE_ARROW_GAP_M; along < length * END_SHARE + 1; along += LANE_ARROW_GAP_M) {
+    const mid = pointAlong(pts, along), ahead = pointAlong(pts, along + 1);
+    if (mid && ahead) arrows.push({ x: mid.x, y: mid.y,
+      rot: Math.atan2(ahead.y - mid.y, ahead.x - mid.x), len: ARROW_LEN });
+  }
+  return arrows;
+}
+
+// m: how far before your box's middle its arrow stands (on the lane's middle line)
+const BOX_ARROW_BACK_M = 5;
+
+/**
+ * The arrow into your box: on the lane's middle a little before it, pointing at its middle.
+ * @param box your box
+ * @param width the lane's width, m
+ * @returns the arrow
+ */
+export function boxArrow(box: PitBox, width: number): PitArrow {
+  const cos = Math.cos(box.heading), sin = Math.sin(box.heading), inset = width / 4 * box.side;
+  const x = box.x - cos * BOX_ARROW_BACK_M + sin * inset;
+  const y = box.y - sin * BOX_ARROW_BACK_M - cos * inset;
+  return { x, y, rot: Math.atan2(box.y - y, box.x - x), len: ARROW_LEN };
+}
+
+// m: the box lines' width (a painted line)
+const BOX_LINE_W = 0.12;
+
+/**
+ * Every box's lines on the pit lane (a real pit box: its outline), as painted lines.
+ * @param pits the pit lane
+ * @returns the paint
+ */
+export function boxLines(pits: Pits): Paint[] {
+  return pits.boxes.map((box) => {
+    const cos = Math.cos(box.heading), sin = Math.sin(box.heading);
+    const corner = (along: number, across: number): Point => [box.x + cos * along - sin * across,
+      box.y + sin * along + cos * across];
+    const halfLen = box.len / 2, halfWid = box.wid / 2;
+    return { kind: 'line', x: 0, y: 0, lw: BOX_LINE_W, tone: 0.9,
+      pts: [corner(-halfLen, -halfWid), corner(halfLen, -halfWid), corner(halfLen, halfWid),
+        corner(-halfLen, halfWid), corner(-halfLen, -halfWid)] };
+  });
 }
 
 /**

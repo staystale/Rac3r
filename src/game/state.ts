@@ -2,6 +2,7 @@
 //   game: the world object every module reads (filled in by main.ts)
 //   shared: the module-level variables of main.ts that more than one module reads or writes
 //     (settings, renderer, hud, mode, started, acc ...), assigned in main.ts in boot order
+import type { PitBox } from '../world/pitlane.ts';
 import type { AiTune } from '../ai/tune.ts';
 import type { Car, CarInput } from '../vehicle.ts';
 import type { DamageCar, DamageState } from '../damage.ts';
@@ -152,6 +153,10 @@ export interface Game {
   testMode: boolean; paused: boolean; menuMode?: boolean;
   // ?pitstops: the stop's GO (the start lights' GO, game/pitstop.ts) and the pit limiter's light
   pitGo?: { on: boolean; t: number; tGreen: number; green: boolean } | null; pitLimiter?: boolean;
+  // ?pitstops: the pit lane's arrows to show (render/road.ts) and the lap panel's PIT line
+  pitArrows?: { x: number; y: number; rot: number; len: number }[] | null;
+  pitCue?: { done: boolean; inLane: boolean; at: number; turnD: number } | null;
+  pitBox?: PitBox | null;   // ?pitstops: your box, marked (render/pitbox.ts)
   ghostCar?: GameCar | null;   // the ghost: the best's car, only drawn (game/ghostrun.ts)
   notice?: { text: string; good?: boolean; at: number } | null;
   position?: number;   // your place in a race

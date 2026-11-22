@@ -87,6 +87,10 @@ export interface HudGame {
   position?: number;   // your place in a race
   flow?: HudFlow | null; race?: HudRace | null; stage?: HudStage | null; start?: HudStart;
   pitGo?: HudStart | null; pitLimiter?: boolean;   // ?pitstops: the stop's GO, the limiter light
+  // ?pitstops: the compulsory stop's line in the lap panel (the joker's line, PIT for JOKER): made,
+  // on the pit lane, when made (performance.now), the pit entrance's track m
+  pitCue?: { done: boolean; inLane: boolean; at: number; turnD: number } | null;
+  pitBox?: { x: number; y: number } | null;   // ?pitstops: your box (the minimap's dot)
   lap: { lap: number; lapTime: number; bestTime: number | null };
   notice?: HudNotice | null;
   camCount?: number; camFines?: number;   // highway speed cameras: caught, fined
