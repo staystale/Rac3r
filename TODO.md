@@ -161,7 +161,10 @@ MARK TRACK.)
      shoulder and the highway grid's columns in the road's terms; the walkthrough's STAY ON IT
      card says the RIGHT lane on a right-hand road (guide.ts). Photos tools/scratch/_cityrh-*
      (390x844, 844x390, ?keepright): our carriageway right of the median, our way's traffic
-     going up on the right; the water drawn as water over its sand (art seabed). The racers'
+     going up on the right; the water drawn as water over its sand (art seabed: only with
+     ?stockholm - every look's colours make the ground's palette, render/tilesPalette.ts, and its
+     four moved Thruston's t14 picture (renderhash, bisected c15); when Stockholm passes, the
+     palette changes on every level - renderhash saved again then). The racers'
      moving mirror and the switch-off proof run on the PC (c14). c14: the racers on their side
      only +0.32 of the time on the right-hand road (traffic +0.85; the left-hand -1.00), the runs
      apart from the first second. FOUND and FIXED (laptop, _police.mjs PART=mirror with a

@@ -4,6 +4,7 @@ import type { ArtLayer, SurfaceArt } from "../types.ts";
 import { TEX_PPM, fillTexture, paintTexture } from "../textures.ts";
 import type { GroundCtx } from "./types.ts";
 import { BUSH_LOOKS } from "./bushes.ts";
+import { FIX } from "../../core/fixes.ts";
 
 // HOW EACH SURFACE IS PAINTED: a base colour, then layers drawn in order. One table — a new
 // surface is a row here and a row in lab.ts (SURFACES) and nothing else. Read by drawFloor,
@@ -251,8 +252,11 @@ function addFieldLooks(SURFACE_ART: Record<string, SurfaceArt | null>) {
     ],
   };
   // GETAWAY STOCKHOLM's water's bed (highway/citywater.ts): sand to the tyres, seen through the
-  // water deep blue-grey (owner 11-21: sand under the water - it must still read as water)
-  SURFACE_ART.seabed = recolour('sand', '#3b5866', ['#466573', '#304b58', '#52707d']);
+  // water deep blue-grey (owner 11-21: sand under the water - it must still read as water). Only
+  // with ?stockholm: every look's colours make the ground's palette (render/tilesPalette.ts), so
+  // its four moved other colours' nearest entry on every level (renderhash thruston-t14, c15)
+  if (FIX.stockholm)
+    SURFACE_ART.seabed = recolour('sand', '#3b5866', ['#466573', '#304b58', '#52707d']);
   // long grass, ripe gold
   SURFACE_ART.wheat = recolour('grassLong', '#bf9f4e', ['#dcc074', '#9c7f38']);
   // long grass, yellow flower over green
