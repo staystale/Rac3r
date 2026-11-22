@@ -13,6 +13,63 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'spikesmooth',
+    added: '2026-11-22',
+    name: 'SPIKES PEAK: the road as true curves, hairpins too',
+    where: 'Test link + &spikespeak=1&spikesmooth=1: TEST MODE, Spikes Peak',
+    try: 'Drive the hairpins: the road edges and lines curve smoothly.',
+    wrong: 'Corners still made of straight pieces (hexagonal), a kink or a step in the road.',
+  },
+  {
+    id: 'spikemarks',
+    added: '2026-11-22',
+    name: 'SPIKES PEAK: the two-way road centre line',
+    where: 'Test link + &spikespeak=1&spikemarks=1: TEST MODE, Spikes Peak',
+    try: 'Drive it: a dashed centre line all the way up.',
+    wrong: 'No centre line, one that wanders off the middle, or dashes on the start only.',
+  },
+  {
+    id: 'spikestones',
+    added: '2026-11-22',
+    name: 'SPIKES PEAK: small stones and bits scattered beside the road',
+    where: 'Test link + &spikespeak=1&spikestones=1: TEST MODE, Spikes Peak',
+    try: 'Look at the verges and hillside as you climb.',
+    wrong: 'Stones on the road, a car stopped by a scenery stone, or a stutter.',
+  },
+  {
+    id: 'spikerocks',
+    added: '2026-11-22',
+    name: 'SPIKES PEAK: movable stones on the edges and corner insides',
+    where: 'Test link + &spikespeak=1&spikerocks=1: TEST MODE, Spikes Peak',
+    try: 'Clip the stones on hairpin insides: pebbles skip, bigger ones barely shift; now and '
+      + 'then a puncture (2 % a hit); a stone hit a few times gets driven over.',
+    wrong: 'Big stones flying off, every hit a puncture or none ever, or a stutter near them.',
+  },
+  {
+    id: 'spikescree',
+    added: '2026-11-22',
+    name: 'SPIKES PEAK: rock and scree on the steep ground',
+    where: 'Test link + &spikespeak=1&spikescree=1: TEST MODE, Spikes Peak',
+    try: 'Look at the slopes between the hairpin legs: grey scree on steep ground.',
+    wrong: 'Scree everywhere or nowhere, or on flat ground.',
+  },
+  {
+    id: 'spikeshadow',
+    added: '2026-11-22',
+    name: 'SPIKES PEAK: drop shadow below the road edge, darker valley floors',
+    where: 'Test link + &spikespeak=1&spikeshadow=1: TEST MODE, Spikes Peak',
+    try: 'Look over the edge where the ground falls away: darker the deeper.',
+    wrong: 'No change, ground above the road darkened, or patches with hard edges.',
+  },
+  {
+    id: 'spikehaze',
+    added: '2026-11-22',
+    name: 'SPIKES PEAK: height haze - ground far below paler and bluer',
+    where: 'Test link + &spikespeak=1&spikehaze=1: TEST MODE, Spikes Peak',
+    try: 'Climb the switchbacks and look down at the road below: paler and bluer.',
+    wrong: 'Haze on the road you are on, no change, or a stutter.',
+  },
+  {
     id: 'spikecap',
     added: '2026-11-22',
     name: 'Smoother busy races: a slow frame no longer makes the next ones stutter',

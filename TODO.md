@@ -556,6 +556,15 @@ STORY (Story mode with its garage, money, BUY & FIT, "buy what you last tested" 
   autopilot drives it, the hairpins at 22-32 km/h, ~56 fps (one dip to 44), the car's height
   the profile's (138.6 m at 2.7 km). NEXT: round 3, the world (drops, armco, rocks and trees by
   height, the gantry, the summit); the AI; the menu's own category.
+- SPIKES PEAK REWORK (owner on round203): BUILT (Worker C), each behind its switch under
+  ?spikespeak: ?spikesmooth - the road as true curves (Catmull-Rom points, one a 2 deg of turn:
+  5057 -> 9465 points); ?spikemarks - the two-way centre line; ?spikestones - ~1570 small rock
+  props off the road; ?spikerocks - ~106 movable stones (cones/stones.ts: 10 / 60 / 500 kg, a 2 %
+  puncture a distinct hit, the drive-over chance up by a quarter of what is left each hit, a rock's
+  share of the push and its drag: at 10 m/s a pebble 0-4 m, the boulder 2.3-6.3 m); the drops'
+  looks (render/droplooks.ts, in the hill shade): ?spikescree (slope over 0.4: ~10-13 % of the
+  ground), ?spikeshadow, ?spikehaze - MEASURED 1.0-2.8 ms a shade chunk (no work a frame; the base
+  1.0-1.7). NEXT: the ~5 km course with connecting bends (owner: not the mirrored W's).
 - A STAGE'S TYRE TRACKS (owner 11-22: from the start line for each car already through, cheap):
   BUILT behind ?stagetracks (Worker C, game/stagetracks.ts): the skid-mark layer's own wheel marks
   along the racing line with each car's own smooth wander, eased onto the line before the car (its

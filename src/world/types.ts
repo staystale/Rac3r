@@ -582,6 +582,7 @@ export interface Level {
   roadside?: (dist: number, offset: number, halfWidth: number,
     at: { x: number; y: number }) => number;
   climb?: (dist: number, x: number, y: number, outM: number) => number;   // hillground.ts
+  roadRiseAt?: (x: number, y: number) => { rise: number; outM: number } | null;   // droplooks.ts
   camber?: Camber;
   _bumpGridOf?: Bump[] | null;   // terrain.ts bumpAt: the list the grid was built from
   _bumpGrid?: Map<number, Bump[]>;   // terrain.ts bumpAt
@@ -794,7 +795,5 @@ export interface TrackKit {
 
 // A gravel trap lane (rallycross / Brands levels): a Lane plus its side (out) and lap span d0-d1.
 export interface Trap extends Lane {
-  out: number;
-  d0: number;
-  d1: number;
+  out: number; d0: number; d1: number;
 }

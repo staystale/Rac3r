@@ -36,6 +36,7 @@ export interface Loose {
   water?: number;   // a crash-cushion barrel's water left, wear cells (cones/coneCushion.ts)
   flat?: boolean;   // flattened: driven over
   _nailT?: number;   // the last time its nails had a go at a tyre
+  _stoneT?: number;   // a stone: the last time a car touched it (cones/stones.ts)
   // a tumbleweed: its breeze, m/s, the s it takes it to the road's middle, and
   // whether a gust has taken it yet
   wind?: [number, number]; lead?: number; blowing?: boolean;

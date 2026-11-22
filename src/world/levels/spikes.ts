@@ -9,11 +9,13 @@
 // start gantry and the summit), the AI, the menu.
 // WHAT IT IS MEANT TO FAIL YOU AT: the tight hairpins on a steep road, the drops at their outside.
 import { createSubtrack, ghostSegment } from '../subtrack.ts';
-import { onTrack } from '../tyrewall.ts';
+import { onTrack, querySubtrack } from '../tyrewall.ts';
 import { SURFACES } from '../surfaces.ts';
 import { hillClimbOf } from '../../highway/hillground.ts';
 import { STEP } from '../../highway/presets.ts';
 import { SPIKES_ROAD, SPIKES_RISE } from './venues/spikes.ts';
+import { spikeStones, spikeRocks } from './spikesdress.ts';
+import { FIX } from '../../core/fixes.ts';
 import type { Level, Point } from '../types.ts';
 
 // m: the road's width (the twisty road's two 3.5 m lanes and 0.6 m shoulders:
@@ -25,6 +27,40 @@ const SPIKES_ROAD_M = 8.2, SPIKES_RUNUP_M = 60, SPIKES_STOP_M = 60, SPIKES_MARGI
 const SPIKES_LAY_AHEAD_M = 300;
 // m between the points the run-up and the stop zone are laid with (the road's own spacing)
 const SPIKES_PT_M = 2;
+// (?spikesmooth; owner on round203: the corners looked "hexagonal" - the road's 2 m points, 23 deg
+// apart round a 5 m hairpin) a Catmull-Rom point between two of the road's points for each
+// SMOOTH_DEG it turns there
+const SMOOTH_RAD = 2 * Math.PI / 180;
+
+/**
+ * The road as true curves (?spikesmooth): Catmull-Rom points between two of its points, one for
+ * each SMOOTH_RAD it turns there, the rise along them in step.
+ * @param road the road's points
+ * @param rises its rise at each
+ * @returns the points and their rises
+ */
+function smoothRoad(road: Point[], rises: number[]): { road: Point[]; rises: number[] } {
+  const last = road.length - 1, out: Point[] = [road[0]], outRise = [rises[0]];
+  const head = (start: Point, end: Point) => Math.atan2(end[1] - start[1], end[0] - start[0]);
+  const turn = (one: number, two: number) => Math.abs(Math.atan2(Math.sin(two - one),
+    Math.cos(two - one)));
+  for (let i = 0; i < last; i++) {
+    const before = road[Math.max(0, i - 1)], from = road[i], next = road[i + 1],
+      after = road[Math.min(last, i + 2)];
+    const bend = Math.max(turn(head(before, from), head(from, next)),
+      turn(head(from, next), head(next, after)));
+    const parts = Math.max(1, Math.ceil(bend / SMOOTH_RAD));
+    for (let part = 1; part <= parts; part++) {
+      const share = part / parts, square = share * share, cube = square * share;
+      const along = (axis: number) => 0.5 * (2 * from[axis] + (next[axis] - before[axis]) * share
+        + (2 * before[axis] - 5 * from[axis] + 4 * next[axis] - after[axis]) * square
+        + (3 * from[axis] - before[axis] - 3 * next[axis] + after[axis]) * cube);
+      out.push([along(0), along(1)]);
+      outRise.push(rises[i] + (rises[i + 1] - rises[i]) * share);
+    }
+  }
+  return { road: out, rises: outRise };
+}
 
 /**
  * Points straight on from an end of the road, every SPIKES_PT_M.
@@ -47,17 +83,22 @@ function straightOn(from: Point, toward: Point, lengthM: number): Point[] {
  * @param stopEnd the stop zone's end, m
  * @returns m above the start at a road distance
  */
-function riseAlong(courseDists: number[], stopEnd: number): (dist: number) => number {
+function riseAlong(courseDists: number[], stopEnd: number, rises: number[]):
+  (dist: number) => number {
   const last = courseDists.length - 1, courseEnd = courseDists[last];
   return (dist) => {
     if (!(dist > 0) || dist > stopEnd) return 0;
-    if (dist >= courseEnd) return SPIKES_RISE[last];
-    // (the points are SPIKES_PT_M apart along the road: the nearest two by index, then exact)
-    let i = Math.min(last - 1, Math.floor(dist / SPIKES_PT_M));
-    while (i > 0 && courseDists[i] > dist) i--;
-    while (i < last - 1 && courseDists[i + 1] < dist) i++;
+    if (dist >= courseEnd) return rises[last];
+    // (the pair either side: a binary search - the points are closer in the curves, ?spikesmooth;
+    // a guess by index walked from there cost the drops' looks 5-12 ms a shade chunk)
+    let low = 0, high = last - 1;
+    while (low < high) {
+      const mid = (low + high + 1) >> 1;
+      if (courseDists[mid] <= dist) low = mid; else high = mid - 1;
+    }
+    const i = low;
     const span = courseDists[i + 1] - courseDists[i] || 1, share = (dist - courseDists[i]) / span;
-    return SPIKES_RISE[i] + (SPIKES_RISE[i + 1] - SPIKES_RISE[i]) * share;
+    return rises[i] + (rises[i + 1] - rises[i]) * share;
   };
 }
 
@@ -82,7 +123,9 @@ function hillRoadOf(sub: ReturnType<typeof createSubtrack>, stopEnd: number) {
  * @returns the level
  */
 export function buildSpikes(): Level {
-  const road = SPIKES_ROAD, count = road.length;
+  const { road, rises } = FIX.spikesmooth ? smoothRoad(SPIKES_ROAD, SPIKES_RISE)
+    : { road: SPIKES_ROAD, rises: SPIKES_RISE };
+  const count = road.length;
   const stop = straightOn(road[count - 1], road[count - 2], SPIKES_STOP_M);
   // (the run-up ends one point before the start line: the closing segment is the last real one)
   const runUp = straightOn(road[0], road[1], SPIKES_RUNUP_M).reverse();
@@ -103,8 +146,19 @@ export function buildSpikes(): Level {
   const spawn = onTrack(sub, sub.totalDist - 6, 0, {});
   // (the run-up's road distances run on past the ghost to the loop's end: read as before the
   // start - its rise none, and the hillside not laid out to them)
-  const hill = hillClimbOf(hillRoadOf(sub, stopEnd), riseAlong(courseDists, stopEnd),
+  const hill = hillClimbOf(hillRoadOf(sub, stopEnd), riseAlong(courseDists, stopEnd, rises),
     SPIKES_LAY_AHEAD_M);
+  // (?spikemarks: the two-way road's centre line, as the highway's twisty road: render/road.ts)
+  if (FIX.spikemarks) sub.laneDash = [0];
+  const props = FIX.spikestones ? spikeStones(sub, stopEnd) : [];
+  const rise = riseAlong(courseDists, stopEnd, rises);
+  // (the drops' looks: the nearest road's height and how far past its edge - render/droplooks.ts)
+  const roadRiseAt = (x: number, y: number) => {
+    const hit = querySubtrack(sub, x, y);
+    if (!Number.isFinite(hit.dist)) return null;
+    const dist = hit.trackDist > stopEnd ? hit.trackDist - sub.totalDist : hit.trackDist;
+    return { rise: rise(dist), outM: hit.dist - SPIKES_ROAD_M / 2 };
+  };
   return {
     id: 'spikes-peak', name: 'Spikes Peak',
     base: SURFACES.gravel,                    // the mountain's broken rock
@@ -114,8 +168,9 @@ export function buildSpikes(): Level {
     climb: (dist: number, x: number, y: number, outM: number) => hill(dist > stopEnd
       ? dist - sub.totalDist : dist, x, y, outM),
     zones: [], bumps: [], covers: [], paint: [line(0), line(finish)], boards: [], seams: false,
-    cones: [], props: [], barriers: [], solids: [], lanes: [],
-    stage: { finish },
+    cones: FIX.spikerocks ? spikeRocks(sub, finish) : [], props, barriers: [], solids: [],
+    lanes: [],
+    stage: { finish }, roadRiseAt,
     spawn: { x: spawn.x, y: spawn.y, heading: spawn.rot },
   } as Level;
 }

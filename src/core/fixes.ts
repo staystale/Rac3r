@@ -97,6 +97,17 @@ export const FIX = {
   // SPIKES PEAK, THE HILL CLIMB, round 2 (owner 11-22: its own track type, the real course at half
   // scale): the road and its climb, in TEST MODE's track lists (world/levels/spikes.ts)
   spikespeak: atLoad('spikespeak'),
+  // SPIKES PEAK'S REWORK (owner on round203), each its own switch: the road as true curves (its
+  // corners looked "hexagonal"); the two-way road's centre line; the scenery stones; the movable
+  // stones (cones/stones.ts: a 2 % puncture a hit, likelier driven over each hit); the drops' looks
+  // - scree on steep ground, a drop shadow, height haze (world/levels/spikes*.ts)
+  spikesmooth: atLoad('spikesmooth'),
+  spikemarks: atLoad('spikemarks'),
+  spikestones: atLoad('spikestones'),
+  spikerocks: atLoad('spikerocks'),
+  spikescree: atLoad('spikescree'),
+  spikeshadow: atLoad('spikeshadow'),
+  spikehaze: atLoad('spikehaze'),
   // NO CATCH-UP SPIKE (perf 1, owner 11-22): a slow frame's sim no longer catches up in one burst -
   // the steps a frame runs stop once SIM_BUDGET_MS of them is spent (2 always); the time left over
   // carries to the next frames (game/loop.ts runSimSteps)

@@ -1,4 +1,5 @@
 import type { Loose } from './coneTypes.ts';
+import { STONE_KINDS } from './stones.ts';
 import { hash2d } from '../core/random.ts';
 // cones/coneConsts.ts: the tuning constants, the roadside debris table and the tyre-stack burst
 // shared by the cone, tyre and loose-object simulation (cones.ts and the files beside this one).
@@ -158,6 +159,11 @@ export const DEBRIS: Record<string, DebrisKind> = {
   // a track rod: a thin steel bar with its ball joint
   rod:      { mass: 2,  r: 0.3, breaks: 0 },
   engine:   { mass: 140, r: 0.55, breaks: 0 },
+  // the movable stones (?spikerocks: cones/stones.ts STONE_KINDS - a pebble, a rock, a small
+  // boulder; they never break)
+  stone:    { mass: STONE_KINDS.stone.mass, r: STONE_KINDS.stone.r, breaks: 0 },
+  stonemid: { mass: STONE_KINDS.stonemid.mass, r: STONE_KINDS.stonemid.r, breaks: 0 },
+  stonebig: { mass: STONE_KINDS.stonebig.mass, r: STONE_KINDS.stonebig.r, breaks: 0 },
   // always flat: you drive over it (it drags off with you)
   tarp:     { mass: 3,  r: 0.9, breaks: 0, flat: true },
   // a torn catch fence's shreds (world/armcodent.ts): a scrap of mesh (it lands flat:
