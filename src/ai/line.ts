@@ -33,8 +33,9 @@ const K_CORNER = 0.88;
 // fraction of grip planned for braking (0.80 arrived 4 m/s hot into Sweaty Lamb's S on gravel,
 // MEASURED). ?aitune: AITUNE_K_BRAKE on every ground (owner 11-21: "push up both and let the AI
 // drivers correct"): at 0.70 a hatch began braking for Thruston's 1680 m corner 130 m early at
-// ~0.67 g (tools/scratch/_linebrake.mjs)
-const AITUNE_K_BRAKE = 0.85;
+// ~0.67 g (tools/scratch/_linebrake.mjs). 0.85 (the first try) raised the big crashes in packs on
+// the tight and loose tracks (_aibase, 4 seeds: Moanaco, Croughed RX); 0.78 the middle way
+const AITUNE_K_BRAKE = 0.78;
 export const K_BRAKE = FIX.aitune ? AITUNE_K_BRAKE : 0.70;
 // (TODO 3a2 bug 9) COMMIT OFF TARMAC - a 2WD car's corner grip planned on loose
 // ground (mu COMMIT_LOW..COMMIT_MU: gravel, grass, sand, mud, snow; not wet tarmac 0.72, not ice

@@ -263,6 +263,26 @@ async function runOne(browser, base, id, seed) {
   return out;
 }
 
+/**
+ * One run, tried again (twice at most) when the page did not load in time (a TimeoutError in
+ * gotoGame - one stopped a 16-run job at Moanaco on the PC).
+ * @param {object} browser the browser
+ * @param {string} base the server's url
+ * @param {string} id the run
+ * @param {number} seed the seed
+ * @returns {Promise<object>} the run's result
+ */
+async function runWithRetry(browser, base, id, seed) {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await runOne(browser, base, id, seed);
+    } catch (error) {
+      if (attempt >= 3 || error?.name !== 'TimeoutError') throw error;
+      console.log(`  (${id} seed ${seed}: ${error.name} - try ${attempt + 1})`);
+    }
+  }
+}
+
 /** Node side: one run's line. */
 function lineOf(id, seed, out) {
   const km = out.m / 1000, incidents = incidentsOf(out.hits);
@@ -295,7 +315,7 @@ const report = {};
 try {
   for (const id of RUN_IDS) {
     for (const seed of SEEDS) {
-      const out = await runOne(browser, server.url, id, seed);
+      const out = await runWithRetry(browser, server.url, id, seed);
       report[`${id}-${seed}`] = out;
       console.log(lineOf(id, seed, out));
       if (OUT) writeFileSync(OUT, JSON.stringify(report));
