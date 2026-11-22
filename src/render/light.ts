@@ -13,7 +13,7 @@ import { drawPools, paintPool, paintPoolTint } from './lamppools.ts';
 import type { PoolPainter } from './lamppools.ts';
 import { hazardsOn, indicatorBlinkOn, lampLevel } from './cars.ts';
 import { rigOf } from './riglamps.ts';
-import { rubCoverLamps, traceDecks } from './lightdecks.ts';
+import { darkenCovers, rubCoverLamps, traceDecks } from './lightdecks.ts';
 import { drawEventGlows } from './eventglows.ts';
 import type { EventPainter } from './eventglows.ts';
 import { BRAKE_GLOW, BRAKE_GLOW_HOT, BRAKE_GLOW_M, hotBrakes } from './brakeglow.ts';
@@ -778,6 +778,7 @@ export function createNight(parts: NightParts) {
       });
     }
     darkenCanopies(pools, darkFill, canopyCutNow(cutInput, game, pools));
+    darkenCovers(pools, darkFill);
   }
 
   const draw = (game: RenderGame, lock: NightLock) => {

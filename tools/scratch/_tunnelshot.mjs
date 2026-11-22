@@ -4,6 +4,7 @@
 // the middle, at the last slat and past the exit; at each the car's place, speed, its lights and
 // the field's, the slats / roof zones / street lights loaded, the lit lamps near; page errors.
 // [WHERE=city|moanaco] [VIEW=390x844] [TRAFFIC=1] [AI=3] [Q=&night=0.8] [TAG=] [ROAD=motorway]
+// [SEQ=10: ten frames 0.2 s apart at the middle] [HAZ=1: every car's hazards on]
 // node tools/scratch/_tunnelshot.mjs
 import { startServer, launchBrowser, gotoGame } from '../lib/browser.mjs';
 
@@ -90,9 +91,21 @@ try {
       if (done) break;
       await page.waitForTimeout(100);
     }
+    // (HAZ=1: every car's hazards on - an amber glow on a slat top shows at once)
+    if (process.env.HAZ) await page.evaluate(() => {
+      const game = window.__game;
+      for (const car of [...(game.traffic?.cars || []), ...(game.ai || []).map((e) => e.car)])
+        car.hazard = true;
+    });
     const here = await page.evaluate(`(${readHere.toString()})()`);
-    await page.screenshot({ path: `tools/scratch/_tunnel-${WHERE}${process.env.TAG || ''}-`
-      + `${NAMES[shot]}-${width}x${height}.png` });
+    // (SEQ=n at the middle: n frames 0.2 s apart, driving on - a flicker shows frame to frame)
+    const frames = shot === 1 && process.env.SEQ ? +process.env.SEQ : 1;
+    for (let frame = 0; frame < frames; frame++) {
+      if (frame) await page.waitForTimeout(200);
+      await page.screenshot({ path: `tools/scratch/_tunnel-${WHERE}${process.env.TAG || ''}-`
+        + `${NAMES[shot]}${frames > 1 ? '-f' + String(frame).padStart(2, '0') : ''}-${width}x`
+        + `${height}.png` });
+    }
     console.log(WHERE, NAMES[shot], JSON.stringify(here));
   }
   console.log(errors.length ? 'ERRORS ' + errors.slice(0, 3).join(' | ') : 'errors none');
