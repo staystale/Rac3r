@@ -78,6 +78,7 @@ const ZONE_TRIM = 0.7;
  * @param dt the step, s
  */
 function zoneStep(drv: Drv, car: AiCar, dt: number) {
+  if (!FIX.aitune && !FIX.brakepedal) return;
   const { state } = drv;
   const fall = Math.max(0, ((state.vTPrev ?? state.vT) - state.vT) / dt);
   state.zoneDecel = (state.zoneDecel ?? 0) + (Math.min(fall, 30) - (state.zoneDecel ?? 0))
@@ -87,6 +88,21 @@ function zoneStep(drv: Drv, car: AiCar, dt: number) {
   const fullDecel = (spec.brakeMaxDecel ?? 1.8) * 9.81 * torque;
   state.zoneFF = state.zoneDecel > ZONE_DECEL ? Math.min(1, state.zoneDecel / fullDecel) : 0;
   state.fullDecel = fullDecel;
+}
+
+/**
+ * ?brakepedal (without ?aitune): in a braking zone (zoneFF), not following a car, the pedal that
+ * holds the plan's fall plus the trim - else null (the brake as before).
+ * @param drv the driver (state.zoneFF)
+ * @param speed m/s
+ * @param targetSpeed m/s
+ * @param forCar a car ahead sets the target
+ * @returns the pedal, 0..1, or null
+ */
+function pedalZone(drv: Drv, speed: number, targetSpeed: number, forCar: boolean): number | null {
+  const feed = drv.state.zoneFF ?? 0;
+  if (!FIX.brakepedal || FIX.aitune || forCar || !(feed > 0)) return null;
+  return Math.max(0, Math.min(1, feed + (speed - targetSpeed) * ZONE_TRIM));
 }
 
 /**
@@ -103,6 +119,8 @@ function zoneStep(drv: Drv, car: AiCar, dt: number) {
  */
 function brakeFor(drv: Drv, speed: number, targetSpeed: number, forCar: boolean): number {
   const { state } = drv;
+  const zone = pedalZone(drv, speed, targetSpeed, forCar);
+  if (zone != null) return zone;
   const tuned = FIX.aitune && !(forCar && speed > targetSpeed + CAR_FULL);
   const copy = forCar ? (state.followDec ?? 0) / (state.fullDecel || 17.7) : 0;
   const feed = tuned ? Math.max(state.zoneFF ?? 0, copy) : 0;
@@ -153,7 +171,7 @@ export function pedalStep(drv: Drv, car: AiCar, path: AiPath, nearIdx: number,
   targetSpeed = Math.min(targetSpeed * traits.pace * push * vMul, jCap, followCap);
   state.vTPrev = state.vT;
   state.vT = targetSpeed;
-  if (FIX.aitune) zoneStep(drv, car, dt);
+  zoneStep(drv, car, dt);
   // (read only, the held traces: a car's cap is the speed I am held to, not one above my plan)
   state.capBinds = followCap <= targetSpeed + 0.01;
   // OFF ROAD / LOOSE (requirement: they still slow down like mad off road / changing surfaces): on

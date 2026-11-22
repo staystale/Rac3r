@@ -81,6 +81,14 @@ export const FIX = {
   // scale per driver type (ai/tune.ts COMMIT_BOXED: the racers, the traffic's speeders); the
   // defaults keep today's behaviour until the owner picks the lean
   gapcommit: atLoad('gapcommit'),
+  // SOFT RETURN (owner 11-22: "surely it should always be soft, so the car can go where it needs
+  // but still return to line"): every move back toward the line takes the soft rejoin's cap, also
+  // in traffic (ai/driverDrive.ts crossCap); a move out from it stays free
+  softback: atLoad('softback'),
+  // THE STEADY BRAKE PEDAL (owner 11-22, kept from ?aitune): in a braking zone the pedal holds the
+  // plan's fall (feed-forward) with a trim, no on / off dabbing - at today's braking point (K_BRAKE
+  // 0.70); following a car as before (ai/driverPedals.ts pedalZone)
+  brakepedal: atLoad('brakepedal'),
   // the GETAWAY STOCKHOLM scenery for the endless roads, step 1: its card, the city's stretches,
   // its lots of buildings behind noise walls, blue signs (highway/city.ts)
   stockholm: atLoad('stockholm'),

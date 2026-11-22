@@ -11,6 +11,7 @@ import {
   advance, placeAtStart, mistakeStep, laneStep, battleStep, racecraftStep,
 } from "./driverLane.ts";
 import type { AiCar, CarsAcc, DriveCtx } from "./types.ts";
+import { FIX } from "../core/fixes.ts";
 import { clearHeldPlan } from "./startFan.ts";
 import { rejoinCross, rejoinAim, lateralOf } from "./rejoin.ts";
 import { rejoinClear } from "./gapPick.ts";
@@ -72,6 +73,30 @@ function targetEdge(state: Drv["state"], latLim: number, onMain: boolean, lineOf
 function plannedLat(planned: number, keepMax: number, lineOff: number, hand = 1): number {
   return capLat(planned, keepMax, lineOff, hand);
 }
+
+/**
+ * ?softback: a target back toward the line (nearer it than where the car is) - the soft rejoin's
+ * cap applies even while making a move. MEASURED before (tools/scratch/_rejoinharsh.mjs): the
+ * cap applied in only 23 % of a Brands racer's time on the road and 8 % on the motorway - any car
+ * near counted as a move - and 7 % of the Brands time was a snap back (uncapped, 1.5 m+ off).
+ * @param actual m off my path now
+ * @param latT m off my path aimed at
+ * @returns soft
+ */
+const softBack = (actual: number, latT: number) => FIX.softback
+  && Math.abs(latT) < Math.abs(actual);
+
+/**
+ * The cap on the steering's error: the soft rejoin's (cross), or none while making a move - but
+ * ?softback keeps it on a move back toward the line.
+ * @param moving making a move (a car near, an attack, a cover)
+ * @param actual m off my path now
+ * @param latT m off my path aimed at
+ * @param cross the soft rejoin's cap, m
+ * @returns m
+ */
+const crossCap = (moving: boolean, actual: number, latT: number, cross: number) => (
+  moving && !softBack(actual, latT) ? Infinity : cross);
 
 /**
  * The braking of the car I follow (?aitune), when that car's cap is the one I keep - not a stopped
@@ -263,7 +288,7 @@ export function drive(drv: Drv, car: AiCar, dt = 1 / 120, ctx: DriveCtx = {}) {
   state.offT = path === main && Math.abs(lineOff + actual) > drv.line.hw
     ? (state.offT ?? -dt) + dt : -1;
   const cross = rejoinCross(drv.traits.skill, actual - latT, speed, state.offT);
-  const crossMax = moving ? Infinity : cross;
+  const crossMax = crossCap(moving, actual, latT, cross);
   const aim = rejoinAim(car, path, nearIdx, mistakes.latT, cross, lane.shape);
   const slide = steerSlideStep(drv, car, path, nearIdx, idx, speed, lineOff, latT, crossMax);
   state.steerHold = { path, nearIdx, latT, lineOff, crossMax };
