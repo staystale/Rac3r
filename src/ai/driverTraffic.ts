@@ -11,7 +11,7 @@ import {
 } from "./dodge.ts";
 import { blockOn, gapLine, seeCar } from "./gapPick.ts";
 import { traceBoxed } from "./boxedTrace.ts";
-import { hazardStep } from "./hazards.ts";
+import { hazardStep, hazardLook, hazardSlow } from "./hazards.ts";
 import { startFan } from "./startFan.ts";
 import { capRoom, withinCap } from "./driverOncoming.ts";
 import type { SeenCar } from "./gapPick.ts";
@@ -325,7 +325,8 @@ function haltedAhead(fwd: number, vAlong: number, speed: number,
   // (much slower than ME - half my speed, no 5 m/s floor: a pack rolling slowly
   // together, a formation or a queue, read each other as stranded and braked in a chain)
   const slower = vAlong < STRANDED_SHARE * speed;
-  return vAlong < STOPPED_V || (slower && vAlong < STRANDED_SHARE * read.planV);
+  return vAlong < STOPPED_V || (slower && vAlong < STRANDED_SHARE * read.planV)
+    || hazardSlow(vAlong, speed, read.planV);
 }
 /**
  * On the grid or within GETAWAY_S of my getaway (the start); also through a rolling
@@ -539,7 +540,8 @@ export function carsStep(drv: Drv, car: AiCar, others: AiCar[], path: AiPath, ne
     const { fwd, lat, vAlong } = viewOf(car, other, byRoad && !!other._hwf, state.roadHand);
     // (cars to 60 m behind too - the gap picker's mirror; ahead, read as far in time
     // as a car going my way - one coming at me at the closing speed)
-    if (fwd < -60 || fwd > 8 + readSpeed(speed, vAlong) * look || Math.abs(lat) > 8) continue;
+    if (fwd < -60 || fwd > 8 + readSpeed(speed, vAlong) * look * hazardLook(vAlong, speed)
+      || Math.abs(lat) > 8) continue;
     // its lateral place relative to MY path
     const closeIdx = closestPathIdx(drv, env, other, fwd);
     const point = path.pts[closeIdx];
