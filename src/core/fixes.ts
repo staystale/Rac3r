@@ -80,8 +80,4 @@ export const FIX = {
   // larger one for a rear-end hit and for cutting a car off): the gap picker's line score less a
   // cost for each kind of contact a line risks (ai/gapPick.ts contactCost)
   contactcost: atLoad('contactcost'),
-  // THE HILL CLIMB, step 2 (owner 11-22: Pikes Peak style, 5 km): its road - sweepers, esses,
-  // switchback clusters, short straights -, its grade, its hillside and drops (highway/hillplan.ts,
-  // hillground.ts), a scenery of the endless roads
-  hillclimb: atLoad('hillclimb'),
 };

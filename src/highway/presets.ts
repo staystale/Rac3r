@@ -1,7 +1,5 @@
 // highway presets: the road types (HW_PRESETS), the window constants and the silly signs,
 // plus the tiny wrap / rng helpers every highway file shares. Split out of highway.ts.
-import { FIX } from '../core/fixes.ts';
-import { HILL_NAME, hillRoadAt } from './hillplan.ts';
 import { lcg } from "../core/random.ts";
 import { desertRoadAt, desertWideAt } from "./desertplan.ts";
 import type { HwCfg } from "./hwtypes.ts";
@@ -92,11 +90,6 @@ export const HW_PRESETS: Record<string, HwCfg> = {
     kRate: 1.5e-4,
   },
 };
-// THE HILL CLIMB's road (?hillclimb): the single lane's cross-section, closed to traffic, its
-// shape by stretch (highway/hillplan.ts hillRoadAt), its curvature free to change fast enough for a
-// hairpin's ramp (R 14 m)
-const HILL_CFG: HwCfg = { ...HW_PRESETS.twisty, theme: 'peak', kRate: 2.5e-3,
-  stretch: hillRoadAt };
 // (owner 11-09, passed: "Canyon is the windy on coming road / Death valley is the asthetic /
 // side of road stuff / Same for motorway is the road and country side is the asthetic"): the
 // SCENERIES - the roadside and ground (HwCfg.theme) - and the ROADS, every one in each; a road's
@@ -106,8 +99,6 @@ export const HW_SCENERY: Record<string, { name: string; line: string }> = {
   canyon: { name: "DEAF VALLEY", line: "CANYONS · GORGES · DUNES" },
   // (highway/city.ts)
   stockholm: { name: "GETAWAY STOCKHOLM", line: "CITY · NOISE WALLS · PINES" },
-  // (?hillclimb: highway/hillplan.ts - one road, whichever is picked)
-  ...(FIX.hillclimb ? { peak: { name: HILL_NAME, line: "HILL CLIMB · 5 KM · SWITCHBACKS" } } : {}),
 };
 export const HW_ROADS: Record<string, { name: string; line: string }> = {
   motorway: { name: "MOTORWAY", line: "3 + 3 LANES" },
@@ -142,8 +133,7 @@ export function sceneryCfg(road: string, scenery: string): HwCfg {
   const key = road + ':' + scenery;
   let cfg = SCENERY_CFGS.get(key);
   if (!cfg) {
-    cfg = scenery === 'peak' ? HILL_CFG
-      : scenery === 'canyon' ? { ...HW_PRESETS[road], theme: 'canyon',
+    cfg = scenery === 'canyon' ? { ...HW_PRESETS[road], theme: 'canyon',
         stretch: road === 'twisty' ? desertRoadAt : desertWideAt }
       : scenery === 'stockholm' ? { ...HW_PRESETS[road], theme: 'city', rightHand: true }
         : HW_PRESETS[road];
