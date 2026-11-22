@@ -19,6 +19,8 @@
 // steering. LANES are config (HW_PRESETS): a UK motorway, a wide interstate, a skinny dual
 // carriageway — the same generator for later flavour levels.
 import { climbOf } from './highway/hillgrade.ts';
+import { hillClimbOf, hillRoadsideOf } from './highway/hillground.ts';
+import { HILL_LENGTH_M } from './highway/hillplan.ts';
 import { bayOut, bayBehind } from "./highway/laybys.ts";
 import { pruneHedges, resetHedges } from "./highway/hedges.ts";
 import { readSettings } from "./core/settings.ts";
@@ -78,7 +80,8 @@ function rebuild(level: HwLevel) {
     [],
     true,
     // Deaf Valley's ground is shaped further out (its gorges: highway/gorge.ts)
-    level._cfg.theme === 'canyon' || level._cfg.theme === 'city' ? REACH : undefined,
+    level._cfg.theme === 'canyon' || level._cfg.theme === 'city' || level._cfg.theme === 'peak'
+      ? REACH : undefined,
   );
   // the closing segment, end -> start: never road
   ghostSegment(sub, road.length - 1);
@@ -480,19 +483,26 @@ export function setHighwayPreset(level: HwLevel, preset: string, scenery?: strin
   level._cfg = sceneryCfg(pick.road, view);
   level.base = baseOf(level._cfg);
   level.roadside = roadsideOf(level, level._cfg);
-  level.climb = climbOf();
+  level.climb = climbFor(level);
   level._layout = (level._layout || 0) + 1;
 }
 // the ground off the road: the countryside's grass, Deaf Valley's desert gravel (owner 11-09:
 // "use gravel and sand for the desert not dirt")
-const baseOf = (cfg: HwCfg) => cfg.theme === 'canyon' ? SURFACES.gravel : SURFACES.grass;
+// (the hill climb's: gravel - a hairpin's inside the risky cut: highway/hillplan.ts)
+const baseOf = (cfg: HwCfg) => cfg.theme === 'canyon' || cfg.theme === 'peak' ? SURFACES.gravel
+  : SURFACES.grass;
 // the ground off the road: Deaf Valley's gorges and washes (highway/gorge.ts), else flat
 // (GETAWAY STOCKHOLM: its embankments, cuttings and tunnels - highway/cityplan.ts)
 const roadsideOf = (level: HwLevel, cfg: HwCfg) => cfg.theme === 'canyon'
   ? (dist: number, offset: number, halfWidth: number, spot: { x: number; y: number }) =>
     desertGround(dist, offset, halfWidth + bayOut(level, dist, offset < 0 ? -1 : 1), level.seed,
       spot) : cfg.theme === 'city' ? (dist: number, offset: number, halfWidth: number) =>
-    cityGround(dist, offset, halfWidth, level.seed) : undefined;
+    cityGround(dist, offset, halfWidth, level.seed) : cfg.theme === 'peak' ? hillRoadsideOf(level)
+    : undefined;
+// the ground's climb: the hill climb's (its road and hillside - highway/hillground.ts), else
+// ?hillgrade's test grade, else none
+const climbFor = (level: HwLevel) => level._cfg?.theme === 'peak'
+  ? hillClimbOf(level, SPAWN_S + HILL_LENGTH_M) : climbOf();
 const settings = readSettings(typeof location !== 'undefined' ? location.search : '');
 const QUERY_PRESET = typeof location !== 'undefined' ? settings.highwayDebug : null;
 export function createHighway(seed: number = 4242, preset: string = 'motorway') {
@@ -526,7 +536,7 @@ export function createHighway(seed: number = 4242, preset: string = 'motorway') 
     spawn: { x: 0, y: 0, heading: 0 },
   } as unknown as HwLevel;   // its road state (_hw) is built by resetHighway just below
   level.roadside = roadsideOf(level, level._cfg);
-  level.climb = climbOf();
+  level.climb = climbFor(level);
   resetHighway(level);
   return level;
 }

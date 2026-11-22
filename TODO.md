@@ -516,6 +516,15 @@ after measuring today's chances (Q8).
   BRAKES / cowl flaps, aero parts as upgrades; roadmap G).
 
 STORY (Story mode with its garage, money, BUY & FIT, "buy what you last tested" with tick / untick):
+- SPIKES PEAK, THE E36's HILL CLIMB (owner 11-22: Pikes Peak style, 5 km, a real 7 % / 10 %
+  climb, 3-5 hairpins a cluster, drops at the outside edges, barriers only at the worst corners,
+  alone; the name SPIKES PEAK; snow near the summit later): BUILT behind ?hillclimb (Worker C;
+  highway/hillplan.ts, hillground.ts, road.ts clusters, dress.ts dressPeak; ?hillgrade the grade
+  alone). MEASURED (3 seeds): 8-11 hairpins in 6 km (least R 14.3-17.3 m), the 5 km rise 7.0-7.4 %,
+  grades read back 5 / 6 / 10 / 5 %, the hillside between legs no slope past 0.75 (worst
+  0.56-0.62), drops only on bends' outsides, props and armco never on the road; the E36's race
+  driver 171.6-209.4 s, off the road at hairpins' insides (0.0-0.8 m). AWAITING THE PHONE TEST.
+  Later: snow near the summit (the weather system), the ghost, the start gantry.
 - [ ] STORY MODE: ROOKIE SEASON (grass track, stock car, time trials: hillclimb / runway cones) ->
   ROOKIE 2 (similar events, track variations, harder to win); we pick the events; money / points
   also for NOT finishing top 3; replayable events / championships for more money (finish 5th,

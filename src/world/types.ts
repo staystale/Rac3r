@@ -581,7 +581,7 @@ export interface Level {
   _roofs?: Zone[];   // the zones under a roof (Zone.roof: world/wear.ts roofed), the endless road's
   roadside?: (dist: number, offset: number, halfWidth: number,
     at: { x: number; y: number }) => number;
-  climb?: (dist: number) => number;   // m risen at a road distance (highway/hillgrade.ts)
+  climb?: (dist: number, x: number, y: number, outM: number) => number;   // hillground.ts
   camber?: Camber;
   _bumpGridOf?: Bump[] | null;   // terrain.ts bumpAt: the list the grid was built from
   _bumpGrid?: Map<number, Bump[]>;   // terrain.ts bumpAt

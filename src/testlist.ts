@@ -31,4 +31,14 @@ export const TEST_LIST: TestEntry[] = [
     wrong: 'Rolling into the bend, cab and trailer apart after a gentle tip or on different '
       + 'faces, a wheel drawn off it, or RESET leaving either on its side.',
   },
+  {
+    id: 'hillclimb',
+    added: '2026-11-22',
+    name: 'SPIKES PEAK: the E36 hill climb - 5 km, switchbacks, drops, the summit the finish',
+    where: 'Test link + &hillclimb=1: TEST MODE > ENDLESS ROADS > SPIKES PEAK, the BMV E36 Peak',
+    try: 'Climb to the summit flag against the clock; cut a hairpin over its gravel; go off a '
+      + 'bend\'s outside edge.',
+    wrong: 'A wall or step in the ground, the road not climbing, a drop on a bend\'s inside, a '
+      + 'prop or armco on the road, or no finish at the summit.',
+  },
 ];

@@ -14,6 +14,7 @@ import { dressCanyon } from "./canyon.ts";
 import { layCityLots } from "./city.ts";
 import { layCityWater, layTunnelSlats } from "./citywater.ts";
 import { cityStretchAt, cityWallAt } from "./cityplan.ts";
+import { hillWallOf } from "./hillground.ts";
 import { medianAt } from "./medians.ts";
 import { layCushions, markBarriers, noteMedianPiece } from "./cushions.ts";
 import type { LevelObj } from '../cones/coneTypes.ts';
@@ -142,6 +143,38 @@ function layRoadsideTrees(ctx: DressCtx, i: number, dist: number, biomeName: str
         );
     }
   }
+}
+
+// a hill climb's marshal post: on a hairpin's outside (its curvature past this, 1/m), m past the
+// edge, one in each MARSHAL_EVERY_M of road at most
+const MARSHAL_K = 1 / 24, MARSHAL_OUT_M = 9, MARSHAL_EVERY_M = 200;
+
+/**
+ * THE HILL CLIMB's dressing (?hillclimb: highway/hillplan.ts; existing props only): the rocky
+ * hillside's sparse trees and rocks (layRoadsideTrees 'rocky'), a marshal post on the outside
+ * of a hairpin now and then, the armco at the worst corners (layWalls: hillground.ts hillWallOf).
+ * @param ctx the dress context
+ */
+function dressPeak(ctx: DressCtx) {
+  const { level, road, firstIdx, endIdx, pointAt, clear, halfWidth } = ctx;
+  for (let i = firstIdx; i < endIdx; i++) {
+    const dist = road[i].s, mark = ((obj: { _s?: number }) => {
+      obj._s = dist;
+      return obj;
+    }) as unknown as Stamp;
+    layRoadsideTrees(ctx, i, dist, 'rocky', mark);
+    if (i < 1 || i + 1 >= road.length || dist % MARSHAL_EVERY_M >= STEP) continue;
+    const before = Math.atan2(road[i].y - road[i - 1].y, road[i].x - road[i - 1].x),
+      after = Math.atan2(road[i + 1].y - road[i].y, road[i + 1].x - road[i].x),
+      curv = Math.atan2(Math.sin(after - before), Math.cos(after - before)) / STEP;
+    if (Math.abs(curv) < MARSHAL_K) continue;
+    // (the outside: away from the turn - dress.ts pointAt: + the side a positive curvature turns
+    // toward)
+    const pos = pointAt(i, -Math.sign(curv) * (halfWidth + MARSHAL_OUT_M));
+    if (clear(pos.x, pos.y, 4))
+      level.props.push(mark({ kind: 'marshal', x: pos.x, y: pos.y, rot: pos.rot }));
+  }
+  layWalls(ctx);
 }
 
 /**
@@ -309,14 +342,14 @@ function layWalls(ctx: DressCtx) {
   // (the walled road's wall all along; GETAWAY STOCKHOLM's by stretch - highway/cityplan.ts)
   const wallAt: WallRule | null = cfg.walls ? () => ({ kind: cfg.walls as BarrierKind,
     gap: cfg.wallGap || 0 }) : cfg.theme === 'city' ? (dist) => cityWallAt(dist, level._hw.seed)
-    : null;
+    : cfg.theme === 'peak' ? hillWallOf(level) : null;
   if (wallAt)
     for (let startIdx = Math.max(0, firstIdx - 1); startIdx < endIdx; startIdx += 30)
       for (const side of [-1, 1]) layWallPiece(ctx, wallAt, startIdx, side);
 }
 
-/** The wall along the road's edges at a road distance: its kind and m off the edge, or none. */
-type WallRule = (dist: number) => { kind: BarrierKind; gap: number } | null;
+/** The wall along a side of the road at a road distance: its kind and m off the edge, or none. */
+type WallRule = (dist: number, side: number) => { kind: BarrierKind; gap: number } | null;
 
 /**
  * One ~120 m piece of the walls on one side (layWalls), a new one where the kind changes.
@@ -339,7 +372,7 @@ function layWallPiece(ctx: DressCtx, wallAt: WallRule, startIdx: number, side: n
         // wall across every services' way in)
         const lastIdx = Math.min(road.length - 1, endIdx - 1, startIdx + 30);
         for (let j = startIdx; j <= lastIdx; j++) {
-          const wall = wallAt(road[j].s);
+          const wall = wallAt(road[j].s, side);
           if (!wall || wall.kind !== kind) {
             flush();
             kind = wall ? wall.kind : null;
@@ -453,6 +486,11 @@ function dressStretch(level: HwLevel, firstIdx: number, endIdx: number, loose: L
   const ctx = makeDressContext(level, firstIdx, endIdx, loose);
   // (the barriers this stretch lays are read for their ends)
   markBarriers(ctx);
+  // (the hill climb: a closed mountain road - only its barriers at the worst corners for now)
+  if (level._cfg.theme === 'peak') {
+    dressPeak(ctx);
+    return;
+  }
   // (the lay-bys first - the scenery keeps off them)
   layLaybys(ctx);
   // a themed road dresses its own way (Deaf Valley: highway/canyon.ts)

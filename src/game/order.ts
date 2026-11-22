@@ -1,5 +1,7 @@
 // order.ts — The start lights, the rolling start, track cuts and the race order.
 import { finishOf } from '../highway/finish.ts';
+import type { HwFinish } from '../highway/finish.ts';
+import { HILL_LENGTH_M } from '../highway/hillplan.ts';
 import { reset, PHYSICS_STEP_SECONDS } from '../vehicle.ts';
 import { createAutoDriver } from '../ai/autodrive.ts';
 import { HW_GREEN, hwSlot } from '../highwayrace.ts';
@@ -34,6 +36,15 @@ export const START_STEP = 1.0, START_EARLY = 0.12, ROLL_PACE = 16, ROLL_BACK = 1
 // 7.7 s at the old 0.55), and the throttle each car may use to hold it
 const ROLL_ACCEL = 2.5, ROLL_HOLD_THROTTLE = 1;
 
+
+/**
+ * The endless road's finish this run: the setup's (highway/finish.ts), but the hill climb's is
+ * its summit, HILL_LENGTH_M from the start (?hillclimb: highway/hillplan.ts).
+ * @returns the finish, or null (endless)
+ */
+export const hwFinishNow = (): HwFinish | null => (LEVEL.endless
+  && hwLevel()._cfg.theme === 'peak' ? { m: HILL_LENGTH_M } : finishOf(shared.hwFinish));
+
 /**
  * The formation's pace now: rising at ROLL_ACCEL from the start's clock to ROLL_PACE.
  * @returns m/s
@@ -46,7 +57,7 @@ export function armStart() {
   // (a highway run with a finish starts behind the lights solo too - its clock
   // from the green)
   const active = shared.mode !== 'menu' && (shared.race.on || shared.aiCount > 0
-    || (!!LEVEL.endless && !!finishOf(shared.hwFinish))),
+    || (!!LEVEL.endless && !!hwFinishNow())),
     isRolling = active && (!!LEVEL.rollingStart || !!LEVEL.endless) && !!LEVEL.subtrack;
   game.start = { on: active, t: 0, tGreen: isRolling ? Infinity : 4 * START_STEP,
     tGreen0: isRolling ? undefined : 4 * START_STEP, rolling: isRolling, green: !active };
