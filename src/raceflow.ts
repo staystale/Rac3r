@@ -29,6 +29,7 @@ export interface FlowCar {
   _jokers?: number; _cutPen?: number;   // jokers taken; track-cut seconds (RX)
   _prog?: number;   // race progress, m (the grid sits at negative progress)
   _stageStart?: number | null;   // a stage car's start time
+  _stageTime?: number;   // a stage car home before your green: its time (game/grid.ts)
   _predT?: number;   // a stage car's predicted time (main.ts lineRun)
 }
 /** One racer's running record. */
@@ -255,14 +256,30 @@ function endRace(state: FlowState) {
   flow.results = rows;
 }
 
+/**
+ * A stage car home before your green (?stagedone: game/grid.ts spawnAI): finished at its start
+ * plus its time, its time its result.
+ * @param stage the stage, or null
+ * @param entry the new entry
+ * @returns the entry
+ */
+function homeBefore(stage: { finish: number } | null, entry: FlowEntry): FlowEntry {
+  const time = entry.car._stageTime;
+  if (!stage || time == null || entry.start == null) return entry;
+  entry.finish = entry.start + time;
+  entry.time = time;
+  entry.lapDone = 1;
+  return entry;
+}
+
 // cars: [{ car, player }]; total: lap length (m); laps; joker: LEVEL.joker or null
 export function createRaceFlow({ cars, total, laps, joker = null, stage = null }: {
   cars: { car: FlowCar; player?: boolean }[]; total: number; laps: number;
   joker?: JokerRule | null; stage?: { finish: number } | null;
 }): RaceFlow {
-  const entries: FlowEntry[] = cars.map(({ car, player }) =>
-    ({ car, player: !!player, lapDone: 0, lapT0: 0, laps: [], best: null, finish: null,
-    start: stage && car._stageStart != null ? car._stageStart : null }));
+  const entries: FlowEntry[] = cars.map(({ car, player }) => homeBefore(stage,
+    { car, player: !!player, lapDone: 0, lapT0: 0, laps: [], best: null, finish: null,
+      start: stage && car._stageStart != null ? car._stageStart : null }));
   const flow = { state: 'racing', t: 0, laps, entries: entries, flags: [], endT: null,
     results: null, graceT: null, firstHome: null } as unknown as RaceFlow;   // step / end below
   // shared by the step functions: the flow object and the race setup

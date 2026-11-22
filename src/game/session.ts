@@ -341,7 +341,8 @@ export function buildFlow() {
   }
   if (LEVEL.stage) {
     return createRaceFlow({ cars: [{ car: game.car, player: true },
-      ...game.ai.map((entry) => ({ car: entry.car }))], total: LEVEL.subtrack!.totalDist, laps: 1,
+      ...game.ai.map((entry) => ({ car: entry.car })),
+      ...(game.aiDone || []).map((car) => ({ car }))], total: LEVEL.subtrack!.totalDist, laps: 1,
         stage: { finish: LEVEL.stage.finish } });
   }
   // (a split start's: 1, the Race of Champions' one timed lap)

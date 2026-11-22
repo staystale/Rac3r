@@ -15,6 +15,7 @@ import { splitLineDist } from "../world/splitstart.ts";
 import { onTrack, querySubtrack } from "../world/tyrewall.ts";
 import { START_STEP, ROLL_BACK } from './order.ts';
 import { shared, game } from './state.ts';
+import { FIX } from '../core/fixes.ts';
 import type { GameCar } from './state.ts';
 import type { Point } from '../world/types.ts';
 import { isTowing, layGridByLength, playerSlot, slotBackM } from './gridlen.ts';
@@ -227,6 +228,7 @@ function aiNumbers(count: number, seed: number) {
 }
 export function spawnAI(count: number = shared.aiCount) {
   game.ai = [];
+  game.aiDone = [];
   game.poleCar = null;
   const sub = LEVEL.subtrack!;
   layGridByLength({ front: 0, rear: 0 }, [], 0, GRID_STEP);
@@ -261,8 +263,16 @@ export function spawnAI(count: number = shared.aiCount) {
       const rel = slot - shared.gridSlot;
       car._slot = rel;
       car._predT = lineRun(LEVEL, car.spec, drv.traits.pace, Infinity, LEVEL.stage.finish).t;
+      const headS = -rel * STAGE_GAP_S - 4 * START_STEP;
+      if (rel < 0 && FIX.stagedone && car._predT <= headS) {
+        // home before your green: not on the road, its predicted time its result
+        car._stageStart = rel * STAGE_GAP_S;
+        car._stageTime = car._predT;
+        game.aiDone.push(car);
+        continue;
+      }
       if (rel < 0) {
-        const run = lineRun(LEVEL, car.spec, drv.traits.pace, -rel * STAGE_GAP_S - 4 * START_STEP);
+        const run = lineRun(LEVEL, car.spec, drv.traits.pace, headS);
         reset(car, run.x, run.y, run.h);
         car.vx = Math.cos(run.h) * run.v;
         car.vy = Math.sin(run.h) * run.v;

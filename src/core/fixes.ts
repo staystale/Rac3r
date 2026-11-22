@@ -84,4 +84,9 @@ export const FIX = {
   // GO ROUND WIDER (owner 11-22): the gap picker reads a stopped or much slower car 1 m wider -
   // its line past one that much further off (ai/driverTraffic.ts pushSeen)
   passwide: atLoad('passwide'),
+  // A STAGE CAR ALREADY HOME (owner 11-22, fix (a)): a car that started so far ahead of you that
+  // its predicted run is over before your green is not on the road - it is home, its predicted
+  // time its result, like a real rally (game/grid.ts spawnAI; it was placed past the finish, or
+  // round the racing line back at the start line with its old start time)
+  stagedone: atLoad('stagedone'),
 };

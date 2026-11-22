@@ -17,6 +17,15 @@ lighting, bushes and trees - OWNER LIST 10-24; the checking tools - Tools that a
 
 
 
+## PASSED 11-22, RALLY STAGES HAVE NO LAPS (owner: stagenolaps passed)
+
+Owner 11-22: "Single rally stages shouldn't have laps either." As built (round196, Worker C;
+menu/setup.ts isStage - level.stage or level.gen): no LAPS row VS AI on a set or generated
+stage, a stage launched as one run (the race flow ran one anyway: game/session.ts laps 1). The
+stage HUD already read STAGE / clock / BEST, unchanged. MEASURED (tools/scratch/_stagesetup.mjs,
+the real menu by taps, 390x844 and 844x390): before, "3 LAPS" on Sweaty Lamb and the generator's
+stage; after, none; Thruston's still shown.
+
 ## PASSED 11-22, THE AI TUNE: SHARED HAZARDS, SOFT RETURN, STEADY PEDAL, HIGHWAY GAP PICKER, REVERSE WHEN STUCK (owner: passed on round186 and round190)
 
 The default 11-22, their switches deleted:
