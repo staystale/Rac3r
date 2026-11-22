@@ -313,6 +313,11 @@ const racePts = pieces.flatMap((piece) => (piece.road ? alongEvery(piece.raw, RE
   : piece.raw.filter((point, i) => i % 4 === 0)));
 const reachSq = (config.reachM || 1e9) ** 2;
 const inReach = ([x, y]) => racePts.some(([px, py]) => (px - x) ** 2 + (py - y) ** 2 <= reachSq);
+// "joinPits": { "<name>": [way ids in order] } - a pit lane the map draws as several ways, written as
+// one lane of that name (Le Mans' 24-hour pit lane: three ways along the start straight)
+const joinOf = new Map(Object.entries(config.joinPits || {}).flatMap(([name, ids]) =>
+  ids.map((id) => [String(id), name])));
+const joined = new Map();
 for (const way of ways) {
   const tags = way.tags || {}, pts = way.geometry.map(toGame);
   if (!pts.some(inClip) || !pts.some(inReach)) continue;
@@ -323,7 +328,8 @@ for (const way of ways) {
   if (config.parks && closed(way) && (['park', 'garden'].includes(tags.leisure)
     || ['grass', 'forest'].includes(tags.landuse) || tags.natural === 'wood'))
     out.parks.push({ name: tags.name || '', pts: line(1) });
-  if (tags.highway === 'raceway' && /Pit Lane/i.test(tags.name || ''))
+  if (tags.highway === 'raceway' && joinOf.has(String(way.id))) joined.set(String(way.id), pts);
+  else if (tags.highway === 'raceway' && /Pit Lane/i.test(tags.name || ''))
     out.pitLanes.push({ name: config.names?.[way.id] || tags.name, pts: line(0.25) });
   else if (tags.highway === 'raceway' && /kart/.test(tags.sport || '')) out.karting.push({ pts: line(0.3) });
   else if (tags.highway === 'raceway' && dirtIds.has(String(way.id)))
@@ -380,6 +386,14 @@ for (const way of ways) {
   else if (tags.natural === 'water' && closed(way)) out.water.push({ name: tags.name || '', pts: line(1) });
   // hedgerows and tree rows: the trees along the field edges
   else if (tags.barrier === 'hedge' || tags.natural === 'tree_row') out.rows.push({ pts: line(2) });
+}
+
+// the joined pit lanes, their ways end to end (each joint once)
+for (const [name, ids] of Object.entries(config.joinPits || {})) {
+  const parts = ids.map((id) => joined.get(String(id))).filter(Boolean);
+  if (!parts.length) continue;
+  const pts = parts.flatMap((part, i) => (i ? part.slice(1) : part));
+  out.pitLanes.push({ name, pts: cleanLine(pts, 0.25) });
 }
 
 // the mapped single trees, nearest the race roads first

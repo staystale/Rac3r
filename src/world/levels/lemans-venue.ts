@@ -9,11 +9,13 @@
 // Checked against Wikipedia (13.626 km; the OSM lap reads 13627 m) and aerial photographs (ESRI
 // World Imagery). SIMPLE: the lap, its barriers (the walls and fences OSM maps beside the track,
 // followed as rails), the woods at the venues' usual tree count and a grid on the start straight
-// - no pit lane, no roads, buildings, stands or car parks (tools/venues/lemans.json leaveOut), no
-// Bugatti circuit. EU-DEM heights (25 m) fitted as 25 hills (rms 0.8 real m on the lap): 44 m at
-// the Virage du Karting up to 83 m at the Dunlop bridge. North up, the lap clockwise.
+// - no pit lane (?pitstops: the 24-hour pit lane), no roads, buildings, stands or car parks
+// (tools/venues/lemans.json leaveOut), no Bugatti circuit. EU-DEM heights (25 m) fitted as 25
+// hills (rms 0.8 real m on the lap): 44 m at the Virage du Karting up to 83 m at the Dunlop bridge.
+// North up, the lap clockwise.
 import { LEMANS_VENUE } from "./venues/lemans.ts";
 import { venueLap, venueLevel } from "../venue.ts";
+import { FIX } from "../../core/fixes.ts";
 import type { VenueSpec } from "../venue.ts";
 import type { Level } from "../types.ts";
 
@@ -30,6 +32,9 @@ export const LEMANS_SPEC: VenueSpec = {
   // the start / finish line half way along the pit lane, on the start straight
   start: [-1350, -1480],
   startOnLine: true,
+  // ?pitstops: the 24-hour pit lane along the start straight (tools/venues/lemans.json joinPits:
+  // the map's three ways as one lane)
+  pitLane: FIX.pitstops ? '24 Hours pit lane' : undefined,
   // m (game): Mulsanne corner, Arnage and the chicanes are tighter than the venue's least radius
   minR: 10,
   // real m (scaled with the map): EU-DEM 25 m fitted (rms 0.8 m on the lap, 1.0 m within 400 m)

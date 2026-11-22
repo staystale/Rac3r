@@ -269,8 +269,7 @@
     "buildings",
     "paddocks",
     "homes",
-    "aero",
-    "pitLanes"
+    "aero"
   ],
   "names": {
     "25245509": "Ligne droite des Hunaudières b",
@@ -333,5 +332,12 @@
       ],
       "avoid": []
     }
+  },
+  "joinPits": {
+    "24 Hours pit lane": [
+      354149765,
+      777192900,
+      777192901
+    ]
   }
 }

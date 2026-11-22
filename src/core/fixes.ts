@@ -99,4 +99,8 @@ export const FIX = {
   // see-through car that is only drawn; a GHOST switch on the setup (on solo, off VS AI); the
   // fastest laps listed in SETTINGS > ACCOLADES (game/ghostcar.ts, ghostrun.ts, menu/accolades.ts)
   ghost: atLoad('ghost'),
+  // PIT STOPS (owner 11-15 / 11-22, TODO 16), step 4: Le Manky's 24-hour pit lane from the map
+  // data, laid as every venue's (world/venuepit.ts: the lane, its wall, lines and garages); no
+  // stops yet
+  pitstops: atLoad('pitstops'),
 };
