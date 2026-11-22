@@ -13,14 +13,6 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
-    id: 'spikecap',
-    added: '2026-11-22',
-    name: 'Smoother busy races: a slow frame no longer makes the next ones stutter',
-    where: 'Test link + &spikecap=1: Moanaco (or any circuit) with a full F1 field',
-    try: 'Race in the pack for a few laps: fewer hitches, the LOW fps figure higher.',
-    wrong: 'Cars or the race clock visibly slowing down, or a stutter right after a hitch.',
-  },
-  {
     id: 'nojump',
     added: '2026-11-22',
     name: 'No early starts anywhere: every car, you and the AI, held until the green',

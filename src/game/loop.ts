@@ -11,7 +11,6 @@ import { stepOil } from "../world/oil.ts";
 import { stepCoverField } from "../world/coverfield.ts";
 import { stepStage, stepJoker, stepRace } from './rules.ts';
 import { stepStart } from './order.ts';
-import { FIX } from '../core/fixes.ts';
 import { stepAI } from './ai.ts';
 import { updateRecoveryTracking } from './session.ts';
 import { stepGhost } from './ghostrun.ts';
@@ -40,8 +39,8 @@ import type { ReportFrame } from '../ui/report.ts';
 // worst 1.4 m at 200 km/h). wallDt is already capped at 0.1 s (12 steps), so this cannot become the
 // "background tab lurch" the cap was guarding against.
 export const MAX_STEPS = 12;                // per frame; drop the rest
-// ?spikecap: ms of sim steps a frame runs before the rest of its time carries to the next frames
-// (MEASURED tools/scratch/_perfspikes.mjs, Moanaco with 19 AI on the laptop: the frames over 33 ms
+// NO CATCH-UP SPIKE (passed 11-22): ms of sim steps a frame runs before the rest of its time
+// carries to the next frames (MEASURED tools/scratch/_perfspikes.mjs, Moanaco with 19 AI on the laptop: the frames over 33 ms
 // ran 5.3 steps on average (2.1 the rest) - a slow frame owed more steps, so the next was slow
 // too: the catch-up spiral, p99 70-89 ms), the steps always run however slow, and the most time
 // carried (s): more is dropped as before
@@ -151,7 +150,7 @@ export function stepWorld(inp: CarInput) {
 }
 
 /**
- * Whether the frame runs another sim step: time owed, under MAX_STEPS, and (?spikecap) under the
+ * Whether the frame runs another sim step: time owed, under MAX_STEPS, and under the
  * sim's budget once SIM_MIN_STEPS have run.
  * @param steps the steps run this frame
  * @param simT0 performance.now when they began
@@ -159,7 +158,7 @@ export function stepWorld(inp: CarInput) {
  */
 const mayStep = (steps: number, simT0: number) => shared.acc >= PHYSICS_STEP_SECONDS
   && steps < MAX_STEPS
-  && !(FIX.spikecap && steps >= SIM_MIN_STEPS && performance.now() - simT0 > SIM_BUDGET_MS);
+  && !(steps >= SIM_MIN_STEPS && performance.now() - simT0 > SIM_BUDGET_MS);
 
 /** One animation frame's timings (ms; wallDt in s). */
 export interface Frame { now: number; wallDt: number; frameMs: number; meterSim: number }
@@ -194,8 +193,8 @@ export function runSimSteps(inp: CarInput, wallDt: number) {
     game.simMs = (game.simMs || 0) * 0.9 + (performance.now() - simT0) * 0.1;
     if (shared.meter) meterSim = performance.now() - simT0;
     if (steps >= MAX_STEPS) shared.acc = 0;      // fell behind: drop it, never catch up in a lurch
-    // (?spikecap: what is carried, at most CARRY_MAX_S)
-    if (FIX.spikecap) shared.acc = Math.min(shared.acc, CARRY_MAX_S);
+    // (what is carried, at most CARRY_MAX_S)
+    shared.acc = Math.min(shared.acc, CARRY_MAX_S);
     game.stepsLastFrame = steps;
     game.car.brakeLight = inp.brake;
     // the handbrake, for its rear brakes' heat (render/brakeglow.ts)

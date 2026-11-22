@@ -32,7 +32,7 @@
 // blighty, flagfix, trailer, boxhold and gridlen passed 11-21; rollgreen and hwfan passed 11-21;
 // hazard, softback, brakepedal, gapdest and revstuck passed 11-22, aitune, gapcommit and
 // contactcost dropped; passearly, passwide, trailroll, revroom, stagedone and ghost passed 11-22;
-// stagetimes, stagepos and stagehold passed 11-22.)
+// stagetimes, stagepos and stagehold passed 11-22; spikecap passed 11-22.)
 import { envValue } from './debug.ts';
 
 /**
@@ -97,8 +97,4 @@ export const FIX = {
   // SPIKES PEAK, THE HILL CLIMB, round 2 (owner 11-22: its own track type, the real course at half
   // scale): the road and its climb, in TEST MODE's track lists (world/levels/spikes.ts)
   spikespeak: atLoad('spikespeak'),
-  // NO CATCH-UP SPIKE (perf 1, owner 11-22): a slow frame's sim no longer catches up in one burst -
-  // the steps a frame runs stop once SIM_BUDGET_MS of them is spent (2 always); the time left over
-  // carries to the next frames (game/loop.ts runSimSteps)
-  spikecap: atLoad('spikecap'),
 };
