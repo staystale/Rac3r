@@ -17,6 +17,43 @@ lighting, bushes and trees - OWNER LIST 10-24; the checking tools - Tools that a
 
 
 
+## PASSED 11-22, THE AI TUNE: SHARED HAZARDS, SOFT RETURN, STEADY PEDAL, HIGHWAY GAP PICKER (owner: passed on round186, "minus this reverse fix")
+
+The default 11-22, their switches deleted:
+- SHARED HAZARD AWARENESS (?hazard, tuned: 01dbf8ee, 183be3d4; ai/hazards.ts): the first driver to
+  go round a stopped or crawling car sets the side for the field (the other side read as taken); a
+  car beside a driver going round moves over to make room; a car under 0.6 of my plan and 5 m/s
+  slower than me is a hazard, a much slower one read 1.5x further; per hazard N stopped cars (40 m
+  along, 8 m across) - gone round from 60 m + 30 m a car (at most 150 m), 0.6 m x N wider, a lift
+  at 9 / N m/s2; never cutting back across a car passed on the other side; no speed cap of its own
+  (the stopped-car brake stops it short only when it cannot get across). MEASURED before
+  (tools/scratch/_pileups.mjs, round182, Brands / Spa): 11 of 13 / 11 of 17 touches into a stopped
+  car by a driver who had judged it stopped, each going its own way round; the pack squeezed past at
+  a median 12 km/h. Owner 11-22 on round185 "OK, better", round186 "OK, better", passed.
+- THE SOFT RETURN (?softback, 2432e649; ai/driverDrive.ts crossCap, softBack): every move back
+  toward the line takes the soft rejoin's cap, also in traffic; a move out stays free. MEASURED
+  (tools/scratch/_rejoinharsh.mjs, round182, Brands, seed 1, 90 s): the cap applied 23 -> 56 % of a
+  racer's time on the road, snaps back (uncapped, 1.5 m+ off) 6.8 -> 3.7 %.
+- THE STEADY BRAKE PEDAL (?brakepedal, 2432e649; ai/driverPedals.ts zoneStep, pedalZone): in a
+  braking zone, not following a car, the brake holds the plan's fall (feed-forward) plus a trim of
+  0.7 a m/s over the plan - no on / off dabbing - at the usual braking point (K_BRAKE 0.70).
+- THE GAP PICKER ON THE HIGHWAY (?gapdest, F1, 7dd5f467, 87c01811; ai/gapPick.ts destOn): on a line
+  with lanes (the highway's) a line more than one swerve across is scored by its own room ahead.
+  MEASURED (PC, tools/scratch/_aibase.mjs, 4 seeds, 20 cars, 240 s): the motorway racers 110.9 ->
+  122.1 km/h, braking for traffic 838 -> 505 car-s, held behind traffic 64 -> 39 %, incidents 18 ->
+  20; on the circuits it raised the incidents (Brands 129 -> 151, Moanaco 112 -> 128, Croughed RX
+  91 -> 118), so highway only (owner 11-21: "only if we have to, ideally 1 AI").
+
+DROPPED 11-22 (owner), their code removed:
+- ?aitune (the AI tune plan, TODO item 9): K_BRAKE 0.85, 0.78 and 0.70 with the follower copying
+  the leader's braking, faster reading (READ_WEAK 0.8, READ_S 0.05, GAP_LOOK_WEAK 3.2), closer
+  running (2.2 m side by side, 0.45 m going round) and the (a) / (b) variants - every one above off
+  on the tight and loose tracks (tools/scratch/_aibase.mjs, PC, 4 seeds; off round178, incidents /
+  big / pile-ups: Brands 129 / 26 / 22, Moanaco 112 / 28 / 20, Croughed RX 91 / 15 / 11, motorway
+  29 / 13 / 0). Only its steady pedal kept (above).
+- ?gapcommit (F2, the keep-the-line bonus while boxed, a sliding scale per driver type - ai/tune.ts
+  COMMIT_BOXED, the tools' COMMIT_RACER / COMMIT_SPEEDER dials): worse on every track measured.
+
 ## PASSED 11-21, THE ROLLING GREEN AND THE HIGHWAY FAN (owner: "Starts are good")
 
 The default 11-21, their switches deleted:

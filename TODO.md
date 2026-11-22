@@ -67,6 +67,10 @@ MARK TRACK.)
      dabbing stays; followers copy the leader's braking but still race; pile-ups by better dodging
      (faster reactions / prediction), NOT lower aggression; close-running clearance; the "why held"
      trace on the highway AND circuits. ONE BASE AI, highway-only tweaks only where essential.
+     PASSED 11-22, the default (TODO-DONE, PASSED 11-22, THE AI TUNE): shared hazard awareness, the
+     soft return, the steady brake pedal, the gap picker on the highway; ?aitune and ?gapcommit
+     dropped. OPEN: ?revstuck (the reverse only when truly stuck); next the slider sweep (light: 4
+     levels x 4 seeds) and contact costs by kind in the gap picker (own switch).
   10. ROLLING STARTS: after the GREEN the cars still move a bit uniform, as a block - each should
      race its own line from the green (owner 11-21: b). PASSED 11-21, the default (TODO-DONE,
      PASSED 11-21, THE ROLLING GREEN AND THE HIGHWAY FAN): each AI's own reaction at the green, a

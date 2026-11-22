@@ -10,11 +10,10 @@
 // so it swerves smaller and smoother -, and when the swerve cannot be made in
 // time at this speed it brakes until it can. All cheap: a little arithmetic per car near it.
 import type { AiCar } from './types.ts';
-import { FIX } from '../core/fixes.ts';
 
 // s more of travel ahead a driver sees a loose object in (driverTraffic.ts obstacleStep)
 export const OBJECT_MORE = 0.3;
-// m kept between the two cars' sides going round (?aitune tried 0.45 - "close but not touching" -
+// m kept between the two cars' sides going round (AI tune tried 0.45 - "close but not touching" -
 // and the contact rose on Brands and Croughed RX: tools/scratch/_aibase.mjs, 4 seeds)
 const MARGIN = 0.6;
 // m/s sideways a driver swerves at round a car in the way (the dodge's rate, driverDrive.ts)
@@ -57,9 +56,7 @@ export function swerveCap(need: number, room: number, speed: number, vAlong: num
 
 // the share of the car ahead's braking a driver reads, skill 0 / skill 1 (a top driver
 // sees the brake lights at once; a weak one half of it), and the s a speed is read over
-// (?aitune, owner 11-21 "better dodging: faster reactions / prediction": a weak driver reads 0.8 of
-// it, and the speed is read over 0.05 s - a car braking is seen braking half as late)
-const READ_WEAK = FIX.aitune ? 0.8 : 0.5, READ_TOP = 1, READ_S = FIX.aitune ? 0.05 : 0.1;
+const READ_WEAK = 0.5, READ_TOP = 1, READ_S = 0.1;
 
 /** One car's speed as a driver reads it: m/s along my way, when, and how fast it slows / gains. */
 export interface SpeedRead { v: number; t: number; dec: number; gain: number }

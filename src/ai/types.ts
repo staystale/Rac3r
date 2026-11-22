@@ -41,9 +41,6 @@ export interface Traits {
   kBrake?: number;   // the braking grip it plans (line.ts K_BRAKE by default)
   paceK?: number;    // its speed plan's corner and braking grip x this (ai/tune.ts PACE)
   power?: number;    // its engine power share (a weak driver gives a little away)
-  // ?gapcommit: the share of the keep-the-line bonus kept while that line boxes me in (ai/tune.ts
-  // COMMIT_BOXED, by driver type)
-  commitBoxed?: number;
 }
 
 // What a driver returns each step (the scripted driver has no reverse).
@@ -88,7 +85,7 @@ export interface AiCar {
   _hwS?: number;   // traffic.ts: this racer's road distance last step
    // (the hint for its next road frame)
   _jokers?: number;   // main.ts: jokers taken (the joker tactics read it)
-  _hazardMove?: number;   // ?hazard: the side it is going round a stopped car on (ai/hazards.ts)
+  _hazardMove?: number;   // the side it is going round a stopped car on (ai/hazards.ts)
   dragMul?: number;   // physics/wake.ts: the tow (1 = no tow)
 }
 
@@ -284,8 +281,6 @@ export interface CarsAcc {
   seen?: { fwd: number; lat: number; v: number; across: number; along: number }[];
   // the cars not racing ahead, stopped or crawling (ai/stopDodge.ts)
   stopped?: StoppedCar[];
-  // ?aitune: how fast the car I follow is slowing, as I read it, m/s2 (the lowest cap's car)
-  followDec?: number;
   // why the lowest follow cap was set (the owner's 11-21 "why held" trace, tools/scratch/
   // _whyheld.mjs: read only)
   why?: string;
@@ -307,11 +302,9 @@ export interface CircuitState extends DriveOutState {
   path: Path<DrivePoint>;
   i: number | null;   // null until the first step (and after a relocate) finds its place
   vT: number;
-  vTPrev?: number;   // the last step's target speed (?aitune: a falling plan - ai/driverPedals.ts)
-  // ?aitune: the plan's fall, m/s2 (smoothed), and the brake pedal that holds it (feed-forward)
+  vTPrev?: number;   // the last step's target speed (a falling plan - ai/driverPedals.ts)
+  // the plan's fall, m/s2 (smoothed), and the brake pedal that holds it (the steady pedal)
   zoneDecel?: number; zoneFF?: number;
-  // ?aitune: the followed car's braking (m/s2) and my full-pedal deceleration (m/s2)
-  followDec?: number; fullDecel?: number;
   followWhy?: string;   // why it is held (CarsAcc.why, or 'stopped'), '' when not
   capBinds?: boolean;   // the follow cap is the target speed this step (not above the plan)
   // the last boxed moment (ai/boxedTrace.ts; only while a tool sets __AI_WHY)

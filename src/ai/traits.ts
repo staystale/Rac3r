@@ -1,7 +1,7 @@
 // ai/traits.js — the 5 difficulties, the personalities and aiTraits (from aidriver.js).
 import type { Difficulty, Traits } from "./types.ts";
 import { K_BRAKE } from "./line.ts";
-import { SKILL_CENTRE, tuneOf, paceOf, racerCommitBoxed } from "./tune.ts";
+import { SKILL_CENTRE, tuneOf, paceOf } from "./tune.ts";
 import type { AiTune } from "./tune.ts";
 
 // ---- the 5 difficulties (PLAN.md §4): the CENTRE of the field's spread. pace = fraction of the
@@ -123,8 +123,6 @@ function tunedTraits(diffIndex: number, i: number, seed: number, tune: AiTune): 
     power: skill < 0.5 ? 1 - (1 - WEAK_POWER) * (0.5 - skill) / 0.5 : 1,
     // (the PACE dial, the whole field's speed plan - ai/tune.ts)
     paceK: paceOf(tune.pace ?? 0.5),
-    // (?gapcommit: a racer's share of the keep-the-line bonus while boxed - ai/tune.ts)
-    commitBoxed: racerCommitBoxed(),
     seed: rngState,
   };
 }

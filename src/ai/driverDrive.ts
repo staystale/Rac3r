@@ -11,7 +11,6 @@ import {
   advance, placeAtStart, mistakeStep, laneStep, battleStep, racecraftStep,
 } from "./driverLane.ts";
 import type { AiCar, CarsAcc, DriveCtx } from "./types.ts";
-import { FIX } from "../core/fixes.ts";
 import { clearHeldPlan } from "./startFan.ts";
 import { rejoinCross, rejoinAim, lateralOf } from "./rejoin.ts";
 import { rejoinClear } from "./gapPick.ts";
@@ -75,20 +74,20 @@ function plannedLat(planned: number, keepMax: number, lineOff: number, hand = 1)
 }
 
 /**
- * ?softback: a target back toward the line (nearer it than where the car is) - the soft rejoin's
- * cap applies even while making a move. MEASURED before (tools/scratch/_rejoinharsh.mjs): the
- * cap applied in only 23 % of a Brands racer's time on the road and 8 % on the motorway - any car
- * near counted as a move - and 7 % of the Brands time was a snap back (uncapped, 1.5 m+ off).
+ * THE SOFT RETURN (passed 11-22): a target back toward the line (nearer it than where the car
+ * is) - the soft rejoin's cap applies even while making a move. MEASURED before
+ * (tools/scratch/_rejoinharsh.mjs): the cap applied in only 23 % of a Brands racer's time on the
+ * road and 8 % on the motorway - any car near counted as a move - and 7 % of the Brands time was a
+ * snap back (uncapped, 1.5 m+ off).
  * @param actual m off my path now
  * @param latT m off my path aimed at
  * @returns soft
  */
-const softBack = (actual: number, latT: number) => FIX.softback
-  && Math.abs(latT) < Math.abs(actual);
+const softBack = (actual: number, latT: number) => Math.abs(latT) < Math.abs(actual);
 
 /**
  * The cap on the steering's error: the soft rejoin's (cross), or none while making a move - but
- * ?softback keeps it on a move back toward the line.
+ * the soft return keeps it on a move back toward the line.
  * @param moving making a move (a car near, an attack, a cover)
  * @param actual m off my path now
  * @param latT m off my path aimed at
@@ -98,16 +97,6 @@ const softBack = (actual: number, latT: number) => FIX.softback
 const crossCap = (moving: boolean, actual: number, latT: number, cross: number) => (
   moving && !softBack(actual, latT) ? Infinity : cross);
 
-/**
- * The braking of the car I follow (?aitune), when that car's cap is the one I keep - not a stopped
- * car's or a swerve's.
- * @param followCap the cap kept, m/s
- * @param cars the cars' read (its cap and that car's braking)
- * @returns m/s2
- */
-function followDecOf(followCap: number, cars: CarsAcc): number {
-  return followCap === cars.followCap ? cars.followDec ?? 0 : 0;
-}
 
 /**
  * Why I am held (read only: tools/scratch/_whyheld.mjs): the cars' reason for the cap kept, or a
@@ -172,8 +161,6 @@ function trafficStep(drv: Drv, car: AiCar, ctx: DriveCtx, path: AiPath, nearIdx:
   state.dodge += Math.max(-rate * dt, Math.min(rate * dt, dodgeT - state.dodge)) * (
       conflict ? 1 : 0.5);
   state.follow = followCap < Infinity;
-  // (?aitune: the braking of the car I follow, when it sets my cap - ai/driverPedals.ts)
-  state.followDec = followDecOf(followCap, cars);
   state.followWhy = whyHeld(followCap, cars);
   latT += state.dodge;
   // past the usual edge only while going round a car (above)

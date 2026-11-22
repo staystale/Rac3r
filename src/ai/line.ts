@@ -11,7 +11,6 @@
 //    car's MEASURED grip (carstats.ts), then a backward braking pass, so the target at any point
 //    already brakes for everything ahead.
 import { debugValue } from "../core/debug.ts";
-import { FIX } from "../core/fixes.ts";
 import { groundAt } from "../world/wear.ts";
 import { dampSurface, surfaceById } from "../world/wet.ts";
 import { WEATHER } from "../world/weather.ts";
@@ -31,12 +30,9 @@ const LINE_MARGIN = 1.6;     // m kept from the road edge (car half width ~0.9 +
 // (calibrated: tools/aidrivecheck.mjs, clean at 0.88)
 const K_CORNER = 0.88;
 // fraction of grip planned for braking (0.80 arrived 4 m/s hot into Sweaty Lamb's S on gravel,
-// MEASURED). ?aitune: AITUNE_K_BRAKE on every ground (owner 11-21: "push up both and let the AI
-// drivers correct"): at 0.70 a hatch began braking for Thruston's 1680 m corner 130 m early at
-// ~0.67 g (tools/scratch/_linebrake.mjs). 0.85 (the first try) raised the big crashes in packs on
-// the tight and loose tracks (_aibase, 4 seeds: Moanaco, Croughed RX); 0.78 the middle way
-const AITUNE_K_BRAKE = 0.78;
-export const K_BRAKE = FIX.aitune ? AITUNE_K_BRAKE : 0.70;
+// MEASURED; the AI tune's 0.85 and 0.78, 11-21/22, raised the big crashes in packs on the tight and
+// loose tracks - tools/scratch/_aibase.mjs, 4 seeds: Moanaco, Croughed RX)
+export const K_BRAKE = 0.70;
 // (TODO 3a2 bug 9) COMMIT OFF TARMAC - a 2WD car's corner grip planned on loose
 // ground (mu COMMIT_LOW..COMMIT_MU: gravel, grass, sand, mud, snow; not wet tarmac 0.72, not ice
 // 0.12) x COMMIT_K. MEASURED (tools/scratch/_aislip.mjs, Thruston and Knobhill laid in each

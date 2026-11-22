@@ -1,7 +1,6 @@
 // ai/driverTraffic.ts: the circuit driver's reading of traffic and obstacles: cars ahead,
 // alongside and behind, and loose objects on the road. Functions take the driver context.
 import { debugValue } from "../core/debug.ts";
-import { FIX } from "../core/fixes.ts";
 import { GRAVITY } from "../cars.ts";
 import { OBST_CLEAR, carGrip, profileOf } from "./line.ts";
 import type { AiCar, CarsAcc, CarsEnv, DriveCtx } from "./types.ts";
@@ -131,7 +130,7 @@ export function followAhead(drv: Drv, acc: CarsAcc, env: CarsEnv, fwd: number, o
   if (!cands.length || (fwd < gapF && Math.abs(otherLat - myLat) < 1.6)) {
     const cap = followCapOf(drv, env, fwd, vAlong, closeIdx);
     whyFor(acc, cap, heldWhy(cands.length, onRoad.length));
-    noteFollowCap(acc, cap, env.dec ?? 0);
+    acc.followCap = Math.min(acc.followCap, cap);
   }
 }
 
@@ -192,19 +191,6 @@ function capFor(acc: CarsAcc, cap: number, why: string) {
 }
 
 /**
- * A follow cap kept if it is the lowest yet, with the braking of the car that sets it (?aitune:
- * its follower copies that braking - ai/driverPedals.ts brakeFor).
- * @param acc the cars' read so far
- * @param cap m/s
- * @param dec how fast that car is slowing as I read it, m/s2
- */
-function noteFollowCap(acc: CarsAcc, cap: number, dec: number) {
-  if (cap >= acc.followCap) return;
-  acc.followCap = cap;
-  acc.followDec = dec;
-}
-
-/**
  * The speed to follow a car ahead at, with no way round it.
  * @param drv the driver context
  * @param env the cars' environment, sized to the car ahead
@@ -235,7 +221,7 @@ function followCapOf(drv: Drv, env: CarsEnv, fwd: number, vAlong: number, closeI
   return capF;
 }
 
-// m between two cars' middles side by side (a hatch: 0.6 m between their sides; ?aitune tried 2.2
+// m between two cars' middles side by side (a hatch: 0.6 m between their sides; AI tune tried 2.2
 // and the contact rose: tools/scratch/_aibase.mjs, 4 seeds)
 const SIDE_GAP = 2.4;
 
@@ -401,9 +387,7 @@ function sizedEnv(env: CarsEnv, car: AiCar, other: AiCar, pathH: number): CarsEn
 
 // s of travel a driver reads the cars ahead in, skill 0 / skill 1 (the highway driver's;
 // at 240 km/h against 90 km/h traffic 0.8 .. 2.1 s hit it in 17-19 of 45 weavecheck scenarios)
-// (?aitune, owner 11-21 "better dodging ... prediction": a weak driver reads 3.2 s ahead - it
-// sees a crash forming 0.6 s sooner)
-const GAP_LOOK_WEAK = FIX.aitune ? 3.2 : 2.6, GAP_LOOK_TOP = 3.8;
+const GAP_LOOK_WEAK = 2.6, GAP_LOOK_TOP = 3.8;
 // boxed in: the share of full braking planned (late: going round is tried first, braking only
 // once it must - owner 11-04: "avoid it not just brake... it should brake too if it needs to"),
 // and the m kept behind the car
@@ -468,19 +452,6 @@ function placeAcross(env: CarsEnv, other: AiCar, closeIdx: number, halted: boole
   const lat = (other.x - point.x) * -Math.sin(point.h) + (other.y - point.y) * Math.cos(point.h);
   if (!halted) return lat;
   return lat + (point.off ?? 0) - (pts[env.nearIdx].off ?? 0);
-}
-
-/**
- * ?gapcommit: the share of the keep-the-line bonus (ai/gapPick.ts COMMIT) while the chosen line
- * is the one holding me boxed (last step's cap: state.followWhy, capBinds) - the driver type's
- * sliding scale (ai/tune.ts COMMIT_BOXED); 1 otherwise.
- * @param drv the driver
- * @returns 0..1
- */
-function commitShare(drv: Drv): number {
-  const { state } = drv;
-  if (!FIX.gapcommit || state.followWhy !== 'boxed' || !state.capBinds) return 1;
-  return drv.traits.commitBoxed ?? 1;
 }
 
 /**
@@ -565,7 +536,8 @@ export function carsStep(drv: Drv, car: AiCar, others: AiCar[], path: AiPath, ne
     reactTo(drv, acc, [env, envO], { fwd, otherLat, vAlong, closeIdx, attacked: !!attacked,
       halted });
   }
-  // (?hazard: one side round a stopped car for the field, room for a swerver - ai/hazards.ts)
+  // (shared hazards: one side round a stopped car for the field, room for a swerver -
+  // ai/hazards.ts)
   hazardStep(car, acc, seen, { myLat, latT, beside });
   gapStep(drv, car, acc, seen, { myLat, latT, lineOff, latLim, speed, look, startK });
   acc.seen = seen;
@@ -655,7 +627,7 @@ function gapStep(drv: Drv, car: AiCar, acc: CarsAcc, seen: SeenCar[], mine: { my
   const pick = { lat: myLat, base: state.gapBase ?? myLat, half, len, speed, look, lo, hi,
     edge: latLim, centre: lineOff,
     lanes: drv.state.path === drv.main ? drv.line.lanes : undefined,
-    commitK: commitShare(drv) };
+  };
   // (a highway start phase holds its formation lane, or fans to its column's side)
   if (!fanned(drv, seen, pick, mine.startK)) return;
   const line = gapLine(seen, pick);

@@ -68,35 +68,6 @@ export const FIX = {
   driftbrake: atLoad('driftbrake'),
   // a chasing police car sounds a siren, the light bar's twin (game/sirens.ts, audiosiren.ts)
   siren: atLoad('siren'),
-  // THE AI TUNE (owner 11-21, TODO 2 item 9): the speed plan brakes later and harder (ai/line.ts
-  // K_BRAKE, tarmac and loose alike - the drivers correct), and the brake pedal holds through a
-  // braking zone instead of dabbing on and off (ai/driverPedals.ts pedals)
-  aitune: atLoad('aitune'),
-  // F1 "SCORE THE DESTINATION" (owner 11-21, item 7): on the highway, the gap picker scores a line
-  // more than one swerve across by its own room ahead, not the part-way point it steers to this
-  // think (ai/gapPick.ts lineScore, destOn) - on the circuits it raised the crashes (MEASURED)
-  gapdest: atLoad('gapdest'),
-  // F2 "COMMIT ONLY WHILE IT PAYS" (owner 11-21, item 7): while the line a driver chose is the one
-  // holding it boxed, only a share of the gap picker's bonus for keeping that line - a sliding
-  // scale per driver type (ai/tune.ts COMMIT_BOXED: the racers, the traffic's speeders); the
-  // defaults keep today's behaviour until the owner picks the lean
-  gapcommit: atLoad('gapcommit'),
-  // SOFT RETURN (owner 11-22: "surely it should always be soft, so the car can go where it needs
-  // but still return to line"): every move back toward the line takes the soft rejoin's cap, also
-  // in traffic (ai/driverDrive.ts crossCap); a move out from it stays free
-  softback: atLoad('softback'),
-  // THE STEADY BRAKE PEDAL (owner 11-22, kept from ?aitune): in a braking zone the pedal holds the
-  // plan's fall (feed-forward) with a trim, no on / off dabbing - at today's braking point (K_BRAKE
-  // 0.70); following a car as before (ai/driverPedals.ts pedalZone)
-  brakepedal: atLoad('brakepedal'),
-  // SHARED HAZARD AWARENESS (owner 11-22: "all nearby cars react ... avoid, and slow only if
-  // needed"): the field goes round a stopped car on one side, and a car beside a swerver makes room
-  // (ai/hazards.ts)
-  hazard: atLoad('hazard'),
-  // REVERSE ONLY WHEN STUCK (owner 11-22: "should only kick in if it's stuck still"): the AI's
-  // drive-out (ai/driveOut.ts) counts its still time only while it wants to go - not while a car
-  // ahead holds it or its plan stands still - and over a longer wait
-  revstuck: atLoad('revstuck'),
   // the GETAWAY STOCKHOLM scenery for the endless roads, step 1: its card, the city's stretches,
   // its lots of buildings behind noise walls, blue signs (highway/city.ts)
   stockholm: atLoad('stockholm'),

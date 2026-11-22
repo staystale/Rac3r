@@ -236,11 +236,6 @@ async function runOne(browser, base, id, seed) {
     window.__rt.step(10);
   });
   await page.evaluate((value) => window.__rt.seed(value), seed);
-  // (?gapcommit's sliding scale tried through the tools' dials: COMMIT_RACER / COMMIT_SPEEDER)
-  await page.evaluate(([racer, speeder]) => {
-    if (racer !== '') window.__AI_COMMIT_RACER = Number(racer);
-    if (speeder !== '') window.__AI_COMMIT_SPEEDER = Number(speeder);
-  }, [process.env.COMMIT_RACER ?? '', process.env.COMMIT_SPEEDER ?? '']);
   await page.evaluate(launchLevel, [run.level, { car: 'hatch-rwd', ...run.opts }]);
   await page.waitForTimeout(SETTLE_MS);
   await page.evaluate(setupBase);

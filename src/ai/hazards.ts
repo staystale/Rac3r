@@ -1,4 +1,4 @@
-// ai/hazards.ts - ?hazard: SHARED HAZARD AWARENESS (owner 11-22: when there is a crash ahead "ALL
+// ai/hazards.ts - SHARED HAZARD AWARENESS (passed 11-22; owner: when there is a crash ahead "ALL
 // nearby cars react, like real life ... the car alongside the swerver also sees the crash and makes
 // room"; "they shouldn't auto-slow, but avoid, and slow only if needed"). MEASURED before
 // (tools/scratch/_pileups.mjs, round182, Brands / Spa): the drivers saw a stopped car and braked
@@ -12,7 +12,6 @@
 //   beside it, on that side, moves over to give it room.
 // No speed cap of its own: the existing stopped-car brake (ai/stopDodge.ts) slows a car only when
 // it cannot get across in time.
-import { FIX } from '../core/fixes.ts';
 import type { SeenCar } from './gapPick.ts';
 import type { AiCar, CarsAcc } from './types.ts';
 import type { StoppedCar } from './stopDodge.ts';
@@ -37,7 +36,7 @@ const HAZARD_SPAN = 40, HAZARD_ACROSS = 8;
 // m beside the stopped car's place counted as in line with it, past its clearance and the width
 const IN_LINE_M = 1.5;
 // a car slower than this share of my plan where it is, and 5 m/s slower than me, is a hazard
-// (?hazard: the field's stranded share is 0.5 - a spinning car was read only once nearly stopped)
+// (the field's stranded share is 0.5 - a spinning car was read only once nearly stopped)
 const SLOW_SHARE = 0.6;
 // the reading distance x this for a car much slower than me (a hazard seen earlier)
 const SLOW_LOOK = 1.5;
@@ -99,24 +98,24 @@ function sideFor(stopped: AiCar, myLat: number, stoppedLat: number): number {
 }
 
 /**
- * ?hazard: a car ahead much slower than my plan where it is - a hazard before it has stopped.
+ * A car ahead much slower than my plan where it is - a hazard before it has stopped.
  * @param vAlong its m/s along my way
  * @param speed my m/s
  * @param planV my plan's m/s where it is
  * @returns a hazard
  */
 export function hazardSlow(vAlong: number, speed: number, planV: number): boolean {
-  return FIX.hazard && vAlong < SLOW_SHARE * planV && vAlong < speed - 5;
+  return vAlong < SLOW_SHARE * planV && vAlong < speed - 5;
 }
 
 /**
- * ?hazard: the reading distance's share for a car - further for one much slower than me.
+ * The reading distance's share for a car - further for one much slower than me.
  * @param vAlong its m/s along my way
  * @param speed my m/s
  * @returns the multiplier
  */
 export function hazardLook(vAlong: number, speed: number): number {
-  return FIX.hazard && vAlong < 0.5 * speed ? SLOW_LOOK : 1;
+  return vAlong < 0.5 * speed ? SLOW_LOOK : 1;
 }
 
 /**
@@ -136,7 +135,7 @@ function hazardSize(stop: StoppedCar, all: StoppedCar[]): number {
 }
 
 /**
- * ?hazard, after a driver has read the cars round it (driverTraffic.ts carsStep): the field's one
+ * After a driver has read the cars round it (driverTraffic.ts carsStep): the field's one
  * side round each stopped car (the other side read as taken by the gap picker), my car marked while
  * I go round one, and room made for a car beside me that is going round one toward me.
  * @param car my car
@@ -150,7 +149,6 @@ function hazardSize(stop: StoppedCar, all: StoppedCar[]): number {
 export function hazardStep(car: AiCar, acc: CarsAcc, seen: SeenCar[], mine: { myLat: number;
   latT: number; beside: { lat: number; car: AiCar }[] }): void {
   car._hazardMove = 0;
-  if (!FIX.hazard) return;
   const { myLat, latT, beside } = mine;
   const all = acc.stopped ?? [];
   for (const stop of all) {
