@@ -88,26 +88,6 @@ MARK TRACK.)
 
 - THE 11-16 QUEUE (every item owner-approved after a brief plan; details in each worker's TODO
   entry as it lands):
-  - THE TRAILER TIPS AND ROLLS (owner 11-22: "can the truck and trailer roll, or just the truck?" -
-    the trailer too, realistic ~0.45 g; the cab follows under a roll-moment limit, the pin snaps
-    past it; reset rights both; AI and traffic rigs the same; the load shift later). STEP 1
-    MEASURED (tools/scratch/_rigg.mjs, flat tarmac): the tractor tipped at ~1 g (static 0.93 g)
-    in circles and J-turns while its trailer stayed upright at 0.44-0.54 g (static 0.68 g, 0.60 g
-    with the springs' roll). STEP 2 BUILT behind ?trailroll (physics/trailroll.ts): the trailer's
-    own two-wheel state at TRAILER_TIP_G 0.45 g; past its balance it goes over, the pin snaps, it
-    rolls and slides on its own (roll.ts); reset rights it; its roll pictures (carprofile.ts: a
-    box to 4.0 m; rollshape.ts; rollbody.ts wheels from axlerows.ts - its axle group only).
-    MEASURED: it lifts at 0.45-0.48 g, goes over OUTWARD in steady circles (pin snapped); in the
-    game's hard turns the cab still goes over first (its tyres pull ~1 g, the trailer ~0.5 g
-    behind it). STEP 3 BUILT (owner: "the cab follows if it's a gentler tip; the pin snaps and the
-    trailer rolls alone if it's violent", both ways; physics/trailroll.ts stepRigRoll): a body
-    going over gently takes the other with it - one roll, the pin held, the same face; violently
-    (a roll rate past 5 rad/s, or a pull past 1.6x its own tip point while it leaned) the pin
-    snaps. MEASURED (_rigg.mjs): every bend and J-turn over together (cab first, or the trailer
-    first in a steady circle), the same face; a 14 m/s side hit on the trailer and every cab
-    crash trip (10-14 rad/s) snapped the pin; 8 m/s on the trailer together. In the game
-    (_trailrollshot.mjs, the endless road): over together, on their sides, RESET rights both.
-    Switch off: every run to the digit. No AI or traffic tows a trailer yet (later).
   - THE SCANYAH TRAILER (Worker A's joint, finished by Worker C), ?boxhold and ?gridlen PASSED
     11-21, the default (TODO-DONE, PASSED 11-21, THE TRAILER, BOXHOLD, GRIDLEN). Later trailer types:
     a flatbed with visible cargo first (owner: "I don't mind").

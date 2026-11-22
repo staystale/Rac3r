@@ -641,6 +641,13 @@ lip, its inner half under the body still there - never clipped against the tyre.
 `SUSPENSION_KINDS`).
 `tools/scratch/_skinshots.mjs` photographs every car crushed and with its parts off (front, side,
 rear; 844x390, 390x844, a close-up and the phone's view cropped).
+Its roll (`physics/trailroll.ts`, passed 11-22): the trailer's own two-wheel state
+(`physics/tip.ts`, its spec's `tipGive` lifting it at `TRAILER_TIP_G` 0.45 g); a body going over
+gently takes the other with it - one roll, the kingpin held on the fifth wheel
+(`trailer.ts holdOnPin`), the same face - and violently (a roll rate past `ROLL_SNAP_W`, a pull past
+`ROLL_SNAP_PULL` times its tip point) the pin snaps and it rolls alone (`stepRigRoll`); its roll
+pictures a 4 m box with its axle group (`carprofile.ts`, `rollbody.ts` via `axlerows.ts`); a
+reset rights both.
 
 Highway hedges: `highway/hedges.ts` lays one continuous line of square
 bushes (the same `bush` patches as the other levels) round each farm field's long-grass border, streamed with

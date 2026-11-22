@@ -1,4 +1,4 @@
-// physics/trailroll.ts - THE TRAILER TIPS AND ROLLS (?trailroll; owner 11-22: "can the truck and
+// physics/trailroll.ts - THE TRAILER TIPS AND ROLLS (passed 11-22; owner 11-22: "can the truck and
 // trailer roll, or just the truck?" - the trailer too, realistic: a loaded semi-trailer goes over
 // at ~0.45 g, before its cab). Was: only the tractor could tip or roll; its trailer, a second body
 // on the pin (physics/trailer.ts), had no roll at all. MEASURED (tools/scratch/_rigg.mjs, flat
@@ -88,7 +88,7 @@ function coupleRoll(from: Car, other: Car, trailer: RigTrailer): boolean {
 }
 
 /**
- * ?trailroll: the trailer's step with the roll (game/sim.ts stepPlayerTrailer, after the tractor's
+ * The trailer's step with the roll (game/sim.ts stepPlayerTrailer, after the tractor's
  * own step): a cab that went over this step drags its trailer or snaps the pin; a rolling trailer
  * tumbles (roll.ts stepRoll), held on the pin while it rolls with its cab; else its step on the pin
  * and its two-wheel state - going over, it drags its cab or snaps the pin.
