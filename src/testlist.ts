@@ -13,6 +13,15 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'stagehold',
+    added: '2026-11-22',
+    name: 'Rally stage: every car held until its own green - no jump start, you or the AI',
+    where: 'Test link + &stagehold=1: TEST MODE, a rally stage, VS AI',
+    try: 'Hold the throttle through the countdown: the car moves only on GO; cars behind leave '
+      + 'on their own green.',
+    wrong: 'Any car moving before its green, a car stuck after it, or a circuit start changed.',
+  },
+  {
     id: 'stagepos',
     added: '2026-11-22',
     name: 'Rally stage: P n/N from the times so far at the same distance, like live timing',

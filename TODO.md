@@ -538,6 +538,12 @@ STORY (Story mode with its garage, money, BUY & FIT, "buy what you last tested" 
   behind. N the whole field (hud/laps.ts). MEASURED (tools/scratch/_stagepos.mjs, Sweaty Lamb, 5
   AI): live place at your finish 3, your result 3; P1 for the first 31 s was true (your 24.10 s
   at 300 m to the car ahead's 25.25 s). AWAITING THE PHONE TEST.
+- A STAGE START HELD TO THE GREEN (owner 11-22: "jump starts shouldn't be possible, like all other
+  events"): BUILT behind ?stagehold (Worker C, game/order.ts earlyS): no car goes before its own
+  green on a rally stage. MEASURED (tools/scratch/_stagejump.mjs, throttle held through the
+  lights): before, you and the queued car first moved 0.033 s BEFORE your / its green (START_EARLY
+  0.12 s - every event has it); after, 0.083 s after. OWNER: the circuits, RX and highway starts
+  still allow 0.12 s early - the same there? AWAITING THE PHONE TEST.
 - [ ] STORY MODE: ROOKIE SEASON (grass track, stock car, time trials: hillclimb / runway cones) ->
   ROOKIE 2 (similar events, track variations, harder to win); we pick the events; money / points
   also for NOT finishing top 3; replayable events / championships for more money (finish 5th,

@@ -91,4 +91,7 @@ export const FIX = {
   // A STAGE'S LIVE POSITION (owner 11-22: "true to the current times available"): P n/N from the
   // times at the same distance, like live timing; N the whole field (game/stagepos.ts)
   stagepos: atLoad('stagepos'),
+  // A STAGE START HELD TO THE GREEN (owner 11-22): no car goes before its own green on a rally
+  // stage - START_EARLY's 0.12 s (every event) is 0 there (game/order.ts)
+  stagehold: atLoad('stagehold'),
 };
