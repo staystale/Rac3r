@@ -73,20 +73,26 @@ export const FIX = {
   // THE HILL CLIMB'S GRADE, step 1 (owner 11-22: a real 7 % climb): the endless road rising
   // HILL_GRADE along its length (highway/hillgrade.ts) - the engine piece, measured alone
   hillgrade: atLoad('hillgrade'),
-  // A HOME CAR'S TIME AS DRIVEN (owner 11-22, (a)): a stage car home before your green is timed at
-  // its predicted run x STAGE_DRIVEN_RATIO - the AI's driven pace, not the prediction's
-  // (game/grid.ts placeStageCar)
-  stagetimes: atLoad('stagetimes'),
   // A STAGE'S TYRE TRACKS (owner 11-22): the cars already through the start leave their wheels'
   // marks along the racing line, each its own wander, up to where each is placed
   // (game/stagetracks.ts)
   stagetracks: atLoad('stagetracks'),
-  // A STAGE'S LIVE POSITION (owner 11-22: "true to the current times available"): P n/N from the
-  // times at the same distance, like live timing; N the whole field (game/stagepos.ts)
-  stagepos: atLoad('stagepos'),
-  // A STAGE START HELD TO THE GREEN (owner 11-22): no car goes before its own green on a rally
-  // stage - START_EARLY's 0.12 s (every event) is 0 there (game/order.ts)
-  stagehold: atLoad('stagehold'),
+  // NO EARLY STARTS ANYWHERE (owner 11-22: "fine if players can too" - one rule for every car):
+  // START_EARLY 0 on every start, you and the AI (game/order.ts; a rally stage's is 0 already),
+  // and no AI jumps the green of a rolling start (game/greenrelease.ts: its reaction kept)
+  nojump: atLoad('nojump'),
+  // A STAGE CAR PLACED AT ITS DRIVEN PACE (owner 11-22): a car started before you is placed where
+  // its driven pace (the prediction / STAGE_DRIVEN_RATIO) has it, home only when that is past the
+  // finish (game/grid.ts placeStageCar) - it had the prediction's pace for the part not driven
+  stageplace: atLoad('stageplace'),
+  // THE NEXT CAR AT THE LINE (owner 11-22): a stage's queued cars creep up a place as each one
+  // goes, the next onto your start spot, and leave from a standstill on their own green; every
+  // car on a stage (you too) timed from its own green (game/ai.ts, raceflow.ts, game/rules.ts)
+  stageline: atLoad('stageline'),
+  // THE START GANTRY'S LIGHTS (owner 11-22: the countdown and the green on every start gantry, a
+  // prop not a banner): reds one a second, the green, dark otherwise; a stage's counts each car
+  // down at the line (world/startlights.ts)
+  gantrylights: atLoad('gantrylights'),
   // GHOST CARS (owner 11-22): in TEST MODE, on every track but the highways, the quickest lap or
   // stage run - this session's or the saved best per track, direction and car - played back as a
   // see-through car that is only drawn; a GHOST switch on the setup (on solo, off VS AI); the

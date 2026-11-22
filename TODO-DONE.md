@@ -50,6 +50,32 @@ line 120 m ahead - the move begun 27-28 -> 54-55 m out, km/h lost 109-125 -> 6-1
 8 / 8 -> 0 / 0 of 8, 6.2-6.9 -> 3.9-4.1 s to pass; a car 15 m/s slower 50 m ahead - lost 33-46 /
 11-44 -> 0-1 / 0 km/h, the stopped-car brake's re-holds 6-12 / 0-10 -> 0-2 / 0-3; a stopped car
 on the line 70 m ahead - lost 24-93 / 10-58 -> 2-9 / 2-8 km/h.
+## PASSED 11-22, ?STAGETIMES, ?STAGEPOS, ?STAGEHOLD (owner: passed on round202)
+
+The defaults 11-22, their switches deleted (Worker C). A home car's time is its prediction x
+STAGE_DRIVEN_RATIO 1.12 (game/grid.ts placeStageCar); a stage's P n/N is live timing
+(game/stagepos.ts: splits every 20 m, N the whole field, hud/laps.ts fieldSize); no car goes
+before its green on a rally stage (game/order.ts earlyS; every other start too under ?nojump).
+[A HOME CAR'S TIME AS DRIVEN (owner 11-22: "try (a)", else (b) the class's driven average):
+  BUILT behind ?stagetimes (Worker C; game/grid.ts STAGE_DRIVEN_RATIO 1.12, MEASURED: 13 cars
+  started 1-3 slots ahead on Sweaty Lamb, REALISH, their driven part over its predicted part
+  1.10-1.15). A home car 4 slots ahead: 110.9 s predicted -> 124.2 s, 5th of 6 (the driven cars
+  114.8-122.9 s). Found: a car placed down the stage keeps the prediction's pace for the part it
+  never drove (up to ~10 s for 3 slots ahead). AWAITING THE PHONE TEST.]
+[A STAGE'S LIVE POSITION (owner 11-22: "P n/N should show true to the current times
+  available"): BUILT behind ?stagepos (Worker C, game/stagepos.ts): each car's time every 20 m
+  from its own start (a car placed down the stage, and one home, filled from the pace that placed
+  it); a car is ahead when, at the furthest split you both have, its time is less; not started:
+  behind. N the whole field (hud/laps.ts). MEASURED (tools/scratch/_stagepos.mjs, Sweaty Lamb, 5
+  AI): live place at your finish 3, your result 3; P1 for the first 31 s was true (your 24.10 s
+  at 300 m to the car ahead's 25.25 s). AWAITING THE PHONE TEST.]
+[A STAGE START HELD TO THE GREEN (owner 11-22: "jump starts shouldn't be possible, like all other
+  events"): BUILT behind ?stagehold (Worker C, game/order.ts earlyS): no car goes before its own
+  green on a rally stage. MEASURED (tools/scratch/_stagejump.mjs, throttle held through the
+  lights): before, you and the queued car first moved 0.033 s BEFORE your / its green (START_EARLY
+  0.12 s - every event has it); after, 0.083 s after. OWNER: the circuits, RX and highway starts
+  still allow 0.12 s early - the same there? AWAITING THE PHONE TEST.]
+
 ## PASSED 11-22, A STAGE CAR ALREADY HOME (owner: ?stagedone passed)
 
 The default 11-22, its switch deleted. As built (Worker C; game/grid.ts placeStageCar,

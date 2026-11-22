@@ -21,7 +21,8 @@ try {
   await page.keyboard.down('KeyW');
   // (sampled in the page: a 20 ms poll from node misses the step it moves on)
   const result = await page.evaluate(() => new Promise((done) => {
-    const game = window.__game, gap = 30, moved = {}, began = performance.now();
+    const game = window.__game, gap = game.level.stage ? 30 : 0, moved = {},
+      began = performance.now();
     const greenOf = (car) => (game.start.tGreen0 ?? game.start.tGreen) + (car === game.car ? 0
       : (car._slot || 0) * gap);
     const tick = () => {

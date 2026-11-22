@@ -9,6 +9,7 @@
 // values are a driver's own, from its seed (no draw from the game's random stream). The start phase
 // it then races (ai/driverLane.ts goT) begins at its release, not at the formation's first move.
 import { LEVEL } from '../world/state.ts';
+import { FIX } from '../core/fixes.ts';
 import { game } from './state.ts';
 import type { AiEntry } from './state.ts';
 import type { Traits } from '../ai/types.ts';
@@ -77,6 +78,8 @@ export function heldAtGreen(entry: AiEntry, fieldHeld: boolean): boolean {
     release = releaseOf(entry.drv.traits as Traits);
     RELEASES.set(entry, release);
   }
-  if (fieldHeld) return !(release.atS < 0 && toGreenS() <= -release.atS);
-  return game.start.t - game.start.tGreen < release.atS;
+  // (?nojump: no car goes before the green - its reaction after it kept)
+  const atS = FIX.nojump ? Math.max(0, release.atS) : release.atS;
+  if (fieldHeld) return !(atS < 0 && toGreenS() <= -atS);
+  return game.start.t - game.start.tGreen < atS;
 }

@@ -13,6 +13,46 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'nojump',
+    added: '2026-11-22',
+    name: 'No early starts anywhere: every car, you and the AI, held until the green',
+    where: 'Test link + &nojump=1: any race VS AI - a circuit, RX, an oval, the highway',
+    try: 'Hold the throttle through the lights: nothing moves before GREEN; on a rolling '
+      + 'start no AI jumps it.',
+    wrong: 'Any car moving before the green, a car stuck after it, or the start feeling late.',
+  },
+  {
+    id: 'stageplace',
+    added: '2026-11-22',
+    name: 'Rally stage: cars that started before you placed at their driven pace',
+    where: 'Test link + &stageplace=1: TEST MODE, a rally stage, VS AI 5 (start 3rd or later)',
+    try: 'Drive the stage and read the results: the cars ahead of you in the order should have '
+      + 'times like the cars that drove the whole stage.',
+    wrong: 'Cars ahead always far quicker than the rest (as before), or a car appearing past '
+      + 'the finish.',
+  },
+  {
+    id: 'stageline',
+    added: '2026-11-22',
+    name: 'Rally stage: the next car creeps up to the line and leaves on its own green',
+    where: 'Test link + &stageline=1: TEST MODE, a rally stage, VS AI 5 (start 1st)',
+    try: 'Start 1st and watch behind you: the queue moves up a place, the next car stops on '
+      + 'the line and goes on its own green; everyone timed from their green.',
+    wrong: 'Cars driving off from back in the queue, bumping, creeping past the line, or '
+      + 'times that look short by a second or two.',
+  },
+  {
+    id: 'gantrylights',
+    added: '2026-11-22',
+    name: 'Start gantries show the countdown and the green, on every track',
+    where: 'Test link + &gantrylights=1: any race with a start gantry (stages, Knobhill, '
+      + 'Naffcar, circuits)',
+    try: 'Watch the gantry at the start: dark, then reds one a second, then green, then dark; on a '
+      + 'stage it counts each later car down at the line.',
+    wrong: 'The gantry red all the time (as before), lights out of step with the HUD lights, or a '
+      + 'finish gantry counting down.',
+  },
+  {
     id: 'ghost',
     added: '2026-11-22',
     name: 'Ghost cars: race your best lap (test mode), and SETTINGS > ACCOLADES',
@@ -24,25 +64,8 @@ export const TEST_LIST: TestEntry[] = [
     wrong: 'The ghost hitting or being hit, out of step with the lap clock, a wrong car, on a '
       + 'highway, or a best lost after leaving the track.',
   },
-  {
-    id: 'stagehold',
-    added: '2026-11-22',
-    name: 'Rally stage: every car held until its own green - no jump start, you or the AI',
-    where: 'Test link + &stagehold=1: TEST MODE, a rally stage, VS AI',
-    try: 'Hold the throttle through the countdown: the car moves only on GO; cars behind leave '
-      + 'on their own green.',
-    wrong: 'Any car moving before its green, a car stuck after it, or a circuit start changed.',
-  },
-  {
-    id: 'stagepos',
-    added: '2026-11-22',
-    name: 'Rally stage: P n/N from the times so far at the same distance, like live timing',
-    where: 'Test link + &stagepos=1: TEST MODE, a rally stage, VS AI 5 (start mid-field)',
-    try: 'Watch P n/N as you drive: it moves as you gain or lose time on the cars ahead; N is the '
-      + 'whole field; at your finish it matches the results.',
-    wrong: 'P that disagrees with the gaps you see, N shrinking as cars finish, or your place '
-      + 'at the finish different from the results.',
-  },
+
+
   {
     id: 'stagetracks',
     added: '2026-11-22',
@@ -53,12 +76,5 @@ export const TEST_LIST: TestEntry[] = [
     wrong: 'No ruts on gravel, ruts on tarmac, ruts off the road or straight through bends, or a '
       + 'stutter at the start.',
   },
-  {
-    id: 'stagetimes',
-    added: '2026-11-22',
-    name: 'Rally stage: a car already home is timed at the AI driven pace, not the prediction',
-    where: 'Test link + &stagetimes=1: TEST MODE, Sweaty Lamb, VS AI 5 (start 5th or 6th)',
-    try: 'Restart until you start late (cars home before your green); drive it; read the results.',
-    wrong: 'Home cars always on top (they were), or always last, or far off the driven times.',
-  },
+
 ];
