@@ -90,4 +90,8 @@ export const FIX = {
   // GETAWAY STOCKHOLM drives on the RIGHT (owner 11-21: keep right, overtake on the left): its
   // road's world the mirror image of its left-hand twin (highway/road.ts HwState.hand)
   keepright: atLoad('keepright'),
+  // the scenery water's merge kept by 64 m square across the endless road's window moves (a new
+  // covers list at each rebuilt the whole window's water: GETAWAY STOCKHOLM's ~1 s worst frame -
+  // render/ground/covermerge.ts mergedChunks)
+  waterinc: atLoad('waterinc'),
 };

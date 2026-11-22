@@ -665,6 +665,10 @@ off / on): racing laps fronts smoke 5-8 % -> 1 % of the time; a held 1.1 g corne
   that push with its speed changing at most 3 px / frame / frame (`render/hudclear.ts
   followPush`), taken whole only after a teleport, so the view never jumps. Not avoided: the
   steering stick under the thumb, the passing notices, the speed camera's flash, the finish flag.
+- THE SCENERY WATER'S MERGE (`render/ground/covermerge.ts`; covers.ts draws it): each cover's
+  0.5 m cells, per kind the union with its rim (`buildMergedCovers`), kept by the covers list;
+  ?waterinc=1 by 64 m square (`mergedChunks`), each square kept while the covers touching it are
+  the same - the endless road's window moves no longer merge its whole water again.
 - THE HIGHWAY'S LANE DASHES (`render/road.ts drawLaneDashes`, painted into the tiles):
   each dash laid by the road's absolute distance (`render/lanedash.ts`), so tiles painted before
   and after the road window moved line up.

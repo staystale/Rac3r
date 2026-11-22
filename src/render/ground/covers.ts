@@ -2,11 +2,11 @@
 // merged per kind and drawn over the surface.
 import { LEVEL } from "../../world/state.ts";
 import {
-  coverCut, layersAt, PATCH_CELL, PATCH_GRID, PATCH_ORDER, patchKey,
+  layersAt, PATCH_CELL, PATCH_GRID, PATCH_ORDER, patchKey,
 } from "../../world/wear.ts";
-import type {
-  Cover, CoverCells, CoverId, MergedCover, Patch,
-} from "../../world/types.ts";
+import type { Cover, MergedCover, Patch } from "../../world/types.ts";
+import { buildMergedCovers, mergedChunks } from "./covermerge.ts";
+import { FIX } from "../../core/fixes.ts";
 import type { GroundCtx, ViewRect } from "./types.ts";
 import { paintLayers, artBase } from "./art.ts";
 import { castBushShadow, lightBushTop, shadeBushSide } from "./bushes.ts";
@@ -22,39 +22,6 @@ import { castBushShadow, lightBushTop, shadeBushSide } from "./bushes.ts";
 // `rim` = squares with an outside neighbour, filled as the edge line (stroking the squares would
 // outline every one of them).
 
-/**
- * Returns the 0.5 m world-grid cells whose centre is inside a cover, cached on the cover: their
- * grid coordinates (x / G, y / G) in pairs.
- *
- * @param cover the cover to measure
- * @returns the cells
- */
-function coverCells(cover: Cover): CoverCells {
-  if (cover._cells) return cover._cells;
-  const cellSize = 0.5, cosRot = Math.cos(cover.rot || 0), sinRot = Math.sin(cover.rot || 0),
-    halfW = cover.w / 2, halfH = cover.h / 2;
-  // scan the ROTATED box's extents, not a square of the long side (a 160 x 14 m river was a 160 m
-  // square: 100k tests -> ~10k)
-  const reachX = halfW * Math.abs(cosRot) + halfH * Math.abs(sinRot) + cellSize,
-    reachY = halfW * Math.abs(sinRot) + halfH * Math.abs(cosRot) + cellSize;
-  const inside = (x: number, y: number) => {
-    // the river's dry band under the motorway (lab.ts coverAt)
-    if (cover.cut && coverCut(cover, x, y)) return false;
-    const offX = x - cover.x, offY = y - cover.y,
-      dx = offX * cosRot + offY * sinRot, dy = -offX * sinRot + offY * cosRot;
-    return cover.shape === 'ellipse'
-      ? (dx * dx) / (halfW * halfW) + (dy * dy) / (halfH * halfH) <= 1
-      : Math.abs(dx) <= halfW && Math.abs(dy) <= halfH;
-  };
-  const all: number[] = [];
-  for (let x = Math.floor((cover.x - reachX) / cellSize) * cellSize;
-    x < cover.x + reachX; x += cellSize)
-    for (let y = Math.floor((cover.y - reachY) / cellSize) * cellSize;
-      y < cover.y + reachY; y += cellSize)
-      if (inside(x + cellSize / 2, y + cellSize / 2))
-        all.push(Math.round(x / cellSize), Math.round(y / cellSize));
-  return (cover._cells = { all: Int32Array.from(all), G: cellSize });
-}
 
 // the tint of a puddle by the surface under it
 export const PUDDLE_TINT: Record<string, string> = {
@@ -204,52 +171,9 @@ function paintPatchInside(groundCtx: GroundCtx, patch: Patch, artId: string, rea
 // coordinates in typed arrays and its rim, its ground lookups and its filing by place as indices
 // into them - MEASURED (tools/scratch/_coverheap.mjs, Yass Marina, after a forced GC): 156 249
 // cells held as objects (x, y, gx, gy, base), and each cover's cells as number arrays besides.
-const KEY_ROW = 131071;
 // the grounds a puddle's cells were looked up on (MergedCover.base: an index + 1, 0 not yet)
 const GROUNDS: string[] = [], GROUND_OF = new Map<string, number>();
 
-/**
- * Builds the merged covers of each kind: the union of its covers' cells (in the covers' order,
- * each cell once), the rim cells, the bounding box.
- *
- * @param list the level covers
- * @param cellSize the cell size in metres
- * @returns the merged covers
- */
-function buildMergedCovers(list: Cover[], cellSize: number): MergedCover[] {
-  const kinds = new Map<CoverId, { keys: Set<number>; gx: number[]; gy: number[] }>();
-  for (const cover of list) {
-    let kind = kinds.get(cover.cover);
-    if (!kind) kinds.set(cover.cover, (kind = { keys: new Set(), gx: [], gy: [] }));
-    const own = coverCells(cover).all;
-    for (let i = 0; i < own.length; i += 2) {
-      const key = own[i] * KEY_ROW + own[i + 1];
-      if (kind.keys.has(key)) continue;
-      kind.keys.add(key);
-      kind.gx.push(own[i]);
-      kind.gy.push(own[i + 1]);
-    }
-  }
-  const out: MergedCover[] = [];
-  for (const [kind, { keys, gx, gy }] of kinds) {
-    const rim: number[] = [];
-    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-    for (let i = 0; i < gx.length; i++) {
-      const cellX = gx[i], cellY = gy[i];
-      if (!keys.has((cellX + 1) * KEY_ROW + cellY) || !keys.has((cellX - 1) * KEY_ROW + cellY)
-        || !keys.has(cellX * KEY_ROW + cellY + 1) || !keys.has(cellX * KEY_ROW + cellY - 1))
-        rim.push(i);
-      minX = Math.min(minX, cellX * cellSize);
-      minY = Math.min(minY, cellY * cellSize);
-      maxX = Math.max(maxX, (cellX + 1) * cellSize);
-      maxY = Math.max(maxY, (cellY + 1) * cellSize);
-    }
-    out.push({ kind, gx: Int32Array.from(gx), gy: Int32Array.from(gy),
-      rim: Uint32Array.from(rim), base: new Uint8Array(gx.length), bb: [minX, minY, maxX, maxY],
-      G: cellSize });
-  }
-  return out;
-}
 
 /**
  * Returns the union of the level covers per kind, cached on LEVEL.
@@ -259,7 +183,9 @@ function buildMergedCovers(list: Cover[], cellSize: number): MergedCover[] {
  */
 function mergedCovers(list: Cover[]): MergedCover[] {
   if (LEVEL._mergedOf === list) return LEVEL._merged!;   // set together with _mergedOf
-  const out = buildMergedCovers(list, 0.5);
+  // (?waterinc: by 64 m square, each kept while the covers touching it are the same - a new list
+  // at every window move rebuilt the whole window's water: render/ground/covermerge.ts)
+  const out = FIX.waterinc ? mergedChunks(list, LEVEL) : buildMergedCovers(list, 0.5);
   LEVEL._mergedOf = list;
   LEVEL._merged = out;
   return out;

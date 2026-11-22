@@ -64,4 +64,12 @@ export const TEST_LIST: TestEntry[] = [
     try: 'Race: our way on the right, slips and lay-bys off the right, the traffic keeps right.',
     wrong: 'A car on the wrong side, a slip or sign on the left, indicators the wrong way.',
   },
+  {
+    id: 'waterinc',
+    added: '2026-11-22',
+    name: 'No long stutter by the water on GETAWAY STOCKHOLM',
+    where: 'Test link + &stockholm=1&waterinc=1: GETAWAY STOCKHOLM, with AI and traffic',
+    try: 'Drive along the long bridges over water: no hitch as new water comes into view.',
+    wrong: 'A freeze of about a second near water, or water drawn with gaps or seams.',
+  },
 ];
