@@ -16,6 +16,8 @@ import { makeCar, type Car } from '../vehicle.ts';
 import { spec as rowSpec, type Spec } from '../cars.ts';
 import { SCANYAH_TRAILER } from '../newcars.ts';
 import { PAINT_STOCK } from '../carpaint.ts';
+import { FIX } from '../core/fixes.ts';
+import { trailerTipGive } from './trailroll.ts';
 
 /**
  * A trailer: a car body stepped here, whether its pin still holds, the pin's gap (m), and where
@@ -74,6 +76,8 @@ function trailerSpec(): Spec {
     ...PAINT_STOCK[SCANYAH_TRAILER.id] } as Spec;
   out.L = out.lf + out.lr;
   out.Izz = out.mass * (out.len * out.len + out.wid * out.wid) / 12;
+  // (?trailroll: its springs, tyres and load lift it at physics/trailroll.ts TRAILER_TIP_G)
+  if (FIX.trailroll) (out as Spec & { tipGive?: number }).tipGive = trailerTipGive(out);
   return out;
 }
 
@@ -136,6 +140,11 @@ export function lineUpTrailer(car: Car, trailer: Trailer): void {
   trailer.y = placed ? placed.y : pin.y - Math.sin(car.heading) * trailer.spec.lf;
   trailer.vx = car.vx; trailer.vy = car.vy; trailer.yawRate = 0;
   trailer.pinFree = false;
+  // (?trailroll: a reset rights it - its two-wheel state or roll gone)
+  if (FIX.trailroll) {
+    trailer.roll = null;
+    (trailer as Trailer & { _tipPull?: number })._tipPull = 0;
+  }
   trailer.towedBy = { x: car.x, y: car.y, heading: car.heading };
   trailer._p = null;
 }

@@ -10,6 +10,9 @@ import { makeCar, step, reset, PHYSICS_STEP_SECONDS as dt } from '../../src/vehi
 import { SURFACES } from '../../src/lab.ts';
 import { attachTrailer, stepTrailer } from '../../src/physics/trailer.ts';
 import { stepTipping } from '../../src/physics/tip.ts';
+import { stepTrailerTip } from '../../src/physics/trailroll.ts';
+import { rolling, stepRoll } from '../../src/roll.ts';
+import { FIX } from '../../src/core/fixes.ts';
 
 const G = 9.81;
 const TRAILER_TIP_G = 2.04 / (2 * 1.5), TRAILER_TIP_G_SOFT = TRAILER_TIP_G * (1 - 0.12);
@@ -36,7 +39,12 @@ function both(car, input, rec) {
   const trailer = car.trailer, v0x = trailer.vx, v0y = trailer.vy;
   step(car, input, dt);
   if (!car.roll || car.roll.phase === 'none' || car.roll.phase === 'tipping') stepTipping(car, dt);
-  stepTrailer(car, input.brake, dt);
+  // (as game/sim.ts stepPlayerTrailer: ?trailroll - TRAILROLL=1)
+  if (FIX.trailroll && rolling(trailer)) stepRoll(trailer, dt, () => {});
+  else {
+    stepTrailer(car, input.brake, dt);
+    if (FIX.trailroll) stepTrailerTip(trailer, v0x, v0y, dt);
+  }
   if (!rec) return;
   const ax = (trailer.vx - v0x) / dt, ay = (trailer.vy - v0y) / dt;
   const latG = Math.abs(-ax * Math.sin(trailer.heading) + ay * Math.cos(trailer.heading)) / G;
@@ -47,6 +55,13 @@ function both(car, input, rec) {
   rec.hitch = Math.max(rec.hitch, Math.abs(Math.atan2(Math.sin(trailer.heading - car.heading),
     Math.cos(trailer.heading - car.heading))) * 180 / Math.PI);
   rec.phase = car.roll?.phase ?? 'none';
+  const tPhase = trailer.roll?.phase ?? 'none';
+  if (tPhase === 'tipping' && rec.liftG === null) rec.liftG = latG;
+  if (tPhase !== 'none' && tPhase !== 'tipping' && !rec.over) {
+    // (rolling outward: its lean away from the pull - the pull's sign against the lean's)
+    rec.over = { pinFree: !!trailer.pinFree, outward: Math.sign(trailer.roll.phi) === -Math.sign(trailer._tipPull || 0) };
+  }
+  rec.trailerPhase = tPhase;
 }
 
 const runs = [];
@@ -59,11 +74,15 @@ for (const kph of [60, 80, 100]) {
 }
 for (const [name, kph, control, seconds] of runs) {
   const car = rigAt(kph), rec = { trailerG: 0, tractorG: 0, pastSoft: 0, pastTip: 0, hitch: 0,
-    phase: 'none' };
+    phase: 'none', liftG: null, over: null, trailerPhase: 'none' };
   for (let time = 0; time < seconds; time += dt)
     both(car, { handbrake: 0, reverse: 0, ...control(time) }, rec);
   console.log(`${name.padEnd(20)} tractor ${rec.tractorG.toFixed(2)} g, trailer ${rec.trailerG
     .toFixed(2)} g (past ${TRAILER_TIP_G_SOFT.toFixed(2)} g ${rec.pastSoft.toFixed(2)} s, past `
     + `${TRAILER_TIP_G.toFixed(2)} g ${rec.pastTip.toFixed(2)} s), hitch up to ${rec.hitch.toFixed(0)}`
-    + ` deg, the tractor ${rec.phase} at the end, ${(car.t.vLong * 3.6).toFixed(0)} km/h`);
+    + ` deg, the tractor ${rec.phase} at the end, ${(car.t.vLong * 3.6).toFixed(0)} km/h`
+    + (FIX.trailroll ? `; the trailer ${rec.liftG === null ? 'never lifted' : 'lifted at '
+      + rec.liftG.toFixed(2) + ' g'}${rec.over ? ', WENT OVER (pin ' + (rec.over.pinFree ? 'snapped'
+      : 'held') + ', ' + (rec.over.outward ? 'outward' : 'INWARD') + ')' : ''}, ${rec.trailerPhase}`
+      : ''));
 }

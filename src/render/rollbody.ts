@@ -24,6 +24,7 @@ import { carveSide, crushPixels } from './cardamage.ts';
 import { heightsPx, paintSideProfile, paintUnderProfile, profileOf } from './carprofile.ts';
 import type { CarProfile, ProfilePicture, SideAccents } from './carprofile.ts';
 import { tyreBox } from './cars.ts';
+import { wheelRows } from './axlerows.ts';
 import { SPRITE_PPM } from './shared.ts';
 import { readSoon, spritePixels } from './spritepixels.ts';
 import type { CarSprite, RenderCar, RenderCarSpec } from './types.ts';
@@ -257,13 +258,15 @@ function paintsOf(car: RenderCar, spec: RenderCarSpec, top: CarSprite, clean: Ca
 function wheelBoxes(car: RenderCar, spec: RenderCarSpec, x: number, length: number): Box[] {
   const track = (spec.trackWidth || 1.5) * SPRITE_PPM, boxes: Box[] = [],
     rimRgb = parseInt((spec.rim || '#6d707a').slice(1, 7), 16);
-  for (let corner = 0; corner < 4; corner++) {
+  // (where its wheels are drawn: a car's four corners, a semi-trailer's rear axle group only -
+  // render/axlerows.ts)
+  for (const [axleX, out, , corner] of wheelRows(spec, 0)) {
     if (car.wheelOff?.[corner]) continue;
     const rear = corner > 1, { len: dia, wid } = tyreBox(spec, rear),
-      mid = length / 2 + (rear ? -spec.lr : spec.lf) * SPRITE_PPM, along = x + 0.5 - mid;
+      mid = length / 2 + axleX * SPRITE_PPM, along = x + 0.5 - mid;
     if (Math.abs(along) > dia / 2) continue;
     const rise = Math.sqrt((dia / 2) ** 2 - along ** 2),
-      rim = Math.sqrt(Math.max(0, (dia * 0.3) ** 2 - along ** 2)), out = corner % 2 ? 1 : -1;
+      rim = Math.sqrt(Math.max(0, (dia * 0.3) ** 2 - along ** 2));
     boxes.push({ centre: out * track / 2, half: wid / 2, low: dia / 2 - rise, high: dia / 2 + rise,
       rgb: TYRE_RGB, rim: { out, low: dia / 2 - rim, high: dia / 2 + rim, rgb: rimRgb } });
   }

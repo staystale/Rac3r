@@ -33,7 +33,7 @@ export interface RollCar {
   air: number;   // height off the ground, m
   sparks?: boolean;
   spec: { id?: string; lf: number; lr: number; trackWidth?: number; cg?: number; cgH?: number;
-    mass?: number };
+    mass?: number; tipGive?: number };
   mods?: { mass?: number };
   // the slope's pull, N, along / across it (world/wear.ts applyGround)
   slopeLong?: number; slopeLat?: number;

@@ -96,4 +96,7 @@ export const FIX = {
   // THE HILL CLIMB'S GRADE, step 1 (owner 11-22: a real 7 % climb): the endless road rising
   // HILL_GRADE along its length (highway/hillgrade.ts) - the engine piece, measured alone
   hillgrade: atLoad('hillgrade'),
+  // THE TRAILER TIPS AND ROLLS (owner 11-22: realistic, ~0.45 g): its own two-wheel state, over
+  // past its balance - the pin snaps, it rolls and slides on its own (physics/trailroll.ts)
+  trailroll: atLoad('trailroll'),
 };

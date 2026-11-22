@@ -66,4 +66,13 @@ export const TEST_LIST: TestEntry[] = [
     wrong: 'AI braking on straights, crashing into corners or each other far more than before, '
       + 'or slower laps.',
   },
+  {
+    id: 'trailroll',
+    added: '2026-11-22',
+    name: 'The Scanyah\'s trailer tips and rolls (about 0.45 g); the pin snaps as it goes over',
+    where: 'Test link + &trailroll=1: TEST MODE, the Scanyah with its trailer, the endless road',
+    try: 'Take a long bend hard and keep building speed; jack-knife it; then RESET.',
+    wrong: 'The trailer rolling into the bend, standing back up on its own, a wheel drawn off it, '
+      + 'or RESET leaving either on its side.',
+  },
 ];
