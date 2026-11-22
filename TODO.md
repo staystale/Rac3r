@@ -511,6 +511,14 @@ STORY (Story mode with its garage, money, BUY & FIT, "buy what you last tested" 
   hill-climb TRACK TYPE (a real road traced as data, point-to-point like a stage; an EVENT row -
   UP / DOWN / UP + DOWN - in place of laps) - the plan with the owner. Later: snow near the
   summit, the ghost, the start gantry.
+  ROUND 1 (THE DATA) DONE (Worker C): the road from OpenStreetMap (tools/venues/spikes.osm.json,
+  ODbL), heights from USGS 3DEP via Open Topo Data (ned10m, tools/venues/spikes.elev.json, 20 m
+  samples, 10 calls), credited (menu/credits.ts); tools/scratch/_spikesroad.mjs. MEASURED: the
+  course 19.99 km, 2858 -> 4298 m (the event's own 2862 / 4302), rise 1440 m, mean 7.2 %;
+  steepest 500 m 13.6 %, 100 m 26.5 % (at a hairpin: likely the DEM, to smooth); 51 turns over
+  30 deg in 60 m (120 over 10 deg; the event counts 156), 22 hairpins; 25 turns under the venues'
+  least radius 10 m at half scale (47 under the 15.5 m default). OWNER'S ANSWERS FIRST (round 2):
+  real grades at half scale, the top section's length, widening the tight hairpins.
 - A STAGE CAR ALREADY HOME (owner 11-22, fix (a)): BUILT behind ?stagedone (Worker C; game/grid.ts
   spawnAI, raceflow.ts homeBefore) - a car whose predicted run ends before your green is not on
   the road, its predicted time its result. MEASURED (tools/scratch/_stagecount.mjs, Sweaty Lamb,

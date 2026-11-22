@@ -2,7 +2,8 @@
 // then whose work the game carries: the traced circuit maps (Wikimedia Commons, CC BY-SA -
 // attribution required), OpenStreetMap's map data (ODbL - attribution required), the EU-DEM
 // heights the venues' hills are fitted to (Copernicus - attribution required; SRTM outside
-// Europe) and the menu fonts (SIL OFL). Add a line here in the same change as anything else the
+// Europe), the hill climb's road heights (USGS 3DEP via Open Topo Data) and the menu fonts (SIL
+// OFL). Add a line here in the same change as anything else the
 // game takes from someone else.
 import { addPane, addButton, addElement } from './widgets.ts';
 import { MENU_COL } from './palette.ts';
@@ -37,6 +38,12 @@ const CREDITS: { heading: string; items: Credit[] }[] = [
           + ' Survey', licence: 'public domain',
         link: 'https://www.usgs.gov/centers/eros/science/usgs-eros-archive-digital-elevation-'
           + 'shuttle-radar-topography-mission-srtm-1' },
+      { what: 'Spikes Peak (the hill climb): the road',
+        who: `${COPYRIGHT} OpenStreetMap contributors`, licence: 'ODbL',
+        link: 'https://www.openstreetmap.org/copyright' },
+      { what: 'Spikes Peak (the hill climb): the heights of the road',
+        who: 'USGS 3D Elevation Program (3DEP) data via Open Topo Data', licence: 'public domain',
+        link: 'https://www.opentopodata.org/datasets/ned/' },
     ],
   },
   {
