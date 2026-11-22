@@ -525,6 +525,19 @@ STORY (Story mode with its garage, money, BUY & FIT, "buy what you last tested" 
   1.10-1.15). A home car 4 slots ahead: 110.9 s predicted -> 124.2 s, 5th of 6 (the driven cars
   114.8-122.9 s). Found: a car placed down the stage keeps the prediction's pace for the part it
   never drove (up to ~10 s for 3 slots ahead). AWAITING THE PHONE TEST.
+- A STAGE'S TYRE TRACKS (owner 11-22: from the start line for each car already through, cheap):
+  BUILT behind ?stagetracks (Worker C, game/stagetracks.ts): the skid-mark layer's own wheel marks
+  along the racing line with each car's own smooth wander, eased onto the line before the car (its
+  own marks carry on). MEASURED: 37-82 ms once at the spawn for 4-5 cars (12-16k marks); ruts on
+  the gravel only (a rolling tyre marks nothing on tarmac, as everywhere), faint before the first
+  car, clear in the bends. AWAITING THE PHONE TEST.
+- A STAGE'S LIVE POSITION (owner 11-22: "P n/N should show true to the current times
+  available"): BUILT behind ?stagepos (Worker C, game/stagepos.ts): each car's time every 20 m
+  from its own start (a car placed down the stage, and one home, filled from the pace that placed
+  it); a car is ahead when, at the furthest split you both have, its time is less; not started:
+  behind. N the whole field (hud/laps.ts). MEASURED (tools/scratch/_stagepos.mjs, Sweaty Lamb, 5
+  AI): live place at your finish 3, your result 3; P1 for the first 31 s was true (your 24.10 s
+  at 300 m to the car ahead's 25.25 s). AWAITING THE PHONE TEST.
 - [ ] STORY MODE: ROOKIE SEASON (grass track, stock car, time trials: hillclimb / runway cones) ->
   ROOKIE 2 (similar events, track variations, harder to win); we pick the events; money / points
   also for NOT finishing top 3; replayable events / championships for more money (finish 5th,

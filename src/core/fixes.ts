@@ -88,4 +88,7 @@ export const FIX = {
   // marks along the racing line, each its own wander, up to where each is placed
   // (game/stagetracks.ts)
   stagetracks: atLoad('stagetracks'),
+  // A STAGE'S LIVE POSITION (owner 11-22: "true to the current times available"): P n/N from the
+  // times at the same distance, like live timing; N the whole field (game/stagepos.ts)
+  stagepos: atLoad('stagepos'),
 };

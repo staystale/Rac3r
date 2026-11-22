@@ -17,6 +17,7 @@ import { START_STEP, ROLL_BACK } from './order.ts';
 import { shared, game } from './state.ts';
 import { FIX } from '../core/fixes.ts';
 import { layStageTracks } from './stagetracks.ts';
+import { prefillStageSplits } from './stagepos.ts';
 import type { GameCar } from './state.ts';
 import type { Point } from '../world/types.ts';
 import { isTowing, layGridByLength, playerSlot, slotBackM } from './gridlen.ts';
@@ -251,6 +252,9 @@ function placeStageCar(car: GameCar, pace: number, rel: number): 'home' | 'road'
   if (rel < 0 && car._predT <= headS) {
     car._stageStart = rel * STAGE_GAP_S;
     car._stageTime = car._predT * (FIX.stagetimes ? STAGE_DRIVEN_RATIO : 1);
+    // (?stagepos: its splits over the whole stage, scaled to its result)
+    if (FIX.stagepos)
+      prefillStageSplits(car, pace, LEVEL.stage!.finish, car._stageTime / car._predT);
     return 'home';
   }
   if (rel < 0) {
@@ -261,6 +265,7 @@ function placeStageCar(car: GameCar, pace: number, rel: number): 'home' | 'road'
     car._stageStart = rel * STAGE_GAP_S;
     car._prog = run.dist;
     car._lastQ = run.dist;
+    if (FIX.stagepos) prefillStageSplits(car, pace, run.dist, 1);
   } else {
     const pos = gridPos(rel);
     reset(car, pos.x, pos.y, pos.h);

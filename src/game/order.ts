@@ -13,6 +13,9 @@ import { inTrackUnderpass, queryLevelOf } from "../world/trackunder.ts";
 import { onGround } from "../world/crossinggeo.ts";
 import { STAGE_GAP_S, GRID_STEP, gridColumn } from './grid.ts';
 import { slotBackM } from './gridlen.ts';
+import { stagePosition } from './stagepos.ts';
+import { FIX } from '../core/fixes.ts';
+import type { RaceFlow } from '../raceflow.ts';
 import { formationInput, holdSpeed, roadFormationInput } from '../ai/formation.ts';
 import { shared, game, hwLevel } from './state.ts';
 import { firstFree, lapAhead, lapStepBack } from './resetspot.ts';
@@ -280,4 +283,7 @@ export function stepOrder() {
       : car._prog);
   const mine = key(game.car);
   game.position = 1 + all.filter((car) => car !== game.car && key(car) > mine).length;
+  // (?stagepos: a stage's place from the times so far - game/stagepos.ts)
+  if (FIX.stagepos && LEVEL.stage && game.flow)
+    game.position = stagePosition(game.flow as RaceFlow);
 }

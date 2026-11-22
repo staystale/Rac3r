@@ -13,6 +13,26 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'stagepos',
+    added: '2026-11-22',
+    name: 'Rally stage: P n/N from the times so far at the same distance, like live timing',
+    where: 'Test link + &stagepos=1: TEST MODE, a rally stage, VS AI 5 (start mid-field)',
+    try: 'Watch P n/N as you drive: it moves as you gain or lose time on the cars ahead; N is the '
+      + 'whole field; at your finish it matches the results.',
+    wrong: 'P that disagrees with the gaps you see, N shrinking as cars finish, or your place '
+      + 'at the finish different from the results.',
+  },
+  {
+    id: 'stagetracks',
+    added: '2026-11-22',
+    name: 'Rally stage: tyre tracks of the cars that started before you, from the start line',
+    where: 'Test link + &stagetracks=1: TEST MODE, Sweaty Lamb, VS AI 5 (start 2nd or later)',
+    try: 'Look at the gravel ahead after the start: ruts from the cars ahead, each its own line, '
+      + 'running into each car where you catch up with it.',
+    wrong: 'No ruts on gravel, ruts on tarmac, ruts off the road or straight through bends, or a '
+      + 'stutter at the start.',
+  },
+  {
     id: 'stagetimes',
     added: '2026-11-22',
     name: 'Rally stage: a car already home is timed at the AI driven pace, not the prediction',
