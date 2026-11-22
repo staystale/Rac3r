@@ -4,7 +4,6 @@ import type { Prop } from '../../world/types.ts';
 import type { BridgeGeom, PropCtx } from './types.ts';
 import { trainAt } from '../../world/trains.ts';
 import { worldSeconds } from '../../world/worldclock.ts';
-import { FIX } from '../../core/fixes.ts';
 
 /**
  * A rail bridge's train clock, s: the world's sim clock (a car on the deck meets
@@ -282,8 +281,8 @@ export function overheadDeck(prop: Prop): { halfLength: number; halfWidth: numbe
   if (prop.kind === 'footbridge') {
     return { halfLength: (prop.wid || 27) / 2, halfWidth: FOOT_DECK_HALF_M };
   }
-  // (?tunnellamps: a tunnel cover's slat - Moanaco's, GETAWAY STOCKHOLM's - over the cars too)
-  if (FIX.tunnellamps && prop.kind === 'slat') return { halfLength: prop.w! / 2,
+  // (a tunnel cover's slat - Moanaco's, GETAWAY STOCKHOLM's - over the cars too)
+  if (prop.kind === 'slat') return { halfLength: prop.w! / 2,
     halfWidth: prop.h! / 2 };
   return null;
 }

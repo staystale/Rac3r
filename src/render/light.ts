@@ -6,7 +6,6 @@
 // the HUD. The cost is one extra full-screen image a frame.
 import { lampTypeOf } from './lamptypes.ts';
 import { crossingOf } from "../world/crossinggeo.ts";
-import { clipCarLight } from './coverlight.ts';
 import { DAYLIGHT } from '../world/daylight.ts';
 import { activeLamps, lampsLit } from '../world/lamps.ts';
 import { drawPools, paintPool, paintPoolTint } from './lamppools.ts';
@@ -36,13 +35,9 @@ import { trackCanvas } from '../core/memorybudget.ts';
 // the night's dark at darkness 1 this opaque (the darkest patches still show the track's shape
 // faintly); its colour is the sky's (world/daylight.ts: blue-black, or a sunrise / sunset)
 const NIGHT_ALPHA = 0.9;
-// a car's headlight beam as the light's reach and the tunnel clip reckon it (the beams themselves
-// are each vehicle's own: render/lamptypes.ts): start ahead of the centre, reach, half spread, m
+// a car's headlight beam as the light's reach reckons it (the beams themselves are each
+// vehicle's own: render/lamptypes.ts): start ahead of the centre, reach, half spread, m
 const BEAM_START_M = 1.8, BEAM_REACH_M = 32, BEAM_HALF_M = 9;
-// m a car's light reaches from its centre: the beam's far end (the glows well within it)
-const LIGHT_REACH_M = BEAM_START_M + BEAM_REACH_M;
-// the reach a tunnel's light clip is cut to (render/coverlight.ts)
-const LIGHT_CLIP = { lightM: LIGHT_REACH_M, beamM: BEAM_REACH_M };
 // a headlight's sideways offset from the centre line, m, as the light's reach reckons it
 const LAMP_SIDE_M = 0.7;
 // how much of the dark one headlight rubs out at its brightest (two overlap to ~0.84)
@@ -221,10 +216,8 @@ function paintCarGlows(painter: GlowPainter, game: RenderGame, level: CarLevel =
   if (painter.sparks && level !== 'deck') openSparks(painter, painter.sparks);
   const each = (car: RenderCar) => {
     if (!isOnLevel(car, level)) return;
-    // (a car in a tunnel lights only its own open cut)
-    const clipped = clipCarLight(painter.ctx, car, painter.mapX, painter.mapY, LIGHT_CLIP);
+    // (a car in a tunnel: its cover is a deck - render/lightdecks.ts - never a clip)
     drawCarGlows(painter, car, isBlinkOn);
-    if (clipped) painter.ctx.restore();
   };
   if (game.traffic) for (const car of game.traffic.cars) each(car);
   for (const rival of game.ai || []) each(rival.car);
@@ -487,12 +480,10 @@ function drawBeams(painter: PoolPainter, beam: HTMLCanvasElement, car: RenderCar
 function drawFieldBeams(painter: PoolPainter, beam: HTMLCanvasElement, game: RenderGame,
   level: CarLevel = 'all') {
   const each = (car: RenderCar) => {
-    // a car in a tunnel lights its cut, never its cover (render/coverlight.ts clipCarLight)
+    // (a car in a tunnel: its cover is a deck - render/lightdecks.ts - never a clip)
     if (!isOnLevel(car, level)) return;
-    const clipped = clipCarLight(painter.lightCtx, car, painter.artX, painter.artY, LIGHT_CLIP);
     drawBeams(painter, beam, car);
     drawReverseBeams(painter, beam, car);
-    if (clipped) painter.lightCtx.restore();
   };
   if (game.traffic) for (const car of game.traffic.cars) each(car);
   for (const rival of game.ai || []) each(rival.car);

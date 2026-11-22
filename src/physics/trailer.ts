@@ -23,7 +23,7 @@ import { PAINT_STOCK } from '../carpaint.ts';
  */
 export type Trailer = Car & { pinFree?: boolean; pinGap?: number;
   towedBy?: { x: number; y: number; heading: number };
-  // (?trailreset: where a reset puts it - game/rigreset.ts; taken once by lineUpTrailer)
+  // (where a reset puts it - game/rigreset.ts; taken once by lineUpTrailer)
   resetPose?: { x: number; y: number; heading: number } | null };
 /** A tractor that may tow one. */
 export type Tractor = Car & { trailer?: Trailer | null; hitchLoad?: number };

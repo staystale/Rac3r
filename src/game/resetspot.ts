@@ -102,12 +102,12 @@ mover?: { spec: { len: number; wid: number }; others: readonly SpotBody[] }): T 
 /** A car's place and heading (world m, rad). */
 type Pose = { x: number; y: number; heading: number };
 
-// ?trailreset: where a reset's spot puts your rig's trailer (game/rigreset.ts), null where it
+// where a reset's spot puts your rig's trailer (game/rigreset.ts), null where it
 // does not fit; none set: straight behind
 let rigPoseAt: ((pose: Pose, spot: unknown) => Pose | null) | null = null;
 
 /**
- * Sets (or clears) where a reset's spots put your rig's trailer (?trailreset).
+ * Sets (or clears) where a reset's spots put your rig's trailer (game/rigreset.ts).
  * @param poseAt the trailer's pose for the tractor's pose and spot, or null for straight behind
  */
 export function useRigPose(poseAt: ((pose: Pose, spot: unknown) => Pose | null) | null) {
@@ -115,8 +115,8 @@ export function useRigPose(poseAt: ((pose: Pose, spot: unknown) => Pose | null) 
 }
 
 /**
- * Whether your rig's trailer stands clear of the cars at a spot: where ?trailreset puts it (none
- * there: not clear), else straight behind.
+ * Whether your rig's trailer stands clear of the cars at a spot: where game/rigreset.ts puts it
+ * (none there: not clear), else straight behind.
  * @param pose the tractor's pose
  * @param spot the spot
  * @param trailer its length, width and middle's m behind the tractor's

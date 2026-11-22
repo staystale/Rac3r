@@ -17,6 +17,32 @@ lighting, bushes and trees - OWNER LIST 10-24; the checking tools - Tools that a
 
 
 
+## PASSED 11-22, THE RIG'S RESET
+
+The default 11-22, its switch (?trailreset) deleted. Owner 11-22, option b: "articulated lorries
+reset fully inside the road's edge, on the bend's line, ready to drive off". Was: the tractor put
+down as any car (half on the edge, its nose turned back 5-15 deg) and its trailer straight behind
+it - on a tight bend across the run-off. As built (game/rigreset.ts; ENGINE: RESETS): the tractor
+along the road, its widest half 0.4 m inside the edge; the trailer's kingpin on the fifth wheel, its
+axle group on the road's line one trailer wheelbase back from the pin, facing the pin; a spot whose
+hitch passes 45 deg, or on a circuit with a trailer corner off the road, passed over by the reset's
+free-spot search; circuits, stages and the endless roads' shoulder.
+
+## PASSED 11-22, TUNNEL LAMPS (owner: "slats pass, tunnel lights pass")
+
+The default 11-22, its switch (?tunnellamps) deleted, with render/coverlight.ts (the clip of a
+car's light by the crossing it was in - what made Moanaco's headlights go at the tunnel's mouth).
+Owner 11-22: "Tunnels shouldn't turn headlights on or off; surely it should be controlled with
+LAYERING, not code". As built (ENGINE: A TUNNEL IN THE NIGHT LAYER): every tunnel cover (each
+slat, a straight tunnel's underground stretch) a deck over the light map, traced by its longer
+half (by its half length a 26 m slat was left off whenever its middle was off the map - the
+flashing at the screen's edge); the tunnel's own lamps a pool in each gap from dusk; the night's
+dark put back over every cover last, after every light and tint - nothing lit on a slat top,
+indicators and hazards only in the gaps (owner on round184 / 186); GETAWAY STOCKHOLM's day shade
+0.55 -> 0.3, and its slats' shade and shadow drawn under the cars, the slat over them (owner on
+round188: "shaded or something over most of the slat" - the shadow had been painted onto the car
+in the gap). Its slats were Moanaco's already (3.2 m, 1.4 m gap).
+
 ## PASSED 11-22, GETAWAY STOCKHOLM, KEEP RIGHT, POLICE BY SCENERY
 
 The default 11-22, their switches (?stockholm, ?keepright, ?copmix) deleted. GETAWAY STOCKHOLM

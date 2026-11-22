@@ -5,7 +5,6 @@
 // light a deck. The start gantries are open trusses, so light passes them.
 import { LEVEL, PROPS } from '../world/state.ts';
 import { overheadDeck } from './props/bridges.ts';
-import { FIX } from '../core/fixes.ts';
 import { lampsLit } from '../world/lamps.ts';
 import { drawPool } from './lamppools.ts';
 import type { PoolPainter } from './lamppools.ts';
@@ -32,13 +31,13 @@ export function traceDecks(ctx: CanvasRenderingContext2D, map: DeckMapping): num
     const deck = overheadDeck(prop);
     if (deck && traceQuad(ctx, map, prop, deck)) count++;
   }
-  return count + (FIX.tunnellamps ? traceUnderground(ctx, map) : 0);
+  return count + traceUnderground(ctx, map);
 }
 
 /**
  * Adds one prop's deck to the path as a closed quad, when it reaches the map: by its half length
- * (?tunnellamps: by its longer half - a slat 26 m across and 3.2 m along was left off whenever
- * its middle was off the map, so its dark came and went at the screen's edge).
+ * by its longer half (a slat is 26 m across and 3.2 m along: by its half length it was left off
+ * whenever its middle was off the map, and its dark came and went at the screen's edge).
  * @param ctx the light map's context (identity transform)
  * @param map the world-to-art-px mapping
  * @param prop the prop (its middle and turn)
@@ -48,7 +47,7 @@ export function traceDecks(ctx: CanvasRenderingContext2D, map: DeckMapping): num
 function traceQuad(ctx: CanvasRenderingContext2D, map: DeckMapping, prop: Prop,
   deck: { halfLength: number; halfWidth: number }): boolean {
   const centreX = map.artX(prop.x), centreY = map.artY(prop.y);
-  const reach = FIX.tunnellamps ? Math.max(deck.halfLength, deck.halfWidth) : deck.halfLength;
+  const reach = Math.max(deck.halfLength, deck.halfWidth);
   if (!map.isNear(centreX, centreY, reach * map.artPerMetre())) return false;
   const cos = Math.cos(prop.rot || 0), sin = Math.sin(prop.rot || 0);
   for (const [along, across] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) {
@@ -63,7 +62,7 @@ function traceQuad(ctx: CanvasRenderingContext2D, map: DeckMapping, prop: Prop,
 }
 
 /**
- * ?tunnellamps: the night's dark put back over every tunnel cover - each slat, each straight
+ * The night's dark put back over every tunnel cover - each slat, each straight
  * tunnel's underground stretch - last of all, after every light and tint (the street lights and
  * their heads hang above a bridge's deck, so the decks' order lets them light it; over a tunnel
  * nothing may show on top: owner 11-22 "they should only show in the tunnel / through the slats").
@@ -73,7 +72,7 @@ function traceQuad(ctx: CanvasRenderingContext2D, map: DeckMapping, prop: Prop,
  * @param darkFill the night's dark this frame
  */
 export function darkenCovers(pools: PoolPainter, darkFill: string): void {
-  if (!FIX.tunnellamps || !PROPS) return;
+  if (!PROPS) return;
   const ctx = pools.lightCtx;
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.globalAlpha = 1;
@@ -93,7 +92,7 @@ export function darkenCovers(pools: PoolPainter, darkFill: string): void {
 }
 
 /**
- * ?tunnellamps: adds each straight tunnel's underground stretch (lintel to lintel, wall face to
+ * Adds each straight tunnel's underground stretch (lintel to lintel, wall face to
  * wall face) to the path, as a deck: the light of a car in it never reaches the ground above.
  * @param ctx the light map's context (identity transform)
  * @param map the world-to-art-px mapping
@@ -117,7 +116,7 @@ function traceUnderground(ctx: CanvasRenderingContext2D, map: DeckMapping): numb
   return count;
 }
 
-// ?tunnellamps: A SLATTED TUNNEL'S OWN LAMPS - a pool on its road in each gap between two slats
+// A SLATTED TUNNEL'S OWN LAMPS - a pool on its road in each gap between two slats
 // (seen between them: the slats are a deck), its radius m and strength; the gap after a slat, m,
 // where its prop does not give its pitch (Moanaco's: world/venuecross.ts SLAT_GAP_M)
 const COVER_LAMP_M = 3, COVER_LAMP_ALPHA = 0.55, SLAT_GAP_M = 1.4;
@@ -129,7 +128,7 @@ const COVER_LAMP_M = 3, COVER_LAMP_ALPHA = 0.55, SLAT_GAP_M = 1.4;
  * @param pools the light map and its mapping
  */
 export function rubCoverLamps(pools: PoolPainter): void {
-  if (!FIX.tunnellamps || !PROPS || !lampsLit()) return;
+  if (!PROPS || !lampsLit()) return;
   const size = 2 * COVER_LAMP_M * pools.artPerMetre();
   pools.lightCtx.globalAlpha = COVER_LAMP_ALPHA;
   for (const prop of PROPS) {
