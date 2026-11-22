@@ -276,6 +276,8 @@ RACE TRACKS:
       race runs on while you are in the menu, the AI the same; your box = your grid slot's, in the pit lane;
       fuel after the first build. THE NORDSCHLEIFE: no pit stops now, LATER the GP circuit and its real pits.
       Le Manky's 24-hour pit lane traced (worker/pitstops 5254c8a3, scenery, behind ?pitstops).
+    - FUEL ON THE HUD (owner 11-22, with step 3): portrait - on the right, under the HUD stack (below the
+      FPS panel); landscape - on the left, under the minimap (the owner's circled screenshots).
     - NO RESET IN THE PIT LANE (owner 11-22): a reset in the pit lane puts you back on the track at the
       pit lane's entrance.
     - WALKTHROUGH (owner 11-15: "Make sure it's all explained in the walk thru the first time an event of
