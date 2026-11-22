@@ -13,6 +13,7 @@ const report = (row) => appendFileSync(OUT, JSON.stringify(row) + '\n');
 const RUNS = (process.env.RUNS || '1:3,1:1,2:3,2:1').split(',').map((run) => run.split(':')
   .map(Number));
 const LIMIT_S = +(process.env.LIMIT_S || 420);
+const LEVEL_ID = process.env.LEVEL || 'sweaty-lamb';
 const AI_COUNT = +(process.env.AI || 5), MIN_SLOT = +(process.env.MINSLOT || 0);
 const server = await startServer();
 const browser = await launchBrowser();
@@ -35,9 +36,9 @@ try {
     // (MINSLOT: launch again until a car starts that many slots ahead of you, or 20 tries; read
     // after the first tap - the grid at 1.5 s was not the one raced)
     for (let tries = 0; tries < 20; tries++) {
-      await page.evaluate(([lapCount, aiCount]) => window.__game.launch('sweaty-lamb', 'saloon-rwd', {
+      await page.evaluate(([lapCount, aiCount, levelId]) => window.__game.launch(levelId, 'saloon-rwd', {
         ai: aiCount, diff: 2, laps: lapCount, weather: { mode: 'dry', season: 2, seed: 4 } }),
-      [laps, AI_COUNT]);
+      [laps, AI_COUNT, LEVEL_ID]);
       await page.waitForTimeout(1500);
       await page.mouse.click(422, 195);
       await page.waitForTimeout(3000);

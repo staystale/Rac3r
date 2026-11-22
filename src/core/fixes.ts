@@ -80,9 +80,12 @@ export const FIX = {
   // the lock's room to it (at most 3 s, or a car close behind), the nose swung away from it
   // (ai/driveOut.ts, ai/revRoom.ts)
   revroom: atLoad('revroom'),
-  // A STAGE CAR ALREADY HOME (owner 11-22, fix (a)): a car that started so far ahead of you that
-  // its predicted run is over before your green is not on the road - it is home, its predicted
-  // time its result, like a real rally (game/grid.ts spawnAI; it was placed past the finish, or
-  // round the racing line back at the start line with its old start time)
-  stagedone: atLoad('stagedone'),
+  // A HOME CAR'S TIME AS DRIVEN (owner 11-22, (a)): a stage car home before your green is timed at
+  // its predicted run x STAGE_DRIVEN_RATIO - the AI's driven pace, not the prediction's
+  // (game/grid.ts placeStageCar)
+  stagetimes: atLoad('stagetimes'),
+  // A STAGE'S TYRE TRACKS (owner 11-22): the cars already through the start leave their wheels'
+  // marks along the racing line, each its own wander, up to where each is placed
+  // (game/stagetracks.ts)
+  stagetracks: atLoad('stagetracks'),
 };

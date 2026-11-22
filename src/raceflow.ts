@@ -257,7 +257,7 @@ function endRace(state: FlowState) {
 }
 
 /**
- * A stage car home before your green (?stagedone: game/grid.ts spawnAI): finished at its start
+ * A stage car home before your green (game/grid.ts placeStageCar): finished at its start
  * plus its time, its time its result.
  * @param stage the stage, or null
  * @param entry the new entry

@@ -35,7 +35,7 @@ export type GameCar = Car & DamageCar & DamageState & {
   _hwS?: number;   // its road distance last step (the hint for the next frame)
   _jokers?: number; _cutPen?: number; _prog?: number; _predT?: number;
   _stageStart?: number | null;
-  _stageTime?: number;   // ?stagedone: a car home before your green, its stage time (s)
+  _stageTime?: number;   // a stage car home before your green: its stage time (s)
   indicator?: number; lightsOn?: boolean;
   indT?: number; indTurned?: boolean;   // the indicator's blink clock; cancelled by the turn
   hazardUntil?: number;   // a reset's hazard lights, until (wall-clock ms; game/resethazard.ts)
@@ -131,9 +131,10 @@ export interface Game {
   marks: ReturnType<typeof createMarks>;
   traffic: ReturnType<typeof createTraffic>;
   ai: AiEntry[];
-  // a rally stage's AI cars already home before your green (?stagedone: game/grid.ts spawnAI) -
+  // a rally stage's AI cars already home before your green (game/grid.ts placeStageCar) -
   // in the results, not on the road
   aiDone?: GameCar[];
+  stageTracksMs?: number;   // ?stagetracks: ms the tracks took to lay (game/stagetracks.ts)
   poleCar?: GameCar | null;
   flow: RaceFlow | HwFlow | null; flowShown?: boolean; flowDoneAt?: number;
   start: GameStart;

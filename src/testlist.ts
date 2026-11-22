@@ -13,6 +13,14 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'stagetimes',
+    added: '2026-11-22',
+    name: 'Rally stage: a car already home is timed at the AI driven pace, not the prediction',
+    where: 'Test link + &stagetimes=1: TEST MODE, Sweaty Lamb, VS AI 5 (start 5th or 6th)',
+    try: 'Restart until you start late (cars home before your green); drive it; read the results.',
+    wrong: 'Home cars always on top (they were), or always last, or far off the driven times.',
+  },
+  {
     id: 'revroom',
     added: '2026-11-22',
     name: 'AI stuck behind a crashed car reverse out sooner and far enough to steer round it',
@@ -23,14 +31,4 @@ export const TEST_LIST: TestEntry[] = [
     wrong: 'AI still nudging back and forth and getting put back, reversing into cars behind, '
       + 'or reversing in normal racing.',
   },
-  {
-    id: 'stagedone',
-    added: '2026-11-22',
-    name: 'Rally stage: a car that started long before you is home, not on the road',
-    where: 'Test link + &stagedone=1: TEST MODE, Sweaty Lamb, VS AI 5 (a late start for you)',
-    try: 'Start the stage a few times until you start 4th or later; drive it and read the results.',
-    wrong: 'A car parked or driving off just ahead of you at the start, a car finishing at the '
-      + 'green, or a time near 270 s; a car missing from the results.',
-  },
-
 ];

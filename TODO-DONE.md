@@ -35,6 +35,20 @@ line 120 m ahead - the move begun 27-28 -> 54-55 m out, km/h lost 109-125 -> 6-1
 8 / 8 -> 0 / 0 of 8, 6.2-6.9 -> 3.9-4.1 s to pass; a car 15 m/s slower 50 m ahead - lost 33-46 /
 11-44 -> 0-1 / 0 km/h, the stopped-car brake's re-holds 6-12 / 0-10 -> 0-2 / 0-3; a stopped car
 on the line 70 m ahead - lost 24-93 / 10-58 -> 2-9 / 2-8 km/h.
+## PASSED 11-22, A STAGE CAR ALREADY HOME (owner: ?stagedone passed)
+
+The default 11-22, its switch deleted. As built (Worker C; game/grid.ts placeStageCar,
+raceflow.ts homeBefore): a car whose predicted run is over before it would be placed (k x 30 - 4
+s ahead of your green) is home - not on the road, its start plus its predicted time its result.
+[A STAGE CAR ALREADY HOME (owner 11-22, fix (a)): BUILT behind ?stagedone (Worker C; game/grid.ts
+  spawnAI, raceflow.ts homeBefore) - a car whose predicted run ends before your green is not on
+  the road, its predicted time its result. MEASURED (tools/scratch/_stagecount.mjs, Sweaty Lamb,
+  5 AI, you 6th): before, slot -5 placed 33 m down the stage just ahead of you, its start -150 s
+  kept - a 270.4 s result, last; slot -4 placed past the finish (1961 m of 1821), timed at the
+  green (120.0 s); after, both home and off the road (111.7, 113.2 s). THE PREDICTION IS FAST:
+  driven stage times ran 3.5-10.1 s over each car's predicted time (lineRun) - home cars now
+  take P1-P2 (owner to decide). AWAITING THE PHONE TEST. NEXT: the real rally start (plan).]
+
 ## PASSED 11-22, RALLY STAGES HAVE NO LAPS (owner: stagenolaps passed)
 
 Owner 11-22: "Single rally stages shouldn't have laps either." As built (round196, Worker C;
