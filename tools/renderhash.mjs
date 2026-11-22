@@ -19,6 +19,8 @@
 //                                         --only): CI splits the levels over parallel machines
 // It rasterises on the CPU (no GPU): GPU canvas raster is not bit-exact between builds. The WebGL2
 // ground is rasterised on the CPU too (SwiftShader): ~3.5 min a level.
+// RAC3R_LAUNCH=rx[,key=value...]          extra launch options (rx: an RX race - the joker's lap
+//                                         panel line; a bare key is true, a number a number)
 // Not covered: the menu screens, other screen sizes, the desktop (pc) input mode.
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -39,6 +41,12 @@ const SEED = 0x5eed;
 const FRAMES = [['t02', 120], ['t08', 480], ['t14', 840], ['t20', 1200]];
 const STAGE_IDS = ['gen-forest-medium-mixed-1001', 'stage-sahara-sandpants'];
 const HIGHWAY_OPTS = { traffic: 1, litter: 1.5 };
+// RAC3R_LAUNCH: extra launch options, "key" (true) or "key=value" (a number when it is one)
+const LAUNCH_OPTS = Object.fromEntries((process.env.RAC3R_LAUNCH || '').split(',').filter(Boolean)
+  .map((pair) => {
+    const [key, value] = pair.split('=');
+    return [key, value === undefined ? true : Number.isNaN(Number(value)) ? value : Number(value)];
+  }));
 // --shard k/n: this machine's share of the level list (k = 1..n), or null for all
 const SHARD = (() => {
   const at = process.argv.indexOf('--shard');
@@ -117,7 +125,8 @@ async function runLevel(browser, base, id, endless) {
   await page.evaluate((seed) => window.__rt.seed(seed), SEED);
   // RAC3R_CAR: the player car (default the hatch: the saved references are the hatch's)
   const car = process.env.RAC3R_CAR ? { car: process.env.RAC3R_CAR } : {};
-  await page.evaluate(launchLevel, [id, { ...(endless ? HIGHWAY_OPTS : {}), ...car }]);
+  await page.evaluate(launchLevel, [id, { ...(endless ? HIGHWAY_OPTS : {}), ...car,
+    ...LAUNCH_OPTS }]);
   // the game's restart arms the start with a real setTimeout: let it fire before stepping
   await page.waitForTimeout(SETTLE_MS);
   await page.evaluate(installDriver);
