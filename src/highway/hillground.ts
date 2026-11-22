@@ -2,7 +2,7 @@
 // rises along its length (riseAt), and the ground off it is the hillside between the road's legs.
 // Heights from the nearest road point alone made a cliff halfway between two switchback legs
 // (30-60 m apart, their rises 4-26 m apart): here the ground off the road is blended from the
-// nearest point of each part of the road within BLEND_M (inverse distance squared), on a grid of
+// nearest point of each part of the road within BLEND_M (inverse distance), on a grid of
 // CELL_M cells built as the road grows, eased in from the road's own rise over EASE_M past its
 // edge. DROPS: past the verge on the outside of a bend tighter than DROP_R_M (not in a switchback
 // cluster: there the outside is the hillside up to the next leg) the ground falls away DROP_M -
@@ -10,16 +10,20 @@
 import type { HwLevel } from './hwtypes.ts';
 import { hillStretchAt, riseAt } from './hillplan.ts';
 import { STEP } from './presets.ts';
+import { REACH } from './gorge.ts';
 
 // m: a grid cell's side; how far a road point shapes the ground; the parts of the road one cell
 // keeps apart (one nearest point each), m along the road; the ease from the road's rise to the
 // hillside past its edge
-const CELL_M = 4, BLEND_M = 50, PART_M = 60, EASE_M = 8;
+const CELL_M = 4, BLEND_M = 100, PART_M = 60, EASE_M = 8;
 // the far ground's weight in a cell (tiny: only where no part reaches)
 const FAR_WEIGHT = 1e-7;
 // m: the drop's depth, the verge before it, the width it falls over; the bends that have one
 // (their radius under this, m)
 const DROP_M = 25, DROP_VERGE_M = 1.5, DROP_FALL_M = 3, DROP_R_M = 150;
+// m: no drop where another part of the road (this far along it) comes within DROP_CLEAR_M; a drop
+// eased in and out over DROP_EASE_M of road; it eases back up over DROP_BACK_M before the reach
+const DROP_APART_M = 150, DROP_CLEAR_M = 120, DROP_EASE_M = 40, DROP_BACK_M = 12;
 
 /** A grid cell: per part of the road its nearest point's distance and rise; its blended height. */
 interface Cell { parts: number[]; dists: number[]; rises: number[]; height: number | null }
@@ -66,8 +70,10 @@ function layPoint(side: Hillside, point: { x: number; y: number; s: number }, ri
 }
 
 /**
- * A cell's height: its parts' rises, each weighted by its nearest point's inverse distance squared
- * (less BLEND_M's), and the far ground's a little.
+ * A cell's height: its parts' rises, each weighted by its nearest point's inverse distance (less
+ * BLEND_M's), and the far ground's a little. (By the inverse distance squared each part held its
+ * rise out to the middle and the hillside fell in a band there: 118 of 1125 points between two
+ * parts past a 0.75 slope, _hillclimb.mjs - now linear between two parts.)
  * @param cell the cell
  * @param far the far ground there, m
  * @returns m
@@ -77,7 +83,7 @@ function cellHeight(cell: Cell, far: number): number {
   // (each part's weight falls to none at BLEND_M, where the far ground takes over: no step)
   let sum = FAR_WEIGHT * far, weights = FAR_WEIGHT;
   for (let i = 0; i < cell.parts.length; i++) {
-    const weight = Math.max(0, 1 / Math.max(1, cell.dists[i] * cell.dists[i]) - 1 / BLEND_M ** 2);
+    const weight = Math.max(0, 1 / Math.max(1, cell.dists[i]) - 1 / BLEND_M);
     sum += weight * cell.rises[i];
     weights += weight;
   }
@@ -194,15 +200,65 @@ function curvatureAt(level: HwLevel, dist: number): number {
  * @returns the roadside (road distance, offset across - + the left -, half width), m
  */
 export function hillRoadsideOf(level: HwLevel) {
+  const open = new Map<number, boolean>();
   return (dist: number, offset: number, halfWidth: number): number => {
     const past = Math.abs(offset) - halfWidth - DROP_VERGE_M;
     if (past <= 0 || hillStretchAt(dist, level._hw.seed).kind === 'switchbacks') return 0;
     const curv = curvatureAt(level, dist);
     // (the outside: the side the bend turns away from; + offset the left)
     if (Math.abs(curv) < 1 / DROP_R_M || Math.sign(offset) === Math.sign(curv)) return 0;
-    const fall = Math.min(1, past / DROP_FALL_M);
-    return -DROP_M * fall * fall * (3 - 2 * fall);
+    const clear = dropClear(level, open, dist);
+    if (clear <= 0) return 0;
+    // (it falls past the verge, and eases back up before the road's lookup ends - as Deaf
+    // Valley's gorges: no step at REACH)
+    const fall = smooth(past / DROP_FALL_M), back = smooth((past - (REACH - DROP_VERGE_M
+      - DROP_BACK_M - 2)) / DROP_BACK_M);
+    return -DROP_M * fall * (1 - back) * clear;
   };
+}
+
+/** 0..1 eased (a smoothstep), clamped. */
+const smooth = (share: number) => {
+  const clamped = Math.max(0, Math.min(1, share));
+  return clamped * clamped * (3 - 2 * clamped);
+};
+
+/**
+ * Whether a drop may fall away at a road distance: none where another part of the road (more than
+ * DROP_APART_M along it) comes within DROP_CLEAR_M - there the ground is the hillside to it (a drop
+ * there met the other part's ground in a cliff) - eased in and out over DROP_EASE_M of road.
+ * @param level the highway level
+ * @param open the road points known clear (by road distance)
+ * @param dist road distance, m
+ * @returns 0..1
+ */
+function dropClear(level: HwLevel, open: Map<number, boolean>, dist: number): number {
+  let clear = 1;
+  for (let along = -DROP_EASE_M; along <= DROP_EASE_M; along += STEP) {
+    if (!isOpenAt(level, open, Math.round((dist + along) / STEP) * STEP))
+      clear = Math.min(clear, Math.abs(along) / DROP_EASE_M);
+  }
+  return clear;
+}
+
+/**
+ * Whether no other part of the road comes near a road point (cached by its road distance).
+ * @param level the highway level
+ * @param open the cache
+ * @param dist the road point's distance, m
+ * @returns clear (off the laid road: not)
+ */
+function isOpenAt(level: HwLevel, open: Map<number, boolean>, dist: number): boolean {
+  const known = open.get(dist);
+  if (known !== undefined) return known;
+  const pts = level._hw.pts, i = Math.round((dist - (pts[0]?.s ?? 0)) / STEP);
+  if (i < 0 || i >= pts.length) return false;
+  const here = pts[i];
+  const clear = !pts.some((other) => Math.abs(other.s - here.s) > DROP_APART_M
+    && Math.hypot(other.x - here.x, other.y - here.y) < DROP_CLEAR_M);
+  // (only once the road past it is laid far enough to tell)
+  if (pts[pts.length - 1].s > dist + DROP_APART_M + DROP_CLEAR_M) open.set(dist, clear);
+  return clear;
 }
 
 // the WORST CORNERS (owner 11-22: barriers only there): armco on the outside of a bend tighter

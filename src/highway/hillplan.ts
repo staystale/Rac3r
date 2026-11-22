@@ -9,8 +9,8 @@ import type { HwCfg } from './hwtypes.ts';
 import { makeStretchPlan } from './stretchplan.ts';
 import type { KindRule, PlanStretch } from './stretchplan.ts';
 
-// the hill climb's name (a parody: the owner picks - one word to change)
-export const HILL_NAME = "PIKER'S PEAK";
+// the hill climb's name (a parody; the owner's pick 11-22 - one word to change)
+export const HILL_NAME = 'SPIKES PEAK';
 // m from the start line to the summit's finish line; m of level stop zone past it
 export const HILL_LENGTH_M = 5000, HILL_STOP_M = 300;
 
@@ -35,9 +35,10 @@ const KINDS: Record<HillKind, KindRule> = {
 export const hillStretchAt: (dist: number, seed: number) => HillStretch = makeStretchPlan(KINDS,
   'straight', 400);
 
-// each kind's grade (rise per m along the road): 10 % in the switchbacks, ~7 % over the climb
+// each kind's grade (rise per m along the road): 10 % in the switchbacks, ~7 % over the climb (at
+// 6 / 7 / 10 / 6 % the 5 km averaged 7.6-8.1 %, _hillroad.mjs: eased)
 const GRADE: Record<HillKind, number> = {
-  sweepers: 0.06, esses: 0.07, switchbacks: 0.10, straight: 0.06,
+  sweepers: 0.05, esses: 0.06, switchbacks: 0.10, straight: 0.05,
 };
 
 // each kind's road shape (road.ts nextElement): radius ranges, m, and the chances of a straight
