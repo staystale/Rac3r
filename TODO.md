@@ -158,7 +158,8 @@ MARK TRACK.)
 
 THE ROAD TO THE FINISHED PRODUCT (owner 11-22: "that's about right"): 1 ghost + accolades (PASSED
 11-22: TODO-DONE, PASSED 11-22, GHOST CARS AND ACCOLADES), the stage fixes, SPIKES PEAK; 2 PIT STOPS; 3 LOADING + PERFORMANCE (a steady 60 fps); 4 the new
-rallycross tracks + Old Wobbly; 5 SOUND + SETTINGS (G); 6 UPGRADES + GARAGE + STORY (H, the plan
+rallycross tracks + Old Wobbly; 4b 40 MORE CARS (owner 11-22: "before sound and story so it's padded
+out and ready", in batches of 10); 5 SOUND + SETTINGS (G); 6 UPGRADES + GARAGE + STORY (H, the plan
 discussed with the owner first, any time); 7 the CHAMPIONSHIPS (3c). Then MULTIPLAYER (I).
 Foreman's rough estimate 11-22: 6-8 weeks at the current pace.
 
@@ -598,6 +599,10 @@ STORY (Story mode with its garage, money, BUY & FIT, "buy what you last tested" 
   (Owner 11-22:) a restart keeps ONLY the licences you have finished; all other trophies, money,
   cars and upgrades are lost. A replay pays HALF the first win, but never less than enough to cover
   basic damage plus a little bonus; street races and solo highway runs pay as normal.
+  BUYING CARS (owner 11-22): the start money buys a few cars, more on easier difficulties. A FAKE
+  MARKETPLACE of used-car adverts: randomised cars, each priced at random within its range by its
+  CONDITION; each advert in our menu style - the car's image, its stats and upgrades listed below - and
+  a TEST DRIVE button that opens a solo endless-highway run in it.
   SAVES: a SAVE CODE (copy out / paste back) - "still unsure", to discuss more; Safari wipes site data
   unvisited for 7 days.
 - [ ] STORY MODE: ROOKIE SEASON (grass track, stock car, time trials: hillclimb / runway cones) ->
