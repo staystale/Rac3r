@@ -25,6 +25,7 @@ import {
   FREE_STEP_M, firstFree, lapStepBack, notAheadOf, respawnBehind,
 } from './resetspot.ts';
 import { useRigPose } from './resetspot.ts';
+import { pitResetSpot, resetPitStop } from './pitstop.ts';
 import { resetGhost, saveGhostBest } from './ghostrun.ts';
 import { circuitTrailer, followedTrailer, placeTrailer, rigInset } from './rigreset.ts';
 import type { RigPose } from './rigreset.ts';
@@ -237,7 +238,9 @@ function resetOnShoulder(place: PlaceCar): boolean {
 function resetOnCircuit(place: PlaceCar) {
   if (!LEVEL.subtrack) return false;
   const sub = LEVEL.subtrack!;
-  let rec = shared.lastOnTrack;
+  // (?pitstops: a reset on the pit lane goes back to its entrance - game/pitstop.ts)
+  const pitSpot = pitResetSpot(RESET_BACK);
+  let rec = pitSpot ?? shared.lastOnTrack;
   if (!rec) {
     const point = trackSpotOf(sub, game.car.x, game.car.y, game.car, shared.trackProgress);
     if (point) rec = { dist: point.dist,
@@ -245,7 +248,7 @@ function resetOnCircuit(place: PlaceCar) {
   }
   if (!rec) return false;
   // never ahead of where the car is now
-  rec = notAheadOf(sub, rec, game.car);
+  if (!pitSpot) rec = notAheadOf(sub, rec, game.car);
   const side = Math.sign(rec.off) || (Math.random() < 0.5 ? -1 : 1);
   let dist = clearOfUnder(sub, (rec.dist - RESET_BACK + sub.totalDist) % sub.totalDist);
   const ang = (RESET_ANG[0] + Math.random() * (RESET_ANG[1] - RESET_ANG[0])) * Math.PI / 180;
@@ -534,6 +537,7 @@ function restartNow() {
   shared.lapState.halfway = false;
   reset(game.car, SPAWN.x, SPAWN.y, SPAWN.heading);
   resetGhost();
+  resetPitStop();
   if (shared.renderer && shared.renderer.snap) shared.renderer.snap(game.car);
   game.cones.reset();
   game.marks.clear();

@@ -27,6 +27,7 @@ import type { JokerRule } from './world/types.ts';
 export interface FlowCar {
   num?: number; spec: { paint?: string }; dmgBill?: number;
   _jokers?: number; _cutPen?: number;   // jokers taken; track-cut seconds (RX)
+  _pitPen?: number;   // ?pitstops: a compulsory stop missed (game/pitstop.ts), s
   _prog?: number;   // race progress, m (the grid sits at negative progress)
   _stageStart?: number | null;   // a stage car's start time
   _stageTime?: number;   // a stage car home before your green: its time (game/grid.ts)
@@ -77,7 +78,8 @@ export const GRACE = 5, WAIT_TOP3 = 15, JOKER_LEFT = 0.6, DNF_X = 2, STAGE_WAIT 
  */
 function addPenalty(state: FlowState, entry: FlowEntry) {
   const { joker } = state;
-  const cut = entry.car._cutPen || 0;   // TRACK CUTS (main.ts trackCut): seconds, RX only
+  // TRACK CUTS (main.ts trackCut): seconds, RX only; a compulsory pit stop missed (?pitstops)
+  const cut = (entry.car._cutPen || 0) + (entry.car._pitPen || 0);
   if (!joker) return cut;
   const j = entry.car._jokers || 0;
   return cut + joker.penalty * (j === 0 ? 1 : j - 1);

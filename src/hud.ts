@@ -17,6 +17,7 @@
 // Buttons are DATA so hit-testing and drawing read the same geometry. Two copies of
 // a rect is how a button ends up visually somewhere its tap is not.
 
+import { drawPitLimiter } from './hud/overlays.ts';
 import { layoutHud, hitHud, setHudMph, setHudTempF, setHudTyreHud, TYRE_HUD_KEY }
   from './hud/layout.ts';
 import { hudKeepout } from './hud/keepclear.ts';
@@ -142,6 +143,9 @@ export function createHud() {
     try {
       state.drawLightsLater = () => {
         drawHudLights(ctx, game, width, height);
+        // (?pitstops: the stop's GO - the start lights' - and the pit limiter's light)
+        if (game.pitGo) drawHudLights(ctx, { ...game, start: game.pitGo }, width, height);
+        if (game.pitLimiter) drawPitLimiter(ctx, width, height);
         drawHudNotice(ctx, game, width, height);
         drawHudCamera(ctx, game, width, height);
         // (portrait: under the top-right column, its FPS strip the lowest)

@@ -34,6 +34,7 @@ export type GameCar = Car & DamageCar & DamageState & {
   _hwf?: RoadFrame | null;   // where it is on the highway's road
   _hwS?: number;   // its road distance last step (the hint for the next frame)
   _jokers?: number; _cutPen?: number; _prog?: number; _predT?: number;
+  _pitPen?: number;   // ?pitstops: s added at the finish (a compulsory stop missed)
   _stageStart?: number | null;
   _stageTime?: number;   // a stage car home before your green: its stage time (s)
   indicator?: number; lightsOn?: boolean;
@@ -70,6 +71,7 @@ export interface LaunchOpts {
   weather?: { mode: WeatherMode; season: number }; time?: number | null;   // the conditions
   livery?: { paint?: string; trim?: string; num?: number } | null; tyre?: string;   // garage
   trailer?: string;   // a tractor's trailer (the garage's TRAILER row)
+  pits?: boolean;   // ?pitstops: the setup's PIT STOPS
   ghost?: boolean;   // ?ghost: the setup's GHOST
   aiTune?: AiTune | null;   // the AI DRIVERS dials (ai/tune.ts)
 }
@@ -148,6 +150,8 @@ export interface Game {
   raceHeld?: boolean;   // the loading screen and its fly-in hold the race this frame
   drawn?: { x: number; y: number; t: number };   // where the car was drawn last frame
   testMode: boolean; paused: boolean; menuMode?: boolean;
+  // ?pitstops: the stop's GO (the start lights' GO, game/pitstop.ts) and the pit limiter's light
+  pitGo?: { on: boolean; t: number; tGreen: number; green: boolean } | null; pitLimiter?: boolean;
   ghostCar?: GameCar | null;   // ?ghost: the best's car, only drawn (game/ghostrun.ts)
   notice?: { text: string; good?: boolean; at: number } | null;
   position?: number;   // your place in a race
@@ -202,6 +206,7 @@ export interface Shared {
   fpsHist: number[]; fpsAcc: number; fpsN: number;
   minimapOn: boolean; progressOn: boolean; trackTempOn: boolean;
   weatherPlan: WeatherPlan | null;
+  pitsOn?: boolean;   // ?pitstops: the setup's PIT STOPS (game/pitstop.ts)
   ghostOn?: boolean;   // ?ghost: the setup's GHOST (game/ghostrun.ts)
   meterTiles: number; meterTouches: number; meterUploads: number; meterMipmaps: number;
   warmMs: number; loadMs?: number; nanReports: number;

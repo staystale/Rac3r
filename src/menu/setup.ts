@@ -20,6 +20,7 @@ import { showAiDrivers, storedTune, storeTune, tuneLine } from './aidrivers.ts';
 import { HW_ROADS, HW_SCENERY } from '../highway/presets.ts';
 import { addFinishRows } from './finishrow.ts';
 import { addGhostRow, ghostOnOf } from './ghostrow.ts';
+import { addPitRow, pitsOnOf } from './pitrow.ts';
 
 // WEATHER: follow the SEASON (its chances; it can change in the race) or a fixed sky
 const WEATHER_MODES = [['season', 'SEASON'], ['dry', 'DRY'], ['hot', 'HOT'],
@@ -367,7 +368,8 @@ function addLaunchButtons(menu: Menu, panel: HTMLElement, level: Level, state: S
         laps: state.opponents || state.rxRace ? (isStage(level) ? 1 : state.laps) : 0,
         livery: (profile.livery || {})[profile.active],
         tyre: (profile.tyres || {})[profile.active],
-        trailer: (profile.trailers || {})[profile.active], ghost: ghostOnOf(state) });
+        trailer: (profile.trailers || {})[profile.active], ghost: ghostOnOf(state),
+        pits: pitsOnOf(state, level, profile.active) });
   }, 'go');
   addButton(menu, panel, '◀ BACK', () => backToTracks(menu, level));
 }
@@ -427,9 +429,9 @@ const isStage = (level: Level): boolean => !!level.stage || !!level.gen;
  */
 function setupChoices(state: SetupState): Partial<SetupState> {
   const { road, scenery, traffic, litter, opponents, aiN, diff, aiCars, rxRace, laps, time,
-    aiTune, finish, ghost } = state;
+    aiTune, finish, ghost, pits } = state;
   return { road, scenery, traffic, litter, opponents, aiN, diff, aiCars, rxRace, laps, time,
-    aiTune, finish, ghost };
+    aiTune, finish, ghost, pits };
 }
 
 /**
@@ -496,6 +498,7 @@ export function showSetup(menu: Menu, level: Level, kept: Partial<SetupState> = 
   addLapsRow(menu, panel, level, state);
   addFinishRows(menu, panel, level, state);
   addGhostRow(menu, panel, level, state);
+  addPitRow(menu, panel, level, state);
   state.paint();
   addWeatherRows(menu, panel, state, level);
   if (menu.api.daytime) addTimeRows(menu, panel, state);

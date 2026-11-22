@@ -86,6 +86,7 @@ export interface HudGame {
   fps: number; fpsLow?: number; stepsLastFrame?: number; dev?: boolean; testMode?: boolean;
   position?: number;   // your place in a race
   flow?: HudFlow | null; race?: HudRace | null; stage?: HudStage | null; start?: HudStart;
+  pitGo?: HudStart | null; pitLimiter?: boolean;   // ?pitstops: the stop's GO, the limiter light
   lap: { lap: number; lapTime: number; bestTime: number | null };
   notice?: HudNotice | null;
   camCount?: number; camFines?: number;   // highway speed cameras: caught, fined

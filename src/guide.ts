@@ -177,6 +177,34 @@ const FLASH_CARD: GuideCard[] = [{
   target: (scene: GuideScene) => scene.L.lights,
 }];
 export const RULES: Record<string, GuideCard[]> = {
+  // ?pitstops: the first race with pit stops (game/pitstop.ts)
+  pitstops: [
+    {
+      title: 'PIT STOPS',
+      text: () => 'This race has PIT STOPS. Turn into the PIT LANE at its entrance: the PIT '
+        + 'LIMITER light comes on and holds you to 60 km/h until you leave it.',
+      target: (scene: GuideScene) => scene.carRect,
+    },
+    {
+      title: 'YOUR BOX',
+      text: () => 'Your box is the one for your grid slot, on the garage side. Stop in it '
+        + 'yourself - the PIT STOP menu opens. The race carries on while you choose.',
+      target: (scene: GuideScene) => scene.carRect,
+    },
+    {
+      title: 'THE STOP',
+      text: () => 'Pick TYRES (keep them, the same again, wets, slicks...) and REPAIR, then '
+        + 'CONFIRM & GO. The work takes its time - worse damage takes longer - then the lights '
+        + 'say GO. CANCEL leaves with nothing done.',
+      target: LIGHTS,
+    },
+    {
+      title: 'ONE STOP FOR TYRES',
+      text: () => 'In a dry F1 race one stop for fresh tyres is COMPULSORY. Miss it and 30 s is '
+        + 'added at the finish.',
+      target: (scene: GuideScene) => scene.carRect,
+    },
+  ],
   // the first time a car with a low range is driven (physics/lowrange.ts)
   lowrange: [{
     title: 'LOW RANGE',

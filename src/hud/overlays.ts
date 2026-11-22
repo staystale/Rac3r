@@ -296,3 +296,21 @@ export function drawHudFlag(state: HudState, ctx: CanvasRenderingContext2D, game
     + Math.min(width, height) * 0.09, { size: Math.round(Math.min(width, height) * 0.085),
     weight: 800, align: 'center', col: '#e8a13a' });
 }
+
+// ?pitstops: the pit limiter's light - an amber lamp and PIT LIMITER under the start lights' place
+// while the car is on the pit lane (owner 11-22: "shown by the limiter light only")
+const LIMITER_COL = '#ffb020';
+
+/**
+ * Draws the pit limiter's light (game/pitstop.ts sets game.pitLimiter on the pit lane).
+ * @param ctx the HUD canvas
+ * @param width px
+ * @param height px
+ */
+export function drawPitLimiter(ctx: CanvasRenderingContext2D, width: number, height: number) {
+  const size = Math.round(Math.min(width, height) * 0.035), y = Math.round(height * 0.2);
+  ctx.fillStyle = LIMITER_COL;
+  ctx.fillRect(Math.round(width / 2 - size * 4), y - size / 2, size, size);
+  drawHudLabel(ctx, 'PIT LIMITER', Math.round(width / 2 - size * 2.5), y + size / 2,
+    { size: Math.round(size * 1.2), weight: 800, align: 'left', col: LIMITER_COL });
+}

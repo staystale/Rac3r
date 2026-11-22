@@ -1,6 +1,7 @@
 // menuflow.ts — Menu, launch, pause and the results screen flow.
 import { isFpsShown, setFpsShown } from '../hud/fpstoggle.ts';
 import { applyLivery, applyTyre } from '../cars.ts';
+import { pitsOn } from './pitstop.ts';
 import { chooseTrailer, type Tractor } from '../physics/trailer.ts';
 import { createCones } from '../cones.ts';
 import { rulesSeen } from '../guide.ts';
@@ -182,6 +183,7 @@ export function applyLaunchOptions(levelId: string, opts: LaunchOpts) {
   shared.aiTune = opts.aiTune || null;
   shared.raceLaps = Math.max(0, Math.min(10, (opts.laps ?? 0) | 0));
   shared.hwFinish = opts.finish ?? null;
+  shared.pitsOn = !!opts.pits;
   shared.ghostOn = !!opts.ghost;
   // WEATHER (setup): the plan and the seed its random stream starts from, so a restart
   // replays the same weather; none = the dry 18 C game
@@ -258,6 +260,9 @@ function launchSession(carId: string, opts: LaunchOpts) {
   const wants = (one: string) => rulesSetting === '1'
     || (rulesSetting !== '0' && !rulesSeen(one) && !navigator.webdriver);
   shared.rulesPending = kind && wants(kind) ? kind : null;
+  // (?pitstops: the pit stops' cards the first time a race has them - guide.ts RULES)
+  if (pitsOn() && wants('pitstops'))
+    shared.rulesPending = shared.rulesPending ? shared.rulesPending + '+pitstops' : 'pitstops';
   // (the low range's card the first time a car with one is driven, after the event's)
   if (hasLowRange(game.car) && wants('lowrange'))
     shared.rulesPending = shared.rulesPending ? shared.rulesPending + '+lowrange' : 'lowrange';

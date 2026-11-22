@@ -13,6 +13,18 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'pitstops',
+    added: '2026-11-22',
+    name: 'Pit stops (your car): the pit lane, limiter, your box, the PIT STOP menu, GO',
+    where: 'Test link + &pitstops=1: TEST MODE, an F1 car VS AI over 3+ laps at a circuit with '
+      + 'a pit lane (Brands, Sillystone, Le Manky...); the setup PIT STOPS row',
+    try: 'Turn into the pit lane (the PIT LIMITER light, 60 km/h), stop in your box (your grid '
+      + 'slot), pick tyres / repair, CONFIRM & GO: held for the work, then GO. A RESET in the pit '
+      + 'lane: back at its entrance. Skip the stop in a dry F1 race: +30 s.',
+    wrong: 'No menu in your box, the menu in the wrong box, the race stopping while it is open, '
+      + 'the limiter off on the lane or on the track, or a reset leaving you in the pit lane.',
+  },
+  {
     id: 'ghost',
     added: '2026-11-22',
     name: 'Ghost cars: race your best lap (test mode), and SETTINGS > ACCOLADES',

@@ -11,6 +11,7 @@ import { stepOil } from "../world/oil.ts";
 import { stepCoverField } from "../world/coverfield.ts";
 import { stepStage, stepJoker, stepRace } from './rules.ts';
 import { stepStart } from './order.ts';
+import { pitInput } from './pitstop.ts';
 import { stepAI } from './ai.ts';
 import { updateRecoveryTracking } from './session.ts';
 import { stepGhost } from './ghostrun.ts';
@@ -105,7 +106,8 @@ export function stepWorld(inp: CarInput) {
   // Before step, so the load is right for the forces computed this step rather than one step
   // stale. remember the pose BEFORE this step, for the render interpolation below
   game.car._p = { x: game.car.x, y: game.car.y, h: game.car.heading };
-  if (!stepCarPhysics(inp)) return false;
+  // ?pitstops: the limiter, the box, the hold for the work (game/pitstop.ts)
+  if (!stepCarPhysics(pitInput(inp))) return false;
   shared.lastGood.x = game.car.x;
   shared.lastGood.y = game.car.y;
   shared.lastGood.heading = game.car.heading;

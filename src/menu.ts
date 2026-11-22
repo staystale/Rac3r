@@ -16,6 +16,8 @@ import { showMainMenu } from './menu/tracks.ts';
 import { showPause, showResults } from './menu/race.ts';
 import type { Profile, Livery } from './menu/profile.ts';
 import type { Spec } from './cars.ts';
+import { showPitMenu } from './menu/pitmenu.ts';
+import type { PitPick, PitView } from './menu/pitmenu.ts';
 import type { PauseActions, ResultsActions, ResultsFlow } from './menu/menutypes.ts';
 import type { Level, StageRecipe } from './world/types.ts';
 
@@ -87,6 +89,8 @@ export function createMenu(api: MenuApi) {
     hide: () => hideMenu(menu),
     pause: (act: PauseActions) => showPause(menu, act),
     results: (flow: ResultsFlow, act: ResultsActions) => showResults(menu, flow, act),
+    // ?pitstops: the PIT STOP menu over the race (menu/pitmenu.ts)
+    pitStop: (view: PitView, done: (pick: PitPick | null) => void) => showPitMenu(menu, view, done),
     profile,
     get open() {
       return root.className !== 'gone';
