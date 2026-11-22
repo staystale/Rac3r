@@ -2,6 +2,7 @@
 // Pure moves out of hud.ts.
 
 import { drawHudPanel, drawHudLabel } from './widgets.ts';
+import { COL } from '../world/colours.ts';
 import type { HudState, HudFlow, HudStart, HudGame } from './hudtypes.ts';
 
 /**
@@ -298,8 +299,9 @@ export function drawHudFlag(state: HudState, ctx: CanvasRenderingContext2D, game
 }
 
 // ?pitstops: the pit limiter's light - an amber lamp and PIT LIMITER under the start lights' place
-// while the car is on the pit lane (owner 11-22: "shown by the limiter light only")
-const LIMITER_COL = '#ffb020';
+// while the car is on the pit lane (owner 11-22: "shown by the limiter light only"), in the colour
+// table's warning amber
+const LIMITER_COL = COL.warn;
 
 /**
  * Draws the pit limiter's light (game/pitstop.ts sets game.pitLimiter on the pit lane).
