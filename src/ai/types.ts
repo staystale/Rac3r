@@ -88,6 +88,7 @@ export interface AiCar {
   _hwS?: number;   // traffic.ts: this racer's road distance last step
    // (the hint for its next road frame)
   _jokers?: number;   // main.ts: jokers taken (the joker tactics read it)
+  _hazardMove?: number;   // ?hazard: the side it is going round a stopped car on (ai/hazards.ts)
   dragMul?: number;   // physics/wake.ts: the tow (1 = no tow)
 }
 
