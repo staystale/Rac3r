@@ -13,6 +13,26 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'passearly',
+    added: '2026-11-22',
+    name: 'AI see a stopped car on their line sooner and go round it without braking on and off',
+    where: 'Test link + &passearly=1: any circuit with a full field, a crash ahead (best on a '
+      + 'line that sweeps across the road)',
+    try: 'Watch AI come up on a stopped car: they start going round well before it, and pass '
+      + 'with one steady brake if any - no on-off-on brake lights beside it.',
+    wrong: 'AI running into a stopped car on their line, swerving for one well off their line, '
+      + 'or brake lights flickering as they pass it.',
+  },
+  {
+    id: 'passwide',
+    added: '2026-11-22',
+    name: 'AI go round a stopped or much slower car about 1 m wider',
+    where: 'Test link + &passearly=1&passwide=1: any circuit with a full field, a crash or a '
+      + 'slow car ahead',
+    try: 'Watch AI pass a stopped or crawling car: a clear gap beside it, little or no braking.',
+    wrong: 'AI clipping the car they pass, or going so wide they leave the track or hit others.',
+  },
+  {
     id: 'trailroll',
     added: '2026-11-22',
     name: 'Truck and trailer roll: gently together, violently the pin snaps (about 0.45 g)',

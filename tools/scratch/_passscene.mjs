@@ -5,6 +5,7 @@
 //   slow15far        a car 15 m/s slower, on the line, 120 m ahead
 //   slow15near       a car 15 m/s slower, on the line, 50 m ahead
 //   stopped-on-line  a stopped car on the line, 70 m ahead
+//   stopped-far      a stopped car on the line, 120 m ahead (where the line has swept across)
 //   stopped-off-line a stopped car 2.5 m off the line (toward the middle), 70 m ahead
 //   slow-off-line    a car 15 m/s slower, 2.5 m off the line, 50 m ahead
 // Per scene, 8 drivers (traits 1-8 of 8): START - where the move round begins (its dodge first
@@ -21,7 +22,7 @@ const { createAIDriver } = await import('../../src/ai/circuit.ts');
 const { aiTraits } = await import('../../src/ai/traits.ts');
 const { racingLine } = await import('../../src/ai/line.ts');
 
-const ALL = 'slow15far,slow15near,stopped-on-line,stopped-off-line,slow-off-line';
+const ALL = 'slow15far,slow15near,stopped-on-line,stopped-far,stopped-off-line,slow-off-line';
 const [scenesArg = ALL, seedArg = '1'] = process.argv.slice(2);
 const seed = +seedArg, DRIVERS = 8, carId = 'hatch-rwd';
 // the placed car: m ahead, m off the line toward the middle, m/s from the driver's speed
@@ -29,6 +30,7 @@ const SCENES = {
   slow15far: { fwd: 120, off: 0, dv: -15 },
   slow15near: { fwd: 50, off: 0, dv: -15 },
   'stopped-on-line': { fwd: 70, off: 0, dv: -999 },
+  'stopped-far': { fwd: 120, off: 0, dv: -999 },
   'stopped-off-line': { fwd: 70, off: 2.5, dv: -999 },
   'slow-off-line': { fwd: 50, off: 2.5, dv: -15 },
 };

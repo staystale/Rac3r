@@ -13,6 +13,7 @@
 // car the speed is capped to what lets it get across in time braking as it goes - or stop short
 // when no way round is planned - and going round it is a move. Once its body is clear, no cap.
 import { GRAVITY } from "../cars.ts";
+import { FIX } from "../core/fixes.ts";
 import { carGrip } from "./line.ts";
 import { lateralOf } from "./rejoin.ts";
 import { SWERVE_RATE } from "./dodge.ts";
@@ -75,6 +76,32 @@ function judgeOf(drv: Drv, other: AiCar): number {
   return 1 + (state.stopJudge ?? 0);
 }
 
+// ?passearly: m inside its clearance a car once clear of a stopped one must come before it is in
+// line with it again (MEASURED tools/scratch/_passscene.mjs: at the clearance's edge the brake
+// held and let go every step, the target 12 <-> 60 m/s, the brake in pulses)
+const IN_LINE_HYST_M = 0.3;
+
+/**
+ * Whether my body is in line with a stopped car - inside its clearance; ?passearly: once clear of
+ * it, not again until IN_LINE_HYST_M inside (the driver's state keeps the cars it is clear of).
+ * @param drv the driver context
+ * @param other the stopped car
+ * @param offset m between my place across and its
+ * @returns in line
+ */
+function inLineOf(drv: Drv, other: StoppedCar, offset: number): boolean {
+  const apart = Math.abs(offset);
+  if (!FIX.passearly) return apart < other.clear;
+  const clearOf = (drv.state.stopClear ??= new WeakSet());
+  if (apart >= other.clear) {
+    clearOf.add(other.car);
+    return false;
+  }
+  if (clearOf.has(other.car) && apart >= other.clear - IN_LINE_HYST_M) return false;
+  clearOf.delete(other.car);
+  return true;
+}
+
 // what stopCap returns (reused: no allocation per step)
 const stopRead = { cap: Infinity, inLine: false };
 
@@ -96,8 +123,7 @@ export function stopCap(drv: Drv, car: AiCar, mine: { path: AiPath; nearIdx: num
   const actual = lateralOf(car, mine.path, mine.nearIdx);
   let cap = Infinity, nearest: StoppedCar | null = null;
   for (const other of stopped) {
-    const offset = actual - other.lat;
-    if (Math.abs(offset) >= other.clear) continue;
+    if (!inLineOf(drv, other, actual - other.lat)) continue;
     if (!nearest || other.fwd < nearest.fwd) nearest = other;
   }
   stopRead.inLine = !!nearest;
@@ -110,7 +136,7 @@ export function stopCap(drv: Drv, car: AiCar, mine: { path: AiPath; nearIdx: num
   const decel = STOP_BRAKE * carGrip(car.spec).brakeG * GRAVITY * (car.surface.mu || 1);
   for (const other of stopped) {
     const offset = actual - other.lat;
-    if (Math.abs(offset) >= other.clear) continue;
+    if (!inLineOf(drv, other, offset)) continue;
     const gap = other.fwd - other.along - car.spec.len / 2;
     const room = (gap - KEEP_M) * judge;
     // the side my plan goes round it on; none when the plan itself ends on it

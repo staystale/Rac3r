@@ -80,4 +80,12 @@ export const FIX = {
   // switchback clusters, short straights -, its grade, its hillside and drops (highway/hillplan.ts,
   // hillground.ts), a scenery of the endless roads
   hillclimb: atLoad('hillclimb'),
+  // GO ROUND EARLIER (owner 11-22): a stopped car ahead is also read in my line's
+  // terms (where my line will be at it - a line sweeping across the road ran into one it had read
+  // 8 m off to the side; ai/driverTraffic.ts pushSeen), and the stopped-car brake lets go of a car
+  // once clear of it until 0.3 m inside its clearance again (ai/stopDodge.ts inLineOf)
+  passearly: atLoad('passearly'),
+  // GO ROUND WIDER (owner 11-22): the gap picker reads a stopped or much slower car 1 m wider -
+  // its line past one that much further off (ai/driverTraffic.ts pushSeen)
+  passwide: atLoad('passwide'),
 };
