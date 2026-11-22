@@ -13,6 +13,15 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'revstuck',
+    added: '2026-11-22',
+    name: 'AI reverse out only when truly stuck, not when a car ahead is slow or about to move',
+    where: 'Test link + &revstuck=1: any circuit with a full field, behind a crash or in a queue',
+    try: 'Watch AI held up behind a car: they wait and go, no reversing; a pinned car still frees '
+      + 'itself (reverse or put back).',
+    wrong: 'An AI reversing while the car ahead is just slow, or a car left pinned for good.',
+  },
+  {
     id: 'hazard',
     added: '2026-11-22',
     name: 'AI pile-ups: the field goes round a crash on one shared side, cars alongside make room',
