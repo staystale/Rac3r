@@ -628,6 +628,13 @@ STORY (Story mode with its garage, money, BUY & FIT, "buy what you last tested" 
   the difficulty's grid bias (game/grid.ts drawGridSlot: harder, further back) - starting last,
   every AI car is 30 s or more ahead: none behind, none in the minimap's reach (OWNER 11-22: KEEP - "you should also start further back").
   AWAITING THE PHONE TEST.
+- SPIKES PEAK'S OWN TRACK TYPE (owner 11-22: "its own track type"): BUILT under ?spikespeak (Worker
+  C): TEST MODE's HILL CLIMBS (menu/tracks.ts; world/levels/category.ts LISTED_UNDER - by kind
+  still a point-to-point stage), not in RALLY STAGES or ALL TRACKS; one run up, no LAPS row, solo
+  by default, VS AI staggered starts (a stage's); its bests and ghost by direction 'up'
+  (Level.ghostDir). MEASURED (tools/scratch/_hillmenu.mjs, both sizes): HILL CLIMBS listed after
+  RALLY STAGES, Spikes Peak not in ALL TRACKS, no LAPS row VS AI, ghostDir 'up'. Its card has no
+  painted thumbnail yet (tools/thumbs.mjs). AWAITING THE PHONE TEST.
 - [ ] STORY MODE: ROOKIE SEASON (grass track, stock car, time trials: hillclimb / runway cones) ->
   ROOKIE 2 (similar events, track variations, harder to win); we pick the events; money / points
   also for NOT finishing top 3; replayable events / championships for more money (finish 5th,

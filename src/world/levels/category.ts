@@ -40,9 +40,11 @@ export const catOf = (level: { id: string; gen?: unknown; endless?: boolean }): 
 // go with other test tracks" - it is still lit and rained on as a circuit); the world
 // championship circuits under WORLD CIRCUITS (owner 11-09: "categorise stuff") - still circuits
 // by kind (lit, rained on and raced as one)
+// SPIKES PEAK under HILL CLIMBS (owner 11-22: "Hill climb should be it's own track type"; still a
+// point-to-point stage by kind - lit and raced as one)
 const LISTED_UNDER: Record<string, string> = { 'test-track': 'test', spa: 'world', monza: 'world',
   nordschlep: 'world', lemans: 'world', suzuka: 'world', yasmarina: 'world',
-  bathurst: 'world', moanaco: 'world' };
+  bathurst: 'world', moanaco: 'world', 'spikes-peak': 'hillclimb' };
 
 // the circuits on the current Formula One calendar (2026 and 2027) listed under F1
 // CIRCUITS; the GP layout only (Sillystone National stays a UK circuit); Spa, on the F1 and GT
@@ -52,7 +54,7 @@ const F1_LISTED = new Set(['sillystone', 'moanaco', 'spa', 'monza', 'suzuka', 'y
 /**
  * The category a level is listed under in the menu (menu/tracks.ts).
  * @param level the level
- * @returns circuits, f1, world, rally, rx, ovals, roads or test
+ * @returns circuits, f1, world, rally, hillclimb, rx, ovals, roads or test
  */
 export const menuCatOf = (level: { id: string; gen?: unknown; endless?: boolean }): string =>
   (F1_LISTED.has(level.id) ? 'f1' : '') || LISTED_UNDER[level.id] || catOf(level);

@@ -13,6 +13,15 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'hillclimbs',
+    added: '2026-11-22',
+    name: 'HILL CLIMBS: Spikes Peak in its own track type in TEST MODE',
+    where: 'Test link + &spikespeak=1: TEST MODE, HILL CLIMBS',
+    try: 'Find it under HILL CLIMBS (not RALLY STAGES or ALL TRACKS); solo or VS AI (staggered '
+      + 'starts), one run up, no laps; your ghost from your best run up.',
+    wrong: 'Spikes Peak still under RALLY STAGES or ALL TRACKS, a LAPS row, or no ghost.',
+  },
+  {
     id: 'queuefit',
     added: '2026-11-22',
     name: 'Generated rally stage: all five cars queued behind you at the start',
