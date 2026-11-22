@@ -8,23 +8,23 @@ not repeated here), then `TODO.md`, then this page. The 11-07 version of this pa
 
 - **ITCH** = `2026-11-21-67c5592c` (push #5, owner yes): + the reset fix, headlights, FPS toggle,
   tyre marks kept whole, Blighty Park RX + circuit, the chequered flag every race. Ask before #6.
-- **Main** = 186bfb32 (round171: trailer/boxhold/gridlen passed, CI green). Serve locally; push only for CI.
+- **Main** = d661aba4 (round199, 11-22 17:50, CI green): every pass to 11-22 incl. the AI pass, passearly/passwide,
+  stockholm/keepright/copmix, tunnellamps/trailreset, trailroll. Serve locally; push only for CI.
+  CI LESSON: a round carrying passes needs an (empty) commit tagged [sim] [world] [look], or the hashes fail.
   LESSON: a level made plain needs tools/laplengths.mjs re-run (CI failed on it twice).
-- **The owner's link** = foreman/round191 074b8bc8 (local, 11-22 14:20): the AI pass, proved w88 SAME
-  (plain: hazard incl. the stop fix, softback, brakepedal, gapdest highway-only, revstuck 4 s rule; aitune
-  and gapcommit REMOVED). Not yet on main: rounds 172-191. Merge the c-pass186 (c19), c-pass-tl (c20)
-  passes once proved, then CI, then push main.
+- **The owner's link** = round199 0aee39d4 (= main's content): under test ?revroom, ?stagedone.
 - **NOISE (w86/w87):** off alone moves up to 51 incidents/track and 22 km/h on the motorway between
   4-seed sets. 4-seed sweeps cannot judge AI changes; the owner's phone decides (or ~16 seeds/side).
   PC jobs: ONE detached wmic launch each (scratchpad/launch1.sh confirms start); the laptop memory
   reaper kills long laptop loops. Foreman uses CronCreate one-shots to check PC jobs.
-- **Worker A** (a2fab314deb77a72b, PC repo, port 8091): ?contactcost (plan approved 11-22: rear-end,
-  side rub, cut-off costs in ai/gapPick.ts lineScore; staged scenes, no sweeps). Then the slider sweep
-  (waiting: the owner picks more seeds vs phone).
-- **Worker C** (a60bdb17a2f902ec3, PC repo2, port 8092): ?trailroll step 2 done (worker/c-trailroll
-  47ca3285, trailer tips at 0.45 g, owner chose (a)); step 3 (cab and trailer roll together) building;
-  load shift and AI/traffic trailers LATER. Hill climb SPIKES PEAK parked on worker/c-hill2 559d13fd
-  (grade too steep, ease to 7.9 %). PC proofs: c19 running (14:23), then c20, then c18 (read each .cmd).
+- **Worker A** (a2fab314deb77a72b, PC repo, port 8091): ?ghost (test mode only, per car, any lap incl.
+  resets, its own setup switch, off by default with AI) + ACCOLADES in Settings (trophies placeholder for
+  Story, fastest test laps). ?revroom on the link.
+- **Worker C** (a60bdb17a2f902ec3, PC repo2, port 8092): rally stages first (?stagedone times (a) then (b),
+  start check + suggestions, cheap painted tyre tracks of earlier cars, no jump starts, ?stagepos live
+  position from splits), then SPIKES PEAK as its own track type: real OSM road + Open Topo Data heights
+  (worker/c-hillroad 7d011207), full course at half scale (~10 km), one run up only, tight but smooth
+  hairpins. c18 DROPPED.
 - **PARKED, the owner's next list:** PIT STOPS (the owner has IMAGES - ask for them, then discuss);
   the AI rework (circuits' off-track and first-corner pile-ups, Pembreezy); a hill climb stage for
   the E36; Glen Hellish, Swapsies; Story mode / upgrades (race conversions, the repair bill: pay or
