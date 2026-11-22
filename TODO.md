@@ -595,6 +595,9 @@ STORY (Story mode with its garage, money, BUY & FIT, "buy what you last tested" 
   difficulty can be CHANGED at a restart (otherwise locked per save).
   REPLAYS: Story events stay replayable as another way to earn, always IN SPEC (the event's class /
   spec limits - no fast car in a slow race).
+  (Owner 11-22:) a restart keeps ONLY the licences you have finished; all other trophies, money,
+  cars and upgrades are lost. A replay pays HALF the first win, but never less than enough to cover
+  basic damage plus a little bonus; street races and solo highway runs pay as normal.
   SAVES: a SAVE CODE (copy out / paste back) - "still unsure", to discuss more; Safari wipes site data
   unvisited for 7 days.
 - [ ] STORY MODE: ROOKIE SEASON (grass track, stock car, time trials: hillclimb / runway cones) ->
