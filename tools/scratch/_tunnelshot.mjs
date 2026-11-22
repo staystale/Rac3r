@@ -33,7 +33,7 @@ function readHere() {
 async function spotsOf(page) {
   if (WHERE === 'city') return page.evaluate(async () => {
     const { cityStretchAt } = await import('/src/highway/cityplan.ts');
-    const seed = window.__game.level.seed;
+    const level = window.__game.level, seed = level._hw?.seed ?? level.seed;
     for (let dist = 300; dist < 30000; dist += 10) {
       const stretch = cityStretchAt(dist, seed);
       if (stretch.kind !== 'tunnel') continue;
