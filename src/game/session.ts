@@ -25,9 +25,13 @@ import { jokerLane, lanePose, laneSpot } from "../world/joker.ts";
 import {
   FREE_STEP_M, firstFree, lapStepBack, notAheadOf, respawnBehind,
 } from './resetspot.ts';
+import { useRigPose } from './resetspot.ts';
+import { circuitTrailer, followedTrailer, placeTrailer, rigInset } from './rigreset.ts';
+import type { RigPose } from './rigreset.ts';
+import { FIX } from '../core/fixes.ts';
 import { resetCar, armStart, startHeld, startAtOf } from './order.ts';
 import { gridPos, spawnAI } from './grid.ts';
-import { clearRigSpot } from './gridlen.ts';
+import { clearRigSpot, isTowing } from './gridlen.ts';
 import { shared, game } from './state.ts';
 import type { Tractor } from '../physics/trailer.ts';
 import { saveProfile } from '../menu/profile.ts';
@@ -196,16 +200,24 @@ function resetOnShoulder(place: PlaceCar): boolean {
   const floor = roadSpan(level).s0 + 20;
   const shoulderSpot = (dist: number) => vergeBack(level, dist, floor)
     ?? bayBehind(level, dist, undefined, floor) ?? { s: dist, off: shoulderOff(level) };
-  let pose;
+  let pose, trailerPose = null;
+  // (?trailreset: a towing rig's trailer following the road back from the shoulder spot)
+  const rig = FIX.trailreset && isTowing(game.car);
+  const trailerAt = (tractor: RigPose, spot: { s: number; off: number }) => followedTrailer(
+    game.car, tractor, (along) => roadPose(level, along, spot.off), spot.s);
   if (here) {
+    if (rig) useRigPose((tractor, spot) => trailerAt(tractor, spot as { s: number; off: number }));
     const spot = firstFree(shoulderSpot(here.s - RESET_BACK), (tried) => {
       const onRoad = roadPose(level, tried.s, tried.off);
       return { x: onRoad.x, y: onRoad.y, heading: onRoad.h };
     }, (tried) => (tried.s - FREE_STEP_M > floor ? shoulderSpot(tried.s - FREE_STEP_M) : null));
+    useRigPose(null);
     pose = roadPose(level, spot.s, spot.off);
+    if (rig) trailerPose = trailerAt({ x: pose.x, y: pose.y, heading: pose.h }, spot);
     rehome(level, spot.s);
   } else pose = respawnBehind(level, level._hw.q?.s ?? Infinity, 0);
   place(game.car, pose.x, pose.y, pose.h);
+  if (rig) placeTrailer(game.car as Tractor, trailerPose);
   game.traffic.clearAround(pose.x, pose.y, 30, true);
   shared.lastOnTrack = null;
   if (shared.renderer && shared.renderer.snap) shared.renderer.snap(game.car);
@@ -237,16 +249,23 @@ function resetOnCircuit(place: PlaceCar) {
   const side = Math.sign(rec.off) || (Math.random() < 0.5 ? -1 : 1);
   let dist = clearOfUnder(sub, (rec.dist - RESET_BACK + sub.totalDist) % sub.totalDist);
   const ang = (RESET_ANG[0] + Math.random() * (RESET_ANG[1] - RESET_ANG[0])) * Math.PI / 180;
-  const across = side * Math.max(0, sub.width / 2 - resetInset(ang));
+  // (?trailreset: a towing rig along the road, its whole width inside the edge - game/rigreset.ts)
+  const rig = FIX.trailreset && isTowing(game.car), turn = rig ? 0 : ang;
+  const across = side * (rig ? rigInset(game.car, sub.width / 2)
+    : Math.max(0, sub.width / 2 - resetInset(ang)));
+  if (rig) useRigPose((pose, spot) => circuitTrailer(game.car, sub, across, pose, spot as number));
   // a car in the way: the next free spot behind
   dist = firstFree(dist, (spotAt) => {
     const onRoad = onTrack(sub, spotAt, across, {});
-    return { x: onRoad.x, y: onRoad.y, heading: onRoad.rot - side * ang };
+    return { x: onRoad.x, y: onRoad.y, heading: onRoad.rot - side * turn };
   }, lapStepBack(sub));
+  useRigPose(null);
   const point = onTrack(sub, dist, across, {});
   // +heading turns the nose toward +normal, so a car on the +side turns by -ang to point back
   // across the road
-  place(game.car, point.x, point.y, point.rot - side * ang);
+  place(game.car, point.x, point.y, point.rot - side * turn);
+  if (rig) placeTrailer(game.car as Tractor, circuitTrailer(game.car, sub, across,
+    { x: point.x, y: point.y, heading: point.rot }, dist));
   shared.lastOnTrack = { dist: dist, off: side * (sub.width / 2 - 0.5) };
   if (shared.renderer && shared.renderer.snap) shared.renderer.snap(game.car);
   return true;

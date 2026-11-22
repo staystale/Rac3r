@@ -192,6 +192,39 @@ function roadsideHeight(track: Subtrack, hit: SubtrackHit, x: number, y: number)
   return LEVEL.roadside!(hit.trackDist + (track.sBase || 0),
     hit.side === 'left' ? hit.dist : -hit.dist, track.width / 2, ROADSIDE_AT);
 }
+/**
+ * The ground's rise at a lookup's nearest point of the road (a hill climb's grade: level.climb).
+ * @param track the road
+ * @param hit the lookup's hit on it
+ * @returns m
+ */
+function climbHeight(track: Subtrack, hit: SubtrackHit): number {
+  if (hit.seg == null || !Number.isFinite(hit.dist)) return 0;
+  return LEVEL.climb!(hit.trackDist + (track.sBase || 0));
+}
+/**
+ * Whether a ground lookup needs its nearest point of the road: banking, camber, the level's ground
+ * off the road or its climb, or (not smoothed) the curved kerbs.
+ * @param track the road
+ * @param smooth the smoothed lookup (no kerbs)
+ * @returns it does
+ */
+const needsRoadHit = (track: Subtrack, smooth: boolean): boolean => !!(LEVEL.bankAngle
+  || LEVEL.camber || LEVEL.roadside || LEVEL.climb || (!smooth && track.curvedKerbs));
+
+/**
+ * The level's own ground at a lookup's nearest point of the road: off the road (roadside) and
+ * its climb.
+ * @param track the road
+ * @param hit the lookup's hit on it
+ * @param x the ground point, m
+ * @param y the ground point, m
+ * @returns m
+ */
+function roadGroundHeight(track: Subtrack, hit: SubtrackHit, x: number, y: number): number {
+  return (LEVEL.roadside ? roadsideHeight(track, hit, x, y) : 0)
+    + (LEVEL.climb ? climbHeight(track, hit) : 0);
+}
 // the ground point handed to level.roadside (no allocation per lookup)
 const ROADSIDE_AT = { x: 0, y: 0 };
 export function bumpAt(x: number, y: number, smooth = false): number {
@@ -200,11 +233,11 @@ export function bumpAt(x: number, y: number, smooth = false): number {
   // (requirement: still seeing lag at high speeds): three separate scans made a Test Track ground
   // tile cost ~12 ms to shade on a PC.
   const track = LEVEL.subtrack;
-  const hit = track && (LEVEL.bankAngle || LEVEL.camber || LEVEL.roadside
-    || (!smooth && track.curvedKerbs)) ? querySubtrackInto(track, x, y, BUMP_HIT) : null;
+  const hit = track && needsRoadHit(track, smooth)
+    ? querySubtrackInto(track, x, y, BUMP_HIT) : null;
   let height = bankHeightAt(x, y, hit) + camberHeightAt(x, y, hit) - rutAt(x, y)
     + naturalHeightAt(x, y);
-  if (LEVEL.roadside && hit) height += roadsideHeight(track!, hit, x, y);
+  if (hit) height += roadGroundHeight(track!, hit, x, y);
   ensureBumpGrid(list);
   // _bumpGrid was just set above if it was stale
   const cell = cellAt(LEVEL._bumpGrid!, x, y, BUMP_CELL) || NO_BUMPS;

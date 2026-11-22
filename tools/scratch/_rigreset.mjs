@@ -4,7 +4,8 @@
 // the lap's tightest bend, 5 m off the line on its outside (by the barrier); 'pinfree': its pin
 // broken first. 0.6 s after the reset: the hitch angle, the
 // pin's gap, whether the trailer touches a barrier or a solid (a still copy put through the
-// world's clamps) or another car's body, the tractor's move; a photo each.
+// world's clamps) or another car's body, its corners off the road, the tractor's move; a photo
+// each. [CASES=level:ai:how,...] [TAG=]
 // node tools/scratch/_rigreset.mjs <dir> [extra query]
 import { mkdirSync } from 'node:fs';
 import { startServer, launchBrowser, gotoGame } from '../lib/browser.mjs';
@@ -104,18 +105,27 @@ async function runCase(level, ai, how) {
       return [[0, 0], [hl, hw], [hl, -hw], [-hl, hw], [-hl, -hw]].some(([al, ac]) =>
         inside(other.x + oc * al - os * ac, other.y + os * al + oc * ac));
     });
+    // (?trailreset: the trailer's corners off the road - the subtrack's half width from its line)
+    const sub = game.level.subtrack, { querySubtrack } = await import('/src/world/tyrewall.ts');
+    const offRoad = sub ? [[1, 1], [1, -1], [-1, 1], [-1, -1]].filter(([al, ac]) => {
+      const px = trailer.x + cosH * al * trailer.spec.len / 2 - sinH * ac * trailer.spec.wid / 2;
+      const py = trailer.y + sinH * al * trailer.spec.len / 2 + cosH * ac * trailer.spec.wid / 2;
+      return querySubtrack(sub, px, py).dist > sub.width / 2;
+    }).length : -1;
     const hitch = Math.atan2(Math.sin(trailer.heading - car.heading),
       Math.cos(trailer.heading - car.heading)) * 180 / Math.PI;
     return { hitch, gap: (trailer.pinGap || 0) * 100, touches, onCar, pinFree: !!trailer.pinFree,
+      offRoad,
       x: car.x, y: car.y, kph: Math.hypot(car.vx, car.vy) * 3.6 };
   });
-  await page.screenshot({ path: `${OUT}/${level}-${how}.png` });
+  await page.screenshot({ path: `${OUT}/${level}-${how}${process.env.TAG || ''}.png` });
   await page.close();
   if (after.none) return `${level} ${how}: NO TRAILER`;
   return `${level} ${how}: before ${before.kph.toFixed(0)} km/h; after the reset hitch `
     + `${after.hitch.toFixed(1)} deg, pin gap ${after.gap.toFixed(2)} cm, pin ${after.pinFree
       ? 'BROKEN' : 'held'}, trailer ${after.touches ? 'TOUCHES a barrier / solid' : 'clear'}, `
-    + `${after.onCar ? 'ON A CAR' : 'on no car'}, tractor moved `
+    + `${after.onCar ? 'ON A CAR' : 'on no car'}, trailer corners off the road ${after.offRoad}, `
+    + 'tractor moved '
     + `${Math.hypot(after.x - before.x, after.y - before.y).toFixed(1)} m, `
     + `${after.kph.toFixed(0)} km/h` + (errors.length ? ' ERRORS ' + errors[0] : '');
 }

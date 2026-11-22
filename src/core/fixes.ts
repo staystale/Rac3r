@@ -98,4 +98,16 @@ export const FIX = {
   // GETAWAY STOCKHOLM drives on the RIGHT (owner 11-21: keep right, overtake on the left): its
   // road's world the mirror image of its left-hand twin (highway/road.ts HwState.hand)
   keepright: atLoad('keepright'),
+  // A TUNNEL NEVER SWITCHES A LIGHT (owner 11-22: "controlled with LAYERING, not code"): its cover
+  // (the slats, a straight one's underground stretch) is a deck over the light map - the cars'
+  // beams and glows below never light its top, they show between the slats - and no car's light
+  // is clipped by where the car is (render/coverlight.ts clipToCut off); the tunnel's own lamps
+  // light its road (render/lightdecks.ts); GETAWAY STOCKHOLM's day shade lighter
+  tunnellamps: atLoad('tunnellamps'),
+  // A TOWING RIG'S RESET (owner 11-22, option b): the whole rig inside the road's edge on the
+  // bend's line, the trailer following the road there (game/rigreset.ts), not straight behind
+  trailreset: atLoad('trailreset'),
+  // THE HILL CLIMB'S GRADE, step 1 (owner 11-22: a real 7 % climb): the endless road rising
+  // HILL_GRADE along its length (highway/hillgrade.ts) - the engine piece, measured alone
+  hillgrade: atLoad('hillgrade'),
 };

@@ -22,7 +22,9 @@ import { PAINT_STOCK } from '../carpaint.ts';
  * its tractor was after the last step (a jump from there is a reset).
  */
 export type Trailer = Car & { pinFree?: boolean; pinGap?: number;
-  towedBy?: { x: number; y: number; heading: number } };
+  towedBy?: { x: number; y: number; heading: number };
+  // (?trailreset: where a reset puts it - game/rigreset.ts; taken once by lineUpTrailer)
+  resetPose?: { x: number; y: number; heading: number } | null };
 /** A tractor that may tow one. */
 export type Tractor = Car & { trailer?: Trailer | null; hitchLoad?: number };
 
@@ -126,10 +128,12 @@ function trailerPin(trailer: Car) {
  * @param trailer its trailer
  */
 export function lineUpTrailer(car: Car, trailer: Trailer): void {
-  const pin = tractorPin(car);
-  trailer.heading = car.heading;
-  trailer.x = pin.x - Math.cos(car.heading) * trailer.spec.lf;
-  trailer.y = pin.y - Math.sin(car.heading) * trailer.spec.lf;
+  const pin = tractorPin(car), placed = trailer.resetPose;
+  trailer.resetPose = null;
+  // (a reset's pose following the road - game/rigreset.ts - else straight behind)
+  trailer.heading = placed ? placed.heading : car.heading;
+  trailer.x = placed ? placed.x : pin.x - Math.cos(car.heading) * trailer.spec.lf;
+  trailer.y = placed ? placed.y : pin.y - Math.sin(car.heading) * trailer.spec.lf;
   trailer.vx = car.vx; trailer.vy = car.vy; trailer.yawRate = 0;
   trailer.pinFree = false;
   trailer.towedBy = { x: car.x, y: car.y, heading: car.heading };
@@ -151,6 +155,18 @@ export function rigExtents(car: Tractor, towing: boolean): { front: number; rear
   const trailer = trailerSpec();
   const pinBack = car.spec.lr - FIFTH_WHEEL_AHEAD;
   return { front: half, rear: Math.max(half, pinBack + trailer.lf + trailer.len / 2) };
+}
+
+/**
+ * A rig's lengths for placing its trailer (game/rigreset.ts): the tractor's pin behind its middle,
+ * the trailer's middle and its axle group behind the pin, its length and width, m.
+ * @param car the tractor
+ * @returns the lengths
+ */
+export function rigGeometry(car: Car) {
+  const trailer = trailerSpec();
+  return { pinBack: car.spec.lr - FIFTH_WHEEL_AHEAD, lf: trailer.lf, wheelbase: trailer.L!,
+    len: trailer.len, wid: trailer.wid };
 }
 
 /**

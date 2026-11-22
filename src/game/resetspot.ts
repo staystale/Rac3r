@@ -91,12 +91,43 @@ mover?: { spec: { len: number; wid: number }; others: readonly SpotBody[] }): T 
   for (let tries = 0; tries < FREE_TRIES; tries++) {
     const pose = poseOf(spot);
     if (spotFree(pose, spec, others, aheadM)
-      && (!trailer || spotFree(behindPose(pose, trailer.back), trailer, others))) return spot;
+      && (!trailer || trailerClear(pose, spot, trailer, others))) return spot;
     const behind = next(spot);
     if (behind === null) return spot;
     spot = behind;
   }
   return spot;
+}
+
+/** A car's place and heading (world m, rad). */
+type Pose = { x: number; y: number; heading: number };
+
+// ?trailreset: where a reset's spot puts your rig's trailer (game/rigreset.ts), null where it
+// does not fit; none set: straight behind
+let rigPoseAt: ((pose: Pose, spot: unknown) => Pose | null) | null = null;
+
+/**
+ * Sets (or clears) where a reset's spots put your rig's trailer (?trailreset).
+ * @param poseAt the trailer's pose for the tractor's pose and spot, or null for straight behind
+ */
+export function useRigPose(poseAt: ((pose: Pose, spot: unknown) => Pose | null) | null) {
+  rigPoseAt = poseAt;
+}
+
+/**
+ * Whether your rig's trailer stands clear of the cars at a spot: where ?trailreset puts it (none
+ * there: not clear), else straight behind.
+ * @param pose the tractor's pose
+ * @param spot the spot
+ * @param trailer its length, width and middle's m behind the tractor's
+ * @param others the cars in the way
+ * @returns clear
+ */
+function trailerClear(pose: Pose, spot: unknown, trailer: { back: number; len: number;
+  wid: number }, others: readonly SpotBody[]): boolean {
+  if (!rigPoseAt) return spotFree(behindPose(pose, trailer.back), trailer, others);
+  const placed = rigPoseAt(pose, spot);
+  return !!placed && spotFree(placed, trailer, others);
 }
 
 /**

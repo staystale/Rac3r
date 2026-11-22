@@ -18,6 +18,7 @@
 // continuous across every join — straight -> sweeper -> S-bend -> straight, no kinks, no sudden
 // steering. LANES are config (HW_PRESETS): a UK motorway, a wide interstate, a skinny dual
 // carriageway — the same generator for later flavour levels.
+import { climbOf } from './highway/hillgrade.ts';
 import { bayOut, bayBehind } from "./highway/laybys.ts";
 import { pruneHedges, resetHedges } from "./highway/hedges.ts";
 import { readSettings } from "./core/settings.ts";
@@ -479,6 +480,7 @@ export function setHighwayPreset(level: HwLevel, preset: string, scenery?: strin
   level._cfg = sceneryCfg(pick.road, view);
   level.base = baseOf(level._cfg);
   level.roadside = roadsideOf(level, level._cfg);
+  level.climb = climbOf();
   level._layout = (level._layout || 0) + 1;
 }
 // the ground off the road: the countryside's grass, Deaf Valley's desert gravel (owner 11-09:
@@ -524,6 +526,7 @@ export function createHighway(seed: number = 4242, preset: string = 'motorway') 
     spawn: { x: 0, y: 0, heading: 0 },
   } as unknown as HwLevel;   // its road state (_hw) is built by resetHighway just below
   level.roadside = roadsideOf(level, level._cfg);
+  level.climb = climbOf();
   resetHighway(level);
   return level;
 }

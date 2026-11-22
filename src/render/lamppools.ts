@@ -52,7 +52,7 @@ export interface PoolPainter {
  * @param y the pool's centre, art px
  * @param size its diameter, art px
  */
-function drawPool(painter: PoolPainter, picture: HTMLCanvasElement, x: number, y: number,
+export function drawPool(painter: PoolPainter, picture: HTMLCanvasElement, x: number, y: number,
     size: number) {
   if (!painter.isNear(x, y, size / 2)) return;
   painter.lightCtx.drawImage(picture, x - size / 2, y - size / 2, size, size);
