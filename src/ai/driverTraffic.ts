@@ -1,7 +1,6 @@
 // ai/driverTraffic.ts: the circuit driver's reading of traffic and obstacles: cars ahead,
 // alongside and behind, and loose objects on the road. Functions take the driver context.
 import { debugValue } from "../core/debug.ts";
-import { FIX } from "../core/fixes.ts";
 import { GRAVITY } from "../cars.ts";
 import { OBST_CLEAR, carGrip, profileOf } from "./line.ts";
 import type { AiCar, CarsAcc, CarsEnv, DriveCtx } from "./types.ts";
@@ -455,22 +454,23 @@ function placeAcross(env: CarsEnv, other: AiCar, closeIdx: number, halted: boole
   return lat + (point.off ?? 0) - (pts[env.nearIdx].off ?? 0);
 }
 
-// ?passearly: m/s under which a car counts as stopped for its place in my line's terms (a much
+// m/s under which a car counts as stopped for its place in my line's terms (a much
 // slower one still moving on is not where my line is now when I reach it - read so, MEASURED
 // tools/scratch/_passscene.mjs, a car 15 m/s slower on a line sweeping across the road was gone
 // round toward where it was going, and followed: 5.4 -> 9.3 s to pass)
 const STILL_V = 3;
 
-// ?passwide: m wider the gap picker reads a stopped or much slower car (its line past it further
-// off); ?passearly: m between its place held to my point and its place in my line's terms from
-// which both are read
+// GO ROUND WIDER (passed 11-22): m wider the gap picker reads a stopped or much slower car (its
+// line past it further off); m between its place held to my point and its place in my line's terms
+// from which both are read
 const PASS_WIDE_M = 1, LINE_TERMS_M = 0.5;
 
 /**
- * A car into the gap picker's view. ?passearly: a stopped car is read where it stands across the
- * road held to my point (placeAcross) AND in my line's terms at its own point - where my line is
- * when I reach it (a line sweeping across the road read a car on it 8 m off to the side, MEASURED
- * tools/scratch/_passscene.mjs). ?passwide: a stopped or much slower car read PASS_WIDE_M wider.
+ * A car into the gap picker's view. GO ROUND EARLIER (passed 11-22): a stopped car is read where
+ * it stands across the road held to my point (placeAcross) AND in my line's terms at its own point
+ * - where my line is when I reach it (a line sweeping across the road read a car on it 8 m off to
+ * the side, MEASURED tools/scratch/_passscene.mjs). GO ROUND WIDER: a stopped or much slower car
+ * read PASS_WIDE_M wider.
  * @param seen the cars seen
  * @param env the cars' environment (my path)
  * @param sight the car, m ahead, m off my path, m/s along my way, its path point, how fast it
@@ -487,9 +487,9 @@ function pushSeen(seen: SeenCar[], env: CarsEnv, sight: { other: AiCar; fwd: num
   vAlong: number; closeIdx: number; dec?: number; halted: boolean }) {
   const { other, fwd, lat, vAlong, closeIdx, dec, halted } = sight;
   const one = { ...seeCar(other, fwd, lat, vAlong, env.path.pts[closeIdx].h), dec };
-  if (halted && FIX.passwide) one.across += PASS_WIDE_M;
+  if (halted) one.across += PASS_WIDE_M;
   seen.push(one);
-  if (!halted || !FIX.passearly || Math.hypot(other.vx, other.vy) > STILL_V) return;
+  if (!halted || Math.hypot(other.vx, other.vy) > STILL_V) return;
   const lineLat = placeAcross(env, other, closeIdx, false);
   if (Math.abs(lineLat - lat) > LINE_TERMS_M) seen.push({ ...one, lat: lineLat });
 }

@@ -13,7 +13,6 @@
 // car the speed is capped to what lets it get across in time braking as it goes - or stop short
 // when no way round is planned - and going round it is a move. Once its body is clear, no cap.
 import { GRAVITY } from "../cars.ts";
-import { FIX } from "../core/fixes.ts";
 import { carGrip } from "./line.ts";
 import { lateralOf } from "./rejoin.ts";
 import { SWERVE_RATE } from "./dodge.ts";
@@ -76,13 +75,13 @@ function judgeOf(drv: Drv, other: AiCar): number {
   return 1 + (state.stopJudge ?? 0);
 }
 
-// ?passearly: m inside its clearance a car once clear of a stopped one must come before it is in
+// m inside its clearance a car once clear of a stopped one must come before it is in
 // line with it again (MEASURED tools/scratch/_passscene.mjs: at the clearance's edge the brake
 // held and let go every step, the target 12 <-> 60 m/s, the brake in pulses)
 const IN_LINE_HYST_M = 0.3;
 
 /**
- * Whether my body is in line with a stopped car - inside its clearance; ?passearly: once clear of
+ * Whether my body is in line with a stopped car - inside its clearance; once clear of
  * it, not again until IN_LINE_HYST_M inside (the driver's state keeps the cars it is clear of).
  * @param drv the driver context
  * @param other the stopped car
@@ -91,7 +90,6 @@ const IN_LINE_HYST_M = 0.3;
  */
 function inLineOf(drv: Drv, other: StoppedCar, offset: number): boolean {
   const apart = Math.abs(offset);
-  if (!FIX.passearly) return apart < other.clear;
   const clearOf = (drv.state.stopClear ??= new WeakSet());
   if (apart >= other.clear) {
     clearOf.add(other.car);

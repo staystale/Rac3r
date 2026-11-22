@@ -30,8 +30,8 @@
 // passed 11-16; lowrange, dmgmore, transitcustom, e36peak and schoolbus passed 11-17; dmgmore2,
 // marktrack, scanyah (the tractor) and tipping passed 11-17; resetclean, lamps, fpshud, marksage
 // blighty, flagfix, trailer, boxhold and gridlen passed 11-21; rollgreen and hwfan passed 11-21;
-// hazard, softback, brakepedal, gapdest and revstuck passed 11-22, aitune and gapcommit
-// dropped.)
+// hazard, softback, brakepedal, gapdest and revstuck passed 11-22, aitune, gapcommit and
+// contactcost dropped; passearly and passwide passed 11-22.)
 import { envValue } from './debug.ts';
 
 /**
@@ -76,12 +76,4 @@ export const FIX = {
   // THE TRAILER TIPS AND ROLLS (owner 11-22: realistic, ~0.45 g): its own two-wheel state, over
   // past its balance - the pin snaps, it rolls and slides on its own (physics/trailroll.ts)
   trailroll: atLoad('trailroll'),
-  // GO ROUND EARLIER (owner 11-22): a stopped car ahead is also read in my line's
-  // terms (where my line will be at it - a line sweeping across the road ran into one it had read
-  // 8 m off to the side; ai/driverTraffic.ts pushSeen), and the stopped-car brake lets go of a car
-  // once clear of it until 0.3 m inside its clearance again (ai/stopDodge.ts inLineOf)
-  passearly: atLoad('passearly'),
-  // GO ROUND WIDER (owner 11-22): the gap picker reads a stopped or much slower car 1 m wider -
-  // its line past one that much further off (ai/driverTraffic.ts pushSeen)
-  passwide: atLoad('passwide'),
 };

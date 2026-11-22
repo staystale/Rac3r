@@ -17,6 +17,25 @@ lighting, bushes and trees - OWNER LIST 10-24; the checking tools - Tools that a
 
 
 
+## PASSED 11-22, GO ROUND EARLIER AND WIDER (owner: ?passearly + ?passwide "pass")
+
+The default 11-22, their switches deleted (e5a4600f; owner round189 "AI seemed to stop when cars
+were stopped ahead ... plenty of room to the side", 11-21 "go round earlier / wider"):
+- GO ROUND EARLIER (?passearly; ai/driverTraffic.ts pushSeen, ai/stopDodge.ts inLineOf): a stopped
+  car ahead (under 3 m/s) is read by the gap picker where it stands across the road held to my
+  point AND in my line's terms at its own point - on a line sweeping across the road a stopped car
+  on it was read 8 m off to the side and the move began 27 m out; the stopped-car brake lets go of
+  a car once clear of it until 0.3 m inside its clearance again (it held and let go every step at
+  the edge: target 12 <-> 60 m/s, the brake in pulses). Reading a much slower car still moving on
+  in my line's terms was tried and dropped (gone round toward where it was going, and followed).
+- GO ROUND WIDER (?passwide; pushSeen): a stopped or much slower car read 1 m wider by the gap
+  picker.
+MEASURED (tools/scratch/_passscene.mjs, 8 drivers, seeds 1 / 2; off -> both): a stopped car on the
+line 120 m ahead - the move begun 27-28 -> 54-55 m out, km/h lost 109-125 -> 6-11, touched it
+8 / 8 -> 0 / 0 of 8, 6.2-6.9 -> 3.9-4.1 s to pass; a car 15 m/s slower 50 m ahead - lost 33-46 /
+11-44 -> 0-1 / 0 km/h, the stopped-car brake's re-holds 6-12 / 0-10 -> 0-2 / 0-3; a stopped car
+on the line 70 m ahead - lost 24-93 / 10-58 -> 2-9 / 2-8 km/h.
+
 ## PASSED 11-22, THE AI TUNE: SHARED HAZARDS, SOFT RETURN, STEADY PEDAL, HIGHWAY GAP PICKER, REVERSE WHEN STUCK (owner: passed on round186 and round190)
 
 The default 11-22, their switches deleted:
