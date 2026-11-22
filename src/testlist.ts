@@ -25,6 +25,16 @@ export const TEST_LIST: TestEntry[] = [
       + 'highway, or a best lost after leaving the track.',
   },
   {
+    id: 'spikespeak',
+    added: '2026-11-22',
+    name: 'SPIKES PEAK, the hill climb: the real 10 km road at half scale, climbing 718 m',
+    where: 'Test link + &spikespeak=1: TEST MODE, RALLY STAGES (or ALL TRACKS), Spikes Peak, SOLO',
+    try: 'Drive it start to summit: the road and its 23 hairpins, the climb, the time; tell us if '
+      + 'it is too long.',
+    wrong: 'A kink or a gap in the road, a hairpin you cannot get round, the ground stepping, the '
+      + 'car floating or sinking, or a stutter as you drive.',
+  },
+  {
     id: 'stagehold',
     added: '2026-11-22',
     name: 'Rally stage: every car held until its own green - no jump start, you or the AI',

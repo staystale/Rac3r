@@ -542,6 +542,20 @@ STORY (Story mode with its garage, money, BUY & FIT, "buy what you last tested" 
   30 deg in 60 m (120 over 10 deg; the event counts 156), 22 hairpins; 25 turns under the venues'
   least radius 10 m at half scale (47 under the 15.5 m default). OWNER'S ANSWERS FIRST (round 2):
   real grades at half scale, the top section's length, widening the tight hairpins.
+  OWNER: one run up; real grades at half scale ("let's try it"); the full true course (~10 km,
+  the owner tests the length); hairpins "tight is ok, but keep it looking smooth and connected".
+  ROUND 2 (THE ROAD AND ITS CLIMB) BUILT behind ?spikespeak (Worker C; tools/spikestrace.mjs ->
+  world/levels/venues/spikes.ts, world/levels/spikes.ts): the course at half scale, 9.99 km,
+  718 m up (mean 7.2 %), 8.2 m tarmac (the twisty road's lanes), point to point (run-up, the
+  finish at the summit, a 60 m stop zone, one ghost segment); the map's polygon smoothed (its
+  10-15 deg kinks); 23 hairpins as tight as the real ones (5.1-14.9 m), only the 7 whose road
+  would fold (under 5.1 m: 3.8-5.0) pushed apart as a whole, eased back along both legs, no two
+  parts of the road under 9.8 m apart; the heights smoothed (median 9 + mean 9 of the 20 m
+  samples: the steepest 100 m 26.5 -> 14.2 %, 500 m 13.6 -> 11.0 %); the ground through
+  highway/hillground.ts (now any road, laid 300 m ahead as driven). MEASURED: built in 50 ms; the
+  autopilot drives it, the hairpins at 22-32 km/h, ~56 fps (one dip to 44), the car's height
+  the profile's (138.6 m at 2.7 km). NEXT: round 3, the world (drops, armco, rocks and trees by
+  height, the gantry, the summit); the AI; the menu's own category.
 - A HOME CAR'S TIME AS DRIVEN (owner 11-22: "try (a)", else (b) the class's driven average):
   BUILT behind ?stagetimes (Worker C; game/grid.ts STAGE_DRIVEN_RATIO 1.12, MEASURED: 13 cars
   started 1-3 slots ahead on Sweaty Lamb, REALISH, their driven part over its predicted part

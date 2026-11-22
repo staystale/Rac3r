@@ -92,4 +92,7 @@ export const FIX = {
   // see-through car that is only drawn; a GHOST switch on the setup (on solo, off VS AI); the
   // fastest laps listed in SETTINGS > ACCOLADES (game/ghostcar.ts, ghostrun.ts, menu/accolades.ts)
   ghost: atLoad('ghost'),
+  // SPIKES PEAK, THE HILL CLIMB, round 2 (owner 11-22: its own track type, the real course at half
+  // scale): the road and its climb, in TEST MODE's track lists (world/levels/spikes.ts)
+  spikespeak: atLoad('spikespeak'),
 };
