@@ -13,6 +13,16 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'hazard',
+    added: '2026-11-22',
+    name: 'AI pile-ups: the field goes round a crash on one shared side, cars alongside make room',
+    where: 'Test link + &hazard=1: any circuit with a full field (best with &softback=1)',
+    try: 'Watch a spin or a stopped car: cars behind steer round the same side, the car beside a '
+      + 'swerver moves over; they slow only if they cannot get round.',
+    wrong: 'Cars diving for different gaps and meeting, everyone braking for nothing, or more '
+      + 'pile-ups than before.',
+  },
+  {
     id: 'softback',
     added: '2026-11-22',
     name: 'AI: every return to the racing line is smooth (moves out stay free)',
