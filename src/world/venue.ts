@@ -21,6 +21,8 @@ import { tidyBarriers } from "./venuetidy.ts";
 import { evenStadiumEdge } from "./stadiumtidy.ts";
 import { CIRCUIT_BUSHES } from "./levels/bushes.ts";
 import { buildVenueScenery } from "./venuescenery.ts";
+import { racePits } from "./pitlane.ts";
+import { FIX } from "../core/fixes.ts";
 import { VENUE_ROAD_M, distToLine, isNearLine, kerbOut, lineLength, pointAlong }
   from "./venuegeo.ts";
 import { laneBehindPole, laneSpawn, venueJoker, venueStartLane } from "./venuejoker.ts";
@@ -679,5 +681,8 @@ export function venueLevel(spec: VenueSpec, layout: string, levelId: string,
     paint: [{ kind: 'chequered', x: sub.pts[0].x, y: sub.pts[0].y, len: 1.6, wid: VENUE_ROAD_M,
       rot: sub.pts[0].heading }, ...splitLinePaint(spec, sub), ...scenery.paint],
     spawn: { x: start.x, y: start.y, heading: start.rot },
+    // (?pitstops: the pit lane as the race uses it - world/pitlane.ts)
+    ...(FIX.pitstops && scenery.pitLanes.length ? { pits: racePits(sub, scenery.pitLanes[0]) }
+      : {}),
   } as Level;
 }

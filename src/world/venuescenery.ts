@@ -39,6 +39,7 @@ import type { Barrier, Cone, Cover, Lane, Paint, Patch, Point, Prop, Subtrack, Z
 export interface VenueScenery {
   lanes: Lane[]; zones: Zone[]; cones: Cone[]; barriers: Barrier[]; props: Prop[]; covers: Cover[];
   patches: Patch[]; paint: Paint[]; bounds: { x0: number; y0: number; x1: number; y1: number };
+  pitLanes: Lane[];   // the pit lanes laid (world/pitlane.ts reads the first for the race)
 }
 
 // m the track's edge barriers keep off the pit wall
@@ -787,5 +788,6 @@ export function buildVenueScenery(build: VenueBuild, sub: Subtrack, closed: Lane
   return { lanes, zones: [...zones, ...venueParks(site)],
     cones: [...edge.cones, ...karting, ...venueLitter(site, props, edge.barriers)],
     barriers: [...walls, ...edge.barriers],
-    props, paint: pitLanes.flatMap((lane) => pitLines(site, lane)), bounds, covers, patches };
+    props, paint: pitLanes.flatMap((lane) => pitLines(site, lane)), bounds, covers, patches,
+    pitLanes };
 }
