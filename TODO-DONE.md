@@ -17,6 +17,22 @@ lighting, bushes and trees - OWNER LIST 10-24; the checking tools - Tools that a
 
 
 
+## PASSED 11-23, BROKEN BRIDGES AT NIGHT (owner: ?tunneltop "Broken bridges fixed")
+
+The default 11-23, its switch deleted (render/lightdecks.ts paintUnderground). The owner on
+Snoozuka: "broken bridges ... putting shade on top of tunnels, and the bridges seem to be
+non-existent or pass through the track". On itch since ?tunnellamps (13c8d1d5, passed 073e834f):
+at night a straight tunnel's underground stretch was a deck over the light map and had the
+night's dark put back over it last - a full-dark band over whatever lies on top, its cars' beams
+and tail lights gone in it; by day all builds identical. Found on every stadium crossover
+(Wobbly, Stade Prance, Birds Mess, Crossover Cross, X Gayms, Nitrous Nook), the venues' access
+tunnels under the track (Snoozuka 5, Dongington 4, Spa 4, Monza 2, Yass Marina 5, Goodwoody 2,
+Sillystone, Brands Snatch, Dieatona) and the highways' underpasses (tools/scratch/
+_crossinglist.mjs). Now the tunnel's own cars are lit first, the dark put back over the stretch,
+then every other light. Bridges and slats (Moanaco, Stockholm) unchanged. Photos before / after
+at night on 18 levels at 844x390, 5 at 390x844 (tools/scratch/_crossingshots.mjs,
+_underdrive.mjs).
+
 ## PASSED 11-22, NO CATCH-UP SPIKE (owner: ?spikecap "Seems much better", "Yes pass")
 
 The default 11-22, its switch deleted (8feccb31; game/loop.ts runSimSteps): a slow frame's sim no

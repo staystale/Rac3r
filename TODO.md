@@ -27,13 +27,6 @@ MARK TRACK.)
 
 ## 2. BEING BUILT
 
-- BROKEN BRIDGES AT NIGHT (owner 11-23, Snoozuka: "shade on top of tunnels ... the bridges seem
-  non-existent or pass through the track"; on itch since ?tunnellamps 11-22): at night a straight
-  tunnel's underground stretch had the night's dark put back over it last - a full-dark band over
-  the road on top (every stadium crossover, the venues' access tunnels under the track, the
-  highways' underpasses), its cars' lights gone. ?tunneltop (render/lightdecks.ts
-  paintUnderground): the tunnel's cars lit first, the dark over the stretch, then all else. Built,
-  photos before / after; awaiting the phone test.
 - THE OWNER'S LIST OF 11-21 ("digest and fit into the todo ... discuss anything needed before
   actioning"; each item gets a brief plan / the cause before any build, behind its own switch):
   BUGS

@@ -291,20 +291,18 @@ are not waited for: the menu never waited for them, and holding for them made th
 same time (a START needs a tap, and the bar takes every tap). With no menu (`?menu=0`, the tools)
 the bar ends at once over the boot tap. A failed code load takes it down so the error shows.
 
-A TUNNEL IN THE NIGHT LAYER (passed 11-22: "controlled with LAYERING, not code"): no car's light is
-clipped by where the car is; each tunnel cover - every slat (Moanaco's, GETAWAY STOCKHOLM's), a
-straight tunnel's underground stretch - is a deck over the light map (`props/bridges.ts
-overheadDeck`, `render/lightdecks.ts`: traced by its longer half), its own lamps a pool in each gap
-from dusk (`rubCoverLamps`), and the night's dark put back over every cover last, after every
-light and tint (`darkenCovers`): beams, lamps, indicators, hazards and police lights show only in
-the gaps. A slat over the endless road draws its shade and shadow under the cars
-(`props/scenery.ts drawSlatUnder`), its body over them. ?tunneltop: a straight tunnel's
-underground stretch is no longer a deck nor darkened last - what lies on top of it is a road (the
-crossover's road over, the track over an access tunnel) or open ground, lit as anywhere. Its own
-cars (a crossing of kind tunnel) are lit first, the dark put back over the stretch, then their
-tints kept off it, then every other light (`lightdecks.ts paintUnderground`; `isOnLevel` 'tunnel'):
-their light shows in the open cuts only. Without it the stretch was a full-dark band at night over
-every stadium crossover's road and every venue's access tunnels (on itch since ?tunnellamps).
+A TUNNEL IN THE NIGHT LAYER (passed 11-22: "controlled with LAYERING, not code"; the underground
+pass passed 11-23): no car's light is clipped by where the car is. Every slat (Moanaco's, GETAWAY
+STOCKHOLM's) is a deck over the light map (`props/bridges.ts overheadDeck`, `render/lightdecks.ts`:
+traced by its longer half), its own lamps a pool in each gap from dusk (`rubCoverLamps`), and the
+night's dark put back over every slat last, after every light and tint (`darkenCovers`): beams,
+lamps, indicators, hazards and police lights show only in the gaps. A straight tunnel's
+underground stretch has what lies on top of it - a road (a stadium crossover's road over, the
+track over an access tunnel) or open ground - lit as anywhere: its own cars (a crossing of kind
+tunnel) are lit first, the dark put back over the stretch, their tints kept off it, then every
+other light (`paintUnderground`; `isOnLevel` 'tunnel'), so their light shows only in the open
+cuts. A slat over the endless road draws its shade and shadow under the cars
+(`props/scenery.ts drawSlatUnder`), its body over them.
 
 THE NIGHT FLY-IN (the default since 11-14): two parts.
 - THE CANOPY CUT (`render/canopycut.ts`; game-wide: every level, in race and in the fly-in, with or

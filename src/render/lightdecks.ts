@@ -9,7 +9,6 @@ import { lampsLit } from '../world/lamps.ts';
 import { drawPool } from './lamppools.ts';
 import type { PoolPainter } from './lamppools.ts';
 import type { Prop } from '../world/types.ts';
-import { FIX } from '../core/fixes.ts';
 import { crossingOf } from '../world/crossinggeo.ts';
 import type { RenderCar, RenderGame } from './types.ts';
 
@@ -34,7 +33,7 @@ export function traceDecks(ctx: CanvasRenderingContext2D, map: DeckMapping): num
     const deck = overheadDeck(prop);
     if (deck && traceQuad(ctx, map, prop, deck)) count++;
   }
-  return FIX.tunneltop ? count : count + traceUnderground(ctx, map);
+  return count;
 }
 
 /**
@@ -65,10 +64,11 @@ function traceQuad(ctx: CanvasRenderingContext2D, map: DeckMapping, prop: Prop,
 }
 
 /**
- * The night's dark put back over every tunnel cover - each slat, each straight
- * tunnel's underground stretch - last of all, after every light and tint (the street lights and
- * their heads hang above a bridge's deck, so the decks' order lets them light it; over a tunnel
- * nothing may show on top: owner 11-22 "they should only show in the tunnel / through the slats").
+ * The night's dark put back over every tunnel cover - each slat (a straight tunnel's underground
+ * stretch has its own pass: paintUnderground) - last of all, after every light and tint (the
+ * street lights and their heads hang above a bridge's deck, so the decks' order lets them light
+ * it; over a slatted tunnel nothing may show on top: owner 11-22 "they should only show in the
+ * tunnel / through the slats").
  * The cars' lamps, beams, indicators, hazards, police lights and the tunnel's own lamps all stay
  * in the gaps.
  * @param pools the light map and its mapping
@@ -80,7 +80,7 @@ export function darkenCovers(pools: PoolPainter, darkFill: string): void {
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.globalAlpha = 1;
   ctx.beginPath();
-  let count = FIX.tunneltop ? 0 : traceUnderground(ctx, pools);
+  let count = 0;
   for (const prop of PROPS) {
     if (prop.kind === 'slat' && traceQuad(ctx, pools, prop, { halfLength: prop.w! / 2,
       halfWidth: prop.h! / 2 })) count++;
@@ -106,8 +106,8 @@ export type CarLevel = 'all' | 'ground' | 'deck' | 'tunnel';
  */
 export function isOnLevel(car: RenderCar, level: CarLevel): boolean {
   const kind = crossingOf(car)?.kind;
-  // (?tunneltop: a tunnel's cars are lit in their own pass, first - lightdecks.ts paintUnderground)
-  if (FIX.tunneltop && (kind === 'tunnel') !== (level === 'tunnel')) return false;
+  // (a tunnel's cars are lit in their own pass, first - paintUnderground)
+  if ((kind === 'tunnel') !== (level === 'tunnel')) return false;
   if (level === 'all' || level === 'tunnel') return true;
   return level === 'deck' ? kind === 'bridge' : kind !== 'bridge';
 }

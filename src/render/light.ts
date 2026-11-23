@@ -14,7 +14,6 @@ import { rigOf } from './riglamps.ts';
 import { darkenCovers, isOnLevel, paintUnderground, rubCoverLamps, traceDecks }
   from './lightdecks.ts';
 import type { CarLevel } from './lightdecks.ts';
-import { FIX } from '../core/fixes.ts';
 import { drawEventGlows } from './eventglows.ts';
 import type { EventPainter } from './eventglows.ts';
 import { BRAKE_GLOW, BRAKE_GLOW_HOT, BRAKE_GLOW_M, hotBrakes } from './brakeglow.ts';
@@ -737,7 +736,7 @@ export function createNight(parts: NightParts) {
     lightCtx.fillStyle = darkFill;
     lightCtx.fillRect(0, 0, canvas.width, canvas.height);
     lightCtx.globalCompositeOperation = 'destination-out';
-    if (FIX.tunneltop) paintUnderground(pools, darkFill, game, drawAllBeams, mapGlows.parts);
+    paintUnderground(pools, darkFill, game, drawAllBeams, mapGlows.parts);
     lightCtx.beginPath();
     const still = parts.stillNight ? parts.stillNight() : null;
     lamps.use(still);
