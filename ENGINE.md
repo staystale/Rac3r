@@ -298,7 +298,13 @@ overheadDeck`, `render/lightdecks.ts`: traced by its longer half), its own lamps
 from dusk (`rubCoverLamps`), and the night's dark put back over every cover last, after every
 light and tint (`darkenCovers`): beams, lamps, indicators, hazards and police lights show only in
 the gaps. A slat over the endless road draws its shade and shadow under the cars
-(`props/scenery.ts drawSlatUnder`), its body over them.
+(`props/scenery.ts drawSlatUnder`), its body over them. ?tunneltop: a straight tunnel's
+underground stretch is no longer a deck nor darkened last - what lies on top of it is a road (the
+crossover's road over, the track over an access tunnel) or open ground, lit as anywhere. Its own
+cars (a crossing of kind tunnel) are lit first, the dark put back over the stretch, then their
+tints kept off it, then every other light (`lightdecks.ts paintUnderground`; `isOnLevel` 'tunnel'):
+their light shows in the open cuts only. Without it the stretch was a full-dark band at night over
+every stadium crossover's road and every venue's access tunnels (on itch since ?tunnellamps).
 
 THE NIGHT FLY-IN (the default since 11-14): two parts.
 - THE CANOPY CUT (`render/canopycut.ts`; game-wide: every level, in race and in the fly-in, with or

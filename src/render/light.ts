@@ -5,14 +5,16 @@
 // then the glows' colour is laid in as a tint; then it is laid over the screen canvas once, under
 // the HUD. The cost is one extra full-screen image a frame.
 import { lampTypeOf } from './lamptypes.ts';
-import { crossingOf } from "../world/crossinggeo.ts";
 import { DAYLIGHT } from '../world/daylight.ts';
 import { activeLamps, lampsLit } from '../world/lamps.ts';
 import { drawPools, paintPool, paintPoolTint } from './lamppools.ts';
 import type { PoolPainter } from './lamppools.ts';
 import { hazardsOn, indicatorBlinkOn, lampLevel } from './cars.ts';
 import { rigOf } from './riglamps.ts';
-import { darkenCovers, rubCoverLamps, traceDecks } from './lightdecks.ts';
+import { darkenCovers, isOnLevel, paintUnderground, rubCoverLamps, traceDecks }
+  from './lightdecks.ts';
+import type { CarLevel } from './lightdecks.ts';
+import { FIX } from '../core/fixes.ts';
 import { drawEventGlows } from './eventglows.ts';
 import type { EventPainter } from './eventglows.ts';
 import { BRAKE_GLOW, BRAKE_GLOW_HOT, BRAKE_GLOW_M, hotBrakes } from './brakeglow.ts';
@@ -213,7 +215,7 @@ function paintCarGlows(painter: GlowPainter, game: RenderGame, level: CarLevel =
   const isBlinkOn = indicatorBlinkOn();
   painter.strength = GLOW_STRENGTH * DAYLIGHT.darkness;
   // (the sparks are on the ground: drawn with the ground's cars, or with every car)
-  if (painter.sparks && level !== 'deck') openSparks(painter, painter.sparks);
+  if (painter.sparks && level !== 'deck' && level !== 'tunnel') openSparks(painter, painter.sparks);
   const each = (car: RenderCar) => {
     if (!isOnLevel(car, level)) return;
     // (a car in a tunnel: its cover is a deck - render/lightdecks.ts - never a clip)
@@ -222,22 +224,6 @@ function paintCarGlows(painter: GlowPainter, game: RenderGame, level: CarLevel =
   if (game.traffic) for (const car of game.traffic.cars) each(car);
   for (const rival of game.ai || []) each(rival.car);
   for (const car of rigOf(game.car)) each(car);
-}
-
-/** Which cars a pass lights: every car, those on the ground (or in a tunnel), those on a deck. */
-type CarLevel = 'all' | 'ground' | 'deck';
-
-/**
- * Whether a car is in a pass's cars: a car up on a bridge's deck lights it after the dark is put
- * back over the decks (paintUnderDecks), a car below never does.
- * @param car the car
- * @param level the pass's cars
- * @returns true when it is
- */
-function isOnLevel(car: RenderCar, level: CarLevel): boolean {
-  if (level === 'all') return true;
-  const isOnDeck = crossingOf(car)?.kind === 'bridge';
-  return level === 'deck' ? isOnDeck : !isOnDeck;
 }
 
 /**
@@ -751,6 +737,7 @@ export function createNight(parts: NightParts) {
     lightCtx.fillStyle = darkFill;
     lightCtx.fillRect(0, 0, canvas.width, canvas.height);
     lightCtx.globalCompositeOperation = 'destination-out';
+    if (FIX.tunneltop) paintUnderground(pools, darkFill, game, drawAllBeams, mapGlows.parts);
     lightCtx.beginPath();
     const still = parts.stillNight ? parts.stillNight() : null;
     lamps.use(still);

@@ -13,6 +13,15 @@ export interface TestEntry {
 
 export const TEST_LIST: TestEntry[] = [
   {
+    id: 'tunneltop',
+    added: '2026-11-23',
+    name: 'At night, no dark band across a road over a tunnel or a crossover',
+    where: 'Test link + &tunneltop=1: TEST MODE, START HOUR at night - Snoozuka, a stadium '
+      + 'crossover (Birds Mess), Brands Snatch, Dongington',
+    try: 'Drive over the crossover and over the access tunnels at night, then through under them.',
+    wrong: 'A dark band across the road on top, your lights gone on it, or light through the top.',
+  },
+  {
     id: 'hillclimbs',
     added: '2026-11-22',
     name: 'HILL CLIMBS: Spikes Peak in its own track type in TEST MODE',

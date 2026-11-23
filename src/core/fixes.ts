@@ -101,4 +101,8 @@ export const FIX = {
   // Le Manky's 24-hour pit lane from the map data, and your car's stop - the limiter, your box, the
   // PIT STOP menu, the work, GO (game/pitstop.ts, menu/pitmenu.ts, menu/pitrow.ts)
   pitstops: atLoad('pitstops'),
+  // at night, a straight tunnel's underground stretch keeps only its own cars' light off the ground
+  // above it - the road or ground on top, its cars and the lamps lit as anywhere (render/
+  // lightdecks.ts paintUnderground; it had the night's dark put back over all of it, last)
+  tunneltop: atLoad('tunneltop'),
 };

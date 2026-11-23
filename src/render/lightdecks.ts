@@ -9,6 +9,9 @@ import { lampsLit } from '../world/lamps.ts';
 import { drawPool } from './lamppools.ts';
 import type { PoolPainter } from './lamppools.ts';
 import type { Prop } from '../world/types.ts';
+import { FIX } from '../core/fixes.ts';
+import { crossingOf } from '../world/crossinggeo.ts';
+import type { RenderCar, RenderGame } from './types.ts';
 
 /** The light map's mapping from world metres to its art px, and its on-map test. */
 export interface DeckMapping {
@@ -31,7 +34,7 @@ export function traceDecks(ctx: CanvasRenderingContext2D, map: DeckMapping): num
     const deck = overheadDeck(prop);
     if (deck && traceQuad(ctx, map, prop, deck)) count++;
   }
-  return count + traceUnderground(ctx, map);
+  return FIX.tunneltop ? count : count + traceUnderground(ctx, map);
 }
 
 /**
@@ -77,7 +80,7 @@ export function darkenCovers(pools: PoolPainter, darkFill: string): void {
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.globalAlpha = 1;
   ctx.beginPath();
-  let count = traceUnderground(ctx, pools);
+  let count = FIX.tunneltop ? 0 : traceUnderground(ctx, pools);
   for (const prop of PROPS) {
     if (prop.kind === 'slat' && traceQuad(ctx, pools, prop, { halfLength: prop.w! / 2,
       halfWidth: prop.h! / 2 })) count++;
@@ -91,6 +94,70 @@ export function darkenCovers(pools: PoolPainter, darkFill: string): void {
   ctx.fill();
 }
 
+/** Which cars a pass lights: every car, those on the ground (or in a tunnel), those on a deck. */
+export type CarLevel = 'all' | 'ground' | 'deck' | 'tunnel';
+
+/**
+ * Whether a car is in a pass's cars: a car up on a bridge's deck lights it after the dark is put
+ * back over the decks (paintUnderDecks), a car below never does.
+ * @param car the car
+ * @param level the pass's cars
+ * @returns true when it is
+ */
+export function isOnLevel(car: RenderCar, level: CarLevel): boolean {
+  const kind = crossingOf(car)?.kind;
+  // (?tunneltop: a tunnel's cars are lit in their own pass, first - lightdecks.ts paintUnderground)
+  if (FIX.tunneltop && (kind === 'tunnel') !== (level === 'tunnel')) return false;
+  if (level === 'all' || level === 'tunnel') return true;
+  return level === 'deck' ? kind === 'bridge' : kind !== 'bridge';
+}
+
+/** The cars' glow passes by level (render/light.ts makeMapGlows): rubbed out, tinted. */
+export interface CarGlows {
+  rubCars: (game: RenderGame, level: CarLevel) => void;
+  tintCars: (game: RenderGame, level: CarLevel) => void;
+}
+
+/**
+ * The tunnels' own cars lit first (their beams and glows rubbed out of the dark), then the night's
+ * dark put back over each straight tunnel's underground stretch - their light never reaches the
+ * ground above (a road over it, its own cars and the lamps, are lit after, as anywhere) - then
+ * their tints, kept off the stretches. Leaves the context in its rub-out blend, path cleared.
+ * @param pools the light map and its mapping
+ * @param darkFill the night's dark this frame
+ * @param game the game drawn
+ * @param beams draws the cars' beams (rubbed out)
+ * @param glows the cars' glows
+ */
+export function paintUnderground(pools: PoolPainter, darkFill: string, game: RenderGame,
+  beams: (game: RenderGame, level: CarLevel) => void, glows: CarGlows) {
+  const ctx = pools.lightCtx, canvas = ctx.canvas;
+  ctx.globalCompositeOperation = 'destination-out';
+  beams(game, 'tunnel');
+  glows.rubCars(game, 'tunnel');
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.globalAlpha = 1;
+  ctx.beginPath();
+  if (traceUnderground(ctx, pools)) {
+    ctx.fillStyle = '#000';
+    ctx.fill();
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.fillStyle = darkFill;
+    ctx.fill();
+  }
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(0, 0, canvas.width, canvas.height);
+  traceUnderground(ctx, pools);
+  ctx.clip('evenodd');
+  glows.tintCars(game, 'tunnel');
+  ctx.restore();
+  ctx.globalAlpha = 1;
+  ctx.globalCompositeOperation = 'destination-out';
+  ctx.beginPath();
+}
+
 /**
  * Adds each straight tunnel's underground stretch (lintel to lintel, wall face to
  * wall face) to the path, as a deck: the light of a car in it never reaches the ground above.
@@ -98,7 +165,7 @@ export function darkenCovers(pools: PoolPainter, darkFill: string): void {
  * @param map the world-to-art-px mapping
  * @returns how many were added
  */
-function traceUnderground(ctx: CanvasRenderingContext2D, map: DeckMapping): number {
+export function traceUnderground(ctx: CanvasRenderingContext2D, map: DeckMapping): number {
   let count = 0;
   for (const way of LEVEL.crossings || []) {
     if (way.kind !== 'tunnel' || way.hidden || way.length <= 2 * way.cut) continue;
